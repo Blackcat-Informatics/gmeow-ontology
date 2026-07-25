@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: temporal, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "duringInterval is functional"
+msgstr "duringInterval 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:duringInterval is functional: a gmeow:TimeScopedRelation is delimited by exactly one gmeow:TimeInterval, since a relation true across two disjoint spans is two distinct scoped situations rather than one situation bearing two scopes."
+msgstr "在规范载体上断言 gmeow:duringInterval 是函数性的：一个 gmeow:TimeScopedRelation 恰好由一个 gmeow:TimeInterval 限定，因为一个在两个互不相交的时间段上都成立的关系是两个不同的限定情境，而不是一个情境承载两个限定范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "edtfValue is functional"
+msgstr "edtfValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:edtfValue is functional: an instant or interval has at most one EDTF expression of its own value, since a second EDTF string would state a competing value for the same point rather than an alternate label for it."
+msgstr "在规范载体上断言 gmeow:edtfValue 是函数性的：一个瞬间或区间至多有一个表达其自身值的 EDTF 表达式，因为第二个 EDTF 字符串会为同一点陈述一个相互竞争的值，而不是为其提供一个替代标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "endedAtTime is functional"
+msgstr "endedAtTime 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:endedAtTime is functional: a gmeow:TimeInterval closes at a single instant, since two distinct end timestamps would describe two different intervals and an open interval omits the value entirely rather than carrying several."
+msgstr "在规范载体上断言 gmeow:endedAtTime 是函数性的：一个 gmeow:TimeInterval 恰好在一个瞬间结束，因为两个不同的结束时间戳将描述两个不同的区间，而一个开放区间是完全省略该值，而不是携带多个值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameCalendarSystem is functional"
+msgstr "frameCalendarSystem 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameCalendarSystem is functional: a gmeow:TemporalFrame reckons its dates in at most one gmeow:CalendarSystem, since a frame that mixed Gregorian and Hebrew reckoning would be two frames rather than one (the property is optional for scale-only frames but never multi-valued)."
+msgstr "在规范载体上断言 gmeow:frameCalendarSystem 是函数性的：一个 gmeow:TemporalFrame 至多在一个 gmeow:CalendarSystem 中推算其日期，因为混用格里高利历与希伯来历推算的参照系将是两个参照系而非一个（该属性对仅有刻度的参照系而言是可选的，但绝不可多值）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameReferencePosition is functional"
+msgstr "frameReferencePosition 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameReferencePosition is functional: a gmeow:TemporalFrame is anchored to at most one gmeow:ReferencePosition, since a single frame cannot fix its time to two timezones or observatories at once, so a second locus makes a second frame (the property is optional for position-independent frames but never multi-valued)."
+msgstr "在规范载体上断言 gmeow:frameReferencePosition 是函数性的：一个 gmeow:TemporalFrame 至多锚定到一个 gmeow:ReferencePosition，因为单一参照系不能同时将其时间固定在两个时区或两个天文台上，若存在第二个位置就意味着第二个参照系（该属性对与位置无关的参照系而言是可选的，但绝不可多值）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameTimeScale is functional"
+msgstr "frameTimeScale 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameTimeScale is functional: a gmeow:TemporalFrame runs on exactly one gmeow:TimeScale, since the mandatory 'which clock' component is singular and a frame ticking on both TAI and UT1 would be two frames."
+msgstr "在规范载体上断言 gmeow:frameTimeScale 是函数性的：一个 gmeow:TemporalFrame 恰好运行在一个 gmeow:TimeScale 上，因为必需的「哪一种时钟」这一成分是单一的，若一个参照系同时以 TAI 与 UT1 计时，那将是两个参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasEndInstant is functional"
+msgstr "hasEndInstant 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasEndInstant is functional: a gmeow:TimeInterval terminates at a single reified gmeow:Instant, mirroring the singular gmeow:endedAtTime it reifies, and an open-ended interval omits it rather than naming two ends."
+msgstr "在规范载体上断言 gmeow:hasEndInstant 是函数性的:一个 gmeow:TimeInterval 终止于单一具体化的 gmeow:Instant,与其所具体化的单一 gmeow:endedAtTime 相呼应,一个开放式区间会省略它,而不是指定两个终点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasStartInstant is functional"
+msgstr "hasStartInstant 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasStartInstant is functional: a gmeow:TimeInterval begins at a single reified gmeow:Instant, since an interval bearing two distinct start instants would be two intervals sharing an end rather than one."
+msgstr "在规范载体上断言 gmeow:hasStartInstant 是函数性的:一个 gmeow:TimeInterval 始于单一具体化的 gmeow:Instant,因为一个带有两个不同起始时刻的区间实际上是两个共享一个终点的区间,而不是一个区间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "instantValue is functional"
+msgstr "instantValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:instantValue is functional: a gmeow:Instant carries at most one crisp xsd:dateTime value, since a zero-duration point has a single machine-computable value and any approximate alternative belongs on gmeow:edtfValue rather than as a second crisp value."
+msgstr "在规范载体上断言 gmeow:instantValue 是函数性的:一个 gmeow:Instant 至多携带一个精确的 xsd:dateTime 取值,因为一个零持续时长的时间点只有一个可由机器计算的取值,任何近似的替代表述都应归入 gmeow:edtfValue,而不是作为第二个精确取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measuredAge is functional"
+msgstr "measuredAge 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measuredAge is functional: a single gmeow:TemporalMeasurement yields one numeric age in its declared unit, since one dating act under one vantage produces one result and a second age figure is a distinct standpoint-indexed measurement."
+msgstr "在规范载体上断言 gmeow:measuredAge 是函数式的:单个 gmeow:TemporalMeasurement 以其声明的单位得出一个数值年龄,因为在单一视角下的一次测年行为只产生一个结果,而第二个年龄数值将是以不同立场为索引的另一次测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measuredDate is functional"
+msgstr "measuredDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measuredDate is functional: a single gmeow:TemporalMeasurement resolves to one absolute date gmeow:Instant, since one dating act yields one result and a competing date is a separate standpoint-indexed measurement rather than a second date on this one."
+msgstr "在规范载体上断言 gmeow:measuredDate 是函数式的:单个 gmeow:TemporalMeasurement 解析为一个绝对日期 gmeow:Instant,因为一次测年行为只产生一个结果,而一个相竞争的日期是以不同立场为索引的另一次独立测量,而不是这次测量上的第二个日期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurementMethod is functional"
+msgstr "measurementMethod 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measurementMethod is functional: a gmeow:TemporalMeasurement is produced by exactly one gmeow:DatingMethod, since the technique behind an age is singular and a result obtained by a different method is a different measurement."
+msgstr "在规范载体上断言 gmeow:measurementMethod 是函数式的:一个 gmeow:TemporalMeasurement 恰好由一种 gmeow:DatingMethod 产生,因为得出某个年龄背后的技术是单一的,由不同方法得出的结果即为不同的测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurementUncertainty is functional"
+msgstr "measurementUncertainty 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measurementUncertainty is functional: a gmeow:TemporalMeasurement carries one uncertainty figure paired with its single measured age, since a second error bar would describe a different measurement rather than the same one twice."
+msgstr "在规范载体上断言 gmeow:measurementUncertainty 是函数式的:一个 gmeow:TemporalMeasurement 携带一个与其单一测得年龄配对的不确定度数值,因为第二个误差范围将描述的是另一次测量,而不是同一次测量被重复两次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "periodEnd is functional"
+msgstr "periodEnd 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:periodEnd is functional: a gmeow:NamedPeriod closes at a single boundary gmeow:Instant, since an era with two distinct end instants would be two periods and a still-ongoing period omits it rather than naming several."
+msgstr "在规范载体上断言 gmeow:periodEnd 是函数性的:一个 gmeow:NamedPeriod 恰好终止于一个边界 gmeow:Instant,因为具有两个不同结束时刻的纪元将构成两个时期,而仍在进行中的时期则省略该值,而非指定多个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "startedAtTime is functional"
+msgstr "startedAtTime 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued."
+msgstr "在规范载体上断言 gmeow:startedAtTime 是函数性的:一个 gmeow:TimeInterval 恰好在单一确定的 dateTime 处开始,因为具有两个起始时间戳的区间实际上是两个区间,这使得内联的起始边界只能取单一值。"
+

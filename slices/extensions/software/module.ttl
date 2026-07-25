@@ -1077,3 +1077,190 @@ Contribution relator and hasContributor shortcut supersede it."""@x-gmeow-englis
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Merge> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/mergeTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:authorIdentityStringFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "authorIdentityString is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authorIdentityString is functional: an AuthorIdentity records exactly one raw byte-string — the single 'Name <email>' line as it appeared in the commit object, an immutable historical assertion that is never re-recorded."@x-gmeow-english ;
+    logic:characterizes gmeow:authorIdentityString ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:authorIdentityString ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:buildConfigUriFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "buildConfigUri is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran."@x-gmeow-english ;
+    logic:characterizes gmeow:buildConfigUri ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:buildConfigUri ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:commitAuthorIdentityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitAuthorIdentity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitAuthorIdentity is functional: a commit object records exactly one author-identity line — the single raw historical byte-string naming who wrote the patch, distinct from the canonical agent it may be understood to refer to."@x-gmeow-english ;
+    logic:characterizes gmeow:commitAuthorIdentity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitAuthorIdentity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:commitCommitterIdentityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitCommitterIdentity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitCommitterIdentity is functional: a commit object records exactly one committer-identity line — the single raw historical byte-string naming who applied the commit to the repository, distinct from its author identity."@x-gmeow-english ;
+    logic:characterizes gmeow:commitCommitterIdentity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitCommitterIdentity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:commitInRepositoryFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitInRepository is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitInRepository is functional: a commit belongs to exactly one repository, since a fork is a separate repository carrying its own independent history rather than a second home for the same commit."@x-gmeow-english ;
+    logic:characterizes gmeow:commitInRepository ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitInRepository ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:commitTreeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commitTree is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history."@x-gmeow-english ;
+    logic:characterizes gmeow:commitTree ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:commitTree ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:diffFromFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "diffFrom is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from."@x-gmeow-english ;
+    logic:characterizes gmeow:diffFrom ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:diffFrom ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:diffToFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "diffTo is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward."@x-gmeow-english ;
+    logic:characterizes gmeow:diffTo ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:diffTo ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:materializationDepthFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "materializationDepth is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples."@x-gmeow-english ;
+    logic:characterizes gmeow:materializationDepth ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:materializationDepth ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mergeTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "mergeTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources."@x-gmeow-english ;
+    logic:characterizes gmeow:mergeTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mergeTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:projectHomepageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "projectHomepage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point."@x-gmeow-english ;
+    logic:characterizes gmeow:projectHomepage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectHomepage ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:releaseOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "releaseOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships."@x-gmeow-english ;
+    logic:characterizes gmeow:releaseOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:releaseOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:repositoryTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "repositoryType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:repositoryType is functional: a repository is managed by exactly one version-control system — a single RepositoryType value (git, hg, svn, fossil, …), never two VCSes at once."@x-gmeow-english ;
+    logic:characterizes gmeow:repositoryType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:repositoryType ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:treeEntryModeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "treeEntryMode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object."@x-gmeow-english ;
+    logic:characterizes gmeow:treeEntryMode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:treeEntryMode ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:treeEntryNameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "treeEntryName is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object."@x-gmeow-english ;
+    logic:characterizes gmeow:treeEntryName ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:treeEntryName ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:treeEntryObjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "treeEntryObject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names."@x-gmeow-english ;
+    logic:characterizes gmeow:treeEntryObject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:treeEntryObject ;
+    gmeow:graphBoxRole gmeow:boxABox .

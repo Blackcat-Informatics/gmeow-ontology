@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: preference, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gateVerdictFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gateVerdict is functional"
+msgstr "gateVerdict 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gateVerdictFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation."
+msgstr "在规范载体上断言 gmeow:gateVerdict 是函数性的：一个 gmeow:ConsumerImprovementGate 恰好携带一个裁定值，正是这唯一的成立与否裁定，决定该关卡是否授权激活。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hardConstraintClassFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hardConstraintClass is functional"
+msgstr "hardConstraintClass 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hardConstraintClassFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility."
+msgstr "在规范载体上断言 gmeow:hardConstraintClass 是函数性的:一个 gmeow:VerifierVerdict 恰好具有一个 gmeow:ConstraintHardness——硬性或软性——这是正交性关卡读取以判定获胜资格的唯一轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionDeterminismFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "projectionDeterminism is functional"
+msgstr "projectionDeterminism 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionDeterminismFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:projectionDeterminism is functional: a gmeow:ProjectionReceipt carries exactly one determinism declaration, positively asserted so that non-determinism is never left silent."
+msgstr "在规范载体上断言 gmeow:projectionDeterminism 是函数性的:一个 gmeow:ProjectionReceipt 恰好携带一个确定性声明,并且是正面断言的,以确保非确定性绝不会被默默略过。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "projectionKind is functional"
+msgstr "projectionKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite."
+msgstr "在规范载体上断言 gmeow:projectionKind 是函数性的:一个 gmeow:ProjectionReceipt 恰好是一种投影形态——这一单一类型会折入该回执的内容摘要,并决定哪些披露门限生效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receiptKind is functional"
+msgstr "receiptKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind."
+msgstr "在规范载体上断言 gmeow:receiptKind 是函数性的:一个 gmeow:LifecycleReceipt 恰好记录一种决策类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierOutcomeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verifierOutcome is functional"
+msgstr "verifierOutcome 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierOutcomeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on."
+msgstr "在规范载体上断言 gmeow:verifierOutcome 是函数性的:一个 gmeow:VerifierVerdict 恰好具有一个结果值——即硬失败门禁所依据的唯一「成立/不成立/未确定」结果。"
+

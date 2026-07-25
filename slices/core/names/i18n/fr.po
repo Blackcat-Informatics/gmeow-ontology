@@ -1,0 +1,119 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: names, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/honorificPositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "honorificPosition is functional"
+msgstr "honorificPosition est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/honorificPositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:honorificPosition is functional: a given honorific is rendered in exactly one place relative to the name — either as a prefix or as a suffix, never both — so each gmeow:Honorific fixes a single render position."
+msgstr "Affirme sur le porteur canonique que gmeow:honorificPosition est fonctionnelle : un honorifique donné est rendu à exactement un emplacement par rapport au nom — soit comme préfixe, soit comme suffixe, jamais les deux — de sorte que chaque gmeow:Honorific fixe une unique position de rendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "nameLanguage is functional"
+msgstr "nameLanguage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nameLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:nameLanguage is functional: an appellation's surface form is in exactly one gmeow:Language, because co-equal multilingual names are modelled as separate co-equal gmeow:Appellation instances (one per language) rather than by multi-tagging a single name — the discipline that keeps naming anti-colonial and symmetric."
+msgstr "Affirme sur le porteur canonique que gmeow:nameLanguage est fonctionnelle : la forme de surface d'une appellation est dans exactement une gmeow:Language, car les noms multilingues de statut égal sont modélisés comme des instances gmeow:Appellation distinctes et de statut égal (une par langue) plutôt que par un étiquetage multiple d'un seul nom — la discipline qui préserve un rapport à la dénomination anticolonial et symétrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namePartTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "namePartType is functional"
+msgstr "namePartType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/namePartTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:namePartType is functional: a single gmeow:NamePart has exactly one kind, since a component that is at once a surname and a patronymic is modelled as two distinct parts rather than one part bearing two types."
+msgstr "Affirme sur le porteur canonique que gmeow:namePartType est fonctionnelle : un unique gmeow:NamePart possède exactement un genre, puisqu'un composant qui serait à la fois un nom de famille et un patronyme est modélisé comme deux parties distinctes plutôt que comme une seule partie portant deux types."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOrderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "partOrder is functional"
+msgstr "partOrder est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:partOrder is functional: a gmeow:NamePart occupies exactly one 0-based position in its appellation's surface order — a component has a single place as actually written in its culture."
+msgstr "Affirme sur le porteur canonique que gmeow:partOrder est fonctionnelle : un gmeow:NamePart occupe exactement une position, indexée à partir de 0, dans l'ordre de surface de son appellation — un composant a une place unique telle qu'elle est effectivement écrite dans sa culture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pronounObject is functional"
+msgstr "pronounObject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pronounObject is functional: a gmeow:PronounSet has exactly one object (accusative) form — the single word that fills that one grammatical slot."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounObject est fonctionnelle : un gmeow:PronounSet possède exactement une forme d'objet (accusatif) — le seul mot qui remplit cette unique case grammaticale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveDeterminerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pronounPossessiveDeterminer is functional"
+msgstr "pronounPossessiveDeterminer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveDeterminerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pronounPossessiveDeterminer is functional: a gmeow:PronounSet has exactly one possessive determiner form — the single word that fills that one grammatical slot."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounPossessiveDeterminer est fonctionnelle : un gmeow:PronounSet possède exactement une forme de déterminant possessif — le seul mot qui remplit cette unique case grammaticale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pronounPossessive is functional"
+msgstr "pronounPossessive est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pronounPossessive is functional: a gmeow:PronounSet has exactly one possessive pronoun form — the single word that fills that one grammatical slot."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounPossessive est fonctionnelle : un gmeow:PronounSet possède exactement une forme de pronom possessif — le seul mot qui remplit cette unique case grammaticale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounReflexiveFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pronounReflexive is functional"
+msgstr "pronounReflexive est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounReflexiveFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pronounReflexive is functional: a gmeow:PronounSet has exactly one reflexive form — the single word that fills that one grammatical slot."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounReflexive est fonctionnelle : un gmeow:PronounSet possède exactement une forme réfléchie — le seul mot qui remplit cette unique case grammaticale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pronounSubject is functional"
+msgstr "pronounSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pronounSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pronounSubject is functional: a gmeow:PronounSet has exactly one subject (nominative) form — the single word that fills that one grammatical slot."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounSubject est fonctionnelle : un gmeow:PronounSet possède exactement une forme de sujet (nominatif) — le seul mot qui remplit cette unique case grammaticale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageAppellationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usageAppellation is functional"
+msgstr "usageAppellation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageAppellationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:usageAppellation is functional: a gmeow:NameUsage relator binds exactly one appellation — the single name by which its subject is called in that reified use, so a different appellation is a different usage."
+msgstr "Affirme sur le porteur canonique que gmeow:usageAppellation est fonctionnelle : un relateur gmeow:NameUsage lie exactement une appellation — le nom unique par lequel son sujet est appelé dans cet usage réifié, de sorte qu'une appellation différente constitue un usage différent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageNamedFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usageNamed is functional"
+msgstr "usageNamed est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageNamedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:usageNamed is functional: a gmeow:NameUsage relator names exactly one entity — the single subject called by its appellation in that reified use, so a different named entity is a different usage."
+msgstr "Affirme sur le porteur canonique que gmeow:usageNamed est fonctionnelle : un relateur gmeow:NameUsage nomme exactement une entité — le sujet unique appelé par son appellation dans cet usage réifié, de sorte qu'une entité nommée différente constitue un usage différent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageRegisterFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usageRegister is functional"
+msgstr "usageRegister est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageRegisterFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:usageRegister is functional: a gmeow:NameUsage carries exactly one social register — the single formal, intimate, professional, or casual posture of that one reified use of a name."
+msgstr "Affirme sur le porteur canonique que gmeow:usageRegister est fonctionnelle : un gmeow:NameUsage porte exactement un registre social — la posture unique, formelle, intime, professionnelle ou décontractée, de cet unique usage réifié d'un nom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageRelationshipScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usageRelationshipScope is functional"
+msgstr "usageRelationshipScope est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageRelationshipScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience."
+msgstr "Affirme sur le porteur canonique que gmeow:usageRelationshipScope est fonctionnelle : un gmeow:NameUsage est circonscrit par exactement une relation interpersonnelle durable — le lien unique, comme la relation tante-nièce dans laquelle « Tante Genny » est utilisé, ceci étant le cas précis à une seule relation de gmeow:usageAudience."
+

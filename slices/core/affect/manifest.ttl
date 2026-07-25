@@ -17,6 +17,7 @@
     gmeow:sliceProfile "narrative" ;
     gmeow:providesSubcommand "affect" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,

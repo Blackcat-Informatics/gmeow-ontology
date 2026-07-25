@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: awareness, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awarenessSubject is functional"
+msgstr "awarenessSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:awarenessSubject is functional: each gmeow:AwarenessTenure reifies the awareness state of exactly one bearer agent, so this per-branch subject edge (Principle 4, deliberately not gufo:inheresIn) names a single experiencer for the mode-over-interval it records."
+msgstr "Affirme sur le porteur canonique que gmeow:awarenessSubject est fonctionnelle : chaque gmeow:AwarenessTenure réifie l'état de conscience d'exactement un agent porteur, de sorte que cette arête sujet par branche (Principe 4, délibérément distincte de gufo:inheresIn) nomme un unique sujet vivant l'expérience pour le mode-sur-intervalle qu'elle enregistre."
+

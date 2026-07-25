@@ -472,3 +472,168 @@ STANDPOINT DOCTRINE. The trust module exercises the three-axis separation that g
     skos:definition "The GMEOW Trust Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:certificationLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "certificationLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:certificationLevel is functional: a gmeow:Certification records exactly one care level for the single binding it attests, since one attestation cannot be simultaneously casual and positive."@x-gmeow-english ;
+    logic:characterizes gmeow:certificationLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:certificationLevel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:certifiedIdentityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "certifiedIdentity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:certifiedIdentity is functional: a gmeow:Certification binds its key to exactly one gmeow:Agent identity, since a claim binding the key to a different identity is a separate certification across standpoints rather than a second identity on this one."@x-gmeow-english ;
+    logic:characterizes gmeow:certifiedIdentity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:certifiedIdentity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:certifiedKeyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "certifiedKey is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:certifiedKey is functional: a gmeow:Certification vouches for exactly one gmeow:CryptographicKey, since the key half of the attested binding is singular and a different key is a different attestation."@x-gmeow-english ;
+    logic:characterizes gmeow:certifiedKey ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:certifiedKey ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:certifierFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "certifier is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:certifier is functional: a gmeow:Certification is made by exactly one certifying gmeow:Agent, since a second signer's attestation of the same binding is a separate certification rather than a second certifier on this one."@x-gmeow-english ;
+    logic:characterizes gmeow:certifier ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:certifier ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:introducerAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "introducerAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:introducerAmount is functional: a gmeow:TrustAssertion carries exactly one introducer amount, since one trustor assigns one trust-signature weight to its trustee and a different weight is a different assertion."@x-gmeow-english ;
+    logic:characterizes gmeow:introducerAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:introducerAmount ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:introducerDepthFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "introducerDepth is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:introducerDepth is functional: a gmeow:TrustAssertion declares exactly one introducer depth, since a single assertion fixes one bound on how many indirect introducer levels the trustor will follow rather than several competing bounds."@x-gmeow-english ;
+    logic:characterizes gmeow:introducerDepth ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:introducerDepth ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:keySchemeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "keyScheme is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:keyScheme is functional: a gmeow:CryptographicKey has exactly one scheme — OpenPGP, X.509, SSH, or Nostr — since a key of a different format is a different key."@x-gmeow-english ;
+    logic:characterizes gmeow:keyScheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:keyScheme ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:signatureAlgorithmFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "signatureAlgorithm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:signatureAlgorithm is functional: a gmeow:CryptographicSignature was produced with exactly one algorithm, since one signing act uses one algorithm and a signature made with a different algorithm is a different signature."@x-gmeow-english ;
+    logic:characterizes gmeow:signatureAlgorithm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:signatureAlgorithm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:signingDomainFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "signingDomain is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:signingDomain is functional: a gmeow:CryptographicSignature asserts exactly one signing domain, since a single signature carries one claimed signing authority such as one DKIM d= tag."@x-gmeow-english ;
+    logic:characterizes gmeow:signingDomain ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:signingDomain ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:signingKeyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "signingKey is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:signingKey is functional: a gmeow:CryptographicSignature is produced by exactly one gmeow:CryptographicKey, since one signing act uses the one specific key whose binding to the signer a certification vouches for."@x-gmeow-english ;
+    logic:characterizes gmeow:signingKey ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:signingKey ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trusteeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "trustee is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trustee is functional: a gmeow:TrustAssertion names exactly one trustee, since a single assertion expresses one trustor's stance toward one trusted agent and trust in another agent is a separate assertion."@x-gmeow-english ;
+    logic:characterizes gmeow:trustee ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trustee ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trustLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "trustLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trustLevel is functional: a gmeow:TrustAssertion expresses exactly one owner-trust degree — ultimate, full, marginal, or none — being one trustor's subjective level toward its trustee and never two degrees on the same assertion."@x-gmeow-english ;
+    logic:characterizes gmeow:trustLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trustLevel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trustorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "trustor is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trustor is functional: a gmeow:TrustAssertion is held from exactly one trustor's standpoint, being the single perspective holder whose subjective trust it expresses, since another agent's trust is a separate assertion (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:trustor ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trustor ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:verificationStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    rdfs:label "verificationStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:verificationStatus is functional: a gmeow:CryptographicSignature carries exactly one verification outcome from a given verifier, since a competing verifier's differing result is recorded as a separate signature observation rather than a second status here."@x-gmeow-english ;
+    logic:characterizes gmeow:verificationStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:verificationStatus ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: inhabitation, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationEmbodiment is functional"
+msgstr "configurationEmbodiment est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval."
+msgstr "Affirme sur le porteur canonique que gmeow:configurationEmbodiment est fonctionnelle : une gmeow:InhabitationConfiguration possède exactement une incarnation centrale active, l'unique gmeow:EmbodimentAssignment qui demeure constante sur le sous-intervalle de la configuration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationOfTenure is functional"
+msgstr "configurationOfTenure est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions."
+msgstr "Affirme sur le porteur canonique que gmeow:configurationOfTenure est fonctionnelle : chaque gmeow:InhabitationConfiguration est un sous-intervalle à configuration constante d'exactement une gmeow:InhabitationTenure qu'elle partitionne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an inhabitation tenure's interval carries its temporal frame"
+msgstr "l'intervalle d'une occupation d'habitation porte son cadre temporel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame."
+msgstr "Affirme que chaque gmeow:TimeInterval qu'une gmeow:InhabitationTenure délimite via gmeow:duringInterval doit déclarer au moins un gmeow:hasTemporalFrame — un intervalle affirmé sans son cadre est mal formé (Principe 11 : l'intervalle porte son cadre). La porte de cohérence native lève une violation lorsqu'un intervalle délimitant manque d'un cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitationLocusKind is functional"
+msgstr "inhabitationLocusKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitationLocusKind is functional: a gmeow:InhabitationTenure has exactly one locus kind, either gmeow:locusSelf or gmeow:locusVessel, while tenancy cardinality is derived from overlapping tenures rather than set here."
+msgstr "Affirme sur le porteur canonique que gmeow:inhabitationLocusKind est fonctionnelle : un gmeow:InhabitationTenure possède exactement un type de lieu, soit gmeow:locusSelf, soit gmeow:locusVessel, tandis que la cardinalité de l'occupation est dérivée des tenures qui se chevauchent plutôt que fixée ici."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitationSubject is functional"
+msgstr "inhabitationSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitationSubject is functional: a gmeow:InhabitationTenure has exactly one inhabiting subject, and because that single slot has a gmeow:Agent range a contested inhabitation must use gmeow:InhabitationClaim rather than assert a rival subject here."
+msgstr "Affirme sur le porteur canonique que gmeow:inhabitationSubject est fonctionnelle : un gmeow:InhabitationTenure possède exactement un sujet occupant, et comme cet emplacement unique a pour portée gmeow:Agent, une occupation contestée doit passer par gmeow:InhabitationClaim plutôt que d'affirmer ici un sujet rival."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inhabitedHost is functional"
+msgstr "inhabitedHost est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure."
+msgstr "Affirme sur le porteur canonique que gmeow:inhabitedHost est fonctionnelle : un gmeow:InhabitationTenure possède exactement un hôte occupé, de sorte que le même sujet occupant un second hôte constitue une tenure distincte."
+

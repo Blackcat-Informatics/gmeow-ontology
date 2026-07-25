@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: lexicon, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestationIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attestationInterval is functional"
+msgstr "attestationInterval est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestationIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen."
+msgstr "Affirme sur le porteur canonique que gmeow:attestationInterval est fonctionnelle : une attestation d'usage porte exactement un intervalle d'observation, l'unique étendue de corpus, période d'inscription, ou ère d'usage durant laquelle l'usage attesté est affirmé avoir été observé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestedFormFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attestedForm is functional"
+msgstr "attestedForm est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestedFormFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attestedForm is functional: a usage attestation observes exactly one lexical form, its single feature of interest — a distinct attestation is minted per form rather than piling several onto one relator."
+msgstr "Affirme sur le porteur canonique que gmeow:attestedForm est fonctionnelle : une attestation d'usage observe exactement une forme lexicale, son unique élément d'intérêt — une attestation distincte est créée pour chaque forme plutôt que d'en empiler plusieurs sur un même relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivationTarget is functional"
+msgstr "derivationTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon."
+msgstr "Affirme sur le porteur canonique que gmeow:derivationTarget est fonctionnelle : une dérivation étymologique nomme exactement un item ou une forme lexicale descendante, l'unique cible dérivée de l'étymon."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/etymonSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "etymonSource is functional"
+msgstr "etymonSource est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/etymonSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:etymonSource is functional: an etymological derivation names exactly one ancestor lexical item or form (the etymon), a multi-source etymology being modeled as several derivations rather than one relator carrying many sources."
+msgstr "Affirme sur le porteur canonique que gmeow:etymonSource est fonctionnelle : une dérivation étymologique désigne exactement un item ou une forme lexicale ancêtre (l'étymon), une étymologie à sources multiples étant modélisée comme plusieurs dérivations plutôt que comme un seul relateur portant de nombreuses sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formRepresentationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "formRepresentation is functional"
+msgstr "formRepresentation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formRepresentationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form."
+msgstr "Affirme sur le porteur canonique que gmeow:formRepresentation est fonctionnelle : une forme lexicale porte exactement une chaîne ou une valeur de surface, car une représentation différente constitue par définition une forme différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lexicalItemLanguage is functional"
+msgstr "lexicalItemLanguage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:lexicalItemLanguage is functional: a lexical item has exactly one primary language, a polyglot or borrowed item being modeled as separate items linked by translation or derivation rather than as one item in several languages."
+msgstr "Affirme sur le porteur canonique que gmeow:lexicalItemLanguage est fonctionnelle : un item lexical possède exactement une langue principale, un item polyglotte ou emprunté étant modélisé comme des items distincts reliés par traduction ou dérivation plutôt que comme un seul item existant en plusieurs langues."
+

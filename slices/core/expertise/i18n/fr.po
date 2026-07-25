@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: expertise, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "credentialIssuer is functional"
+msgstr "credentialIssuer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:credentialIssuer is functional: one issuing organization is constitutive of a gmeow:Credential's identity, so a different issuer yields a different credential even for the same subject matter."
+msgstr "Affirme sur le porteur canonique que gmeow:credentialIssuer est fonctionnelle : un unique organisme émetteur est constitutif de l'identité d'un gmeow:Credential, de sorte qu'un émetteur différent produit un titre différent même pour le même objet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyAgent is functional"
+msgstr "skillProficiencyAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyAgent is functional: a gmeow:SkillProficiency expresses the proficiency of exactly one agent, whose identity is constitutive of the reified proficiency."
+msgstr "Affirme sur le porteur canonique que gmeow:skillProficiencyAgent est fonctionnelle: une gmeow:SkillProficiency exprime la compétence d'exactement un agent, dont l'identité est constitutive de la compétence réifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyLevel is functional"
+msgstr "skillProficiencyLevel est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyLevel is functional: a gmeow:SkillProficiency records exactly one attained level (a single gmeow:ProficiencyLevel such as dreyfusExpert or assessedCompetent), and a second level would be a separate assessment."
+msgstr "Affirme sur le porteur canonique que gmeow:skillProficiencyLevel est fonctionnelle: une gmeow:SkillProficiency enregistre exactement un niveau atteint (un seul gmeow:ProficiencyLevel tel que dreyfusExpert ou assessedCompetent), et un second niveau constituerait une évaluation distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyOf is functional"
+msgstr "skillProficiencyOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyOf is functional: a gmeow:SkillProficiency concerns exactly one skill, constitutive of which proficiency it is."
+msgstr "Affirme sur le porteur canonique que gmeow:skillProficiencyOf est fonctionnelle: une gmeow:SkillProficiency concerne exactement une compétence, ce qui est constitutif du fait qu'il s'agit de cette compétence-là."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyScale is functional"
+msgstr "skillProficiencyScale est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record."
+msgstr "Affirme sur le porteur canonique que gmeow:skillProficiencyScale est fonctionnelle: le niveau d'une gmeow:SkillProficiency est mesuré sur exactement une échelle (Dreyfus, NIH, évaluée ou auto-déclarée), de sorte que le même niveau atteint, lu sur une autre échelle, constitue un enregistrement de compétence distinct."
+

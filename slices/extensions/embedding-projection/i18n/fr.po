@@ -1,0 +1,183 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: embedding-projection, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "comparesLeftTarget is functional"
+msgstr "comparesLeftTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:comparesLeftTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one left operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second left row would be a second, distinct observation, not one claim with two left operands."
+msgstr "Affirme sur le porteur canonique que gmeow:comparesLeftTarget est fonctionnelle : une observation de similarité par paire évalue exactement une paire d'opérandes, de sorte qu'elle désigne exactement une ligne d'opérande gauche — l'unique gmeow:VectorTarget dont le vecteur est l'objet de la proximité mesurée par son gmeow:similarityScore ; une seconde ligne gauche constituerait une seconde observation distincte, et non une revendication unique avec deux opérandes gauches."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "comparesRightTarget is functional"
+msgstr "comparesRightTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:comparesRightTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one right operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second right row would be a second, distinct observation, not one claim with two right operands."
+msgstr "Affirme sur le porteur canonique que gmeow:comparesRightTarget est fonctionnelle : une observation de similarité par paire évalue exactement une paire d'opérandes, de sorte qu'elle désigne exactement une ligne d'opérande droit — l'unique gmeow:VectorTarget dont le vecteur est l'objet de la proximité mesurée par son gmeow:similarityScore ; une seconde ligne droite constituerait une seconde observation distincte, et non une revendication unique avec deux opérandes droits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effectiveOfFamily is functional"
+msgstr "effectiveOfFamily est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:effectiveOfFamily is functional: an effective vector space is a space of exactly one embedding family, so its identity digest folds in exactly one family digest and a prefix space resolves to the single stored matrix it shares; two families would be two distinct effective spaces, never one contract bound to both."
+msgstr "Affirme sur le porteur canonique que gmeow:effectiveOfFamily est fonctionnelle : un espace vectoriel effectif est l'espace d'exactement une famille d'embeddings, de sorte que son résumé d'identité intègre exactement un résumé de famille et qu'un espace préfixe se résout en l'unique matrice stockée qu'il partage ; deux familles constitueraient deux espaces effectifs distincts, jamais un seul contrat lié aux deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasTargetSet is functional"
+msgstr "hasTargetSet est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasTargetSet is functional: a projection's stored matrix realizes exactly one ordered target namespace, so its row mapping resolves to a single content-addressed gmeow:TargetSet; a different subject projection over the same source is a different projection with its own target set, never one projection matrix bearing two."
+msgstr "Affirme sur le porteur canonique que gmeow:hasTargetSet est fonctionnelle : la matrice stockée d'une projection réalise exactement un espace de noms cible ordonné, de sorte que son mappage de lignes se résout en un unique gmeow:TargetSet adressé par contenu ; une projection sujette différente sur la même source est une projection distincte avec son propre ensemble cible, jamais une seule matrice de projection en portant deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasVectorSpaceContract is functional"
+msgstr "hasVectorSpaceContract est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasVectorSpaceContract is functional: a projection commits to exactly one comparability contract, because vectors obeying two contracts cannot be compared under one metric and so are two projections, never one; the single contract's digest is the join key for cross-projection comparability."
+msgstr "Affirme sur le porteur canonique que gmeow:hasVectorSpaceContract est fonctionnelle : une projection s'engage sur exactement un contrat de comparabilité, car des vecteurs obéissant à deux contrats ne peuvent être comparés sous une seule métrique et constituent donc deux projections, jamais une seule ; le condensé du contrat unique est la clé de jointure pour la comparabilité entre projections."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "indexOfProjection is functional"
+msgstr "indexOfProjection est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:indexOfProjection is functional: a derived index is built over exactly one embedding projection, so it always resolves to the single authoritative source of the vectors it accelerates; a federated accelerator spanning several projections is several gmeow:DerivedVectorIndex individuals, never one index bound to two projections."
+msgstr "Affirme sur le porteur canonique que gmeow:indexOfProjection est fonctionnelle : un index dérivé est construit sur exactement une projection d'embeddings, de sorte qu'il se résout toujours vers la source faisant autorité unique des vecteurs qu'il accélère ; un accélérateur fédéré couvrant plusieurs projections correspond à plusieurs individus gmeow:DerivedVectorIndex, jamais à un seul index lié à deux projections."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "indexOverSpace is functional"
+msgstr "indexOverSpace est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:indexOverSpace is functional: a derived index is built over exactly one effective/prefix vector space, the single space it states what it approximates; an index over a 256-dim prefix and an index over the full family space are distinct gmeow:DerivedVectorIndex individuals even over one projection, never one index over two spaces."
+msgstr "Affirme sur le porteur canonique que gmeow:indexOverSpace est fonctionnelle : un index dérivé est construit sur exactement un espace vectoriel effectif/préfixe, l'espace unique dont il énonce ce qu'il approxime ; un index sur un préfixe à 256 dimensions et un index sur l'espace complet de la famille sont des individus gmeow:DerivedVectorIndex distincts, même pour une seule projection, jamais un seul index sur deux espaces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matryoshkaPolicy is functional"
+msgstr "matryoshkaPolicy est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:matryoshkaPolicy is functional: an effective vector space commits to exactly one prefix policy that folds into its identity digest, because the full-space (fixed) reading and a leading-prefix reading are distinct effective spaces with distinct digests; a single space cannot be both, so it fixes one gmeow:MatryoshkaPolicy."
+msgstr "Affirme sur le porteur canonique que gmeow:matryoshkaPolicy est fonctionnelle : un espace vectoriel effectif s'engage sur exactement une politique de préfixe qui s'intègre dans son condensé d'identité, car la lecture en espace complet (fixe) et une lecture en préfixe initial constituent des espaces effectifs distincts à condensés distincts ; un même espace ne peut être les deux à la fois, il fixe donc une seule gmeow:MatryoshkaPolicy."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "normalizationKind is functional"
+msgstr "normalizationKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:normalizationKind is functional: an effective vector space commits to exactly one postprocessing/normalization strategy that folds into its digest identity, because normalized and un-normalized vectors are not one comparable space; a single gmeow:VectorSpaceContract therefore fixes one gmeow:NormalizationKind, never two."
+msgstr "Affirme sur le porteur canonique que gmeow:normalizationKind est fonctionnelle : un espace vectoriel effectif s'engage sur exactement une stratégie de post-traitement/normalisation qui s'intègre dans son identité de condensé, car des vecteurs normalisés et non normalisés ne constituent pas un espace comparable unique ; un seul gmeow:VectorSpaceContract fixe donc un seul gmeow:NormalizationKind, jamais deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overVectorSpace is functional"
+msgstr "overVectorSpace est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:overVectorSpace is functional: a similarity observation's proximity is meaningful only within a single vector space, since a proximity stated across two contracts is ill-formed; the observation therefore names exactly one gmeow:VectorSpaceContract its vectors share, never two."
+msgstr "Affirme sur le porteur canonique que gmeow:overVectorSpace est fonctionnelle : la proximité d'une observation de similarité n'a de sens qu'au sein d'un unique espace vectoriel, une proximité énoncée entre deux contrats étant mal formée ; l'observation nomme donc exactement un gmeow:VectorSpaceContract que ses vecteurs partagent, jamais deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "poolingKind is functional"
+msgstr "poolingKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:poolingKind is functional: an embedding family commits to exactly one token-to-sequence pooling strategy as a generation-contract choice, because differently-pooled vectors are not one family even under one model; the family therefore fixes a single gmeow:PoolingKind that folds into its digest identity."
+msgstr "Affirme sur le porteur canonique que gmeow:poolingKind est fonctionnelle : une famille d'embeddings s'engage sur exactement une stratégie de regroupement (pooling) de jeton à séquence en tant que choix du contrat de génération, car des vecteurs regroupés différemment ne forment pas une seule famille même sous un même modèle ; la famille fixe donc un unique gmeow:PoolingKind qui s'intègre à son identité de condensé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "profileSurfaceKind is functional"
+msgstr "profileSurfaceKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares."
+msgstr "Affirme sur le porteur canonique que gmeow:profileSurfaceKind est fonctionnelle : une surface de profil est exactement un type de vue — conteneur ou manifeste — afin que les contraintes d'accord puissent identifier sans ambiguïté l'opérande conteneur et l'opérande manifeste d'une projection ; une surface qui serait deux types à la fois effondrerait les opérandes mêmes que la vérification croisée conteneur/manifeste compare."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "profileSurfaceOf is functional"
+msgstr "profileSurfaceOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against."
+msgstr "Affirme sur le porteur canonique que gmeow:profileSurfaceOf est fonctionnelle : une surface de profil est la vue d'exactement une projection englobante, de sorte que les contraintes d'accord conteneur et manifeste relient précisément deux surfaces par la seule projection qu'elles partagent ; une surface qui verrait deux projections n'aurait aucune projection bien définie contre laquelle effectuer la vérification croisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "projectionSource is functional"
+msgstr "projectionSource est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor."
+msgstr "Affirme sur le porteur canonique que gmeow:projectionSource est fonctionnelle : une projection est générée à partir d'exactement un artefact source, de sorte que la question « à partir de quelle source exacte ? » se résout en un unique paquet adressé par son contenu, portant son propre gmeow:contentDigest ; une projection liée à deux sources n'aurait aucun ancrage de provenance vérifiable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reproducibilityLevel is functional"
+msgstr "reproducibilityLevel est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reproducibilityLevel is functional: a projection sits at exactly one point on the get-leg determinism axis — bit-exact, within-tolerance, or merely regenerable — drawn from a closed value set; regeneration cannot be simultaneously two of these, so a projection declares one level, not two."
+msgstr "Affirme sur le porteur canonique que gmeow:reproducibilityLevel est fonctionnelle : une projection se situe à exactement un point de l'axe de déterminisme du côté « get » — exact au bit près, dans la tolérance, ou simplement régénérable — tiré d'un ensemble de valeurs fermé ; la régénération ne peut être simultanément deux de ces états, de sorte qu'une projection déclare un seul niveau, pas deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reproducibilityTolerance is functional"
+msgstr "reproducibilityTolerance est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one."
+msgstr "Affirme sur le porteur canonique que gmeow:reproducibilityTolerance est fonctionnelle : une projection « dans la tolérance » est réputée reproduite selon exactement une borne numérique, l'unique math:Quantity qui rend gmeow:reproducibleWithinTolerance vérifiable ; deux tolérances concurrentes laisseraient l'affirmation « dans la tolérance » ambiguë, de sorte qu'une projection en porte une seule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "similarityScore is functional"
+msgstr "similarityScore est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:similarityScore is functional: a similarity observation carries exactly one magnitude — the graded proximity of its one operand pair under its one metric, grounded as a single math:Quantity; a second score would describe a different observation, not one claim with two proximities."
+msgstr "Affirme sur le porteur canonique que gmeow:similarityScore est fonctionnelle: une observation de similarité porte exactement une magnitude — la proximité graduée de sa seule paire d'opérandes sous sa seule métrique, ancrée comme une seule math:Quantity; un second score décrirait une observation différente, et non une seule affirmation portant deux proximités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "targetsResource is functional"
+msgstr "targetsResource est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:targetsResource is functional: one vector row embeds exactly one resource — the single term, document, chunk, summary, or statement reifier the row stands for, which is that row's identity; a row targeting two resources would be two distinct rows, never one slot bound to both."
+msgstr "Affirme sur le porteur canonique que gmeow:targetsResource est fonctionnelle: une ligne vectorielle intègre exactement une ressource — le seul terme, document, fragment, résumé ou réificateur d'énoncé que la ligne représente, ce qui constitue l'identité de cette ligne; une ligne ciblant deux ressources serait deux lignes distinctes, jamais un seul emplacement lié aux deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vectorByteOrder is functional"
+msgstr "vectorByteOrder est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vectorByteOrder is functional: an embedding family serializes its stored matrix under exactly one byte order that folds into its gmeow:contentDigest identity, so a byte-order difference is a family difference rather than a silent reinterpretation of the same stored bytes; the family therefore fixes a single gmeow:ByteOrder."
+msgstr "Affirme sur le porteur canonique que gmeow:vectorByteOrder est fonctionnelle : une famille d'embeddings sérialise sa matrice stockée sous exactement un ordre d'octets, lequel entre dans son identité gmeow:contentDigest, de sorte qu'une différence d'ordre d'octets constitue une différence de famille plutôt qu'une réinterprétation silencieuse des mêmes octets stockés ; la famille fixe donc un unique gmeow:ByteOrder."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vectorTargetKind is functional"
+msgstr "vectorTargetKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vectorTargetKind is functional: a vector target embeds exactly one kind of resource — a row is a corpus, document, chunk, dataset, graph, statement, reifier, annotation, term, or summary, but one flavour, not two; the target therefore folds in a single gmeow:VectorTargetKind."
+msgstr "Affirme sur le porteur canonique que gmeow:vectorTargetKind est fonctionnelle : une cible vectorielle intègre exactement un type de ressource — une ligne est un corpus, un document, un fragment, un jeu de données, un graphe, un énoncé, un réifiant, une annotation, un terme ou un résumé, mais une seule variété, jamais deux ; la cible incorpore donc un unique gmeow:VectorTargetKind."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "withMetric is functional"
+msgstr "withMetric est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:withMetric is functional: a similarity observation's proximity was computed under exactly one distance metric, because a cosine 0.9 and a dot-product 0.9 are not the same claim; the observation therefore names the single metric its score was measured under, which must in turn agree with its gmeow:overVectorSpace contract's metric."
+msgstr "Affirme sur le porteur canonique que gmeow:withMetric est fonctionnelle : la proximité d'une observation de similarité a été calculée sous exactement une métrique de distance, car un cosinus de 0,9 et un produit scalaire de 0,9 ne constituent pas la même affirmation ; l'observation nomme donc la métrique unique sous laquelle son score a été mesuré, laquelle doit à son tour s'accorder avec la métrique du contrat gmeow:overVectorSpace."
+

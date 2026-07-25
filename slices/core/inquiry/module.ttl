@@ -235,3 +235,36 @@ DOCTRINE.
     skos:definition "The GMEOW Inquiry Module — erotetic content: gmeow:Question as the third content sibling of gmeow:Proposition (assertoric) and gmeow:Goal (optative), individuated by its answerhood condition, together with the question-type value vocabulary, the presupposition / answer relations, and the flat inquiry-attitude spine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:tenureInquirerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "tenureInquirer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureInquirer is functional: a gmeow:InquiryTenure records the open question of exactly one agent — two agents holding the same question open are two tenures sharing one gmeow:tenureQuestion, not two inquirers on one tenure."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureInquirer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureInquirer ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tenureQuestionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    rdfs:label "tenureQuestion is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureQuestion is functional: a gmeow:InquiryTenure records exactly one held-open question — an agent holding five questions open bears five tenures, and sharing happens at a single gmeow:Question individual rather than by multi-valuing this edge."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureQuestion ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureQuestion ;
+    gmeow:graphBoxRole gmeow:boxABox .

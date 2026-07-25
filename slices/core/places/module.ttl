@@ -5685,3 +5685,520 @@ gmeow:ProximityResultPresentConstraint
     logic:anyOf gmeow:observationResult ;
     logic:formalizes gmeow:ProximityMeasurementShape ;
     logic:message "A ProximityMeasurement must yield at least one math:Quantity result." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:capacityOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "capacityOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:capacityOf is functional: a capacity measurement is constitutively about exactly one location, so the single location it quantifies fixes the measurement's identity and a second location would be a distinct measurement."@x-gmeow-english ;
+    logic:characterizes gmeow:capacityOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:capacityOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:containmentChildFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "containmentChild is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:containmentChild is functional: a containment tenure records the nesting of exactly one contained place within a parent, so the child place is uniquely determined by the tenure and several children mean several tenures."@x-gmeow-english ;
+    logic:characterizes gmeow:containmentChild ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:containmentChild ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:containmentParentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "containmentParent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:containmentParent is functional: a single containment tenure fixes one containing place, and disputed parallel parents are modelled as separate standpoint-indexed tenures rather than multiple parents on one (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:containmentParent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:containmentParent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:coordinateFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "coordinateFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:coordinateFrame is functional: a SpatialCoordinates value has meaning only relative to the single reference frame it is stated in, so exactly one frame expresses it and coordinates in another frame are a different value (Principle 11)."@x-gmeow-english ;
+    logic:characterizes gmeow:coordinateFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:coordinateFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:currencyCodeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "currencyCode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:currencyCode is functional: a currency reference frame has one canonical short code — the ISO 4217 alphabetic code for fiat or the conventional ticker for crypto — so a single code uniquely designates the frame."@x-gmeow-english ;
+    logic:characterizes gmeow:currencyCode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:currencyCode ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:determinacyModelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "determinacyModel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:determinacyModel is functional: a reference frame carries a single frame-level default determinacy model, with per-value overrides riding on gmeow:hasDeterminacy, so exactly one default determinacy attaches to the frame."@x-gmeow-english ;
+    logic:characterizes gmeow:determinacyModel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:determinacyModel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionCountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "dimensionCount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dimensionCount is functional: a reference frame spans a single, well-defined number of dimensions, so the count is a unique non-negative integer property of the frame."@x-gmeow-english ;
+    logic:characterizes gmeow:dimensionCount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:dimensionCount ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:frameKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "frameKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:frameKind is functional: a reference frame has one structural form — the geometric/representational shape (cartesian, cylindrical, grid, geocoding, scalar, …) that determines how its coordinates are laid out — so exactly one gmeow:FrameKind classifies it, orthogonal to and never conflated with its realm."@x-gmeow-english ;
+    logic:characterizes gmeow:frameKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:frameKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:frameRealmFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "frameRealm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:frameRealm is functional: a reference frame belongs to a single domain of discourse — the realm (terrestrial, celestial, currency, biological, robotic, …) that fixes what kind of value it measures or locates — so exactly one gmeow:FrameRealm applies, orthogonal to and never conflated with its structural frame kind."@x-gmeow-english ;
+    logic:characterizes gmeow:frameRealm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:frameRealm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:geocodeFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "geocodeFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:geocodeFrame is functional: a geocode is a code within one geocoding system, so it is expressed in exactly one geocoding reference frame and mixing two systems on a single Geocode is disallowed."@x-gmeow-english ;
+    logic:characterizes gmeow:geocodeFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:geocodeFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:geocodeValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "geocodeValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:geocodeValue is functional: a single Geocode carries exactly one canonical code string — its literal carrier behind the per-system accessors — so distinct codes require distinct Geocode instances."@x-gmeow-english ;
+    logic:characterizes gmeow:geocodeValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:geocodeValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:geohashFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "geohash is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:geohash is functional: a Geocode holds one geohash string, the single base32 index for its cell, so a second geohash would denote a different cell and hence a different Geocode."@x-gmeow-english ;
+    logic:characterizes gmeow:geohash ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:geohash ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hasMetricKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "hasMetricKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasMetricKind is functional: a reference frame declares one distance/dissimilarity metric governing every proximity computation expressed in it, so exactly one gmeow:MetricKind applies to the frame."@x-gmeow-english ;
+    logic:characterizes gmeow:hasMetricKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasMetricKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hasReferencePositionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "hasReferencePosition is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasReferencePosition is functional: a celestial reference frame has one origin (topocentric, geocentric, barycentric, or heliocentric) about which its coordinates are reckoned, so exactly one reference position fixes it."@x-gmeow-english ;
+    logic:characterizes gmeow:hasReferencePosition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasReferencePosition ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hasTimeScaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "hasTimeScale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasTimeScale is functional: a celestial reference frame is tied to one time standard, so exactly one gmeow:TimeScale governs the temporal reckoning of coordinates expressed in it."@x-gmeow-english ;
+    logic:characterizes gmeow:hasTimeScale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasTimeScale ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:inReferenceAssemblyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "inReferenceAssembly is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inReferenceAssembly is functional: a sequence-coordinate tuple is meaningful only against one reference assembly (e.g. GRCh38), so it names exactly one assembly and coordinates in another assembly are a distinct SequenceCoordinates instance (Principle 11)."@x-gmeow-english ;
+    logic:characterizes gmeow:inReferenceAssembly ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inReferenceAssembly ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:jurisdictionPlaceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "jurisdictionPlace is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:jurisdictionPlace is functional: a jurisdiction tenure records governance over exactly one place, and the place is constitutive of the tenure's identity, so a second place would be a different tenure."@x-gmeow-english ;
+    logic:characterizes gmeow:jurisdictionPlace ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:jurisdictionPlace ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:jurisdictionPolityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "jurisdictionPolity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:jurisdictionPolity is functional: a jurisdiction tenure records one governing polity holding jurisdiction during that period, and competing sovereignty is captured as separate standpoint-indexed tenures rather than multiple polities on one (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:jurisdictionPolity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:jurisdictionPolity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mgrsFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "mgrs is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mgrs is functional: a Geocode holds one Military Grid Reference System coordinate string locating a single grid cell, so a second MGRS value would identify a different location and thus a different Geocode."@x-gmeow-english ;
+    logic:characterizes gmeow:mgrs ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mgrs ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:mileMarkerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "mileMarker is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mileMarker is functional: a Geocode carries one linear-referencing mile-marker — a single distance-along-the-line position on a road, railway, or pipeline — so one value fixes the location."@x-gmeow-english ;
+    logic:characterizes gmeow:mileMarker ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mileMarker ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:networkAddressFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "networkAddressFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:networkAddressFrame is functional: a network address is stated in one topology-only reference frame (IPv4, IPv6, MAC, …), so exactly one frame situates it within the network."@x-gmeow-english ;
+    logic:characterizes gmeow:networkAddressFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:networkAddressFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:networkAddressValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "networkAddressValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:networkAddressValue is functional: a NetworkAddress denotes one endpoint and carries a single literal string (an IP, MAC, DNS name, URL, or port), so distinct addresses are distinct NetworkAddress instances."@x-gmeow-english ;
+    logic:characterizes gmeow:networkAddressValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:networkAddressValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:occupancyOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "occupancyOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:occupancyOf is functional: an occupancy measurement is constitutively about exactly one location, since the count it reports belongs to a single locus, so a second location would be a different measurement."@x-gmeow-english ;
+    logic:characterizes gmeow:occupancyOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:occupancyOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:overlayAuthorityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "overlayAuthority is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overlayAuthority is functional: a regulatory overlay is imposed by one authority, and overlapping claims by different bodies are modelled as separate standpoint-indexed overlays, so exactly one authority imposes each (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:overlayAuthority ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:overlayAuthority ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:overlayDesignatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "overlayDesignator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overlayDesignator is functional: the authority's code for an overlay (an ICAO airspace identifier, a NOTAM number, a fisheries-zone code) is constitutive of its administrative identity, so an overlay bears exactly one designator."@x-gmeow-english ;
+    logic:characterizes gmeow:overlayDesignator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:overlayDesignator ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:overlayPlaceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "overlayPlace is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overlayPlace is functional: a regulatory overlay applies over exactly one place that carries its geometry, and the place is constitutive of the overlay's identity, so a second place would be a different overlay."@x-gmeow-english ;
+    logic:characterizes gmeow:overlayPlace ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:overlayPlace ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:parentFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "parentFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parentFrame is functional: a reference frame nests under a single parent in its frame hierarchy (a TF transform tree or Internet topology), so it has exactly one parent frame and the hierarchy forms a tree rather than a tangle."@x-gmeow-english ;
+    logic:characterizes gmeow:parentFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:parentFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:plusCodeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "plusCode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:plusCode is functional: a Geocode holds one Open Location Code identifying a single cell on Earth, so a different Plus Code would denote a different location and thus a different Geocode."@x-gmeow-english ;
+    logic:characterizes gmeow:plusCode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:plusCode ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:proximityToFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "proximityTo is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proximityTo is functional: a proximity measurement is a relator between a source and one target entity, and the target is constitutive of the relator's identity, so measuring to a different target is a different measurement."@x-gmeow-english ;
+    logic:characterizes gmeow:proximityTo ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:proximityTo ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:referenceAuthorityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "referenceAuthority is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:referenceAuthority is functional: a cadastral reference is issued by one registry, land titles office, or surveying authority, so exactly one issuing authority stands behind it."@x-gmeow-english ;
+    logic:characterizes gmeow:referenceAuthority ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:referenceAuthority ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:referenceJurisdictionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "referenceJurisdiction is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:referenceJurisdiction is functional: a cadastral reference is valid under one jurisdiction's legal framework (a country, state, province, or territory), so exactly one governing jurisdiction applies to it."@x-gmeow-english ;
+    logic:characterizes gmeow:referenceJurisdiction ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:referenceJurisdiction ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:referenceValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "referenceValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:referenceValue is functional: a cadastral reference is one registry identifier string (a folio, title, lot, or parcel ID), so it carries exactly one value and a further identifier is a distinct CadastralReference."@x-gmeow-english ;
+    logic:characterizes gmeow:referenceValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:referenceValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:requiresHostFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "requiresHost is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:requiresHost is functional: the requirement is a single yes/no fact about a frame — whether its existence is bound to a hosting entity — so exactly one boolean flag holds for the frame."@x-gmeow-english ;
+    logic:characterizes gmeow:requiresHost ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:requiresHost ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sequenceEndFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "sequenceEnd is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sequenceEnd is functional: a sequence-coordinate tuple has one 1-based inclusive end position on its sequence, so exactly one integer end pins the feature's boundary within its assembly (Principle 11)."@x-gmeow-english ;
+    logic:characterizes gmeow:sequenceEnd ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sequenceEnd ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sequenceStartFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "sequenceStart is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sequenceStart is functional: a sequence-coordinate tuple has one 1-based inclusive start position on its sequence, so exactly one integer start pins the feature's boundary within its assembly (Principle 11)."@x-gmeow-english ;
+    logic:characterizes gmeow:sequenceStart ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sequenceStart ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:sequenceStrandFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "sequenceStrand is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sequenceStrand is functional: a feature reads from one strand of a double-stranded biological sequence, so exactly one gmeow:StrandOrientation fixes its read direction."@x-gmeow-english ;
+    logic:characterizes gmeow:sequenceStrand ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sequenceStrand ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stateOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "stateOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:stateOf is functional: a location state describes the presence, pose, and velocity of exactly one moving entity, so a state belongs to a single entity and one LocationState is never shared across entities."@x-gmeow-english ;
+    logic:characterizes gmeow:stateOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:stateOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stateReferenceFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "stateReferenceFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:stateReferenceFrame is functional: a location state's pose and velocity are expressed against one frame, so exactly one reference frame situates it while nested-frame transformations remain a solver concern (Principle 12)."@x-gmeow-english ;
+    logic:characterizes gmeow:stateReferenceFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:stateReferenceFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:storageMediumFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "storageMedium is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:storageMedium is functional: the medium of a storage location is constitutive of it — a different medium is a different store — so exactly one gmeow:StorageMedium classifies each, unlike the descriptive, multi-source gmeow:placeType."@x-gmeow-english ;
+    logic:characterizes gmeow:storageMedium ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:storageMedium ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tenurePartyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "tenureParty is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureParty is functional: a land tenure records the rights held by one party, and joint ownership is modelled as multiple co-equal LandTenure instances rather than several parties on one, so exactly one party holds each tenure (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureParty ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureParty ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tenurePlaceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "tenurePlace is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenurePlace is functional: a land tenure's rights apply over exactly one place (parcel, lot, or spatial unit) that is constitutive of the tenure's identity, so a second place would be a different tenure."@x-gmeow-english ;
+    logic:characterizes gmeow:tenurePlace ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenurePlace ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trajectoryOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "trajectoryOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trajectoryOf is functional: a trajectory traces the space-time path of exactly one entity, so it belongs to a single entity and one Trajectory is never shared across entities."@x-gmeow-english ;
+    logic:characterizes gmeow:trajectoryOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trajectoryOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trajectoryReferenceFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "trajectoryReferenceFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trajectoryReferenceFrame is functional: all samples of a trajectory are expressed against one frame, so exactly one reference frame situates the path while frame transformation remains a solver concern (Principle 12)."@x-gmeow-english ;
+    logic:characterizes gmeow:trajectoryReferenceFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trajectoryReferenceFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:unLocodeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "unLocode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:unLocode is functional: a Geocode holds one UN/LOCODE — the single five-character code for a transport location (port, airport, rail terminal) — so one value identifies it."@x-gmeow-english ;
+    logic:characterizes gmeow:unLocode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:unLocode ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:utilizationOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "utilizationOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:utilizationOf is functional: a utilization measurement is constitutively about exactly one location, since the occupancy-to-capacity ratio it reports belongs to a single locus, so a second location would be a different measurement."@x-gmeow-english ;
+    logic:characterizes gmeow:utilizationOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:utilizationOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:what3wordsFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    rdfs:label "what3words is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:what3words is functional: a Geocode holds one what3words address — the three-word label of a single 3m×3m square — so one value fixes its location."@x-gmeow-english ;
+    logic:characterizes gmeow:what3words ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:what3words ;
+    gmeow:graphBoxRole gmeow:boxABox .

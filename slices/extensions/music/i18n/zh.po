@@ -1,0 +1,767 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: music, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysisFrame is functional"
+msgstr "analysisFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:analysisFrame is functional: a single music-analysis claim expresses its result within exactly one music-theory reference frame, so an analysis stated against two frames is two distinct claims."
+msgstr "在规范载体上断言 gmeow:analysisFrame 是函数性的:单一条音乐分析断言恰好在一个音乐理论参照框架内表达其结果,因此在两个框架下陈述的分析即为两条不同的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisPropertyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysisProperty is functional"
+msgstr "analysisProperty 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisPropertyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:analysisProperty is functional: each music-analysis claim asserts exactly one analytical dimension (key, harmony, meter, form function, motif identity, mode, tuning, groove, or schema), so a claim ranging over two dimensions is two claims."
+msgstr "在规范载体上断言 gmeow:analysisProperty 是函数性的:每条音乐分析断言恰好断定一个分析维度(调性、和声、节拍、曲式功能、动机身份、调式、调音、律动或图式),因此涉及两个维度的断言即为两条断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysisResult is functional"
+msgstr "analysisResult 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:analysisResult is functional: a music-analysis claim carries exactly one result value for its asserted dimension, so a second result value is a second claim."
+msgstr "在规范载体上断言 gmeow:analysisResult 是函数性的:一条音乐分析断言针对其所断定的维度恰好携带一个结果值,因此第二个结果值即构成第二条断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "analysisTarget is functional"
+msgstr "analysisTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/analysisTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:analysisTarget is functional: a music-analysis claim is directed at exactly one musical target — one analysis, one target — so analysing a second entity is a separate claim."
+msgstr "在规范载体上断言 gmeow:analysisTarget 是函数性的:一条音乐分析断言恰好针对一个音乐目标——一次分析,一个目标——因此分析第二个实体即构成一条独立的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorDegreeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchorDegree is functional"
+msgstr "anchorDegree 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorDegreeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:anchorDegree is functional: a PitchAnchor binds exactly one tuning-system degree to its frequency, so the degree it pins is single-valued per anchor."
+msgstr "在规范载体上断言 gmeow:anchorDegree 是函数性的:一个 PitchAnchor 恰好将一个调音体系的音级绑定到其频率,因此每个锚点所固定的音级是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorFrequencyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchorFrequency is functional"
+msgstr "anchorFrequency 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorFrequencyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:anchorFrequency is functional: a PitchAnchor assigns exactly one physical frequency to its degree, so a degree pinned to two frequencies would be two anchors, not one."
+msgstr "在规范载体上断言 gmeow:anchorFrequency 是函数性的:一个 PitchAnchor 恰好为其音级指定一个物理频率,因此一个被固定到两个频率的音级将是两个锚点,而非一个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assignedMeterFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assignedMeter is functional"
+msgstr "assignedMeter 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assignedMeterFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assignedMeter is functional: a MeterAssignment relator ties its carrier to exactly one MetricStructure over its span, so the assigned meter is single-valued per assignment."
+msgstr "在规范载体上断言 gmeow:assignedMeter 是函数性的:一个 MeterAssignment 关系元在其跨度内恰好将其载体绑定到一个 MetricStructure,因此每次指派所分配的节拍是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assignmentSpanFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assignmentSpan is functional"
+msgstr "assignmentSpan 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assignmentSpanFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assignmentSpan is functional: a MeterAssignment holds over exactly one MusicalTimeSpan, so a meter applying across two disjoint spans is two assignments."
+msgstr "在规范载体上断言 gmeow:assignmentSpan 是函数性的:一个 MeterAssignment 恰好在一个 MusicalTimeSpan 上成立,因此适用于两个不相交时间跨度的节拍即为两次指派。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/centsFromOriginFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "centsFromOrigin is functional"
+msgstr "centsFromOrigin 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/centsFromOriginFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:centsFromOrigin is functional: a PitchExpression has exactly one cents value, generated by fnRatioToCents from its single canonical ratio, so the derived cents measure is single-valued."
+msgstr "在规范载体上断言 gmeow:centsFromOrigin 是函数式的：一个 PitchExpression 恰好有一个音分值，由 fnRatioToCents 根据其唯一的规范比率生成，因此该派生的音分度量是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/collectionKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "collectionKind is functional"
+msgstr "collectionKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/collectionKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:collectionKind is functional: a PitchCollection is of exactly one kind (scale, mode, maqam, raga, pitch-class set, etc.), with contested or hybrid categorisations modelled as coexisting standpoints rather than as multiple kinds on one collection."
+msgstr "在规范载体上断言 gmeow:collectionKind 是函数式的：一个 PitchCollection 恰好属于一种类型（scale、mode、maqam、raga、pitch-class set 等），存在争议或混合的分类被建模为并存的多个立场，而不是同一集合上的多个类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/collectionPartOrderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "collectionPartOrder is functional"
+msgstr "collectionPartOrder 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/collectionPartOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:collectionPartOrder is functional: a pitch collection occupies exactly one zero-based position within its primary parent collection, so its part order is single-valued, and reuse under other parents at different orders uses per-parent part individuals."
+msgstr "在规范载体上断言 gmeow:collectionPartOrder 是函数式的：一个音高集合在其主要父集合中恰好占据一个从零开始的位置，因此其部分顺序是单值的，若在不同顺序下被其他父集合复用，则使用各父集合专属的部分个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationInstrumentTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationInstrumentType is functional"
+msgstr "configurationInstrumentType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationInstrumentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationInstrumentType is functional: an InstrumentConfiguration relator applies to exactly one kind of instrument, so the instrument type it targets is single-valued per relator."
+msgstr "在规范载体上断言 gmeow:configurationInstrumentType 是函数式的：一个 InstrumentConfiguration 关系体恰好适用于一种乐器类型，因此每个关系体所针对的乐器类型是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationInterval is functional"
+msgstr "configurationInterval 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationInterval is functional: an InstrumentConfiguration is described by at most one characterising interval, so the interval it names is single-valued per relator (optional, since some modifications alter timbre without a named interval)."
+msgstr "在规范载体上断言 gmeow:configurationInterval 是函数式的：一个 InstrumentConfiguration 至多由一个表征性音程来描述，因此其所指定的音程在每个关系体上是单值的（可选，因为某些改动会改变音色而没有可命名的音程）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationOf is functional"
+msgstr "configurationOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationOf is functional: an InstrumentConfiguration relator applies to exactly one specific instrument item, so the item it configures is single-valued per relator."
+msgstr "在规范载体上断言 gmeow:configurationOf 是函数式的：一个 InstrumentConfiguration 关系体恰好适用于一个具体的乐器项，因此其所配置的项在每个关系体上是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationTuningFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "configurationTuningFrame is functional"
+msgstr "configurationTuningFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationTuningFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:configurationTuningFrame is functional: an InstrumentConfiguration is expressed relative to exactly one tuning frame, so its reference frame is single-valued per relator (Principle 11)."
+msgstr "在规范载体上断言 gmeow:configurationTuningFrame 是函数式的：一个 InstrumentConfiguration 相对于恰好一个调音框架来表达，因此其参照框架在每个关系体上是单值的（原则 11）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintAppliesToFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "constraintAppliesTo is functional"
+msgstr "constraintAppliesTo 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintAppliesToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:constraintAppliesTo is functional: a TraversalConstraint applies to exactly one work, expression, or performance, so the entity it constrains is single-valued."
+msgstr "在规范载体上断言 gmeow:constraintAppliesTo 是函数式的：一个 TraversalConstraint 恰好适用于一个作品、表达或表演，因此它所约束的实体是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointOfTrajectoryFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "controlPointOfTrajectory is functional"
+msgstr "controlPointOfTrajectory 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointOfTrajectoryFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:controlPointOfTrajectory is functional: a PitchTrajectoryControlPoint belongs to exactly one PitchTrajectory, so its owning trajectory is single-valued."
+msgstr "在规范载体上断言 gmeow:controlPointOfTrajectory 是函数性的：一个 PitchTrajectoryControlPoint 恰好属于一个 PitchTrajectory，因此其所属轨迹是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointOrderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "controlPointOrder is functional"
+msgstr "controlPointOrder 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:controlPointOrder is functional: a control point occupies exactly one zero-based ordinal position within its PitchTrajectory, so its order index is single-valued."
+msgstr "在规范载体上断言 gmeow:controlPointOrder 是函数性的：一个控制点在其 PitchTrajectory 中恰好占据一个从零开始的序数位置，因此其顺序索引是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointPitchFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "controlPointPitch is functional"
+msgstr "controlPointPitch 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointPitchFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:controlPointPitch is functional: a control point carries exactly one frame-relative PitchValue, so the pitch it fixes is single-valued."
+msgstr "在规范载体上断言 gmeow:controlPointPitch 是函数性的：一个控制点恰好携带一个相对于参照系的 PitchValue，因此其所固定的音高是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointTimeFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "controlPointTimeFrame is functional"
+msgstr "controlPointTimeFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointTimeFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:controlPointTimeFrame is functional: a control point's time position is expressed in exactly one MusicalTimeFrame, so the time frame it is read against is single-valued."
+msgstr "在规范载体上断言 gmeow:controlPointTimeFrame 是函数性的：控制点的时间位置恰好在一个 MusicalTimeFrame 中表达，因此据以读取该位置的时间参照系是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointTimePositionDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "controlPointTimePositionDenominator is functional"
+msgstr "controlPointTimePositionDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointTimePositionDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:controlPointTimePositionDenominator is functional: the rational time position of a control point has exactly one denominator, so this component of its position is single-valued per control point."
+msgstr "在规范载体上断言 gmeow:controlPointTimePositionDenominator 是函数性的：控制点的有理时间位置恰好有一个分母，因此每个控制点该位置分量是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointTimePositionNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "controlPointTimePositionNumerator is functional"
+msgstr "controlPointTimePositionNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/controlPointTimePositionNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:controlPointTimePositionNumerator is functional: the rational time position of a control point has exactly one numerator, so this component of its position is single-valued per control point."
+msgstr "在规范载体上断言 gmeow:controlPointTimePositionNumerator 是函数性的：控制点的有理时间位置恰好有一个分子，因此每个控制点该位置分量是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionConstraintFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decisionConstraint is functional"
+msgstr "decisionConstraint 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionConstraintFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:decisionConstraint is functional: a PerformanceDecision satisfies the rules of exactly one TraversalConstraint, so the constraint it answers is single-valued."
+msgstr "在规范载体上断言 gmeow:decisionConstraint 是函数性的：一个 PerformanceDecision 恰好满足一个 TraversalConstraint 的规则，因此其所响应的约束是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionPerformanceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decisionPerformance is functional"
+msgstr "decisionPerformance 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionPerformanceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:decisionPerformance is functional: a PerformanceDecision is made within exactly one performance event, so the performance in which it occurred is single-valued."
+msgstr "在规范载体上断言 gmeow:decisionPerformance 是函数性的：一个 PerformanceDecision 恰好在一个演出事件中作出，因此其发生所在的演出是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionSequenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decisionSequence is functional"
+msgstr "decisionSequence 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionSequenceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:decisionSequence is functional: a PerformanceDecision records exactly one chosen fragment-traversal order for one performance, so its sequence record is single-valued."
+msgstr "在规范载体上断言 gmeow:decisionSequence 是函数性的：一个 PerformanceDecision 恰好为一场演出记录一个所选的片段遍历顺序，因此其序列记录是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/degreeCountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "degreeCount is functional"
+msgstr "degreeCount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/degreeCountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:degreeCount is functional: a TuningSystem has exactly one count of pitch degrees available per period, so its degree count is single-valued."
+msgstr "在规范载体上断言 gmeow:degreeCount 是函数性的：一个 TuningSystem 每个周期恰好有一个可用音高级数的数目，因此其级数是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dividedIntervalDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dividedIntervalDenominator is functional"
+msgstr "dividedIntervalDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dividedIntervalDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dividedIntervalDenominator is functional: the interval that an equal-division tuning divides has exactly one denominator, so this component of the divided interval is single-valued per tuning system."
+msgstr "在规范载体上断言 gmeow:dividedIntervalDenominator 是函数性的：等分调律所划分的音程恰好有一个分母，因此每个调律系统中该被划分音程的这一分量是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dividedIntervalNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dividedIntervalNumerator is functional"
+msgstr "dividedIntervalNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dividedIntervalNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dividedIntervalNumerator is functional: the interval that an equal-division tuning divides has exactly one numerator, so this component of the divided interval is single-valued per tuning system."
+msgstr "在规范载体上断言 gmeow:dividedIntervalNumerator 是函数性的：等分调律所划分的音程恰好有一个分子，因此每个调律系统中该被划分音程的这一分量是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionCountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "divisionCount is functional"
+msgstr "divisionCount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/divisionCountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:divisionCount is functional: an equal-division tuning makes exactly one count of equal divisions of its period, so its division count is single-valued."
+msgstr "在规范载体上断言 gmeow:divisionCount 是函数性的：一个等分调律恰好确定其周期的一个等分数目，因此其分割数是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofExpressionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dofExpression is functional"
+msgstr "dofExpression 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofExpressionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dofExpression is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Expression, so the expression it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator)."
+msgstr "在规范载体上断言 gmeow:dofExpression 是函数性的：一个 DegreeOfFreedom 关系体最多声明一个 Expression 的参数确定性，因此其所限定的 Expression 是单值的（每个关系体恰好满足 dofWork 或 dofExpression 二者之一）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofParameterFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dofParameter is functional"
+msgstr "dofParameter 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofParameterFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dofParameter is functional: a DegreeOfFreedom declares the determination status of exactly one musical parameter (pitch, duration, order, tempo, dynamics, timbre, etc.), so the parameter it scopes is single-valued."
+msgstr "在规范载体上断言 gmeow:dofParameter 是函数性的：一个 DegreeOfFreedom 恰好声明一个音乐参数（音高、时值、顺序、速度、力度、音色等）的确定状态，因此其所限定的参数是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dofStatus is functional"
+msgstr "dofStatus 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dofStatus is functional: a DegreeOfFreedom relator carries exactly one determination status for its parameter, so its status is single-valued."
+msgstr "在规范载体上断言 gmeow:dofStatus 是函数性的：一个 DegreeOfFreedom 关系体恰好为其参数携带一个确定状态，因此其状态是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofWorkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dofWork is functional"
+msgstr "dofWork 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dofWorkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dofWork is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Work, so the work it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator, Principle 4)."
+msgstr "在规范载体上断言 gmeow:dofWork 是函数性的：一个 DegreeOfFreedom 关系体最多声明一个 Work 的参数确定性，因此其所限定的作品是单值的（每个关系体恰好满足 dofWork 或 dofExpression 二者之一，原则 4）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/grooveGridUnitFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grooveGridUnit is functional"
+msgstr "grooveGridUnit 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/grooveGridUnitFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:grooveGridUnit is functional: a GrooveProfile applies to exactly one metric grid unit, so the grid unit it targets is single-valued."
+msgstr "在规范载体上断言 gmeow:grooveGridUnit 是函数性的:一个 GrooveProfile 恰好适用于一个节拍网格单位,因此它所针对的网格单位是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/grooveKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grooveKind is functional"
+msgstr "grooveKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/grooveKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:grooveKind is functional: a GrooveProfile is of exactly one kind (swing ratio, position offsets, or measured), so its groove kind is single-valued."
+msgstr "在规范载体上断言 gmeow:grooveKind 是函数性的:一个 GrooveProfile 恰好属于一种类型(摇摆比率、位置偏移或实测),因此其律动类型是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groupLengthDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "groupLengthDenominator is functional"
+msgstr "groupLengthDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groupLengthDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:groupLengthDenominator is functional: the rational length of a MetricGroup has exactly one denominator, so this component of its length is single-valued per group."
+msgstr "在规范载体上断言 gmeow:groupLengthDenominator 是函数性的:一个 MetricGroup 的有理长度恰好有一个分母,因此其长度的这一分量在每个组中都是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groupLengthNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "groupLengthNumerator is functional"
+msgstr "groupLengthNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groupLengthNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:groupLengthNumerator is functional: the rational length of a MetricGroup has exactly one numerator, so this component of its length is single-valued per group."
+msgstr "在规范载体上断言 gmeow:groupLengthNumerator 是函数性的:一个 MetricGroup 的有理长度恰好有一个分子,因此其长度的这一分量在每个组中都是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hsNumberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hsNumber is functional"
+msgstr "hsNumber 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hsNumberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hsNumber is functional: an InstrumentType carries at most one Hornbostel-Sachs classification number, so its HS code is single-valued (optional, since not every instrument type is assigned one)."
+msgstr "在规范载体上断言 gmeow:hsNumber 是函数性的:一个 InstrumentType 至多携带一个霍恩博斯特尔-萨克斯分类号,因此其 HS 编码是单值的(可选,因为并非每种乐器类型都被分配了该编码)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpolationKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interpolationKind is functional"
+msgstr "interpolationKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpolationKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:interpolationKind is functional: a PitchTrajectory uses exactly one interpolation mode between its control points (linearCents, exponential, or stochasticByReference), so its interpolation kind is single-valued."
+msgstr "在规范载体上断言 gmeow:interpolationKind 是函数性的:一个 PitchTrajectory 在其控制点之间恰好使用一种插值方式(linearCents、exponential 或 stochasticByReference),因此其插值类型是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapRatioDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mapRatioDenominator is functional"
+msgstr "mapRatioDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapRatioDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mapRatioDenominator is functional: the rational ratio carried by a TimeMapping has exactly one denominator, so this component of the ratio is single-valued per mapping."
+msgstr "在规范载体上断言 gmeow:mapRatioDenominator 是函数式的:一个 TimeMapping 所携带的有理比例恰好有一个分母,因此该比例的这一分量对每个映射而言都是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapRatioNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mapRatioNumerator is functional"
+msgstr "mapRatioNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapRatioNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mapRatioNumerator is functional: the rational ratio carried by a TimeMapping has exactly one numerator, so this component of the ratio is single-valued per mapping."
+msgstr "在规范载体上断言 gmeow:mapRatioNumerator 是函数式的:一个 TimeMapping 所携带的有理比例恰好有一个分子,因此该比例的这一分量对每个映射而言都是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipCollectionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membershipCollection is functional"
+msgstr "membershipCollection 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipCollectionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:membershipCollection is functional: a PitchCollectionMembership relator belongs to exactly one PitchCollection — one collection per membership — so the collection it joins is single-valued."
+msgstr "在规范载体上断言 gmeow:membershipCollection 是函数式的:一个 PitchCollectionMembership 关系体恰好属于一个 PitchCollection——每个成员关系对应一个集合——因此它所加入的集合是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipDegreeIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membershipDegreeIndex is functional"
+msgstr "membershipDegreeIndex 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipDegreeIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:membershipDegreeIndex is functional: a membership pins its member pitch to at most one zero-based degree index within the collection, so the degree index is single-valued (optional, present only when the collection has a conventional ordering)."
+msgstr "在规范载体上断言 gmeow:membershipDegreeIndex 是函数式的:一个成员关系在集合内最多将其成员音高固定到一个从零开始的级数索引,因此该级数索引是单值的(可选,仅当集合具有约定的排序时才存在)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipPitchFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membershipPitch is functional"
+msgstr "membershipPitch 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipPitchFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:membershipPitch is functional: a PitchCollectionMembership carries exactly one member pitch — one pitch per membership — so the pitch it admits is single-valued."
+msgstr "在规范载体上断言 gmeow:membershipPitch 是函数式的:一个 PitchCollectionMembership 恰好携带一个成员音高——每个成员关系对应一个音高——因此它所接纳的音高是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membershipRole is functional"
+msgstr "membershipRole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:membershipRole is functional: a PitchCollectionMembership assigns exactly one role to its pitch (tonic/finalis, vadi, samvadi, ghammaz, ascent-only, descent-only, ornamental, or generic member) — one role per membership — so the role is single-valued."
+msgstr "在规范载体上断言 gmeow:membershipRole 是函数式的:一个 PitchCollectionMembership 恰好为其音高分配一个角色(主音/结束音、vadi、samvadi、ghammaz、仅上行、仅下行、装饰性,或普通成员)——每个成员关系对应一个角色——因此该角色是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meterCarrierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meterCarrier is functional"
+msgstr "meterCarrier 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meterCarrierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:meterCarrier is functional: a MeterAssignment names exactly one carrying entity (voice, performer, or part) for its meter, so the carrier is single-valued per assignment."
+msgstr "在规范载体上断言 gmeow:meterCarrier 是函数式的:一个 MeterAssignment 恰好为其节拍指定一个承载实体(声部、演奏者或部分),因此每次指定的承载体都是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricGroupOrderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metricGroupOrder is functional"
+msgstr "metricGroupOrder 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricGroupOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:metricGroupOrder is functional: a MetricGroup occupies exactly one zero-based position within its MetricStructure, so its order index is single-valued."
+msgstr "在规范载体上断言 gmeow:metricGroupOrder 是函数式的:一个 MetricGroup 在其 MetricStructure 中恰好占据一个从零开始的位置,因此其顺序索引是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricStructureOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metricStructureOf is functional"
+msgstr "metricStructureOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricStructureOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:metricStructureOf is functional: a MetricStructure defines the metric cycle of exactly one entity (a work, section, or voice), so the entity it structures is single-valued."
+msgstr "在规范载体上断言 gmeow:metricStructureOf 是函数式的:一个 MetricStructure 恰好定义一个实体(一部作品、一个部分或一个声部)的节拍循环,因此它所构造的实体是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modulationFromFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modulationFromFrame is functional"
+msgstr "modulationFromFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modulationFromFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:modulationFromFrame is functional: a MetricModulation pivots away from exactly one source MusicalTimeFrame, so its origin frame is uniquely determined."
+msgstr "在规范载体上断言 gmeow:modulationFromFrame 是函数式的:一个 MetricModulation 恰好从一个源 MusicalTimeFrame 转出,因此其起始参照系是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modulationToFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modulationToFrame is functional"
+msgstr "modulationToFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modulationToFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:modulationToFrame is functional: a MetricModulation resolves into exactly one target MusicalTimeFrame, so its destination frame is uniquely determined."
+msgstr "在规范载体上断言 gmeow:modulationToFrame 是函数式的:一个 MetricModulation 恰好解析进入一个目标 MusicalTimeFrame,因此其目的参照系是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ornamentProfileKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ornamentProfileKind is functional"
+msgstr "ornamentProfileKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ornamentProfileKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ornamentProfileKind is functional: an OrnamentProfile is classified under exactly one ornament-profile kind, so a single kind fixes its gestural family (gamaka, baroque agrément, and the like)."
+msgstr "在规范载体上断言 gmeow:ornamentProfileKind 是函数性的:一个 OrnamentProfile 恰好归类于一种装饰音型类型,单一类型即确定其手势家族(如 gamaka、巴洛克 agrément 等)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ornamentReferenceFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ornamentReferenceFrame is functional"
+msgstr "ornamentReferenceFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ornamentReferenceFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ornamentReferenceFrame is functional: an OrnamentProfile's pitch gestures are expressed relative to exactly one TuningSystem reference frame, so a single frame anchors them (Principle 11)."
+msgstr "在规范载体上断言 gmeow:ornamentReferenceFrame 是函数性的:一个 OrnamentProfile 的音高手势恰好相对于一个 TuningSystem 参照系表达,单一参照系为其提供锚定(原则11)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationConfigurationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participationConfiguration is functional"
+msgstr "participationConfiguration 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationConfigurationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participationConfiguration is functional: a single PerformanceParticipation relator records exactly one InstrumentConfiguration, so the configuration used is uniquely determined per relator."
+msgstr "在规范载体上断言 gmeow:participationConfiguration 是函数性的:单个 PerformanceParticipation 关系元恰好记录一个 InstrumentConfiguration,因此每个关系元所用的配置都是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationInstrumentItemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participationInstrumentItem is functional"
+msgstr "participationInstrumentItem 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationInstrumentItemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participationInstrumentItem is functional: each PerformanceParticipation relator names exactly one specific instrument item — the particular instrument, plugin, or kit played — so the item is uniquely fixed per relator."
+msgstr "在规范载体上断言 gmeow:participationInstrumentItem 是函数性的:每个 PerformanceParticipation 关系元恰好指明一个具体的乐器项——所演奏的特定乐器、插件或乐器组——因此该项在每个关系元中都是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationPartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participationPart is functional"
+msgstr "participationPart 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationPartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participationPart is functional: a PerformanceParticipation relator captures exactly one part or role the participant performed, so the part is uniquely fixed per relator."
+msgstr "在规范载体上断言 gmeow:participationPart 是函数性的:一个 PerformanceParticipation 关系元恰好捕获参与者所演绎的一个声部或角色,因此该声部在每个关系元中都是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationTechniqueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participationTechnique is functional"
+msgstr "participationTechnique 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationTechniqueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participationTechnique is functional: a PerformanceParticipation relator records exactly one PlayingTechnique, so the technique used is uniquely fixed per relator."
+msgstr "在规范载体上断言 gmeow:participationTechnique 是函数性的:一个 PerformanceParticipation 关系元恰好记录一个 PlayingTechnique,因此每个关系元所用的技巧都是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pitchAnchorOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pitchAnchorOf is functional"
+msgstr "pitchAnchorOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pitchAnchorOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pitchAnchorOf is functional: a PitchAnchor is defined for exactly one TuningSystem, so its owning system is uniquely determined."
+msgstr "在规范载体上断言 gmeow:pitchAnchorOf 是函数性的:一个 PitchAnchor 恰好为一个 TuningSystem 定义,因此其所属系统是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pitchDegreeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pitchDegree is functional"
+msgstr "pitchDegree 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pitchDegreeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pitchDegree is functional: a PitchValue carries at most one tuning-system degree index, so its degree is a single integer (degree 0 origin, degree 7 the fifth in 12-EDO)."
+msgstr "在规范载体上断言 gmeow:pitchDegree 是函数性的:一个 PitchValue 至多携带一个调音系统度数索引,因此其度数是单一整数(0度为起点,7度为十二平均律中的五度)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pivotSourceValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pivotSourceValue is functional"
+msgstr "pivotSourceValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pivotSourceValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pivotSourceValue is functional: a MetricModulation's pivot equivalence has exactly one source-side rational value, so its source string is single."
+msgstr "在规范载体上断言 gmeow:pivotSourceValue 是函数性的:一个 MetricModulation 的枢轴等价关系恰好有一个源端有理数值,因此其源字符串是唯一的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pivotTargetValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pivotTargetValue is functional"
+msgstr "pivotTargetValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pivotTargetValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pivotTargetValue is functional: a MetricModulation's pivot equivalence has exactly one target-side rational value, so its target string is single."
+msgstr "在规范载体上断言 gmeow:pivotTargetValue 是函数性的:一个 MetricModulation 的枢轴等价关系恰好有一个目标端有理数值,因此其目标字符串是唯一的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/primeLimitFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "primeLimit is functional"
+msgstr "primeLimit 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/primeLimitFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:primeLimit is functional: a just-intonation TuningSystem admits exactly one largest prime factor bounding its interval ratios, so its prime limit is a single integer."
+msgstr "在规范载体上断言 gmeow:primeLimit 是函数性的:一个纯律 TuningSystem 恰好承认一个限定其音程比的最大质因数,因此其质数极限是单一整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/processKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "processKind is functional"
+msgstr "processKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/processKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:processKind is functional: a GenerativeProcess is of exactly one process kind, so a single kind classifies it as phasing, stochastic, verbal-score, rule-based, or algorithmic."
+msgstr "在规范载体上断言 gmeow:processKind 是函数性的:一个 GenerativeProcess 恰好属于一种过程类型,单一类型将其归类为相位型(phasing)、随机型、口头乐谱型、基于规则型或算法型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ratioDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ratioDenominator is functional"
+msgstr "ratioDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ratioDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ratioDenominator is functional: an exact pitch or interval ratio has exactly one denominator, so a single positive integer fixes it."
+msgstr "在规范载体上断言 gmeow:ratioDenominator 是函数性的:一个精确的音高或音程比恰好有一个分母,因此由单一的正整数确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ratioNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ratioNumerator is functional"
+msgstr "ratioNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ratioNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ratioNumerator is functional: an exact pitch or interval ratio has exactly one numerator, so a single integer fixes it in the canonical rational form paired with ratioDenominator."
+msgstr "在规范载体上断言 gmeow:ratioNumerator 是函数性的:一个精确的音高或音程比恰好有一个分子,因此由单一整数在与 ratioDenominator 配对的规范有理形式中确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentKind is functional"
+msgstr "segmentKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentKind is functional: a MusicalSegment is of exactly one kind (riff, motif, phrase, section, talea, color), with contested categorisations modelled as coexisting standpoints rather than multiple values (Principle 9)."
+msgstr "在规范载体上断言 gmeow:segmentKind 是函数性的:一个 MusicalSegment 恰好属于一种类型(riff、motif、phrase、section、talea、color),有争议的分类被建模为共存的立场而非多个值(原则 9)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentMapRatioDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentMapRatioDenominator is functional"
+msgstr "segmentMapRatioDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentMapRatioDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentMapRatioDenominator is functional: a TempoMapSegment's constant mapping ratio has exactly one denominator, so a single positive integer fixes it."
+msgstr "在规范载体上断言 gmeow:segmentMapRatioDenominator 是函数性的:TempoMapSegment 的恒定映射比恰好只有一个分母,因此单个正整数即可将其确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentMapRatioNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentMapRatioNumerator is functional"
+msgstr "segmentMapRatioNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentMapRatioNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentMapRatioNumerator is functional: a TempoMapSegment's constant mapping ratio has exactly one numerator of musical units per clock unit, so a single integer fixes it."
+msgstr "在规范载体上断言 gmeow:segmentMapRatioNumerator 是函数性的:TempoMapSegment 的恒定映射比恰好只有一个以每时钟单位的音乐单位数表示的分子,因此单个整数即可将其确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentSpanFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentSpan is functional"
+msgstr "segmentSpan 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentSpanFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentSpan is functional: a segment applies over exactly one MusicalTimeSpan, so the span it covers is uniquely determined whether the subject is a TempoMapSegment or a MusicalSegment."
+msgstr "在规范载体上断言 gmeow:segmentSpan 是函数性的:一个 segment 恰好作用于一个 MusicalTimeSpan,因此无论主体是 TempoMapSegment 还是 MusicalSegment,它所覆盖的时间跨度都被唯一确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTempoMapKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentTempoMapKind is functional"
+msgstr "segmentTempoMapKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTempoMapKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentTempoMapKind is functional: a TempoMapSegment follows exactly one curve kind, so a single kind fixes its tempo shape as constant, linear ramp, curve, or measured."
+msgstr "在规范载体上断言 gmeow:segmentTempoMapKind 是函数性的:TempoMapSegment 恰好遵循一种曲线类型,因此单一类型即可将其速度形态确定为恒定、线性渐变、曲线或按小节测定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spelledNameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "spelledName is functional"
+msgstr "spelledName 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spelledNameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:spelledName is functional: a PitchSpelling produces exactly one note-name string, so its spelled name is single per relator."
+msgstr "在规范载体上断言 gmeow:spelledName 是函数性的:一个 PitchSpelling 恰好产生一个音名字符串,因此每个关系体的拼写名称都是单一的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spellingPitchFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "spellingPitch is functional"
+msgstr "spellingPitch 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spellingPitchFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:spellingPitch is functional: a PitchSpelling names exactly one frame-relative pitch value, so its pitch is single per relator."
+msgstr "在规范载体上断言 gmeow:spellingPitch 是函数性的:一个 PitchSpelling 恰好指明一个相对于参照系的音高值,因此每个关系体的音高都是单一的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spellingSystemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "spellingSystem is functional"
+msgstr "spellingSystem 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spellingSystemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:spellingSystem is functional: a PitchSpelling expresses its name in exactly one spelling system (CMN staff, sargam, Johnston), so its system is single per relator."
+msgstr "在规范载体上断言 gmeow:spellingSystem 是函数性的:一个 PitchSpelling 恰好以一种拼写体系(CMN 五线谱、sargam、Johnston)表达其名称,因此每个关系体的体系都是单一的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tempoMapSegmentOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tempoMapSegmentOf is functional"
+msgstr "tempoMapSegmentOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tempoMapSegmentOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tempoMapSegmentOf is functional: a TempoMapSegment belongs to exactly one parent TempoMap, so its owning map is uniquely determined."
+msgstr "在规范载体上断言 gmeow:tempoMapSegmentOf 是函数性的:一个 TempoMapSegment 恰好属于一个父级 TempoMap,因此其所属的映射被唯一确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tempoRatioExpressionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tempoRatioExpression is functional"
+msgstr "tempoRatioExpression 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tempoRatioExpressionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tempoRatioExpression is functional: a TimeMapping's irrational tempo ratio has exactly one canonical symbolic expression, so its stored literal is single and never reasoner-parsed."
+msgstr "在规范载体上断言 gmeow:tempoRatioExpression 是函数性的:一个 TimeMapping 的无理速度比恰好只有一个规范的符号表达式,因此其存储的字面量是单一的,并且从不由推理机解析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timbreObservationResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timbreObservationResult is functional"
+msgstr "timbreObservationResult 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timbreObservationResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timbreObservationResult is functional: a single Observation assigns exactly one timbre descriptor to the ToneEvent it observes, so its result is uniquely determined per observation."
+msgstr "在规范载体上断言 gmeow:timbreObservationResult 是函数性的:单个 Observation 只为其观察的 ToneEvent 赋予恰好一个音色描述符,因此其结果在每次观察中都是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeDurationDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timeDurationDenominator is functional"
+msgstr "timeDurationDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeDurationDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timeDurationDenominator is functional: a MusicalTimeSpan's rational duration has exactly one denominator in its frame, so a single positive integer fixes it."
+msgstr "在规范载体上断言 gmeow:timeDurationDenominator 是函数性的:MusicalTimeSpan 的有理数时长在其参照系中恰好只有一个分母,因此单个正整数即可确定它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeDurationNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timeDurationNumerator is functional"
+msgstr "timeDurationNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeDurationNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timeDurationNumerator is functional: a MusicalTimeSpan's rational duration has exactly one numerator in its frame, so a single integer fixes it."
+msgstr "在规范载体上断言 gmeow:timeDurationNumerator 是函数性的:MusicalTimeSpan 的有理数时长在其参照系中恰好只有一个分子,因此单个整数即可确定它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeMappingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timeMappingKind is functional"
+msgstr "timeMappingKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeMappingKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timeMappingKind is functional: a TimeMapping is of exactly one kind (tuplet, tempo canon, metric modulation, groove), so a single kind classifies it."
+msgstr "在规范载体上断言 gmeow:timeMappingKind 是函数性的:TimeMapping 恰好属于一种类型(连音、速度卡农、节拍调制、律动),因此单一类型即可对其分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeStartDenominatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timeStartDenominator is functional"
+msgstr "timeStartDenominator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeStartDenominatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timeStartDenominator is functional: a MusicalTimeSpan's rational start position has exactly one denominator in its frame, so a single positive integer fixes it."
+msgstr "在规范载体上断言 gmeow:timeStartDenominator 是函数性的:MusicalTimeSpan 的有理数起始位置在其参照系中恰好只有一个分母,因此单个正整数即可确定它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeStartNumeratorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timeStartNumerator is functional"
+msgstr "timeStartNumerator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeStartNumeratorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timeStartNumerator is functional: a MusicalTimeSpan's rational start position has exactly one numerator in its frame, so a single integer fixes it."
+msgstr "在规范载体上断言 gmeow:timeStartNumerator 是函数性的:MusicalTimeSpan 的有理数起始位置在其参照系中恰好只有一个分子,因此单个整数即可确定它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventArticulationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toneEventArticulation is functional"
+msgstr "toneEventArticulation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventArticulationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toneEventArticulation is functional: a ToneEvent carries exactly one articulation or attack quality, so its articulation is single-valued."
+msgstr "在规范载体上断言 gmeow:toneEventArticulation 是函数性的:一个 ToneEvent 恰好带有一种吐音法或起音特质,因此其吐音法是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventDynamicsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toneEventDynamics is functional"
+msgstr "toneEventDynamics 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventDynamicsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toneEventDynamics is functional: a ToneEvent has exactly one symbolic dynamic level from ppp to fff, so its dynamics marking is single-valued while measured decibels go to the observation layer."
+msgstr "在规范载体上断言 gmeow:toneEventDynamics 是函数性的:一个 ToneEvent 恰好具有一个从 ppp 到 fff 的符号力度等级,因此其力度标记是单值的,而实测分贝值则归属于观察层。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventIsUnpitchedFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toneEventIsUnpitched is functional"
+msgstr "toneEventIsUnpitched 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventIsUnpitchedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toneEventIsUnpitched is functional: a ToneEvent is either unpitched or not, a single boolean flag that takes exactly one truth value and is mutually exclusive with pitch value and pitch trajectory."
+msgstr "在规范载体上断言 gmeow:toneEventIsUnpitched 是函数性的:一个 ToneEvent 要么无音高要么不是,这是一个单一的布尔标志,恰好取一个真值,并与音高值和音高轨迹互斥。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventPitchTrajectoryFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toneEventPitchTrajectory is functional"
+msgstr "toneEventPitchTrajectory 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventPitchTrajectoryFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toneEventPitchTrajectory is functional: a ToneEvent sounds at most one continuous pitch trajectory, exclusive of a discrete pitch value or the unpitched flag, so its trajectory is single-valued."
+msgstr "在规范载体上断言 gmeow:toneEventPitchTrajectory 是函数性的:一个 ToneEvent 至多发出一条连续的音高轨迹,与离散音高值或无音高标志互斥,因此其轨迹是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventPitchValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toneEventPitchValue is functional"
+msgstr "toneEventPitchValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventPitchValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toneEventPitchValue is functional: a ToneEvent sounds at most one frame-relative pitch value, exclusive of a trajectory or the unpitched flag under the single pitch-content mode, so its pitch value is single-valued."
+msgstr "在规范载体上断言 gmeow:toneEventPitchValue 是函数性的:在单一音高内容模式下,一个 ToneEvent 至多发出一个相对于参照系的音高值,与轨迹或无音高标志互斥,因此其音高值是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventTimbreFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toneEventTimbre is functional"
+msgstr "toneEventTimbre 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toneEventTimbreFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toneEventTimbre is functional: this shortcut asserts exactly one timbre descriptor on a ToneEvent, with contested or attributed descriptors deferred to coexisting observations rather than multiple values (Principle 9)."
+msgstr "在规范载体上断言 gmeow:toneEventTimbre 是函数性的:此快捷方式在一个 ToneEvent 上恰好断言一个音色描述符,有争议或需归因的描述符被交由共存的观察处理,而非采用多个值(原则 9)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationParameterFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transformationParameter is functional"
+msgstr "transformationParameter 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationParameterFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transformationParameter is functional: a SegmentTransformation carries at most one qualifying parameter — a PitchInterval, a MetricStructure, or another entity — so its parameter is single-valued and type-dependently interpreted."
+msgstr "在规范载体上断言 gmeow:transformationParameter 是函数性的:一个 SegmentTransformation 至多携带一个限定参数——PitchInterval、MetricStructure 或其他实体——因此其参数是单值的,并依类型作出解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transformationSource is functional"
+msgstr "transformationSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transformationSource is functional: a SegmentTransformation has exactly one source MusicalSegment, so its input segment is uniquely determined."
+msgstr "在规范载体上断言 gmeow:transformationSource 是函数性的:一个 SegmentTransformation 恰好有一个来源 MusicalSegment,因此其输入段是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transformationTarget is functional"
+msgstr "transformationTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transformationTarget is functional: a SegmentTransformation produces exactly one target MusicalSegment, so its output segment is uniquely determined."
+msgstr "在规范载体上断言 gmeow:transformationTarget 是函数性的:一个 SegmentTransformation 恰好产生一个目标 MusicalSegment,因此其输出段是唯一确定的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transformationType is functional"
+msgstr "transformationType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transformationTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transformationType is functional: a SegmentTransformation is of exactly one type relating its source and target (transposition, inversion, retrograde), so a single type classifies it."
+msgstr "在规范载体上断言 gmeow:transformationType 是函数性的:一个 SegmentTransformation 恰好属于一种连接其来源与目标的类型(移调、倒影、逆行),因此单一类型即可对其分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tuningKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tuningKind is functional"
+msgstr "tuningKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tuningKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tuningKind is functional: a TuningSystem is of exactly one kind (equal division, just intonation, well temperament), with hybrid systems modelled as multiple coexisting standpoints rather than multiple values (Principle 9)."
+msgstr "在规范载体上断言 gmeow:tuningKind 是函数性的:一个 TuningSystem 恰好属于一种类型(等分律、纯律、良好律),混合体系应建模为多个共存的立场,而非多个值(原则 9)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/voiceMetricStructureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "voiceMetricStructure is functional"
+msgstr "voiceMetricStructure 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/voiceMetricStructureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:voiceMetricStructure is functional: a Voice hosts exactly one MetricStructure under its closed-world shape, with coexisting meters deferred to statement-layer claims."
+msgstr "在规范载体上断言 gmeow:voiceMetricStructure 是函数性的:一个 Voice 在其闭世界形态下恰好承载一个 MetricStructure,共存的节拍应交由陈述层的主张处理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/voiceTimeFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "voiceTimeFrame is functional"
+msgstr "voiceTimeFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/voiceTimeFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:voiceTimeFrame is functional: a Voice hosts exactly one MusicalTimeFrame under its closed-world shape, with coexisting frames deferred to statement-layer claims (Principle 11)."
+msgstr "在规范载体上断言 gmeow:voiceTimeFrame 是函数性的:一个 Voice 在其闭世界形态下恰好承载一个 MusicalTimeFrame,共存的参照系应交由陈述层的主张处理(原则 11)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/voiceTuningFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "voiceTuningFrame is functional"
+msgstr "voiceTuningFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/voiceTuningFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:voiceTuningFrame is functional: a Voice hosts exactly one TuningSystem under its closed-world shape, with coexisting tunings deferred to statement-layer claims (Principle 11)."
+msgstr "在规范载体上断言 gmeow:voiceTuningFrame 是函数性的:一个 Voice 在其闭世界形态下恰好承载一个 TuningSystem,共存的调律体系应交由陈述层的主张处理(原则 11)。"
+

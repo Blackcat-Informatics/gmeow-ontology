@@ -1582,3 +1582,102 @@ gmeow:ManifestationEmbodiesRequiredConstraint
 # enforced, staying inside the fragment the native reasoner decides.
 gmeow:Contribution logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:contributionDegree ; logic:minQualifiedCardinality 0 ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:contributionDegreeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributionDegree is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributionDegree is functional: a contribution carries at most one degree weight — lead, equal, or supporting — so the relator takes a single degree (or none when unknown) and disputed credit orderings live on the statement layer rather than as rival degrees on one Contribution."@x-gmeow-english ;
+    logic:characterizes gmeow:contributionDegree ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributionDegree ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:contributionRoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributionRole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributionRole is functional: a Contribution relator names the one role the contributor played, so an agent acting in two roles is recorded as two Contributions rather than one relator bearing several roles."@x-gmeow-english ;
+    logic:characterizes gmeow:contributionRole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributionRole ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:contributionTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributionTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributionTarget is functional: a Contribution relator credits exactly one WEMI entity at the tier that matches the credit, so a credit spanning two works is recorded as two Contributions rather than one relator pointing at several targets."@x-gmeow-english ;
+    logic:characterizes gmeow:contributionTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributionTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:contributorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "contributor is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contributor is functional: a Contribution relator names the single agent who contributed, so co-contributors each get their own Contribution rather than several agents being stacked on one relator role."@x-gmeow-english ;
+    logic:characterizes gmeow:contributor ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contributor ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationProductFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "derivationProduct is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:derivationProduct is functional: a CreativeDerivation relator names the one product work that resulted, at the honest tier, so it carries a single derived work rather than several products on one derivation."@x-gmeow-english ;
+    logic:characterizes gmeow:derivationProduct ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:derivationProduct ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "derivationSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:derivationSource is functional: a CreativeDerivation relator names the one source work the product was derived from, so a mashup of two sources is recorded as two derivations or segment pins rather than several sources on one relator."@x-gmeow-english ;
+    logic:characterizes gmeow:derivationSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:derivationSource ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hasManifestationFormatFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "hasManifestationFormat is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasManifestationFormat is functional: a Manifestation is issued in one publishable form — paperback, EPUB, audiobook, vinyl — so a second format is a second Manifestation rather than a rival format value on one."@x-gmeow-english ;
+    logic:characterizes gmeow:hasManifestationFormat ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasManifestationFormat ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:realizationModeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "realizationMode is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:realizationMode is functional: an Expression realizes its Work in one mode — notated, performed, improvised, oral, or machine-generated — so a notated and a performed rendition of the same Work are two Expressions, each with its single mode, rather than one Expression bearing several modes."@x-gmeow-english ;
+    logic:characterizes gmeow:realizationMode ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:realizationMode ;
+    gmeow:graphBoxRole gmeow:boxABox .

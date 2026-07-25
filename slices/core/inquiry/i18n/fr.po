@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: inquiry, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureInquirer is functional"
+msgstr "tenureInquirer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureInquirer is functional: a gmeow:InquiryTenure records the open question of exactly one agent — two agents holding the same question open are two tenures sharing one gmeow:tenureQuestion, not two inquirers on one tenure."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureInquirer est fonctionnelle: une gmeow:InquiryTenure enregistre la question ouverte d'exactement un agent — deux agents maintenant ouverte la même question sont deux tenures partageant un même gmeow:tenureQuestion, et non deux enquêteurs sur une seule tenure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureQuestion is functional"
+msgstr "tenureQuestion est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureQuestion is functional: a gmeow:InquiryTenure records exactly one held-open question — an agent holding five questions open bears five tenures, and sharing happens at a single gmeow:Question individual rather than by multi-valuing this edge."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureQuestion est fonctionnelle: une gmeow:InquiryTenure enregistre exactement une question maintenue ouverte — un agent maintenant cinq questions ouvertes porte cinq tenures, et le partage se fait au niveau d'un seul individu gmeow:Question plutôt qu'en multi-valuant cette relation."
+

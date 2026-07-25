@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: contacts, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressHolderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addressHolder is functional"
+msgstr "addressHolder 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressHolderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:addressHolder is functional: an address-tenure situation concerns a single agent who held the contact point over its interval, so the tenure names one holder and a change of holder is a distinct tenure rather than a second holder on one."
+msgstr "在规范载体上断言 gmeow:addressHolder 是函数性的:一个地址持有情境涉及在其区间内持有该联系点的单一主体,因此该持有情境只命名一个持有者,持有者的变更是一个独立的持有情境,而非在同一情境上出现第二个持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addressValue is functional"
+msgstr "addressValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:addressValue is functional: a first-class email address has one normalized addr-spec — the canonical whole from which its local and domain parts are derived — so it carries a single value rather than several rival spellings of the same address."
+msgstr "在规范载体上断言 gmeow:addressValue 是函数性的:一个一等电子邮件地址具有一个规范化的 addr-spec——即派生出其本地部分与域名部分的规范整体——因此它只携带单一值,而非同一地址的多种相互竞争的拼写形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/domainPartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "domainPart is functional"
+msgstr "domainPart 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/domainPartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:domainPart is functional: an email address parses to a single domain part after the @, so the component that reveals the provider and underlies the personal-domain role is one value derived deterministically from the address's addr-spec."
+msgstr "在规范载体上断言 gmeow:domainPart 是函数性的：一个电子邮件地址在 @ 之后恰好解析出一个域名部分，因此揭示服务提供方并支撑个人域名角色的这一组成部分，是从地址的 addr-spec 中确定性推导出的单一值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/localPartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "localPart is functional"
+msgstr "localPart 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/localPartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:localPart is functional: an email address parses to a single local part before the @, so the person-identifying component queried separately from the whole is one value derived deterministically from the address's addr-spec."
+msgstr "在规范载体上断言 gmeow:localPart 是函数式的:一个电子邮件地址在 @ 符号之前只解析出一个本地部分,因此这个可与整体分开查询的、用于识别人的组成部分,是从该地址的 addr-spec 确定性地推导出的单一值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postalAddressFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postalAddressFrame is functional"
+msgstr "postalAddressFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postalAddressFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postalAddressFrame is functional: a postal address is expressed in exactly one postal/administrative reference frame against which its coordinate components are read, so the frame is single-valued — a value asserted without its one frame is ill-formed under CONSTITUTION P11."
+msgstr "在规范载体上断言 gmeow:postalAddressFrame 是函数性的:一个邮政地址恰好在一个邮政/行政参照系中表达,其坐标分量据此参照系解读,因此该参照系是单值的——在 CONSTITUTION P11 之下,断言一个值而不带其唯一参照系是不良形式的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenuredContactPoint is functional"
+msgstr "tenuredContactPoint 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenuredContactPoint is functional: an address-tenure is about a single contact-point channel held over its interval, so the tenure names one contact point and a different channel is a distinct tenure rather than a second point on one."
+msgstr "在规范载体上断言 gmeow:tenuredContactPoint 是函数性的:一项地址保有权针对的是在其区间内持有的单一联系点渠道,因此该保有权只指明一个联系点,不同的渠道构成一项独立的保有权,而不是在这一个保有权上添加第二个点。"
+

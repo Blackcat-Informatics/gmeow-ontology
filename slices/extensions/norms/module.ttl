@@ -106,7 +106,7 @@ gmeow:CriterionPole
     rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "A NAMED extreme of a criterion — a small information object carrying its own label and definition. Poles are content, not numbers: 'Power from the Bottom' names what the high end rewards; 'Passive Victimhood' names what the low end penalizes. The numeric mapping lives on the scale and anchors."@x-gmeow-english ;
     skos:example "ex:powerFromBottom a gmeow:CriterionPole ; rdfs:label \"Power from the Bottom\"@en ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reducing a pole to a bare number (the numeric mapping lives on gmeow:ScoreScale and gmeow:ScoreAnchor) and avoid reusing the same pole for both ends — reward and penalty poles must differ (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reducing a pole to a bare number (the numeric mapping lives on gmeow:ScoreScale and gmeow:ScoreAnchor) and avoid reusing the same pole for both ends — reward and penalty poles must differ (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint each pole with its own label and definition, then attach it to a criterion via gmeow:rewardPole or gmeow:penaltyPole."@x-gmeow-english ;
     gmeow:useWhen "Use for a named extreme of a criterion — a small information object with its own label and definition naming what one end rewards or penalizes."@x-gmeow-english .
@@ -926,7 +926,7 @@ gmeow:penaltyPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penalty pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:penaltyPole ex:passiveVictimhood ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:rewardPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -999,9 +999,9 @@ gmeow:precedenceLower
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence lower"@x-gmeow-english ;
     rdfs:range gmeow:Norm ;
-    skos:definition "The norm that yields during this tenure. Functional, and distinct from precedenceHigher (the logic:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The norm that yields during this tenure. Functional, and distinct from precedenceHigher (the gmeow:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:pt1 gmeow:precedenceLower ex:xN ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one yielding norm (it is functional) and avoid pointing it at the prevailing norm — it must differ from gmeow:precedenceHigher (the logic:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one yielding norm (it is functional) and avoid pointing it at the prevailing norm — it must differ from gmeow:precedenceHigher (the gmeow:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:precedenceLower once from the tenure to the yielding norm, paired with a distinct gmeow:precedenceHigher and a gmeow:precedenceScope."@x-gmeow-english ;
     gmeow:useWhen "Use on a PrecedenceTenure to name the single norm that yields during the tenure."@x-gmeow-english .
@@ -1072,7 +1072,7 @@ gmeow:rewardPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "reward pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:rewardPole ex:powerFromBottom ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:penaltyPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -2018,3 +2018,334 @@ gmeow:ConditionExpression logic:subClassOf
 gmeow:ConditionExpression logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:expressionText ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:expressionText ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
+
+gmeow:anchorRangeMaxFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "anchorRangeMax is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorRangeMax is functional: an anchored score range has exactly one upper bound, and a second maximum would leave the interval's ceiling ill-defined."@x-gmeow-english ;
+    logic:characterizes gmeow:anchorRangeMax ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:anchorRangeMax ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:anchorRangeMinFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "anchorRangeMin is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorRangeMin is functional: an anchored score range has exactly one lower bound, and a second minimum would leave the interval's floor ill-defined (the one lower bound that must never exceed the anchor's upper bound)."@x-gmeow-english ;
+    logic:characterizes gmeow:anchorRangeMin ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:anchorRangeMin ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:assessedEventFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "assessedEvent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assessedEvent is functional: a compliance assessment judges exactly one event — the single feature of interest whose compliance it reports — so weighing a second event is a separate assessment, not a further value here."@x-gmeow-english ;
+    logic:characterizes gmeow:assessedEvent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assessedEvent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:assessedNormFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "assessedNorm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assessedNorm is functional: a compliance assessment weighs its event against exactly one norm, so judging the same event against a further norm is a distinct assessment rather than a second value on this one."@x-gmeow-english ;
+    logic:characterizes gmeow:assessedNorm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assessedNorm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:complianceVerdictFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "complianceVerdict is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:complianceVerdict is functional: a compliance assessment records exactly one verdict from its single assessor, and a divergent judgement is a separate coexisting assessment cell rather than a second verdict on this one."@x-gmeow-english ;
+    logic:characterizes gmeow:complianceVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:complianceVerdict ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:conditionTextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "conditionText is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conditionText is functional: a condition has exactly one canonical prose statement — the single authoritative form every machine formalization must approximate — so a second prose body would install a rival canon within one condition."@x-gmeow-english ;
+    logic:characterizes gmeow:conditionText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:conditionText ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:deonticModalityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "deonticModality is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:deonticModality is functional: a norm carries exactly one deontic force, since a prescription that both permits and obliges is two distinct norms rather than one norm bearing two modalities."@x-gmeow-english ;
+    logic:characterizes gmeow:deonticModality ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:deonticModality ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:evaluatedConditionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "evaluatedCondition is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluatedCondition is functional: a condition evaluation reports on exactly one condition, its single observed feature, and the members of a condition group each receive their own evaluation rather than sharing one."@x-gmeow-english ;
+    logic:characterizes gmeow:evaluatedCondition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:evaluatedCondition ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:evaluationVerdictFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "evaluationVerdict is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluationVerdict is functional: an evaluation returns exactly one outcome — held, not held, or undetermined — and a differing verdict from another evaluator is a separate coexisting observation, not a second value on this evaluation."@x-gmeow-english ;
+    logic:characterizes gmeow:evaluationVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:evaluationVerdict ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:exemplarPolarityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "exemplarPolarity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exemplarPolarity is functional: an exemplar points in exactly one direction — positive, negative, or cautionary — because an exemplar that could not say whether to emulate or avoid would collapse back into a bare citation."@x-gmeow-english ;
+    logic:characterizes gmeow:exemplarPolarity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exemplarPolarity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:expressionLanguageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "expressionLanguage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:expressionLanguage is functional: a condition expression is written in exactly one named language, so its verbatim source sits in a single dialect and a formalization in another language is a separate expression."@x-gmeow-english ;
+    logic:characterizes gmeow:expressionLanguage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:expressionLanguage ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:expressionTextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "expressionText is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:expressionText is functional: a condition expression carries exactly one verbatim source body — one expression, one string of source in its declared language."@x-gmeow-english ;
+    logic:characterizes gmeow:expressionText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:expressionText ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:groupOperatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "groupOperator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:groupOperator is functional: a condition group combines its members under exactly one operator — all, any, or none — and richer logic is built by nesting further groups rather than by a second operator on one group."@x-gmeow-english ;
+    logic:characterizes gmeow:groupOperator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:groupOperator ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:parameterEntityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "parameterEntity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parameterEntity is functional: a condition parameter resolves to exactly one bound entity, and a parameter carries at most one of an entity binding or a literal binding, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:parameterEntity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:parameterEntity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:parameterNameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "parameterName is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parameterName is functional: a condition parameter has exactly one name — the single key by which the condition text or its expressions reference the binding."@x-gmeow-english ;
+    logic:characterizes gmeow:parameterName ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:parameterName ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:parameterValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "parameterValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parameterValue is functional: a condition parameter resolves to exactly one bound literal, and a parameter carries at most one of a literal binding or an entity binding, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:parameterValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:parameterValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:penaltyPoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "penaltyPole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:penaltyPole is functional: a criterion has exactly one penalty pole — the single named low end it penalizes — which must further be a different pole from the one it rewards."@x-gmeow-english ;
+    logic:characterizes gmeow:penaltyPole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:penaltyPole ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:personaBearerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "personaBearer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:personaBearer is functional: a persona is the reified expression policy of exactly one agent — an agent may bear many co-equal personas, but each persona traces to a single bearer."@x-gmeow-english ;
+    logic:characterizes gmeow:personaBearer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:personaBearer ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:precedenceHigherFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "precedenceHigher is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceHigher is functional: a precedence tenure names exactly one prevailing norm — the single norm that took priority over the interval it records."@x-gmeow-english ;
+    logic:characterizes gmeow:precedenceHigher ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:precedenceHigher ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:precedenceLowerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "precedenceLower is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceLower is functional: a precedence tenure names exactly one yielding norm — the single norm that gave way over the interval — which must further be a different norm from the one that prevailed."@x-gmeow-english ;
+    logic:characterizes gmeow:precedenceLower ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:precedenceLower ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:precedenceScopeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "precedenceScope is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceScope is functional: a precedence tenure holds within exactly one normative system, because a system orders only the norms it issues and cannot scope precedence over the world's."@x-gmeow-english ;
+    logic:characterizes gmeow:precedenceScope ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:precedenceScope ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:rewardPoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "rewardPole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:rewardPole is functional: a criterion has exactly one reward pole — the single named high end it rewards — which must further be a different pole from the one it penalizes."@x-gmeow-english ;
+    logic:characterizes gmeow:rewardPole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:rewardPole ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scaleMaxFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "scaleMax is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleMax is functional: a score scale has exactly one upper bound — a single maximum that must exceed the minimum — and a second maximum would leave the scale's ceiling undefined."@x-gmeow-english ;
+    logic:characterizes gmeow:scaleMax ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scaleMax ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scaleMinFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "scaleMin is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleMin is functional: a score scale has exactly one lower bound — a single minimum that must sit below the maximum — and a second minimum would leave the scale's floor undefined."@x-gmeow-english ;
+    logic:characterizes gmeow:scaleMin ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scaleMin ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scaleStepFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "scaleStep is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleStep is functional: a score scale has at most one granularity step — a single discrete increment when present, whose absence marks the scale as continuous."@x-gmeow-english ;
+    logic:characterizes gmeow:scaleStep ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scaleStep ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:usesScaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "usesScale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usesScale is functional: each holder — a rubric as its default or a criterion as an override — uses exactly one score scale, and a criterion-level scale replaces the rubric default rather than adding a second."@x-gmeow-english ;
+    logic:characterizes gmeow:usesScale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:usesScale ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:overridesIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "overrides is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overrides is irreflexive: a norm never overrides itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a norm asserted to override itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:overrides ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:overrides ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:precedenceTenureDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "a precedence tenure's higher and lower norms are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:PrecedenceTenure's gmeow:precedenceHigher and gmeow:precedenceLower norms must be distinct: a norm does not take precedence over itself. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:PrecedenceTenure ;
+    logic:distinctnessRole gmeow:precedenceHigher , gmeow:precedenceLower ;
+    logic:formalizes gmeow:precedenceHigher ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:criterionPoleDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "a criterion's reward and penalty poles are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Criterion ;
+    logic:distinctnessRole gmeow:rewardPole , gmeow:penaltyPole ;
+    logic:formalizes gmeow:rewardPole ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -1,0 +1,151 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: epistemics, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "adequacyUnderStandard is functional"
+msgstr "adequacyUnderStandard est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adequacyUnderStandardFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:adequacyUnderStandard is functional: a single reified gmeow:AdequacyAssessment judges its support against exactly one named gmeow:EpistemicStandard, so the assessment fixes one standard as the bar it measures against."
+msgstr "Affirme sur le porteur canonique que gmeow:adequacyUnderStandard est fonctionnelle : une unique gmeow:AdequacyAssessment réifiée juge son support par rapport à exactement un gmeow:EpistemicStandard nommé, de sorte que l'évaluation fixe une seule norme comme référence à laquelle elle se mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributedKnowerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attributedKnower is functional"
+msgstr "attributedKnower est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributedKnowerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attributedKnower is functional: one gmeow:KnowledgeAttribution credits exactly one agent with the knowing — the single knower it is about, which may equal the attributing agent for self-attribution but is never plural within one attribution."
+msgstr "Affirme sur le porteur canonique que gmeow:attributedKnower est fonctionnelle : une gmeow:KnowledgeAttribution crédite exactement un agent du savoir — l'unique connaisseur dont elle traite, qui peut être identique à l'agent attributeur en cas d'auto-attribution mais n'est jamais pluriel au sein d'une même attribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributedPropositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attributedProposition is functional"
+msgstr "attributedProposition est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributedPropositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attributedProposition is functional: one gmeow:KnowledgeAttribution is about exactly one proposition attributed as known, so a single non-factive 'takes themselves to know' attribution names one propositional target and entails no truth of it."
+msgstr "Affirme sur le porteur canonique que gmeow:attributedProposition est fonctionnelle : une gmeow:KnowledgeAttribution traite d'exactement une proposition attribuée comme sue, de sorte qu'une unique attribution non factive du type 'takes themselves to know' nomme une seule cible propositionnelle et n'implique aucune vérité à son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributingAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attributingAgent is functional"
+msgstr "attributingAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributingAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attributingAgent is functional: one gmeow:KnowledgeAttribution has exactly one agent making it — the single attributer whose standpoint the credited knowing is reported from, never two co-attributers within one attribution."
+msgstr "Affirme sur le porteur canonique que gmeow:attributingAgent est fonctionnelle : une gmeow:KnowledgeAttribution possède exactement un agent qui la formule — l'unique attributeur depuis le point de vue duquel le savoir crédité est rapporté, jamais deux co-attributeurs au sein d'une même attribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimOfBeliefFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimOfBelief is functional"
+msgstr "claimOfBelief est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimOfBeliefFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimOfBelief is functional: one gmeow:DoxasticStandpointClaim reports exactly one held gmeow:DoxasticState — the single believing mode the claim is the vantage-indexed report of, so the reporting claim binds to one underlying belief."
+msgstr "Affirme sur le porteur canonique que gmeow:claimOfBelief est fonctionnelle : un gmeow:DoxasticStandpointClaim rapporte exactement un gmeow:DoxasticState détenu — l'unique mode de croyance dont la revendication est le rapport indexé sur un point de vue — de sorte que la revendication rapportante se lie à une seule croyance sous-jacente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/doxasticClaimFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "doxasticClaim is functional"
+msgstr "doxasticClaim est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/doxasticClaimFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:doxasticClaim is functional: one gmeow:DoxasticState carries its qualitative belief value through exactly one gmeow:StandpointClaim — the single bridge whose claimModality supplies the state's modality without domain-clashing claimModality onto DoxasticState."
+msgstr "Affirme sur le porteur canonique que gmeow:doxasticClaim est fonctionnelle : un gmeow:DoxasticState porte sa valeur qualitative de croyance à travers exactement un gmeow:StandpointClaim — l'unique pont dont le claimModality fournit la modalité de l'état sans imposer de conflit de domaine de claimModality sur DoxasticState."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/doxasticContentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "doxasticContent is functional"
+msgstr "doxasticContent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/doxasticContentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:doxasticContent is functional: one gmeow:DoxasticState is constitutively directed at exactly one gmeow:Proposition — the single truth-apt content the believing mode is about, so a state directed at two propositions would be two distinct believings."
+msgstr "Affirme sur le porteur canonique que gmeow:doxasticContent est fonctionnelle : un gmeow:DoxasticState est constitutivement dirigé vers exactement une gmeow:Proposition — l'unique contenu susceptible de vérité dont traite le mode de croyance, de sorte qu'un état dirigé vers deux propositions constituerait deux croyances distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epistemicAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epistemicAgent is functional"
+msgstr "epistemicAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/epistemicAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:epistemicAgent is functional: one gmeow:DoxasticState constitutively inheres in exactly one gmeow:Agent — the single believer whose believing mode it is, since a mental moment inheres in one bearer and cannot be shared across agents."
+msgstr "Affirme sur le porteur canonique que gmeow:epistemicAgent est fonctionnelle : un gmeow:DoxasticState est constitutivement inhérent à exactement un gmeow:Agent — le seul croyant dont il est le mode de croyance, étant donné qu'un moment mental est inhérent à un seul porteur et ne peut être partagé entre plusieurs agents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatesFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluates is functional"
+msgstr "evaluates est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatesFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:evaluates is functional: one gmeow:ClaimEvaluation assesses exactly one target gmeow:ClaimToken — the single assertion act it judges under its context — even though that one token may in turn be assessed by many coexisting evaluations."
+msgstr "Affirme sur le porteur canonique que gmeow:evaluates est fonctionnelle : un gmeow:ClaimEvaluation évalue exactement un gmeow:ClaimToken cible — le seul acte d'assertion qu'il juge dans son contexte — même si ce même jeton peut à son tour faire l'objet de nombreuses évaluations coexistantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowerAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowerAgent is functional"
+msgstr "knowerAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowerAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowerAgent is functional: one reified gmeow:KnowledgeClaim has exactly one knowing agent — the single subject the locally-factive knowing relation is anchored on, so the claim reifies one agent's knowing, not a collective."
+msgstr "Affirme sur le porteur canonique que gmeow:knowerAgent est fonctionnelle : une gmeow:KnowledgeClaim réifiée possède exactement un agent connaissant — le sujet unique sur lequel la relation de connaissance localement factive est ancrée — de sorte que l'affirmation réifie la connaissance d'un seul agent, non celle d'un collectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knownInWorldFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knownInWorld is functional"
+msgstr "knownInWorld est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knownInWorldFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knownInWorld is functional: one gmeow:KnowledgeClaim is locally factive in exactly one gmeow:EpistemicContext — the single belief-world its known proposition holds in, since factivity is world-relative and a second world would be a second knowing claim."
+msgstr "Affirme sur le porteur canonique que gmeow:knownInWorld est fonctionnelle : une gmeow:KnowledgeClaim est localement factive dans exactement un gmeow:EpistemicContext — le monde de croyance unique dans lequel sa proposition connue est vraie — car la factivité est relative au monde, et un second monde constituerait une seconde affirmation de connaissance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knownPropositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knownProposition is functional"
+msgstr "knownProposition est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knownPropositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knownProposition is functional: one reified gmeow:KnowledgeClaim is about exactly one known gmeow:Proposition — the single propositional content the knowing relation ranges over, so one claim reifies knowing one proposition in its world under its standard."
+msgstr "Affirme sur le porteur canonique que gmeow:knownProposition est fonctionnelle : une gmeow:KnowledgeClaim réifiée porte sur exactement une gmeow:Proposition connue — le contenu propositionnel unique sur lequel porte la relation de connaissance — de sorte qu'une affirmation réifie la connaissance d'une seule proposition, dans son monde et selon sa norme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetsThresholdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "meetsThreshold is functional"
+msgstr "meetsThreshold est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/meetsThresholdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:meetsThreshold is functional: one gmeow:AdequacyAssessment carries exactly one solver-set gmeow:AdequacyVerdict — met, unmet, or undetermined — since a single assessment against one standard resolves to one verdict, never to conflicting outcomes at once."
+msgstr "Affirme sur le porteur canonique que gmeow:meetsThreshold est fonctionnelle : une gmeow:AdequacyAssessment porte exactement un gmeow:AdequacyVerdict fixé par le solveur — atteint, non atteint, ou indéterminé — puisqu'une évaluation unique par rapport à une norme se résout en un seul verdict, jamais en résultats contradictoires simultanés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportGroundFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supportGround is functional"
+msgstr "supportGround est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportGroundFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:supportGround is functional: one gmeow:SupportAssessment weighs exactly one gmeow:JustificationGround — the single ground whose warranting strength it measures under one standard, so a second ground would be a separate support assessment."
+msgstr "Affirme sur le porteur canonique que gmeow:supportGround est fonctionnelle: une gmeow:SupportAssessment pèse exactement un gmeow:JustificationGround — le seul fondement dont elle mesure la force justificative sous une seule norme, de sorte qu'un second fondement constituerait une évaluation de soutien distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportUnderStandardFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supportUnderStandard is functional"
+msgstr "supportUnderStandard est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportUnderStandardFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:supportUnderStandard is functional: one gmeow:SupportAssessment measures support relative to exactly one named gmeow:EpistemicStandard — the single bar its strength is indexed to, so assessing the same ground under a second standard is a distinct assessment."
+msgstr "Affirme sur le porteur canonique que gmeow:supportUnderStandard est fonctionnelle: une gmeow:SupportAssessment mesure le soutien par rapport à exactement un gmeow:EpistemicStandard nommé — la seule barre à laquelle sa force est indexée, de sorte qu'évaluer le même fondement sous une seconde norme constitue une évaluation distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureOfDoxasticStateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureOfDoxasticState is functional"
+msgstr "tenureOfDoxasticState est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureOfDoxasticStateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureOfDoxasticState is functional: one gmeow:DoxasticTenure scopes exactly one gmeow:DoxasticState — the single believing whose holding interval it records — so a revised belief opens a fresh state and a fresh tenure rather than re-pointing this one."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureOfDoxasticState est fonctionnelle: une gmeow:DoxasticTenure délimite exactement un gmeow:DoxasticState — la seule croyance dont elle enregistre l'intervalle de validité — de sorte qu'une croyance révisée ouvre un nouvel état et une nouvelle tenure plutôt que de repointer celle-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/underStandardFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "underStandard is functional"
+msgstr "underStandard est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/underStandardFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:underStandard is functional: one reified gmeow:KnowledgeClaim is held to exactly one gmeow:EpistemicStandard — the single ordinary, scientific, or legal bar under which the knowing counts — so the same knowing under a different standard is a separate claim."
+msgstr "Affirme sur le porteur canonique que gmeow:underStandard est fonctionnelle : une gmeow:KnowledgeClaim réifiée est tenue à exactement un gmeow:EpistemicStandard — le seuil unique, ordinaire, scientifique ou juridique, sous lequel le savoir est validé — de sorte que le même savoir sous un standard différent constitue une revendication distincte."
+

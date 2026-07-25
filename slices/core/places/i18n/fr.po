@@ -1,0 +1,383 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: places, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capacityOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "capacityOf is functional"
+msgstr "capacityOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/capacityOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:capacityOf is functional: a capacity measurement is constitutively about exactly one location, so the single location it quantifies fixes the measurement's identity and a second location would be a distinct measurement."
+msgstr "Affirme sur le porteur canonique que gmeow:capacityOf est fonctionnelle : une mesure de capacité porte de manière constitutive sur exactement un lieu, de sorte que l'unique lieu qu'elle quantifie fixe l'identité de la mesure, et un second lieu constituerait une mesure distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/containmentChildFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "containmentChild is functional"
+msgstr "containmentChild est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/containmentChildFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:containmentChild is functional: a containment tenure records the nesting of exactly one contained place within a parent, so the child place is uniquely determined by the tenure and several children mean several tenures."
+msgstr "Affirme sur le porteur canonique que gmeow:containmentChild est fonctionnelle : une durée de confinement enregistre l'imbrication d'exactement un lieu contenu au sein d'un parent, de sorte que le lieu enfant est uniquement déterminé par la durée, et plusieurs enfants signifient plusieurs durées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/containmentParentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "containmentParent is functional"
+msgstr "containmentParent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/containmentParentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:containmentParent is functional: a single containment tenure fixes one containing place, and disputed parallel parents are modelled as separate standpoint-indexed tenures rather than multiple parents on one (Principle 9)."
+msgstr "Affirme sur le porteur canonique que gmeow:containmentParent est fonctionnelle : une unique durée de confinement fixe un seul lieu contenant, et les parents parallèles contestés sont modélisés comme des durées distinctes indexées par point de vue plutôt que comme plusieurs parents sur une même durée (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coordinateFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "coordinateFrame is functional"
+msgstr "coordinateFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coordinateFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:coordinateFrame is functional: a SpatialCoordinates value has meaning only relative to the single reference frame it is stated in, so exactly one frame expresses it and coordinates in another frame are a different value (Principle 11)."
+msgstr "Affirme sur le porteur canonique que gmeow:coordinateFrame est fonctionnelle : une valeur SpatialCoordinates n'a de sens que relativement à l'unique repère de référence dans lequel elle est énoncée, de sorte qu'exactement un repère l'exprime et que des coordonnées dans un autre repère constituent une valeur différente (Principe 11)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/currencyCodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "currencyCode is functional"
+msgstr "currencyCode est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/currencyCodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:currencyCode is functional: a currency reference frame has one canonical short code — the ISO 4217 alphabetic code for fiat or the conventional ticker for crypto — so a single code uniquely designates the frame."
+msgstr "Affirme sur le porteur canonique que gmeow:currencyCode est fonctionnelle : un repère de référence monétaire possède un unique code court canonique — le code alphabétique ISO 4217 pour les monnaies fiduciaires ou le symbole boursier conventionnel pour les cryptomonnaies — de sorte qu'un code unique désigne sans ambiguïté le repère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/determinacyModelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "determinacyModel is functional"
+msgstr "determinacyModel est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/determinacyModelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:determinacyModel is functional: a reference frame carries a single frame-level default determinacy model, with per-value overrides riding on gmeow:hasDeterminacy, so exactly one default determinacy attaches to the frame."
+msgstr "Affirme sur le porteur canonique que gmeow:determinacyModel est fonctionnelle : un repère de référence porte un unique modèle de déterminisme par défaut au niveau du repère, les dérogations par valeur reposant sur gmeow:hasDeterminacy, de sorte qu'exactement un déterminisme par défaut est attaché au repère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionCountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dimensionCount is functional"
+msgstr "dimensionCount est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionCountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dimensionCount is functional: a reference frame spans a single, well-defined number of dimensions, so the count is a unique non-negative integer property of the frame."
+msgstr "Affirme sur le porteur canonique que gmeow:dimensionCount est fonctionnelle : un repère de référence couvre un nombre unique et bien défini de dimensions, de sorte que ce nombre est une propriété entière non négative unique du repère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameKind is functional"
+msgstr "frameKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameKind is functional: a reference frame has one structural form — the geometric/representational shape (cartesian, cylindrical, grid, geocoding, scalar, …) that determines how its coordinates are laid out — so exactly one gmeow:FrameKind classifies it, orthogonal to and never conflated with its realm."
+msgstr "Affirme sur le porteur canonique que gmeow:frameKind est fonctionnelle : un cadre de référence possède une forme structurelle — la forme géométrique/représentationnelle (cartésienne, cylindrique, en grille, de géocodage, scalaire, …) qui détermine la disposition de ses coordonnées — de sorte qu'exactement un gmeow:FrameKind le classe, orthogonal à son domaine et jamais confondu avec lui."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameRealmFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameRealm is functional"
+msgstr "frameRealm est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameRealmFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameRealm is functional: a reference frame belongs to a single domain of discourse — the realm (terrestrial, celestial, currency, biological, robotic, …) that fixes what kind of value it measures or locates — so exactly one gmeow:FrameRealm applies, orthogonal to and never conflated with its structural frame kind."
+msgstr "Affirme sur le porteur canonique que gmeow:frameRealm est fonctionnelle : un cadre de référence appartient à un seul domaine de discours — le domaine (terrestre, céleste, monétaire, biologique, robotique, …) qui détermine le type de valeur qu'il mesure ou localise — de sorte qu'exactement un gmeow:FrameRealm s'applique, orthogonal à son type structurel de cadre et jamais confondu avec lui."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/geocodeFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "geocodeFrame is functional"
+msgstr "geocodeFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/geocodeFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:geocodeFrame is functional: a geocode is a code within one geocoding system, so it is expressed in exactly one geocoding reference frame and mixing two systems on a single Geocode is disallowed."
+msgstr "Affirme sur le porteur canonique que gmeow:geocodeFrame est fonctionnelle : un géocode est un code appartenant à un seul système de géocodage, de sorte qu'il est exprimé dans exactement un cadre de référence de géocodage, et mélanger deux systèmes sur un même Geocode est interdit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/geocodeValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "geocodeValue is functional"
+msgstr "geocodeValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/geocodeValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:geocodeValue is functional: a single Geocode carries exactly one canonical code string — its literal carrier behind the per-system accessors — so distinct codes require distinct Geocode instances."
+msgstr "Affirme sur le porteur canonique que gmeow:geocodeValue est fonctionnelle : un unique Geocode porte exactement une chaîne de code canonique — son porteur littéral derrière les accesseurs propres à chaque système — de sorte que des codes distincts exigent des instances Geocode distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/geohashFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "geohash is functional"
+msgstr "geohash est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/geohashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:geohash is functional: a Geocode holds one geohash string, the single base32 index for its cell, so a second geohash would denote a different cell and hence a different Geocode."
+msgstr "Affirme sur le porteur canonique que gmeow:geohash est fonctionnelle : un Geocode détient une seule chaîne geohash, l'unique index base32 de sa cellule, de sorte qu'un second geohash désignerait une cellule différente et donc un Geocode différent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMetricKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasMetricKind is functional"
+msgstr "hasMetricKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMetricKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasMetricKind is functional: a reference frame declares one distance/dissimilarity metric governing every proximity computation expressed in it, so exactly one gmeow:MetricKind applies to the frame."
+msgstr "Affirme sur le porteur canonique que gmeow:hasMetricKind est fonctionnelle : un référentiel déclare une métrique de distance/dissimilarité unique régissant tout calcul de proximité qui y est exprimé, de sorte qu'exactement un gmeow:MetricKind s'applique au référentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasReferencePositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasReferencePosition is functional"
+msgstr "hasReferencePosition est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasReferencePositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasReferencePosition is functional: a celestial reference frame has one origin (topocentric, geocentric, barycentric, or heliocentric) about which its coordinates are reckoned, so exactly one reference position fixes it."
+msgstr "Affirme sur le porteur canonique que gmeow:hasReferencePosition est fonctionnelle : un référentiel céleste possède une origine unique (topocentrique, géocentrique, barycentrique ou héliocentrique) par rapport à laquelle ses coordonnées sont établies, de sorte qu'exactement une position de référence le fixe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTimeScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasTimeScale is functional"
+msgstr "hasTimeScale est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasTimeScale is functional: a celestial reference frame is tied to one time standard, so exactly one gmeow:TimeScale governs the temporal reckoning of coordinates expressed in it."
+msgstr "Affirme sur le porteur canonique que gmeow:hasTimeScale est fonctionnelle : un référentiel céleste est lié à un unique étalon de temps, de sorte qu'exactement un gmeow:TimeScale régit le calcul temporel des coordonnées qui y sont exprimées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReferenceAssemblyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inReferenceAssembly is functional"
+msgstr "inReferenceAssembly est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReferenceAssemblyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inReferenceAssembly is functional: a sequence-coordinate tuple is meaningful only against one reference assembly (e.g. GRCh38), so it names exactly one assembly and coordinates in another assembly are a distinct SequenceCoordinates instance (Principle 11)."
+msgstr "Affirme sur le porteur canonique que gmeow:inReferenceAssembly est fonctionnelle : un tuple de coordonnées de séquence n'a de sens que par rapport à un seul assemblage de référence (par ex. GRCh38), de sorte qu'il ne nomme qu'un seul assemblage, et des coordonnées dans un autre assemblage constituent une instance SequenceCoordinates distincte (Principe 11)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/jurisdictionPlaceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "jurisdictionPlace is functional"
+msgstr "jurisdictionPlace est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/jurisdictionPlaceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:jurisdictionPlace is functional: a jurisdiction tenure records governance over exactly one place, and the place is constitutive of the tenure's identity, so a second place would be a different tenure."
+msgstr "Affirme sur le porteur canonique que gmeow:jurisdictionPlace est fonctionnelle : une tenure de juridiction enregistre la gouvernance sur exactement un lieu, et ce lieu est constitutif de l'identité de la tenure, de sorte qu'un second lieu constituerait une tenure différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/jurisdictionPolityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "jurisdictionPolity is functional"
+msgstr "jurisdictionPolity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/jurisdictionPolityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:jurisdictionPolity is functional: a jurisdiction tenure records one governing polity holding jurisdiction during that period, and competing sovereignty is captured as separate standpoint-indexed tenures rather than multiple polities on one (Principle 9)."
+msgstr "Affirme sur le porteur canonique que gmeow:jurisdictionPolity est fonctionnelle : une tenure de juridiction enregistre une unique entité politique gouvernante détenant la juridiction pendant cette période, et une souveraineté concurrente est saisie sous forme de tenures distinctes indexées par point de vue plutôt que de plusieurs entités politiques sur une seule (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mgrsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mgrs is functional"
+msgstr "mgrs est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mgrsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mgrs is functional: a Geocode holds one Military Grid Reference System coordinate string locating a single grid cell, so a second MGRS value would identify a different location and thus a different Geocode."
+msgstr "Affirme sur le porteur canonique que gmeow:mgrs est fonctionnelle : un Geocode porte une seule chaîne de coordonnées du Military Grid Reference System localisant une cellule de grille unique, de sorte qu'une seconde valeur MGRS identifierait un emplacement différent, et donc un Geocode différent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mileMarkerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mileMarker is functional"
+msgstr "mileMarker est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mileMarkerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mileMarker is functional: a Geocode carries one linear-referencing mile-marker — a single distance-along-the-line position on a road, railway, or pipeline — so one value fixes the location."
+msgstr "Affirme sur le porteur canonique que gmeow:mileMarker est fonctionnelle : un Geocode porte un seul repère kilométrique de référencement linéaire — une position unique de distance le long de la ligne sur une route, une voie ferrée, ou un pipeline — de sorte qu'une seule valeur fixe l'emplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/networkAddressFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "networkAddressFrame is functional"
+msgstr "networkAddressFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/networkAddressFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:networkAddressFrame is functional: a network address is stated in one topology-only reference frame (IPv4, IPv6, MAC, …), so exactly one frame situates it within the network."
+msgstr "Affirme sur le porteur canonique que gmeow:networkAddressFrame est fonctionnelle : une adresse réseau est énoncée dans un seul repère de référence purement topologique (IPv4, IPv6, MAC, etc.), de sorte qu'exactement un repère la situe au sein du réseau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/networkAddressValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "networkAddressValue is functional"
+msgstr "networkAddressValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/networkAddressValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:networkAddressValue is functional: a NetworkAddress denotes one endpoint and carries a single literal string (an IP, MAC, DNS name, URL, or port), so distinct addresses are distinct NetworkAddress instances."
+msgstr "Affirme sur le porteur canonique que gmeow:networkAddressValue est fonctionnelle : une NetworkAddress désigne un seul point d'accès et porte une seule chaîne littérale (une IP, une adresse MAC, un nom DNS, une URL, ou un port), de sorte que des adresses distinctes correspondent à des instances NetworkAddress distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occupancyOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "occupancyOf is functional"
+msgstr "occupancyOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occupancyOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:occupancyOf is functional: an occupancy measurement is constitutively about exactly one location, since the count it reports belongs to a single locus, so a second location would be a different measurement."
+msgstr "Affirme sur le porteur canonique que gmeow:occupancyOf est fonctionnelle : une mesure d'occupation porte constitutivement sur exactement un lieu, puisque le décompte qu'elle rapporte appartient à un locus unique, de sorte qu'un second lieu constituerait une mesure différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overlayAuthorityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overlayAuthority is functional"
+msgstr "overlayAuthority est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overlayAuthorityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:overlayAuthority is functional: a regulatory overlay is imposed by one authority, and overlapping claims by different bodies are modelled as separate standpoint-indexed overlays, so exactly one authority imposes each (Principle 9)."
+msgstr "Affirme sur le porteur canonique que gmeow:overlayAuthority est fonctionnelle : une superposition réglementaire est imposée par une seule autorité, et les revendications qui se chevauchent de la part d'organismes différents sont modélisées comme des superpositions distinctes indexées par point de vue, de sorte qu'exactement une autorité impose chacune (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overlayDesignatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overlayDesignator is functional"
+msgstr "overlayDesignator est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overlayDesignatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:overlayDesignator is functional: the authority's code for an overlay (an ICAO airspace identifier, a NOTAM number, a fisheries-zone code) is constitutive of its administrative identity, so an overlay bears exactly one designator."
+msgstr "Affirme sur le porteur canonique que gmeow:overlayDesignator est fonctionnelle : le code attribué par l'autorité à une superposition (un identifiant d'espace aérien OACI, un numéro de NOTAM, un code de zone de pêche) est constitutif de son identité administrative, de sorte qu'une superposition porte exactement un désignateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overlayPlaceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overlayPlace is functional"
+msgstr "overlayPlace est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overlayPlaceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:overlayPlace is functional: a regulatory overlay applies over exactly one place that carries its geometry, and the place is constitutive of the overlay's identity, so a second place would be a different overlay."
+msgstr "Affirme sur le porteur canonique que gmeow:overlayPlace est fonctionnelle : une superposition réglementaire s'applique sur exactement un lieu qui porte sa géométrie, et ce lieu est constitutif de l'identité de la superposition, de sorte qu'un second lieu constituerait une superposition différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parentFrame is functional"
+msgstr "parentFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:parentFrame is functional: a reference frame nests under a single parent in its frame hierarchy (a TF transform tree or Internet topology), so it has exactly one parent frame and the hierarchy forms a tree rather than a tangle."
+msgstr "Affirme sur le porteur canonique que gmeow:parentFrame est fonctionnelle : un cadre de référence s'imbrique sous un seul parent dans sa hiérarchie de cadres (un arbre de transformations TF ou une topologie Internet), de sorte qu'il a exactement un cadre parent et que la hiérarchie forme un arbre plutôt qu'un enchevêtrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/plusCodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "plusCode is functional"
+msgstr "plusCode est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/plusCodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:plusCode is functional: a Geocode holds one Open Location Code identifying a single cell on Earth, so a different Plus Code would denote a different location and thus a different Geocode."
+msgstr "Affirme sur le porteur canonique que gmeow:plusCode est fonctionnelle : un Geocode porte un Open Location Code identifiant une cellule unique sur Terre, de sorte qu'un Plus Code différent désignerait un lieu différent et donc un Geocode différent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proximityToFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proximityTo is functional"
+msgstr "proximityTo est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proximityToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:proximityTo is functional: a proximity measurement is a relator between a source and one target entity, and the target is constitutive of the relator's identity, so measuring to a different target is a different measurement."
+msgstr "Affirme sur le porteur canonique que gmeow:proximityTo est fonctionnelle : une mesure de proximité est un relateur entre une source et une seule entité cible, et la cible est constitutive de l'identité du relateur, de sorte qu'une mesure vers une cible différente constitue une mesure différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceAuthorityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "referenceAuthority is functional"
+msgstr "referenceAuthority est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceAuthorityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:referenceAuthority is functional: a cadastral reference is issued by one registry, land titles office, or surveying authority, so exactly one issuing authority stands behind it."
+msgstr "Affirme sur le porteur canonique que gmeow:referenceAuthority est fonctionnelle : une référence cadastrale est délivrée par un seul registre, bureau des titres fonciers ou autorité d'arpentage, de sorte qu'exactement une autorité émettrice se trouve derrière elle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceJurisdictionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "referenceJurisdiction is functional"
+msgstr "referenceJurisdiction est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceJurisdictionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:referenceJurisdiction is functional: a cadastral reference is valid under one jurisdiction's legal framework (a country, state, province, or territory), so exactly one governing jurisdiction applies to it."
+msgstr "Affirme sur le porteur canonique que gmeow:referenceJurisdiction est fonctionnelle : une référence cadastrale est valide sous le cadre juridique d'une seule juridiction (un pays, un état, une province ou un territoire), de sorte qu'exactement une juridiction compétente s'applique à elle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "referenceValue is functional"
+msgstr "referenceValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:referenceValue is functional: a cadastral reference is one registry identifier string (a folio, title, lot, or parcel ID), so it carries exactly one value and a further identifier is a distinct CadastralReference."
+msgstr "Affirme sur le porteur canonique que gmeow:referenceValue est fonctionnelle : une référence cadastrale est une seule chaîne d'identifiant de registre (un folio, un titre, un lot ou un identifiant de parcelle), de sorte qu'elle porte exactement une valeur, et un identifiant supplémentaire constitue une CadastralReference distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresHostFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requiresHost is functional"
+msgstr "requiresHost est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requiresHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:requiresHost is functional: the requirement is a single yes/no fact about a frame — whether its existence is bound to a hosting entity — so exactly one boolean flag holds for the frame."
+msgstr "Affirme sur le porteur canonique que gmeow:requiresHost est fonctionnelle : l'exigence est un unique fait binaire (oui/non) concernant un cadre — à savoir si son existence est liée à une entité hôte — de sorte qu'exactement un indicateur booléen vaut pour ce cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sequenceEndFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sequenceEnd is functional"
+msgstr "sequenceEnd est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sequenceEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sequenceEnd is functional: a sequence-coordinate tuple has one 1-based inclusive end position on its sequence, so exactly one integer end pins the feature's boundary within its assembly (Principle 11)."
+msgstr "Affirme sur le porteur canonique que gmeow:sequenceEnd est fonctionnelle: un tuple de coordonnées de séquence a une seule position de fin inclusive, indexée à partir de 1, sur sa séquence, de sorte qu'exactement un entier de fin fixe la limite de la caractéristique dans son assemblage (Principe 11)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sequenceStartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sequenceStart is functional"
+msgstr "sequenceStart est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sequenceStartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sequenceStart is functional: a sequence-coordinate tuple has one 1-based inclusive start position on its sequence, so exactly one integer start pins the feature's boundary within its assembly (Principle 11)."
+msgstr "Affirme sur le porteur canonique que gmeow:sequenceStart est fonctionnelle: un tuple de coordonnées de séquence a une seule position de début inclusive, indexée à partir de 1, sur sa séquence, de sorte qu'exactement un entier de début fixe la limite de la caractéristique dans son assemblage (Principe 11)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sequenceStrandFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sequenceStrand is functional"
+msgstr "sequenceStrand est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sequenceStrandFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sequenceStrand is functional: a feature reads from one strand of a double-stranded biological sequence, so exactly one gmeow:StrandOrientation fixes its read direction."
+msgstr "Affirme sur le porteur canonique que gmeow:sequenceStrand est fonctionnelle: une caractéristique se lit sur un seul brin d'une séquence biologique double brin, de sorte qu'exactement un gmeow:StrandOrientation fixe son sens de lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stateOf is functional"
+msgstr "stateOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:stateOf is functional: a location state describes the presence, pose, and velocity of exactly one moving entity, so a state belongs to a single entity and one LocationState is never shared across entities."
+msgstr "Affirme sur le porteur canonique que gmeow:stateOf est fonctionnelle: un état de localisation décrit la présence, la posture et la vitesse d'exactement une entité en mouvement, de sorte qu'un état appartient à une seule entité et qu'un LocationState n'est jamais partagé entre entités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateReferenceFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stateReferenceFrame is functional"
+msgstr "stateReferenceFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateReferenceFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:stateReferenceFrame is functional: a location state's pose and velocity are expressed against one frame, so exactly one reference frame situates it while nested-frame transformations remain a solver concern (Principle 12)."
+msgstr "Affirme sur le porteur canonique que gmeow:stateReferenceFrame est fonctionnelle: la posture et la vitesse d'un état de localisation sont exprimées par rapport à un seul repère, de sorte qu'exactement un repère de référence le situe, tandis que les transformations de repères imbriqués restent une préoccupation du solveur (Principe 12)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storageMediumFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "storageMedium is functional"
+msgstr "storageMedium est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storageMediumFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:storageMedium is functional: the medium of a storage location is constitutive of it — a different medium is a different store — so exactly one gmeow:StorageMedium classifies each, unlike the descriptive, multi-source gmeow:placeType."
+msgstr "Affirme sur le porteur canonique que gmeow:storageMedium est fonctionnelle: le support d'un lieu de stockage lui est constitutif — un support différent est un entrepôt différent — de sorte qu'exactement un gmeow:StorageMedium classe chacun, contrairement au gmeow:placeType descriptif et multi-source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenurePartyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureParty is functional"
+msgstr "tenureParty est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenurePartyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureParty is functional: a land tenure records the rights held by one party, and joint ownership is modelled as multiple co-equal LandTenure instances rather than several parties on one, so exactly one party holds each tenure (Principle 9)."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureParty est fonctionnelle: une tenure foncière enregistre les droits détenus par une seule partie, et la copropriété est modélisée comme plusieurs instances LandTenure co-égales plutôt que comme plusieurs parties sur une seule, de sorte qu'exactement une partie détient chaque tenure (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenurePlaceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenurePlace is functional"
+msgstr "tenurePlace est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenurePlaceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenurePlace is functional: a land tenure's rights apply over exactly one place (parcel, lot, or spatial unit) that is constitutive of the tenure's identity, so a second place would be a different tenure."
+msgstr "Affirme sur le porteur canonique que gmeow:tenurePlace est fonctionnelle: les droits d'une tenure foncière s'appliquent sur exactement un lieu (parcelle, lot ou unité spatiale) qui est constitutif de l'identité de la tenure, de sorte qu'un second lieu constituerait une tenure différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trajectoryOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trajectoryOf is functional"
+msgstr "trajectoryOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trajectoryOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:trajectoryOf is functional: a trajectory traces the space-time path of exactly one entity, so it belongs to a single entity and one Trajectory is never shared across entities."
+msgstr "Affirme sur le porteur canonique que gmeow:trajectoryOf est fonctionnelle : une trajectoire retrace le chemin spatio-temporel d'exactement une entité, de sorte qu'elle appartient à une seule entité et qu'une Trajectory n'est jamais partagée entre plusieurs entités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trajectoryReferenceFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trajectoryReferenceFrame is functional"
+msgstr "trajectoryReferenceFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trajectoryReferenceFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:trajectoryReferenceFrame is functional: all samples of a trajectory are expressed against one frame, so exactly one reference frame situates the path while frame transformation remains a solver concern (Principle 12)."
+msgstr "Affirme sur le porteur canonique que gmeow:trajectoryReferenceFrame est fonctionnelle : tous les échantillons d'une trajectoire sont exprimés par rapport à un seul référentiel, de sorte qu'exactement un référentiel situe le chemin, tandis que la transformation de référentiel reste une préoccupation du solveur (Principe 12)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unLocodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unLocode is functional"
+msgstr "unLocode est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unLocodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:unLocode is functional: a Geocode holds one UN/LOCODE — the single five-character code for a transport location (port, airport, rail terminal) — so one value identifies it."
+msgstr "Affirme sur le porteur canonique que gmeow:unLocode est fonctionnelle : un Geocode détient un UN/LOCODE — le code unique à cinq caractères pour un lieu de transport (port, aéroport, terminal ferroviaire) — de sorte qu'une seule valeur l'identifie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utilizationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "utilizationOf is functional"
+msgstr "utilizationOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utilizationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:utilizationOf is functional: a utilization measurement is constitutively about exactly one location, since the occupancy-to-capacity ratio it reports belongs to a single locus, so a second location would be a different measurement."
+msgstr "Affirme sur le porteur canonique que gmeow:utilizationOf est fonctionnelle : une mesure d'utilisation porte constitutivement sur exactement un lieu, puisque le rapport occupation-capacité qu'elle rapporte appartient à un locus unique, de sorte qu'un second lieu constituerait une mesure différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/what3wordsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "what3words is functional"
+msgstr "what3words est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/what3wordsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:what3words is functional: a Geocode holds one what3words address — the three-word label of a single 3m×3m square — so one value fixes its location."
+msgstr "Affirme sur le porteur canonique que gmeow:what3words est fonctionnelle : un Geocode détient une adresse what3words — l'étiquette à trois mots d'un carré unique de 3 m × 3 m — de sorte qu'une seule valeur fixe son emplacement."
+

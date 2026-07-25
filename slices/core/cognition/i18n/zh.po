@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: cognition, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyAgent is functional"
+msgstr "knowledgeProficiencyAgent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyAgent is functional: a gmeow:KnowledgeProficiency expresses the knowledge depth of exactly one agent, whose identity is constitutive of the reified proficiency."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencyAgent 是函数性的:一个 gmeow:KnowledgeProficiency 恰好表达一个主体的知识深度,该主体的身份构成了这一具体化熟练度的构成要素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyLevel is functional"
+msgstr "knowledgeProficiencyLevel 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyLevel is functional: a gmeow:KnowledgeProficiency records exactly one attained ordinal depth on the knowledgeAware to knowledgeMastered ladder."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencyLevel 是函数性的:一个 gmeow:KnowledgeProficiency 恰好记录在从 knowledgeAware 到 knowledgeMastered 的阶梯上所达到的一个序数深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyScale is functional"
+msgstr "knowledgeProficiencyScale 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyScale is functional: a gmeow:KnowledgeProficiency's level is read against exactly one scale, the native gmeow:KnowledgeLevel or a Bloom's / SOLO / Dreyfus alternate."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencyScale 是函数性的:一个 gmeow:KnowledgeProficiency 的水平恰好依据一种量表来解读,即原生的 gmeow:KnowledgeLevel,或布鲁姆分类法/SOLO/德雷福斯模型中的一种替代量表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencySubject is functional"
+msgstr "knowledgeProficiencySubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is."
+msgstr "在规范载体上断言 gmeow:knowledgeProficiencySubject 是函数式的:一个 gmeow:KnowledgeProficiency 恰好涉及一个主体实体——一个主题、人物、地点或事件——它构成了该项能力究竟是关于什么的。"
+

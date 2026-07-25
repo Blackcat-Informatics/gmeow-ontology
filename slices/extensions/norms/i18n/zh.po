@@ -1,0 +1,247 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: norms, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRangeMaxFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchorRangeMax is functional"
+msgstr "anchorRangeMax 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRangeMaxFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:anchorRangeMax is functional: an anchored score range has exactly one upper bound, and a second maximum would leave the interval's ceiling ill-defined."
+msgstr "在规范载体上断言 gmeow:anchorRangeMax 是函数性的:一个已锚定的乐谱范围恰好具有一个上界,若存在第二个最大值,该区间的上限将变得不确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRangeMinFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "anchorRangeMin is functional"
+msgstr "anchorRangeMin 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/anchorRangeMinFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:anchorRangeMin is functional: an anchored score range has exactly one lower bound, and a second minimum would leave the interval's floor ill-defined (the one lower bound that must never exceed the anchor's upper bound)."
+msgstr "在规范载体上断言 gmeow:anchorRangeMin 是函数性的:一个已锚定的乐谱范围恰好具有一个下界,若存在第二个最小值,该区间的下限将变得不确定(这唯一的下界绝不能超过该锚点的上界)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessedEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assessedEvent is functional"
+msgstr "assessedEvent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessedEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assessedEvent is functional: a compliance assessment judges exactly one event — the single feature of interest whose compliance it reports — so weighing a second event is a separate assessment, not a further value here."
+msgstr "在规范载体上断言 gmeow:assessedEvent 是函数性的:一次合规评估恰好评判一个事件——即其报告合规情况所针对的单一关注特征——因此权衡第二个事件是另一次独立的评估,而非此处的又一个值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessedNormFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assessedNorm is functional"
+msgstr "assessedNorm 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessedNormFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assessedNorm is functional: a compliance assessment weighs its event against exactly one norm, so judging the same event against a further norm is a distinct assessment rather than a second value on this one."
+msgstr "在规范载体上断言 gmeow:assessedNorm 是函数性的:一次合规评估恰好依据一项规范来衡量其事件,因此依据另一项规范来评判同一事件是一次独立的评估,而非此评估上的第二个值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/complianceVerdictFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complianceVerdict is functional"
+msgstr "complianceVerdict 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/complianceVerdictFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:complianceVerdict is functional: a compliance assessment records exactly one verdict from its single assessor, and a divergent judgement is a separate coexisting assessment cell rather than a second verdict on this one."
+msgstr "在规范载体上断言 gmeow:complianceVerdict 是函数式的：一次合规评估恰好记录来自其唯一评估者的一个裁定，不同的判断构成一个并存的独立评估单元，而不是在同一评估上的第二个裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conditionText is functional"
+msgstr "conditionText 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:conditionText is functional: a condition has exactly one canonical prose statement — the single authoritative form every machine formalization must approximate — so a second prose body would install a rival canon within one condition."
+msgstr "在规范载体上断言 gmeow:conditionText 是函数式的：一个条件恰好有一个规范散文陈述——即每一种机器形式化都必须逼近的唯一权威形式——因此第二段散文文本将在同一条件内树立一个相互竞争的正典。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deonticModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deonticModality is functional"
+msgstr "deonticModality 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deonticModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:deonticModality is functional: a norm carries exactly one deontic force, since a prescription that both permits and obliges is two distinct norms rather than one norm bearing two modalities."
+msgstr "在规范载体上断言 gmeow:deonticModality 是函数性的：一条规范恰好携带一种道义力，因为既允许又强制的规定其实是两条不同的规范，而不是一条规范承载两种情态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedConditionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluatedCondition is functional"
+msgstr "evaluatedCondition 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedConditionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:evaluatedCondition is functional: a condition evaluation reports on exactly one condition, its single observed feature, and the members of a condition group each receive their own evaluation rather than sharing one."
+msgstr "在规范载体上断言 gmeow:evaluatedCondition 是函数性的：一次条件评估恰好针对一个条件，即其唯一被观察的特征，条件组中的每个成员各自获得自己的评估，而不是共享同一个评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluationVerdictFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluationVerdict is functional"
+msgstr "evaluationVerdict 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluationVerdictFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:evaluationVerdict is functional: an evaluation returns exactly one outcome — held, not held, or undetermined — and a differing verdict from another evaluator is a separate coexisting observation, not a second value on this evaluation."
+msgstr "在规范载体上断言 gmeow:evaluationVerdict 是函数性的：一次评估恰好返回一个结果——成立、不成立或未决——另一评估者给出的不同裁定属于另一并存的独立观察，而不是本次评估上的第二个值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemplarPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exemplarPolarity is functional"
+msgstr "exemplarPolarity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemplarPolarityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exemplarPolarity is functional: an exemplar points in exactly one direction — positive, negative, or cautionary — because an exemplar that could not say whether to emulate or avoid would collapse back into a bare citation."
+msgstr "在规范载体上断言 gmeow:exemplarPolarity 是函数性的：一个范例恰好指向一个方向——正面、负面或警示性——因为一个无法说明应效仿还是应避免的范例，将退化为一条单纯的引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expressionLanguage is functional"
+msgstr "expressionLanguage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:expressionLanguage is functional: a condition expression is written in exactly one named language, so its verbatim source sits in a single dialect and a formalization in another language is a separate expression."
+msgstr "在规范载体上断言 gmeow:expressionLanguage 是函数性的：一个条件表达式恰好以一种命名语言写成，因此其逐字源文本仅属于单一方言，若以另一种语言进行形式化，则构成另一个独立的表达式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expressionText is functional"
+msgstr "expressionText 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:expressionText is functional: a condition expression carries exactly one verbatim source body — one expression, one string of source in its declared language."
+msgstr "在规范载体上断言 gmeow:expressionText 是函数性的：一个条件表达式恰好携带一个逐字源文本主体——一个表达式，对应其所声明语言中的一段源字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groupOperatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "groupOperator is functional"
+msgstr "groupOperator 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groupOperatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:groupOperator is functional: a condition group combines its members under exactly one operator — all, any, or none — and richer logic is built by nesting further groups rather than by a second operator on one group."
+msgstr "在规范载体上断言 gmeow:groupOperator 是函数性的:一个条件组恰好在一个运算符——all、any 或 none——之下组合其成员,更复杂的逻辑通过嵌套更多的组来构建,而不是在同一个组上使用第二个运算符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overridesIrreflexivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overrides is irreflexive"
+msgstr "覆盖非自反性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overridesIrreflexivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:overrides is irreflexive: a norm never overrides itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a norm asserted to override itself; the generated SHACL constraint surface is its projection."
+msgstr "在规范载体上断言 gmeow:overrides 是非自反的：如其 skos:definition 所述，一条规范绝不覆盖自身。原生一致性门读取此项，为被断言覆盖自身的规范抛出一个违规；生成的 SHACL 约束表面是其投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parameterEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameterEntity is functional"
+msgstr "parameterEntity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parameterEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:parameterEntity is functional: a condition parameter resolves to exactly one bound entity, and a parameter carries at most one of an entity binding or a literal binding, never two."
+msgstr "在规范载体上断言 gmeow:parameterEntity 是函数性的:一个条件参数恰好解析为一个绑定实体,且一个参数至多携带实体绑定或字面量绑定二者之一,绝不同时携带两者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parameterNameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameterName is functional"
+msgstr "parameterName 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parameterNameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:parameterName is functional: a condition parameter has exactly one name — the single key by which the condition text or its expressions reference the binding."
+msgstr "在规范载体上断言 gmeow:parameterName 是函数性的:一个条件参数恰好有一个名称——条件文本或其表达式据以引用该绑定的唯一键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parameterValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parameterValue is functional"
+msgstr "parameterValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parameterValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:parameterValue is functional: a condition parameter resolves to exactly one bound literal, and a parameter carries at most one of a literal binding or an entity binding, never two."
+msgstr "在规范载体上断言 gmeow:parameterValue 是函数性的:一个条件参数恰好解析为一个绑定字面量,且一个参数至多携带字面量绑定或实体绑定二者之一,绝不同时携带两者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/penaltyPoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "penaltyPole is functional"
+msgstr "penaltyPole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/penaltyPoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:penaltyPole is functional: a criterion has exactly one penalty pole — the single named low end it penalizes — which must further be a different pole from the one it rewards."
+msgstr "在规范载体上断言 gmeow:penaltyPole 是函数性的:一个准则恰好有一个惩罚极——它所惩罚的唯一命名低端——该极还必须不同于其奖励的那一极。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "personaBearer is functional"
+msgstr "personaBearer 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:personaBearer is functional: a persona is the reified expression policy of exactly one agent — an agent may bear many co-equal personas, but each persona traces to a single bearer."
+msgstr "在规范载体上断言 gmeow:personaBearer 是函数性的:一个人设是恰好一个主体的具体化表达策略——一个主体可以承载多个地位平等的人设,但每个人设都可追溯到唯一一个承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceHigherFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "precedenceHigher is functional"
+msgstr "precedenceHigher 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceHigherFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:precedenceHigher is functional: a precedence tenure names exactly one prevailing norm — the single norm that took priority over the interval it records."
+msgstr "在规范载体上断言 gmeow:precedenceHigher 是函数性的:一个优先权任期恰好指明一项优胜规范——在其所记录的区间内取得优先地位的唯一规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceLowerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "precedenceLower is functional"
+msgstr "precedenceLower 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceLowerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:precedenceLower is functional: a precedence tenure names exactly one yielding norm — the single norm that gave way over the interval — which must further be a different norm from the one that prevailed."
+msgstr "在规范载体上断言 gmeow:precedenceLower 是函数性的:一个优先权任期恰好指明一项让位规范——在该区间内让步的唯一规范——该规范还必须不同于取得优先地位的那项规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "precedenceScope is functional"
+msgstr "precedenceScope 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:precedenceScope is functional: a precedence tenure holds within exactly one normative system, because a system orders only the norms it issues and cannot scope precedence over the world's."
+msgstr "在规范载体上断言 gmeow:precedenceScope 是函数性的:一个优先权任期恰好在一个规范系统内成立,因为一个系统只能对其自身发布的规范排序,而不能将其优先权范围扩展到世界上所有规范之上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceTenureDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a precedence tenure's higher and lower norms are distinct"
+msgstr "优先级任期的较高与较低规范彼此不同"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/precedenceTenureDistinctness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:PrecedenceTenure's gmeow:precedenceHigher and gmeow:precedenceLower norms must be distinct: a norm does not take precedence over itself. The native coherence gate raises a violation when they coincide."
+msgstr "断言某 gmeow:PrecedenceTenure 的 gmeow:precedenceHigher 与 gmeow:precedenceLower 规范必须相异：一条规范不优先于其自身。当二者重合时，原生一致性闸会引发一个违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rewardPoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rewardPole is functional"
+msgstr "rewardPole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rewardPoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:rewardPole is functional: a criterion has exactly one reward pole — the single named high end it rewards — which must further be a different pole from the one it penalizes."
+msgstr "在规范载体上断言 gmeow:rewardPole 是函数性的:一个标准恰好有一个奖励极——它所奖励的唯一命名高端——并且该极必须不同于它所惩罚的那个极。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scaleMaxFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scaleMax is functional"
+msgstr "scaleMax 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scaleMaxFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scaleMax is functional: a score scale has exactly one upper bound — a single maximum that must exceed the minimum — and a second maximum would leave the scale's ceiling undefined."
+msgstr "在规范载体上断言 gmeow:scaleMax 是函数性的:一个评分刻度恰好有一个上界——一个必须大于最小值的单一最大值——若存在第二个最大值,该刻度的上限就会变得未定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scaleMinFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scaleMin is functional"
+msgstr "scaleMin 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scaleMinFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scaleMin is functional: a score scale has exactly one lower bound — a single minimum that must sit below the maximum — and a second minimum would leave the scale's floor undefined."
+msgstr "在规范载体上断言 gmeow:scaleMin 是函数性的:一个评分刻度恰好有一个下界——一个必须低于最大值的单一最小值——若存在第二个最小值,该刻度的下限就会变得未定义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scaleStepFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scaleStep is functional"
+msgstr "scaleStep 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scaleStepFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scaleStep is functional: a score scale has at most one granularity step — a single discrete increment when present, whose absence marks the scale as continuous."
+msgstr "在规范载体上断言 gmeow:scaleStep 是函数性的:一个评分刻度至多有一个粒度步长——若存在,则为单一的离散增量;若不存在,则表明该刻度是连续的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usesScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usesScale is functional"
+msgstr "usesScale 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usesScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:usesScale is functional: each holder — a rubric as its default or a criterion as an override — uses exactly one score scale, and a criterion-level scale replaces the rubric default rather than adding a second."
+msgstr "在规范载体上断言 gmeow:usesScale 是函数性的:每个持有者——作为默认值的评分标准或作为覆盖值的准则——恰好使用一种评分量表,准则层级的量表会取代评分标准的默认量表,而不是再增加一个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/criterionPoleDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a criterion's reward and penalty poles are distinct"
+msgstr "准则的奖励极与惩罚极是不同的"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/criterionPoleDistinctness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide."
+msgstr "断言一个 gmeow:Criterion 的 gmeow:rewardPole 与 gmeow:penaltyPole 必须相异：单一的极点不构成轴。当二者重合时，原生一致性关卡会引发一个违规。"
+

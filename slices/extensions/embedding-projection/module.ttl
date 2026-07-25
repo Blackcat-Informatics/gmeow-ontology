@@ -1684,3 +1684,245 @@ gmeow:EmbeddingProjection logic:subClassOf
 [ a logic:Restriction ; logic:onProperty gmeow:reproducibilityLevel ; logic:hasValue gmeow:reproducibleWithinTolerance ]
     logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:reproducibilityTolerance ; logic:someValuesFrom math:Quantity ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:comparesLeftTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "comparesLeftTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:comparesLeftTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one left operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second left row would be a second, distinct observation, not one claim with two left operands."@x-gmeow-english ;
+    logic:characterizes gmeow:comparesLeftTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:comparesLeftTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:comparesRightTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "comparesRightTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:comparesRightTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one right operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second right row would be a second, distinct observation, not one claim with two right operands."@x-gmeow-english ;
+    logic:characterizes gmeow:comparesRightTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:comparesRightTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:effectiveOfFamilyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "effectiveOfFamily is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:effectiveOfFamily is functional: an effective vector space is a space of exactly one embedding family, so its identity digest folds in exactly one family digest and a prefix space resolves to the single stored matrix it shares; two families would be two distinct effective spaces, never one contract bound to both."@x-gmeow-english ;
+    logic:characterizes gmeow:effectiveOfFamily ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:effectiveOfFamily ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hasTargetSetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "hasTargetSet is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasTargetSet is functional: a projection's stored matrix realizes exactly one ordered target namespace, so its row mapping resolves to a single content-addressed gmeow:TargetSet; a different subject projection over the same source is a different projection with its own target set, never one projection matrix bearing two."@x-gmeow-english ;
+    logic:characterizes gmeow:hasTargetSet ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasTargetSet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hasVectorSpaceContractFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "hasVectorSpaceContract is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasVectorSpaceContract is functional: a projection commits to exactly one comparability contract, because vectors obeying two contracts cannot be compared under one metric and so are two projections, never one; the single contract's digest is the join key for cross-projection comparability."@x-gmeow-english ;
+    logic:characterizes gmeow:hasVectorSpaceContract ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasVectorSpaceContract ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:indexOfProjectionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "indexOfProjection is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:indexOfProjection is functional: a derived index is built over exactly one embedding projection, so it always resolves to the single authoritative source of the vectors it accelerates; a federated accelerator spanning several projections is several gmeow:DerivedVectorIndex individuals, never one index bound to two projections."@x-gmeow-english ;
+    logic:characterizes gmeow:indexOfProjection ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:indexOfProjection ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:indexOverSpaceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "indexOverSpace is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:indexOverSpace is functional: a derived index is built over exactly one effective/prefix vector space, the single space it states what it approximates; an index over a 256-dim prefix and an index over the full family space are distinct gmeow:DerivedVectorIndex individuals even over one projection, never one index over two spaces."@x-gmeow-english ;
+    logic:characterizes gmeow:indexOverSpace ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:indexOverSpace ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:matryoshkaPolicyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "matryoshkaPolicy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:matryoshkaPolicy is functional: an effective vector space commits to exactly one prefix policy that folds into its identity digest, because the full-space (fixed) reading and a leading-prefix reading are distinct effective spaces with distinct digests; a single space cannot be both, so it fixes one gmeow:MatryoshkaPolicy."@x-gmeow-english ;
+    logic:characterizes gmeow:matryoshkaPolicy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:matryoshkaPolicy ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:normalizationKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "normalizationKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:normalizationKind is functional: an effective vector space commits to exactly one postprocessing/normalization strategy that folds into its digest identity, because normalized and un-normalized vectors are not one comparable space; a single gmeow:VectorSpaceContract therefore fixes one gmeow:NormalizationKind, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:normalizationKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:normalizationKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:overVectorSpaceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "overVectorSpace is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overVectorSpace is functional: a similarity observation's proximity is meaningful only within a single vector space, since a proximity stated across two contracts is ill-formed; the observation therefore names exactly one gmeow:VectorSpaceContract its vectors share, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:overVectorSpace ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:overVectorSpace ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:poolingKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "poolingKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:poolingKind is functional: an embedding family commits to exactly one token-to-sequence pooling strategy as a generation-contract choice, because differently-pooled vectors are not one family even under one model; the family therefore fixes a single gmeow:PoolingKind that folds into its digest identity."@x-gmeow-english ;
+    logic:characterizes gmeow:poolingKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:poolingKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:profileSurfaceKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "profileSurfaceKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares."@x-gmeow-english ;
+    logic:characterizes gmeow:profileSurfaceKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:profileSurfaceKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:profileSurfaceOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "profileSurfaceOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against."@x-gmeow-english ;
+    logic:characterizes gmeow:profileSurfaceOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:profileSurfaceOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:projectionSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "projectionSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionSource ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:reproducibilityLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "reproducibilityLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reproducibilityLevel is functional: a projection sits at exactly one point on the get-leg determinism axis — bit-exact, within-tolerance, or merely regenerable — drawn from a closed value set; regeneration cannot be simultaneously two of these, so a projection declares one level, not two."@x-gmeow-english ;
+    logic:characterizes gmeow:reproducibilityLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reproducibilityLevel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:reproducibilityToleranceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "reproducibilityTolerance is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one."@x-gmeow-english ;
+    logic:characterizes gmeow:reproducibilityTolerance ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reproducibilityTolerance ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:similarityScoreFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "similarityScore is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:similarityScore is functional: a similarity observation carries exactly one magnitude — the graded proximity of its one operand pair under its one metric, grounded as a single math:Quantity; a second score would describe a different observation, not one claim with two proximities."@x-gmeow-english ;
+    logic:characterizes gmeow:similarityScore ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:similarityScore ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:targetsResourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "targetsResource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:targetsResource is functional: one vector row embeds exactly one resource — the single term, document, chunk, summary, or statement reifier the row stands for, which is that row's identity; a row targeting two resources would be two distinct rows, never one slot bound to both."@x-gmeow-english ;
+    logic:characterizes gmeow:targetsResource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:targetsResource ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:vectorByteOrderFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "vectorByteOrder is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vectorByteOrder is functional: an embedding family serializes its stored matrix under exactly one byte order that folds into its gmeow:contentDigest identity, so a byte-order difference is a family difference rather than a silent reinterpretation of the same stored bytes; the family therefore fixes a single gmeow:ByteOrder."@x-gmeow-english ;
+    logic:characterizes gmeow:vectorByteOrder ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vectorByteOrder ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:vectorTargetKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "vectorTargetKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vectorTargetKind is functional: a vector target embeds exactly one kind of resource — a row is a corpus, document, chunk, dataset, graph, statement, reifier, annotation, term, or summary, but one flavour, not two; the target therefore folds in a single gmeow:VectorTargetKind."@x-gmeow-english ;
+    logic:characterizes gmeow:vectorTargetKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vectorTargetKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:withMetricFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "withMetric is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:withMetric is functional: a similarity observation's proximity was computed under exactly one distance metric, because a cosine 0.9 and a dot-product 0.9 are not the same claim; the observation therefore names the single metric its score was measured under, which must in turn agree with its gmeow:overVectorSpace contract's metric."@x-gmeow-english ;
+    logic:characterizes gmeow:withMetric ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:withMetric ;
+    gmeow:graphBoxRole gmeow:boxABox .

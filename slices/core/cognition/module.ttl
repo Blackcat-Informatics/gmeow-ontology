@@ -438,3 +438,58 @@ gmeow:KnowledgeProficiencyScaleCardinalityConstraint
     logic:aggCompareTo "1"^^<http://www.w3.org/2001/XMLSchema#integer> ;
     logic:formalizes gmeow:KnowledgeProficiency ;
     logic:message "A KnowledgeProficiency has at most one scale (gmeow:knowledgeProficiencyScale)." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:knowledgeProficiencyAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledgeProficiencyAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knowledgeProficiencyAgent is functional: a gmeow:KnowledgeProficiency expresses the knowledge depth of exactly one agent, whose identity is constitutive of the reified proficiency."@x-gmeow-english ;
+    logic:characterizes gmeow:knowledgeProficiencyAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:knowledgeProficiencyAgent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:knowledgeProficiencyLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledgeProficiencyLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knowledgeProficiencyLevel is functional: a gmeow:KnowledgeProficiency records exactly one attained ordinal depth on the knowledgeAware to knowledgeMastered ladder."@x-gmeow-english ;
+    logic:characterizes gmeow:knowledgeProficiencyLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:knowledgeProficiencyLevel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:knowledgeProficiencyScaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledgeProficiencyScale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knowledgeProficiencyScale is functional: a gmeow:KnowledgeProficiency's level is read against exactly one scale, the native gmeow:KnowledgeLevel or a Bloom's / SOLO / Dreyfus alternate."@x-gmeow-english ;
+    logic:characterizes gmeow:knowledgeProficiencyScale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:knowledgeProficiencyScale ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:knowledgeProficiencySubjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledgeProficiencySubject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is."@x-gmeow-english ;
+    logic:characterizes gmeow:knowledgeProficiencySubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:knowledgeProficiencySubject ;
+    gmeow:graphBoxRole gmeow:boxABox .

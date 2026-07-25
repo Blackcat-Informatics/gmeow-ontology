@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: aggregation, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "aggregationFunction is functional"
+msgstr "aggregationFunction 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:aggregationFunction is functional: a spatial aggregation applies exactly one statistical function — count, sum, average, density, minimum, maximum, or centroid — so computing a different function over the same region is a different aggregation."
+msgstr "在规范载体上断言 gmeow:aggregationFunction 是函数性的:一次空间聚合恰好应用一种统计函数——计数、求和、平均值、密度、最小值、最大值或质心——因此在同一区域上计算不同的函数即构成不同的聚合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimumPopulation is functional"
+msgstr "minimumPopulation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time."
+msgstr "在规范载体上断言 gmeow:minimumPopulation 是函数式的:一个空间聚合恰好携带一个 k-匿名阈值,即在投影时若结果所涉人口规模低于该单一最小值便会被抑制的那个数值。"
+

@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: connectivity, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "connectionSource is functional"
+msgstr "connectionSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:connectionSource is functional: a reified Connection has exactly one source endpoint, so a link departing from several things is several Connections rather than one Connection with many sources."
+msgstr "在规范载体上断言 gmeow:connectionSource 是函数式的：一个具体化的 Connection 恰好有一个源端点，因此从多个事物出发的链接是多个 Connection，而不是一个具有多个来源的 Connection。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "connectionTarget is functional"
+msgstr "connectionTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:connectionTarget is functional: a reified Connection has exactly one target endpoint, so a link arriving at several things is several Connections rather than one Connection with many targets."
+msgstr "在规范载体上断言 gmeow:connectionTarget 是函数式的：一个具体化的 Connection 恰好有一个目标端点，因此到达多个事物的链接是多个 Connection，而不是一个具有多个目标的 Connection。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "routeEnd is functional"
+msgstr "routeEnd 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path."
+msgstr "在规范载体上断言 gmeow:routeEnd 是函数性的:一条路线恰好终止于一个终点节点——即封闭该路径的唯一目的地。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "routeKind is functional"
+msgstr "routeKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed."
+msgstr "在规范载体上断言 gmeow:routeKind 是函数性的:一条路线恰好由一个 RouteKind 值分类——即其路径所遍历的唯一领域(交通、航班、引用、依赖等等)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "routeStart is functional"
+msgstr "routeStart 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs."
+msgstr "在规范载体上断言 gmeow:routeStart 是函数性的:一条路线恰好起始于一个起点节点——即该路径出发的唯一起点。"
+

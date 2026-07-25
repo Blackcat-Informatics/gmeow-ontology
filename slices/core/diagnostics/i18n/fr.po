@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: diagnostics, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "existentialOrdinal is functional"
+msgstr "existentialOrdinal est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:existentialOrdinal is functional: a chase-invented gmeow:InventedWitness discharges exactly one existential head-variable of its firing rule, so it carries a single 0-based ordinal that is one of the three components of its content-addressed identity."
+msgstr "Affirme sur le porteur canonique que gmeow:existentialOrdinal est fonctionnelle : un gmeow:InventedWitness inventé par la procédure de chase décharge exactement une variable de tête existentielle de sa règle de déclenchement, de sorte qu'il porte un unique ordinal à base zéro, l'une des trois composantes de son identité adressée par contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingCode is functional"
+msgstr "findingCode est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingCode is functional: a gmeow:Finding carries exactly one stable rule identifier, serving as its SARIF ruleId and the single key by which findings are grouped and suppressed."
+msgstr "Affirme sur le porteur canonique que gmeow:findingCode est fonctionnelle : un gmeow:Finding porte exactement un identifiant de règle stable, servant de ruleId SARIF et de clé unique permettant de regrouper et de supprimer les constats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingMessage is functional"
+msgstr "findingMessage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingMessage is functional: a gmeow:Finding carries exactly one human-readable message describing that occurrence, distinct from its single stable code."
+msgstr "Affirme sur le porteur canonique que gmeow:findingMessage est fonctionnelle : un gmeow:Finding porte exactement un message lisible par un humain décrivant cette occurrence, distinct de son unique code stable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingSeverity is functional"
+msgstr "findingSeverity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result."
+msgstr "Affirme sur le porteur canonique que gmeow:findingSeverity est fonctionnelle : un gmeow:Finding possède exactement un degré de verdict, un unique gmeow:DiagnosticSeverity qui constitue le résultat de son observation."
+

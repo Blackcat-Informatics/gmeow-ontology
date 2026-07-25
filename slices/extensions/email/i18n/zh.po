@@ -1,0 +1,215 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: email, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authMethodFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authMethod is functional"
+msgstr "authMethod 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:authMethod is functional: an AuthenticationResult reifies a single RFC 8601 authentication check, and each such check tests exactly one method — dkim, spf, dmarc, arc, iprev, or auth — so the reified result names that one method."
+msgstr "在规范载体上断言 gmeow:authMethod 是函数性的:一个 AuthenticationResult 具体化了单一次 RFC 8601 认证检查,而每一次此类检查恰好测试一种方法——dkim、spf、dmarc、arc、iprev 或 auth——因此该具体化结果只命名那一种方法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authResult is functional"
+msgstr "authResult 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:authResult is functional: the single method an AuthenticationResult evaluates yields exactly one verdict — pass, fail, none, softfail, neutral, temperror, or permerror — so the reified check carries one result."
+msgstr "在规范载体上断言 gmeow:authResult 是函数性的:一个 AuthenticationResult 所评估的那唯一方法恰好产生一个判定结果——pass、fail、none、softfail、neutral、temperror 或 permerror——因此该具体化检查只携带一个结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authServerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authServer is functional"
+msgstr "authServer 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authServerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:authServer is functional: each AuthenticationResult records its check as stamped by a single authserv-id — the one authentication-serv-id that performed it — so the verifying server is one value."
+msgstr "在规范载体上断言 gmeow:authServer 是函数性的:每个 AuthenticationResult 都将其检查记录为由单一个 authserv-id 所盖章——即执行该检查的唯一认证服务标识——因此验证服务器是单一值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyStructureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bodyStructure is functional"
+msgstr "bodyStructure 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyStructureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:bodyStructure is functional: the serialized JMAP EmailBodyStructure object is a single raw round-trip projection of a message's one MIME tree, so each message preserves exactly one such structure literal."
+msgstr "在规范载体上断言 gmeow:bodyStructure 是函数性的:序列化的 JMAP EmailBodyStructure 对象是消息唯一MIME树的单一原始可往返投影,因此每条消息恰好保留一个这样的结构字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/filenameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "filename is functional"
+msgstr "filename 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/filenameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:filename is functional: an Attachment is a single non-inline body part whose Content-Disposition names one file, so it bears exactly one filename."
+msgstr "在规范载体上断言 gmeow:filename 是函数性的：一个附件是单一的非内联正文部分，其 Content-Disposition 指名一个文件，因此它恰好携带一个文件名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasContentDispositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasContentDisposition is functional"
+msgstr "hasContentDisposition 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasContentDispositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasContentDisposition is functional: a body part's Content-Disposition resolves to exactly one presentation value — inline or attachment, never both — so the part points to a single ContentDisposition individual."
+msgstr "在规范载体上断言 gmeow:hasContentDisposition 是函数性的:正文部分的 Content-Disposition 恰好解析为一个呈现取值——inline 或 attachment,绝不同时为两者——因此该部分指向单一的 ContentDisposition 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasContentTransferEncodingFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasContentTransferEncoding is functional"
+msgstr "hasContentTransferEncoding 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasContentTransferEncodingFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasContentTransferEncoding is functional: a MIME body part is encoded for transport by exactly one mechanism — base64, quoted-printable, 7bit, 8bit, or binary — so it points to a single ContentTransferEncoding value."
+msgstr "在规范载体上断言 gmeow:hasContentTransferEncoding 是函数性的:一个 MIME 正文部分恰好以一种机制进行传输编码——base64、quoted-printable、7bit、8bit 或 binary——因此它指向单一的 ContentTransferEncoding 取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMultipartTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasMultipartType is functional"
+msgstr "hasMultipartType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMultipartTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasMultipartType is functional: a MultipartBodyPart's Content-Type declares exactly one multipart subtype (alternative, mixed, related, signed, encrypted, …), so the container points to a single MultipartType value."
+msgstr "在规范载体上断言 gmeow:hasMultipartType 是函数性的:一个 MultipartBodyPart 的 Content-Type 恰好声明一种多部分子类型(alternative、mixed、related、signed、encrypted 等),因此该容器指向单一的 MultipartType 取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headerNameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "headerName is functional"
+msgstr "headerName 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headerNameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:headerName is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field name, so the header's name is single-valued."
+msgstr "在规范载体上断言 gmeow:headerName 是函数性的:一个具体化的 MessageHeader 建模的是单个 RFC 5322 头部字段,而一个字段恰好有一个字段名,因此该头部的名称是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headerValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "headerValue is functional"
+msgstr "headerValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/headerValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:headerValue is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field value, so the header's value is single-valued."
+msgstr "在规范载体上断言 gmeow:headerValue 是函数性的:一个具体化的 MessageHeader 建模的是单个 RFC 5322 头部字段,而一个字段恰好有一个字段值,因此该头部的取值是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hopOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hopOrdinal is functional"
+msgstr "hopOrdinal 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hopOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hopOrdinal is functional: a RelayHop occupies one position within a message's delivery path (1 = closest to the origin), so its ordinal is a single integer."
+msgstr "在规范载体上断言 gmeow:hopOrdinal 是函数性的:一个 RelayHop 在消息传递路径中占据一个位置(1 表示最接近源头),因此其序号是一个单一整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mailboxOfAccountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mailboxOfAccount is functional"
+msgstr "mailboxOfAccount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mailboxOfAccountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mailboxOfAccount is functional: a mailbox is a container held within exactly one online account, so the account that holds it is a single value."
+msgstr "在规范载体上断言 gmeow:mailboxOfAccount 是函数式的:一个邮箱是一个恰好由一个在线账户所持有的容器,因此持有它的账户是单一值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mailboxRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mailboxRole is functional"
+msgstr "mailboxRole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mailboxRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mailboxRole is functional: JMAP assigns a mailbox at most one special-use role (inbox, archive, drafts, sent, trash, junk, templates), so the role is single-valued."
+msgstr "在规范载体上断言 gmeow:mailboxRole 是函数式的:JMAP 最多为一个邮箱分配一种特殊用途角色(收件箱、归档、草稿、已发送、垃圾箱、垃圾邮件、模板),因此该角色是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantAddressFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participantAddress is functional"
+msgstr "participantAddress 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantAddressFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participantAddress is functional: a MessageParticipant reifies a single occurrence of one address in a header or envelope context, so the normalized address that appears in that occurrence is single-valued."
+msgstr "在规范载体上断言 gmeow:participantAddress 是函数性的:一个 MessageParticipant 具体化了在报头或信封语境中某一地址的单次出现,因此该次出现中呈现的规范化地址是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantHeaderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participantHeader is functional"
+msgstr "participantHeader 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantHeaderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participantHeader is functional: a MessageParticipant reifies one address occurrence parsed from a single RFC 5322 header field, so the source header of that occurrence is single-valued."
+msgstr "在规范载体上断言 gmeow:participantHeader 是函数性的:一个 MessageParticipant 具体化了从单一 RFC 5322 报头字段解析出的一次地址出现,因此该次出现的来源报头是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participantMessage is functional"
+msgstr "participantMessage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participantMessage is functional: a MessageParticipant reifies an address occurrence that belongs to exactly one message, so the message the occurrence belongs to is single-valued."
+msgstr "在规范载体上断言 gmeow:participantMessage 是函数性的:一个 MessageParticipant 具体化了恰好属于一条消息的地址出现,因此该次出现所属的消息是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participantOrdinal is functional"
+msgstr "participantOrdinal 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participantOrdinal is functional: a MessageParticipant occupies one zero-based position among the address occurrences of its header, so its ordinal is a single value."
+msgstr "在规范载体上断言 gmeow:participantOrdinal 是函数性的:一个 MessageParticipant 在其报头的诸地址出现中占据一个从零开始的位置,因此其序号是单一值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participantRole is functional"
+msgstr "participantRole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participantRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participantRole is functional: a MessageParticipant reifies one address occurrence that plays exactly one header or envelope role, so the role of that occurrence is single-valued."
+msgstr "在规范载体上断言 gmeow:participantRole 是函数性的:一个 MessageParticipant 具体化了恰好扮演一种报头或信封角色的地址出现,因此该次出现的角色是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relayAt is functional"
+msgstr "relayAt 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relayAt is functional: a RelayHop is recorded by one Received header carrying a single server timestamp, so the time recorded for the hop is single-valued."
+msgstr "在规范载体上断言 gmeow:relayAt 是函数性的:一个 RelayHop 由携带单一服务器时间戳的一个 Received 头记录,因此该跳记录的时间是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relayBy is functional"
+msgstr "relayBy 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relayBy is functional: a RelayHop is the delivery action of a single relaying server, so the server that performed the hop is single-valued."
+msgstr "在规范载体上断言 gmeow:relayBy 是函数性的:一个 RelayHop 是单一中继服务器的投递动作,因此执行该跳的服务器是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayFromFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relayFrom is functional"
+msgstr "relayFrom 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayFromFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relayFrom is functional: a RelayHop received the message from exactly one host, so the from-host it records is single-valued."
+msgstr "在规范载体上断言 gmeow:relayFrom 是函数性的:一个 RelayHop 恰好从一个主机接收消息,因此其记录的来源主机是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayProtocolFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relayProtocol is functional"
+msgstr "relayProtocol 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relayProtocolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relayProtocol is functional: a RelayHop transported the message over one protocol (e.g. ESMTP, ESMTPS), so the protocol used for the hop is single-valued."
+msgstr "在规范载体上断言 gmeow:relayProtocol 是函数性的:一个 RelayHop 通过单一协议(例如 ESMTP、ESMTPS)传输消息,因此该跳所使用的协议是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/residenceMailboxFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "residenceMailbox is functional"
+msgstr "residenceMailbox 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/residenceMailboxFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:residenceMailbox is functional: a MailboxResidence reifies the time-scoped membership of a message in exactly one mailbox, so the mailbox the residence concerns is single-valued."
+msgstr "在规范载体上断言 gmeow:residenceMailbox 是函数性的:一个 MailboxResidence 具体化了某消息在恰好一个邮箱中、限定时间范围的归属关系,因此该驻留所涉及的邮箱是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/residentMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "residentMessage is functional"
+msgstr "residentMessage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/residentMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:residentMessage is functional: a MailboxResidence reifies the time-scoped residence of exactly one message, so the message the residence concerns is single-valued."
+msgstr "在规范载体上断言 gmeow:residentMessage 是函数性的:一个 MailboxResidence 具体化了恰好一条消息、限定时间范围的驻留关系,因此该驻留所涉及的消息是单值的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rfcMessageIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rfcMessageId is functional"
+msgstr "rfcMessageId 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rfcMessageIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:rfcMessageId is functional: a message bears exactly one canonical RFC 5322 Message-ID (generated by gmeow when the original lacks one), so its Message-ID is single-valued even where distinct bodies collide on the same identifier."
+msgstr "在规范载体上断言 gmeow:rfcMessageId 是函数性的:一条消息恰好携带一个规范的 RFC 5322 Message-ID(当原始消息缺失该字段时由 gmeow 生成),因此即使不同的正文在同一标识符上发生冲突,其 Message-ID 也是单值的。"
+

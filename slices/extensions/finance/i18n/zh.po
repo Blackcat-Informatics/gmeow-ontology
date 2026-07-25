@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: finance, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accountType is functional"
+msgstr "accountType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts."
+msgstr "在规范载体上断言 gmeow:accountType 是函数性的:一个金融账户恰好具有一种规范类型——单一的 FinancialAccountType(银行、信贷、投资、钱包),因为具有多种类型的账户会被建模为多个账户。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assetType is functional"
+msgstr "assetType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity)."
+msgstr "在规范载体上断言 gmeow:assetType 是函数性的:一项金融资产恰好具有一种规范类型——单一的 AssetType(股票、债券、加密货币、房地产、大宗商品)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingAgent is functional"
+msgstr "holdingAgent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis."
+msgstr "在规范载体上断言 gmeow:holdingAgent 是函数性的:一项持仓恰好由一个主体持有——即该持仓关系子将其资产、数量和成本基础相连接的那个唯一一方。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingAsset is functional"
+msgstr "holdingAsset 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent."
+msgstr "在规范载体上断言 gmeow:holdingAsset 是函数性的:一项持仓恰好对应一种资产——即该持仓关系子将其持有主体相连接的那个唯一金融工具。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingCostBasis is functional"
+msgstr "holdingCostBasis 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingCostBasis is functional: a holding has exactly one canonical cost basis — the single monetary amount originally paid to acquire the asset, with disputed figures kept as separate standpoint-indexed claims rather than extra values."
+msgstr "在规范载体上断言 gmeow:holdingCostBasis 是函数性的:一项持仓恰好有一个规范的成本基础——即最初为获取该资产所支付的单一货币金额,存在争议的数字则作为按立场索引的独立主张保留,而不是作为额外的取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holdingQuantity is functional"
+msgstr "holdingQuantity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements."
+msgstr "在规范载体上断言 gmeow:holdingQuantity 是函数性的:一项持仓恰好有一个数量——即在给定时间点持有该资产的单一 xsd:decimal 数值,相互竞争的数字则作为按立场索引的独立陈述保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invoiceAmount is functional"
+msgstr "invoiceAmount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment."
+msgstr "在规范载体上断言 gmeow:invoiceAmount 是函数性的:一张发票恰好有一个规范的总金额——即其要求支付的单一 MonetaryAmount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ledgerAccountType is functional"
+msgstr "ledgerAccountType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation."
+msgstr "在规范载体上断言 gmeow:ledgerAccountType 是函数式的:一个总账科目恰好拥有一种规范类型——单一的 LedgerAccountType(资产、负债、权益、收入、费用)——它确定了该科目在会计等式中的角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "orderAmount is functional"
+msgstr "orderAmount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller."
+msgstr "在规范载体上断言 gmeow:orderAmount 是函数性的:一个订单恰好有一个规范总额——买卖双方约定的单一 MonetaryAmount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingAccount is functional"
+msgstr "postingAccount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits."
+msgstr "在规范载体上断言 gmeow:postingAccount 是函数性的:一笔过账恰好影响一个总账账户——其金额借记或贷记的唯一记账账户。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingAmount is functional"
+msgstr "postingAmount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account."
+msgstr "在规范载体上断言 gmeow:postingAmount 是函数性的:一笔过账恰好有一个金额——在一个明确货币框架下,借记或贷记其总账账户的单一 MonetaryAmount。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingDirection is functional"
+msgstr "postingDirection 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingDirection is functional: a posting is exactly one direction — a single debit or credit, never both, as the atomic unit of double-entry bookkeeping requires."
+msgstr "在规范载体上断言 gmeow:postingDirection 是函数性的:一笔过账恰好是一个方向——单一的借方或贷方,绝不两者兼具,这正是复式记账法原子单位所要求的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postingJournalEntry is functional"
+msgstr "postingJournalEntry 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of."
+msgstr "在规范载体上断言 gmeow:postingJournalEntry 是函数性的:一笔过账恰好属于一条日记账分录——它作为其中一行所属的唯一一个平衡的复式记账事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transactionAmount is functional"
+msgstr "transactionAmount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transactionAmount is functional: a financial transaction occurrence has exactly one canonical amount — the single MonetaryAmount of the money moved, with disputed figures kept as separate standpoint-indexed statements rather than extra values on the same transaction."
+msgstr "在规范载体上断言 gmeow:transactionAmount 是函数性的:一次金融交易发生恰好只有一个规范金额——即所转移资金的唯一 MonetaryAmount,存在争议的数字应作为按立场索引的独立陈述保存,而非在同一交易上添加额外值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "walletScheme is functional"
+msgstr "walletScheme 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets."
+msgstr "在规范载体上断言 gmeow:walletScheme 是函数性的:一个加密钱包恰好运行在一种区块链方案上——单一的 WalletScheme(比特币、以太坊、Solana、门罗币等等),支持多方案的容器应建模为多个钱包。"
+

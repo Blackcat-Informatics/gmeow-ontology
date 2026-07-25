@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: events, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durationValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "durationValue is functional"
+msgstr "durationValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durationValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection."
+msgstr "Affirme sur le porteur canonique que gmeow:durationValue est fonctionnelle : une gmeow:Duration possède exactement une longueur exprimée sous forme de littéral xsd:duration, dont la chaîne de durée normalisée TEO est une projection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTemporalFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "eventTemporalFrame is functional"
+msgstr "eventTemporalFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTemporalFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing."
+msgstr "Affirme sur le porteur canonique que gmeow:eventTemporalFrame est fonctionnelle : la date ou l'intervalle d'un gmeow:Event est exprimé dans exactement un cadre temporel (Principe 11), un cadre de référence unique qui lève l'ambiguïté sur la datation de l'événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "participationEvent is functional"
+msgstr "participationEvent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/participationEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator."
+msgstr "Affirme sur le porteur canonique que gmeow:participationEvent est fonctionnelle : un gmeow:Participation fait partie d'exactement un événement, de sorte que la participation à un autre événement constitue un relateur de participation distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrenceRuleText is functional"
+msgstr "recurrenceRuleText est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE."
+msgstr "Affirme sur le porteur canonique que gmeow:recurrenceRuleText est fonctionnelle : un gmeow:RecurrenceRule porte exactement une chaîne RRULE RFC 5545, projetée directement vers une unique RRULE iCalendar."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subEventOf is transitive"
+msgstr "« subEventOf » est transitif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."
+msgstr "Affirme sur le porteur canonique que gmeow:subEventOf est transitif : une partie d'une partie est une partie — la lecture à laquelle sa propre skos:definition s'engage (CIDOC-CRM P9). La barrière de cohérence native le lit pour clôturer la relation de sous-événement."
+

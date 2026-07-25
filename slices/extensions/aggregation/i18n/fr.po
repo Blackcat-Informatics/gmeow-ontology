@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: aggregation, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "aggregationFunction is functional"
+msgstr "aggregationFunction est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:aggregationFunction is functional: a spatial aggregation applies exactly one statistical function — count, sum, average, density, minimum, maximum, or centroid — so computing a different function over the same region is a different aggregation."
+msgstr "Affirme sur le porteur canonique que gmeow:aggregationFunction est fonctionnelle : une agrégation spatiale applique exactement une fonction statistique — comptage, somme, moyenne, densité, minimum, maximum, ou centroïde — de sorte que le calcul d'une fonction différente sur la même région constitue une agrégation différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimumPopulation is functional"
+msgstr "minimumPopulation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time."
+msgstr "Affirme sur le porteur canonique que gmeow:minimumPopulation est fonctionnelle : une agrégation spatiale porte exactement un seuil de k-anonymat, l'unique taille de population minimale en deçà de laquelle son résultat est supprimé au moment de la projection."
+

@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: teleology, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a commitment's beneficiary is distinct from its committed agent"
+msgstr "承诺的受益者不同于做出承诺的主体"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:Commitment's gmeow:committedAgent and gmeow:commitmentBeneficiary must be distinct: a resolution made purely to oneself is an Intention, not a Commitment. The native coherence gate raises a violation when they coincide."
+msgstr "断言一个 gmeow:Commitment 的 gmeow:committedAgent 与 gmeow:commitmentBeneficiary 必须相异:纯粹对自己作出的决意是一个 Intention,而非 Commitment。当二者重合时,原生一致性门抛出一个违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "committedAgent is functional"
+msgstr "committedAgent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:committedAgent is functional: a gmeow:Commitment binds exactly one committed agent, mutual promises being modelled as two directed Commitments so that withdrawal, breach, and tenure stay independent per direction."
+msgstr "在规范载体上断言 gmeow:committedAgent 是函数式的：一个 gmeow:Commitment 恰好绑定一个被约束的主体，相互承诺被建模为两个有方向的 Commitment，从而使撤回、违约和存续期在各自方向上保持独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counterGoal is irreflexive"
+msgstr "counterGoal 具有非自反性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:counterGoal is irreflexive: a goal is never its own shadow, as its skos:definition states. The native coherence gate reads this to raise a violation for a goal asserted to counter itself."
+msgstr "在规范载体上断言 gmeow:counterGoal 是非自反的：一个目标绝不是其自身的影子，正如其 skos:definition 所述。原生融贯性关卡读取此断言，为被断言与自身相对的目标引发一项违反。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counterGoal is symmetric"
+msgstr "counterGoal 具有对称性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition."
+msgstr "在规范载体上断言 gmeow:counterGoal 是对称的：一种构成性对立的每一极都构成另一极，正如其 skos:definition 所述。原生融贯性关卡读取此断言以镜像该对立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intentBearer is functional"
+msgstr "intentBearer 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:intentBearer is functional: an intentional mode is an intrinsic moment that inheres in exactly one bearer, so two agents wanting the same outcome are two modes sharing a single gmeow:intentionGoal."
+msgstr "在规范载体上断言 gmeow:intentBearer 是函数性的:一个意向模式是内在于恰好一个承载者的内在时刻,因此想要同一结果的两个主体构成共享同一个 gmeow:intentionGoal 的两个模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intentionGoal is functional"
+msgstr "intentionGoal 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:intentionGoal is functional: an intentional moment aims at exactly one goal, so an agent pursuing five goals bears five modes and sharing occurs at the Goal individual rather than the mode."
+msgstr "在规范载体上断言 gmeow:intentionGoal 是函数性的:一个意向时刻恰好指向一个目标,因此追求五个目标的主体承载五种模式,共享发生在 Goal 个体层面,而不是模式层面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureAgent is functional"
+msgstr "tenureAgent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureAgent is functional: a gmeow:IntentionTenure records the intentional mode of exactly one agent."
+msgstr "在规范载体上断言 gmeow:tenureAgent 是函数性的:一个 gmeow:IntentionTenure 恰好记录一个主体的意向模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureIntention is functional"
+msgstr "tenureIntention 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure."
+msgstr "在规范载体上断言 gmeow:tenureIntention 是函数性的:一个 gmeow:IntentionTenure 在其区间内恰好记录一种内在欲望或意向,采用另一种模式则会开启一个独立的保有。"
+

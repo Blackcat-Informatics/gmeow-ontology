@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: risk, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cascadeFirstLink is functional"
+msgstr "cascadeFirstLink est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins."
+msgstr "Affirme sur le porteur canonique que gmeow:cascadeFirstLink est fonctionnelle : une cascade possède exactement un lien d'entrée, l'unique lien causal à partir duquel commence le parcours de la chaîne de défaillance nommée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a causal link's antecedent and consequent are distinct"
+msgstr "l'antécédent et le conséquent d'un lien causal sont distincts"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide."
+msgstr "Affirme que le gmeow:linkAntecedent et le gmeow:linkConsequent d'un gmeow:CausalLink doivent être distincts : rien ne se cause soi-même au niveau des types. Le portail de cohérence natif lève une violation lorsqu'ils coïncident."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "causalModality is functional"
+msgstr "causalModality est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified."
+msgstr "Affirme sur le porteur canonique que gmeow:causalModality est fonctionnelle : un lien causal revendique exactement une force — nécessite, favorise, permet ou empêche — l'unique modalité qui est la raison même pour laquelle le lien a été réifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hazardBearer is functional"
+msgstr "hazardBearer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hazardBearer is functional: a hazard inheres in exactly one bearer, per gUFO inherence — the same danger borne by two systems is two hazards, not one shared between them."
+msgstr "Affirme sur le porteur canonique que gmeow:hazardBearer est fonctionnelle : un risque inhère à exactement un porteur, conformément à l'inhérence gUFO — le même danger porté par deux systèmes constitue deux risques, non un seul partagé entre eux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linkAntecedent is functional"
+msgstr "linkAntecedent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:linkAntecedent is functional: a causal link has exactly one causing kind, the single antecedent event type, held distinct from the consequent so that nothing type-causes itself."
+msgstr "Affirme sur le porteur canonique que gmeow:linkAntecedent est fonctionnelle : un lien causal possède exactement un type causant, le type d'événement antécédent unique, maintenu distinct du conséquent afin que rien ne se cause lui-même au niveau des types."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linkConsequent is functional"
+msgstr "linkConsequent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about."
+msgstr "Affirme sur le porteur canonique que gmeow:linkConsequent est fonctionnelle : un lien causal possède exactement un type causé, le type d'événement conséquent unique que le type antécédent produit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linkNext is acyclic"
+msgstr "linkNext est acyclique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:linkNext is acyclic: a causal-cascade walk never reaches itself through gmeow:linkNext, as the Cascade prose states. linkNext is deliberately NOT transitive (it names the immediate next link, not every downstream one), so the native coherence gate enforces this with an internal reachability walk that raises a violation on any cycle, never by materialising the closure; the generated SHACL constraint surface is its projection."
+msgstr "Affirme sur le porteur canonique que gmeow:linkNext est acyclique : une marche de cascade causale n'atteint jamais elle-même à travers gmeow:linkNext, comme le stipule la prose de Cascade. linkNext n'est délibérément PAS transitive (elle nomme le lien immédiatement suivant, non chaque lien en aval), de sorte que la barrière de cohérence native l'impose par une marche d'accessibilité interne qui lève une violation sur tout cycle, jamais en matérialisant la clôture ; la surface de contrainte SHACL générée en est la projection."
+

@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: concepts, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conceptHoldsFor is functional"
+msgstr "conceptHoldsFor est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:conceptHoldsFor is functional: one gmeow:ConceptTenure records the intension of exactly one concept, so the tenure binds to a single concept even though a concept may accrue many tenures over time."
+msgstr "Affirme sur le porteur canonique que gmeow:conceptHoldsFor est fonctionnelle : un gmeow:ConceptTenure enregistre l'intension d'exactement un concept, de sorte que la durée se lie à un concept unique, même si un concept peut accumuler de nombreuses durées au fil du temps."
+

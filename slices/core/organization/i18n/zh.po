@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: organization, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closesAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "closesAt is functional"
+msgstr "closesAt 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/closesAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:closesAt is functional: a gmeow:OpeningHoursSpecification window has exactly one closing time, a single xsd:time that bounds where the window ends."
+msgstr "在规范载体上断言 gmeow:closesAt 是函数式的：一个 gmeow:OpeningHoursSpecification 时间窗恰好有一个关闭时间，即界定该窗口结束位置的唯一一个 xsd:time。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/identifierSchemeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "identifierScheme is functional"
+msgstr "identifierScheme 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/identifierSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:identifierScheme is functional: each gmeow:Identifier node names exactly one scheme (such as 'lei', 'ror', or 'wikidata'), the property being carried on the per-identifier node precisely so co-existing identifiers each keep a single scheme instead of cross-pairing."
+msgstr "在规范载体上断言 gmeow:identifierScheme 是函数性的:每个 gmeow:Identifier 节点恰好命名一种方案(如 'lei'、'ror' 或 'wikidata'),该属性之所以挂载在各标识符各自的节点上,正是为了让并存的标识符各自保持单一方案,而不是相互交叉配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/identifierUrlFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "identifierUrl is functional"
+msgstr "identifierUrl 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/identifierUrlFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:identifierUrl is functional: a gmeow:Identifier record resolves at exactly one authority URL, the resolvable counterpart of its single scheme-local value, so a second landing page would denote a different identifier record."
+msgstr "在规范载体上断言 gmeow:identifierUrl 是函数性的:一条 gmeow:Identifier 记录恰好解析到一个权威 URL,即其单一方案本地取值的可解析对应物,因此第二个落地页将表示一条不同的标识符记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/identifierValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "identifierValue is functional"
+msgstr "identifierValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/identifierValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:identifierValue is functional: a gmeow:Identifier node carries exactly one literal value within its scheme, and a different value is a different identifier."
+msgstr "在规范载体上断言 gmeow:identifierValue 是函数性的:一个 gmeow:Identifier 节点在其方案内恰好携带一个字面值,不同的取值即是不同的标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipMemberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membershipMember is functional"
+msgstr "membershipMember 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipMemberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:membershipMember is functional: a gmeow:Membership relator reifies the membership of exactly one member agent, filling a single member-role slot, while the flat gmeow:memberOf shortcut carries the many-to-many agent-to-organization relation."
+msgstr "在规范载体上断言 gmeow:membershipMember 是函数式的:一个 gmeow:Membership 关系体恰好具体化了一个成员主体的成员身份,填充单一的成员角色槽位,而扁平化的 gmeow:memberOf 快捷方式则承载主体与组织之间多对多的关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipOrganizationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "membershipOrganization is functional"
+msgstr "membershipOrganization 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/membershipOrganizationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:membershipOrganization is functional: a gmeow:Membership relator is in exactly one organization (which may be a department that is a sub-organization of a larger org), so joining a second organization is a second membership."
+msgstr "在规范载体上断言 gmeow:membershipOrganization 是函数式的:一个 gmeow:Membership 关系体恰好归属于一个组织(该组织可以是隶属于更大组织的一个部门),因此加入第二个组织即构成第二个成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opensAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opensAt is functional"
+msgstr "opensAt 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opensAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:opensAt is functional: a gmeow:OpeningHoursSpecification window has exactly one opening time, a single xsd:time that bounds where the window starts."
+msgstr "在规范载体上断言 gmeow:opensAt 是函数性的:一个 gmeow:OpeningHoursSpecification 时间窗恰好有一个开始时间,即界定该窗口起点的单一 xsd:time。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postInFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postIn is functional"
+msgstr "postIn 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post."
+msgstr "在规范载体上断言 gmeow:postIn 是函数性的:一个 gmeow:Post 恰好属于一个组织,同一职位若在另一组织中则构成一个不同的职位。"
+

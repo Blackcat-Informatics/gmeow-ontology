@@ -1,0 +1,143 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: observations, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentCriterionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assessmentCriterion is functional"
+msgstr "assessmentCriterion est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentCriterionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assessmentCriterion is functional: each assessment applies exactly one criterion — a twenty-one-axis scoring pass fans out into twenty-one assessments, one per axis — so a single assessment record names a single criterion."
+msgstr "Affirme sur le porteur canonique que gmeow:assessmentCriterion est fonctionnelle : chaque évaluation applique exactement un critère — une passe de notation à vingt et un axes se déploie en vingt et une évaluations, une par axe — de sorte qu'un unique enregistrement d'évaluation nomme un unique critère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentRubricFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assessmentRubric is functional"
+msgstr "assessmentRubric est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentRubricFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assessmentRubric is functional: an assessment is version-pinned to exactly one rubric, the single evaluation framework under which its score was produced."
+msgstr "Affirme sur le porteur canonique que gmeow:assessmentRubric est fonctionnelle : une évaluation est fixée à une version précise d'exactement une grille, l'unique cadre d'évaluation sous lequel son score a été produit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentScoreValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assessmentScoreValue is functional"
+msgstr "assessmentScoreValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentScoreValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assessmentScoreValue is functional: an assessment yields exactly one numeric score on its declared scale — one cell holds one number, and even a zero is that single score rather than an absence."
+msgstr "Affirme sur le porteur canonique que gmeow:assessmentScoreValue est fonctionnelle : une évaluation produit exactement un score numérique sur l'échelle qu'elle déclare — une cellule contient un nombre, et même un zéro constitue ce score unique plutôt qu'une absence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assessmentTarget is functional"
+msgstr "assessmentTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assessmentTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assessmentTarget is functional: an assessment scores exactly one target — the single feature of interest whose granularity sets the scoring-density expectation — so a second target is a separate assessment."
+msgstr "Affirme sur le porteur canonique que gmeow:assessmentTarget est fonctionnelle : une évaluation note exactement une cible — l'unique élément d'intérêt dont la granularité fixe l'attente de densité de notation — de sorte qu'une seconde cible constitue une évaluation distincte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bearer is functional"
+msgstr "bearer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:bearer is functional: a persistent gmeow:Quality inheres in exactly one bearer — the single entity whose quality it is, the patient whose blood pressure or the road whose width, inherence being a one-owner relation."
+msgstr "Affirme sur le porteur canonique que gmeow:bearer est fonctionnelle : une gmeow:Quality persistante inhère en exactement un porteur — l'unique entité dont elle est la qualité, le patient dont c'est la pression artérielle ou la route dont c'est la largeur, l'inhérence étant une relation à un seul propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/currencyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "currency is functional"
+msgstr "currency est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/currencyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:currency is functional: a gmeow:MonetaryAmount is expressed in exactly one currency reference frame — a single amount is denominated in one currency, the same value in another currency being a distinct amount."
+msgstr "Affirme sur le porteur canonique que gmeow:currency est fonctionnelle : un gmeow:MonetaryAmount est exprimé dans exactement un repère de référence monétaire — un montant unique est libellé dans une seule monnaie, la même valeur exprimée dans une autre monnaie constituant un montant distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dimension is functional"
+msgstr "dimension est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dimensionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:dimension is functional: a gmeow:Magnitude is a magnitude of exactly one generic quality — a single frame-independent quality kind such as pressure, length, or mass."
+msgstr "Affirme sur le porteur canonique que gmeow:dimension est fonctionnelle : une gmeow:Magnitude est une grandeur d'exactement une qualité générique — un unique type de qualité indépendant du repère, tel que la pression, la longueur ou la masse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "monetaryValue is functional"
+msgstr "monetaryValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:monetaryValue is functional: a gmeow:MonetaryAmount has exactly one numeric value — a single xsd:decimal amount."
+msgstr "Affirme sur le porteur canonique que gmeow:monetaryValue est fonctionnelle : un gmeow:MonetaryAmount possède exactement une valeur numérique — un montant xsd:decimal unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observationMethodFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "observationMethod is functional"
+msgstr "observationMethod est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observationMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:observationMethod is functional: a gmeow:Observation was produced by exactly one method — a single protocol, with a compound procedure modelled as one fused method individual (for example 'GPS-RTK survey with ground control') rather than several method values."
+msgstr "Affirme sur le porteur canonique que gmeow:observationMethod est fonctionnelle : un gmeow:Observation a été produit par exactement une méthode — un protocole unique, une procédure composée étant modélisée comme un seul individu de méthode fusionnée (par exemple 'GPS-RTK survey with ground control') plutôt que comme plusieurs valeurs de méthode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observedAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "observedAt is functional"
+msgstr "observedAt est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observedAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:observedAt is functional: a dated gmeow:Observation has exactly one time index — a single reading of its quality is taken at one moment, which is what orders a quality's observations into a value-history."
+msgstr "Affirme sur le porteur canonique que gmeow:observedAt est fonctionnelle : un gmeow:Observation daté a exactement un index temporel — une seule lecture de sa qualité est prise à un instant donné, ce qui ordonne les observations d'une qualité en un historique de valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observedFeatureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "observedFeature is functional"
+msgstr "observedFeature est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/observedFeatureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:observedFeature is functional: a gmeow:Observation concerns exactly one feature of interest — the single individual whose property or state that observation records, even though the feature's type is left open."
+msgstr "Affirme sur le porteur canonique que gmeow:observedFeature est fonctionnelle : un gmeow:Observation concerne exactement une entité d'intérêt — l'unique individu dont cette observation enregistre la propriété ou l'état, même si le type de l'entité reste ouvert."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/quantityUncertaintyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quantityUncertainty is functional"
+msgstr "quantityUncertainty est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/quantityUncertaintyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:quantityUncertainty is functional: a math:Quantity carries exactly one epistemic uncertainty — a single figure (for example ±1σ) expressed in the same unit as its value."
+msgstr "Affirme sur le porteur canonique que gmeow:quantityUncertainty est fonctionnelle : une math:Quantity porte exactement une incertitude épistémique — une valeur unique (par exemple ±1σ) exprimée dans la même unité que sa valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/streamIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "streamInterval is functional"
+msgstr "streamInterval est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/streamIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:streamInterval is functional: a gmeow:Stream was produced over exactly one time interval — the interval is constitutive of the stream's identity, so a different interval is a different stream."
+msgstr "Affirme sur le porteur canonique que gmeow:streamInterval est fonctionnelle: un gmeow:Stream a été produit sur exactement un intervalle de temps — l'intervalle est constitutif de l'identité du flux, de sorte qu'un intervalle différent est un flux différent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/streamOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "streamOf is functional"
+msgstr "streamOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/streamOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:streamOf is functional: a gmeow:Stream contains the observations of exactly one entity — a single moving feature, device, or tracked thing."
+msgstr "Affirme sur le porteur canonique que gmeow:streamOf est fonctionnelle: un gmeow:Stream contient les observations d'exactement une entité — une seule caractéristique mobile, un seul dispositif ou une seule chose suivie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trueQuantityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trueQuantity is functional"
+msgstr "trueQuantity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trueQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:trueQuantity is functional: a framed math:Quantity is a reading of exactly one frame-independent gmeow:Magnitude — a single true magnitude underlies it, and that one magnitude is shared across readings taken in different units."
+msgstr "Affirme sur le porteur canonique que gmeow:trueQuantity est fonctionnelle : un math:Quantity cadré est une lecture d'exactement un gmeow:Magnitude indépendant du référentiel — une seule grandeur véritable le sous-tend, et cette grandeur unique est partagée entre les lectures prises dans des unités différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unitFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unit is functional"
+msgstr "unit est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/unitFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:unit is functional: a framed quantitative value is expressed in exactly one QUDT unit — the single unit the reading is stated in, held on the framed math:Quantity and never on the frame-independent gmeow:Magnitude, so a value read in another unit is a distinct framed quantity while a value bearing gmeow:unit but no reference frame is instead the logic:MeasurementFrameMissing violation."
+msgstr "Affirme sur le porteur canonique que gmeow:unit est fonctionnelle : une valeur quantitative cadrée est exprimée dans exactement une unité QUDT — l'unité unique dans laquelle la lecture est énoncée, portée par le math:Quantity cadré et jamais par le gmeow:Magnitude indépendant du référentiel, de sorte qu'une valeur lue dans une autre unité constitue une quantité cadrée distincte, tandis qu'une valeur portant gmeow:unit mais sans référentiel constitue plutôt la violation logic:MeasurementFrameMissing."
+

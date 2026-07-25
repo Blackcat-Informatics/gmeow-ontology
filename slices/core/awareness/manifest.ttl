@@ -16,6 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceConsumer "AI operational-state provenance and human consciousness modelling (Principle 15) — a stored claim can record the operational state of the experiencer that formed it: was it formed during gmeow:modeOnlineInference (live serving) versus gmeow:modeOfflineReplay (offline rumination over logged context) or gmeow:modeTraining, and at what sampling regime (gmeow:awarenessScalar)? The human face models consciousness, sleep staging, meditation, and clinical arousal (gmeow:levelObtunded / gmeow:levelUnresponsive mapping to the Glasgow Coma Scale by reference); a gmeow:AwarenessTenure pins each state to a temporal interval (temporal slice). Dreaming and lucidity compose here by reference: gmeow:modeLucidDreaming is gmeow:modeDreaming with metacognition (gmeow:MetacognitiveState) online, documented at the seam, never re-minted."@x-gmeow-english .

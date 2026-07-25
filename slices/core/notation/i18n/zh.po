@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: notation, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationSystemOf is functional"
+msgstr "notationSystemOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationSystemOf is functional: a gmeow:NotationProjectionProfile describes exactly one notation system."
+msgstr "在规范载体上断言 gmeow:notationSystemOf 是函数式的:一个 gmeow:NotationProjectionProfile 恰好描述一种记谱系统。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageInterval is functional"
+msgstr "notationUsageInterval 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageInterval is functional: a gmeow:NotationSystemUsage relator holds over exactly one time interval, and a different interval is a distinct usage episode."
+msgstr "在规范载体上断言 gmeow:notationUsageInterval 是函数式的:一个 gmeow:NotationSystemUsage 关系体恰好在一个时间区间内成立,不同的区间构成一个独立的使用事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageNotationSystem is functional"
+msgstr "notationUsageNotationSystem 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageNotationSystem is functional: a gmeow:NotationSystemUsage records the use of exactly one notation system."
+msgstr "在规范载体上断言 gmeow:notationUsageNotationSystem 是函数式的:一个 gmeow:NotationSystemUsage 恰好记录一种记谱系统的使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageRole is functional"
+msgstr "notationUsageRole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageRole is functional: a gmeow:NotationSystemUsage plays exactly one role (transcription, encoding, representation, communication, expression, shorthand, or cipher), and a different role is a distinct usage."
+msgstr "在规范载体上断言 gmeow:notationUsageRole 是函数式的:一个 gmeow:NotationSystemUsage 恰好扮演一种角色(转写、编码、表示、交流、表达、速记或密码),不同的角色构成不同的使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notationUsageTarget is functional"
+msgstr "notationUsageTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system."
+msgstr "在规范载体上断言 gmeow:notationUsageTarget 是函数性的:一个 gmeow:NotationSystemUsage 恰好有一个使用该记谱系统的目标实体。"
+

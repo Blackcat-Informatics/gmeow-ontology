@@ -575,3 +575,80 @@ gmeow:tenuredContactPoint
     skos:definition "The GMEOW Contacts Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:addressHolderFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    rdfs:label "addressHolder is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:addressHolder is functional: an address-tenure situation concerns a single agent who held the contact point over its interval, so the tenure names one holder and a change of holder is a distinct tenure rather than a second holder on one."@x-gmeow-english ;
+    logic:characterizes gmeow:addressHolder ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:addressHolder ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:addressValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    rdfs:label "addressValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:addressValue is functional: a first-class email address has one normalized addr-spec — the canonical whole from which its local and domain parts are derived — so it carries a single value rather than several rival spellings of the same address."@x-gmeow-english ;
+    logic:characterizes gmeow:addressValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:addressValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:domainPartFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    rdfs:label "domainPart is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:domainPart is functional: an email address parses to a single domain part after the @, so the component that reveals the provider and underlies the personal-domain role is one value derived deterministically from the address's addr-spec."@x-gmeow-english ;
+    logic:characterizes gmeow:domainPart ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:domainPart ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:localPartFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    rdfs:label "localPart is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:localPart is functional: an email address parses to a single local part before the @, so the person-identifying component queried separately from the whole is one value derived deterministically from the address's addr-spec."@x-gmeow-english ;
+    logic:characterizes gmeow:localPart ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:localPart ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:postalAddressFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    rdfs:label "postalAddressFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postalAddressFrame is functional: a postal address is expressed in exactly one postal/administrative reference frame against which its coordinate components are read, so the frame is single-valued — a value asserted without its one frame is ill-formed under CONSTITUTION P11."@x-gmeow-english ;
+    logic:characterizes gmeow:postalAddressFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postalAddressFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tenuredContactPointFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
+    rdfs:label "tenuredContactPoint is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenuredContactPoint is functional: an address-tenure is about a single contact-point channel held over its interval, so the tenure names one contact point and a different channel is a distinct tenure rather than a second point on one."@x-gmeow-english ;
+    logic:characterizes gmeow:tenuredContactPoint ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenuredContactPoint ;
+    gmeow:graphBoxRole gmeow:boxABox .

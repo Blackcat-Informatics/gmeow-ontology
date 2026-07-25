@@ -848,3 +848,148 @@ msgstr "Contrainte de nombre de membres de LogicalConstraint"
 msgctxt "https://blackcatinformatics.ca/gmeow/LogicalConstraintMemberCountConstraint|skos:definition"
 msgid "A closed-world integrity constraint: a gmeow:LogicalConstraint combines at least two gmeow:logicConstraintMember constraints."
 msgstr "Une contrainte d'intégrité en monde clos : une gmeow:LogicalConstraint combine au moins deux contraintes gmeow:logicConstraintMember."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conflictStrategy is functional"
+msgstr "conflictStrategy est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined."
+msgstr "Affirme sur le porteur canonique que gmeow:conflictStrategy est fonctionnelle : un énoncé de droits règle un conflit permission-contre-interdiction portant sur la même action par exactement une règle de résolution — la permission l'emporte, l'interdiction l'emporte, ou la politique est nulle — car deux stratégies concurrentes entreraient elles-mêmes en conflit sur la façon de trancher le conflit, laissant le résultat de la politique indéfini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "constraintLogic is functional"
+msgstr "constraintLogic est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint."
+msgstr "Affirme sur le porteur canonique que gmeow:constraintLogic est fonctionnelle : une contrainte logique combine ses membres sous exactement un opérateur booléen — AND, OR, XONE, ou une séquence AND ordonnée — car un même ensemble de membres replié sous deux opérateurs différents produirait deux conditions de vérité incompatibles pour une seule contrainte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "constraintOperator is functional"
+msgstr "constraintOperator est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:constraintOperator is functional: an atomic constraint is a single leftOperand-operator-rightOperand comparison, so it applies exactly one operator between its two operands; a second operator would make it two comparisons rather than one atom, which is properly modelled as a gmeow:LogicalConstraint over several members."
+msgstr "Affirme sur le porteur canonique que gmeow:constraintOperator est fonctionnelle : une contrainte atomique est une unique comparaison leftOperand-operator-rightOperand, de sorte qu'elle applique exactement un opérateur entre ses deux opérandes ; un second opérateur en ferait deux comparaisons plutôt qu'un seul atome, ce qui doit être modélisé correctement comme un gmeow:LogicalConstraint portant sur plusieurs membres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightNotice is functional"
+msgstr "copyrightNotice est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightNotice est fonctionnelle : un relateur de droit d'auteur porte une seule chaîne canonique de mention © prête à afficher, puisqu'un unique Copyright portant sur une œuvre, un titulaire et une année ne possède qu'une seule mention lisible mise en forme ; deux lignes de mention divergentes sur le même relateur présenteraient des revendications de droit d'auteur contradictoires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightStatus is functional"
+msgstr "copyrightStatus est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightStatus is functional: a work stands in exactly one copyright condition at a time — in-copyright, public-domain, no-known-copyright, or not-evaluated — because these RightsStatements.org / PREMIS states are mutually exclusive and a work cannot be both protected and free of copyright at once."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightStatus est fonctionnelle : une œuvre se trouve à un instant donné dans exactement une condition de droit d'auteur — protégée, domaine public, absence de droit d'auteur connu, ou non évaluée — car ces états RightsStatements.org / PREMIS sont mutuellement exclusifs et une œuvre ne peut être à la fois protégée et libre de droits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightWork is functional"
+msgstr "copyrightWork est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWorkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightWork is functional: a copyright relator reifies the protection of a single work, so it points at exactly one information object; a second protected work is modelled as its own gmeow:Copyright relator rather than as a second work bound to the same one."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightWork est fonctionnelle : un relateur de droit d'auteur réifie la protection d'une seule œuvre, de sorte qu'il pointe vers exactement un objet d'information ; une seconde œuvre protégée est modélisée par son propre relateur gmeow:Copyright plutôt que comme une seconde œuvre liée au même relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "copyrightYear is functional"
+msgstr "copyrightYear est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYearFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:copyrightYear is functional: a copyright relator records the single year the copyright was asserted, since one Copyright is about one work and its assertion has one first-assertion year; a span of years across editions belongs to distinct works with their own Copyright relators, not to two years on one."
+msgstr "Affirme sur le porteur canonique que gmeow:copyrightYear est fonctionnelle : un relateur de droit d'auteur enregistre l'unique année où le droit d'auteur a été revendiqué, puisqu'un Copyright porte sur une seule œuvre et que sa revendication possède une seule année de première revendication ; une plage d'années couvrant plusieurs éditions relève d'œuvres distinctes ayant chacune leur propre relateur Copyright, et non de deux années sur un seul relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "leftOperand is functional"
+msgstr "leftOperand est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperandFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:leftOperand is functional: an atomic constraint tests exactly one dimension — dateTime, spatial, count, purpose, recipient, … — because it is a single comparison over one operand; testing a second dimension is a second atomic constraint combined via a gmeow:LogicalConstraint, not two operands on one atom."
+msgstr "Affirme sur le porteur canonique que gmeow:leftOperand est fonctionnelle : une contrainte atomique teste exactement une dimension — dateTime, spatiale, comptage, finalité, destinataire, etc. — car il s'agit d'une comparaison unique portant sur un seul opérande ; tester une seconde dimension constitue une seconde contrainte atomique combinée via une gmeow:LogicalConstraint, et non deux opérandes sur un même atome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "licenseFamily is functional"
+msgstr "licenseFamily est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:licenseFamily is functional: a licence belongs to exactly one coarse family — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual — a single classification of the one licence document; even a multi-licence offer is captured by the single 'dual' family value rather than by two family assignments."
+msgstr "Affirme sur le porteur canonique que gmeow:licenseFamily est fonctionnelle : une licence appartient à exactement une famille générale — domaine public, Creative Commons, permissive, copyleft, propriétaire ou double — une classification unique pour un seul document de licence ; même une offre à double licence est saisie par la seule valeur de famille 'dual' plutôt que par deux affectations de famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "licensedWork is functional"
+msgstr "licensedWork est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWorkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:licensedWork is functional: a License relator grants rights in exactly one work, so several works under the same terms each carry their own License relator (or reference one shared SPDX-identified licence per work) rather than crowding two works onto a single grant."
+msgstr "Affirme sur le porteur canonique que gmeow:licensedWork est fonctionnelle : un relateur License accorde des droits sur exactement une œuvre, de sorte que plusieurs œuvres soumises aux mêmes conditions portent chacune leur propre relateur License (ou référencent chacune une licence partagée identifiée par SPDX) plutôt que d'entasser deux œuvres dans une seule concession de droits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "markText is functional"
+msgstr "markText est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:markText is functional: a mark has one canonical word form — its brand name as registered or used — so a single gmeow:Mark carries exactly one mark-text string; a differently-worded sign is a distinct mark with its own gmeow:Mark rather than a second text on the same one."
+msgstr "Affirme sur le porteur canonique que gmeow:markText est fonctionnelle : une marque possède une forme verbale canonique unique — son nom de marque tel qu'enregistré ou utilisé — de sorte qu'une seule gmeow:Mark porte exactement une chaîne de texte de marque ; un signe formulé différemment constitue une marque distincte avec sa propre gmeow:Mark plutôt qu'un second texte sur la même marque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "registrationNumber is functional"
+msgstr "registrationNumber est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator."
+msgstr "Affirme sur le porteur canonique que gmeow:registrationNumber est fonctionnelle : un droit de marque porte l'unique numéro d'enregistrement que son registre émetteur lui a attribué, de sorte qu'un relateur gmeow:Trademark en porte exactement un ; une marque enregistrée séparément dans un autre registre (CIPO, USPTO, WIPO) constitue un droit de marque distinct, avec son propre numéro et son propre relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rightOperand is functional"
+msgstr "rightOperand est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:rightOperand is functional: an atomic constraint compares its one dimension against exactly one literal value, so it carries a single tested value; a set of acceptable values is expressed with an isAnyOf-style gmeow:constraintOperator over one operand rather than by two right-operand literals."
+msgstr "Affirme sur le porteur canonique que gmeow:rightOperand est fonctionnelle : une contrainte atomique compare sa dimension unique à exactement une valeur littérale, de sorte qu'elle porte une seule valeur testée ; un ensemble de valeurs acceptables s'exprime au moyen d'un gmeow:constraintOperator de type isAnyOf sur un seul opérande, plutôt que par deux littéraux d'opérande droit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ruleAction is functional"
+msgstr "ruleAction est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleActionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ruleAction is functional: a deontic rule regulates exactly one action, so a permission, prohibition, or duty points at a single gmeow:RightsAction value; several regulated actions are modelled as several rules rather than as several actions crowded onto one."
+msgstr "Affirme sur le porteur canonique que gmeow:ruleAction est fonctionnelle : une règle déontique régule exactement une action, de sorte qu'une permission, une interdiction ou une obligation pointe vers une unique valeur gmeow:RightsAction ; plusieurs actions régulées sont modélisées comme plusieurs règles plutôt que comme plusieurs actions entassées sur une seule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ruleTarget is functional"
+msgstr "ruleTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ruleTarget is functional: when a rule overrides the target it inherits from its enclosing statement, it narrows to exactly one asset, so the target — where set — is a single entity; a permission covering several distinct assets is several rules rather than several targets on one."
+msgstr "Affirme sur le porteur canonique que gmeow:ruleTarget est fonctionnelle : lorsqu'une règle remplace la cible qu'elle hérite de l'énoncé englobant, elle se restreint à exactement un actif, de sorte que la cible — lorsqu'elle est définie — est une entité unique ; une permission couvrant plusieurs actifs distincts constitue plusieurs règles plutôt que plusieurs cibles sur une seule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "spdxLicenseId is functional"
+msgstr "spdxLicenseId est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:spdxLicenseId is functional: a licence has one canonical SPDX List identifier, so the property binds exactly one machine-readable id per licence; a dual or compound grant is a single SPDX licence expression carried within that one literal, not two separate ids on the same licence."
+msgstr "Affirme sur le porteur canonique que gmeow:spdxLicenseId est fonctionnelle: une licence a un identifiant canonique unique de la liste SPDX, de sorte que la propriété lie exactement un identifiant lisible par machine par licence; une concession double ou composée est une seule expression de licence SPDX portée dans ce littéral unique, et non deux identifiants distincts sur la même licence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trademarkMark is functional"
+msgstr "trademarkMark est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMarkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:trademarkMark is functional: a trademark right reifies protection of a single sign, so it points at exactly one gmeow:Mark; protecting a second mark is a second gmeow:Trademark relator rather than two marks bound to the same right."
+msgstr "Affirme sur le porteur canonique que gmeow:trademarkMark est fonctionnelle : un droit de marque réifie la protection d'un signe unique, de sorte qu'il pointe vers exactement un gmeow:Mark ; protéger une seconde marque constitue un second relateur gmeow:Trademark plutôt que deux marques liées au même droit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "trademarkStatus is functional"
+msgstr "trademarkStatus est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:trademarkStatus is functional: a trademark occupies exactly one registration status at any time — unregistered ™, registered ®, pending, expired, or cancelled — mutually exclusive lifecycle states, so on lapse the single value changes (with gmeow:validUntil recorded) rather than a second status being added."
+msgstr "Affirme sur le porteur canonique que gmeow:trademarkStatus est fonctionnelle : une marque occupe exactement un statut d'enregistrement à tout instant — non enregistrée ™, enregistrée ®, en instance, expirée ou annulée — des états de cycle de vie mutuellement exclusifs, de sorte qu'en cas de déchéance, la valeur unique change (avec gmeow:validUntil enregistré) plutôt qu'un second statut ne soit ajouté."
+

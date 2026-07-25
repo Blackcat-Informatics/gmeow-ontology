@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: sensory-environment, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coordinateMatrixFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "coordinateMatrixFrame is functional"
+msgstr "coordinateMatrixFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coordinateMatrixFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:coordinateMatrixFrame is functional: a coordinate matrix is expressed in exactly one reference frame, frame transformation being a solver concern rather than a second asserted frame on the same matrix."
+msgstr "Affirme sur le porteur canonique que gmeow:coordinateMatrixFrame est fonctionnelle : une matrice de coordonnées est exprimée dans exactement un repère de référence, la transformation de repère relevant du solveur plutôt que d'un second repère affirmé sur la même matrice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentAtLocationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "environmentAtLocation is functional"
+msgstr "environmentAtLocation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentAtLocationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place."
+msgstr "Affirme sur le porteur canonique que gmeow:environmentAtLocation est fonctionnelle : un environnement sensoriel concerne exactement un lieu, ce qui est constitutif de son identité en tant que conditions ambiantes de ce lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matrixShapeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matrixShape is functional"
+msgstr "matrixShape est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matrixShapeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against."
+msgstr "Affirme sur le porteur canonique que gmeow:matrixShape est fonctionnelle : une matrice de coordonnées porte exactement un descripteur de forme, la chaîne de dimensions unique (telle que '4×1' ou '640×480×3') par rapport à laquelle la couche de résolution analyse sa valeur sérialisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matrixValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matrixValue is functional"
+msgstr "matrixValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matrixValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape."
+msgstr "Affirme sur le porteur canonique que gmeow:matrixValue est fonctionnelle : une matrice de coordonnées porte exactement une charge utile numérique sérialisée, le littéral vecteur, matrice ou tenseur unique que la couche de résolution interprète selon le repère et la forme déclarés de la matrice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/perceptionEnvironmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "perceptionEnvironment is functional"
+msgstr "perceptionEnvironment est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/perceptionEnvironmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest."
+msgstr "Affirme sur le porteur canonique que gmeow:perceptionEnvironment est fonctionnelle : une perception sensorielle porte sur exactement un environnement sensoriel, sa seule entité d'intérêt observée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "perceptionModality is functional"
+msgstr "perceptionModality est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered."
+msgstr "Affirme sur le porteur canonique que gmeow:perceptionModality est fonctionnelle : une perception sensorielle s'effectue par exactement un canal sensoriel, l'unique modalité sur laquelle cette valeur perçue est enregistrée."
+

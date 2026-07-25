@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: citations, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citationIntent is functional"
+msgstr "citationIntent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citationIntent is functional: a gmeow:CitationAct is made with exactly one intent — a second intent means minting a second CitationAct, not overloading one relator with two values."
+msgstr "在规范载体上断言 gmeow:citationIntent 是函数式的：一个 gmeow:CitationAct 恰好带有一个意图——第二个意图意味着铸造第二个 CitationAct，而不是让一个关系体承载两个值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citedEntity is functional"
+msgstr "citedEntity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at."
+msgstr "在规范载体上断言 gmeow:citedEntity 是函数式的：每个 gmeow:CitationAct 关系体恰好指向一个被引用的创作作品——即该引用所指向的唯一 WEMI 层级目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citingEntity is functional"
+msgstr "citingEntity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing."
+msgstr "在规范载体上断言 gmeow:citingEntity 是函数式的：每个 gmeow:CitationAct 关系体恰好有一个施引方——即执行引用行为的唯一主张、作品、模块或数据集。"
+

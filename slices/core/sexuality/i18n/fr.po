@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: sexuality, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/romanticOrientationValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "romanticOrientationValue is functional"
+msgstr "romanticOrientationValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/romanticOrientationValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:romanticOrientationValue is functional: a gmeow:RomanticOrientation facet names exactly one romantic-orientation value — a change of orientation is modelled as a new facet rather than a second value on this functional edge."
+msgstr "Affirme sur le porteur canonique que gmeow:romanticOrientationValue est fonctionnelle : une facette gmeow:RomanticOrientation désigne exactement une valeur d'orientation romantique — un changement d'orientation est modélisé comme une nouvelle facette plutôt que comme une seconde valeur sur cette arête fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sexualOrientationValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sexualOrientationValue is functional"
+msgstr "sexualOrientationValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sexualOrientationValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sexualOrientationValue is functional: a gmeow:SexualOrientation facet names exactly one sexual-orientation value — a change of orientation is modelled as a new facet rather than a second value on this functional edge."
+msgstr "Affirme sur le porteur canonique que gmeow:sexualOrientationValue est fonctionnelle: une facette gmeow:SexualOrientation nomme exactement une valeur d'orientation sexuelle — un changement d'orientation est modélisé comme une nouvelle facette plutôt que comme une seconde valeur sur cette relation fonctionnelle."
+

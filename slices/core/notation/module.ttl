@@ -581,3 +581,69 @@ logic:plnsDistinct a logic:Formula ; logic:relation logic:termDistinct ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/NotationSystemUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/NotationSystemUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/notationUsageRole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/NotationSystemUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/notationUsageTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:notationSystemOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notationSystemOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationSystemOf is functional: a gmeow:NotationProjectionProfile describes exactly one notation system."@x-gmeow-english ;
+    logic:characterizes gmeow:notationSystemOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:notationSystemOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationUsageIntervalFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notationUsageInterval is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageInterval is functional: a gmeow:NotationSystemUsage relator holds over exactly one time interval, and a different interval is a distinct usage episode."@x-gmeow-english ;
+    logic:characterizes gmeow:notationUsageInterval ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:notationUsageInterval ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationUsageNotationSystemFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notationUsageNotationSystem is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageNotationSystem is functional: a gmeow:NotationSystemUsage records the use of exactly one notation system."@x-gmeow-english ;
+    logic:characterizes gmeow:notationUsageNotationSystem ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:notationUsageNotationSystem ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationUsageRoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notationUsageRole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageRole is functional: a gmeow:NotationSystemUsage plays exactly one role (transcription, encoding, representation, communication, expression, shorthand, or cipher), and a different role is a distinct usage."@x-gmeow-english ;
+    logic:characterizes gmeow:notationUsageRole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:notationUsageRole ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationUsageTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notationUsageTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system."@x-gmeow-english ;
+    logic:characterizes gmeow:notationUsageTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:notationUsageTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .

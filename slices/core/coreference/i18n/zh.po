@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: coreference, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterpartOfSymmetry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counterpartOf is symmetric"
+msgstr "counterpartOf 具有对称性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterpartOfSymmetry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:counterpartOf is symmetric: cross-realm counterparts recognise each other both ways, as its skos:definition states. It is deliberately NOT transitive — that non-characteristic is enforced by logic:CounterpartNonTransitivityObligation, so no transitive carrier is authored. The native coherence gate reads this to mirror the counterpart link only."
+msgstr "在规范载体上断言 gmeow:counterpartOf 是对称的：跨域的对应物在两个方向上相互识别，正如其 skos:definition 所述。它被刻意设为非传递的——该非特性由 logic:CounterpartNonTransitivityObligation 强制执行，因此不撰写任何传递载体。原生一致性关卡读取此项，仅镜像对应物链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/editionOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "editionOf is functional"
+msgstr "editionOf 为函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/editionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states."
+msgstr "在规范载体上断言 gmeow:editionOf 是函数性的：一个版本恰好版化一部作品，正如其 skos:definition 所述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "versionOf is functional"
+msgstr "「versionOf」具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states."
+msgstr "在规范载体上断言 gmeow:versionOf 是函数式的：一个版本恰好属于一条谱系，正如其 skos:definition 所述。"
+

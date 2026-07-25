@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: gender, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expressionValue is functional"
+msgstr "expressionValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:expressionValue is functional: a gmeow:GenderExpression facet asserts exactly one expression-style value — varying presentations are modelled as several facets, and this object edge is deliberately the sole path to the value."
+msgstr "在规范载体上断言 gmeow:expressionValue 是函数性的：一个 gmeow:GenderExpression 侧面恰好断言一个表达风格值——各种不同的呈现方式被建模为多个侧面，而该对象边被刻意设计为通往该值的唯一路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/genderValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "genderValue is functional"
+msgstr "genderValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/genderValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:genderValue is functional: a gmeow:GenderIdentity facet asserts exactly one gender value — bigender or genderfluid persons are modelled as several facets, so multiplicity lives in the facet count and never in a multi-valued edge."
+msgstr "在规范载体上断言 gmeow:genderValue 是函数性的：一个 gmeow:GenderIdentity 侧面恰好断言一个性别值——双性别或流性别者被建模为多个侧面，因此多重性体现在侧面的数量上，而绝不体现在某条多值边上。"
+

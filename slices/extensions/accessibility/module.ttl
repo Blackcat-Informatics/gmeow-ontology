@@ -237,3 +237,47 @@ gmeow:AccessibilityAssertion logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:assertionSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:assertionFacet ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:assertionPolarity ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:assertionFacetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
+    rdfs:label "assertionFacet is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about."@x-gmeow-english ;
+    logic:characterizes gmeow:assertionFacet ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assertionFacet ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:assertionPolarityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
+    rdfs:label "assertionPolarity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet."@x-gmeow-english ;
+    logic:characterizes gmeow:assertionPolarity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assertionPolarity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:assertionSubjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
+    rdfs:label "assertionSubject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."@x-gmeow-english ;
+    logic:characterizes gmeow:assertionSubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assertionSubject ;
+    gmeow:graphBoxRole gmeow:boxABox .

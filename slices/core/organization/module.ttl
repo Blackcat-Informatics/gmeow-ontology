@@ -980,3 +980,102 @@ logic:ssoSucc2 a logic:Formula ; logic:relation gmeow:successorOrganization ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
 logic:ssoSuccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:closesAtFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "closesAt is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:closesAt is functional: a gmeow:OpeningHoursSpecification window has exactly one closing time, a single xsd:time that bounds where the window ends."@x-gmeow-english ;
+    logic:characterizes gmeow:closesAt ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:closesAt ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:identifierSchemeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "identifierScheme is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierScheme is functional: each gmeow:Identifier node names exactly one scheme (such as 'lei', 'ror', or 'wikidata'), the property being carried on the per-identifier node precisely so co-existing identifiers each keep a single scheme instead of cross-pairing."@x-gmeow-english ;
+    logic:characterizes gmeow:identifierScheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:identifierScheme ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:identifierUrlFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "identifierUrl is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierUrl is functional: a gmeow:Identifier record resolves at exactly one authority URL, the resolvable counterpart of its single scheme-local value, so a second landing page would denote a different identifier record."@x-gmeow-english ;
+    logic:characterizes gmeow:identifierUrl ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:identifierUrl ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:identifierValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "identifierValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierValue is functional: a gmeow:Identifier node carries exactly one literal value within its scheme, and a different value is a different identifier."@x-gmeow-english ;
+    logic:characterizes gmeow:identifierValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:identifierValue ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:membershipMemberFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "membershipMember is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipMember is functional: a gmeow:Membership relator reifies the membership of exactly one member agent, filling a single member-role slot, while the flat gmeow:memberOf shortcut carries the many-to-many agent-to-organization relation."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipMember ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipMember ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:membershipOrganizationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "membershipOrganization is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipOrganization is functional: a gmeow:Membership relator is in exactly one organization (which may be a department that is a sub-organization of a larger org), so joining a second organization is a second membership."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipOrganization ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipOrganization ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:opensAtFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "opensAt is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:opensAt is functional: a gmeow:OpeningHoursSpecification window has exactly one opening time, a single xsd:time that bounds where the window starts."@x-gmeow-english ;
+    logic:characterizes gmeow:opensAt ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:opensAt ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:postInFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "postIn is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post."@x-gmeow-english ;
+    logic:characterizes gmeow:postIn ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postIn ;
+    gmeow:graphBoxRole gmeow:boxABox .

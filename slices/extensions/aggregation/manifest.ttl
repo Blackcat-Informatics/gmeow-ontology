@@ -15,6 +15,7 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,

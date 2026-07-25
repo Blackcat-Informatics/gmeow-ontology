@@ -16,6 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     gmeow:sliceConsumer "Authority links from every slice to Wikidata and registries (P5, never owl:sameAs)."@x-gmeow-english .

@@ -1190,3 +1190,179 @@ gmeow:JournalEntryBalanceConstraint
     logic:severity "Violation" ;
     logic:message "The sum of debit postings must equal the sum of credit postings for each currency in a JournalEntry." ;
     logic:formalizes gmeow:JournalEntryBalancedShape .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:accountTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "accountType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts."@x-gmeow-english ;
+    logic:characterizes gmeow:accountType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:accountType ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:assetTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "assetType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity)."@x-gmeow-english ;
+    logic:characterizes gmeow:assetType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assetType ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:holdingAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingAgent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:holdingAssetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingAsset is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingAsset ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingAsset ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:holdingCostBasisFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingCostBasis is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingCostBasis is functional: a holding has exactly one canonical cost basis — the single monetary amount originally paid to acquire the asset, with disputed figures kept as separate standpoint-indexed claims rather than extra values."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingCostBasis ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingCostBasis ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:holdingQuantityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "holdingQuantity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements."@x-gmeow-english ;
+    logic:characterizes gmeow:holdingQuantity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:holdingQuantity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:invoiceAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "invoiceAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment."@x-gmeow-english ;
+    logic:characterizes gmeow:invoiceAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:invoiceAmount ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ledgerAccountTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "ledgerAccountType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation."@x-gmeow-english ;
+    logic:characterizes gmeow:ledgerAccountType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ledgerAccountType ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:orderAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "orderAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller."@x-gmeow-english ;
+    logic:characterizes gmeow:orderAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:orderAmount ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:postingAccountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingAccount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits."@x-gmeow-english ;
+    logic:characterizes gmeow:postingAccount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingAccount ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:postingAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account."@x-gmeow-english ;
+    logic:characterizes gmeow:postingAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingAmount ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:postingDirectionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingDirection is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingDirection is functional: a posting is exactly one direction — a single debit or credit, never both, as the atomic unit of double-entry bookkeeping requires."@x-gmeow-english ;
+    logic:characterizes gmeow:postingDirection ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingDirection ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:postingJournalEntryFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "postingJournalEntry is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of."@x-gmeow-english ;
+    logic:characterizes gmeow:postingJournalEntry ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postingJournalEntry ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:transactionAmountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "transactionAmount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transactionAmount is functional: a financial transaction occurrence has exactly one canonical amount — the single MonetaryAmount of the money moved, with disputed figures kept as separate standpoint-indexed statements rather than extra values on the same transaction."@x-gmeow-english ;
+    logic:characterizes gmeow:transactionAmount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transactionAmount ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:walletSchemeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    rdfs:label "walletScheme is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets."@x-gmeow-english ;
+    logic:characterizes gmeow:walletScheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:walletScheme ;
+    gmeow:graphBoxRole gmeow:boxABox .

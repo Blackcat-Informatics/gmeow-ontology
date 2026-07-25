@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: learning, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/teacherFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "teacher is functional"
+msgstr "teacher est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/teacherFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:teacher is functional: one gmeow:Teaching relator has exactly one instructing agent — co-teaching is several Teaching relators sharing a subject and learner set, never two teachers on one relation."
+msgstr "Affirme sur le porteur canonique que gmeow:teacher est fonctionnelle: un relateur gmeow:Teaching a exactement un agent enseignant — la co-enseignement se traduit par plusieurs relateurs Teaching partageant un sujet et un ensemble d'apprenants, jamais par deux enseignants sur une seule relation."
+

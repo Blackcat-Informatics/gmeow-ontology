@@ -1,0 +1,111 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: images, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/depictionContextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "depictionContext is functional"
+msgstr "depictionContext 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/depictionContextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:depictionContext is functional: a gmeow:DepictionUsage relator records exactly one context — the single work, family, childhood, portrait, or candid setting in which the image depicts its subject."
+msgstr "在规范载体上断言 gmeow:depictionContext 是函数性的：一个 gmeow:DepictionUsage 关系体恰好记录一个语境——即图像描绘其主体所处的作品、家庭、童年、肖像或抓拍等唯一场景。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/depictionImageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "depictionImage is functional"
+msgstr "depictionImage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/depictionImageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:depictionImage is functional: a gmeow:DepictionUsage relator binds exactly one image — the single gmeow:MediaObject that depicts the subject in that reified depiction."
+msgstr "在规范载体上断言 gmeow:depictionImage 是函数性的：一个 gmeow:DepictionUsage 关系体恰好绑定一张图像——即在该具象化描绘中描绘主体的唯一 gmeow:MediaObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/depictionSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "depictionSubject is functional"
+msgstr "depictionSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/depictionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:depictionSubject is functional: a gmeow:DepictionUsage relator names exactly one depicted entity — the single subject shown in that reified depiction."
+msgstr "在规范载体上断言 gmeow:depictionSubject 是函数性的：一个 gmeow:DepictionUsage 关系体恰好指明一个被描绘的实体——即在该具象化描绘中呈现的唯一主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exifTagIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exifTagId is functional"
+msgstr "exifTagId 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exifTagIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exifTagId is functional: a gmeow:ExifTag carries exactly one tag identifier — the single machine key, such as 'FNumber' or 'ExposureTime', naming which EXIF field the record captures."
+msgstr "在规范载体上断言 gmeow:exifTagId 是函数性的：一个 gmeow:ExifTag 恰好携带一个标签标识符——即诸如 'FNumber' 或 'ExposureTime' 这样唯一的机器键，用以指明该记录捕获的是哪个 EXIF 字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exifTagValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exifTagValue is functional"
+msgstr "exifTagValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exifTagValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exifTagValue is functional: a gmeow:ExifTag holds exactly one value — the single reading, such as 'f/2.0' or 'sRGB', recorded for that one tagged field."
+msgstr "在规范载体上断言 gmeow:exifTagValue 是函数性的：一个 gmeow:ExifTag 恰好持有一个值——即为该被标记字段记录的唯一读数，例如 'f/2.0' 或 'sRGB'。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/regionOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "regionOf is functional"
+msgstr "regionOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/regionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:regionOf is functional: a gmeow:ImageRegion is part of exactly one image — a bounded region belongs to the single gmeow:MediaObject it was cut from."
+msgstr "在规范载体上断言 gmeow:regionOf 是函数性的:一个 gmeow:ImageRegion 恰好是某一张图像的一部分——一个有边界的区域属于其所裁切出的唯一一个 gmeow:MediaObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/regionSelectorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "regionSelector is functional"
+msgstr "regionSelector 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/regionSelectorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:regionSelector is functional: a gmeow:ImageRegion is described by exactly one selector — the single boundary specification that fixes its extent."
+msgstr "在规范载体上断言 gmeow:regionSelector 是函数性的:一个 gmeow:ImageRegion 恰好由一个选择器描述——即确定其范围的唯一边界规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneConfidenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sceneConfidence is functional"
+msgstr "sceneConfidence 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneConfidenceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sceneConfidence is functional: a gmeow:SceneGraphEdge carries exactly one confidence value — a single decimal in [0.0, 1.0] quantifying that one asserted relation."
+msgstr "在规范载体上断言 gmeow:sceneConfidence 是函数性的:一个 gmeow:SceneGraphEdge 恰好携带一个置信度值——一个位于 [0.0, 1.0] 区间内、量化该唯一被断言关系的单一小数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sceneObject is functional"
+msgstr "sceneObject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sceneObject is functional: a gmeow:SceneGraphEdge points at exactly one object region — the single gmeow:ImageRegion toward which its relation is directed."
+msgstr "在规范载体上断言 gmeow:sceneObject 是函数性的:一个 gmeow:SceneGraphEdge 恰好指向一个客体区域——即其关系所指向的唯一 gmeow:ImageRegion。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneRelationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sceneRelation is functional"
+msgstr "sceneRelation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneRelationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sceneRelation is functional: a gmeow:SceneGraphEdge asserts exactly one relation — the single spatial or semantic tie it represents between its subject and object regions."
+msgstr "在规范载体上断言 gmeow:sceneRelation 是函数性的:一个 gmeow:SceneGraphEdge 恰好断言一种关系——即它在主体区域与客体区域之间所表示的唯一空间或语义联系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sceneSubject is functional"
+msgstr "sceneSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sceneSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sceneSubject is functional: a gmeow:SceneGraphEdge originates at exactly one subject region — the single gmeow:ImageRegion from which its relation proceeds."
+msgstr "在规范载体上断言 gmeow:sceneSubject 是函数性的:一个 gmeow:SceneGraphEdge 恰好源自一个主体区域——即其关系所出发的唯一 gmeow:ImageRegion。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selectorType is functional"
+msgstr "selectorType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectorTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:selectorType is functional: a gmeow:RegionSelector has exactly one encoding kind — the single gmeow:SelectorType telling a reader how to decode its boundary coordinates."
+msgstr "在规范载体上断言 gmeow:selectorType 是函数性的:一个 gmeow:RegionSelector 恰好有一种编码类型——即告知读取者如何解码其边界坐标的唯一 gmeow:SelectorType。"
+

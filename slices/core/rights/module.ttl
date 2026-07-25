@@ -2400,3 +2400,212 @@ gmeow:LogicalConstraint logic:subClassOf
 # LogicalConstraint: at least two member constraints, as a BARE sh:minCount 2.
 gmeow:LogicalConstraint logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:logicConstraintMember ; logic:minQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:conflictStrategyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "conflictStrategy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined."@x-gmeow-english ;
+    logic:characterizes gmeow:conflictStrategy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:conflictStrategy ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:constraintLogicFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "constraintLogic is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint."@x-gmeow-english ;
+    logic:characterizes gmeow:constraintLogic ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:constraintLogic ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:constraintOperatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "constraintOperator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:constraintOperator is functional: an atomic constraint is a single leftOperand-operator-rightOperand comparison, so it applies exactly one operator between its two operands; a second operator would make it two comparisons rather than one atom, which is properly modelled as a gmeow:LogicalConstraint over several members."@x-gmeow-english ;
+    logic:characterizes gmeow:constraintOperator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:constraintOperator ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:copyrightNoticeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightNotice is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightNotice ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightNotice ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:copyrightStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightStatus is functional: a work stands in exactly one copyright condition at a time — in-copyright, public-domain, no-known-copyright, or not-evaluated — because these RightsStatements.org / PREMIS states are mutually exclusive and a work cannot be both protected and free of copyright at once."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightStatus ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:copyrightWorkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightWork is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightWork is functional: a copyright relator reifies the protection of a single work, so it points at exactly one information object; a second protected work is modelled as its own gmeow:Copyright relator rather than as a second work bound to the same one."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightWork ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:copyrightYearFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightYear is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightYear is functional: a copyright relator records the single year the copyright was asserted, since one Copyright is about one work and its assertion has one first-assertion year; a span of years across editions belongs to distinct works with their own Copyright relators, not to two years on one."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightYear ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightYear ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:leftOperandFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "leftOperand is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:leftOperand is functional: an atomic constraint tests exactly one dimension — dateTime, spatial, count, purpose, recipient, … — because it is a single comparison over one operand; testing a second dimension is a second atomic constraint combined via a gmeow:LogicalConstraint, not two operands on one atom."@x-gmeow-english ;
+    logic:characterizes gmeow:leftOperand ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:leftOperand ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:licensedWorkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "licensedWork is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:licensedWork is functional: a License relator grants rights in exactly one work, so several works under the same terms each carry their own License relator (or reference one shared SPDX-identified licence per work) rather than crowding two works onto a single grant."@x-gmeow-english ;
+    logic:characterizes gmeow:licensedWork ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:licensedWork ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:licenseFamilyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "licenseFamily is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:licenseFamily is functional: a licence belongs to exactly one coarse family — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual — a single classification of the one licence document; even a multi-licence offer is captured by the single 'dual' family value rather than by two family assignments."@x-gmeow-english ;
+    logic:characterizes gmeow:licenseFamily ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:licenseFamily ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:markTextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "markText is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:markText is functional: a mark has one canonical word form — its brand name as registered or used — so a single gmeow:Mark carries exactly one mark-text string; a differently-worded sign is a distinct mark with its own gmeow:Mark rather than a second text on the same one."@x-gmeow-english ;
+    logic:characterizes gmeow:markText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:markText ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:registrationNumberFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "registrationNumber is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator."@x-gmeow-english ;
+    logic:characterizes gmeow:registrationNumber ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:registrationNumber ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:rightOperandFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "rightOperand is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:rightOperand is functional: an atomic constraint compares its one dimension against exactly one literal value, so it carries a single tested value; a set of acceptable values is expressed with an isAnyOf-style gmeow:constraintOperator over one operand rather than by two right-operand literals."@x-gmeow-english ;
+    logic:characterizes gmeow:rightOperand ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:rightOperand ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ruleActionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "ruleAction is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ruleAction is functional: a deontic rule regulates exactly one action, so a permission, prohibition, or duty points at a single gmeow:RightsAction value; several regulated actions are modelled as several rules rather than as several actions crowded onto one."@x-gmeow-english ;
+    logic:characterizes gmeow:ruleAction ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ruleAction ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ruleTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "ruleTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ruleTarget is functional: when a rule overrides the target it inherits from its enclosing statement, it narrows to exactly one asset, so the target — where set — is a single entity; a permission covering several distinct assets is several rules rather than several targets on one."@x-gmeow-english ;
+    logic:characterizes gmeow:ruleTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ruleTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:spdxLicenseIdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "spdxLicenseId is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spdxLicenseId is functional: a licence has one canonical SPDX List identifier, so the property binds exactly one machine-readable id per licence; a dual or compound grant is a single SPDX licence expression carried within that one literal, not two separate ids on the same licence."@x-gmeow-english ;
+    logic:characterizes gmeow:spdxLicenseId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:spdxLicenseId ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trademarkMarkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "trademarkMark is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trademarkMark is functional: a trademark right reifies protection of a single sign, so it points at exactly one gmeow:Mark; protecting a second mark is a second gmeow:Trademark relator rather than two marks bound to the same right."@x-gmeow-english ;
+    logic:characterizes gmeow:trademarkMark ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trademarkMark ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:trademarkStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "trademarkStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trademarkStatus is functional: a trademark occupies exactly one registration status at any time — unregistered ™, registered ®, pending, expired, or cancelled — mutually exclusive lifecycle states, so on lapse the single value changes (with gmeow:validUntil recorded) rather than a second status being added."@x-gmeow-english ;
+    logic:characterizes gmeow:trademarkStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trademarkStatus ;
+    gmeow:graphBoxRole gmeow:boxABox .

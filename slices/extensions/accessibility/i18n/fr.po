@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: accessibility, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assertionFacet is functional"
+msgstr "assertionFacet est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about."
+msgstr "Affirme sur le porteur canonique que gmeow:assertionFacet est fonctionnelle : une assertion d'accessibilité affirme exactement une facette, l'unique dimension d'accessibilité (fauteuil roulant, sans marche, visuelle, etc.) dont traite le relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assertionPolarity is functional"
+msgstr "assertionPolarity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet."
+msgstr "Affirme sur le porteur canonique que gmeow:assertionPolarity est fonctionnelle : une assertion d'accessibilité porte exactement une polarité — atout, obstacle, ou limité — l'unique position que le relateur adopte sur sa facette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assertionSubject is functional"
+msgstr "assertionSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."
+msgstr "Affirme sur le porteur canonique que gmeow:assertionSubject est fonctionnelle : une assertion d'accessibilité évalue exactement un sujet, l'unique lieu ou connexion faisant l'objet de l'évaluation."
+

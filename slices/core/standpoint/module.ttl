@@ -1044,3 +1044,135 @@ logic:npcPreferred a logic:Formula ; logic:relation logic:termStrStarts ;
 gmeow:StandpointTenure logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:tenureStandpoint ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:standpointClaim ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:sharpensTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "sharpens is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order."@x-gmeow-english ;
+    logic:characterizes gmeow:sharpens ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:sharpens ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimAssertoricForceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimAssertoricForce is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimAssertoricForce is functional: a standpoint claim carries one speech-act force — assert, conjecture, assume, or retract — so the relator takes a single force (absent reading as assert) and a retracted assertion is closed as a retained act rather than gaining a rival force."@x-gmeow-english ;
+    logic:characterizes gmeow:claimAssertoricForce ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimAssertoricForce ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimCredenceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimCredence is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimCredence is functional: a standpoint claim carries one precise graded belief as an xsd:decimal in [0,1], so the advisory numeric surface is a single value that must lie within its authoritative credence band's threshold range rather than a set of competing decimals."@x-gmeow-english ;
+    logic:characterizes gmeow:claimCredence ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimCredence ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimCredenceLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimCredenceLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimCredenceLevel is functional: a standpoint claim carries one qualitative credence band — the surface the lossless legacy projection keys on — so a claim's graded belief resolves to a single frame-relative band rather than several bands on one claim."@x-gmeow-english ;
+    logic:characterizes gmeow:claimCredenceLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimCredenceLevel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimModalForceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimModalForce is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimModalForce is functional: a standpoint claim carries one alethic modal force in the □/◊ register, so the relator takes a single force (absent reading as necessary), kept orthogonal to credence and confidence rather than stacking rival modal values."@x-gmeow-english ;
+    logic:characterizes gmeow:claimModalForce ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimModalForce ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimModalityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimModality is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimModality is functional: a standpoint claim carries one five-value belief modality — unequivocal, probable, conceivable, refuted, or bullshit — the lossless projection of the six canonical axes, so this convenience twin resolves to a single frame-relative value (absent reading as unequivocal) rather than several modalities on one claim."@x-gmeow-english ;
+    logic:characterizes gmeow:claimModality ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimModality ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimPolarityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimPolarity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimPolarity is functional: a standpoint claim takes one affirm / deny / suspend direction, so the relator carries a single polarity (absent reading as affirm) and deny stays the frame-relative carrier of the legacy refuted rather than one claim holding several polarities."@x-gmeow-english ;
+    logic:characterizes gmeow:claimPolarity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimPolarity ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimSupportStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimSupportStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimSupportStatus is functional: a standpoint claim carries one Belnap evidential status — supported, opposed, both, or neither — so a witnessed glut or gap is recorded as the single admissible status of the claim rather than being split into rival status values on one claim."@x-gmeow-english ;
+    logic:characterizes gmeow:claimSupportStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimSupportStatus ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimTruthDirectednessFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "claimTruthDirectedness is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimTruthDirectedness is functional: a standpoint claim carries one orientation toward truth — truth-aimed, indifferent, or strategic — so the relator takes a single orientation (absent reading as truth-aimed) and indifferent remains the sole carrier of the legacy bullshit rather than co-existing orientations on one claim."@x-gmeow-english ;
+    logic:characterizes gmeow:claimTruthDirectedness ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimTruthDirectedness ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:standpointClaimFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "standpointClaim is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead."@x-gmeow-english ;
+    logic:characterizes gmeow:standpointClaim ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:standpointClaim ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tenureStandpointFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    rdfs:label "tenureStandpoint is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureStandpoint is functional: a standpoint-tenure records exactly one frame's position, so it names a single standpoint that becomes the vantage of the generated claim, and a different frame's position is a separate tenure rather than a second — never privileged — standpoint on one."@x-gmeow-english ;
+    logic:characterizes gmeow:tenureStandpoint ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tenureStandpoint ;
+    gmeow:graphBoxRole gmeow:boxABox .

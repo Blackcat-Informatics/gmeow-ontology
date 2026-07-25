@@ -1,0 +1,143 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: software, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authorIdentityString is functional"
+msgstr "authorIdentityString est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:authorIdentityString is functional: an AuthorIdentity records exactly one raw byte-string — the single 'Name <email>' line as it appeared in the commit object, an immutable historical assertion that is never re-recorded."
+msgstr "Affirme sur le porteur canonique que gmeow:authorIdentityString est fonctionnelle : une AuthorIdentity enregistre exactement une chaîne d'octets brute — l'unique ligne 'Name <email>' telle qu'elle apparaissait dans l'objet commit, une assertion historique immuable qui n'est jamais réenregistrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/buildConfigUriFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "buildConfigUri is functional"
+msgstr "buildConfigUri est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/buildConfigUriFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran."
+msgstr "Affirme sur le porteur canonique que gmeow:buildConfigUri est fonctionnelle : une activité de build est pilotée par exactement un fichier de configuration de build ou de workflow, dont l'unique URI identifie la recette décrivant comment le build s'est déroulé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitAuthorIdentityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitAuthorIdentity is functional"
+msgstr "commitAuthorIdentity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitAuthorIdentityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitAuthorIdentity is functional: a commit object records exactly one author-identity line — the single raw historical byte-string naming who wrote the patch, distinct from the canonical agent it may be understood to refer to."
+msgstr "Affirme sur le porteur canonique que gmeow:commitAuthorIdentity est fonctionnelle : un objet commit enregistre exactement une ligne d'identité d'auteur — l'unique chaîne d'octets historique brute nommant qui a écrit le correctif, distincte de l'agent canonique auquel elle peut être comprise comme se référant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitCommitterIdentityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitCommitterIdentity is functional"
+msgstr "commitCommitterIdentity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitCommitterIdentityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitCommitterIdentity is functional: a commit object records exactly one committer-identity line — the single raw historical byte-string naming who applied the commit to the repository, distinct from its author identity."
+msgstr "Affirme sur le porteur canonique que gmeow:commitCommitterIdentity est fonctionnelle : un objet commit enregistre exactement une ligne d'identité de committeur — l'unique chaîne d'octets historique brute nommant qui a appliqué le commit au dépôt, distincte de son identité d'auteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitInRepositoryFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitInRepository is functional"
+msgstr "commitInRepository est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitInRepositoryFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitInRepository is functional: a commit belongs to exactly one repository, since a fork is a separate repository carrying its own independent history rather than a second home for the same commit."
+msgstr "Affirme sur le porteur canonique que gmeow:commitInRepository est fonctionnelle : un commit appartient à exactement un dépôt, puisqu'un fork est un dépôt distinct portant sa propre histoire indépendante plutôt qu'une seconde demeure pour le même commit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitTreeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitTree is functional"
+msgstr "commitTree est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitTreeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history."
+msgstr "Affirme sur le porteur canonique que gmeow:commitTree est fonctionnelle : un commit enregistre exactement un arbre source racine — l'unique instantané de répertoire qu'il capture à ce point de l'histoire du dépôt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffFromFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "diffFrom is functional"
+msgstr "diffFrom est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffFromFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from."
+msgstr "Affirme sur le porteur canonique que gmeow:diffFrom est fonctionnelle : un diff possède exactement un commit de base — l'unique état « avant » à partir duquel il mesure le changement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffToFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "diffTo is functional"
+msgstr "diffTo est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward."
+msgstr "Affirme sur le porteur canonique que gmeow:diffTo est fonctionnelle : un diff possède exactement un commit cible — l'unique état « après » vers lequel il mesure le changement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/materializationDepthFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "materializationDepth is functional"
+msgstr "materializationDepth est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/materializationDepthFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples."
+msgstr "Affirme sur le porteur canonique que gmeow:materializationDepth est fonctionnelle : un dépôt porte exactement un réglage de profondeur de matérialisation — l'entier non négatif unique fixant combien de niveaux de son arbre source de Merkle sont projetés en triplets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mergeTarget is functional"
+msgstr "mergeTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources."
+msgstr "Affirme sur le porteur canonique que gmeow:mergeTarget est fonctionnelle : un événement de fusion possède exactement une référence cible — la branche ou l'étiquette unique dans laquelle la source est fusionnée — par contraste avec ses éventuelles sources de fusion multiples."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectHomepageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "projectHomepage is functional"
+msgstr "projectHomepage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectHomepageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point."
+msgstr "Affirme sur le porteur canonique que gmeow:projectHomepage est fonctionnelle : un projet possède exactement un IRI de page d'accueil canonique — son unique point d'atterrissage doap:homepage / schema:url."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "releaseOf is functional"
+msgstr "releaseOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships."
+msgstr "Affirme sur le porteur canonique que gmeow:releaseOf est fonctionnelle : un événement de publication appartient à exactement un projet — l'unique entreprise dont cette publication livre le logiciel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repositoryType is functional"
+msgstr "repositoryType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:repositoryType is functional: a repository is managed by exactly one version-control system — a single RepositoryType value (git, hg, svn, fossil, …), never two VCSes at once."
+msgstr "Affirme sur le porteur canonique que gmeow:repositoryType est fonctionnelle : un dépôt est géré par exactement un système de contrôle de version — une unique valeur RepositoryType (git, hg, svn, fossil, …), jamais deux VCS à la fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryModeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "treeEntryMode is functional"
+msgstr "treeEntryMode est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object."
+msgstr "Affirme sur le porteur canonique que gmeow:treeEntryMode est fonctionnelle : une entrée d'arbre porte exactement un mode de fichier git — le champ de mode unique (fichier normal, exécutable, répertoire, sous-module ou lien symbolique) sur cette seule ligne de l'objet arbre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryNameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "treeEntryName is functional"
+msgstr "treeEntryName est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryNameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object."
+msgstr "Affirme sur le porteur canonique que gmeow:treeEntryName est fonctionnelle : une entrée d'arbre porte exactement un nom de fichier ou de répertoire — le nom unique sur cette seule ligne de l'objet arbre git."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "treeEntryObject is functional"
+msgstr "treeEntryObject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names."
+msgstr "Affirme sur le porteur canonique que gmeow:treeEntryObject est fonctionnelle : une entrée d'arbre pointe vers exactement un objet adressé par contenu — le Blob ou SourceTree unique que nomme cette ligne de l'arbre."
+

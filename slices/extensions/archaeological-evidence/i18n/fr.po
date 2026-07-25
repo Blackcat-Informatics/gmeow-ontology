@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: archaeological-evidence, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributionTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attributionTarget is functional"
+msgstr "attributionTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributionTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attributionTarget is functional: a script/language attribution classifies exactly one target inscription, the single sign-bearing feature the relator is about (competing attributions of that inscription are separate relators, not extra targets)."
+msgstr "Affirme sur le porteur canonique que gmeow:attributionTarget est fonctionnelle : une attribution d'écriture/langue classe exactement une inscription cible, l'unique élément porteur de signes dont traite le relateur (des attributions concurrentes de cette inscription constituent des relateurs distincts, non des cibles supplémentaires)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findContextTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findContextTarget is functional"
+msgstr "findContextTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findContextTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findContextTarget is functional: an archaeological find context describes exactly one physical carrier, the single object whose stratigraphy, find-spot, dating, and documentation event the relator binds together."
+msgstr "Affirme sur le porteur canonique que gmeow:findContextTarget est fonctionnelle : un contexte de découverte archéologique décrit exactement un porteur physique, l'objet unique dont le relateur relie ensemble la stratigraphie, le lieu de découverte, la datation et l'événement de documentation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inscriptionCarrierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inscriptionCarrier is functional"
+msgstr "inscriptionCarrier est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inscriptionCarrierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:inscriptionCarrier is functional: an inscription is borne by exactly one physical carrier, and a copy of the same text on a second carrier is a distinct Inscription instance rather than one inscription borne by two objects."
+msgstr "Affirme sur le porteur canonique que gmeow:inscriptionCarrier est fonctionnelle : une inscription est portée par exactement un support physique, et une copie du même texte sur un second support constitue une instance Inscription distincte plutôt qu'une seule inscription portée par deux objets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "readingOf is functional"
+msgstr "readingOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:readingOf is functional: an inscription reading observes exactly one source inscription, the single sign-bearing feature the reading interprets (rival readings of that inscription are separate InscriptionReading relators)."
+msgstr "Affirme sur le porteur canonique que gmeow:readingOf est fonctionnelle : une lecture d'inscription observe exactement une inscription source, l'unique caractéristique porteuse de signes que la lecture interprète (des lectures rivales de cette inscription sont des relateurs InscriptionReading distincts)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/translationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "translationOf is functional"
+msgstr "translationOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/translationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:translationOf is functional: an inscription translation renders exactly one source inscription into another language, the single text the translation is of."
+msgstr "Affirme sur le porteur canonique que gmeow:translationOf est fonctionnelle : une traduction d'inscription rend exactement une inscription source dans une autre langue, l'unique texte dont la traduction procède."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transliterationOf is functional"
+msgstr "transliterationOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes."
+msgstr "Affirme sur le porteur canonique que gmeow:transliterationOf est fonctionnelle : une translittération d'inscription transpose exactement une inscription source dans une autre écriture, l'unique texte dont elle recode les séquences de signes."
+

@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: creative-works, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributionDegree is functional"
+msgstr "contributionDegree 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributionDegree is functional: a contribution carries at most one degree weight — lead, equal, or supporting — so the relator takes a single degree (or none when unknown) and disputed credit orderings live on the statement layer rather than as rival degrees on one Contribution."
+msgstr "在规范载体上断言 gmeow:contributionDegree 是函数式的：一份贡献至多携带一个程度权重——lead、equal 或 supporting——因此关系体取唯一一个程度（未知时则不取），存在争议的贡献排序存在于陈述层面，而不是作为同一 Contribution 上相互竞争的多个程度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributionRole is functional"
+msgstr "contributionRole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributionRole is functional: a Contribution relator names the one role the contributor played, so an agent acting in two roles is recorded as two Contributions rather than one relator bearing several roles."
+msgstr "在规范载体上断言 gmeow:contributionRole 是函数性的：一个 Contribution 关系体指明贡献者所扮演的唯一角色，因此以两种角色行事的主体会被记录为两个 Contribution，而不是一个关系体承载多个角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributionTarget is functional"
+msgstr "contributionTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributionTarget is functional: a Contribution relator credits exactly one WEMI entity at the tier that matches the credit, so a credit spanning two works is recorded as two Contributions rather than one relator pointing at several targets."
+msgstr "在规范载体上断言 gmeow:contributionTarget 是函数性的：一个 Contribution 关系体在与该贡献相匹配的层级上仅归功于一个 WEMI 实体，因此涉及两部作品的贡献会被记录为两个 Contribution，而不是一个关系体指向多个目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributor is functional"
+msgstr "contributor 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributor is functional: a Contribution relator names the single agent who contributed, so co-contributors each get their own Contribution rather than several agents being stacked on one relator role."
+msgstr "在规范载体上断言 gmeow:contributor 是函数性的：一个 Contribution 关系体指明唯一做出贡献的主体，因此每个共同贡献者都拥有各自的 Contribution，而不是将多个主体堆叠在同一个关系体角色上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivationProduct is functional"
+msgstr "derivationProduct 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:derivationProduct is functional: a CreativeDerivation relator names the one product work that resulted, at the honest tier, so it carries a single derived work rather than several products on one derivation."
+msgstr "在规范载体上断言 gmeow:derivationProduct 是函数性的：一个 CreativeDerivation 关系体在诚实层级上指明由此产生的唯一产物作品，因此它只携带一部衍生作品，而不是在一次派生上承载多个产物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivationSource is functional"
+msgstr "derivationSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:derivationSource is functional: a CreativeDerivation relator names the one source work the product was derived from, so a mashup of two sources is recorded as two derivations or segment pins rather than several sources on one relator."
+msgstr "在规范载体上断言 gmeow:derivationSource 是函数性的：一个 CreativeDerivation 关系体指明产物所派生自的唯一源作品，因此融合两个来源的混编作品应记录为两次派生或片段定位，而不是在一个关系体上列出多个来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasManifestationFormat is functional"
+msgstr "hasManifestationFormat 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasManifestationFormat is functional: a Manifestation is issued in one publishable form — paperback, EPUB, audiobook, vinyl — so a second format is a second Manifestation rather than a rival format value on one."
+msgstr "在规范载体上断言 gmeow:hasManifestationFormat 是函数性的:一个 Manifestation 以一种可出版的形式发行——平装本、EPUB、有声书、黑胶唱片——因此第二种格式意味着第二个 Manifestation,而不是在同一个上设置一个相互竞争的格式取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "realizationMode is functional"
+msgstr "realizationMode 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:realizationMode is functional: an Expression realizes its Work in one mode — notated, performed, improvised, oral, or machine-generated — so a notated and a performed rendition of the same Work are two Expressions, each with its single mode, rather than one Expression bearing several modes."
+msgstr "在规范载体上断言 gmeow:realizationMode 是函数性的:一个「表达」以一种模式实现其「作品」——记谱、演奏、即兴、口传或机器生成——因此同一作品的记谱版本与演奏版本是两个各自只有一种模式的「表达」,而不是一个「表达」承载多种模式。"
+

@@ -279,3 +279,47 @@ gmeow:serviceStatusShutDown
     skos:definition "The GMEOW Accounts Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:accountServiceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "accountService is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:accountService is functional: an online account is held with exactly one service, so the account-to-service edge that places a handle on its network, forge, or federated instance carries a single value, and a moved account is modelled as a distinct OnlineAccount rather than a second service."@x-gmeow-english ;
+    logic:characterizes gmeow:accountService ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:accountService ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:accountServiceHomepageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "accountServiceHomepage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:accountServiceHomepage is functional: an account is held with a single service, so the homepage of that one held-with service — the FOAF accountServiceHomepage idiom — resolves to a single IRI per account rather than a set of competing homepages."@x-gmeow-english ;
+    logic:characterizes gmeow:accountServiceHomepage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:accountServiceHomepage ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:serviceShutdownDateFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "serviceShutdownDate is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:serviceShutdownDate is functional: a historical online service ceases operation once, so the flat shutdown date that projects to schema:dissolutionDate is a single dissolution timestamp per service, with any evidence- or standpoint-bearing dispute promoted to a destruction LifeEvent instead of a rival flat date."@x-gmeow-english ;
+    logic:characterizes gmeow:serviceShutdownDate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:serviceShutdownDate ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: tags, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingSchemeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taggingScheme is functional"
+msgstr "taggingScheme est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taggingScheme is functional: a gmeow:Tagging act is performed within exactly one scheme — even though the applied tag may itself be cross-listed in several schemes via gmeow:tagInScheme, the act names a single scheme context."
+msgstr "Affirme sur le porteur canonique que gmeow:taggingScheme est fonctionnelle: un acte gmeow:Tagging est effectué dans exactement un schéma — même si l'étiquette appliquée peut elle-même être répertoriée dans plusieurs schémas via gmeow:tagInScheme, l'acte nomme un seul contexte de schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taggingTag is functional"
+msgstr "taggingTag est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taggingTag is functional: a gmeow:Tagging relator applies exactly one tag — several tags on a resource are several relators, not multiple values on one Tagging."
+msgstr "Affirme sur le porteur canonique que gmeow:taggingTag est fonctionnelle: un relateur gmeow:Tagging applique exactement une étiquette — plusieurs étiquettes sur une ressource correspondent à plusieurs relateurs, et non à des valeurs multiples sur un seul Tagging."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTaggedFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taggingTagged is functional"
+msgstr "taggingTagged est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingTaggedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act."
+msgstr "Affirme sur le porteur canonique que gmeow:taggingTagged est fonctionnelle: chaque relateur gmeow:Tagging s'applique à exactement une entité étiquetée, un nouveau relateur étant frappé pour chaque acte d'étiquetage distinct."
+

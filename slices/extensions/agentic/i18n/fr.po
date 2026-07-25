@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: agentic, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calledByInvocationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "calledByInvocation is functional"
+msgstr "calledByInvocation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calledByInvocationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:calledByInvocation is functional: a tool call is requested by at most one model invocation, the single requesting invocation that issued it (optional, because a recording harness may not expose it, but never plural)."
+msgstr "Affirme sur le porteur canonique que gmeow:calledByInvocation est fonctionnelle : un appel d'outil est demandé par au plus une invocation de modèle, l'unique invocation demandeuse qui l'a émis (optionnelle, car un harnais d'enregistrement peut ne pas l'exposer, mais jamais plurielle)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toolArguments is functional"
+msgstr "toolArguments est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool."
+msgstr "Affirme sur le porteur canonique que gmeow:toolArguments est fonctionnelle : un appel d'outil porte exactement une charge utile d'arguments textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce qui a été présenté à l'outil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "toolResult is functional"
+msgstr "toolResult est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned."
+msgstr "Affirme sur le porteur canonique que gmeow:toolResult est fonctionnelle : un appel d'outil renvoie exactement une charge utile de résultat textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce que l'outil a renvoyé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usedTool is functional"
+msgstr "usedTool est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls."
+msgstr "Affirme sur le porteur canonique que gmeow:usedTool est fonctionnelle : un appel d'outil invoque exactement un outil, puisque l'outillité est le rôle que joue un agent dans cet unique événement d'appel, et un tour multi-outils est enregistré comme plusieurs ToolCalls."
+

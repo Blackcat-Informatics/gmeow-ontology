@@ -503,3 +503,80 @@ gmeow:lexicalItemLanguage
     skos:definition "The GMEOW Lexicon Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:attestationIntervalFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attestationInterval is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen."@x-gmeow-english ;
+    logic:characterizes gmeow:attestationInterval ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attestationInterval ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:attestedFormFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attestedForm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attestedForm is functional: a usage attestation observes exactly one lexical form, its single feature of interest — a distinct attestation is minted per form rather than piling several onto one relator."@x-gmeow-english ;
+    logic:characterizes gmeow:attestedForm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attestedForm ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "derivationTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon."@x-gmeow-english ;
+    logic:characterizes gmeow:derivationTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:derivationTarget ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:etymonSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "etymonSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:etymonSource is functional: an etymological derivation names exactly one ancestor lexical item or form (the etymon), a multi-source etymology being modeled as several derivations rather than one relator carrying many sources."@x-gmeow-english ;
+    logic:characterizes gmeow:etymonSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:etymonSource ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formRepresentationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "formRepresentation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form."@x-gmeow-english ;
+    logic:characterizes gmeow:formRepresentation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:formRepresentation ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:lexicalItemLanguageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "lexicalItemLanguage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:lexicalItemLanguage is functional: a lexical item has exactly one primary language, a polyglot or borrowed item being modeled as separate items linked by translation or derivation rather than as one item in several languages."@x-gmeow-english ;
+    logic:characterizes gmeow:lexicalItemLanguage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:lexicalItemLanguage ;
+    gmeow:graphBoxRole gmeow:boxABox .

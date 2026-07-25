@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: mentation, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/experiencerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "experiencer is functional"
+msgstr "experiencer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/experiencerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:experiencer is functional: a mental occurrent inheres in exactly one agent, so a gmeow:MentalProcess has a single experiencer — two agents reasoning about the same subject are two distinct processes."
+msgstr "Affirme sur le porteur canonique que gmeow:experiencer est fonctionnelle : un occurrent mental est inhérent à exactement un agent, de sorte qu'un gmeow:MentalProcess n'a qu'un seul sujet d'expérience — deux agents raisonnant sur le même sujet constituent deux processus distincts."
+

@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: contacts, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressHolderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addressHolder is functional"
+msgstr "addressHolder est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressHolderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:addressHolder is functional: an address-tenure situation concerns a single agent who held the contact point over its interval, so the tenure names one holder and a change of holder is a distinct tenure rather than a second holder on one."
+msgstr "Affirme sur le porteur canonique que gmeow:addressHolder est fonctionnelle : une situation de tenure d'adresse concerne un unique agent ayant détenu le point de contact durant son intervalle, de sorte que la tenure nomme un seul détenteur, et un changement de détenteur constitue une tenure distincte plutôt qu'un second détenteur sur la même tenure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addressValue is functional"
+msgstr "addressValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:addressValue is functional: a first-class email address has one normalized addr-spec — the canonical whole from which its local and domain parts are derived — so it carries a single value rather than several rival spellings of the same address."
+msgstr "Affirme sur le porteur canonique que gmeow:addressValue est fonctionnelle : une adresse électronique de première classe possède un unique addr-spec normalisé — l'ensemble canonique dont sont dérivées ses parties locale et de domaine — de sorte qu'elle porte une valeur unique plutôt que plusieurs graphies rivales de la même adresse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/domainPartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "domainPart is functional"
+msgstr "domainPart est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/domainPartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:domainPart is functional: an email address parses to a single domain part after the @, so the component that reveals the provider and underlies the personal-domain role is one value derived deterministically from the address's addr-spec."
+msgstr "Affirme sur le porteur canonique que gmeow:domainPart est fonctionnelle : une adresse électronique s'analyse en une seule partie de domaine après le @, de sorte que la composante révélant le fournisseur et sous-tendant le rôle de domaine personnel est une valeur dérivée de manière déterministe de l'addr-spec de l'adresse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/localPartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "localPart is functional"
+msgstr "localPart est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/localPartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:localPart is functional: an email address parses to a single local part before the @, so the person-identifying component queried separately from the whole is one value derived deterministically from the address's addr-spec."
+msgstr "Affirme sur le porteur canonique que gmeow:localPart est fonctionnelle : une adresse électronique se décompose en une seule partie locale avant le @, de sorte que le composant identifiant la personne, interrogé séparément de l'ensemble, est une valeur unique dérivée de manière déterministe de l'addr-spec de l'adresse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postalAddressFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "postalAddressFrame is functional"
+msgstr "postalAddressFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postalAddressFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:postalAddressFrame is functional: a postal address is expressed in exactly one postal/administrative reference frame against which its coordinate components are read, so the frame is single-valued — a value asserted without its one frame is ill-formed under CONSTITUTION P11."
+msgstr "Affirme sur le porteur canonique que gmeow:postalAddressFrame est fonctionnelle : une adresse postale est exprimée dans exactement un cadre de référence postal/administratif par rapport auquel ses composants de coordonnées sont lus, de sorte que le cadre est monovalué — une valeur affirmée sans son cadre unique est mal formée selon CONSTITUTION P11."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenuredContactPoint is functional"
+msgstr "tenuredContactPoint est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenuredContactPoint is functional: an address-tenure is about a single contact-point channel held over its interval, so the tenure names one contact point and a different channel is a distinct tenure rather than a second point on one."
+msgstr "Affirme sur le porteur canonique que gmeow:tenuredContactPoint est fonctionnelle: une tenure d'adresse porte sur un seul canal de point de contact détenu pendant son intervalle, de sorte que la tenure nomme un seul point de contact, et un canal différent constitue une tenure distincte plutôt qu'un second point sur celle-ci."
+

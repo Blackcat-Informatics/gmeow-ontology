@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: lexicon, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestationIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attestationInterval is functional"
+msgstr "attestationInterval 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestationIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen."
+msgstr "在规范载体上断言 gmeow:attestationInterval 是函数性的:一条使用证明恰好携带一个观察区间,即被断言观察到该用法的单一语料跨度、铭刻时期或使用年代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestedFormFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attestedForm is functional"
+msgstr "attestedForm 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attestedFormFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attestedForm is functional: a usage attestation observes exactly one lexical form, its single feature of interest — a distinct attestation is minted per form rather than piling several onto one relator."
+msgstr "在规范载体上断言 gmeow:attestedForm 是函数性的:一条使用证明恰好观察一个词形,即其唯一的关注特征——每种词形都单独铸造一条证明,而不是把多个堆积在同一个关系元上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivationTarget is functional"
+msgstr "derivationTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon."
+msgstr "在规范载体上断言 gmeow:derivationTarget 是函数性的：一个词源派生恰好指明一个后代词项或词形——即从该词源派生出的唯一目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/etymonSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "etymonSource is functional"
+msgstr "etymonSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/etymonSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:etymonSource is functional: an etymological derivation names exactly one ancestor lexical item or form (the etymon), a multi-source etymology being modeled as several derivations rather than one relator carrying many sources."
+msgstr "在规范载体上断言 gmeow:etymonSource 是函数性的：一个词源推导恰好指名一个祖先词汇项或词形（即词源），多来源的词源被建模为多个推导，而不是由一个关系体承载多个来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formRepresentationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "formRepresentation is functional"
+msgstr "formRepresentation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formRepresentationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form."
+msgstr "在规范载体上断言 gmeow:formRepresentation 是函数性的：一个词汇形式恰好携带一个表层字符串或值，因为按定义，不同的表征即是不同的形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lexicalItemLanguage is functional"
+msgstr "lexicalItemLanguage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:lexicalItemLanguage is functional: a lexical item has exactly one primary language, a polyglot or borrowed item being modeled as separate items linked by translation or derivation rather than as one item in several languages."
+msgstr "在规范载体上断言 gmeow:lexicalItemLanguage 是函数式的:一个词汇项恰好只有一种主要语言,多语或借用的词项被建模为通过翻译或派生关系连接的多个独立词项,而不是一个跨越多种语言的单一词项。"
+

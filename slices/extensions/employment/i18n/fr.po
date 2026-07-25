@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: employment, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentOccupationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentOccupation is functional"
+msgstr "employmentOccupation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentOccupationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentOccupation is functional: an employment maps to exactly one canonical occupation, so an agent holding several occupations is recorded as several employment records rather than one employment carrying many occupations."
+msgstr "Affirme sur le porteur canonique que gmeow:employmentOccupation est fonctionnelle : un emploi correspond à exactement une profession canonique, de sorte qu'un agent exerçant plusieurs professions est enregistré comme plusieurs emplois plutôt que comme un seul emploi portant plusieurs professions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentRole is functional"
+msgstr "employmentRole est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentRole is functional: an employment bears exactly one canonical role at a time, so a change of role is a new employment record or a standpoint-indexed claim rather than a second concurrent role on the same employment."
+msgstr "Affirme sur le porteur canonique que gmeow:employmentRole est fonctionnelle : un emploi porte exactement un rôle canonique à la fois, de sorte qu'un changement de rôle constitue un nouvel enregistrement d'emploi ou une revendication indexée par point de vue plutôt qu'un second rôle concurrent sur le même emploi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentSeniorityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentSeniority is functional"
+msgstr "employmentSeniority est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentSeniorityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentSeniority is functional: an employment has exactly one canonical seniority level at a time, so a promotion is a new employment record or a standpoint-indexed claim rather than two simultaneous ranks on one employment."
+msgstr "Affirme sur le porteur canonique que gmeow:employmentSeniority est fonctionnelle : un emploi possède exactement un niveau d'ancienneté canonique à la fois, de sorte qu'une promotion constitue un nouvel enregistrement d'emploi ou une revendication indexée par point de vue plutôt que deux rangs simultanés sur un seul emploi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentType is functional"
+msgstr "employmentType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentType is functional: an employment has exactly one canonical type at a time, so a change of type is a new employment record rather than one employment that is both full-time and contract at once."
+msgstr "Affirme sur le porteur canonique que gmeow:employmentType est fonctionnelle : un emploi possède exactement un type canonique à la fois, de sorte qu'un changement de type constitue un nouvel enregistrement d'emploi plutôt qu'un seul emploi étant à la fois à temps plein et sous contrat."
+

@@ -1,0 +1,143 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: software, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authorIdentityString is functional"
+msgstr "authorIdentityString 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:authorIdentityString is functional: an AuthorIdentity records exactly one raw byte-string — the single 'Name <email>' line as it appeared in the commit object, an immutable historical assertion that is never re-recorded."
+msgstr "在规范载体上断言 gmeow:authorIdentityString 是函数性的:一个 AuthorIdentity 恰好记录一条原始字节串——即提交对象中出现的那唯一一行『Name <email>』,是一条不可变的历史断言,永远不会被重新记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/buildConfigUriFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "buildConfigUri is functional"
+msgstr "buildConfigUri 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/buildConfigUriFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran."
+msgstr "在规范载体上断言 gmeow:buildConfigUri 是函数性的:一次构建活动恰好由一个构建配置或工作流文件驱动,其单一URI标识了描述该构建如何运行的配方。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitAuthorIdentityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitAuthorIdentity is functional"
+msgstr "commitAuthorIdentity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitAuthorIdentityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitAuthorIdentity is functional: a commit object records exactly one author-identity line — the single raw historical byte-string naming who wrote the patch, distinct from the canonical agent it may be understood to refer to."
+msgstr "在规范载体上断言 gmeow:commitAuthorIdentity 是函数式的：一个 commit 对象恰好记录一行作者身份信息——即指明是谁编写了该补丁的唯一原始历史字节串，它不同于该信息可能被理解为指代的规范主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitCommitterIdentityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitCommitterIdentity is functional"
+msgstr "commitCommitterIdentity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitCommitterIdentityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitCommitterIdentity is functional: a commit object records exactly one committer-identity line — the single raw historical byte-string naming who applied the commit to the repository, distinct from its author identity."
+msgstr "在规范载体上断言 gmeow:commitCommitterIdentity 是函数式的：一个 commit 对象恰好记录一行提交者身份信息——即指明是谁将该提交应用到仓库的唯一原始历史字节串，它不同于其作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitInRepositoryFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitInRepository is functional"
+msgstr "commitInRepository 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitInRepositoryFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitInRepository is functional: a commit belongs to exactly one repository, since a fork is a separate repository carrying its own independent history rather than a second home for the same commit."
+msgstr "在规范载体上断言 gmeow:commitInRepository 是函数式的：一个提交恰好属于一个仓库，因为一个分支（fork）是一个承载其自身独立历史的独立仓库，而不是同一提交的第二个归属地。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitTreeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitTree is functional"
+msgstr "commitTree 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitTreeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history."
+msgstr "在规范载体上断言 gmeow:commitTree 是函数式的：一个提交恰好记录一个根源代码树——即它在仓库历史该时间点所捕获的唯一目录快照。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffFromFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "diffFrom is functional"
+msgstr "diffFrom 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffFromFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from."
+msgstr "在规范载体上断言 gmeow:diffFrom 是函数性的：一个 diff 恰好有一个基准提交——即它据以衡量变化起点的唯一「之前」状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffToFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "diffTo is functional"
+msgstr "diffTo 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/diffToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward."
+msgstr "在规范载体上断言 gmeow:diffTo 是函数性的：一个 diff 恰好有一个目标提交——即它据以衡量变化终点的唯一「之后」状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/materializationDepthFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "materializationDepth is functional"
+msgstr "materializationDepth 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/materializationDepthFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples."
+msgstr "在规范载体上断言 gmeow:materializationDepth 是函数式的:一个仓库恰好携带一个物化深度设置——即固定其 Merkle 源树有多少层被投影为三元组的单一非负整数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mergeTarget is functional"
+msgstr "mergeTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources."
+msgstr "在规范载体上断言 gmeow:mergeTarget 是函数式的:一个合并事件恰好有一个目标引用——即源被合并进入的单一分支或标签——这与其可能存在的多个合并源形成对比。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectHomepageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "projectHomepage is functional"
+msgstr "projectHomepage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectHomepageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point."
+msgstr "在规范载体上断言 gmeow:projectHomepage 是函数性的:一个项目恰好拥有一个规范主页 IRI——即其唯一的 doap:homepage / schema:url 落地点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "releaseOf is functional"
+msgstr "releaseOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships."
+msgstr "在规范载体上断言 gmeow:releaseOf 是函数性的:一个发布事件恰好属于一个项目——即该发布所交付软件所属的唯一项目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repositoryType is functional"
+msgstr "repositoryType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:repositoryType is functional: a repository is managed by exactly one version-control system — a single RepositoryType value (git, hg, svn, fossil, …), never two VCSes at once."
+msgstr "在规范载体上断言 gmeow:repositoryType 是函数性的:一个仓库恰好由一个版本控制系统管理——一个单一的 RepositoryType 值(git、hg、svn、fossil 等),绝不会同时使用两个版本控制系统。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryModeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "treeEntryMode is functional"
+msgstr "treeEntryMode 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object."
+msgstr "在规范载体上断言 gmeow:treeEntryMode 是函数性的:一个树条目恰好携带一个 git 文件模式——即树对象那一行上唯一的模式字段(普通文件、可执行文件、目录、子模块或符号链接)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryNameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "treeEntryName is functional"
+msgstr "treeEntryName 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryNameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object."
+msgstr "在规范载体上断言 gmeow:treeEntryName 是函数性的:一个树条目恰好携带一个文件或目录名——即该 git 树对象那一行上唯一的名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "treeEntryObject is functional"
+msgstr "treeEntryObject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names."
+msgstr "在规范载体上断言 gmeow:treeEntryObject 是函数性的:一个树条目恰好指向一个内容寻址对象——即树中那一行所命名的唯一 Blob 或 SourceTree。"
+

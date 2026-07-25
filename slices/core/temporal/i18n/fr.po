@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: temporal, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "duringInterval is functional"
+msgstr "duringInterval est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:duringInterval is functional: a gmeow:TimeScopedRelation is delimited by exactly one gmeow:TimeInterval, since a relation true across two disjoint spans is two distinct scoped situations rather than one situation bearing two scopes."
+msgstr "Affirme sur le porteur canonique que gmeow:duringInterval est fonctionnelle : une gmeow:TimeScopedRelation est délimitée par exactement un gmeow:TimeInterval, puisqu'une relation vraie sur deux plages disjointes constitue deux situations délimitées distinctes plutôt qu'une seule situation portant deux délimitations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "edtfValue is functional"
+msgstr "edtfValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/edtfValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:edtfValue is functional: an instant or interval has at most one EDTF expression of its own value, since a second EDTF string would state a competing value for the same point rather than an alternate label for it."
+msgstr "Affirme sur le porteur canonique que gmeow:edtfValue est fonctionnelle : un instant ou un intervalle possède au plus une expression EDTF de sa propre valeur, puisqu'une seconde chaîne EDTF énoncerait une valeur concurrente pour le même point plutôt qu'une étiquette alternative pour celui-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "endedAtTime is functional"
+msgstr "endedAtTime est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/endedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:endedAtTime is functional: a gmeow:TimeInterval closes at a single instant, since two distinct end timestamps would describe two different intervals and an open interval omits the value entirely rather than carrying several."
+msgstr "Affirme sur le porteur canonique que gmeow:endedAtTime est fonctionnelle : un gmeow:TimeInterval se termine à un instant unique, puisque deux horodatages de fin distincts décriraient deux intervalles différents, et un intervalle ouvert omet entièrement la valeur plutôt que d'en porter plusieurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameCalendarSystem is functional"
+msgstr "frameCalendarSystem est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameCalendarSystemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameCalendarSystem is functional: a gmeow:TemporalFrame reckons its dates in at most one gmeow:CalendarSystem, since a frame that mixed Gregorian and Hebrew reckoning would be two frames rather than one (the property is optional for scale-only frames but never multi-valued)."
+msgstr "Affirme sur le porteur canonique que gmeow:frameCalendarSystem est fonctionnelle : un gmeow:TemporalFrame calcule ses dates dans au plus un gmeow:CalendarSystem, car un cadre mêlant les décomptes grégorien et hébraïque constituerait deux cadres plutôt qu'un seul (la propriété est optionnelle pour les cadres à échelle seule, mais jamais multivaluée)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameReferencePosition is functional"
+msgstr "frameReferencePosition est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameReferencePositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameReferencePosition is functional: a gmeow:TemporalFrame is anchored to at most one gmeow:ReferencePosition, since a single frame cannot fix its time to two timezones or observatories at once, so a second locus makes a second frame (the property is optional for position-independent frames but never multi-valued)."
+msgstr "Affirme sur le porteur canonique que gmeow:frameReferencePosition est fonctionnelle : un gmeow:TemporalFrame est ancré à au plus un gmeow:ReferencePosition, car un seul cadre ne peut fixer son temps sur deux fuseaux horaires ou observatoires à la fois, de sorte qu'un second lieu produit un second cadre (la propriété est optionnelle pour les cadres indépendants de la position, mais jamais multivaluée)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frameTimeScale is functional"
+msgstr "frameTimeScale est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:frameTimeScale is functional: a gmeow:TemporalFrame runs on exactly one gmeow:TimeScale, since the mandatory 'which clock' component is singular and a frame ticking on both TAI and UT1 would be two frames."
+msgstr "Affirme sur le porteur canonique que gmeow:frameTimeScale est fonctionnelle : un gmeow:TemporalFrame fonctionne sur exactement un gmeow:TimeScale, car la composante obligatoire « quelle horloge » est singulière, et un cadre battant à la fois sur TAI et UT1 constituerait deux cadres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasEndInstant is functional"
+msgstr "hasEndInstant est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasEndInstant is functional: a gmeow:TimeInterval terminates at a single reified gmeow:Instant, mirroring the singular gmeow:endedAtTime it reifies, and an open-ended interval omits it rather than naming two ends."
+msgstr "Affirme sur le porteur canonique que gmeow:hasEndInstant est fonctionnelle : un gmeow:TimeInterval se termine en un unique gmeow:Instant réifié, reflétant le gmeow:endedAtTime singulier qu'il réifie, et un intervalle ouvert l'omet plutôt que de nommer deux fins."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasStartInstant is functional"
+msgstr "hasStartInstant est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasStartInstantFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasStartInstant is functional: a gmeow:TimeInterval begins at a single reified gmeow:Instant, since an interval bearing two distinct start instants would be two intervals sharing an end rather than one."
+msgstr "Affirme sur le porteur canonique que gmeow:hasStartInstant est fonctionnelle : un gmeow:TimeInterval commence en un unique gmeow:Instant réifié, car un intervalle portant deux instants de début distincts serait en réalité deux intervalles partageant une fin plutôt qu'un seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "instantValue is functional"
+msgstr "instantValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:instantValue is functional: a gmeow:Instant carries at most one crisp xsd:dateTime value, since a zero-duration point has a single machine-computable value and any approximate alternative belongs on gmeow:edtfValue rather than as a second crisp value."
+msgstr "Affirme sur le porteur canonique que gmeow:instantValue est fonctionnelle : un gmeow:Instant porte au plus une valeur xsd:dateTime précise, car un point de durée nulle possède une unique valeur calculable par machine, et toute alternative approximative relève de gmeow:edtfValue plutôt que d'une seconde valeur précise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measuredAge is functional"
+msgstr "measuredAge est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measuredAge is functional: a single gmeow:TemporalMeasurement yields one numeric age in its declared unit, since one dating act under one vantage produces one result and a second age figure is a distinct standpoint-indexed measurement."
+msgstr "Affirme sur le porteur canonique que gmeow:measuredAge est fonctionnelle : une seule gmeow:TemporalMeasurement produit un âge numérique unique dans son unité déclarée, puisqu'un acte de datation effectué sous un seul point de vue produit un seul résultat, et qu'un second chiffre d'âge constituerait une mesure distincte indexée sur un autre point de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measuredDate is functional"
+msgstr "measuredDate est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measuredDate is functional: a single gmeow:TemporalMeasurement resolves to one absolute date gmeow:Instant, since one dating act yields one result and a competing date is a separate standpoint-indexed measurement rather than a second date on this one."
+msgstr "Affirme sur le porteur canonique que gmeow:measuredDate est fonctionnelle : une seule gmeow:TemporalMeasurement se résout en une seule date absolue gmeow:Instant, puisqu'un acte de datation produit un seul résultat, et qu'une date concurrente constitue une mesure distincte indexée sur un autre point de vue plutôt qu'une seconde date sur celle-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurementMethod is functional"
+msgstr "measurementMethod est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measurementMethod is functional: a gmeow:TemporalMeasurement is produced by exactly one gmeow:DatingMethod, since the technique behind an age is singular and a result obtained by a different method is a different measurement."
+msgstr "Affirme sur le porteur canonique que gmeow:measurementMethod est fonctionnelle : une gmeow:TemporalMeasurement est produite par exactement une gmeow:DatingMethod, puisque la technique derrière un âge est singulière et qu'un résultat obtenu par une méthode différente constitue une mesure différente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurementUncertainty is functional"
+msgstr "measurementUncertainty est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:measurementUncertainty is functional: a gmeow:TemporalMeasurement carries one uncertainty figure paired with its single measured age, since a second error bar would describe a different measurement rather than the same one twice."
+msgstr "Affirme sur le porteur canonique que gmeow:measurementUncertainty est fonctionnelle : une gmeow:TemporalMeasurement porte un seul chiffre d'incertitude associé à son âge mesuré unique, puisqu'une seconde marge d'erreur décrirait une mesure différente plutôt que la même mesure deux fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "periodEnd is functional"
+msgstr "periodEnd est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/periodEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:periodEnd is functional: a gmeow:NamedPeriod closes at a single boundary gmeow:Instant, since an era with two distinct end instants would be two periods and a still-ongoing period omits it rather than naming several."
+msgstr "Affirme sur le porteur canonique que gmeow:periodEnd est fonctionnelle : un gmeow:NamedPeriod se termine à un seul gmeow:Instant frontière, puisqu'une ère avec deux instants de fin distincts constituerait deux périodes, et une période toujours en cours l'omet plutôt que d'en nommer plusieurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "startedAtTime is functional"
+msgstr "startedAtTime est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued."
+msgstr "Affirme sur le porteur canonique que gmeow:startedAtTime est fonctionnelle: un gmeow:TimeInterval s'ouvre à une seule dateTime précise, puisqu'un intervalle avec deux horodatages de début serait en réalité deux intervalles, ce qui rend la borne de début en ligne à valeur unique."
+

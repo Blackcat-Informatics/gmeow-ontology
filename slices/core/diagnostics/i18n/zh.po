@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: diagnostics, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "existentialOrdinal is functional"
+msgstr "existentialOrdinal 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:existentialOrdinal is functional: a chase-invented gmeow:InventedWitness discharges exactly one existential head-variable of its firing rule, so it carries a single 0-based ordinal that is one of the three components of its content-addressed identity."
+msgstr "在规范载体上断言 gmeow:existentialOrdinal 是函数性的：由 chase 过程发明的 gmeow:InventedWitness 恰好消解其触发规则中的一个存在性头变量，因此它携带一个从零开始的唯一序号，这是其内容寻址身份三个组成部分之一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingCode is functional"
+msgstr "findingCode 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingCode is functional: a gmeow:Finding carries exactly one stable rule identifier, serving as its SARIF ruleId and the single key by which findings are grouped and suppressed."
+msgstr "在规范载体上断言 gmeow:findingCode 是函数性的：一个 gmeow:Finding 恰好携带一个稳定的规则标识符，作为其 SARIF ruleId，也是用于对发现项进行分组与抑制的唯一键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingMessage is functional"
+msgstr "findingMessage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingMessage is functional: a gmeow:Finding carries exactly one human-readable message describing that occurrence, distinct from its single stable code."
+msgstr "在规范载体上断言 gmeow:findingMessage 是函数性的：一个 gmeow:Finding 恰好携带一条描述该发生实例的、人类可读的消息，它不同于其唯一的稳定代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingSeverity is functional"
+msgstr "findingSeverity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result."
+msgstr "在规范载体上断言 gmeow:findingSeverity 是函数性的：一个 gmeow:Finding 恰好具有一个裁定等级，即作为其观察结果的唯一 gmeow:DiagnosticSeverity。"
+

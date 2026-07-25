@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: accounts, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accountService is functional"
+msgstr "accountService 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:accountService is functional: an online account is held with exactly one service, so the account-to-service edge that places a handle on its network, forge, or federated instance carries a single value, and a moved account is modelled as a distinct OnlineAccount rather than a second service."
+msgstr "在规范载体上断言 gmeow:accountService 是函数性的:一个在线账户恰好托管于一个服务,因此将某个账号置于其网络、代码托管平台或联邦实例上的账户到服务这条边只承载单一值,而迁移后的账户被建模为一个不同的 OnlineAccount,而非第二个服务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accountServiceHomepage is functional"
+msgstr "accountServiceHomepage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:accountServiceHomepage is functional: an account is held with a single service, so the homepage of that one held-with service — the FOAF accountServiceHomepage idiom — resolves to a single IRI per account rather than a set of competing homepages."
+msgstr "在规范载体上断言 gmeow:accountServiceHomepage 是函数性的:一个账户托管于单一服务,因此该唯一托管服务的主页——即 FOAF 的 accountServiceHomepage 惯用法——每个账户只解析为单一IRI,而非一组相互竞争的主页。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "serviceShutdownDate is functional"
+msgstr "serviceShutdownDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:serviceShutdownDate is functional: a historical online service ceases operation once, so the flat shutdown date that projects to schema:dissolutionDate is a single dissolution timestamp per service, with any evidence- or standpoint-bearing dispute promoted to a destruction LifeEvent instead of a rival flat date."
+msgstr "在规范载体上断言 gmeow:serviceShutdownDate 是函数性的:一项历史性在线服务只会停止运营一次,因此投影到 schema:dissolutionDate 的这个扁平关闭日期对每项服务而言是单一的解散时间戳,任何带有证据或立场的争议都应升级为一个销毁类 LifeEvent,而不是一个与之竞争的扁平日期。"
+

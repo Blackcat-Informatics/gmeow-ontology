@@ -1,0 +1,167 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: slice-quality-rubric, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "axisContextScope is functional"
+msgstr "axisContextScope 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:axisContextScope is functional: each gmeow:QualityAxis is granted exactly one read-breadth coeffect — slice-local, dependency-closure, or merged-closure — so a second scope would leave the scope gate unable to decide how much graph the axis's primitive may read."
+msgstr "在规范载体上断言 gmeow:axisContextScope 是函数性的:每个 gmeow:QualityAxis 恰好被授予一个读取广度协同效应——切片本地、依赖闭包或合并闭包——因此若存在第二个范围,作用域门将无法判定该轴的基元可以读取多大范围的图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "axisWeight is functional"
+msgstr "axisWeight 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:axisWeight is functional: each gmeow:QualityAxis carries exactly one advice-ranking priority, so a second weight would make the advisor's remediation ordering ambiguous — and because the weight only orders advice (never the unweighted lattice-meet roll-up), one value per axis is all the ranking can consume."
+msgstr "在规范载体上断言 gmeow:axisWeight 是函数性的:每个 gmeow:QualityAxis 恰好携带一个建议排序优先级,因此若存在第二个权重,顾问的整改排序将变得含糊——而且由于该权重仅用于排序建议(而绝不用于无权重的格交汇汇总),每个轴一个值正是排序所能消耗的全部。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingCount is functional"
+msgstr "ceilingCount 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingCount is functional: each per-(slice,vocabulary) gmeow:ProjectionCeilingCommitment pins exactly one committed maximum residue count, so a second count would make the lower-only regression ceiling the gate enforces ambiguous."
+msgstr "在规范载体上断言 gmeow:ceilingCount 是函数式的：每个按(切片,词表)划分的 gmeow:ProjectionCeilingCommitment 固定恰好一个承诺的最大残余计数，若存在第二个计数，则会使关卡强制执行的仅可下降的回归上限变得含糊不清。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingSlice is functional"
+msgstr "ceilingSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingSlice is functional: each gmeow:ProjectionCeilingCommitment names exactly one subject slice whose measured residue the ceiling guards, so a second slice would make the ratchet cell pin an ambiguous target."
+msgstr "在规范载体上断言 gmeow:ceilingSlice 是函数式的：每个 gmeow:ProjectionCeilingCommitment 恰好指定一个主体切片，其被度量的残余由该上限所守护，若存在第二个切片，棘轮单元所固定的目标将变得含糊。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingVocabulary is functional"
+msgstr "ceilingVocabulary 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingVocabulary is functional: each gmeow:ProjectionCeilingCommitment caps exactly one guarded gmeow:ProjectionVocabulary, so a second vocabulary would leave the ceiling applying to no single guarded surface."
+msgstr "在规范载体上断言 gmeow:ceilingVocabulary 是函数式的：每个 gmeow:ProjectionCeilingCommitment 恰好为一个受保护的 gmeow:ProjectionVocabulary 设定上限，若存在第二个词表，该上限将无法应用于任何单一的受保护表面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exemptionDate is functional"
+msgstr "exemptionDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exemptionDate is functional: each gmeow:AxisExemption was minted on exactly one date, so a second date would make the exemption's audit age — by which long-standing gaps are surfaced — ambiguous."
+msgstr "在规范载体上断言 gmeow:exemptionDate 是函数性的：每个 gmeow:AxisExemption 恰好在一个日期被铸造，若存在第二个日期，该豁免用以揭示长期存在缺口的审计年限就会变得含糊不清。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorAxis is functional"
+msgstr "floorAxis 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorAxis is functional: each gmeow:AxisFloorCommitment guards exactly one measured gmeow:QualityAxis, so a second axis would make the per-axis regression floor apply to no single measured dimension."
+msgstr "在规范载体上断言 gmeow:floorAxis 是函数性的：每个 gmeow:AxisFloorCommitment 恰好守护一个被测量的 gmeow:QualityAxis，若存在第二个维度，该按维度设定的回归下限就无法应用于任何单一的被测维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorSlice is functional"
+msgstr "floorSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorSlice is functional: each gmeow:AxisFloorCommitment or gmeow:SliceTierFloor is committed against exactly one subject slice, so a second slice would make the ratchet cell guard an ambiguous target."
+msgstr "在规范载体上断言 gmeow:floorSlice 是函数性的：每个 gmeow:AxisFloorCommitment 或 gmeow:SliceTierFloor 恰好针对一个主题切片作出承诺，若存在第二个切片，棘轮单元所守护的目标就会变得含糊不清。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorTier is functional"
+msgstr "floorTier 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorTier is functional: each gmeow:SliceTierFloor pins exactly one minimum roll-up rung over the lattice order, so a second tier would make the raise-only tier-regression bar ambiguous."
+msgstr "在规范载体上断言 gmeow:floorTier 是函数性的：每个 gmeow:SliceTierFloor 在格序上恰好钉住一个最低汇总等级，若存在第二个等级，仅允许上调的等级回归门槛就会变得含糊不清。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorValue is functional"
+msgstr "floorValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorValue is functional: each gmeow:AxisFloorCommitment pins exactly one committed minimum decimal score, so a second value would make the raise-only regression floor the gate enforces ambiguous."
+msgstr "在规范载体上断言 gmeow:floorValue 是函数性的：每个 gmeow:AxisFloorCommitment 恰好钉住一个已承诺的最低十进制分数，若存在第二个值，该关卡所强制执行的仅允许上调的回归下限就会变得含糊不清。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thresholdFloor is functional"
+msgstr "thresholdFloor 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:thresholdFloor is functional: each gmeow:AxisThreshold pairing pins exactly one normalized score floor for its tier, so a second floor would leave the scorer without a single bar to compare the measured axis score against."
+msgstr "在规范载体上断言 gmeow:thresholdFloor 是函数性的:每一对 gmeow:AxisThreshold 恰好为其分层确定一个归一化的分数下限,第二个下限将使评分器失去唯一一条可用来比较所测轴分数的基准线。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thresholdTier is functional"
+msgstr "thresholdTier 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:thresholdTier is functional: each gmeow:AxisThreshold pairing gates exactly one tier rung, so a second tier would dissolve the reified (tier, floor) cell into an ambiguous mapping."
+msgstr "在规范载体上断言 gmeow:thresholdTier 是函数性的:每一对 gmeow:AxisThreshold 恰好把关一个分层等级,第二个分层将使这个具化的 (tier, floor) 单元瓦解为一种含混不清的映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tierRank is functional"
+msgstr "tierRank 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tierRank is functional: each gmeow:QualityTier occupies exactly one position in the ladder's total order, so a tier bearing two ranks would make that order ill-defined and break the lattice meet (least rank) the roll-up depends on."
+msgstr "在规范载体上断言 gmeow:tierRank 是函数性的:每个 gmeow:QualityTier 在该阶梯的全序中恰好占据一个位置,若某一分层同时带有两个等级,将使该顺序变得不明确,并破坏汇总所依赖的格论交(最小等级)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyCountKind is functional"
+msgstr "vocabularyCountKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyCountKind is functional: each gmeow:ProjectionVocabulary selects exactly one of the three closed construct-recognition strategies, so a second kind would leave the shared counter's Rust dispatch without a single enumeration path to resolve."
+msgstr "在规范载体上断言 gmeow:vocabularyCountKind 是函数性的:每个 gmeow:ProjectionVocabulary 恰好选定三种封闭构造识别策略之一,若存在第二种类型,共享计数器的 Rust 分派就无法解析出唯一的枚举路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyDefaultCeiling is functional"
+msgstr "vocabularyDefaultCeiling 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole."
+msgstr "在规范载体上断言 gmeow:vocabularyDefaultCeiling 是函数性的:每个 gmeow:ProjectionVocabulary 恰好携带一个针对缺乏明确承诺切片的空案例默认上限,若存在第二个默认值,每个未列出的切片都将受制于一个含糊的回退值,并重新打开「全新词汇」漏洞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyOwner is functional"
+msgstr "vocabularyOwner 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce."
+msgstr "在规范载体上断言 gmeow:vocabularyOwner 是函数性的:每个 gmeow:ProjectionVocabulary 恰好有一个基础切片(logic:、math: 或 lang:)持有其外部著录权威,若存在第二个所有者,外部术语将拥有两个著录归属地,从而破坏所有者边界本应强制执行的「防第二来源」棘轮机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyPrefix is functional"
+msgstr "vocabularyPrefix 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyPrefix is functional: each gmeow:ProjectionVocabulary has exactly one short CURIE prefix serving as the join key ceiling commitments resolve against, so a second prefix would break the unique-key binding between a ceiling commitment and its vocabulary."
+msgstr "在规范载体上断言 gmeow:vocabularyPrefix 是函数性的:每个 gmeow:ProjectionVocabulary 恰好有一个简短的 CURIE 前缀,用作上限承诺据以解析的连接键,若存在第二个前缀,将破坏上限承诺与其词汇之间的唯一键绑定关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyPreservation is functional"
+msgstr "vocabularyPreservation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyPreservation is functional: each gmeow:ProjectionVocabulary's lowering from logic: carries exactly one loss-ledger preservation polarity, so a second judgment would make the guarantee the projection advertises to the shared loss-ledger ambiguous."
+msgstr "在规范载体上断言 gmeow:vocabularyPreservation 是函数性的:每个 gmeow:ProjectionVocabulary 从 logic: 的降阶恰好携带一个损失账本保真极性,若存在第二个判定,该投影向共享损失账本所宣称的保证将变得含糊不清。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularySubsumedBy is functional"
+msgstr "vocabularySubsumedBy 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source."
+msgstr "在规范载体上断言 gmeow:vocabularySubsumedBy 是函数性的:每个受保护的 gmeow:ProjectionVocabulary 恰好是某一个 logic: 核心生成出的有损投影,若存在第二个包摄者,将与原则 17「表层由单一规范来源投影而来」的前提相矛盾。"
+

@@ -1,0 +1,175 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: narrative, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arcFrame is functional"
+msgstr "arcFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:arcFrame is functional: a CharacterArc is interpreted within exactly one narrative reference frame, and the same trajectory read under a different continuity is a separate arc instance linked by counterpartOf rather than a second frame on the one arc."
+msgstr "Affirme sur le porteur canonique que gmeow:arcFrame est fonctionnelle : un CharacterArc est interprété dans exactement un cadre de référence narratif, et la même trajectoire lue sous une continuité différente constitue une instance d'arc distincte liée par counterpartOf, plutôt qu'un second cadre sur le même arc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arcSubject is functional"
+msgstr "arcSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:arcSubject is functional: a CharacterArc describes the trajectory of exactly one subject entity, so an analysis spanning two characters is two arcs rather than one arc bearing two subjects."
+msgstr "Affirme sur le porteur canonique que gmeow:arcSubject est fonctionnelle : un CharacterArc décrit la trajectoire d'exactement une entité sujet, de sorte qu'une analyse portant sur deux personnages constitue deux arcs plutôt qu'un seul arc portant deux sujets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arcType is functional"
+msgstr "arcType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:arcType is functional: a CharacterArc carries exactly one interpretive type from the open gmeow:ArcType vocabulary, so a trajectory read as both redemption and fall is two competing arc interpretations, not one arc holding two types."
+msgstr "Affirme sur le porteur canonique que gmeow:arcType est fonctionnelle : un CharacterArc porte exactement un type interprétatif issu du vocabulaire ouvert gmeow:ArcType, de sorte qu'une trajectoire lue à la fois comme rédemption et comme chute constitue deux interprétations d'arc concurrentes, et non un seul arc portant deux types."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/discourseTimeOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "discourseTimeOf is functional"
+msgstr "discourseTimeOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/discourseTimeOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:discourseTimeOf is functional: a discourse-time frame coordinatizes the telling order of exactly one creative work, and a re-segmenting edition or translation owns its own discourse frame rather than sharing this one — one frame, one telling."
+msgstr "Affirme sur le porteur canonique que gmeow:discourseTimeOf est fonctionnelle : un repère de temps du discours coordonne l'ordre de narration d'exactement une œuvre créative, et une édition ou une traduction qui re-segmente possède son propre repère de discours plutôt que de partager celui-ci — un repère, une narration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mythFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mythFrame is functional"
+msgstr "mythFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mythFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against."
+msgstr "Affirme sur le porteur canonique que gmeow:mythFrame est fonctionnelle : un Myth tient ses affirmations internes pour vraies sous exactement un repère de référence narratif, le point de vue unique auquel est mesurée chaque affirmation de ce mythe délimitée par accordingTo."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrationSegment is functional"
+msgstr "narrationSegment est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records."
+msgstr "Affirme sur le porteur canonique que gmeow:narrationSegment est fonctionnelle : une NarrationUsage réifie une seule couture (segment, sujet), de sorte qu'elle porte exactement un segment de contenu — l'unique fragment de texte porteur dont le relateur enregistre la narration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrationSubject is functional"
+msgstr "narrationSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrationSubject is functional: a NarrationUsage is minted one per (segment, subject) pair, so it names exactly one narrated diegetic subject — a chapter narrating four events with modes is four relators, never one relator with four subjects."
+msgstr "Affirme sur le porteur canonique que gmeow:narrationSubject est fonctionnelle : une NarrationUsage est créée une fois par paire (segment, sujet), de sorte qu'elle désigne exactement un sujet diégétique narré — un chapitre narrant quatre événements avec des modes correspond à quatre relateurs, jamais à un seul relateur portant quatre sujets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkRelationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeFrameLinkRelation is functional"
+msgstr "narrativeFrameLinkRelation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkRelationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkRelation is functional: a NarrativeFrameLink reifies one directed source-to-target binding, so it pins exactly one relation type — two frames standing in several relations (canon and adaptation from different standpoints) are several links, not one link carrying several relation types, which is precisely how the reified relator differs from the non-functional flat gmeow:hasNarrativeFrameRelation shortcut."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeFrameLinkRelation est fonctionnelle : un NarrativeFrameLink réifie une seule liaison dirigée source-vers-cible, de sorte qu'il fixe exactement un type de relation — deux repères entretenant plusieurs relations (canon et adaptation depuis des points de vue différents) constituent plusieurs liens, non un seul lien portant plusieurs types de relation, ce qui distingue précisément le relateur réifié du raccourci plat non fonctionnel gmeow:hasNarrativeFrameRelation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeFrameLinkSource is functional"
+msgstr "narrativeFrameLinkSource est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeFrameLinkSource est fonctionnelle : un NarrativeFrameLink lie une seule relation dirigée de repère à repère, de sorte qu'il possède exactement un repère source — le relateur réifié perdrait sa directionnalité si un même lien admettait plusieurs sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeFrameLinkTarget is functional"
+msgstr "narrativeFrameLinkTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeFrameLinkTarget est fonctionnelle : un NarrativeFrameLink lie une seule relation dirigée de repère à repère, de sorte qu'il possède exactement un repère cible — un repère source en relation avec plusieurs cibles correspond à plusieurs liens, chacun fixant sa propre cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeRoleBearer is functional"
+msgstr "narrativeRoleBearer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeRoleBearer is functional: a RoleInNarrative reifies one character's role within one scope, so it has exactly one bearer — two characters sharing a role are two relators, never one relator with two bearers."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeRoleBearer est fonctionnelle : une RoleInNarrative réifie le rôle d'un seul personnage au sein d'une seule portée, de sorte qu'elle possède exactement un porteur — deux personnages partageant un rôle correspondent à deux relateurs, jamais à un seul relateur avec deux porteurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeRoleScope is functional"
+msgstr "narrativeRoleScope est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeRoleScope is functional: a RoleInNarrative is relative to exactly one scope — protagonist-of-the-trilogy and protagonist-of-one-chapter are different relators — because protagonist-of-what is half the claim, and a single relator cannot straddle two scopes."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeRoleScope est fonctionnelle : une RoleInNarrative est relative à exactement une portée — protagoniste-de-la-trilogie et protagoniste-d'un-seul-chapitre sont des relateurs différents — car protagoniste-de-quoi constitue la moitié de l'affirmation, et un seul relateur ne peut chevaucher deux portées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeRoleValue is functional"
+msgstr "narrativeRoleValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeRoleValue is functional: a RoleInNarrative bears exactly one role value, so a character who is both mentor and foil within one scope carries two separate relators rather than one relator holding two roles."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeRoleValue est fonctionnelle : une RoleInNarrative porte exactement une valeur de rôle, de sorte qu'un personnage qui est à la fois mentor et faire-valoir au sein d'une même portée porte deux relateurs distincts plutôt qu'un seul relateur détenant deux rôles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeTimeAxisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeTimeAxis is functional"
+msgstr "narrativeTimeAxis est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeTimeAxisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeTimeAxis is functional: a NarrativeTimeFrame measures exactly one axis kind, either discourse time or story time, so a telling work and its fabula are two frames rather than one frame with two moods."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeTimeAxis est fonctionnelle : un NarrativeTimeFrame mesure exactement un genre d'axe, soit le temps du discours, soit le temps de l'histoire, de sorte qu'une œuvre narrative et sa fabula constituent deux repères plutôt qu'un seul repère à deux modes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positionFrame is functional"
+msgstr "positionFrame est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid."
+msgstr "Affirme sur le porteur canonique que gmeow:positionFrame est fonctionnelle : une NarrativePosition est exprimée dans exactement un cadre temporel narratif — l'unique système de coordonnées qui donne un sens à son ordinal et à son étiquette — puisqu'une position sans son cadre unique constitue l'anti-patron de l'entier nu que cette classe existe pour interdire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positionOrdinal is functional"
+msgstr "positionOrdinal est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:positionOrdinal is functional: a NarrativePosition has exactly one ordinal coordinate within its frame, so a chapter index and a fabula sequence number for the same diegetic moment live on different positions in different frames, never as two ordinals on one position."
+msgstr "Affirme sur le porteur canonique que gmeow:positionOrdinal est fonctionnelle : une NarrativePosition a exactement une coordonnée ordinale au sein de son cadre, de sorte qu'un index de chapitre et un numéro de séquence de la fabula pour un même moment diégétique résident sur des positions différentes dans des cadres différents, jamais comme deux ordinaux sur une seule position."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplePositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "samplePosition is functional"
+msgstr "samplePosition est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplePositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:samplePosition is functional: an ArcSample reads at exactly one narrative position — the single WHERE that fixes the sample — since a sample without a position is not a sample, and a reading taken at another position is another sample."
+msgstr "Affirme sur le porteur canonique que gmeow:samplePosition est fonctionnelle : un ArcSample effectue sa lecture à exactement une position narrative — l'unique « où » qui fixe l'échantillon — puisqu'un échantillon sans position n'est pas un échantillon, et qu'une lecture prise à une autre position constitue un autre échantillon."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleStateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sampleState is functional"
+msgstr "sampleState est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleStateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sampleState is functional: an ArcSample records exactly one read state by IRI, so a blended reading at one position resolves into several samples sharing a vantage rather than one sample carrying several states — one cell, one state."
+msgstr "Affirme sur le porteur canonique que gmeow:sampleState est fonctionnelle : un ArcSample enregistre exactement un état lu par IRI, de sorte qu'une lecture mêlée à une même position se résout en plusieurs échantillons partageant un même point de vue plutôt qu'en un seul échantillon portant plusieurs états — une cellule, un état."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sampleSubject is functional"
+msgstr "sampleSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sampleSubject is functional: an ArcSample reads exactly one subject — the single frame-scoped character or diegetic entity it observes — so a joint reading of two characters is two samples, not one sample with two subjects."
+msgstr "Affirme sur le porteur canonique que gmeow:sampleSubject est fonctionnelle : un ArcSample effectue sa lecture sur exactement un sujet — l'unique personnage circonscrit à un cadre ou entité diégétique qu'il observe — de sorte qu'une lecture conjointe de deux personnages constitue deux échantillons, et non un seul échantillon à deux sujets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyTimeOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "storyTimeOf is functional"
+msgstr "storyTimeOf est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyTimeOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:storyTimeOf is functional: a story-time frame coordinatizes the in-universe chronology of exactly one narrative reference frame, and a competing continuity carries its own story-time frame rather than a second anchoring on this one."
+msgstr "Affirme sur le porteur canonique que gmeow:storyTimeOf est fonctionnelle: un repère de temps narratif coordonne la chronologie intra-univers d'exactement un repère de référence narratif, et une continuité concurrente porte son propre repère de temps narratif plutôt qu'un second ancrage sur celui-ci."
+

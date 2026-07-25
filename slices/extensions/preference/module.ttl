@@ -2918,3 +2918,80 @@ gmeow:GlobalWinnerWithoutConsensus a logic:Situation .
 gmeow:ProjectionObjectConflation a logic:Situation .
 gmeow:HardFailureOverridden a logic:Situation .
 gmeow:GeometryDimensionMismatch a logic:Situation .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:gateVerdictFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "gateVerdict is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation."@x-gmeow-english ;
+    logic:characterizes gmeow:gateVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gateVerdict ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hardConstraintClassFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "hardConstraintClass is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility."@x-gmeow-english ;
+    logic:characterizes gmeow:hardConstraintClass ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hardConstraintClass ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:projectionDeterminismFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "projectionDeterminism is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionDeterminism is functional: a gmeow:ProjectionReceipt carries exactly one determinism declaration, positively asserted so that non-determinism is never left silent."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionDeterminism ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionDeterminism ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:projectionKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "projectionKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:receiptKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "receiptKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind."@x-gmeow-english ;
+    logic:characterizes gmeow:receiptKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:receiptKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:verifierOutcomeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "verifierOutcome is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on."@x-gmeow-english ;
+    logic:characterizes gmeow:verifierOutcome ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:verifierOutcome ;
+    gmeow:graphBoxRole gmeow:boxABox .

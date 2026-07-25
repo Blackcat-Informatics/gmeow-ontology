@@ -16,6 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,

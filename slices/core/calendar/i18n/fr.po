@@ -1,0 +1,143 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: calendar, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "availabilitySlot is functional"
+msgstr "availabilitySlot est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:availabilitySlot is functional: an availability statement holds over exactly one time interval — the single bounded free-busy slot across which its status applies uniformly."
+msgstr "Affirme sur le porteur canonique que gmeow:availabilitySlot est fonctionnelle : une déclaration de disponibilité est valable sur exactement un intervalle de temps — l'unique créneau libre-occupé borné sur lequel son statut s'applique uniformément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "calendarTimeZone is functional"
+msgstr "calendarTimeZone est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:calendarTimeZone is functional: a calendar collection has exactly one default time zone — the single fallback IANA offset its members are reckoned in when an individual event states no zone of its own."
+msgstr "Affirme sur le porteur canonique que gmeow:calendarTimeZone est fonctionnelle : une collection de calendrier possède exactement un fuseau horaire par défaut — l'unique décalage IANA de repli dans lequel ses membres sont comptés lorsqu'un événement individuel n'indique aucun fuseau propre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "eventTimeZone is functional"
+msgstr "eventTimeZone est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:eventTimeZone is functional: an event's temporal placement is expressed in exactly one time zone — the single civil offset its wall-clock time is read in, overriding the calendar default."
+msgstr "Affirme sur le porteur canonique que gmeow:eventTimeZone est fonctionnelle : le positionnement temporel d'un événement est exprimé dans exactement un fuseau horaire — le seul décalage civil selon lequel son heure murale est lue, remplaçant la valeur par défaut du calendrier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionOriginalDate is functional"
+msgstr "exceptionOriginalDate est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionOriginalDate is functional: a schedule exception overrides exactly one generated occurrence, pinned by the single original date/time the recurrence rule would have produced — its RFC 5545 RECURRENCE-ID anchor."
+msgstr "Affirme sur le porteur canonique que gmeow:exceptionOriginalDate est fonctionnelle : une exception de planification remplace exactement une occurrence générée, fixée par la seule date/heure d'origine que la règle de récurrence aurait produite — son ancrage RECURRENCE-ID au sens de la RFC 5545."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionReplacementEvent is functional"
+msgstr "exceptionReplacementEvent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionReplacementEvent is functional: a rescheduled occurrence moves to exactly one replacement event — the single new placement standing in for the one at the original date (absent entirely for a pure cancellation)."
+msgstr "Affirme sur le porteur canonique que gmeow:exceptionReplacementEvent est fonctionnelle : une occurrence reportée se déplace vers exactement un événement de remplacement — le seul nouveau positionnement qui se substitue à celui de la date d'origine (totalement absent dans le cas d'une simple annulation)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionSchedule is functional"
+msgstr "exceptionSchedule est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionSchedule is functional: a schedule exception applies to exactly one event schedule — the single recurring series whose one occurrence it overrides."
+msgstr "Affirme sur le porteur canonique que gmeow:exceptionSchedule est fonctionnelle : une exception de planification s'applique à exactement un calendrier d'événements — la seule série récurrente dont elle remplace une occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionType is functional"
+msgstr "exceptionType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionType is functional: a schedule exception is exactly one kind — either a cancellation or a rescheduling of its occurrence, never both at once."
+msgstr "Affirme sur le porteur canonique que gmeow:exceptionType est fonctionnelle : une exception de planification est exactement d'un seul type — soit une annulation, soit un report de son occurrence, jamais les deux à la fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invitationEvent is functional"
+msgstr "invitationEvent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:invitationEvent is functional: a reified invitation concerns exactly one event — the single concrete occurrence the invitee is asked to attend, never a recurrence generator."
+msgstr "Affirme sur le porteur canonique que gmeow:invitationEvent est fonctionnelle : une invitation réifiée concerne exactement un événement — l'occurrence concrète unique à laquelle l'invité est prié d'assister, jamais un générateur de récurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reminderAction is functional"
+msgstr "reminderAction est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reminderAction is functional: a reminder fires exactly one action — a single iCalendar ACTION (display, email, or audio) when it triggers."
+msgstr "Affirme sur le porteur canonique que gmeow:reminderAction est fonctionnelle : un rappel déclenche exactement une action — une unique ACTION iCalendar (affichage, courriel ou audio) lors de son déclenchement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reminderTarget is functional"
+msgstr "reminderTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reminderTarget is functional: a reminder is attached to exactly one event — the single concrete occurrence whose start an offset trigger is measured from."
+msgstr "Affirme sur le porteur canonique que gmeow:reminderTarget est fonctionnelle : un rappel est attaché à exactement un événement — l'unique occurrence concrète dont le début sert de référence à un déclencheur à décalage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scheduleTemplateEvent is functional"
+msgstr "scheduleTemplateEvent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scheduleTemplateEvent is functional: a schedule clones exactly one template event — the single anchor carrying the title, location, participants, and duration every generated occurrence inherits."
+msgstr "Affirme sur le porteur canonique que gmeow:scheduleTemplateEvent est fonctionnelle : un horaire clone exactement un événement modèle — l'unique ancre portant le titre, le lieu, les participants et la durée que chaque occurrence générée hérite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scheduleTimeZone is functional"
+msgstr "scheduleTimeZone est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scheduleTimeZone is functional: a schedule expands its recurrence in exactly one time zone — the single IANA offset the occurrence engine reads when turning the rule into dated occurrences across DST boundaries."
+msgstr "Affirme sur le porteur canonique que gmeow:scheduleTimeZone est fonctionnelle : un horaire déploie sa récurrence dans exactement un fuseau horaire — l'unique décalage IANA que le moteur d'occurrences lit lorsqu'il transforme la règle en occurrences datées à travers les changements d'heure d'été."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taskDueDate is functional"
+msgstr "taskDueDate est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taskDueDate is functional: a task has exactly one due date — the single xsd:dateTime deadline, the iCalendar VTODO DUE moment, by which it should be completed."
+msgstr "Affirme sur le porteur canonique que gmeow:taskDueDate est fonctionnelle: une tâche a exactement une date d'échéance — l'unique échéance xsd:dateTime, le moment DUE du VTODO iCalendar, avant lequel elle doit être achevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taskPriority is functional"
+msgstr "taskPriority est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taskPriority is functional: a task carries exactly one priority — a single value on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest)."
+msgstr "Affirme sur le porteur canonique que gmeow:taskPriority est fonctionnelle: une tâche porte exactement une priorité — une seule valeur sur l'échelle PRIORITY d'iCalendar (0 indéfini, 1 la plus élevée, 9 la plus basse)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taskRecurrenceUntilDone is functional"
+msgstr "taskRecurrenceUntilDone est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taskRecurrenceUntilDone is functional: a task bears exactly one until-done recurrence flag — the single boolean deciding whether it re-arms until marked completed rather than ending at a fixed count or date."
+msgstr "Affirme sur le porteur canonique que gmeow:taskRecurrenceUntilDone est fonctionnelle: une tâche porte exactement un indicateur de récurrence jusqu'à-achèvement — l'unique booléen décidant si elle se réarme jusqu'à être marquée comme achevée plutôt que de se terminer à un nombre ou une date fixe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timeZoneIanaId is functional"
+msgstr "timeZoneIanaId est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset."
+msgstr "Affirme sur le porteur canonique que gmeow:timeZoneIanaId est fonctionnelle : un fuseau horaire est nommé par exactement un tzid IANA — l'identifiant unique (par exemple America/Toronto) que les bibliothèques résolvent en son jeu complet de règles d'heure d'été."
+

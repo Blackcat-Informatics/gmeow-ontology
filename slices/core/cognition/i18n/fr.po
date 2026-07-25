@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: cognition, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyAgent is functional"
+msgstr "knowledgeProficiencyAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyAgent is functional: a gmeow:KnowledgeProficiency expresses the knowledge depth of exactly one agent, whose identity is constitutive of the reified proficiency."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyAgent est fonctionnelle : une gmeow:KnowledgeProficiency exprime la profondeur de connaissance d'exactement un agent, dont l'identité est constitutive de la compétence réifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyLevel is functional"
+msgstr "knowledgeProficiencyLevel est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyLevel is functional: a gmeow:KnowledgeProficiency records exactly one attained ordinal depth on the knowledgeAware to knowledgeMastered ladder."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyLevel est fonctionnelle : une gmeow:KnowledgeProficiency enregistre exactement un niveau ordinal atteint sur l'échelle allant de knowledgeAware à knowledgeMastered."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencyScale is functional"
+msgstr "knowledgeProficiencyScale est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyScale is functional: a gmeow:KnowledgeProficiency's level is read against exactly one scale, the native gmeow:KnowledgeLevel or a Bloom's / SOLO / Dreyfus alternate."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyScale est fonctionnelle : le niveau d'une gmeow:KnowledgeProficiency se lit par rapport à exactement une échelle, le gmeow:KnowledgeLevel natif ou une alternative de Bloom, SOLO ou Dreyfus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledgeProficiencySubject is functional"
+msgstr "knowledgeProficiencySubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencySubject est fonctionnelle : une gmeow:KnowledgeProficiency concerne exactement une entité sujet — un sujet, une personne, un lieu ou un événement — constitutive de la compétence dont il s'agit."
+

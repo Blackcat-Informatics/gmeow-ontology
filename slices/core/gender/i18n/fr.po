@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: gender, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expressionValue is functional"
+msgstr "expressionValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expressionValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:expressionValue is functional: a gmeow:GenderExpression facet asserts exactly one expression-style value — varying presentations are modelled as several facets, and this object edge is deliberately the sole path to the value."
+msgstr "Affirme sur le porteur canonique que gmeow:expressionValue est fonctionnelle : une facette gmeow:GenderExpression affirme exactement une valeur de style d'expression — les présentations variables sont modélisées comme plusieurs facettes, et cette relation d'objet est délibérément l'unique chemin vers la valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/genderValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "genderValue is functional"
+msgstr "genderValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/genderValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:genderValue is functional: a gmeow:GenderIdentity facet asserts exactly one gender value — bigender or genderfluid persons are modelled as several facets, so multiplicity lives in the facet count and never in a multi-valued edge."
+msgstr "Affirme sur le porteur canonique que gmeow:genderValue est fonctionnelle : une facette gmeow:GenderIdentity affirme exactement une valeur de genre — les personnes bigenres ou genderfluid sont modélisées par plusieurs facettes, de sorte que la multiplicité réside dans le nombre de facettes et jamais dans une relation multivaluée."
+

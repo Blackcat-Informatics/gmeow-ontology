@@ -1240,3 +1240,156 @@ msgstr "engagement de plafond de projection — temporal / sh"
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-temporal-sh|skos:definition"
 msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the temporal slice; the gate reds if the slice's measured residue rises above it."
 msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice temporal ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "axisContextScope is functional"
+msgstr "axisContextScope est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:axisContextScope is functional: each gmeow:QualityAxis is granted exactly one read-breadth coeffect — slice-local, dependency-closure, or merged-closure — so a second scope would leave the scope gate unable to decide how much graph the axis's primitive may read."
+msgstr "Affirme sur le porteur canonique que gmeow:axisContextScope est fonctionnelle : chaque gmeow:QualityAxis se voit accorder exactement un coeffet d'étendue de lecture — local à la tranche, clôture de dépendances, ou clôture fusionnée — de sorte qu'un second périmètre laisserait la porte de portée incapable de décider quelle quantité de graphe la primitive de l'axe peut lire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "axisWeight is functional"
+msgstr "axisWeight est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeightFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:axisWeight is functional: each gmeow:QualityAxis carries exactly one advice-ranking priority, so a second weight would make the advisor's remediation ordering ambiguous — and because the weight only orders advice (never the unweighted lattice-meet roll-up), one value per axis is all the ranking can consume."
+msgstr "Affirme sur le porteur canonique que gmeow:axisWeight est fonctionnelle : chaque gmeow:QualityAxis porte exactement une priorité de classement de conseils, de sorte qu'un second poids rendrait ambigu l'ordonnancement des remédiations par le conseiller — et comme le poids ne fait qu'ordonner les conseils (jamais l'agrégation par rencontre de treillis non pondérée), une seule valeur par axe est tout ce que le classement peut consommer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingCount is functional"
+msgstr "ceilingCount est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingCount is functional: each per-(slice,vocabulary) gmeow:ProjectionCeilingCommitment pins exactly one committed maximum residue count, so a second count would make the lower-only regression ceiling the gate enforces ambiguous."
+msgstr "Affirme sur le porteur canonique que gmeow:ceilingCount est fonctionnelle : chaque gmeow:ProjectionCeilingCommitment par (tranche, vocabulaire) fixe exactement un nombre maximal de résidus engagé, de sorte qu'un second nombre rendrait ambiguë la limite de régression à sens unique (décroissant) que le portail impose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingSlice is functional"
+msgstr "ceilingSlice est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingSlice is functional: each gmeow:ProjectionCeilingCommitment names exactly one subject slice whose measured residue the ceiling guards, so a second slice would make the ratchet cell pin an ambiguous target."
+msgstr "Affirme sur le porteur canonique que gmeow:ceilingSlice est fonctionnelle : chaque gmeow:ProjectionCeilingCommitment désigne exactement une tranche sujette dont le résidu mesuré est protégé par le plafond, de sorte qu'une seconde tranche rendrait ambigüe la cible fixée par la cellule à cliquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceilingVocabulary is functional"
+msgstr "ceilingVocabulary est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:ceilingVocabulary is functional: each gmeow:ProjectionCeilingCommitment caps exactly one guarded gmeow:ProjectionVocabulary, so a second vocabulary would leave the ceiling applying to no single guarded surface."
+msgstr "Affirme sur le porteur canonique que gmeow:ceilingVocabulary est fonctionnelle : chaque gmeow:ProjectionCeilingCommitment plafonne exactement un gmeow:ProjectionVocabulary protégé, de sorte qu'un second vocabulaire laisserait le plafond ne s'appliquer à aucune surface protégée unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exemptionDate is functional"
+msgstr "exemptionDate est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exemptionDate is functional: each gmeow:AxisExemption was minted on exactly one date, so a second date would make the exemption's audit age — by which long-standing gaps are surfaced — ambiguous."
+msgstr "Affirme sur le porteur canonique que gmeow:exemptionDate est fonctionnelle : chaque gmeow:AxisExemption a été créée à exactement une date, de sorte qu'une seconde date rendrait ambiguë l'ancienneté d'audit de l'exemption — celle par laquelle les lacunes de longue date sont mises en évidence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorAxis is functional"
+msgstr "floorAxis est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorAxisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorAxis is functional: each gmeow:AxisFloorCommitment guards exactly one measured gmeow:QualityAxis, so a second axis would make the per-axis regression floor apply to no single measured dimension."
+msgstr "Affirme sur le porteur canonique que gmeow:floorAxis est fonctionnelle : chaque gmeow:AxisFloorCommitment protège exactement un gmeow:QualityAxis mesuré, de sorte qu'un second axe ferait que le plancher de régression par axe ne s'appliquerait à aucune dimension mesurée unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorSlice is functional"
+msgstr "floorSlice est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorSlice is functional: each gmeow:AxisFloorCommitment or gmeow:SliceTierFloor is committed against exactly one subject slice, so a second slice would make the ratchet cell guard an ambiguous target."
+msgstr "Affirme sur le porteur canonique que gmeow:floorSlice est fonctionnelle : chaque gmeow:AxisFloorCommitment ou gmeow:SliceTierFloor est engagé contre exactement une tranche sujette, de sorte qu'une seconde tranche rendrait ambiguë la cible protégée par la cellule à cliquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorTier is functional"
+msgstr "floorTier est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorTierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorTier is functional: each gmeow:SliceTierFloor pins exactly one minimum roll-up rung over the lattice order, so a second tier would make the raise-only tier-regression bar ambiguous."
+msgstr "Affirme sur le porteur canonique que gmeow:floorTier est fonctionnelle : chaque gmeow:SliceTierFloor fixe exactement un échelon minimal d'agrégation sur l'ordre du treillis, de sorte qu'un second palier rendrait ambiguë la barre de régression de palier à évolution uniquement croissante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "floorValue is functional"
+msgstr "floorValue est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/floorValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:floorValue is functional: each gmeow:AxisFloorCommitment pins exactly one committed minimum decimal score, so a second value would make the raise-only regression floor the gate enforces ambiguous."
+msgstr "Affirme sur le porteur canonique que gmeow:floorValue est fonctionnelle : chaque gmeow:AxisFloorCommitment fixe exactement un score décimal minimal engagé, de sorte qu'une seconde valeur rendrait ambigu le plancher de régression à évolution uniquement croissante que la porte impose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thresholdFloor is functional"
+msgstr "thresholdFloor est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:thresholdFloor is functional: each gmeow:AxisThreshold pairing pins exactly one normalized score floor for its tier, so a second floor would leave the scorer without a single bar to compare the measured axis score against."
+msgstr "Affirme sur le porteur canonique que gmeow:thresholdFloor est fonctionnelle: chaque paire gmeow:AxisThreshold fixe exactement un seuil plancher normalisé pour son palier, de sorte qu'un second plancher priverait l'évaluateur d'une barre unique à laquelle comparer le score d'axe mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thresholdTier is functional"
+msgstr "thresholdTier est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:thresholdTier is functional: each gmeow:AxisThreshold pairing gates exactly one tier rung, so a second tier would dissolve the reified (tier, floor) cell into an ambiguous mapping."
+msgstr "Affirme sur le porteur canonique que gmeow:thresholdTier est fonctionnelle: chaque paire gmeow:AxisThreshold verrouille exactement un échelon de palier, de sorte qu'un second palier dissoudrait la cellule réifiée (tier, floor) en un mappage ambigu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tierRank is functional"
+msgstr "tierRank est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRankFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tierRank is functional: each gmeow:QualityTier occupies exactly one position in the ladder's total order, so a tier bearing two ranks would make that order ill-defined and break the lattice meet (least rank) the roll-up depends on."
+msgstr "Affirme sur le porteur canonique que gmeow:tierRank est fonctionnelle: chaque gmeow:QualityTier occupe exactement une position dans l'ordre total de l'échelle, de sorte qu'un palier portant deux rangs rendrait cet ordre mal défini et briserait la rencontre de treillis (rang minimal) dont dépend l'agrégation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyCountKind is functional"
+msgstr "vocabularyCountKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyCountKind is functional: each gmeow:ProjectionVocabulary selects exactly one of the three closed construct-recognition strategies, so a second kind would leave the shared counter's Rust dispatch without a single enumeration path to resolve."
+msgstr "Affirme sur le porteur canonique que gmeow:vocabularyCountKind est fonctionnelle : chaque gmeow:ProjectionVocabulary sélectionne exactement l'une des trois stratégies fermées de reconnaissance de construits, de sorte qu'un second genre laisserait la répartition Rust du compteur partagé sans un chemin d'énumération unique à résoudre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyDefaultCeiling is functional"
+msgstr "vocabularyDefaultCeiling est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeilingFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole."
+msgstr "Affirme sur le porteur canonique que gmeow:vocabularyDefaultCeiling est fonctionnelle : chaque gmeow:ProjectionVocabulary porte exactement un plafond par défaut pour le cas vide, destiné aux tranches dépourvues d'engagement explicite, de sorte qu'un second défaut laisserait chaque tranche non répertoriée soumise à un repli ambigu et rouvrirait la faille du vocabulaire net-nouveau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyOwner is functional"
+msgstr "vocabularyOwner est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyOwnerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce."
+msgstr "Affirme sur le porteur canonique que gmeow:vocabularyOwner est fonctionnelle : chaque gmeow:ProjectionVocabulary possède exactement une tranche de fondation (logic:, math: ou lang:) détenant son autorité de rédaction externe, de sorte qu'un second propriétaire donnerait aux termes externes deux foyers de rédaction et déjouerait précisément le verrou anti-seconde-source que la frontière de propriété est censée faire respecter."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyPrefix is functional"
+msgstr "vocabularyPrefix est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefixFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyPrefix is functional: each gmeow:ProjectionVocabulary has exactly one short CURIE prefix serving as the join key ceiling commitments resolve against, so a second prefix would break the unique-key binding between a ceiling commitment and its vocabulary."
+msgstr "Affirme sur le porteur canonique que gmeow:vocabularyPrefix est fonctionnelle : chaque gmeow:ProjectionVocabulary possède exactement un préfixe CURIE court servant de clé de jointure contre laquelle se résolvent les engagements de plafond, de sorte qu'un second préfixe romprait la liaison à clé unique entre un engagement de plafond et son vocabulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularyPreservation is functional"
+msgstr "vocabularyPreservation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularyPreservation is functional: each gmeow:ProjectionVocabulary's lowering from logic: carries exactly one loss-ledger preservation polarity, so a second judgment would make the guarantee the projection advertises to the shared loss-ledger ambiguous."
+msgstr "Affirme sur le porteur canonique que gmeow:vocabularyPreservation est fonctionnelle : l'abaissement de chaque gmeow:ProjectionVocabulary depuis logic: porte exactement une polarité de préservation du registre de pertes, de sorte qu'un second jugement rendrait ambiguë la garantie que la projection annonce au registre de pertes partagé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vocabularySubsumedBy is functional"
+msgstr "vocabularySubsumedBy est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source."
+msgstr "Affirme sur le porteur canonique que gmeow:vocabularySubsumedBy est fonctionnelle : chaque gmeow:ProjectionVocabulary protégé est une projection générée et avec perte d'exactement un noyau logic:, de sorte qu'un second subsumeur contredirait la prémisse du Principe 17 selon laquelle la surface se projette à partir d'une source canonique unique."
+

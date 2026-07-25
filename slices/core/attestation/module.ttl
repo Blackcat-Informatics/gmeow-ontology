@@ -982,3 +982,124 @@ REUSE.
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:artifactMediaTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "artifactMediaType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:artifactMediaType is functional: an attestation artifact is serialized in one wire format, so its IANA media-type string is a single value a consumer dispatches a parser on, distinct from the broader attestation kind that may sit alongside it."@x-gmeow-english ;
+    logic:characterizes gmeow:artifactMediaType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:artifactMediaType ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:attesterFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "attester is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attester is functional: within the attestation relator there is exactly one vouching party, so the WHO of the envelope names a single agent and jointly-issued vouching is modelled as several Attestations, one per attester, rather than two attesters on one."@x-gmeow-english ;
+    logic:characterizes gmeow:attester ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:attester ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:blockHashFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "blockHash is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number."@x-gmeow-english ;
+    logic:characterizes gmeow:blockHash ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:blockHash ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:blockNumberFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "blockNumber is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:blockNumber is functional: a ledger block occupies one position in the chain, so its height is a single integer against which confirmation depth is measured, never a set of competing ordinals."@x-gmeow-english ;
+    logic:characterizes gmeow:blockNumber ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:blockNumber ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:chainIdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "chainId is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network."@x-gmeow-english ;
+    logic:characterizes gmeow:chainId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:chainId ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:contractAddressFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "contractAddress is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id."@x-gmeow-english ;
+    logic:characterizes gmeow:contractAddress ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:contractAddress ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:issuedAtFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "issuedAt is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:issuedAt is functional: the instant an attestation was issued is constitutive of the attestation's identity, so a vouching act carries one wall-clock issue time and a different issue instant is a different attestation rather than a second value."@x-gmeow-english ;
+    logic:characterizes gmeow:issuedAt ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:issuedAt ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:logEntryIndexFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "logEntryIndex is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:logEntryIndex is functional: a transparency-log entry has one stable sequential position within its append-only log, so its log-local index — the identity that survives mirror changes — is single-valued rather than a set of offsets."@x-gmeow-english ;
+    logic:characterizes gmeow:logEntryIndex ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:logEntryIndex ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:logIndexFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "logIndex is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely."@x-gmeow-english ;
+    logic:characterizes gmeow:logIndex ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:logIndex ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:transactionHashFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "transactionHash is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transactionHash is functional: a ledger transaction has one stable on-chain identity hash, so the value used to look up and re-verify it is single, distinct from the hash of its block or the identifier of its network."@x-gmeow-english ;
+    logic:characterizes gmeow:transactionHash ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transactionHash ;
+    gmeow:graphBoxRole gmeow:boxABox .

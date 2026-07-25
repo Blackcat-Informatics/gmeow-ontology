@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: graphrag, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "indexAlgorithm is functional"
+msgstr "indexAlgorithm est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched."
+msgstr "Affirme sur le porteur canonique que gmeow:indexAlgorithm est fonctionnelle : un index vectoriel est construit avec exactement une structure de plus proches voisins approximatifs, un engagement unique pris au moment de la construction fixant la manière dont cet index est interrogé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipSource is functional"
+msgstr "relationshipSource est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge."
+msgstr "Affirme sur le porteur canonique que gmeow:relationshipSource est fonctionnelle : une relation extraite possède exactement une description d'entité à son origine, l'unique point d'extrémité source de l'arête dirigée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipTarget is functional"
+msgstr "relationshipTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge."
+msgstr "Affirme sur le porteur canonique que gmeow:relationshipTarget est fonctionnelle : une relation extraite possède exactement une description d'entité à sa tête, l'unique point d'extrémité cible de l'arête dirigée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summarizesCommunity is functional"
+msgstr "summarizesCommunity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from."
+msgstr "Affirme sur le porteur canonique que gmeow:summarizesCommunity est fonctionnelle: un résumé de communauté condense exactement une communauté, le seul groupe dont les membres et fragments ont servi à générer le résumé."
+

@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: versions, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "versionMember is functional"
+msgstr "versionMember 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:versionMember is functional: each gmeow:VersionMembership is about exactly one concrete version artifact — a different version of the same lineage is its own membership relator, not a second member."
+msgstr "在规范载体上断言 gmeow:versionMember 是函数性的:每个 gmeow:VersionMembership 恰好关于一个具体的版本制品——同一谱系的不同版本应有其自己的成员关系元,而不是作为第二个成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "versionSet is functional"
+msgstr "versionSet 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:versionSet is functional: each gmeow:VersionMembership places its member into exactly one lineage, so a membership belongs to a single gmeow:VersionSet."
+msgstr "在规范载体上断言 gmeow:versionSet 是函数性的:每个 gmeow:VersionMembership 恰好将其成员归入一个谱系,因此一个成员关系只属于一个 gmeow:VersionSet。"
+

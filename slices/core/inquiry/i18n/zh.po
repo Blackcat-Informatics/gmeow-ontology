@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: inquiry, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureInquirer is functional"
+msgstr "tenureInquirer 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureInquirer is functional: a gmeow:InquiryTenure records the open question of exactly one agent — two agents holding the same question open are two tenures sharing one gmeow:tenureQuestion, not two inquirers on one tenure."
+msgstr "在规范载体上断言 gmeow:tenureInquirer 是函数性的:一个 gmeow:InquiryTenure 恰好记录一个主体的悬而未决问题——两个主体共同悬置同一个问题时,是两个共享同一个 gmeow:tenureQuestion 的保有,而不是一个保有上的两个探询者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureQuestion is functional"
+msgstr "tenureQuestion 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureQuestion is functional: a gmeow:InquiryTenure records exactly one held-open question — an agent holding five questions open bears five tenures, and sharing happens at a single gmeow:Question individual rather than by multi-valuing this edge."
+msgstr "在规范载体上断言 gmeow:tenureQuestion 是函数性的:一个 gmeow:InquiryTenure 恰好记录一个被悬置的问题——一个主体同时悬置五个问题就拥有五个保有,共享发生在单一的 gmeow:Question 个体层面,而不是通过给这条边赋多个值来实现。"
+

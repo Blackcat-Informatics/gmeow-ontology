@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: awareness, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "awarenessSubject is functional"
+msgstr "awarenessSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:awarenessSubject is functional: each gmeow:AwarenessTenure reifies the awareness state of exactly one bearer agent, so this per-branch subject edge (Principle 4, deliberately not gufo:inheresIn) names a single experiencer for the mode-over-interval it records."
+msgstr "在规范载体上断言 gmeow:awarenessSubject 是函数性的:每个 gmeow:AwarenessTenure 恰好具体化一个承载主体的意识状态,因此这条按分支划分的主体边(原则4,刻意区别于 gufo:inheresIn)为其所记录的区间上模式命名了唯一的体验者。"
+

@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: genealogy, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipChildFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipChild is functional"
+msgstr "relationshipChild est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipChildFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipChild is functional: a reified parent-child relationship names exactly one child, the single younger party of the dyadic relator."
+msgstr "Affirme sur le porteur canonique que gmeow:relationshipChild est fonctionnelle : une relation parent-enfant réifiée désigne exactement un enfant, l'unique partie cadette du relateur dyadique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipParentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relationshipParent is functional"
+msgstr "relationshipParent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipParentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relationshipParent is functional: a reified parent-child relationship names exactly one parent, so a child's two parents are two ParentChildRelationship relators rather than one relator carrying two parents."
+msgstr "Affirme sur le porteur canonique que gmeow:relationshipParent est fonctionnelle : une relation parent-enfant réifiée désigne exactement un parent, de sorte que les deux parents d'un enfant sont deux relateurs ParentChildRelationship plutôt qu'un seul relateur portant deux parents."
+

@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: citations, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citationIntent is functional"
+msgstr "citationIntent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citationIntent is functional: a gmeow:CitationAct is made with exactly one intent — a second intent means minting a second CitationAct, not overloading one relator with two values."
+msgstr "Affirme sur le porteur canonique que gmeow:citationIntent est fonctionnelle : un gmeow:CitationAct est effectué avec exactement une intention — une seconde intention signifie la création d'un second CitationAct, et non la surcharge d'un relateur unique avec deux valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citedEntity is functional"
+msgstr "citedEntity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at."
+msgstr "Affirme sur le porteur canonique que gmeow:citedEntity est fonctionnelle : chaque relateur gmeow:CitationAct pointe vers exactement une œuvre créative citée — l'unique cible de niveau WEMI vers laquelle la citation est dirigée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "citingEntity is functional"
+msgstr "citingEntity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing."
+msgstr "Affirme sur le porteur canonique que gmeow:citingEntity est fonctionnelle : chaque relateur gmeow:CitationAct possède exactement un acteur citant — l'unique revendication, œuvre, module ou jeu de données qui effectue la citation."
+

@@ -15,6 +15,7 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "Every domain slice: the logic:-grounded kernel (Entity, Agent, InformationObject, base relations), consuming the co-foundational lang:/math:/logic: grounding triad."@x-gmeow-english .

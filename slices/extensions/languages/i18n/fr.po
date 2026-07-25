@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: languages, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proficiencyAgent is functional"
+msgstr "proficiencyAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyAgent is functional: a language-proficiency relator expresses the proficiency of exactly one agent, the identity-constituting party whose command of the language the reified proficiency is about."
+msgstr "Affirme sur le porteur canonique que gmeow:proficiencyAgent est fonctionnelle : un relateur de compétence linguistique exprime la compétence d'exactement un agent, la partie constitutive d'identité dont la maîtrise de la langue est l'objet de la compétence réifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proficiencyLanguage is functional"
+msgstr "proficiencyLanguage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyLanguage is functional: a language-proficiency relator concerns exactly one language, the constitutive subject the reified proficiency is a proficiency in."
+msgstr "Affirme sur le porteur canonique que gmeow:proficiencyLanguage est fonctionnelle : un relateur de compétence linguistique concerne exactement une langue, le sujet constitutif dans lequel la compétence réifiée consiste."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proficiencyLevel is functional"
+msgstr "proficiencyLevel est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyLevel is functional: a language-proficiency relator records exactly one attained level, the single gmeow:ProficiencyLevel value (such as cefrB2 or levelNative) it has reached."
+msgstr "Affirme sur le porteur canonique que gmeow:proficiencyLevel est fonctionnelle : un relateur de compétence linguistique enregistre exactement un niveau atteint, l'unique valeur gmeow:ProficiencyLevel (telle que cefrB2 ou levelNative) qu'il a atteinte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proficiencyModality is functional"
+msgstr "proficiencyModality est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyModality is functional: a language-proficiency relator rates exactly one skill modality, since a distinct proficiency is minted per (agent, language, modality) so that per-skill levels coexist rather than crowding one relator."
+msgstr "Affirme sur le porteur canonique que gmeow:proficiencyModality est fonctionnelle : un relateur de compétence linguistique évalue exactement une modalité de compétence, puisqu'une compétence distincte est créée par triplet (agent, langue, modalité), de sorte que les niveaux par compétence coexistent au lieu de s'entasser sur un seul relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proficiencyScale is functional"
+msgstr "proficiencyScale est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyScale is functional: a language-proficiency relator measures its level on exactly one framework, the single gmeow:ProficiencyScale (CEFR, ILR, ACTFL, or self-reported) against which the attained level is read."
+msgstr "Affirme sur le porteur canonique que gmeow:proficiencyScale est fonctionnelle : un relateur de compétence linguistique mesure son niveau sur exactement un référentiel, l'unique gmeow:ProficiencyScale (CECR, ILR, ACTFL, ou autodéclaré) par rapport auquel le niveau atteint est lu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stateLanguage is functional"
+msgstr "stateLanguage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about."
+msgstr "Affirme sur le porteur canonique que gmeow:stateLanguage est fonctionnelle: un relateur LanguageState décrit l'état d'exactement une langue, variété ou version sujette — la seule langue dont le statut fait l'objet de l'affirmation réifiée."
+

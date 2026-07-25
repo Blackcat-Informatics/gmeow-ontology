@@ -343,3 +343,69 @@ gmeow:SkillProficiencyLevelRequiredConstraint
     logic:anyOf gmeow:skillProficiencyLevel ;
     logic:formalizes gmeow:SkillProficiency ;
     logic:message "A SkillProficiency must carry a ProficiencyLevel (gmeow:skillProficiencyLevel)." .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:credentialIssuerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "credentialIssuer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:credentialIssuer is functional: one issuing organization is constitutive of a gmeow:Credential's identity, so a different issuer yields a different credential even for the same subject matter."@x-gmeow-english ;
+    logic:characterizes gmeow:credentialIssuer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:credentialIssuer ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:skillProficiencyAgentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyAgent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyAgent is functional: a gmeow:SkillProficiency expresses the proficiency of exactly one agent, whose identity is constitutive of the reified proficiency."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyAgent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyAgent ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:skillProficiencyLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyLevel is functional: a gmeow:SkillProficiency records exactly one attained level (a single gmeow:ProficiencyLevel such as dreyfusExpert or assessedCompetent), and a second level would be a separate assessment."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyLevel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:skillProficiencyOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyOf is functional: a gmeow:SkillProficiency concerns exactly one skill, constitutive of which proficiency it is."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyOf ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:skillProficiencyScaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skillProficiencyScale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record."@x-gmeow-english ;
+    logic:characterizes gmeow:skillProficiencyScale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:skillProficiencyScale ;
+    gmeow:graphBoxRole gmeow:boxABox .

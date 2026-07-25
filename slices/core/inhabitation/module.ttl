@@ -915,3 +915,82 @@ gmeow:DigitalSubjectTenure rdfs:subClassOf
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/InhabitationConfiguration> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:MediatedPropertyRequirementAssertion — the mediated value must itself carry the required property.
+
+gmeow:configurationEmbodimentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "configurationEmbodiment is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationEmbodiment ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationEmbodiment ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:configurationOfTenureFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "configurationOfTenure is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationOfTenure ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationOfTenure ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:inhabitationLocusKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitationLocusKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inhabitationLocusKind is functional: a gmeow:InhabitationTenure has exactly one locus kind, either gmeow:locusSelf or gmeow:locusVessel, while tenancy cardinality is derived from overlapping tenures rather than set here."@x-gmeow-english ;
+    logic:characterizes gmeow:inhabitationLocusKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inhabitationLocusKind ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:inhabitationSubjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitationSubject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inhabitationSubject is functional: a gmeow:InhabitationTenure has exactly one inhabiting subject, and because that single slot has a gmeow:Agent range a contested inhabitation must use gmeow:InhabitationClaim rather than assert a rival subject here."@x-gmeow-english ;
+    logic:characterizes gmeow:inhabitationSubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inhabitationSubject ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:inhabitedHostFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "inhabitedHost is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure."@x-gmeow-english ;
+    logic:characterizes gmeow:inhabitedHost ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:inhabitedHost ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:inhabitationIntervalFrameRequirement
+    a owl:NamedIndividual ,
+        logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "an inhabitation tenure's interval carries its temporal frame"@x-gmeow-english ;
+    skos:definition "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame."@x-gmeow-english ;
+    logic:mediatedRequirementTarget gmeow:InhabitationTenure ;
+    logic:mediatedRequirementVia gmeow:duringInterval ;
+    logic:mediatedRequirementProperty gmeow:hasTemporalFrame ;
+    logic:formalizes gmeow:hasTemporalFrame ;
+    gmeow:graphBoxRole gmeow:boxABox .

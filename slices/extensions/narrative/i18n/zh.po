@@ -1,0 +1,175 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: narrative, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arcFrame is functional"
+msgstr "arcFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:arcFrame is functional: a CharacterArc is interpreted within exactly one narrative reference frame, and the same trajectory read under a different continuity is a separate arc instance linked by counterpartOf rather than a second frame on the one arc."
+msgstr "在规范载体上断言 gmeow:arcFrame 是函数性的:一个 CharacterArc 恰好在一个叙事参照框架内被解读,而同一轨迹在不同连续性下的解读则是通过 counterpartOf 关联的一个独立的弧实例,而非同一弧上的第二个框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arcSubject is functional"
+msgstr "arcSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:arcSubject is functional: a CharacterArc describes the trajectory of exactly one subject entity, so an analysis spanning two characters is two arcs rather than one arc bearing two subjects."
+msgstr "在规范载体上断言 gmeow:arcSubject 是函数性的:一个 CharacterArc 恰好描述一个主体实体的轨迹,因此涉及两个角色的分析是两条弧,而非一条承载两个主体的弧。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arcType is functional"
+msgstr "arcType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:arcType is functional: a CharacterArc carries exactly one interpretive type from the open gmeow:ArcType vocabulary, so a trajectory read as both redemption and fall is two competing arc interpretations, not one arc holding two types."
+msgstr "在规范载体上断言 gmeow:arcType 是函数性的:一个 CharacterArc 恰好携带来自开放词汇 gmeow:ArcType 的一种解读类型,因此一条同时被解读为救赎与堕落的轨迹是两种相互竞争的弧解读,而非一条弧承载两种类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/discourseTimeOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "discourseTimeOf is functional"
+msgstr "discourseTimeOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/discourseTimeOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:discourseTimeOf is functional: a discourse-time frame coordinatizes the telling order of exactly one creative work, and a re-segmenting edition or translation owns its own discourse frame rather than sharing this one — one frame, one telling."
+msgstr "在规范载体上断言 gmeow:discourseTimeOf 是函数性的：一个话语时间参照系恰好为一部创作作品的叙述顺序建立坐标，而重新分段的版本或译本拥有各自独立的话语参照系，而不是共用这一个——一个参照系对应一次叙述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mythFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mythFrame is functional"
+msgstr "mythFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mythFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against."
+msgstr "在规范载体上断言 gmeow:mythFrame 是函数式的:一个 Myth 恰好在一个叙事参照系下将其神话内部的断言视为真,该神话中每一个由 accordingTo 界定范围的断言都依据这一唯一立场来衡量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrationSegment is functional"
+msgstr "narrationSegment 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records."
+msgstr "在规范载体上断言 gmeow:narrationSegment 是函数式的:一个 NarrationUsage 恰好具体化一个(片段,主体)接合点,因此它恰好携带一个内容片段——即该关系体所记录其叙述行为的那一段承载文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrationSubject is functional"
+msgstr "narrationSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrationSubject is functional: a NarrationUsage is minted one per (segment, subject) pair, so it names exactly one narrated diegetic subject — a chapter narrating four events with modes is four relators, never one relator with four subjects."
+msgstr "在规范载体上断言 gmeow:narrationSubject 是函数式的:一个 NarrationUsage 是按每个(片段,主体)对创建一次的,因此它恰好指名一个被叙述的故事内主体——一个以多种模式叙述四个事件的章节对应四个关系体,绝不是一个承载四个主体的单一关系体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkRelationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeFrameLinkRelation is functional"
+msgstr "narrativeFrameLinkRelation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkRelationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkRelation is functional: a NarrativeFrameLink reifies one directed source-to-target binding, so it pins exactly one relation type — two frames standing in several relations (canon and adaptation from different standpoints) are several links, not one link carrying several relation types, which is precisely how the reified relator differs from the non-functional flat gmeow:hasNarrativeFrameRelation shortcut."
+msgstr "在规范载体上断言 gmeow:narrativeFrameLinkRelation 是函数式的:一个 NarrativeFrameLink 恰好具体化一个从源到目标的有向绑定,因此它固定恰好一种关系类型——两个参照系之间存在多种关系(例如从不同立场出发的正典关系与改编关系)对应多个链接,而不是一个链接携带多种关系类型,这正是被具体化的关系体与非函数式的扁平快捷方式 gmeow:hasNarrativeFrameRelation 的区别所在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeFrameLinkSource is functional"
+msgstr "narrativeFrameLinkSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources."
+msgstr "在规范载体上断言 gmeow:narrativeFrameLinkSource 是函数式的:一个 NarrativeFrameLink 绑定单一的有向参照系到参照系关系,因此它恰好有一个源参照系——如果一个链接允许多个源,被具体化的关系体就会失去其方向性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeFrameLinkTarget is functional"
+msgstr "narrativeFrameLinkTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target."
+msgstr "在规范载体上断言 gmeow:narrativeFrameLinkTarget 是函数式的:一个 NarrativeFrameLink 绑定单一的有向参照系到参照系关系,因此它恰好有一个目标参照系——一个源参照系关联多个目标即对应多个链接,每个链接各自固定自己的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeRoleBearer is functional"
+msgstr "narrativeRoleBearer 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeRoleBearer is functional: a RoleInNarrative reifies one character's role within one scope, so it has exactly one bearer — two characters sharing a role are two relators, never one relator with two bearers."
+msgstr "在规范载体上断言 gmeow:narrativeRoleBearer 是函数式的:一个 RoleInNarrative 恰好在一个范围内具体化一个角色的作用,因此它恰好有一个承担者——两个共享同一作用的角色对应两个关系体,绝不是一个拥有两个承担者的单一关系体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeRoleScope is functional"
+msgstr "narrativeRoleScope 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeRoleScope is functional: a RoleInNarrative is relative to exactly one scope — protagonist-of-the-trilogy and protagonist-of-one-chapter are different relators — because protagonist-of-what is half the claim, and a single relator cannot straddle two scopes."
+msgstr "在规范载体上断言 gmeow:narrativeRoleScope 是函数式的:一个 RoleInNarrative 恰好相对于一个范围而言——三部曲的主角与单一章节的主角是不同的关系体——因为主角之于何物正是断言的一半内容,单一关系体不能同时跨越两个范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeRoleValue is functional"
+msgstr "narrativeRoleValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeRoleValue is functional: a RoleInNarrative bears exactly one role value, so a character who is both mentor and foil within one scope carries two separate relators rather than one relator holding two roles."
+msgstr "在规范载体上断言 gmeow:narrativeRoleValue 是函数式的:一个 RoleInNarrative 恰好承载一个角色值,因此在同一范围内既是导师又是衬托角色的人物,携带两个独立的关系体,而不是一个持有两种角色的单一关系体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeTimeAxisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrativeTimeAxis is functional"
+msgstr "narrativeTimeAxis 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/narrativeTimeAxisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:narrativeTimeAxis is functional: a NarrativeTimeFrame measures exactly one axis kind, either discourse time or story time, so a telling work and its fabula are two frames rather than one frame with two moods."
+msgstr "在规范载体上断言 gmeow:narrativeTimeAxis 是函数式的:一个 NarrativeTimeFrame 恰好度量一种轴类型,要么是话语时间,要么是故事时间,因此一部叙述作品与其故事素是两个参照系,而不是一个具有两种模式的参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positionFrame is functional"
+msgstr "positionFrame 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid."
+msgstr "在规范载体上断言 gmeow:positionFrame 是函数性的:一个 NarrativePosition 恰好在一个叙事时间框架中表达——赋予其序数和标签意义的唯一坐标系统——因为没有其唯一框架的位置正是该类存在的目的所要禁止的裸整数反模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positionOrdinal is functional"
+msgstr "positionOrdinal 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:positionOrdinal is functional: a NarrativePosition has exactly one ordinal coordinate within its frame, so a chapter index and a fabula sequence number for the same diegetic moment live on different positions in different frames, never as two ordinals on one position."
+msgstr "在规范载体上断言 gmeow:positionOrdinal 是函数性的:一个 NarrativePosition 在其框架内恰好有一个序数坐标,因此同一叙事内时刻的章节索引与故事(fabula)序号分别存在于不同框架中的不同位置,而绝不作为同一位置上的两个序数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplePositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "samplePosition is functional"
+msgstr "samplePosition 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplePositionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:samplePosition is functional: an ArcSample reads at exactly one narrative position — the single WHERE that fixes the sample — since a sample without a position is not a sample, and a reading taken at another position is another sample."
+msgstr "在规范载体上断言 gmeow:samplePosition 是函数性的:一个 ArcSample 恰好在一个叙事位置进行读取——即确定该样本的唯一「何处」——因为没有位置的样本不是样本,而在另一个位置读取的则是另一个样本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleStateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sampleState is functional"
+msgstr "sampleState 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleStateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sampleState is functional: an ArcSample records exactly one read state by IRI, so a blended reading at one position resolves into several samples sharing a vantage rather than one sample carrying several states — one cell, one state."
+msgstr "在规范载体上断言 gmeow:sampleState 是函数性的:一个 ArcSample 恰好以一个 IRI 记录一个读取状态,因此在同一位置的混合读数会被分解为共享同一视角的多个样本,而不是一个样本携带多个状态——一格,一态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sampleSubject is functional"
+msgstr "sampleSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sampleSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sampleSubject is functional: an ArcSample reads exactly one subject — the single frame-scoped character or diegetic entity it observes — so a joint reading of two characters is two samples, not one sample with two subjects."
+msgstr "在规范载体上断言 gmeow:sampleSubject 是函数性的:一个 ArcSample 恰好针对一个主体进行读取——即它所观察的、限定于某帧场景的唯一角色或叙事内实体——因此对两个角色的联合读取是两个样本,而不是一个具有两个主体的样本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyTimeOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "storyTimeOf is functional"
+msgstr "storyTimeOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyTimeOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:storyTimeOf is functional: a story-time frame coordinatizes the in-universe chronology of exactly one narrative reference frame, and a competing continuity carries its own story-time frame rather than a second anchoring on this one."
+msgstr "在规范载体上断言 gmeow:storyTimeOf 是函数性的:一个故事时间参照系恰好为一个叙事参照系的宇宙内编年史提供坐标,竞争性的连续性设定会携带其自身的故事时间参照系,而不是在这一个参照系上添加第二个锚定。"
+

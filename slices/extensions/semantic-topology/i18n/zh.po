@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: semantic-topology, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimResult is functional"
+msgstr "claimResult 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimResult is functional: a topology claim wraps exactly one computed topology result, the single TopologyResult it makes a standpoint-relative claim about."
+msgstr "在规范载体上断言 gmeow:claimResult 是函数式的：一个拓扑主张恰好包裹一个已计算的拓扑结果，即该主张就其做出相对于立场之陈述所针对的唯一 TopologyResult。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "computationOverCompilation is functional"
+msgstr "computationOverCompilation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:computationOverCompilation is functional: a topology computation runs over exactly one complex compilation, since a federated computation spanning several compilations is several computations under a parent activity."
+msgstr "在规范载体上断言 gmeow:computationOverCompilation 是函数式的：一次拓扑计算恰好在一个复合编译上运行，因为跨越多个编译的联合计算是在一个父活动之下的多次计算。"
+

@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: employment, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentOccupationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentOccupation is functional"
+msgstr "employmentOccupation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentOccupationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentOccupation is functional: an employment maps to exactly one canonical occupation, so an agent holding several occupations is recorded as several employment records rather than one employment carrying many occupations."
+msgstr "在规范载体上断言 gmeow:employmentOccupation 是函数性的：一份雇佣关系恰好对应一个规范职业，因此从事多种职业的主体会被记录为多条雇佣记录，而不是一条雇佣记录承载多个职业。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentRole is functional"
+msgstr "employmentRole 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentRole is functional: an employment bears exactly one canonical role at a time, so a change of role is a new employment record or a standpoint-indexed claim rather than a second concurrent role on the same employment."
+msgstr "在规范载体上断言 gmeow:employmentRole 是函数性的：一份雇佣关系在同一时刻恰好承载一个规范角色，因此角色变更应记录为一条新的雇佣记录或按视角索引的主张，而不是在同一雇佣关系上并存第二个角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentSeniorityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentSeniority is functional"
+msgstr "employmentSeniority 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentSeniorityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentSeniority is functional: an employment has exactly one canonical seniority level at a time, so a promotion is a new employment record or a standpoint-indexed claim rather than two simultaneous ranks on one employment."
+msgstr "在规范载体上断言 gmeow:employmentSeniority 是函数性的：一份雇佣关系在同一时刻恰好拥有一个规范资历级别，因此晋升应记录为一条新的雇佣记录或按视角索引的主张，而不是在同一雇佣关系上并存两个级别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "employmentType is functional"
+msgstr "employmentType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/employmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:employmentType is functional: an employment has exactly one canonical type at a time, so a change of type is a new employment record rather than one employment that is both full-time and contract at once."
+msgstr "在规范载体上断言 gmeow:employmentType 是函数性的：一份雇佣关系在同一时刻恰好拥有一个规范类型，因此类型变更应记录为一条新的雇佣记录，而不是让同一份雇佣关系同时既是全职又是合同制。"
+

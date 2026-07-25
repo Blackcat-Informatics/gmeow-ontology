@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: pipeline, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stageImpl is functional"
+msgstr "stageImpl 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:stageImpl is functional: each gmeow:PipelineStage binds to exactly one Rust Stage implementation in the STAGE_REGISTRY and the loader hard-fails when the key resolves to no implementation, so a stage carries a single registry-key value."
+msgstr "在规范载体上断言 gmeow:stageImpl 是函数性的:每个 gmeow:PipelineStage 恰好绑定到 STAGE_REGISTRY 中的一个 Rust Stage 实现,当该键无法解析出任何实现时加载器将硬性失败,因此一个阶段只携带一个注册表键值。"
+

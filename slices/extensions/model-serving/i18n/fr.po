@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: model-serving, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deploymentArtifactFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deploymentArtifact is functional"
+msgstr "deploymentArtifact est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deploymentArtifactFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:deploymentArtifact is functional: a model deployment realizes exactly one served model artifact, the single WHAT at which the execution → deployment → artifact de-conflation join bottoms out."
+msgstr "Affirme sur le porteur canonique que gmeow:deploymentArtifact est fonctionnelle : un déploiement de modèle réalise exactement un artefact de modèle servi, le seul QUOI où aboutit la jointure de désambiguïsation exécution → déploiement → artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deploymentHostFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deploymentHost is functional"
+msgstr "deploymentHost est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deploymentHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:deploymentHost is functional: a model deployment serves on exactly one host or runtime entity, the single placement facet — a region, a cluster, or a device — that the deployment binds."
+msgstr "Affirme sur le porteur canonique que gmeow:deploymentHost est fonctionnelle : un déploiement de modèle sert sur exactement une entité hôte ou d'exécution, l'unique facette de placement — une région, un cluster ou un dispositif — que le déploiement lie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deploymentServiceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deploymentService is functional"
+msgstr "deploymentService est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deploymentServiceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:deploymentService is functional: a model deployment presents exactly one acting service agent, the single gmeow:SoftwareAgent identity that acts and bears the serving-mode awareness tenure."
+msgstr "Affirme sur le porteur canonique que gmeow:deploymentService est fonctionnelle : un déploiement de modèle présente exactement un agent de service agissant, l'unique identité gmeow:SoftwareAgent qui agit et porte la durée de conscience du mode de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionConfigurationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sessionConfiguration is functional"
+msgstr "sessionConfiguration est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionConfigurationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sessionConfiguration is functional: an agent session runs under exactly one active configuration, the single session → configuration hop an output traces through to resolve the configuration it was generated under."
+msgstr "Affirme sur le porteur canonique que gmeow:sessionConfiguration est fonctionnelle: une session d'agent s'exécute sous exactement une configuration active, le seul saut session → configuration qu'une sortie retrace pour résoudre la configuration sous laquelle elle a été générée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSubjectStageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sessionSubjectStage is functional"
+msgstr "sessionSubjectStage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSubjectStageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sessionSubjectStage is functional: an agent session acts on behalf of exactly one subject stage, the single session → subject hop that lets an output resolve to its durable subject."
+msgstr "Affirme sur le porteur canonique que gmeow:sessionSubjectStage est fonctionnelle: une session d'agent agit pour le compte d'exactement une étape de sujet, le seul saut session → sujet qui permet à une sortie de se résoudre vers son sujet durable."
+

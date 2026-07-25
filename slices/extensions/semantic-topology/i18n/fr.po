@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: semantic-topology, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimResult is functional"
+msgstr "claimResult est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:claimResult is functional: a topology claim wraps exactly one computed topology result, the single TopologyResult it makes a standpoint-relative claim about."
+msgstr "Affirme sur le porteur canonique que gmeow:claimResult est fonctionnelle : une revendication de topologie encapsule exactement un résultat de topologie calculé, l'unique TopologyResult au sujet duquel elle formule une revendication relative à un point de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "computationOverCompilation is functional"
+msgstr "computationOverCompilation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:computationOverCompilation is functional: a topology computation runs over exactly one complex compilation, since a federated computation spanning several compilations is several computations under a parent activity."
+msgstr "Affirme sur le porteur canonique que gmeow:computationOverCompilation est fonctionnelle : un calcul de topologie s'exécute sur exactement une compilation complexe, puisqu'un calcul fédéré s'étendant sur plusieurs compilations constitue plusieurs calculs sous une activité parente."
+

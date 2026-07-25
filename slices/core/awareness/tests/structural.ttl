@@ -23,7 +23,7 @@
 #   * level_ranks_are_exactly_zero_through_five — closed numeric SET-EQUALITY over
 #     the six gmeow:levelRank values ({0,1,2,3,4,5}); a SPARQL ASK can assert each
 #     rank EXISTS but not that the set is EXACTLY those six and no others.
-#   * slice_depends_on_is_exactly_kernel_and_temporal — set-equality over
+#   * slice_depends_on_is_exactly_kernel_logic_and_temporal — set-equality over
 #     manifest.ttl, which run_structural_cell never loads (module.ttl + examples/
 #     only).
 #
