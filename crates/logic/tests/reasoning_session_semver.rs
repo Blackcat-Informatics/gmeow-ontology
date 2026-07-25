@@ -127,7 +127,7 @@ use session_common::*;
 /// well-formed input — including this fixed edge-only input, which authors no dimension
 /// cell — changes. (Value below is the post-`cargo fmt` state of the branch.)
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "773d6bb9a332306e9c70ef7d5c4827f8c45d19b581bf96c9f049b3a2e66e6a0c";
+    "4d975a17ed4114c3943f99057dd559faecc414763816307f4812f52369147be5";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -176,8 +176,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
 /// session identity moves with it, while the fixed edge-only input's reasoning verdict is
 /// unchanged.
+/// Re-blessed once more for the enactment-kernel gate: `reason/mod.rs` is one of the
+/// folded engine-source axes and registering `reason/enactment.rs` changed its bytes, so
+/// the native contract hash — and with it the engine descriptor and the fixed-input
+/// session identity — moves. The fixed edge-only input authors no enactment record, so
+/// its reasoning verdict is unchanged; only the identity moved.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "fb1f5e8271ccdf6d82e6db41b05c9e17ccd76972a64c4fc96f78c93a5af3d688";
+    "2617a923640b3b52000b88427a7a4b54ffc6ba6fd43ceb69ad30958a5a1183b7";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

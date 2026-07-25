@@ -54,20 +54,6 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 /// The `rdf:type` predicate the guard keys its class check on.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The single scratch world every quad (default OR named graph) is promoted into before
-/// the forward chase runs — a single world, so the world-indexed engine sees the whole
-/// dataset regardless of how its source graphs were named. Never leaks into a caller's
-/// data: it exists only inside this module's own transient store.
-const ENACTMENT_GATE_WORLD: &str =
-    "https://blackcatinformatics.ca/gmeow/graph/enactment-kernel-gate";
-
-/// The plan-cache contract-hash namespace for the compiled violation rules — distinct
-/// from both [`crate::reason::native_contract_hash`] and the math gate's, so the three
-/// never collide in the shared process-wide plan cache.
-#[allow(dead_code)]
-const ENACTMENT_GATE_CONTRACT: &str =
-    "https://blackcatinformatics.ca/gmeow/reason/enactment-kernel-gate/v1";
-
 /// Predicates whose SUBJECT the engine may never derive.
 ///
 /// An effect attempt and an external effect receipt are records of what happened in the

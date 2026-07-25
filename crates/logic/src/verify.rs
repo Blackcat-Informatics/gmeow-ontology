@@ -225,6 +225,36 @@ pub fn verify_with_reasoning_result(
         });
     }
 
+    // The enactment-kernel gate runs over the SAME reasoned closure, and carries the
+    // observed-not-derived guard on the way out. Effect attempts and receipts are records
+    // of what happened in the world: a reasoner that could conclude an attempt happened
+    // could conclude the world changed, which is the one inference the commitment layer
+    // exists to forbid. The authored constraint says so, but a constraint only binds if
+    // it is actually run, so the guard is enforced here too and HARD-FAILS rather than
+    // filtering the offending row away — dropping it would preserve the invariant in the
+    // output while hiding the defect that produced it.
+    let kernel_markers = crate::reason::enactment::enactment_gate_markers(edb, &derived_edges)?;
+    crate::reason::enactment::reject_banned_heads(
+        &kernel_markers
+            .iter()
+            .map(|(subject, class)| {
+                (
+                    subject.clone(),
+                    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned(),
+                    class.clone(),
+                )
+            })
+            .collect::<Vec<_>>(),
+    )?;
+    for (subject, failure_class) in kernel_markers {
+        store.insert(QuadValues {
+            s: TermValue::iri(subject),
+            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            o: TermValue::iri(failure_class),
+            g: None,
+        });
+    }
+
     // Freeze the reasoned graph once; every verify query + the obligation checks
     // evaluate against this shared frozen dataset via the native engine.
     let reasoned = store.freeze().map_err(|e| {
