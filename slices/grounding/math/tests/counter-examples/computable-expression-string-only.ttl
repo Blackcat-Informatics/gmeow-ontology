@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:MathematicalExpression carrying a math:normalForm trigger edge
+# but none of the four structured-child edges (math:argumentSlot, math:boundVariable,
+# math:hasMathematicalSymbol, math:literalValue) — represented only by a string
+# (math:StringOnlyComputableExpression). A math:NormalizationDeclaration names the
+# (source, target) pair so this fixture stays isolated to ONLY this violation and does not
+# also trip math:UndeclaredNormalForm.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:stringOnlyExpr a math:MathematicalExpression ;
+    math:normalForm ex:stringOnlyExprNormalForm .
+
+ex:stringOnlyExprNormalForm a math:MathematicalExpression .
+
+ex:stringOnlyExprDeclaration a math:NormalizationDeclaration ;
+    math:normalizes ex:stringOnlyExpr ;
+    math:normalizesTo ex:stringOnlyExprNormalForm .

@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a math:normalForm edge (source, target) has a math:NormalizationDeclaration
+# naming that SAME pair, held at math:structuralNormalization with EQUAL math:structuralKey
+# values on both ends — clean of math:UndeclaredNormalForm (a matching declaration exists),
+# math:FalseStructuralNormalizationClaim (the keys agree), and math:UnattributedNormalization
+# (a structural-strength claim needs no procedure/attribution).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:declaredSource a math:MathematicalExpression ;
+    math:normalForm ex:declaredTarget ;
+    math:structuralKey "sum-x-y-v1" .
+
+ex:declaredTarget a math:MathematicalExpression ;
+    math:structuralKey "sum-x-y-v1" .
+
+ex:declaredNormalization a math:NormalizationDeclaration ;
+    math:normalizes ex:declaredSource ;
+    math:normalizesTo ex:declaredTarget ;
+    math:normalizationStrength math:structuralNormalization .

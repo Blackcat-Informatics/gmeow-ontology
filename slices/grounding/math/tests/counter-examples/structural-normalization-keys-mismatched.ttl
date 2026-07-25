@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:NormalizationDeclaration held at math:structuralNormalization
+# whose math:normalizes source and math:normalizesTo target carry DIFFERENT
+# math:structuralKey values — a false structural-identity claim
+# (math:FalseStructuralNormalizationClaim). The declaration correctly names the SAME pair
+# as the math:normalForm edge, so math:UndeclaredNormalForm stays silent, and the strength
+# IS structural, so math:UnattributedNormalization's coarser-than-structural guard never
+# fires.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:mismatchedSource a math:MathematicalExpression ;
+    math:normalForm ex:mismatchedTarget ;
+    math:structuralKey "key-a" .
+
+ex:mismatchedTarget a math:MathematicalExpression ;
+    math:structuralKey "key-b" .
+
+ex:mismatchedDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:mismatchedSource ;
+    math:normalizesTo ex:mismatchedTarget ;
+    math:normalizationStrength math:structuralNormalization .

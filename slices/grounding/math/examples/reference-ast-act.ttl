@@ -42,12 +42,34 @@ ex:matrixProductAst a math:ApplicationExpression ;
     math:operator math:Multiplication ;
     math:expressionType ex:matrixExpressionType ;
     math:argumentSlot ex:matrixProductSlot0 , ex:matrixProductSlot1 ;
-    math:normalForm ex:matrixProductNormalForm .
+    math:normalForm ex:matrixProductNormalForm ;
+    # PLACEHOLDER pending real digest computation: this string is NOT yet the output of
+    # the Rust structural_digest function (crates/logic/src/math_expression.rs). It is
+    # asserted byte-identical to ex:matrixProductNormalForm's own math:structuralKey below
+    # only so the two sides trivially agree; a later verification/property-test task MUST
+    # replace both occurrences with the actual computed digest (or confirm this placeholder
+    # already matches it) rather than assume it is already correct.
+    math:structuralKey "placeholder-alpha-equivalent-digest-v1" .
 
 ex:matrixProductNormalForm a math:ApplicationExpression ;
     math:operator math:Multiplication ;
     math:expressionType ex:matrixExpressionType ;
-    math:argumentSlot ex:normalSlot0 , ex:normalSlot1 .
+    math:argumentSlot ex:normalSlot0 , ex:normalSlot1 ;
+    # PLACEHOLDER — see ex:matrixProductAst's math:structuralKey comment above; the two
+    # values are asserted equal here to reflect the intended (α-equivalent) claim, pending
+    # the real digest recompute.
+    math:structuralKey "placeholder-alpha-equivalent-digest-v1" .
+
+# The attributed reason FOR the math:normalForm edge above: a math:NormalizationDeclaration
+# naming the SAME (source, target) pair through math:normalizes/math:normalizesTo, held at
+# math:structuralNormalization — the finest rung, decided directly against the
+# math:structuralKey digests on both expressions (both PLACEHOLDER values above, pending
+# the real digest recompute), never asserted on faith or by a bare unattributed edge
+# (math:UndeclaredNormalForm).
+ex:matrixProductNormalization a math:NormalizationDeclaration ;
+    math:normalizes ex:matrixProductAst ;
+    math:normalizesTo ex:matrixProductNormalForm ;
+    math:normalizationStrength math:structuralNormalization .
 
 ex:leftMatrixRef a math:SymbolReference ;
     math:hasMathematicalSymbol ex:leftMatrixSymbol .

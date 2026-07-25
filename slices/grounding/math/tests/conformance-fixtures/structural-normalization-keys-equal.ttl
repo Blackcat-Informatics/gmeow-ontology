@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a math:NormalizationDeclaration held at math:structuralNormalization
+# whose math:normalizes source and math:normalizesTo target carry EQUAL math:structuralKey
+# values — a structural-identity claim decided directly against the computed digests, and
+# the digests agree.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:equalKeySource a math:MathematicalExpression ;
+    math:normalForm ex:equalKeyTarget ;
+    math:structuralKey "product-a-b-v1" .
+
+ex:equalKeyTarget a math:MathematicalExpression ;
+    math:structuralKey "product-a-b-v1" .
+
+ex:equalKeyDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:equalKeySource ;
+    math:normalizesTo ex:equalKeyTarget ;
+    math:normalizationStrength math:structuralNormalization .

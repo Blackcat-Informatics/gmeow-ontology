@@ -1,0 +1,62 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Raw structural fixture (NOT a conformance fixture — no example-conformance.ttl cell;
+# a later Rust property test loads this file via include_str!()). Models the shadowed
+# index math:summationBinder already documents in prose: ∑ᵢ (iᵢ + ∑ᵢ jᵢ) — an outer
+# summation binder introducing ex:outerIDecl (labelled "i"), whose body is an addition
+# over (1) an occurrence of the outer "i" and (2) a NESTED summation binder that
+# introduces its OWN, DISTINCT bound-variable declaration ex:innerIDecl, ALSO labelled
+# "i". The two declarations share a surface label but are two distinct
+# math:VariableDeclaration nodes at two distinct binding sites — the shadowing case a
+# structural digest must resolve by declaration identity (graph isomorphism), never by
+# comparing the label string.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:outerSum a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:outerIDecl ;
+    math:bindsOccurrence ex:outerIOccurrence ;
+    math:argumentSlot ex:outerBodySlot .
+
+ex:outerIDecl a math:VariableDeclaration ;
+    rdfs:label "i"@en .
+
+ex:outerIOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:outerIDecl ;
+    math:occursInScope ex:outerSum .
+
+ex:outerBodySlot a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:additionExpr .
+
+ex:additionExpr a math:ApplicationExpression ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:outerOperandSlot , ex:innerSumSlot .
+
+ex:outerOperandSlot a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:outerIOccurrence .
+
+ex:innerSumSlot a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:innerSum .
+
+ex:innerSum a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:innerIDecl ;
+    math:bindsOccurrence ex:innerIOccurrence ;
+    math:argumentSlot ex:innerBodySlot .
+
+ex:innerIDecl a math:VariableDeclaration ;
+    rdfs:label "i"@en .
+
+ex:innerIOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:innerIDecl ;
+    math:occursInScope ex:innerSum .
+
+ex:innerBodySlot a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:innerIOccurrence .

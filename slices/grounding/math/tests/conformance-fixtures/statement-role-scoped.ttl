@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a math:MathematicalStatement carries both math:statementRole and
+# math:roleInTheory, so its epistemic role is scoped to a named theory.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:scopedStatement a math:MathematicalStatement ;
+    math:statementRole math:roleLemma ;
+    math:roleInTheory ex:someTheory .
+
+ex:someTheory a math:MathematicalObject .

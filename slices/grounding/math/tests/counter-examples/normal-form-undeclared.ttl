@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a bare math:normalForm edge with NO math:NormalizationDeclaration
+# naming its (source, target) pair at all (math:UndeclaredNormalForm).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:undeclaredSource a math:MathematicalExpression ;
+    math:normalForm ex:undeclaredTarget .
+
+ex:undeclaredTarget a math:MathematicalExpression .

@@ -409,7 +409,7 @@ ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "Two math:argumentSlot cells of one binder share math:slotIndex 0 (the SPARQL constraint of math:SlotIndexUniquenessShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MalformedArgumentSlot)." .
+    gmeow:conformanceRationale "Two math:argumentSlot cells of one binder share math:slotIndex 0 (the SPARQL constraint of math:SlotIndexUniquenessShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DuplicateArgumentSlotIndex)." .
 
 ex:ecVariableUnscoped a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/variable-occurrence-unscoped.ttl" ;
@@ -697,7 +697,7 @@ ex:ecTensorNodeDuplicateSlotIndex a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/tensor-node-duplicate-slot-index.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "A tensor computation node reuses the expression AST wholesale, so two math:argumentSlot cells sharing math:slotIndex 0 trip the inherited math:SlotIndexUniquenessShape SPARQL constraint exactly as any application/binder would; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MalformedArgumentSlot)." .
+    gmeow:conformanceRationale "A tensor computation node reuses the expression AST wholesale, so two math:argumentSlot cells sharing math:slotIndex 0 trip the inherited math:SlotIndexUniquenessShape SPARQL constraint exactly as any application/binder would; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DuplicateArgumentSlotIndex)." .
 
 ex:ecApplicationTwoOperators a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/application-two-operators.ttl" ;
@@ -1512,3 +1512,95 @@ ex:ecDimensionalIntegralUndimensionedIntegrand a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a DIMENSIONAL math:Integral (it declares a result math:hasDimension, so it is subject to the composition law) whose math:integrand is a math:MeasurableFunction (never a math:Quantity, so the math:Quantity-scoped math:hasDimension min-1 restriction never reaches it) carrying no math:hasDimension — the conditional math:IntegrandDimensionedConstraint (∀f,I,dR: integrand(I,f) ∧ hasDimension(I,dR) → ∃d. hasDimension(f,d)) then fails for that integrand. The measure IS dimensioned (no math:WithRespectToDimensionedConstraint violation) and the reasoner-derived integral-composition law never fires (its antecedent needs the integrand's dimension bound), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UndimensionedQuantity). Contrast the framed integral tests/conformance-fixtures/integral-framed.ttl, which declares no result dimension and so carries no such obligation." .
+
+# === Rule: a free variable declares its type/domain context ================= #
+
+ex:ecFreeVariableTyped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/free-variable-typed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:FreeVariableDeclaration naming exactly one math:variableDomain of class math:Set satisfies the exact-one typed-minimum restriction and validates with no findings." .
+
+ex:ecFreeVariableUntyped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/free-variable-untyped.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The math:FreeVariableDeclaration has no math:variableDomain value of class math:Set, so the exact-one typed minimum MUST emit exactly one shacl.QualifiedMinCountConstraintComponent finding (math:UntypedFreeVariable)." .
+
+# === Rule: a math:MathematicalStatement's statement role is scoped to a named theory === #
+
+ex:ecStatementRoleScoped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/statement-role-scoped.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:MathematicalStatement carrying both math:statementRole and math:roleInTheory satisfies math:UnscopedStatementRoleConstraint's closed-world existence check and validates with no findings." .
+
+ex:ecStatementRoleUnscoped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/statement-role-unscoped.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:MathematicalStatement carrying math:statementRole math:roleLemma but no math:roleInTheory, so math:UnscopedStatementRoleConstraint's guard/exists formula (∀this,role: type(this,MathematicalStatement) ∧ statementRole(this,role) → ∃theory. roleInTheory(this,theory)) fails; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnscopedStatementRole)." .
+
+# === Rule: a math:normalForm edge has a math:NormalizationDeclaration naming its pair === #
+
+ex:ecNormalFormDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/normal-form-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:normalForm edge (source, target) with a math:NormalizationDeclaration naming that SAME pair through math:normalizes/math:normalizesTo, held at math:structuralNormalization with EQUAL math:structuralKey values on both ends, satisfies math:UndeclaredNormalFormConstraint and math:FalseStructuralNormalizationClaimConstraint and validates with no findings." .
+
+ex:ecNormalFormUndeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/normal-form-undeclared.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a bare math:normalForm edge (source, target) with no math:NormalizationDeclaration naming that pair at all, so math:UndeclaredNormalFormConstraint's guard/exists formula fails; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UndeclaredNormalForm)." .
+
+# === Rule: a structural-strength math:NormalizationDeclaration needs equal structuralKey values === #
+
+ex:ecStructuralNormalizationKeysEqual a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/structural-normalization-keys-equal.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:NormalizationDeclaration held at math:structuralNormalization whose math:normalizes source and math:normalizesTo target carry EQUAL math:structuralKey values satisfies math:FalseStructuralNormalizationClaimConstraint and validates with no findings." .
+
+ex:ecStructuralNormalizationKeysMismatched a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/structural-normalization-keys-mismatched.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:structuralNormalization but its math:normalizes source and math:normalizesTo target carry DIFFERENT math:structuralKey values, so math:FalseStructuralNormalizationClaimConstraint's existential digest-equality witness cannot be found; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:FalseStructuralNormalizationClaim)." .
+
+# === Rule: a coarser-than-structural math:NormalizationDeclaration is procedure/vantage/preservation-attributed === #
+
+ex:ecNormalizationAttributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/normalization-attributed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:NormalizationDeclaration held at math:commutativeNormalization carrying a math:normalizationProcedure, named by a gmeow:Observation (through gmeow:observationResult) that itself carries a gmeow:vantage, and carrying a logic:preservationKind satisfies math:UnattributedNormalizationConstraint and validates with no findings." .
+
+ex:ecNormalizationUnattributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/normalization-unattributed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:commutativeNormalization and carries its math:normalizationProcedure and logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair, so math:UnattributedNormalizationConstraint's existential attribution witness cannot be found; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnattributedNormalization)." .
+
+# === Rule: a computable expression carries a structured child, not only a string ==== #
+
+ex:ecComputableExpressionStructured a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/computable-expression-structured.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:MathematicalExpression carrying a math:normalForm trigger edge also carries a math:argumentSlot structured-child edge (and a math:NormalizationDeclaration naming its normal-form pair), so math:StringOnlyComputableExpressionConstraint's existential structured-child witness is found and the fixture validates with no findings." .
+
+ex:ecComputableExpressionStringOnly a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/computable-expression-string-only.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:MathematicalExpression carries a math:normalForm trigger edge but none of the four structured-child edges (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, math:literalValue) — represented only by a string — so math:StringOnlyComputableExpressionConstraint's existential structured-child witness cannot be found; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:StringOnlyComputableExpression). A math:NormalizationDeclaration names the normal-form pair so the fixture does not also trip math:UndeclaredNormalForm." .
+
+# =========================================================================== #
+# Expression-identity native-gate carve-out: math:StringOnlyComputableExpression's
+# SOURCE-LINT half (above is its SHACL-Core-derived half, bound as a conformance cell
+# like every other logic:Constraint-tier class), math:StructuralKeyDrift,
+# math:SurfaceLeakInNormalForm, and math:StructuralKeyOnRejectedExpression are decided
+# by plain Rust computations over the frozen reasoned graph / the ONE math: expression
+# lowering — a digest recompute (crates/logic/src/math_expression.rs) or a source-lint
+# structural check (crates/validate/src/lint.rs) — never a flat relational join the
+# SHACL/Datalog fragment can express, so each is discharged by its own in-crate
+# isolation tests rather than a bound gmeow:ExampleConformance cell here, exactly as
+# lang:SurfaceLeakInContentKey, lang:FabricatedEquivalence, and lang:AssertedRollup
+# carry no example-conformance cell in the lang: slice.
+# =========================================================================== #

@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:NormalizationDeclaration held at math:commutativeNormalization
+# (coarser than structural) carries its math:normalizationProcedure and its
+# logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair — the
+# claim is unattributed to any standpoint (math:UnattributedNormalization).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:unattributedSource a math:MathematicalExpression ;
+    math:normalForm ex:unattributedTarget .
+
+ex:unattributedTarget a math:MathematicalExpression .
+
+ex:unattributedDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:unattributedSource ;
+    math:normalizesTo ex:unattributedTarget ;
+    math:normalizationStrength math:commutativeNormalization ;
+    math:normalizationProcedure ex:commutativityRewrite ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:commutativityRewrite a math:NormalizationProcedure .

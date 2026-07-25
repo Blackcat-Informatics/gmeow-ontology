@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a math:MathematicalExpression carrying a math:normalForm trigger edge
+# also carries a math:argumentSlot structured-child edge — a computable expression whose
+# structure is data, not prose — clean of math:StringOnlyComputableExpression. A
+# math:NormalizationDeclaration names the (source, target) pair so this fixture is also
+# clean of math:UndeclaredNormalForm.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:structuredExpr a math:MathematicalExpression ;
+    math:normalForm ex:structuredExprNormalForm ;
+    math:argumentSlot ex:structuredExprSlot0 .
+
+ex:structuredExprSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:structuredExprOperand .
+
+ex:structuredExprOperand a math:MathematicalExpression .
+
+ex:structuredExprNormalForm a math:MathematicalExpression .
+
+ex:structuredExprDeclaration a math:NormalizationDeclaration ;
+    math:normalizes ex:structuredExpr ;
+    math:normalizesTo ex:structuredExprNormalForm .
