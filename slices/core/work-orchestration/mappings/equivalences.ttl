@@ -8,7 +8,6 @@
 @prefix prov:    <http://www.w3.org/ns/prov#> .
 @prefix pplan:   <http://purl.org/net/p-plan#> .
 @prefix opmw:    <https://www.opmw.org/ontology/> .
-@prefix obi:     <http://purl.obolibrary.org/obo/OBI_> .
 @prefix bpmn:    <http://www.omg.org/spec/BPMN/20100524/MODEL#> .
 @prefix ro_crate: <https://w3id.org/ro/crate/#> .
 # Prescription / enactment / step alignments — GMEOW authoring source.
@@ -186,26 +185,8 @@ logic:ActionSchema skos:closeMatch opmw:WorkflowTemplateProcess {|
     gmeow:comment "OPMW WorkflowTemplateProcess; GMEOW ProcedureStep is the atomic step in a plan."
 |} .
 
-# --------------------------------------------------------------------------- #
-# OBI — laboratory protocols and planned processes
-# --------------------------------------------------------------------------- #
-
-logic:Plan skos:closeMatch obi:0000272 {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "OBI protocol (OBI:0000272); GMEOW Procedure generalises this to all prescriptive specs."
-|} .
-
-logic:Enactment skos:closeMatch obi:0000011 {|
-    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "OBI planned process (OBI:0000011); GMEOW Execution is the event occurrence."
-|} .
-
-# --------------------------------------------------------------------------- #
-# BPMN — conceptual alignments (no canonical RDF ontology with stable IRIs)
+# ---------------------------------------------------------------------------- #
+# BPMN# BPMN — conceptual alignments (no canonical RDF ontology with stable IRIs)
 # --------------------------------------------------------------------------- #
 
 gmeow:stepTypeBranch skos:relatedMatch bpmn:gateway {|

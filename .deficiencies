@@ -1901,3 +1901,27 @@ suggestions/guidance.
   literal-object quads under an explicit profile) so the gate — and any future
   builtin-bound `logic:Constraint` gate — threads through the single `reason_program`
   path instead of a private chase.
+
+## 2026-07-25 — prescription/enactment kernel
+
+**The two OBI alignments the retired process-model slice carried are dropped, not
+re-authored.** `logic:Plan` ↔ `OBI_0000272` (protocol) and `logic:Enactment` ↔
+`OBI_0000011` (planned process) shipped as hand-authored `skos:closeMatch` rows
+against a committed projection ceiling of 2 on the retiring slice. OBI is a
+guarded upper-ontology family: its ceiling exists so ungrounded residue only ever
+falls, and the grandfather gate correctly refuses to let relocated residue mint a
+fresh ceiling on a new (slice, vocabulary) cell. Carrying the rows into the new
+slice, or into the grounding slice, would have been laundering debt that came due
+the moment the slice holding its grandfather clause was retired.
+
+The other twelve target systems the retired slice aligned to — P-Plan, PROV-O,
+schema.org, OPMW, BPMN, RO-Crate, CWL, WDL, Airflow, Nextflow, Temporal and
+openEHR Task Planning — are all re-authored onto the kernel spine with every
+confidence, justification and loss-disclosure preserved. Only OBI is lost.
+
+**Forward path:** author the OBI bridge as a grounded `logic:Correspondence` whose
+external target is emitted by the generated SSSOM/EDOAL lowering rather than named
+in an authored triple, which is what the ceiling is asking for ("author the new
+logic as `logic:` and project it, do not hand-author obi"). That is a real piece of
+correspondence-authoring work, not a mechanical re-key, which is why it is recorded
+here rather than done inline.

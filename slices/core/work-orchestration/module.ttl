@@ -8,7 +8,7 @@
 # edge into `gmeow:` - so one algebra serves a workflow, a DAG, a repeatable
 # guide, a curriculum, a control plan and an organizational guide alike. Every
 # `gmeow:`-typed edge the durable-work reading needs lives HERE, and the bridge
-# direction is always domain-specializes-kernel (gmeow:X rdfs:subPropertyOf
+# direction is always domain-specializes-kernel (gmeow:X logic:subPropertyOf
 # logic:Y), never the reverse.
 #
 # It mints no second recommendation model, no second budget, no second frontier
@@ -161,7 +161,7 @@ gmeow:enactmentContextAssembly
 
 gmeow:preparationActivity
     a owl:ObjectProperty ;
-    rdfs:subPropertyOf logic:preparationOf ;
+    logic:subPropertyOf logic:preparationOf ;
     rdfs:domain logic:PreparationStep ;
     rdfs:range gmeow:Activity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -198,7 +198,7 @@ gmeow:entryHardFailure
 
 gmeow:approvalGoverningNorm
     a owl:ObjectProperty ;
-    rdfs:subPropertyOf logic:approvalPolicy ;
+    logic:subPropertyOf logic:approvalPolicy ;
     rdfs:domain logic:ApprovalCommitment ;
     rdfs:range gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
