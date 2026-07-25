@@ -23,7 +23,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 
 use gmeow_errors::{Diag, Result};
-use purrdf::gts::model::{Graph, Term, TermKind};
+use purrdf::gts::model::{Graph, RDF_LANG_STRING, Term, TermKind, XSD_STRING};
 
 pub mod clifford;
 pub mod dimension;
@@ -631,7 +631,17 @@ pub fn normalize_to_unit(
 enum Node {
     Iri(String),
     Bnode(String),
-    Literal(String),
+    /// A literal, carrying its FULL identity: lexical form, datatype (an RDF
+    /// literal always carries one — the RDF §7.1 default, `rdf:langString` with a
+    /// language tag else `xsd:string`, is expanded here when a term omits it
+    /// explicitly, never left ambiguous), and its optional language tag. Dropping
+    /// either would silently conflate e.g. `"42"^^xsd:integer`, `"42"^^xsd:string`,
+    /// and `"42"@en` — three distinct literals.
+    Literal {
+        lexical: String,
+        datatype: String,
+        language: Option<String>,
+    },
 }
 
 /// A subject → predicate → objects index over the default graph of a purrdf
@@ -649,14 +659,36 @@ fn node_id(term: &Term) -> Option<String> {
     }
 }
 
-fn object_node(term: &Term) -> Option<Node> {
+/// The datatype IRI of a literal `Term`: the explicit `math:` datatype term if
+/// present, else the RDF §7.1 implicit default (`rdf:langString` when a language
+/// tag is carried, else `xsd:string`) — a literal's datatype is NEVER absent,
+/// mirroring `purrdf::TermRef::Literal`'s always-resolved `datatype` field.
+fn literal_datatype(graph: &Graph, term: &Term) -> String {
+    if let Some(dt_id) = term.datatype
+        && let Some(dt_term) = graph.terms.get(dt_id)
+        && let Some(value) = &dt_term.value
+    {
+        return value.clone();
+    }
+    if term.lang.is_some() {
+        RDF_LANG_STRING.to_owned()
+    } else {
+        XSD_STRING.to_owned()
+    }
+}
+
+fn object_node(term: &Term, graph: &Graph) -> Option<Node> {
     match term.kind {
         TermKind::Iri => term.value.clone().map(Node::Iri),
         TermKind::Bnode => term
             .value
             .as_ref()
             .map(|value| Node::Bnode(format!("_:{value}"))),
-        TermKind::Literal => Some(Node::Literal(term.value.clone().unwrap_or_default())),
+        TermKind::Literal => Some(Node::Literal {
+            lexical: term.value.clone().unwrap_or_default(),
+            datatype: literal_datatype(graph, term),
+            language: term.lang.clone(),
+        }),
         TermKind::Triple => None,
     }
 }
@@ -668,7 +700,7 @@ pub fn index_graph(graph: &Graph) -> TripleIndex {
         let (Some(subject), Some(predicate), Some(object)) = (
             node_id(quad.subject),
             node_id(quad.predicate),
-            object_node(quad.object),
+            object_node(quad.object, graph),
         ) else {
             continue;
         };
@@ -697,7 +729,9 @@ pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
     for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let subject = match dataset.resolve(quad.s) {
             TermRef::Iri(iri) => iri.to_owned(),
-            TermRef::Blank { label, scope } => scope.qualify_label(label).into_owned(),
+            TermRef::Blank { label, scope } => {
+                format!("_:{}", scope.qualify_label(label))
+            }
             TermRef::Literal { .. } | TermRef::Triple { .. } => continue,
         };
         let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
@@ -705,8 +739,24 @@ pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
         };
         let object = match dataset.resolve(quad.o) {
             TermRef::Iri(iri) => Node::Iri(iri.to_owned()),
-            TermRef::Blank { label, scope } => Node::Bnode(scope.qualify_label(label).into_owned()),
-            TermRef::Literal { lexical, .. } => Node::Literal(lexical.to_owned()),
+            TermRef::Blank { label, scope } => {
+                Node::Bnode(format!("_:{}", scope.qualify_label(label)))
+            }
+            TermRef::Literal {
+                lexical,
+                datatype,
+                language,
+                ..
+            } => {
+                let TermRef::Iri(datatype) = dataset.resolve(datatype) else {
+                    unreachable!("a literal's datatype term resolves to an IRI by RDF construction")
+                };
+                Node::Literal {
+                    lexical: lexical.to_owned(),
+                    datatype: datatype.to_owned(),
+                    language: language.map(str::to_owned),
+                }
+            }
             TermRef::Triple { .. } => continue,
         };
         index
@@ -777,7 +827,7 @@ pub fn first_iri(index: &TripleIndex, subject: &str, predicate: &str) -> Option<
         .iter()
         .find_map(|node| match node {
             Node::Iri(value) | Node::Bnode(value) => Some(value.clone()),
-            Node::Literal(_) => None,
+            Node::Literal { .. } => None,
         })
 }
 
@@ -787,19 +837,57 @@ pub fn all_iris(index: &TripleIndex, subject: &str, predicate: &str) -> Vec<Stri
         .iter()
         .filter_map(|node| match node {
             Node::Iri(value) | Node::Bnode(value) => Some(value.clone()),
-            Node::Literal(_) => None,
+            Node::Literal { .. } => None,
         })
         .collect()
 }
 
-/// The first literal object of `(subject, predicate, ?)`, if any.
+/// The first literal object of `(subject, predicate, ?)`, if any — lexical form
+/// only. Datatype/language fidelity is dropped here deliberately for callers that
+/// never need it; a caller that needs full literal identity uses
+/// [`first_literal_typed`] instead.
 pub fn first_literal(index: &TripleIndex, subject: &str, predicate: &str) -> Option<String> {
+    first_literal_typed(index, subject, predicate).map(|(lexical, _, _)| lexical.to_owned())
+}
+
+/// The first literal object of `(subject, predicate, ?)`, if any, as
+/// `(lexical, datatype, language)` — full fidelity: the datatype (an RDF literal
+/// always carries one) and the optional language tag are never discarded.
+pub fn first_literal_typed<'a>(
+    index: &'a TripleIndex,
+    subject: &str,
+    predicate: &str,
+) -> Option<(&'a str, &'a str, Option<&'a str>)> {
     objects(index, subject, predicate)
         .iter()
         .find_map(|node| match node {
-            Node::Literal(value) => Some(value.clone()),
+            Node::Literal {
+                lexical,
+                datatype,
+                language,
+            } => Some((lexical.as_str(), datatype.as_str(), language.as_deref())),
             Node::Iri(_) | Node::Bnode(_) => None,
         })
+}
+
+/// All literal objects of `(subject, predicate, ?)`, in index order, as
+/// `(lexical, datatype, language)` — full fidelity (see [`first_literal_typed`]).
+pub fn all_literals_typed<'a>(
+    index: &'a TripleIndex,
+    subject: &str,
+    predicate: &str,
+) -> Vec<(&'a str, &'a str, Option<&'a str>)> {
+    objects(index, subject, predicate)
+        .iter()
+        .filter_map(|node| match node {
+            Node::Literal {
+                lexical,
+                datatype,
+                language,
+            } => Some((lexical.as_str(), datatype.as_str(), language.as_deref())),
+            Node::Iri(_) | Node::Bnode(_) => None,
+        })
+        .collect()
 }
 
 /// The first literal object parsed as an `i128`, if any.
@@ -1136,5 +1224,106 @@ mod tests {
         assert_eq!(format_decimal(r(17, 20)).unwrap(), "0.85");
         assert_eq!(format_decimal(r(2, 5)).unwrap(), "0.4");
         assert_eq!(format_decimal(r(12, 5)).unwrap(), "2.4");
+    }
+
+    // ── TripleIndex: a typed literal's datatype/language survives, and distinguishes
+    // three otherwise-lexically-identical literals, through BOTH `index_graph` (via
+    // the GTS-normalized `index_turtle`) and `index_dataset` ────────────────────────
+
+    const TYPED_LITERAL_TTL: &str = "@prefix ex: <https://example.org/> .\n\
+         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+         ex:s ex:intVal \"42\"^^xsd:integer .\n\
+         ex:s ex:strVal \"42\"^^xsd:string .\n\
+         ex:s ex:langVal \"42\"@en .\n";
+
+    fn assert_typed_literal_round_trip(index: &TripleIndex) {
+        let (lex_i, dt_i, lang_i) =
+            first_literal_typed(index, "https://example.org/s", "https://example.org/intVal")
+                .expect("xsd:integer literal present");
+        assert_eq!(lex_i, "42");
+        assert_eq!(dt_i, "http://www.w3.org/2001/XMLSchema#integer");
+        assert_eq!(lang_i, None);
+
+        let (lex_s, dt_s, lang_s) =
+            first_literal_typed(index, "https://example.org/s", "https://example.org/strVal")
+                .expect("xsd:string literal present");
+        assert_eq!(lex_s, "42");
+        assert_eq!(dt_s, "http://www.w3.org/2001/XMLSchema#string");
+        assert_eq!(lang_s, None);
+
+        let (lex_l, dt_l, lang_l) = first_literal_typed(
+            index,
+            "https://example.org/s",
+            "https://example.org/langVal",
+        )
+        .expect("language-tagged literal present");
+        assert_eq!(lex_l, "42");
+        assert_eq!(
+            dt_l,
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+        );
+        assert_eq!(lang_l, Some("en"));
+
+        // Same lexical form, three DISTINCT literals: datatype/language is what
+        // distinguishes them, never dropped.
+        assert_ne!(dt_i, dt_s, "xsd:integer and xsd:string are distinct");
+        assert_ne!(dt_s, dt_l, "xsd:string and rdf:langString are distinct");
+        assert_ne!(lang_i, lang_l, "the language tag distinguishes langVal");
+
+        // The lossy `first_literal` still returns just the lexical form.
+        assert_eq!(
+            first_literal(index, "https://example.org/s", "https://example.org/intVal").as_deref(),
+            Some("42")
+        );
+    }
+
+    #[test]
+    fn typed_literal_round_trips_through_index_graph() {
+        let index = index_turtle(TYPED_LITERAL_TTL.as_bytes()).expect("index_turtle");
+        assert_typed_literal_round_trip(&index);
+    }
+
+    #[test]
+    fn typed_literal_round_trips_through_index_dataset() {
+        let dataset = purrdf::parse_dataset(TYPED_LITERAL_TTL.as_bytes(), "text/turtle", None)
+            .expect("parse dataset");
+        let index = index_dataset(&dataset);
+        assert_typed_literal_round_trip(&index);
+    }
+
+    // ── TripleIndex: a blank node is `_:`-prefixed identically through both
+    // `index_graph` and `index_dataset`, so a blank-node object round-trips back
+    // into a followable subject key on either path ──────────────────────────────
+
+    const BLANK_NODE_TTL: &str = "@prefix ex: <https://example.org/> .\n\
+         ex:s ex:p _:b1 .\n\
+         _:b1 ex:q ex:o .\n";
+
+    fn assert_blank_node_round_trip(index: &TripleIndex) {
+        let bnode_key = first_iri(index, "https://example.org/s", "https://example.org/p")
+            .expect("blank-node object present");
+        assert!(
+            bnode_key.starts_with("_:"),
+            "blank-node object key is `_:`-prefixed: {bnode_key}"
+        );
+        // The SAME key, used as a subject, resolves the blank node's own triple —
+        // i.e. subject-position and object-position blank-node keys agree.
+        let followed = first_iri(index, &bnode_key, "https://example.org/q")
+            .expect("blank node is followable as a subject under its `_:`-prefixed key");
+        assert_eq!(followed, "https://example.org/o");
+    }
+
+    #[test]
+    fn blank_node_prefixed_through_index_graph() {
+        let index = index_turtle(BLANK_NODE_TTL.as_bytes()).expect("index_turtle");
+        assert_blank_node_round_trip(&index);
+    }
+
+    #[test]
+    fn blank_node_prefixed_through_index_dataset() {
+        let dataset = purrdf::parse_dataset(BLANK_NODE_TTL.as_bytes(), "text/turtle", None)
+            .expect("parse dataset");
+        let index = index_dataset(&dataset);
+        assert_blank_node_round_trip(&index);
     }
 }

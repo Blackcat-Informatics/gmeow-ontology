@@ -42,11 +42,11 @@
 //! overflow-checked ([`intern_bound_checked`]): a distance past `u32::MAX` or a slot past
 //! `u16::MAX` is a HARD FAIL, never a silent wrap (a wrap is a variable-capture bug).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::{Diag, Result};
 use gmeow_logic_compile::ir::{Formula, Term};
-use purrdf::{TermRef, TermValue};
+use purrdf::TermValue;
 
 use crate::physical::id::NodeId;
 use crate::physical::term_dag::TermDag;
@@ -373,167 +373,384 @@ const M_DECLARED_VARIABLE: &str = "https://blackcatinformatics.ca/math/declaredV
 const M_DOMAIN: &str = "https://blackcatinformatics.ca/math/domain";
 const M_LITERAL_VALUE: &str = "https://blackcatinformatics.ca/math/literalValue";
 
-/// One resolved object of a `(subject, predicate, ?)` edge in a [`MathGraph`].
-#[derive(Debug, Clone)]
-enum Obj {
-    /// An IRI or blank-node reference — a node the lowering can follow.
-    Ref(String),
-    /// A literal (e.g. a `math:slotIndex` integer or a `math:literalValue` number), carrying
-    /// its lexical form AND its datatype/language — a `math:NumberLiteral` must lower with
-    /// its datatype/language intact, never discarded.
-    Lit {
-        /// The lexical form, byte-for-byte as authored.
-        lexical: String,
-        /// The datatype IRI (never empty — the parser expands the RDF default).
-        datatype: String,
-        /// The (lowercased) language tag, for a language-tagged literal.
-        language: Option<String>,
-    },
+/// The maximum supported `math:` expression-graph lowering recursion depth. The
+/// mutual recursion `lower_math_node → lower_math_application/lower_math_binding →
+/// lower_math_node` walks an AUTHORED RDF graph with no acyclicity guarantee from the
+/// type system, so an unbounded depth is a stack-overflow hazard on a pathologically
+/// deep (or, absent the cycle guard below, cyclic) authoring. A generous but finite
+/// bound turns that hazard into a typed, catchable [`MathLoweringError`].
+const MAX_MATH_EXPRESSION_DEPTH: usize = 500;
+
+/// The `math:` failure-class IRIs [`MathLoweringError::failure_class`] decides.
+///
+/// `DUPLICATE_ARGUMENT_SLOT_INDEX`, `CYCLIC_EXPRESSION_GRAPH`, and
+/// `EXPRESSION_DEPTH_EXCEEDED` are NEW classes this hardening task's Rust side needs; a
+/// sibling ontology-authoring task mints the corresponding `logic:Situation` charter
+/// entries in `slices/grounding/math/module.ttl` — referencing the IRI by convention
+/// ahead of that authoring is this repo's normal Rust-first order, not a forward
+/// reference bug. The rest are existing charter classes already authored there.
+mod failure_class {
+    pub(super) const MALFORMED_ARGUMENT_SLOT: &str =
+        "https://blackcatinformatics.ca/math/MalformedArgumentSlot";
+    pub(super) const NON_CONTIGUOUS_ARGUMENT_SLOTS: &str =
+        "https://blackcatinformatics.ca/math/NonContiguousArgumentSlots";
+    pub(super) const DUPLICATE_ARGUMENT_SLOT_INDEX: &str =
+        "https://blackcatinformatics.ca/math/DuplicateArgumentSlotIndex";
+    pub(super) const APPLICATION_OPERATOR_CARDINALITY: &str =
+        "https://blackcatinformatics.ca/math/ApplicationOperatorCardinality";
+    pub(super) const MALFORMED_BINDING_EXPRESSION: &str =
+        "https://blackcatinformatics.ca/math/MalformedBindingExpression";
+    pub(super) const UNSCOPED_VARIABLE_OCCURRENCE: &str =
+        "https://blackcatinformatics.ca/math/UnscopedVariableOccurrence";
+    pub(super) const CYCLIC_EXPRESSION_GRAPH: &str =
+        "https://blackcatinformatics.ca/math/CyclicExpressionGraph";
+    pub(super) const EXPRESSION_DEPTH_EXCEEDED: &str =
+        "https://blackcatinformatics.ca/math/ExpressionDepthExceeded";
 }
+
+/// The typed rejection algebra of the `math:` expression-graph lowering.
+///
+/// Every math-specific rejection site raises exactly one of these variants (never a
+/// generic string-only `Diag`), so a caller (a later reasoned-graph gate) can match on
+/// the variant/fields directly instead of substring-matching a message. The one
+/// exception is a Turtle PARSE failure ([`MathGraph::from_turtle`]): that is not a
+/// conformance failure of an authored `math:` expression — it means there is no graph
+/// to check at all — so it stays a plain [`Diag`], never a member of this enum.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum MathLoweringError {
+    /// A `math:NumberLiteral` node has no `math:literalValue`.
+    NumberLiteralMissingValue { node: String },
+    /// An expression node has no recognized `math:` expression type and is not a bare
+    /// IRI constant.
+    UnrecognizedExpressionType { node: String },
+    /// A `math:ArgumentSlot` has no `math:slotIndex`.
+    ArgumentSlotMissingIndex { slot: String },
+    /// A `math:ArgumentSlot` carries more than one `math:slotIndex` value.
+    ArgumentSlotMultipleIndexes { slot: String, count: usize },
+    /// A `math:ArgumentSlot`'s `math:slotIndex` lexical form is not a valid integer.
+    ArgumentSlotIndexNotInteger { slot: String, lexical: String },
+    /// A `math:ArgumentSlot` has no `math:slotExpression`.
+    ArgumentSlotMissingExpression { slot: String },
+    /// A node's `math:argumentSlot` indexes have a gap in the zero-based sequence.
+    NonContiguousArgumentSlots {
+        node: String,
+        index: i128,
+        expected_position: usize,
+    },
+    /// A node's `math:argumentSlot` indexes carry the same index twice.
+    DuplicateArgumentSlotIndex { node: String, index: i128 },
+    /// A `math:ArgumentSlot`'s `math:slotIndex` is negative.
+    NegativeArgumentSlotIndex {
+        node: String,
+        slot: String,
+        index: i128,
+    },
+    /// A `math:ApplicationExpression` has no `math:operator`.
+    ApplicationMissingOperator { node: String },
+    /// A `math:ApplicationExpression` carries more than one `math:operator` value.
+    ApplicationMultipleOperators { node: String, count: usize },
+    /// A `math:BindingExpression` has no `math:operator`.
+    BindingMissingOperator { node: String },
+    /// A `math:BindingExpression` carries more than one `math:operator` value.
+    BindingMultipleOperators { node: String, count: usize },
+    /// A `math:BindingExpression` has no `math:boundVariable`.
+    BindingMissingBoundVariable { node: String },
+    /// A `math:BindingExpression` carries more than one `math:boundVariable` value.
+    BindingMultipleBoundVariables { node: String, count: usize },
+    /// A `math:BindingExpression`'s body slot family is not exactly `{index 0}`.
+    BindingBodyNotSingleSlot { node: String, slot_count: usize },
+    /// A `math:VariableExpression` has no `math:variableOccurrence`.
+    VariableExpressionMissingOccurrence { node: String },
+    /// A `math:VariableExpression` carries more than one `math:variableOccurrence`
+    /// value.
+    VariableExpressionMultipleOccurrences { node: String, count: usize },
+    /// A `math:VariableOccurrence` has no `math:declaredVariable`.
+    OccurrenceMissingDeclaredVariable { occurrence: String },
+    /// A `math:VariableOccurrence` carries more than one `math:declaredVariable` value.
+    OccurrenceMultipleDeclaredVariables { occurrence: String, count: usize },
+    /// A `math:VariableOccurrence` resolves to a declaration that is neither bound by
+    /// an enclosing binder nor a `math:FreeVariableDeclaration`.
+    UnscopedOccurrence {
+        occurrence: String,
+        declaration: String,
+    },
+    /// A node is reached again while still being lowered — the `math:slotExpression`
+    /// graph contains a cycle through it.
+    CyclicExpressionGraph { node: String },
+    /// Lowering recursed past [`MAX_MATH_EXPRESSION_DEPTH`].
+    ExpressionDepthExceeded { node: String, depth: usize },
+    /// A bound occurrence's de-Bruijn distance exceeds `u32::MAX`.
+    DeBruijnDistanceOverflow { distance: usize },
+    /// A bound occurrence's de-Bruijn slot exceeds `u16::MAX`.
+    DeBruijnSlotOverflow { slot: usize },
+}
+
+impl std::fmt::Display for MathLoweringError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NumberLiteralMissingValue { node } => {
+                write!(f, "math:NumberLiteral {node} missing math:literalValue")
+            }
+            Self::UnrecognizedExpressionType { node } => write!(
+                f,
+                "math expression node {node} has no recognized expression type \
+                 (math:ApplicationExpression / math:BindingExpression / \
+                 math:VariableExpression / math:NumberLiteral) and is not an IRI constant"
+            ),
+            Self::ArgumentSlotMissingIndex { slot } => {
+                write!(f, "math:ArgumentSlot {slot} missing math:slotIndex")
+            }
+            Self::ArgumentSlotMultipleIndexes { slot, count } => write!(
+                f,
+                "math:ArgumentSlot {slot} carries {count} math:slotIndex values; exactly one \
+                 is required"
+            ),
+            Self::ArgumentSlotIndexNotInteger { slot, lexical } => {
+                write!(f, "math:slotIndex {lexical:?} on {slot} is not an integer")
+            }
+            Self::ArgumentSlotMissingExpression { slot } => {
+                write!(f, "math:ArgumentSlot {slot} missing math:slotExpression")
+            }
+            Self::NonContiguousArgumentSlots {
+                node,
+                index,
+                expected_position,
+            } => write!(
+                f,
+                "math:argumentSlot indexes of {node} must be zero-based and contiguous with \
+                 no gaps; got index {index} at ordered position {expected_position}"
+            ),
+            Self::DuplicateArgumentSlotIndex { node, index } => write!(
+                f,
+                "math:argumentSlot indexes of {node} contain a duplicate index {index}"
+            ),
+            Self::NegativeArgumentSlotIndex { node, slot, index } => write!(
+                f,
+                "math:ArgumentSlot {slot} of {node} declares a negative math:slotIndex \
+                 {index}; indexes must be non-negative"
+            ),
+            Self::ApplicationMissingOperator { node } => {
+                write!(f, "math:ApplicationExpression {node} missing math:operator")
+            }
+            Self::ApplicationMultipleOperators { node, count } => write!(
+                f,
+                "math:ApplicationExpression {node} carries {count} math:operator values; \
+                 exactly one is required"
+            ),
+            Self::BindingMissingOperator { node } => {
+                write!(f, "math:BindingExpression {node} missing math:operator")
+            }
+            Self::BindingMultipleOperators { node, count } => write!(
+                f,
+                "math:BindingExpression {node} carries {count} math:operator values; exactly \
+                 one is required"
+            ),
+            Self::BindingMissingBoundVariable { node } => write!(
+                f,
+                "math:BindingExpression {node} missing math:boundVariable"
+            ),
+            Self::BindingMultipleBoundVariables { node, count } => write!(
+                f,
+                "math:BindingExpression {node} carries {count} math:boundVariable values; \
+                 exactly one is required"
+            ),
+            Self::BindingBodyNotSingleSlot { node, slot_count } => write!(
+                f,
+                "math:BindingExpression {node} must carry exactly one body slot \
+                 (math:slotIndex 0); found {slot_count} slot(s)"
+            ),
+            Self::VariableExpressionMissingOccurrence { node } => write!(
+                f,
+                "math:VariableExpression {node} missing math:variableOccurrence"
+            ),
+            Self::VariableExpressionMultipleOccurrences { node, count } => write!(
+                f,
+                "math:VariableExpression {node} carries {count} math:variableOccurrence \
+                 values; exactly one is required"
+            ),
+            Self::OccurrenceMissingDeclaredVariable { occurrence } => write!(
+                f,
+                "math:VariableOccurrence {occurrence} missing math:declaredVariable"
+            ),
+            Self::OccurrenceMultipleDeclaredVariables { occurrence, count } => write!(
+                f,
+                "math:VariableOccurrence {occurrence} carries {count} math:declaredVariable \
+                 values; exactly one is required"
+            ),
+            Self::UnscopedOccurrence {
+                occurrence,
+                declaration,
+            } => write!(
+                f,
+                "math:VariableOccurrence {occurrence} resolves to declaration {declaration}, \
+                 which is neither bound by an enclosing math:BindingExpression nor a \
+                 math:FreeVariableDeclaration (unscoped occurrence)"
+            ),
+            Self::CyclicExpressionGraph { node } => write!(
+                f,
+                "math expression node {node} is reached while already being lowered — the \
+                 math:slotExpression graph contains a cycle through this node"
+            ),
+            Self::ExpressionDepthExceeded { node, depth } => write!(
+                f,
+                "math expression node {node} exceeds the maximum supported lowering \
+                 recursion depth ({depth} > {MAX_MATH_EXPRESSION_DEPTH})"
+            ),
+            Self::DeBruijnDistanceOverflow { distance } => write!(
+                f,
+                "binder de-Bruijn distance {distance} exceeds u32::MAX while lowering a \
+                 math: variable occurrence; a silent wrap would rebind the occurrence to \
+                 the wrong binder (variable-capture bug)"
+            ),
+            Self::DeBruijnSlotOverflow { slot } => write!(
+                f,
+                "binder slot {slot} exceeds u16::MAX while lowering a math: variable \
+                 occurrence; a silent wrap would rebind the occurrence to the wrong \
+                 declaration slot (variable-capture bug)"
+            ),
+        }
+    }
+}
+
+impl MathLoweringError {
+    /// The full `math:` failure-class IRI this rejection decides. Exhaustive with NO
+    /// wildcard arm: a variant added later without a class fails to compile, so the
+    /// rejection algebra and the failure-class mapping can never silently drift apart.
+    pub(crate) fn failure_class(&self) -> &'static str {
+        match self {
+            Self::NumberLiteralMissingValue { .. }
+            | Self::UnrecognizedExpressionType { .. }
+            | Self::ArgumentSlotMissingIndex { .. }
+            | Self::ArgumentSlotMultipleIndexes { .. }
+            | Self::ArgumentSlotIndexNotInteger { .. }
+            | Self::ArgumentSlotMissingExpression { .. }
+            | Self::NegativeArgumentSlotIndex { .. } => failure_class::MALFORMED_ARGUMENT_SLOT,
+            Self::NonContiguousArgumentSlots { .. } => failure_class::NON_CONTIGUOUS_ARGUMENT_SLOTS,
+            Self::DuplicateArgumentSlotIndex { .. } => failure_class::DUPLICATE_ARGUMENT_SLOT_INDEX,
+            Self::ApplicationMissingOperator { .. } | Self::ApplicationMultipleOperators { .. } => {
+                failure_class::APPLICATION_OPERATOR_CARDINALITY
+            }
+            Self::BindingMissingOperator { .. }
+            | Self::BindingMultipleOperators { .. }
+            | Self::BindingMissingBoundVariable { .. }
+            | Self::BindingMultipleBoundVariables { .. }
+            | Self::BindingBodyNotSingleSlot { .. } => failure_class::MALFORMED_BINDING_EXPRESSION,
+            Self::VariableExpressionMissingOccurrence { .. }
+            | Self::VariableExpressionMultipleOccurrences { .. }
+            | Self::OccurrenceMissingDeclaredVariable { .. }
+            | Self::OccurrenceMultipleDeclaredVariables { .. }
+            | Self::UnscopedOccurrence { .. } => failure_class::UNSCOPED_VARIABLE_OCCURRENCE,
+            Self::CyclicExpressionGraph { .. } => failure_class::CYCLIC_EXPRESSION_GRAPH,
+            Self::ExpressionDepthExceeded { .. }
+            | Self::DeBruijnDistanceOverflow { .. }
+            | Self::DeBruijnSlotOverflow { .. } => failure_class::EXPRESSION_DEPTH_EXCEEDED,
+        }
+    }
+}
+
+/// The `math:` lowering's own result alias: math-specific rejections are the TYPED
+/// [`MathLoweringError`] algebra, never the shared string-only [`Diag`].
+type MathResult<T> = std::result::Result<T, MathLoweringError>;
 
 /// A read-only subject → predicate → objects index over the default graph of a parsed
 /// `math:` expression dataset — the substrate the `math:` lowering walks.
 ///
 /// The `math:` expression tree has no typed Rust AST: it is RDF, so the lowering reads it
-/// straight out of a `purrdf` dataset (parsed from Turtle here, identical to how a shipped
-/// `.gts` bundle would present it). Blank nodes are keyed by label (unique within one
-/// parsed default graph), so both IRI-named and blank-node expression nodes resolve.
+/// straight out of a [`gmeow_math::TripleIndex`] (parsed from Turtle here, identical to
+/// how a shipped `.gts` bundle would present it, and shared with the `math:` dimension
+/// gate's own graph substrate). Blank nodes are keyed `_:`-prefixed by label (unique
+/// within one parsed default graph), so both IRI-named and blank-node expression nodes
+/// resolve.
 pub(crate) struct MathGraph {
-    index: BTreeMap<String, BTreeMap<String, Vec<Obj>>>,
+    index: gmeow_math::TripleIndex,
 }
 
 impl MathGraph {
-    /// Build a [`MathGraph`] from a Turtle document of the `math:` expression vocabulary.
+    /// Build a [`MathGraph`] from a Turtle document of the `math:` expression
+    /// vocabulary. A parse failure is NOT a conformance failure of an authored
+    /// expression — there is no graph to check — so it stays a plain [`Diag`], never a
+    /// [`MathLoweringError`].
     pub(crate) fn from_turtle(turtle: &[u8]) -> Result<Self> {
         let dataset = purrdf::parse_dataset(turtle, "text/turtle", None)
             .map_err(|err| ir_err(format!("cannot parse math expression Turtle: {err}")))?;
-        let mut index: BTreeMap<String, BTreeMap<String, Vec<Obj>>> = BTreeMap::new();
-        for quad in dataset.quad_refs() {
-            // The expression vocab is authored in the default graph.
-            if quad.g.is_some() {
-                continue;
-            }
-            let (Some(subject), TermRef::Iri(predicate), Some(object)) =
-                (node_key(&quad.s), quad.p, obj_of(&quad.o, &dataset))
-            else {
-                continue;
-            };
-            index
-                .entry(subject)
-                .or_default()
-                .entry(predicate.to_owned())
-                .or_default()
-                .push(object);
-        }
-        Ok(Self { index })
+        Ok(Self::from_dataset(&dataset))
     }
 
-    fn objects(&self, subject: &str, predicate: &str) -> &[Obj] {
-        self.index
-            .get(subject)
-            .and_then(|preds| preds.get(predicate))
-            .map(Vec::as_slice)
-            .unwrap_or(&[])
+    /// Build a [`MathGraph`] over an already-parsed dataset (e.g. the native reasoned
+    /// graph) — the seam [`math_expression_structural_keys`] uses, since its caller
+    /// already holds a parsed [`purrdf::RdfDataset`] and re-parsing would be a
+    /// redundant second parse of the same bytes.
+    pub(crate) fn from_dataset(dataset: &purrdf::RdfDataset) -> Self {
+        Self {
+            index: gmeow_math::index_dataset(dataset),
+        }
     }
 
     /// The first IRI/blank object of `(subject, predicate, ?)`, if any.
-    fn first_ref(&self, subject: &str, predicate: &str) -> Option<&str> {
-        self.objects(subject, predicate)
-            .iter()
-            .find_map(|o| match o {
-                Obj::Ref(value) => Some(value.as_str()),
-                Obj::Lit { .. } => None,
-            })
+    fn first_ref(&self, subject: &str, predicate: &str) -> Option<String> {
+        gmeow_math::first_iri(&self.index, subject, predicate)
     }
 
     /// Every IRI/blank object of `(subject, predicate, ?)`, in index order.
-    fn refs(&self, subject: &str, predicate: &str) -> impl Iterator<Item = &str> {
-        self.objects(subject, predicate)
-            .iter()
-            .filter_map(|o| match o {
-                Obj::Ref(value) => Some(value.as_str()),
-                Obj::Lit { .. } => None,
-            })
+    fn refs(&self, subject: &str, predicate: &str) -> Vec<String> {
+        gmeow_math::all_iris(&self.index, subject, predicate)
     }
 
-    /// The first literal lexical form of `(subject, predicate, ?)`, if any. Datatype/language
-    /// fidelity is dropped here deliberately — callers that need full literal identity (a
-    /// `math:NumberLiteral`'s `math:literalValue`) use [`Self::first_lit_typed`] instead.
-    fn first_lit(&self, subject: &str, predicate: &str) -> Option<&str> {
-        self.first_lit_typed(subject, predicate)
-            .map(|(lexical, _, _)| lexical)
+    /// Every literal lexical form of `(subject, predicate, ?)`, in index order —
+    /// datatype/language dropped deliberately (only used to COUNT/read a
+    /// `math:slotIndex`, which is always a plain integer lexical).
+    fn all_lit(&self, subject: &str, predicate: &str) -> Vec<String> {
+        gmeow_math::all_literals_typed(&self.index, subject, predicate)
+            .into_iter()
+            .map(|(lexical, _, _)| lexical.to_owned())
+            .collect()
     }
 
     /// The first literal object of `(subject, predicate, ?)`, if any, as
-    /// `(lexical, datatype, language)` — full fidelity, never discarding the datatype/language
-    /// a `math:NumberLiteral`'s `math:literalValue` carries.
+    /// `(lexical, datatype, language)` — full fidelity, never discarding the datatype/
+    /// language a `math:NumberLiteral`'s `math:literalValue` carries.
     fn first_lit_typed(
         &self,
         subject: &str,
         predicate: &str,
     ) -> Option<(&str, &str, Option<&str>)> {
-        self.objects(subject, predicate)
-            .iter()
-            .find_map(|o| match o {
-                Obj::Lit {
-                    lexical,
-                    datatype,
-                    language,
-                } => Some((lexical.as_str(), datatype.as_str(), language.as_deref())),
-                Obj::Ref(_) => None,
-            })
+        gmeow_math::first_literal_typed(&self.index, subject, predicate)
     }
 
     /// The `rdf:type` IRIs of `subject`.
-    fn types(&self, subject: &str) -> Vec<&str> {
-        self.refs(subject, RDF_TYPE).collect()
+    fn types(&self, subject: &str) -> Vec<String> {
+        self.refs(subject, RDF_TYPE)
     }
 
     /// Whether `subject` carries `rdf:type` `class`.
     fn has_type(&self, subject: &str, class: &str) -> bool {
-        self.refs(subject, RDF_TYPE).any(|t| t == class)
+        gmeow_math::has_type(&self.index, subject, class)
     }
-}
 
-/// The followable-node key of a subject `TermRef` (an IRI or blank node), or `None` for a
-/// literal / triple term (neither can be the subject of an expression edge).
-fn node_key(term: &TermRef<'_>) -> Option<String> {
-    match term {
-        TermRef::Iri(iri) => Some((*iri).to_owned()),
-        TermRef::Blank { label, .. } => Some(format!("_:{label}")),
-        TermRef::Literal { .. } | TermRef::Triple { .. } => None,
-    }
-}
-
-/// The object of an expression edge: an IRI/blank reference, or a literal carrying its
-/// lexical form AND its datatype/language (resolved against `dataset`, since a borrowed
-/// [`TermRef`]'s datatype is a dataset-local [`purrdf::TermId`], not a portable IRI string —
-/// never dropped, so a `math:NumberLiteral`'s datatype survives into the [`MathGraph`]
-/// index).
-fn obj_of(term: &TermRef<'_>, dataset: &purrdf::RdfDataset) -> Option<Obj> {
-    match term {
-        TermRef::Iri(iri) => Some(Obj::Ref((*iri).to_owned())),
-        TermRef::Blank { label, .. } => Some(Obj::Ref(format!("_:{label}"))),
-        TermRef::Literal {
-            lexical,
-            datatype,
-            language,
-            ..
-        } => {
-            let datatype = match dataset.resolve(*datatype) {
-                TermRef::Iri(dt) => dt.to_owned(),
-                other => unreachable!(
-                    "a literal's datatype term resolves to an IRI by RDF construction, got \
-                     {other:?}"
-                ),
-            };
-            Some(Obj::Lit {
-                lexical: (*lexical).to_owned(),
-                datatype,
-                language: language.map(|l| (*l).to_owned()),
-            })
+    /// The IRIs of every "root" expression node in this graph: a node typed
+    /// `math:ApplicationExpression` / `math:BindingExpression` / `math:VariableExpression`
+    /// / `math:NumberLiteral` that is not itself referenced as any other node's
+    /// `math:slotExpression` object (an operand or a binder's body — the ONE edge a
+    /// child expression node is reached through). [`math_expression_structural_keys`]
+    /// lowers each independently, so one bad root's error never blinds another root's
+    /// result.
+    fn expression_roots(&self) -> BTreeSet<String> {
+        let mut candidates: BTreeSet<String> = BTreeSet::new();
+        let mut referenced: BTreeSet<String> = BTreeSet::new();
+        for subject in gmeow_math::subjects(&self.index) {
+            if self.has_type(subject, M_APPLICATION)
+                || self.has_type(subject, M_BINDING)
+                || self.has_type(subject, M_VARIABLE_EXPRESSION)
+                || self.has_type(subject, M_NUMBER_LITERAL)
+            {
+                candidates.insert(subject.clone());
+            }
+            for object in self.refs(subject, M_SLOT_EXPRESSION) {
+                referenced.insert(object);
+            }
         }
-        TermRef::Triple { .. } => None,
+        candidates.retain(|node| !referenced.contains(node));
+        candidates
     }
 }
 
@@ -551,13 +768,81 @@ fn obj_of(term: &TermRef<'_>, dataset: &purrdf::RdfDataset) -> Option<Obj> {
 /// - `math:NumberLiteral` → a `Leaf` of its `math:literalValue`, a TYPED (or
 ///   language-tagged) RDF literal — the datatype/language is NEVER dropped; a bare IRI
 ///   operand → a `Leaf` of that IRI.
+///
+/// Guarded against a cyclic or pathologically deep `math:slotExpression` graph: a node
+/// reached while it is still being lowered raises [`MathLoweringError::CyclicExpressionGraph`],
+/// and a recursion depth past [`MAX_MATH_EXPRESSION_DEPTH`] raises
+/// [`MathLoweringError::ExpressionDepthExceeded`] — never an unbounded stack dive.
 pub(crate) fn lower_math_expression(
     dag: &mut TermDag,
     graph: &MathGraph,
     root: &str,
-) -> Result<NodeId> {
+) -> MathResult<NodeId> {
     let mut env: Vec<Vec<String>> = Vec::new();
-    lower_math_node(dag, graph, root, &mut env)
+    let mut visiting: BTreeSet<String> = BTreeSet::new();
+    lower_math_node(dag, graph, root, &mut env, &mut visiting, 0)
+}
+
+/// Compute the structural digest ([`structural_digest`]) of every "root" `math:`
+/// expression in `ds` ([`MathGraph::expression_roots`]) — the seam a later reasoned-
+/// graph gate calls to derive a content-stable α-equivalence identity per authored
+/// expression. Each root is lowered independently (a fresh [`TermDag`] and a fresh
+/// recursion-guard state per root), so ONE root's rejection is recorded against ONLY
+/// that root's entry — it never blinds any other root's `Ok` result.
+#[allow(dead_code)] // the reasoned-graph-gate call site is a later task's seam
+pub(crate) fn math_expression_structural_keys(
+    ds: &purrdf::RdfDataset,
+) -> BTreeMap<String, MathResult<String>> {
+    let graph = MathGraph::from_dataset(ds);
+    let mut out = BTreeMap::new();
+    for root in graph.expression_roots() {
+        let mut dag = TermDag::new();
+        let result =
+            lower_math_expression(&mut dag, &graph, &root).map(|id| structural_digest(&dag, id));
+        out.insert(root, result);
+    }
+    out
+}
+
+/// Domain-separation tag for [`structural_digest`]'s framed `blake3` hash — mirrors the
+/// length-prefixed, domain-tagged framing `crates/errors/src/ledger.rs`'s `feed` uses for
+/// its own content-address fingerprints (never a bare-concatenation hash, so a field-
+/// boundary shift can never collide two structurally-distinct keys).
+const STRUCTURAL_KEY_TAG: &[u8] = b"gmeow-math-structural-key-v1";
+
+/// Length-prefixed, domain-separated field feed (mirrors `ledger.rs`'s `feed`): a length
+/// prefix before both the tag and the payload makes a delimiter-injection collision
+/// between the two impossible, whatever bytes either carries.
+fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
+    hasher.update(&(tag.len() as u64).to_le_bytes());
+    hasher.update(tag);
+    hasher.update(&(bytes.len() as u64).to_le_bytes());
+    hasher.update(bytes);
+}
+
+/// The content-addressed structural-identity digest of the term DAG node `id`: `dag`'s
+/// own injective (but unbounded-length) [`TermDag::key`] content key, folded through a
+/// framed, domain-tagged `blake3` hash into a fixed-width hex digest. Two nodes with the
+/// SAME digest are alpha-equivalent by construction (the arena is locally-nameless and
+/// hash-consed); two with different digests are structurally distinct.
+#[allow(dead_code)] // exercised by `alpha_class_iri` and a later reasoned-graph gate
+pub(crate) fn structural_digest(dag: &TermDag, id: NodeId) -> String {
+    let content_key = dag.key(id);
+    let mut hasher = blake3::Hasher::new();
+    feed_structural(&mut hasher, STRUCTURAL_KEY_TAG, content_key.as_bytes());
+    hasher.finalize().to_hex().to_string()
+}
+
+/// Mint a content-stable IRI naming the α-equivalence class of the term DAG node `id`,
+/// keyed on its [`structural_digest`] — the identity a later reasoned-graph gate can
+/// attach findings/provenance to without re-deriving the digest itself.
+#[allow(dead_code)] // the reasoned-graph-gate call site is a later task's seam
+pub(crate) fn alpha_class_iri(dag: &TermDag, id: NodeId) -> Result<String> {
+    let digest = structural_digest(dag, id);
+    crate::provenance::mint_nary_reifier(
+        "https://blackcatinformatics.ca/math/alphaClass",
+        &[TermValue::simple_literal(digest)],
+    )
 }
 
 fn lower_math_node(
@@ -565,15 +850,44 @@ fn lower_math_node(
     graph: &MathGraph,
     node: &str,
     env: &mut Vec<Vec<String>>,
-) -> Result<NodeId> {
+    visiting: &mut BTreeSet<String>,
+    depth: usize,
+) -> MathResult<NodeId> {
+    if depth > MAX_MATH_EXPRESSION_DEPTH {
+        return Err(MathLoweringError::ExpressionDepthExceeded {
+            node: node.to_owned(),
+            depth,
+        });
+    }
+    // Insert on entry, remove on exit (mirrors how `env` is pushed/popped around a
+    // binder's body): a node already present means an ANCESTOR of this call is still
+    // being lowered — the `math:slotExpression` graph closes a cycle through `node`.
+    if !visiting.insert(node.to_owned()) {
+        return Err(MathLoweringError::CyclicExpressionGraph {
+            node: node.to_owned(),
+        });
+    }
+    let result = lower_math_node_dispatch(dag, graph, node, env, visiting, depth);
+    visiting.remove(node);
+    result
+}
+
+fn lower_math_node_dispatch(
+    dag: &mut TermDag,
+    graph: &MathGraph,
+    node: &str,
+    env: &mut Vec<Vec<String>>,
+    visiting: &mut BTreeSet<String>,
+    depth: usize,
+) -> MathResult<NodeId> {
     let types = graph.types(node);
-    if types.contains(&M_APPLICATION) {
-        lower_math_application(dag, graph, node, env)
-    } else if types.contains(&M_BINDING) {
-        lower_math_binding(dag, graph, node, env)
-    } else if types.contains(&M_VARIABLE_EXPRESSION) {
+    if types.iter().any(|t| t == M_APPLICATION) {
+        lower_math_application(dag, graph, node, env, visiting, depth)
+    } else if types.iter().any(|t| t == M_BINDING) {
+        lower_math_binding(dag, graph, node, env, visiting, depth)
+    } else if types.iter().any(|t| t == M_VARIABLE_EXPRESSION) {
         lower_math_variable(dag, graph, node, env)
-    } else if types.contains(&M_NUMBER_LITERAL) {
+    } else if types.iter().any(|t| t == M_NUMBER_LITERAL) {
         // A `math:literalValue` is an RDF literal (e.g. `"42"^^xsd:integer`), never an
         // IRI/blank reference, so it is read with `first_lit_typed` — and its datatype/
         // language is preserved into the interned leaf, never discarded (a bare
@@ -581,10 +895,8 @@ fn lower_math_node(
         // constant).
         let (lexical, datatype, language) = graph
             .first_lit_typed(node, M_LITERAL_VALUE)
-            .ok_or_else(|| {
-                ir_err(format!(
-                    "math:NumberLiteral {node} missing math:literalValue"
-                ))
+            .ok_or_else(|| MathLoweringError::NumberLiteralMissingValue {
+                node: node.to_owned(),
             })?;
         let tv = match language {
             Some(lang) => TermValue::lang_literal(lexical.to_owned(), lang),
@@ -595,41 +907,69 @@ fn lower_math_node(
         // A bare IRI constant operand (a mathematical symbol / individual): a leaf.
         Ok(dag.intern_leaf(TermValue::iri(node.to_owned())))
     } else {
-        Err(ir_err(format!(
-            "math expression node {node} has no recognized expression type \
-             (math:ApplicationExpression / math:BindingExpression / math:VariableExpression / \
-             math:NumberLiteral) and is not an IRI constant"
-        )))
+        Err(MathLoweringError::UnrecognizedExpressionType {
+            node: node.to_owned(),
+        })
     }
 }
 
 /// Collect a node's `math:argumentSlot` slot expressions in `math:slotIndex` order,
-/// HARD-FAILING unless the indexes are zero-based, contiguous, and duplicate-free.
-fn collect_slots(graph: &MathGraph, node: &str) -> Result<Vec<String>> {
+/// HARD-FAILING unless the indexes are non-negative, zero-based, contiguous, and
+/// duplicate-free — each distinctly typed ([`MathLoweringError::NegativeArgumentSlotIndex`],
+/// [`MathLoweringError::DuplicateArgumentSlotIndex`],
+/// [`MathLoweringError::NonContiguousArgumentSlots`]), never conflated into one message.
+fn collect_slots(graph: &MathGraph, node: &str) -> MathResult<Vec<String>> {
     let mut indexed: Vec<(i128, String)> = Vec::new();
     for slot in graph.refs(node, M_ARGUMENT_SLOT) {
-        let index_lex = graph
-            .first_lit(slot, M_SLOT_INDEX)
-            .ok_or_else(|| ir_err(format!("math:ArgumentSlot {slot} missing math:slotIndex")))?;
+        let index_lexicals = graph.all_lit(&slot, M_SLOT_INDEX);
+        let index_lex = match index_lexicals.as_slice() {
+            [] => {
+                return Err(MathLoweringError::ArgumentSlotMissingIndex { slot });
+            }
+            [one] => one.clone(),
+            _ => {
+                return Err(MathLoweringError::ArgumentSlotMultipleIndexes {
+                    slot,
+                    count: index_lexicals.len(),
+                });
+            }
+        };
         let index: i128 = index_lex.trim().parse().map_err(|_| {
-            ir_err(format!(
-                "math:slotIndex {index_lex:?} on {slot} is not an integer"
-            ))
+            MathLoweringError::ArgumentSlotIndexNotInteger {
+                slot: slot.clone(),
+                lexical: index_lex.clone(),
+            }
         })?;
-        let expr = graph.first_ref(slot, M_SLOT_EXPRESSION).ok_or_else(|| {
-            ir_err(format!(
-                "math:ArgumentSlot {slot} missing math:slotExpression"
-            ))
-        })?;
-        indexed.push((index, expr.to_owned()));
+        if index < 0 {
+            return Err(MathLoweringError::NegativeArgumentSlotIndex {
+                node: node.to_owned(),
+                slot,
+                index,
+            });
+        }
+        let expr = graph
+            .first_ref(&slot, M_SLOT_EXPRESSION)
+            .ok_or(MathLoweringError::ArgumentSlotMissingExpression { slot })?;
+        indexed.push((index, expr));
     }
     indexed.sort_by_key(|(index, _)| *index);
+    // Duplicate check BEFORE contiguity: a duplicate index makes the "expected
+    // position" walk below meaningless (two slots would both claim one position).
+    for pair in indexed.windows(2) {
+        if pair[0].0 == pair[1].0 {
+            return Err(MathLoweringError::DuplicateArgumentSlotIndex {
+                node: node.to_owned(),
+                index: pair[0].0,
+            });
+        }
+    }
     for (expected, (index, _)) in indexed.iter().enumerate() {
         if *index != expected as i128 {
-            return Err(ir_err(format!(
-                "math:argumentSlot indexes of {node} must be zero-based and contiguous with no \
-                 gaps or duplicates; got index {index} at ordered position {expected}"
-            )));
+            return Err(MathLoweringError::NonContiguousArgumentSlots {
+                node: node.to_owned(),
+                index: *index,
+                expected_position: expected,
+            });
         }
     }
     Ok(indexed.into_iter().map(|(_, expr)| expr).collect())
@@ -640,17 +980,29 @@ fn lower_math_application(
     graph: &MathGraph,
     node: &str,
     env: &mut Vec<Vec<String>>,
-) -> Result<NodeId> {
-    let operator = graph.first_ref(node, M_OPERATOR).ok_or_else(|| {
-        ir_err(format!(
-            "math:ApplicationExpression {node} missing math:operator"
-        ))
-    })?;
-    let op = dag.intern_leaf(TermValue::iri(operator.to_owned()));
+    visiting: &mut BTreeSet<String>,
+    depth: usize,
+) -> MathResult<NodeId> {
+    let operators = graph.refs(node, M_OPERATOR);
+    let operator = match operators.as_slice() {
+        [] => {
+            return Err(MathLoweringError::ApplicationMissingOperator {
+                node: node.to_owned(),
+            });
+        }
+        [one] => one.clone(),
+        _ => {
+            return Err(MathLoweringError::ApplicationMultipleOperators {
+                node: node.to_owned(),
+                count: operators.len(),
+            });
+        }
+    };
+    let op = dag.intern_leaf(TermValue::iri(operator));
     let slot_exprs = collect_slots(graph, node)?;
     let mut args = Vec::with_capacity(slot_exprs.len());
     for expr in &slot_exprs {
-        args.push(lower_math_node(dag, graph, expr, env)?);
+        args.push(lower_math_node(dag, graph, expr, env, visiting, depth + 1)?);
     }
     Ok(dag.intern_app(op, args))
 }
@@ -660,42 +1012,77 @@ fn lower_math_binding(
     graph: &MathGraph,
     node: &str,
     env: &mut Vec<Vec<String>>,
-) -> Result<NodeId> {
-    let operator = graph.first_ref(node, M_OPERATOR).ok_or_else(|| {
-        ir_err(format!(
-            "math:BindingExpression {node} missing math:operator"
-        ))
-    })?;
-    let op = dag.intern_leaf(TermValue::iri(operator.to_owned()));
-    let declaration = graph
-        .first_ref(node, M_BOUND_VARIABLE)
-        .ok_or_else(|| {
-            ir_err(format!(
-                "math:BindingExpression {node} missing math:boundVariable"
-            ))
-        })?
-        .to_owned();
+    visiting: &mut BTreeSet<String>,
+    depth: usize,
+) -> MathResult<NodeId> {
+    let operators = graph.refs(node, M_OPERATOR);
+    let operator = match operators.as_slice() {
+        [] => {
+            return Err(MathLoweringError::BindingMissingOperator {
+                node: node.to_owned(),
+            });
+        }
+        [one] => one.clone(),
+        _ => {
+            return Err(MathLoweringError::BindingMultipleOperators {
+                node: node.to_owned(),
+                count: operators.len(),
+            });
+        }
+    };
+    let op = dag.intern_leaf(TermValue::iri(operator));
+
+    let declarations = graph.refs(node, M_BOUND_VARIABLE);
+    let declaration = match declarations.as_slice() {
+        [] => {
+            return Err(MathLoweringError::BindingMissingBoundVariable {
+                node: node.to_owned(),
+            });
+        }
+        [one] => one.clone(),
+        _ => {
+            return Err(MathLoweringError::BindingMultipleBoundVariables {
+                node: node.to_owned(),
+                count: declarations.len(),
+            });
+        }
+    };
     // The bound variable's declared type/domain becomes the binder's sort child and is
     // never dropped; an undeclared domain defaults to the untyped individual sort (so an
     // undeclared `math:` binder collapses with an untyped `logic:` quantifier).
     let sort_iri = graph
         .first_ref(&declaration, M_DOMAIN)
-        .unwrap_or(canon::SORT_INDIVIDUAL);
-    let sort = dag.intern_leaf(TermValue::iri(sort_iri.to_owned()));
+        .unwrap_or_else(|| canon::SORT_INDIVIDUAL.to_owned());
+    let sort = dag.intern_leaf(TermValue::iri(sort_iri));
     // A binder binds over exactly one body, carried as its single index-0 argument slot.
     let body_slots = collect_slots(graph, node)?;
     if body_slots.len() != 1 {
-        return Err(ir_err(format!(
-            "math:BindingExpression {node} must carry exactly one body slot (math:slotIndex 0); \
-             found {} slot(s)",
-            body_slots.len()
-        )));
+        return Err(MathLoweringError::BindingBodyNotSingleSlot {
+            node: node.to_owned(),
+            slot_count: body_slots.len(),
+        });
     }
     env.push(vec![declaration]);
-    let body = lower_math_node(dag, graph, &body_slots[0], env);
+    let body = lower_math_node(dag, graph, &body_slots[0], env, visiting, depth + 1);
     env.pop();
     let body = body?;
     Ok(dag.intern_binder(op, vec![sort], body))
+}
+
+/// Mint a bound-variable occurrence at de-Bruijn `distance`/`slot` for the `math:`
+/// lowering, HARD-FAILING with a typed [`MathLoweringError`] if either exceeds the
+/// physical node's field width — the `math:`-specific twin of [`intern_bound_checked`]
+/// (which stays the `logic:`/`lang:` path's untouched shared helper), so the two
+/// overflow sites this hardening task must cover raise their own distinct variants.
+fn intern_bound_checked_math(
+    dag: &mut TermDag,
+    distance: usize,
+    slot: usize,
+) -> MathResult<NodeId> {
+    let debruijn = u32::try_from(distance)
+        .map_err(|_| MathLoweringError::DeBruijnDistanceOverflow { distance })?;
+    let slot = u16::try_from(slot).map_err(|_| MathLoweringError::DeBruijnSlotOverflow { slot })?;
+    Ok(dag.intern_bound(debruijn, slot))
 }
 
 fn lower_math_variable(
@@ -703,32 +1090,47 @@ fn lower_math_variable(
     graph: &MathGraph,
     node: &str,
     env: &[Vec<String>],
-) -> Result<NodeId> {
-    let occurrence = graph
-        .first_ref(node, M_VARIABLE_OCCURRENCE)
-        .ok_or_else(|| {
-            ir_err(format!(
-                "math:VariableExpression {node} missing math:variableOccurrence"
-            ))
-        })?;
-    let declaration = graph
-        .first_ref(occurrence, M_DECLARED_VARIABLE)
-        .ok_or_else(|| {
-            ir_err(format!(
-                "math:VariableOccurrence {occurrence} missing math:declaredVariable"
-            ))
-        })?;
-    if let Some((distance, slot)) = resolve_debruijn(env, declaration) {
-        return intern_bound_checked(dag, distance, slot);
+) -> MathResult<NodeId> {
+    let occurrences = graph.refs(node, M_VARIABLE_OCCURRENCE);
+    let occurrence = match occurrences.as_slice() {
+        [] => {
+            return Err(MathLoweringError::VariableExpressionMissingOccurrence {
+                node: node.to_owned(),
+            });
+        }
+        [one] => one.clone(),
+        _ => {
+            return Err(MathLoweringError::VariableExpressionMultipleOccurrences {
+                node: node.to_owned(),
+                count: occurrences.len(),
+            });
+        }
+    };
+
+    let declarations = graph.refs(&occurrence, M_DECLARED_VARIABLE);
+    let declaration = match declarations.as_slice() {
+        [] => {
+            return Err(MathLoweringError::OccurrenceMissingDeclaredVariable { occurrence });
+        }
+        [one] => one.clone(),
+        _ => {
+            return Err(MathLoweringError::OccurrenceMultipleDeclaredVariables {
+                occurrence,
+                count: declarations.len(),
+            });
+        }
+    };
+
+    if let Some((distance, slot)) = resolve_debruijn(env, &declaration) {
+        return intern_bound_checked_math(dag, distance, slot);
     }
-    if graph.has_type(declaration, M_FREE_DECLARATION) {
-        return Ok(dag.intern_free(TermValue::iri(declaration.to_owned())));
+    if graph.has_type(&declaration, M_FREE_DECLARATION) {
+        return Ok(dag.intern_free(TermValue::iri(declaration)));
     }
-    Err(ir_err(format!(
-        "math:VariableOccurrence {occurrence} resolves to declaration {declaration}, which is \
-         neither bound by an enclosing math:BindingExpression nor a \
-         math:FreeVariableDeclaration (unscoped occurrence)"
-    )))
+    Err(MathLoweringError::UnscopedOccurrence {
+        occurrence,
+        declaration,
+    })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -970,10 +1372,59 @@ mod tests {
             .expect("parse");
         let err = lower_math_expression(&mut dag, &graph, "https://example.org/app")
             .expect_err("slot gap must hard-fail");
+        assert_eq!(
+            err,
+            MathLoweringError::NonContiguousArgumentSlots {
+                node: "https://example.org/app".to_owned(),
+                index: 2,
+                expected_position: 1,
+            },
+            "gap diagnostic names the non-contiguous slot family: {err:?}"
+        );
+        assert_eq!(
+            err.failure_class(),
+            "https://blackcatinformatics.ca/math/NonContiguousArgumentSlots"
+        );
+    }
+
+    #[test]
+    fn math_duplicate_slot_index_hard_fails_distinctly_from_a_gap() {
+        // Indexes {0, 0} are a DUPLICATE, not a gap — a distinct rejection variant/class.
+        let mut dag = TermDag::new();
+        let graph = MathGraph::from_turtle(application_ttl(&[(0, "ex:a"), (0, "ex:b")]).as_bytes())
+            .expect("parse");
+        let err = lower_math_expression(&mut dag, &graph, "https://example.org/app")
+            .expect_err("duplicate slot index must hard-fail");
+        assert_eq!(
+            err,
+            MathLoweringError::DuplicateArgumentSlotIndex {
+                node: "https://example.org/app".to_owned(),
+                index: 0,
+            }
+        );
+        assert_eq!(
+            err.failure_class(),
+            "https://blackcatinformatics.ca/math/DuplicateArgumentSlotIndex"
+        );
+    }
+
+    #[test]
+    fn math_negative_slot_index_hard_fails_as_malformed() {
+        let mut dag = TermDag::new();
+        let graph =
+            MathGraph::from_turtle(application_ttl(&[(-1, "ex:a")]).as_bytes()).expect("parse");
+        let err = lower_math_expression(&mut dag, &graph, "https://example.org/app")
+            .expect_err("negative slot index must hard-fail");
         assert!(
-            err.message().contains("contiguous"),
-            "gap diagnostic names contiguity: {}",
-            err.message()
+            matches!(
+                err,
+                MathLoweringError::NegativeArgumentSlotIndex { index: -1, .. }
+            ),
+            "{err:?}"
+        );
+        assert_eq!(
+            err.failure_class(),
+            "https://blackcatinformatics.ca/math/MalformedArgumentSlot"
         );
     }
 
@@ -1063,9 +1514,12 @@ mod tests {
         let err = lower_math_expression(&mut dag, &graph, "https://example.org/app")
             .expect_err("unscoped occurrence hard-fails");
         assert!(
-            err.message().contains("unscoped"),
-            "diagnostic names the unscoped occurrence: {}",
-            err.message()
+            matches!(err, MathLoweringError::UnscopedOccurrence { .. }),
+            "diagnostic names the unscoped occurrence: {err:?}"
+        );
+        assert_eq!(
+            err.failure_class(),
+            "https://blackcatinformatics.ca/math/UnscopedVariableOccurrence"
         );
     }
 
@@ -1313,6 +1767,323 @@ mod tests {
         assert_eq!(
             node, hand_built,
             "math:NumberLiteral lowering interns to the SAME node as a by-hand typed literal"
+        );
+    }
+
+    // ── math: a cyclic slotExpression graph hard-fails, never stack-overflows ──────────
+
+    #[test]
+    fn math_cyclic_expression_graph_hard_fails() {
+        // ex:a's argument slot points at ex:b, whose argument slot points back at ex:a —
+        // a two-triple cycle through `math:slotExpression`.
+        let cyclic_ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:a a math:ApplicationExpression ; math:operator ex:p ; math:argumentSlot ex:sa .\n\
+             ex:sa a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:b .\n\
+             ex:b a math:ApplicationExpression ; math:operator ex:q ; math:argumentSlot ex:sb .\n\
+             ex:sb a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:a .\n";
+        let mut dag = TermDag::new();
+        let graph = MathGraph::from_turtle(cyclic_ttl.as_bytes()).expect("parse");
+        let err = lower_math_expression(&mut dag, &graph, "https://example.org/a")
+            .expect_err("a cyclic slotExpression graph must hard-fail, not stack-overflow");
+        assert!(
+            matches!(err, MathLoweringError::CyclicExpressionGraph { .. }),
+            "{err:?}"
+        );
+        assert_eq!(
+            err.failure_class(),
+            "https://blackcatinformatics.ca/math/CyclicExpressionGraph"
+        );
+    }
+
+    // ── math: a pathologically deep application chain hard-fails on depth ─────────────
+
+    #[test]
+    fn math_expression_depth_exceeded_hard_fails() {
+        // A chain of NESTED single-argument applications, several times deeper than
+        // MAX_MATH_EXPRESSION_DEPTH, generated programmatically (not hand-authored) —
+        // ex:app0(ex:app1(ex:app2(...(ex:leaf)...))).
+        const CHAIN_LEN: usize = 2_000;
+        let mut ttl = String::from(
+            "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:leaf a math:NumberLiteral ; math:literalValue \"1\" .\n",
+        );
+        for i in 0..CHAIN_LEN {
+            let child = if i + 1 == CHAIN_LEN {
+                "ex:leaf".to_owned()
+            } else {
+                format!("ex:app{}", i + 1)
+            };
+            ttl.push_str(&format!(
+                "ex:app{i} a math:ApplicationExpression ; math:operator ex:p ; \
+                 math:argumentSlot ex:s{i} .\n\
+                 ex:s{i} a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression {child} .\n"
+            ));
+        }
+        let mut dag = TermDag::new();
+        let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse");
+        let err = lower_math_expression(&mut dag, &graph, "https://example.org/app0")
+            .expect_err("a chain far deeper than the recursion bound must hard-fail");
+        assert!(
+            matches!(err, MathLoweringError::ExpressionDepthExceeded { .. }),
+            "{err:?}"
+        );
+        assert_eq!(
+            err.failure_class(),
+            "https://blackcatinformatics.ca/math/ExpressionDepthExceeded"
+        );
+    }
+
+    // ── math: per-root structural keys isolate one bad root from the rest ─────────────
+
+    #[test]
+    fn math_expression_structural_keys_isolates_a_bad_root_from_good_roots() {
+        // Two INDEPENDENT root expressions in one dataset: ex:good is well-formed,
+        // ex:bad has a slot gap. Neither is referenced as any other node's
+        // math:slotExpression, so both are candidate roots.
+        let ttl = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:good a math:ApplicationExpression ; math:operator ex:p ; \
+             math:argumentSlot ex:gs0 .\n\
+             ex:gs0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:a .\n\
+             ex:bad a math:ApplicationExpression ; math:operator ex:q ; \
+             math:argumentSlot ex:bs0 , ex:bs2 .\n\
+             ex:bs0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:b .\n\
+             ex:bs2 a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression ex:c .\n";
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let results = math_expression_structural_keys(&dataset);
+
+        assert_eq!(results.len(), 2, "both roots are candidates: {results:?}");
+        let good = results
+            .get("https://example.org/good")
+            .expect("ex:good present");
+        assert!(good.is_ok(), "the well-formed root still lowers: {good:?}");
+
+        let bad = results
+            .get("https://example.org/bad")
+            .expect("ex:bad present");
+        let err = bad.as_ref().expect_err("the malformed root still fails");
+        assert!(
+            matches!(err, MathLoweringError::NonContiguousArgumentSlots { .. }),
+            "{err:?}"
+        );
+    }
+
+    // ── math: structural_digest / alpha_class_iri are deterministic and distinguish ────
+
+    #[test]
+    fn structural_digest_matches_for_alpha_equivalent_roots_and_differs_otherwise() {
+        // p(a, b) authored slots-forward vs slots-reversed: the SAME expression, so the
+        // SAME structural digest (they already intern to the same NodeId — this checks
+        // the digest built on top of that identity agrees too).
+        let forward =
+            MathGraph::from_turtle(application_ttl(&[(0, "ex:a"), (1, "ex:b")]).as_bytes())
+                .expect("parse");
+        let reversed =
+            MathGraph::from_turtle(application_ttl(&[(1, "ex:b"), (0, "ex:a")]).as_bytes())
+                .expect("parse");
+
+        let mut dag_a = TermDag::new();
+        let node_a = lower_math_expression(&mut dag_a, &forward, "https://example.org/app")
+            .expect("forward lowers");
+        let digest_a = structural_digest(&dag_a, node_a);
+
+        let mut dag_b = TermDag::new();
+        let node_b = lower_math_expression(&mut dag_b, &reversed, "https://example.org/app")
+            .expect("reversed lowers");
+        let digest_b = structural_digest(&dag_b, node_b);
+
+        assert_eq!(
+            digest_a, digest_b,
+            "alpha-equivalent expressions share one structural digest"
+        );
+        // Deterministic: computing it again from the same dag/node is byte-identical.
+        assert_eq!(digest_a, structural_digest(&dag_a, node_a));
+
+        // p(b, a) is a DISTINCT expression (operand order is identity-bearing) — a
+        // DIFFERENT digest.
+        let swapped =
+            MathGraph::from_turtle(application_ttl(&[(0, "ex:b"), (1, "ex:a")]).as_bytes())
+                .expect("parse");
+        let mut dag_c = TermDag::new();
+        let node_c = lower_math_expression(&mut dag_c, &swapped, "https://example.org/app")
+            .expect("swapped lowers");
+        let digest_c = structural_digest(&dag_c, node_c);
+        assert_ne!(digest_a, digest_c, "p(a,b) and p(b,a) get distinct digests");
+
+        // `alpha_class_iri` mints a content-stable IRI over the SAME digest.
+        let iri_a = alpha_class_iri(&dag_a, node_a).expect("mint alpha class IRI");
+        let iri_a_again = alpha_class_iri(&dag_a, node_a).expect("mint alpha class IRI again");
+        assert_eq!(iri_a, iri_a_again, "minting is deterministic");
+        let iri_c = alpha_class_iri(&dag_c, node_c).expect("mint alpha class IRI for swapped");
+        assert_ne!(
+            iri_a, iri_c,
+            "distinct digests mint distinct alpha-class IRIs"
+        );
+    }
+
+    // ── math: failure_class is exhaustive, non-empty, and groups variants coherently ──
+
+    #[test]
+    fn math_lowering_error_failure_class_is_exhaustive_and_non_empty() {
+        let variants = vec![
+            MathLoweringError::NumberLiteralMissingValue {
+                node: "n".to_owned(),
+            },
+            MathLoweringError::UnrecognizedExpressionType {
+                node: "n".to_owned(),
+            },
+            MathLoweringError::ArgumentSlotMissingIndex {
+                slot: "s".to_owned(),
+            },
+            MathLoweringError::ArgumentSlotMultipleIndexes {
+                slot: "s".to_owned(),
+                count: 2,
+            },
+            MathLoweringError::ArgumentSlotIndexNotInteger {
+                slot: "s".to_owned(),
+                lexical: "x".to_owned(),
+            },
+            MathLoweringError::ArgumentSlotMissingExpression {
+                slot: "s".to_owned(),
+            },
+            MathLoweringError::NonContiguousArgumentSlots {
+                node: "n".to_owned(),
+                index: 2,
+                expected_position: 1,
+            },
+            MathLoweringError::DuplicateArgumentSlotIndex {
+                node: "n".to_owned(),
+                index: 0,
+            },
+            MathLoweringError::NegativeArgumentSlotIndex {
+                node: "n".to_owned(),
+                slot: "s".to_owned(),
+                index: -1,
+            },
+            MathLoweringError::ApplicationMissingOperator {
+                node: "n".to_owned(),
+            },
+            MathLoweringError::ApplicationMultipleOperators {
+                node: "n".to_owned(),
+                count: 2,
+            },
+            MathLoweringError::BindingMissingOperator {
+                node: "n".to_owned(),
+            },
+            MathLoweringError::BindingMultipleOperators {
+                node: "n".to_owned(),
+                count: 2,
+            },
+            MathLoweringError::BindingMissingBoundVariable {
+                node: "n".to_owned(),
+            },
+            MathLoweringError::BindingMultipleBoundVariables {
+                node: "n".to_owned(),
+                count: 2,
+            },
+            MathLoweringError::BindingBodyNotSingleSlot {
+                node: "n".to_owned(),
+                slot_count: 2,
+            },
+            MathLoweringError::VariableExpressionMissingOccurrence {
+                node: "n".to_owned(),
+            },
+            MathLoweringError::VariableExpressionMultipleOccurrences {
+                node: "n".to_owned(),
+                count: 2,
+            },
+            MathLoweringError::OccurrenceMissingDeclaredVariable {
+                occurrence: "o".to_owned(),
+            },
+            MathLoweringError::OccurrenceMultipleDeclaredVariables {
+                occurrence: "o".to_owned(),
+                count: 2,
+            },
+            MathLoweringError::UnscopedOccurrence {
+                occurrence: "o".to_owned(),
+                declaration: "d".to_owned(),
+            },
+            MathLoweringError::CyclicExpressionGraph {
+                node: "n".to_owned(),
+            },
+            MathLoweringError::ExpressionDepthExceeded {
+                node: "n".to_owned(),
+                depth: 501,
+            },
+            MathLoweringError::DeBruijnDistanceOverflow { distance: 1 },
+            MathLoweringError::DeBruijnSlotOverflow { slot: 1 },
+        ];
+
+        // Every variant must decide a non-empty, properly-namespaced `math:` IRI, and
+        // the Display impl must not panic (each variant is exercised through `{}`).
+        for variant in &variants {
+            let class = variant.failure_class();
+            assert!(!class.is_empty(), "{variant:?} has an empty failure class");
+            assert!(
+                class.starts_with("https://blackcatinformatics.ca/math/"),
+                "{variant:?} failure class {class} is not `math:`-namespaced"
+            );
+            let _ = variant.to_string();
+        }
+
+        // The grouping is coherent: variants sharing one bucket share one class, and the
+        // buckets are otherwise pairwise distinct. Eight buckets total.
+        let expected_bucket = |v: &MathLoweringError| -> &'static str {
+            match v {
+                MathLoweringError::NumberLiteralMissingValue { .. }
+                | MathLoweringError::UnrecognizedExpressionType { .. }
+                | MathLoweringError::ArgumentSlotMissingIndex { .. }
+                | MathLoweringError::ArgumentSlotMultipleIndexes { .. }
+                | MathLoweringError::ArgumentSlotIndexNotInteger { .. }
+                | MathLoweringError::ArgumentSlotMissingExpression { .. }
+                | MathLoweringError::NegativeArgumentSlotIndex { .. } => "MalformedArgumentSlot",
+                MathLoweringError::NonContiguousArgumentSlots { .. } => {
+                    "NonContiguousArgumentSlots"
+                }
+                MathLoweringError::DuplicateArgumentSlotIndex { .. } => {
+                    "DuplicateArgumentSlotIndex"
+                }
+                MathLoweringError::ApplicationMissingOperator { .. }
+                | MathLoweringError::ApplicationMultipleOperators { .. } => {
+                    "ApplicationOperatorCardinality"
+                }
+                MathLoweringError::BindingMissingOperator { .. }
+                | MathLoweringError::BindingMultipleOperators { .. }
+                | MathLoweringError::BindingMissingBoundVariable { .. }
+                | MathLoweringError::BindingMultipleBoundVariables { .. }
+                | MathLoweringError::BindingBodyNotSingleSlot { .. } => {
+                    "MalformedBindingExpression"
+                }
+                MathLoweringError::VariableExpressionMissingOccurrence { .. }
+                | MathLoweringError::VariableExpressionMultipleOccurrences { .. }
+                | MathLoweringError::OccurrenceMissingDeclaredVariable { .. }
+                | MathLoweringError::OccurrenceMultipleDeclaredVariables { .. }
+                | MathLoweringError::UnscopedOccurrence { .. } => "UnscopedVariableOccurrence",
+                MathLoweringError::CyclicExpressionGraph { .. } => "CyclicExpressionGraph",
+                MathLoweringError::ExpressionDepthExceeded { .. }
+                | MathLoweringError::DeBruijnDistanceOverflow { .. }
+                | MathLoweringError::DeBruijnSlotOverflow { .. } => "ExpressionDepthExceeded",
+            }
+        };
+        for variant in &variants {
+            let bucket = expected_bucket(variant);
+            let expected_iri = format!("https://blackcatinformatics.ca/math/{bucket}");
+            assert_eq!(
+                variant.failure_class(),
+                expected_iri,
+                "{variant:?} does not decide its expected bucket"
+            );
+        }
+        let distinct_classes: std::collections::BTreeSet<&'static str> = variants
+            .iter()
+            .map(MathLoweringError::failure_class)
+            .collect();
+        assert_eq!(
+            distinct_classes.len(),
+            8,
+            "exactly 8 distinct failure-class buckets: {distinct_classes:?}"
         );
     }
 }
