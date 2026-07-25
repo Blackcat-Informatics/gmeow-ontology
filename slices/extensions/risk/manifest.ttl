@@ -18,4 +18,4 @@
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ;
-    gmeow:sliceConsumer "The lbox principia importer ( failure_cascades — Trust Collapse and five siblings as named, graded, type-level chains) and threat-model worked examples (D3FEND countermeasures ↔ Mitigation; bowtie barriers ↔ mitigationCounters on CausalLinks). The norms and procedures extensions plug in through Mitigation's deliberately open measure range — no extension→extension dependency exists or may exist (P16 DAG rule)."@x-gmeow-english.
+    gmeow:sliceConsumer "The lbox principia importer ( failure_cascades — Trust Collapse and five siblings as named, graded, type-level chains) and threat-model worked examples (D3FEND countermeasures ↔ Mitigation; bowtie barriers ↔ mitigationCounters on CausalLinks). Norms and plans plug in through Mitigation's deliberately open measure range, which stays open because countermeasures are genuinely heterogeneous rather than because a dependency rule forbids naming a class."@x-gmeow-english.

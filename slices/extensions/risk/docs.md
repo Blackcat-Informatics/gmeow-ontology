@@ -38,9 +38,10 @@ vocabulary — that asymmetry is why this slice exists.
 - **`Mitigation`** binds a measure to a **`RiskFactor`** (the named umbrella
   over CausalLink + Hazard — generator-visible range, relator-arity
   visible end). The *measure* range is deliberately **open** (the
-  `tenurePosition` precedent, fourth use): a `gmeow:Norm` or a Procedure
-  plugs in without extension→extension dependency (P16). Whether a
-  mitigation *worked* is a vantage-indexed claim, never an entailment.
+  `tenurePosition` precedent, fourth use): a `gmeow:Norm`, a `logic:Plan`, or an
+  engineered design control are all measures, and no single class subsumes the
+  three without distorting one. Whether a mitigation *worked* is a
+  vantage-indexed claim, never an entailment.
 
 ## Deferred to the compiler-arc window
 
@@ -103,8 +104,8 @@ cascades themselves are never ordered transitively.
 `RiskFactor` is the named umbrella over CausalLink + Hazard (a generator-visible range,
 never instantiated directly). `Mitigation` is a reified countermeasure binding: a
 measure set against a RiskFactor it counters. `mitigationMeasure` has an intentionally
-OPEN range (the `tenurePosition` precedent) so a `gmeow:Norm` or a Procedure plugs in
-without extension→extension coupling (P16); `mitigationCounters` ranges over RiskFactor
+OPEN range (the `tenurePosition` precedent) because a `gmeow:Norm`, a `logic:Plan` and
+an engineered control are genuinely heterogeneous; `mitigationCounters` ranges over RiskFactor
 (a bowtie barrier or a source control).
 
 ### gmeow:MitigationStatus · gmeow:mitigationStatus

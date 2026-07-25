@@ -594,8 +594,6 @@
     "https://blackcatinformatics.ca/gmeow/pcc-pipeline-sh|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/pcc-places-bfo|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/pcc-places-bfo|http://www.w3.org/2004/02/skos/core#definition",
-    "https://blackcatinformatics.ca/gmeow/pcc-procedures-bfo|http://www.w3.org/2000/01/rdf-schema#label",
-    "https://blackcatinformatics.ca/gmeow/pcc-procedures-bfo|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/pcc-rights-sh|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/pcc-rights-sh|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-bfo|http://www.w3.org/2000/01/rdf-schema#label",

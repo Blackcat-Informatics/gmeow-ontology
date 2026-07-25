@@ -4,6 +4,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:contentDigest
     a owl:DatatypeProperty ;
@@ -48,6 +49,132 @@ gmeow:sourceModifiedAt
         gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:sourceModifiedAt on the Manifestation or Item; pair it with gmeow:recordedNoLaterThan so the carrier's mtime bounds the recording of its claims, and with gmeow:contentDigest for stable identity."@x-gmeow-english ;
     gmeow:useWhen "Use to record the last-modification time of a source artifact (a file mtime) as a terminus-ante-quem on when the claims it carries were recorded."@x-gmeow-english .
+
+
+# === The canonical ingestion prescription (re-homed worked example) ===========
+#
+# A worked ingestion plan: six sequential acquisition-to-assessment steps. It is
+# a logic:Plan carrying logic:prescriptionKindIngestion, its steps are
+# logic:ActionSchema individuals, and their order is carried as binary
+# logic:ControlFlowEdge flow edges rather than as a bespoke step-sequence
+# property. It supersedes the earlier "source-packet bundle" idea.
+
+gmeow:goalCanonicalIngestion
+    a gmeow:Goal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "canonical ingestion goal"@x-gmeow-english ;
+    skos:definition "The success criterion of gmeow:planCanonicalIngestion: raw sources acquired, copied, OCR-extracted, and assessed into derived claims, unresolved leads, and a privacy posture — the canonical ingested state the plan's steps are arranged to reach."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:planCanonicalIngestion
+    a logic:Plan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "Canonical Ingestion Plan"@x-gmeow-english ;
+    skos:definition "A worked-example ingestion plan of six sequential steps from raw-root acquisition to privacy-posture assessment. As a logic:Plan it carries its own success criterion: logic:planGoal gmeow:goalCanonicalIngestion and logic:planSuccessMode logic:StrongPlanSuccess, so every execution reaches the ingested state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:planGoal gmeow:goalCanonicalIngestion ;
+    logic:planSuccessMode logic:StrongPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindIngestion ;
+    logic:planFlowEdge gmeow:ingestionEdgeRawRootToFileCopy ,
+        gmeow:ingestionEdgeFileCopyToOcr ,
+        gmeow:ingestionEdgeOcrToDerivedClaims ,
+        gmeow:ingestionEdgeDerivedClaimsToUnresolvedLeads ,
+        gmeow:ingestionEdgeUnresolvedLeadsToPrivacyPosture .
+
+gmeow:ingestionRawRootArtifact
+    a gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "raw root data source"@x-gmeow-english ;
+    skos:definition "The raw root data source the canonical ingestion plan acquires and stages from — the unprocessed origin against which every later step's output is traceable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stepIngestionRawRoot
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "raw root acquisition"@x-gmeow-english ;
+    skos:definition "Acquire the raw root data source. The first step of the canonical ingestion plan; every later step's output traces back to what it staged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stepIngestionFileCopy
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "file copy / staging"@x-gmeow-english ;
+    skos:definition "Copy and stage files from the raw root into working storage, leaving the root untouched so the ingestion is repeatable against the same origin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stepIngestionOcrExtract
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "OCR text extraction"@x-gmeow-english ;
+    skos:definition "Extract text from the staged files. The step whose capability may be absent, in which case the plan blocks with a capability-gap proposal rather than substituting a weaker parser."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stepIngestionDerivedClaims
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "derived claims and events generation"@x-gmeow-english ;
+    skos:definition "Generate derived claims and events from the extracted text. Its outputs are attributed claims, never asserted truths, so a later standpoint may defeat them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
+gmeow:stepIngestionUnresolvedLeads
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "unresolved leads capture"@x-gmeow-english ;
+    skos:definition "Record what the ingestion could not resolve. Load-bearing rather than incidental: an ingestion that silently drops what it failed to understand cannot be audited for completeness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stepIngestionPrivacyPosture
+    a logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "privacy posture assessment"@x-gmeow-english ;
+    skos:definition "Assess the privacy posture of the ingested material. The final step of the canonical ingestion plan; its verdict governs how the derived claims may subsequently be surfaced."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ingestionEdgeRawRootToFileCopy
+    a logic:ControlFlowEdge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "raw root then file copy"@x-gmeow-english ;
+    skos:definition "The control-flow edge ordering raw-root acquisition before file staging in the canonical ingestion plan."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:flowFrom gmeow:stepIngestionRawRoot ;
+    logic:flowTo gmeow:stepIngestionFileCopy .
+
+gmeow:ingestionEdgeFileCopyToOcr
+    a logic:ControlFlowEdge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "file copy then OCR"@x-gmeow-english ;
+    skos:definition "The control-flow edge ordering file staging before OCR extraction in the canonical ingestion plan."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:flowFrom gmeow:stepIngestionFileCopy ;
+    logic:flowTo gmeow:stepIngestionOcrExtract .
+
+gmeow:ingestionEdgeOcrToDerivedClaims
+    a logic:ControlFlowEdge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "OCR then derived claims"@x-gmeow-english ;
+    skos:definition "The control-flow edge ordering OCR extraction before derived-claim generation in the canonical ingestion plan."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:flowFrom gmeow:stepIngestionOcrExtract ;
+    logic:flowTo gmeow:stepIngestionDerivedClaims .
+
+gmeow:ingestionEdgeDerivedClaimsToUnresolvedLeads
+    a logic:ControlFlowEdge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "derived claims then unresolved leads"@x-gmeow-english ;
+    skos:definition "The control-flow edge ordering derived-claim generation before unresolved-lead capture in the canonical ingestion plan."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:flowFrom gmeow:stepIngestionDerivedClaims ;
+    logic:flowTo gmeow:stepIngestionUnresolvedLeads .
+
+gmeow:ingestionEdgeUnresolvedLeadsToPrivacyPosture
+    a logic:ControlFlowEdge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "unresolved leads then privacy posture"@x-gmeow-english ;
+    skos:definition "The control-flow edge ordering unresolved-lead capture before privacy-posture assessment in the canonical ingestion plan."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:flowFrom gmeow:stepIngestionUnresolvedLeads ;
+    logic:flowTo gmeow:stepIngestionPrivacyPosture .
 
 <https://blackcatinformatics.ca/gmeow/slices/sources>
     a owl:Ontology ;

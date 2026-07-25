@@ -14771,7 +14771,7 @@ logic:ControlFlowEdge
     rdfs:label "Control-Flow Edge"@x-gmeow-english ;
     logic:mediates logic:flowFrom ,
         logic:flowTo ;
-    skos:definition "A reified control-flow edge between two process nodes — the canonical FLOW-GRAPH form of control flow, mediating a source node (logic:flowFrom) and a target node (logic:flowTo). Complementary to, NOT a duplicate of, the structured-program combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback): the combinators are the program-TREE form an interpreter walks, while a logic:ControlFlowEdge is the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over. A graph carrying a logic:Iteration loop edge (or any back-edge) is outside the DAG fragment. Downstream reified control-flow relators such as gmeow:ControlFlow specialize this class. A Relator mediating two distinct relata (its flowFrom and flowTo nodes), satisfying the relator-mediation discipline."@x-gmeow-english ;
+    skos:definition "A reified control-flow edge between two process nodes — the canonical FLOW-GRAPH form of control flow, mediating a source node (logic:flowFrom) and a target node (logic:flowTo). Complementary to, NOT a duplicate of, the structured-program combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback): the combinators are the program-TREE form an interpreter walks, while a logic:ControlFlowEdge is the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over. A graph carrying a logic:Iteration loop edge (or any back-edge) is outside the DAG fragment. A downstream slice may specialize this class with its own reified control-flow relator. A Relator mediating two distinct relata (its flowFrom and flowTo nodes), satisfying the relator-mediation discipline."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:DataFlowEdge
@@ -14781,7 +14781,7 @@ logic:DataFlowEdge
     rdfs:label "Data-Flow Edge"@x-gmeow-english ;
     logic:mediates logic:flowFrom ,
         logic:flowTo ;
-    skos:definition "A reified dataflow edge between two process nodes — the FLOW-GRAPH counterpart of the logic:dataflowConsumes property, mediating a source (producer) node via logic:flowFrom and a target (consumer) node via logic:flowTo. Use the property form (logic:dataflowConsumes) for a bare binary dependency and this reified form when an edge must carry its own attributes (the flowing entity, a guard, an order). Downstream reified dataflow relators such as gmeow:DataFlow specialize this class. A Relator mediating two distinct relata, satisfying the relator-mediation discipline."@x-gmeow-english ;
+    skos:definition "A reified dataflow edge between two process nodes — the FLOW-GRAPH counterpart of the logic:dataflowConsumes property, mediating a source (producer) node via logic:flowFrom and a target (consumer) node via logic:flowTo. Use the property form (logic:dataflowConsumes) for a bare binary dependency and this reified form when an edge must carry its own attributes (the flowing entity, a guard, an order). A downstream slice may specialize this class with its own reified dataflow relator. A Relator mediating two distinct relata, satisfying the relator-mediation discipline."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:flowFrom

@@ -828,7 +828,7 @@ ASK {
     logic:flowFrom         a owl:ObjectProperty .
     logic:flowTo           a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "The canonical edge family MUST exist so the two parallel process surfaces become projections of one model: logic:dataflowConsumes (+ inverse logic:dataflowProduces) is the binary dataflow dependency a pipeline stage edge specializes; logic:ControlFlowEdge / logic:DataFlowEdge are the reified FLOW-GRAPH relators (mediated by logic:flowFrom / logic:flowTo) the procedures relators specialize and the acyclicity certifier runs over — complementary to the program-tree combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback), not a duplicate of them." .
+    gmeow:saRationale "The canonical edge family MUST exist so the two parallel process surfaces become projections of one model: logic:dataflowConsumes (+ inverse logic:dataflowProduces) is the binary dataflow dependency a pipeline stage edge specializes; logic:ControlFlowEdge / logic:DataFlowEdge are the reified FLOW-GRAPH relators (mediated by logic:flowFrom / logic:flowTo) that a downstream slice's own relators specialize and the acyclicity certifier runs over — complementary to the program-tree combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback), not a duplicate of them." .
 
 # --- 43. A plan reaches its flow graph through logic:planFlowEdge (MUST) ------
 ex:saPlanFlowEdgeExists a gmeow:StructuralAssertion ;
