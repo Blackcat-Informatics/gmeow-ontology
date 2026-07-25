@@ -149,8 +149,11 @@ use session_common::*;
 /// into `backward_source_hash()`; a trivial `cargo fmt` rewrap of one test line in
 /// `physical/lower.rs` (also a `BACKWARD_SOURCE` member) moves it further. No reasoning
 /// behavior changes on any input — attribute/whitespace-only source moves.
+/// Re-blessed once more for removing a stray comment reference from `physical/lower.rs`
+/// (also a `BACKWARD_SOURCE` member, so its raw bytes move again): comment-only, no
+/// reasoning behavior change on any input.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "2a30e586f7682ce4b299b7f7494d4a48550ec9e8fed1d266007cdf5a04a63124";
+    "622dd241264eb1414bd500e784ea0b952ee95fb4181d8f7597bbd0dee749a248";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -214,8 +217,11 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `reason/math_gate.rs`/`reason/mod.rs` (visibility widening) and `physical/lower.rs`
 /// (fmt rewrap) engine source, while the fixed edge-only input's reasoning verdict is
 /// unchanged.
+/// Re-blessed once more for removing a stray comment reference from `physical/lower.rs`
+/// (see the engine-descriptor golden above): comment-only source move, no reasoning
+/// verdict change.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "6b1b2c7cb91acd7f85e6bc96cbf3147bcee68c89454557d6a74952fadb5014ba";
+    "c27677ded11bf55af5579e08596a9adbdab1ddc1cbc9454635f561d683e4a897";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
