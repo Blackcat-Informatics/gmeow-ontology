@@ -11325,3 +11325,171 @@ msgstr "schéma abductif de chaîne WEMI"
 msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The constructive-repair schema for a gmeow:Item that hangs off no gmeow:Manifestation: the candidate addition is a gmeow:exemplifies link to a Manifestation — 'this Item needs a Manifestation it exemplifies' — and the completeness formula holds when the Item exemplifies some Manifestation, completing the realization chain."
 msgstr "Le schéma de réparation constructive pour un gmeow:Item qui ne dépend d'aucune gmeow:Manifestation : l'ajout candidat est un lien gmeow:exemplifies vers une Manifestation — « cet Item a besoin d'une Manifestation qu'il exemplifie » — et la formule de complétude est vraie lorsque l'Item exemplifie quelque Manifestation, complétant la chaîne de réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Graph Box Role"
+msgstr "rôle de compartiment de graphe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A documentation and validation role describing which graph layer a term, shape, module, or graph artifact primarily serves: assertional data (ABox), terminology/schema (TBox), role/property behavior (RBox), contextual statement metadata (CBox), or runtime/package/profile configuration (ConfigBox). Roles are descriptive annotations, may be multi-valued, and never partition the ontology into exactly one box per resource."
+msgstr "Un rôle de documentation et de validation décrivant quelle couche de graphe un terme, une forme, un module ou un artefact de graphe sert principalement : données assertionnelles (ABox), terminologie/schéma (TBox), comportement des rôles/propriétés (RBox), métadonnées contextuelles d'énoncé (CBox), ou configuration d'exécution/de paquet/de profil (ConfigBox)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ABox role"
+msgstr "rôle ABox"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Assertional graph role: concrete instance data, examples, claims, and payload triples that are validated, transported, projected, or reasoned over by GMEOW tooling."
+msgstr "Rôle de graphe assertionnel : données d'instance concrètes, exemples, affirmations et triplets de charge utile qui sont validés, transportés, projetés ou raisonnés par l'outillage GMEOW."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CBox role"
+msgstr "rôle CBox"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Contextual graph role: metadata about assertions, especially RDF 1.2 reifiers and statement annotations carrying provenance, evidence, confidence, temporal scope, standpoint, determinacy, validity, or disclosure context."
+msgstr "Rôle de graphe contextuel : métadonnées sur les assertions, en particulier les réificateurs RDF 1.2 et les annotations d'énoncé portant la provenance, les preuves, la confiance, la portée temporelle, le point de vue, la déterminité, la validité ou le contexte de divulgation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ConfigBox role"
+msgstr "rôle ConfigBox"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Configuration graph role: runtime, package, profile, solver, deployment, service-description, and transport metadata that controls how GMEOW artifacts are built, selected, bundled, served, or consumed, without being statement-context metadata about a particular assertion."
+msgstr "Rôle de graphe de configuration : métadonnées d'exécution, de paquet, de profil, de solveur, de déploiement, de description de service et de transport qui contrôlent la manière dont les artefacts GMEOW sont construits, sélectionnés, empaquetés, servis ou consommés, sans être des métadonnées de contexte portant sur une assertion particulière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "RBox role"
+msgstr "rôle RBox"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Role/property graph role: property axioms and relationship behavior, including inverses, transitivity, property chains, disjointness, path behavior, and role-like constraints over predicates."
+msgstr "Rôle de graphe des rôles/propriétés : axiomes de propriété et comportement des relations, y compris les inverses, la transitivité, les chaînes de propriétés, la disjonction, le comportement des chemins et les contraintes de type rôle sur les prédicats."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TBox role"
+msgstr "rôle TBox"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Terminological graph role: classes, datatypes, shapes, profiles, restrictions, logic-profile declarations, and other schema or vocabulary constructs that describe how assertions are structured."
+msgstr "Rôle de graphe terminologique : classes, types de données, formes, profils, restrictions, déclarations de profil logique et autres constructions de schéma ou de vocabulaire qui décrivent la structure des assertions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "graph box role"
+msgstr "rôle de compartiment de graphe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a term, shape, module, graph artifact, or validation result source to one or more gmeow:GraphBoxRole individuals. The role is advisory metadata for documentation, validation diagnostics, and package consumers; it carries no OWL logical semantics."
+msgstr "Relie un terme, une forme, un module, un artefact de graphe ou une source de résultat de validation à un ou plusieurs individus gmeow:GraphBoxRole. Le rôle est une métadonnée indicative pour la documentation, les diagnostics de validation et les consommateurs de paquets ; il ne porte aucune sémantique logique OWL."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."
+msgstr "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate the subject with one or more gmeow:graphBoxRole values. Tooling may render the roles in describe output, generated docs, validation reports, and GTS/package summaries, but the annotations do not alter OWL entailments."
+msgstr "Annotez le sujet avec une ou plusieurs valeurs gmeow:graphBoxRole. L'outillage peut afficher les rôles dans la sortie describe, la documentation générée, les rapports de validation et les résumés GTS/de paquet, mais ces annotations ne modifient aucune inférence OWL."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a term, shape, generated report, or documentation surface needs to say whether it is about asserted data, schema/logic, role/property behavior, statement context, or operational configuration/profile metadata."
+msgstr "À utiliser lorsqu'un terme, une forme, un rapport généré ou une surface de documentation doit indiquer s'il porte sur des données assertées, un schéma/une logique, un comportement de rôle/propriété, un contexte d'énoncé, ou des métadonnées opérationnelles de configuration/profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using box roles as logical class membership, named-graph routing, or an exactly-one partition; a construct can legitimately serve more than one box."
+msgstr "Évitez d'utiliser les rôles de compartiment comme appartenance logique à une classe, comme routage vers un graphe nommé ou comme partition exactement-un ; une construction peut légitimement servir plusieurs compartiments."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|http://www.w3.org/2004/02/skos/core#example"
+msgid "A slice example graph or a user's imported data graph is ABox-role content."
+msgstr "Un graphe d'exemple de tranche ou un graphe de données importé par l'utilisateur constitue du contenu de rôle ABox."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate examples, payload graph descriptors, and validation report context with this role when users need to see that a diagnostic came from asserted data."
+msgstr "Annotez les exemples, les descripteurs de graphe de charge utile et le contexte des rapports de validation avec ce rôle lorsque les utilisateurs doivent voir qu'un diagnostic provient de données assertées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for resources that primarily describe asserted instance content rather than the schema that constrains it."
+msgstr "À utiliser pour les ressources qui décrivent principalement du contenu d'instance asserté plutôt que le schéma qui le contraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for term definitions, class/property axioms, and shape declarations unless those resources are themselves being treated as data."
+msgstr "À éviter pour les définitions de termes, les axiomes de classe/propriété et les déclarations de formes, sauf si ces ressources sont elles-mêmes traitées comme des données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reifier that records confidence and evidence for an assertion is CBox-role data."
+msgstr "Un réificateur qui enregistre la confiance et les preuves d'une assertion constitue une donnée de rôle CBox."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate statement-metadata terms and reifier-focused SHACL shapes so validation can surface contextual assertion failures as CBox diagnostics."
+msgstr "Annotez les termes de métadonnées d'énoncé et les formes SHACL centrées sur les réificateurs afin que la validation puisse faire remonter les échecs d'assertion contextuels comme diagnostics CBox."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for statement context and assertion envelopes, especially when a shape or report is validating metadata attached to a reified statement."
+msgstr "À utiliser pour le contexte d'énoncé et les enveloppes d'assertion, en particulier lorsqu'une forme ou un rapport valide des métadonnées attachées à un énoncé réifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for deployment configuration or package-profile metadata unless it is explicitly contextual metadata about an assertion; use gmeow:boxConfigBox for operational configuration."
+msgstr "À éviter pour les métadonnées de configuration de déploiement ou de profil de paquet, sauf s'il s'agit explicitement de métadonnées contextuelles portant sur une assertion ; utilisez gmeow:boxConfigBox pour la configuration opérationnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "A GTS profile or service-description term that configures an offline package carries the ConfigBox role."
+msgstr "Un profil GTS ou un terme de description de service qui configure un paquet hors ligne porte le rôle ConfigBox."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate configuration and profile surfaces so docs, exports, validation reports, and package summaries can distinguish operational configuration from assertion context."
+msgstr "Annotez les surfaces de configuration et de profil afin que la documentation, les exports, les rapports de validation et les résumés de paquet puissent distinguer la configuration opérationnelle du contexte d'assertion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for configuration/profile terms and graph artifacts that describe how tooling, packages, services, solvers, transports, or deployment surfaces should operate."
+msgstr "À utiliser pour les termes de configuration/profil et les artefacts de graphe qui décrivent comment l'outillage, les paquets, les services, les solveurs, les transports ou les surfaces de déploiement doivent fonctionner."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for provenance, evidence, confidence, standpoint, disclosure, or validity metadata attached to a particular assertion; those are CBox concerns."
+msgstr "À éviter pour les métadonnées de provenance, de preuve, de confiance, de point de vue, de divulgation ou de validité attachées à une assertion particulière ; celles-ci relèvent du CBox."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:partOf carries the RBox role because it is a transitive role/property spine."
+msgstr "gmeow:partOf porte le rôle RBox car il constitue une colonne vertébrale de rôle/propriété transitive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate relationship spines, generated path constraints, and property-behavior documentation so reports can identify RBox failures without reverse-engineering the shape IRI."
+msgstr "Annotez les colonnes vertébrales relationnelles, les contraintes de chemin générées et la documentation du comportement des propriétés afin que les rapports puissent identifier les échecs RBox sans rétro-ingénierie de l'IRI de la forme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for properties, path shapes, and role-behavior declarations where the important diagnostic context is the predicate or relation itself."
+msgstr "À utiliser pour les propriétés, les formes de chemin et les déclarations de comportement de rôle où le contexte diagnostique important est le prédicat ou la relation elle-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for every object property automatically when the property is merely a simple data slot and no role behavior is being documented."
+msgstr "Évitez de l'appliquer automatiquement à chaque propriété d'objet lorsque la propriété n'est qu'un simple emplacement de données et qu'aucun comportement de rôle n'est documenté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GraphBoxRole and a SHACL node shape both carry the TBox role."
+msgstr "gmeow:GraphBoxRole et une forme de nœud SHACL portent tous deux le rôle TBox."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate schema-bearing resources so docs and validation output can identify vocabulary/shape problems separately from data and statement-context problems."
+msgstr "Annotez les ressources porteuses de schéma afin que la documentation et la sortie de validation puissent identifier les problèmes de vocabulaire/de forme séparément des problèmes de données et de contexte d'énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for terms, shapes, modules, and profile declarations that define the vocabulary or constraints used by data."
+msgstr "À utiliser pour les termes, formes, modules et déclarations de profil qui définissent le vocabulaire ou les contraintes utilisés par les données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for ordinary instance claims unless the claim is explicitly about schema or vocabulary resources."
+msgstr "À éviter pour les affirmations d'instance ordinaires, sauf si l'affirmation porte explicitement sur des ressources de schéma ou de vocabulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:partOf gmeow:graphBoxRole gmeow:boxRBox ."
+msgstr "gmeow:partOf gmeow:graphBoxRole gmeow:boxRBox ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one or more role individuals such as gmeow:boxTBox, gmeow:boxCBox, or gmeow:boxConfigBox. Consumers should preserve unknown future roles and must not assume the value set is closed."
+msgstr "Attachez un ou plusieurs individus de rôle tels que gmeow:boxTBox, gmeow:boxCBox ou gmeow:boxConfigBox. Les consommateurs doivent préserver les rôles futurs inconnus et ne doivent pas supposer que l'ensemble des valeurs est fermé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make a construct's graph-layer role explicit for readers and tools, especially when validation output needs to distinguish data, schema, role/property, and statement-context failures."
+msgstr "À utiliser pour rendre explicite le rôle de couche de graphe d'une construction pour les lecteurs et les outils, en particulier lorsque la sortie de validation doit distinguer les échecs de données, de schéma, de rôle/propriété et de contexte d'énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating it as an ownership, import, or named-graph directive; the canonical source/projection rules still decide where data is authored and generated."
+msgstr "Évitez de le traiter comme une directive de propriété, d'importation ou de graphe nommé ; les règles canoniques de source/projection décident toujours où les données sont authorées et générées."

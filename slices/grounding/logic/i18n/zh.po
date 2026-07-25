@@ -11325,3 +11325,171 @@ msgstr "WEMI 链溯因模式"
 msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The constructive-repair schema for a gmeow:Item that hangs off no gmeow:Manifestation: the candidate addition is a gmeow:exemplifies link to a Manifestation — 'this Item needs a Manifestation it exemplifies' — and the completeness formula holds when the Item exemplifies some Manifestation, completing the realization chain."
 msgstr "针对某个不依附于任何 gmeow:Manifestation 的 gmeow:Item 的建设性修复模式：候选添加项是一个通向某个 Manifestation 的 gmeow:exemplifies 链接 —— '此 Item 需要一个它所例示的 Manifestation' —— 且当该 Item 例示某个 Manifestation 时完整性公式为真，从而补全实现链。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Graph Box Role"
+msgstr "图分区角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A documentation and validation role describing which graph layer a term, shape, module, or graph artifact primarily serves: assertional data (ABox), terminology/schema (TBox), role/property behavior (RBox), contextual statement metadata (CBox), or runtime/package/profile configuration (ConfigBox). Roles are descriptive annotations, may be multi-valued, and never partition the ontology into exactly one box per resource."
+msgstr "一种文档与校验角色，描述某个术语、形状、模块或图工件主要服务于哪一图层：断言数据（ABox）、术语/模式（TBox）、角色/属性行为（RBox）、语句上下文元数据（CBox），或运行时/包/配置文件配置（ConfigBox）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ABox role"
+msgstr "ABox 角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Assertional graph role: concrete instance data, examples, claims, and payload triples that are validated, transported, projected, or reasoned over by GMEOW tooling."
+msgstr "断言图角色：具体的实例数据、示例、主张以及载荷三元组，由 GMEOW 工具链进行校验、传输、投影或推理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CBox role"
+msgstr "CBox 角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Contextual graph role: metadata about assertions, especially RDF 1.2 reifiers and statement annotations carrying provenance, evidence, confidence, temporal scope, standpoint, determinacy, validity, or disclosure context."
+msgstr "上下文图角色：关于断言的元数据，尤其是 RDF 1.2 具化器与语句注解，承载来源、证据、置信度、时间范围、立场、确定性、有效性或披露上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ConfigBox role"
+msgstr "ConfigBox 角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Configuration graph role: runtime, package, profile, solver, deployment, service-description, and transport metadata that controls how GMEOW artifacts are built, selected, bundled, served, or consumed, without being statement-context metadata about a particular assertion."
+msgstr "配置图角色：运行时、包、配置文件、求解器、部署、服务描述与传输元数据，控制 GMEOW 工件如何被构建、选择、打包、提供或消费，而不属于针对某一具体断言的语句上下文元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "RBox role"
+msgstr "RBox 角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Role/property graph role: property axioms and relationship behavior, including inverses, transitivity, property chains, disjointness, path behavior, and role-like constraints over predicates."
+msgstr "角色/属性图角色：属性公理与关系行为，包括逆属性、传递性、属性链、不相交性、路径行为以及作用于谓词的类角色约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TBox role"
+msgstr "TBox 角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Terminological graph role: classes, datatypes, shapes, profiles, restrictions, logic-profile declarations, and other schema or vocabulary constructs that describe how assertions are structured."
+msgstr "术语图角色：类、数据类型、形状、配置文件、限制、逻辑配置文件声明，以及描述断言结构的其他模式或词汇构造。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "graph box role"
+msgstr "图分区角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a term, shape, module, graph artifact, or validation result source to one or more gmeow:GraphBoxRole individuals. The role is advisory metadata for documentation, validation diagnostics, and package consumers; it carries no OWL logical semantics."
+msgstr "将术语、形状、模块、图工件或校验结果来源关联到一个或多个 gmeow:GraphBoxRole 个体。该角色是用于文档、校验诊断与包消费者的指示性元数据，不承载任何 OWL 逻辑语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."
+msgstr "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate the subject with one or more gmeow:graphBoxRole values. Tooling may render the roles in describe output, generated docs, validation reports, and GTS/package summaries, but the annotations do not alter OWL entailments."
+msgstr "为主体标注一个或多个 gmeow:graphBoxRole 值。工具可在 describe 输出、生成的文档、校验报告以及 GTS/包摘要中呈现这些角色，但该标注不改变任何 OWL 蕴涵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a term, shape, generated report, or documentation surface needs to say whether it is about asserted data, schema/logic, role/property behavior, statement context, or operational configuration/profile metadata."
+msgstr "当术语、形状、生成的报告或文档界面需要说明其涉及的是断言数据、模式/逻辑、角色/属性行为、语句上下文，还是运行配置/配置文件元数据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GraphBoxRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using box roles as logical class membership, named-graph routing, or an exactly-one partition; a construct can legitimately serve more than one box."
+msgstr "避免将分区角色当作逻辑类成员资格、命名图路由或恰好为一的划分；一个构造可以合理地服务于多个分区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|http://www.w3.org/2004/02/skos/core#example"
+msgid "A slice example graph or a user's imported data graph is ABox-role content."
+msgstr "切片示例图或用户导入的数据图属于 ABox 角色内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate examples, payload graph descriptors, and validation report context with this role when users need to see that a diagnostic came from asserted data."
+msgstr "当用户需要看到某项诊断来自断言数据时，用该角色标注示例、载荷图描述符以及校验报告上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for resources that primarily describe asserted instance content rather than the schema that constrains it."
+msgstr "用于主要描述已断言实例内容、而非约束这些内容的模式的资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxABox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for term definitions, class/property axioms, and shape declarations unless those resources are themselves being treated as data."
+msgstr "避免用于术语定义、类/属性公理与形状声明，除非这些资源本身被当作数据处理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reifier that records confidence and evidence for an assertion is CBox-role data."
+msgstr "记录某项断言的置信度与证据的具化器属于 CBox 角色数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate statement-metadata terms and reifier-focused SHACL shapes so validation can surface contextual assertion failures as CBox diagnostics."
+msgstr "标注语句元数据术语以及以具化器为中心的 SHACL 形状，使校验能够将上下文性断言失败呈现为 CBox 诊断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for statement context and assertion envelopes, especially when a shape or report is validating metadata attached to a reified statement."
+msgstr "用于语句上下文与断言信封，尤其当某个形状或报告正在校验附加于具化语句的元数据时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxCBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for deployment configuration or package-profile metadata unless it is explicitly contextual metadata about an assertion; use gmeow:boxConfigBox for operational configuration."
+msgstr "避免用于部署配置或包配置文件元数据，除非它明确是关于某项断言的上下文元数据；运行配置请使用 gmeow:boxConfigBox。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "A GTS profile or service-description term that configures an offline package carries the ConfigBox role."
+msgstr "配置离线包的 GTS 配置文件或服务描述术语带有 ConfigBox 角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate configuration and profile surfaces so docs, exports, validation reports, and package summaries can distinguish operational configuration from assertion context."
+msgstr "标注配置与配置文件界面，使文档、导出、校验报告与包摘要能够区分运行配置与断言上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for configuration/profile terms and graph artifacts that describe how tooling, packages, services, solvers, transports, or deployment surfaces should operate."
+msgstr "用于描述工具链、包、服务、求解器、传输或部署界面应如何运作的配置/配置文件术语与图工件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxConfigBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for provenance, evidence, confidence, standpoint, disclosure, or validity metadata attached to a particular assertion; those are CBox concerns."
+msgstr "避免用于附加在特定断言上的来源、证据、置信度、立场、披露或有效性元数据；那些属于 CBox 范畴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:partOf carries the RBox role because it is a transitive role/property spine."
+msgstr "gmeow:partOf 带有 RBox 角色，因为它是一条传递性的角色/属性主干。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate relationship spines, generated path constraints, and property-behavior documentation so reports can identify RBox failures without reverse-engineering the shape IRI."
+msgstr "标注关系主干、生成的路径约束与属性行为文档，使报告无需逆向推断形状 IRI 即可识别 RBox 失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for properties, path shapes, and role-behavior declarations where the important diagnostic context is the predicate or relation itself."
+msgstr "用于属性、路径形状与角色行为声明，其重要诊断上下文正是谓词或关系本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxRBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for every object property automatically when the property is merely a simple data slot and no role behavior is being documented."
+msgstr "当属性只是一个简单的数据槽位且未记录任何角色行为时，避免自动为每个对象属性套用该角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GraphBoxRole and a SHACL node shape both carry the TBox role."
+msgstr "gmeow:GraphBoxRole 与一个 SHACL 节点形状都带有 TBox 角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Annotate schema-bearing resources so docs and validation output can identify vocabulary/shape problems separately from data and statement-context problems."
+msgstr "标注承载模式的资源，使文档与校验输出能够将词汇/形状问题同数据问题及语句上下文问题分开识别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for terms, shapes, modules, and profile declarations that define the vocabulary or constraints used by data."
+msgstr "用于定义数据所用词汇或约束的术语、形状、模块与配置文件声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/boxTBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for ordinary instance claims unless the claim is explicitly about schema or vocabulary resources."
+msgstr "避免用于普通实例主张，除非该主张明确是关于模式或词汇资源的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:partOf gmeow:graphBoxRole gmeow:boxRBox ."
+msgstr "gmeow:partOf gmeow:graphBoxRole gmeow:boxRBox ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one or more role individuals such as gmeow:boxTBox, gmeow:boxCBox, or gmeow:boxConfigBox. Consumers should preserve unknown future roles and must not assume the value set is closed."
+msgstr "附加一个或多个角色个体，例如 gmeow:boxTBox、gmeow:boxCBox 或 gmeow:boxConfigBox。消费者应保留未知的未来角色，且不得假定取值集合是封闭的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make a construct's graph-layer role explicit for readers and tools, especially when validation output needs to distinguish data, schema, role/property, and statement-context failures."
+msgstr "用于向读者与工具明确某个构造的图层角色，尤其当校验输出需要区分数据、模式、角色/属性与语句上下文失败时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/graphBoxRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating it as an ownership, import, or named-graph directive; the canonical source/projection rules still decide where data is authored and generated."
+msgstr "避免将其视为归属、导入或命名图指令；数据在何处编写与生成，仍由规范的来源/投影规则决定。"
