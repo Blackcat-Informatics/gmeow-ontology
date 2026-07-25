@@ -36,4 +36,3 @@ msgstr "assertionSubject 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."
 msgstr "在规范载体上断言 gmeow:assertionSubject 是函数性的:一条无障碍断言恰好评估一个主体,即被评估的单一地点或连接。"
-

@@ -212,4 +212,3 @@ msgstr "weightingPolicy 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/weightingPolicyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:weightingPolicy is functional: a derived intensity combines its axes under exactly one declared weighting policy — the single set of diagonal/off-diagonal Gram weights — so two policies would specify two different metrics for one intensity."
 msgstr "在规范载体上断言 gmeow:weightingPolicy 是函数性的:一个派生强度恰好在一种声明的加权策略下组合其各轴——即一组唯一的对角/非对角 Gram 权重——若存在两种策略,将为同一强度指定两种不同的度量。"
-

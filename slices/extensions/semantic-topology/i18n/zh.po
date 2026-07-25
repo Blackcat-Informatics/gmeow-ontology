@@ -28,4 +28,3 @@ msgstr "computationOverCompilation 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:computationOverCompilation is functional: a topology computation runs over exactly one complex compilation, since a federated computation spanning several compilations is several computations under a parent activity."
 msgstr "在规范载体上断言 gmeow:computationOverCompilation 是函数式的：一次拓扑计算恰好在一个复合编译上运行，因为跨越多个编译的联合计算是在一个父活动之下的多次计算。"
-

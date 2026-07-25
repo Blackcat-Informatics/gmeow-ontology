@@ -52,4 +52,3 @@ msgstr "sessionSubjectStage 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSubjectStageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:sessionSubjectStage is functional: an agent session acts on behalf of exactly one subject stage, the single session → subject hop that lets an output resolve to its durable subject."
 msgstr "在规范载体上断言 gmeow:sessionSubjectStage 是函数性的:一个智能体会话恰好代表一个主体阶段行事,即让输出得以解析到其持久主体的那唯一的会话→主体跳转。"
-

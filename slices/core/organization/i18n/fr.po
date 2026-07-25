@@ -76,4 +76,3 @@ msgstr "postIn est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/postInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post."
 msgstr "Affirme sur le porteur canonique que gmeow:postIn est fonctionnelle : un gmeow:Post appartient à exactement une organisation, et le même poste dans une autre organisation constituerait un poste distinct."
-

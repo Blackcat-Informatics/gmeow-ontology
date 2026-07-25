@@ -116,4 +116,3 @@ msgstr "usedModel est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/usedModelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:usedModel is functional: a model invocation called exactly one model agent, so the invocation-to-model link carries a single gmeow:SoftwareAgent and a second model called is a second invocation rather than an added target on one."
 msgstr "Affirme sur le porteur canonique que gmeow:usedModel est fonctionnelle : une invocation de modèle a appelé exactement un agent-modèle, de sorte que le lien invocation-modèle porte un unique gmeow:SoftwareAgent, et un second modèle appelé constitue une seconde invocation plutôt qu'une cible ajoutée à la première."
-

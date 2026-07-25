@@ -28,4 +28,3 @@ msgstr "minimumPopulation est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time."
 msgstr "Affirme sur le porteur canonique que gmeow:minimumPopulation est fonctionnelle : une agrégation spatiale porte exactement un seuil de k-anonymat, l'unique taille de population minimale en deçà de laquelle son résultat est supprimé au moment de la projection."
-

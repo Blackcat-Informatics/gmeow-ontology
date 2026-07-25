@@ -132,4 +132,3 @@ msgstr "startedAtTime 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued."
 msgstr "在规范载体上断言 gmeow:startedAtTime 是函数性的:一个 gmeow:TimeInterval 恰好在单一确定的 dateTime 处开始,因为具有两个起始时间戳的区间实际上是两个区间,这使得内联的起始边界只能取单一值。"
-

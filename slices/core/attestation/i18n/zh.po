@@ -92,4 +92,3 @@ msgstr "transactionHash 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:transactionHash is functional: a ledger transaction has one stable on-chain identity hash, so the value used to look up and re-verify it is single, distinct from the hash of its block or the identifier of its network."
 msgstr "在规范载体上断言 gmeow:transactionHash 是函数性的:一笔账本交易拥有一个稳定的链上身份哈希,因此用于查找和重新校验它的值是唯一的,不同于其所在区块的哈希或其所在网络的标识符。"
-

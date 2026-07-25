@@ -36,4 +36,3 @@ msgstr "assertionSubject est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."
 msgstr "Affirme sur le porteur canonique que gmeow:assertionSubject est fonctionnelle : une assertion d'accessibilité évalue exactement un sujet, l'unique lieu ou connexion faisant l'objet de l'évaluation."
-

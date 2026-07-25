@@ -44,4 +44,3 @@ msgstr "findingSeverity 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result."
 msgstr "在规范载体上断言 gmeow:findingSeverity 是函数性的：一个 gmeow:Finding 恰好具有一个裁定等级，即作为其观察结果的唯一 gmeow:DiagnosticSeverity。"
-

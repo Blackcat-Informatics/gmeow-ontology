@@ -44,4 +44,3 @@ msgstr "partOf 具有传递性"
 msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."
 msgstr "在规范载体上断言 gmeow:partOf 是可传递的：其 skos:definition 命名为可传递且有意宽泛的普遍部分—整体主干。原生一致性门读取此项以闭合该部分关系主干。"
-

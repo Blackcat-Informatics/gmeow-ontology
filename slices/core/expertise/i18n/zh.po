@@ -52,4 +52,3 @@ msgstr "skillProficiencyScale 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record."
 msgstr "在规范载体上断言 gmeow:skillProficiencyScale 是函数性的:一个 gmeow:SkillProficiency 的等级恰好按一种量表(Dreyfus、NIH、经评估或自我报告)来衡量,因此同一成就若按另一种量表解读,便构成一条不同的技能水平记录。"
-

@@ -140,4 +140,3 @@ msgstr "timeZoneIanaId est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset."
 msgstr "Affirme sur le porteur canonique que gmeow:timeZoneIanaId est fonctionnelle : un fuseau horaire est nommé par exactement un tzid IANA — l'identifiant unique (par exemple America/Toronto) que les bibliothèques résolvent en son jeu complet de règles d'heure d'été."
-

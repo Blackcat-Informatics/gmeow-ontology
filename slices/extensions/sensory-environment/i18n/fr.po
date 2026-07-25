@@ -60,4 +60,3 @@ msgstr "perceptionModality est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered."
 msgstr "Affirme sur le porteur canonique que gmeow:perceptionModality est fonctionnelle : une perception sensorielle s'effectue par exactement un canal sensoriel, l'unique modalité sur laquelle cette valeur perçue est enregistrée."
-

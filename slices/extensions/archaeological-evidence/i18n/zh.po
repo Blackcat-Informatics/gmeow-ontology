@@ -60,4 +60,3 @@ msgstr "transliterationOf 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes."
 msgstr "在规范载体上断言 gmeow:transliterationOf 是函数性的:一次铭文转写恰好将一篇源铭文映射到另一种文字体系,即其重新编码符号序列所对应的唯一文本。"
-

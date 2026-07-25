@@ -1686,7 +1686,6 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-music.sssom.tsv",
     "generated/mappings/gmeow-names.sssom.tsv",
     "generated/mappings/gmeow-narrative.sssom.tsv",
-    "generated/mappings/gmeow-norms.sssom.tsv",
     "generated/mappings/gmeow-notation.sssom.tsv",
     "generated/mappings/gmeow-notes.sssom.tsv",
     "generated/mappings/gmeow-observations.sssom.tsv",

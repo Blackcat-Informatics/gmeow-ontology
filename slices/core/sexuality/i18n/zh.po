@@ -28,4 +28,3 @@ msgstr "sexualOrientationValue 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/sexualOrientationValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:sexualOrientationValue is functional: a gmeow:SexualOrientation facet names exactly one sexual-orientation value — a change of orientation is modelled as a new facet rather than a second value on this functional edge."
 msgstr "在规范载体上断言 gmeow:sexualOrientationValue 是函数性的:一个 gmeow:SexualOrientation 切面恰好指明一个性取向值——取向的改变被建模为一个新的切面,而不是在这条函数性边上添加第二个值。"
-

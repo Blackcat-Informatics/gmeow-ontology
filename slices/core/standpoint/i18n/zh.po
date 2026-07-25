@@ -100,4 +100,3 @@ msgstr "tenureStandpoint 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenureStandpoint is functional: a standpoint-tenure records exactly one frame's position, so it names a single standpoint that becomes the vantage of the generated claim, and a different frame's position is a separate tenure rather than a second — never privileged — standpoint on one."
 msgstr "在规范载体上断言 gmeow:tenureStandpoint 是函数性的:一个立场保有恰好记录一个参照系的立场,因此它指明了成为所生成断言之视角的那唯一一个立场,不同参照系的立场是一个独立的保有,而不是在这一个保有上添加第二个——绝不享有特权的——立场。"
-

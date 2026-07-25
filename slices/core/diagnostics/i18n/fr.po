@@ -44,4 +44,3 @@ msgstr "findingSeverity est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result."
 msgstr "Affirme sur le porteur canonique que gmeow:findingSeverity est fonctionnelle : un gmeow:Finding possède exactement un degré de verdict, un unique gmeow:DiagnosticSeverity qui constitue le résultat de son observation."
-

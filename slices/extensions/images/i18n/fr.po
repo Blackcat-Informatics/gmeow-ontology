@@ -108,4 +108,3 @@ msgstr "selectorType est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/selectorTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:selectorType is functional: a gmeow:RegionSelector has exactly one encoding kind — the single gmeow:SelectorType telling a reader how to decode its boundary coordinates."
 msgstr "Affirme sur le porteur canonique que gmeow:selectorType est fonctionnelle: un gmeow:RegionSelector a exactement un type d'encodage — le seul gmeow:SelectorType indiquant à un lecteur comment décoder ses coordonnées de limite."
-

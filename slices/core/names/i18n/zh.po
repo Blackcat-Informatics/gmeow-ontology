@@ -116,4 +116,3 @@ msgstr "usageRelationshipScope 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRelationshipScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience."
 msgstr "在规范载体上断言 gmeow:usageRelationshipScope 是函数性的:一个 gmeow:NameUsage 恰好受限于一种持久的人际关系——例如「阿姨-侄女」这一唯一纽带,在其中使用「Genny 姨」,这正是 gmeow:usageAudience 中明确的单一关系情形。"
-

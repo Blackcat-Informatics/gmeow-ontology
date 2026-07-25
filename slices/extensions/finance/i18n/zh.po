@@ -132,4 +132,3 @@ msgstr "walletScheme 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets."
 msgstr "在规范载体上断言 gmeow:walletScheme 是函数性的:一个加密钱包恰好运行在一种区块链方案上——单一的 WalletScheme(比特币、以太坊、Solana、门罗币等等),支持多方案的容器应建模为多个钱包。"
-

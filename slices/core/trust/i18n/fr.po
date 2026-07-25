@@ -124,4 +124,3 @@ msgstr "verificationStatus est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/verificationStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:verificationStatus is functional: a gmeow:CryptographicSignature carries exactly one verification outcome from a given verifier, since a competing verifier's differing result is recorded as a separate signature observation rather than a second status here."
 msgstr "Affirme sur le porteur canonique que gmeow:verificationStatus est fonctionnelle : une gmeow:CryptographicSignature porte exactement un résultat de vérification provenant d'un vérificateur donné, puisque le résultat divergent d'un vérificateur concurrent est enregistré comme une observation de signature distincte plutôt que comme un second statut ici."
-

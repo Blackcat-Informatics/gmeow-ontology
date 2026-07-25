@@ -148,4 +148,3 @@ msgstr "underStandard 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/underStandardFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:underStandard is functional: one reified gmeow:KnowledgeClaim is held to exactly one gmeow:EpistemicStandard — the single ordinary, scientific, or legal bar under which the knowing counts — so the same knowing under a different standard is a separate claim."
 msgstr "在规范载体上断言 gmeow:underStandard 是函数性的:一个具象化的 gmeow:KnowledgeClaim 恰好受一个 gmeow:EpistemicStandard 约束——即该项知晓据以成立的唯一日常、科学或法律门槛——因此同一知晓在不同标准下应视为一项独立主张。"
-

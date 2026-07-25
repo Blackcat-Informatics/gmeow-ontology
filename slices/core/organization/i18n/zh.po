@@ -76,4 +76,3 @@ msgstr "postIn 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/postInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post."
 msgstr "在规范载体上断言 gmeow:postIn 是函数性的:一个 gmeow:Post 恰好属于一个组织,同一职位若在另一组织中则构成一个不同的职位。"
-

@@ -140,4 +140,3 @@ msgstr "timeZoneIanaId 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset."
 msgstr "在规范载体上断言 gmeow:timeZoneIanaId 是函数性的:一个时区仅由恰好一个 IANA tzid 命名——即各类库据以解析出其完整夏令时规则集的唯一标识符(例如 America/Toronto)。"
-

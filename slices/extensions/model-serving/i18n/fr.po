@@ -52,4 +52,3 @@ msgstr "sessionSubjectStage est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSubjectStageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:sessionSubjectStage is functional: an agent session acts on behalf of exactly one subject stage, the single session → subject hop that lets an output resolve to its durable subject."
 msgstr "Affirme sur le porteur canonique que gmeow:sessionSubjectStage est fonctionnelle: une session d'agent agit pour le compte d'exactement une étape de sujet, le seul saut session → sujet qui permet à une sortie de se résoudre vers son sujet durable."
-

@@ -380,4 +380,3 @@ msgstr "what3words 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/what3wordsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:what3words is functional: a Geocode holds one what3words address — the three-word label of a single 3m×3m square — so one value fixes its location."
 msgstr "在规范载体上断言 gmeow:what3words 是函数性的:一个 Geocode 持有一个 what3words 地址——即单个 3 米乘 3 米方格的三词标签——因此单一值即可确定其位置。"
-

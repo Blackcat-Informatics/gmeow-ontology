@@ -76,4 +76,3 @@ msgstr "opaqueFrameIn est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain."
 msgstr "Affirme sur le porteur canonique que gmeow:opaqueFrameIn est fonctionnelle : un gmeow:OpaqueFrame appartient à exactement un segment — une trame occupe une position unique dans la chaîne d'un seul segment."
-

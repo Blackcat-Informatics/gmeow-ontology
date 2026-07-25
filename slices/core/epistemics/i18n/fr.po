@@ -148,4 +148,3 @@ msgstr "underStandard est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/underStandardFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:underStandard is functional: one reified gmeow:KnowledgeClaim is held to exactly one gmeow:EpistemicStandard — the single ordinary, scientific, or legal bar under which the knowing counts — so the same knowing under a different standard is a separate claim."
 msgstr "Affirme sur le porteur canonique que gmeow:underStandard est fonctionnelle : une gmeow:KnowledgeClaim réifiée est tenue à exactement un gmeow:EpistemicStandard — le seuil unique, ordinaire, scientifique ou juridique, sous lequel le savoir est validé — de sorte que le même savoir sous un standard différent constitue une revendication distincte."
-

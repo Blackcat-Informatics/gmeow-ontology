@@ -76,4 +76,3 @@ msgstr "tenureIntention est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure."
 msgstr "Affirme sur le porteur canonique que gmeow:tenureIntention est fonctionnelle: une gmeow:IntentionTenure enregistre exactement un désir ou une intention intrinsèque sur son intervalle, de sorte que l'adoption d'un autre mode ouvre une tenure distincte."
-

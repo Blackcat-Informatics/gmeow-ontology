@@ -196,4 +196,3 @@ msgstr "underSemantics 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/underSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:underSemantics is functional: a gmeow:ArgumentEvaluation is computed under exactly one named acceptability semantics, since the semantics fixes the labelling and the same argument assessed under a second semantics is a distinct evaluation."
 msgstr "在规范载体上断言 gmeow:underSemantics 是函数性的:一个 gmeow:ArgumentEvaluation 恰好在一种指名的可接受性语义下计算,因为该语义决定了标注结果,同一论证在第二种语义下评估将构成一个不同的评估。"
-

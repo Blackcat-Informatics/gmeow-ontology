@@ -60,4 +60,3 @@ msgstr "lexicalItemLanguage est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:lexicalItemLanguage is functional: a lexical item has exactly one primary language, a polyglot or borrowed item being modeled as separate items linked by translation or derivation rather than as one item in several languages."
 msgstr "Affirme sur le porteur canonique que gmeow:lexicalItemLanguage est fonctionnelle : un item lexical possède exactement une langue principale, un item polyglotte ou emprunté étant modélisé comme des items distincts reliés par traduction ou dérivation plutôt que comme un seul item existant en plusieurs langues."
-

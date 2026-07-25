@@ -196,4 +196,3 @@ msgstr "underSemantics est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/underSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:underSemantics is functional: a gmeow:ArgumentEvaluation is computed under exactly one named acceptability semantics, since the semantics fixes the labelling and the same argument assessed under a second semantics is a distinct evaluation."
 msgstr "Affirme sur le porteur canonique que gmeow:underSemantics est fonctionnelle : une gmeow:ArgumentEvaluation est calculée sous exactement une sémantique d'acceptabilité nommée, puisque la sémantique fixe l'étiquetage et que le même argument évalué sous une seconde sémantique constitue une évaluation distincte."
-

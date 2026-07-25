@@ -28,4 +28,3 @@ msgstr "versionSet est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:versionSet is functional: each gmeow:VersionMembership places its member into exactly one lineage, so a membership belongs to a single gmeow:VersionSet."
 msgstr "Affirme sur le porteur canonique que gmeow:versionSet est fonctionnelle : chaque gmeow:VersionMembership place son membre dans exactement une lignée, de sorte qu'une appartenance relève d'un unique gmeow:VersionSet."
-

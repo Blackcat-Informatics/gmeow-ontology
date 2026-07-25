@@ -36,4 +36,3 @@ msgstr "「versionOf」具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states."
 msgstr "在规范载体上断言 gmeow:versionOf 是函数式的：一个版本恰好属于一条谱系，正如其 skos:definition 所述。"
-

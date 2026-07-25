@@ -1392,4 +1392,3 @@ msgstr "vocabularySubsumedBy est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source."
 msgstr "Affirme sur le porteur canonique que gmeow:vocabularySubsumedBy est fonctionnelle : chaque gmeow:ProjectionVocabulary protégé est une projection générée et avec perte d'exactement un noyau logic:, de sorte qu'un second subsumeur contredirait la prémisse du Principe 17 selon laquelle la surface se projette à partir d'une source canonique unique."
-

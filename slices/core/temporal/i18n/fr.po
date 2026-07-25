@@ -132,4 +132,3 @@ msgstr "startedAtTime est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued."
 msgstr "Affirme sur le porteur canonique que gmeow:startedAtTime est fonctionnelle: un gmeow:TimeInterval s'ouvre à une seule dateTime précise, puisqu'un intervalle avec deux horodatages de début serait en réalité deux intervalles, ce qui rend la borne de début en ligne à valeur unique."
-

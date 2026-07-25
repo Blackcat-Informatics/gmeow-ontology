@@ -76,4 +76,3 @@ msgstr "tenureIntention 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure."
 msgstr "在规范载体上断言 gmeow:tenureIntention 是函数性的:一个 gmeow:IntentionTenure 在其区间内恰好记录一种内在欲望或意向,采用另一种模式则会开启一个独立的保有。"
-

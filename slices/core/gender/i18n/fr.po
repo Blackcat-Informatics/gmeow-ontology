@@ -28,4 +28,3 @@ msgstr "genderValue est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/genderValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:genderValue is functional: a gmeow:GenderIdentity facet asserts exactly one gender value — bigender or genderfluid persons are modelled as several facets, so multiplicity lives in the facet count and never in a multi-valued edge."
 msgstr "Affirme sur le porteur canonique que gmeow:genderValue est fonctionnelle : une facette gmeow:GenderIdentity affirme exactement une valeur de genre — les personnes bigenres ou genderfluid sont modélisées par plusieurs facettes, de sorte que la multiplicité réside dans le nombre de facettes et jamais dans une relation multivaluée."
-

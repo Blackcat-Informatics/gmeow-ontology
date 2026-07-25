@@ -60,4 +60,3 @@ msgstr "perceptionModality 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered."
 msgstr "在规范载体上断言 gmeow:perceptionModality 是函数性的:一次感官知觉恰好通过一个感官通道进行,即记录该感知值的唯一模态。"
-

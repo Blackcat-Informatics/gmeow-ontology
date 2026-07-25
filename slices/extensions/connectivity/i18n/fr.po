@@ -52,4 +52,3 @@ msgstr "routeStart est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs."
 msgstr "Affirme sur le porteur canonique que gmeow:routeStart est fonctionnelle : un itinéraire prend son origine en exactement un nœud de départ, l'unique point d'où le chemin part."
-

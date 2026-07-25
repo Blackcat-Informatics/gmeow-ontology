@@ -44,4 +44,3 @@ msgstr "knowledgeProficiencySubject 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is."
 msgstr "在规范载体上断言 gmeow:knowledgeProficiencySubject 是函数式的:一个 gmeow:KnowledgeProficiency 恰好涉及一个主体实体——一个主题、人物、地点或事件——它构成了该项能力究竟是关于什么的。"
-

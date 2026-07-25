@@ -36,4 +36,3 @@ msgstr "taggingTagged 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingTaggedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act."
 msgstr "在规范载体上断言 gmeow:taggingTagged 是函数性的:每个 gmeow:Tagging 关系体恰好作用于一个被标记的实体,每一次不同的打标行为都会铸造一个新的关系体。"
-

@@ -76,4 +76,3 @@ msgstr "segmentType 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:segmentType is functional: a content segment is of exactly one structural kind — a single gmeow:ContentSegmentType value such as chapter, section, or scene — because the kind axis is carried as a property value rather than a subclass (Principle 9) and one segment cannot simultaneously be two structural kinds."
 msgstr "在规范载体上断言 gmeow:segmentType 是函数性的:一个内容段落恰好属于一种结构类型——单一的 gmeow:ContentSegmentType 值,例如 chapter、section 或 scene——因为该类型轴是作为属性值而非子类来承载的(原则 9),一个段落不能同时属于两种结构类型。"
-

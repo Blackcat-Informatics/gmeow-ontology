@@ -36,4 +36,3 @@ msgstr "serviceShutdownDate 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:serviceShutdownDate is functional: a historical online service ceases operation once, so the flat shutdown date that projects to schema:dissolutionDate is a single dissolution timestamp per service, with any evidence- or standpoint-bearing dispute promoted to a destruction LifeEvent instead of a rival flat date."
 msgstr "在规范载体上断言 gmeow:serviceShutdownDate 是函数性的:一项历史性在线服务只会停止运营一次,因此投影到 schema:dissolutionDate 的这个扁平关闭日期对每项服务而言是单一的解散时间戳,任何带有证据或立场的争议都应升级为一个销毁类 LifeEvent,而不是一个与之竞争的扁平日期。"
-

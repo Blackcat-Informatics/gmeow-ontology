@@ -60,4 +60,3 @@ msgstr "lexicalItemLanguage 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:lexicalItemLanguage is functional: a lexical item has exactly one primary language, a polyglot or borrowed item being modeled as separate items linked by translation or derivation rather than as one item in several languages."
 msgstr "在规范载体上断言 gmeow:lexicalItemLanguage 是函数式的:一个词汇项恰好只有一种主要语言,多语或借用的词项被建模为通过翻译或派生关系连接的多个独立词项,而不是一个跨越多种语言的单一词项。"
-

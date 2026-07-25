@@ -60,4 +60,3 @@ msgstr "tenuredContactPoint 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenuredContactPoint is functional: an address-tenure is about a single contact-point channel held over its interval, so the tenure names one contact point and a different channel is a distinct tenure rather than a second point on one."
 msgstr "在规范载体上断言 gmeow:tenuredContactPoint 是函数性的:一项地址保有权针对的是在其区间内持有的单一联系点渠道,因此该保有权只指明一个联系点,不同的渠道构成一项独立的保有权,而不是在这一个保有权上添加第二个点。"
-

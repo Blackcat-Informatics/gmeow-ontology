@@ -180,4 +180,3 @@ msgstr "withMetric 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:withMetric is functional: a similarity observation's proximity was computed under exactly one distance metric, because a cosine 0.9 and a dot-product 0.9 are not the same claim; the observation therefore names the single metric its score was measured under, which must in turn agree with its gmeow:overVectorSpace contract's metric."
 msgstr "在规范载体上断言 gmeow:withMetric 是函数性的:一次相似度观察的接近程度恰好在一种距离度量下计算得出,因为余弦值 0.9 和点积值 0.9 并非同一种论断;因此该观察指明其分数据以测量的唯一度量,而该度量又必须与其 gmeow:overVectorSpace 契约的度量相一致。"
-

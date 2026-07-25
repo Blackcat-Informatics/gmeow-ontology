@@ -20,4 +20,3 @@ msgstr "stageImpl est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:stageImpl is functional: each gmeow:PipelineStage binds to exactly one Rust Stage implementation in the STAGE_REGISTRY and the loader hard-fails when the key resolves to no implementation, so a stage carries a single registry-key value."
 msgstr "Affirme sur le porteur canonique que gmeow:stageImpl est fonctionnelle: chaque gmeow:PipelineStage se lie à exactement une implémentation Rust Stage dans le STAGE_REGISTRY, et le chargeur échoue de manière stricte lorsque la clé ne correspond à aucune implémentation, de sorte qu'une étape porte une seule valeur de clé de registre."
-

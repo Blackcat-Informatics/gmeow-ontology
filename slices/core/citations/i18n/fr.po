@@ -36,4 +36,3 @@ msgstr "citingEntity est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing."
 msgstr "Affirme sur le porteur canonique que gmeow:citingEntity est fonctionnelle : chaque relateur gmeow:CitationAct possède exactement un acteur citant — l'unique revendication, œuvre, module ou jeu de données qui effectue la citation."
-

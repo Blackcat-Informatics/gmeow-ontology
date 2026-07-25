@@ -380,4 +380,3 @@ msgstr "what3words est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/what3wordsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:what3words is functional: a Geocode holds one what3words address — the three-word label of a single 3m×3m square — so one value fixes its location."
 msgstr "Affirme sur le porteur canonique que gmeow:what3words est fonctionnelle : un Geocode détient une adresse what3words — l'étiquette à trois mots d'un carré unique de 3 m × 3 m — de sorte qu'une seule valeur fixe son emplacement."
-

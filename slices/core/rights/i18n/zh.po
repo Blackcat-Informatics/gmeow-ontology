@@ -992,4 +992,3 @@ msgstr "trademarkStatus 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:trademarkStatus is functional: a trademark occupies exactly one registration status at any time — unregistered ™, registered ®, pending, expired, or cancelled — mutually exclusive lifecycle states, so on lapse the single value changes (with gmeow:validUntil recorded) rather than a second status being added."
 msgstr "在规范载体上断言 gmeow:trademarkStatus 是函数性的:一个商标在任一时刻恰好处于一种注册状态——未注册 ™、已注册 ®、待审、失效或已撤销——这些是互斥的生命周期状态,因此失效时应更改这一单值(同时记录 gmeow:validUntil),而不是添加第二个状态。"
-

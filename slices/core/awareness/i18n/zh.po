@@ -20,4 +20,3 @@ msgstr "awarenessSubject 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:awarenessSubject is functional: each gmeow:AwarenessTenure reifies the awareness state of exactly one bearer agent, so this per-branch subject edge (Principle 4, deliberately not gufo:inheresIn) names a single experiencer for the mode-over-interval it records."
 msgstr "在规范载体上断言 gmeow:awarenessSubject 是函数性的:每个 gmeow:AwarenessTenure 恰好具体化一个承载主体的意识状态,因此这条按分支划分的主体边(原则4,刻意区别于 gufo:inheresIn)为其所记录的区间上模式命名了唯一的体验者。"
-

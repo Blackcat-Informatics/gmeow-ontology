@@ -764,4 +764,3 @@ msgstr "voiceTuningFrame est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/voiceTuningFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:voiceTuningFrame is functional: a Voice hosts exactly one TuningSystem under its closed-world shape, with coexisting tunings deferred to statement-layer claims (Principle 11)."
 msgstr "Affirme sur le porteur canonique que gmeow:voiceTuningFrame est fonctionnelle : une Voice héberge exactement un TuningSystem sous sa forme à monde fermé, les accords coexistants étant renvoyés aux énoncés de la couche des déclarations (Principe 11)."
-

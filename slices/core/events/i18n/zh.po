@@ -52,4 +52,3 @@ msgstr "「subEventOf」具有传递性"
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."
 msgstr "在规范载体上断言 gmeow:subEventOf 是传递的：部分的部分即是部分——这是其自身 skos:definition 所承诺的解读（CIDOC-CRM P9）。原生一致性关卡读取此项以闭合子事件关系。"
-

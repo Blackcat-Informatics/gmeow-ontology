@@ -140,4 +140,3 @@ msgstr "treeEntryObject 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names."
 msgstr "在规范载体上断言 gmeow:treeEntryObject 是函数性的:一个树条目恰好指向一个内容寻址对象——即树中那一行所命名的唯一 Blob 或 SourceTree。"
-

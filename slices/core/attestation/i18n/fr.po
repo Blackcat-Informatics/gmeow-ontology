@@ -92,4 +92,3 @@ msgstr "transactionHash est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:transactionHash is functional: a ledger transaction has one stable on-chain identity hash, so the value used to look up and re-verify it is single, distinct from the hash of its block or the identifier of its network."
 msgstr "Affirme sur le porteur canonique que gmeow:transactionHash est fonctionnelle : une transaction de registre possède un hachage d'identité on-chain stable et unique, de sorte que la valeur utilisée pour la retrouver et la revérifier est unique, distincte du hachage de son bloc ou de l'identifiant de son réseau."
-

@@ -124,4 +124,3 @@ msgstr "verificationStatus 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/verificationStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:verificationStatus is functional: a gmeow:CryptographicSignature carries exactly one verification outcome from a given verifier, since a competing verifier's differing result is recorded as a separate signature observation rather than a second status here."
 msgstr "在规范载体上断言 gmeow:verificationStatus 是函数性的:一个 gmeow:CryptographicSignature 恰好携带来自某一验证者的一个验证结果,因为竞争验证者给出的不同结果应记录为一次独立的签名观察,而不是在此处增加第二个状态。"
-

@@ -244,4 +244,3 @@ msgstr "les pôles de récompense et de pénalité d'un critère sont distincts"
 msgctxt "https://blackcatinformatics.ca/gmeow/criterionPoleDistinctness|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide."
 msgstr "Affirme que le gmeow:rewardPole et le gmeow:penaltyPole d'un gmeow:Criterion doivent être distincts : un pôle unique ne fait pas un axe. La barrière de cohérence native lève une violation lorsqu'ils coïncident."
-

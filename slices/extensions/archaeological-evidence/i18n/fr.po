@@ -60,4 +60,3 @@ msgstr "transliterationOf est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes."
 msgstr "Affirme sur le porteur canonique que gmeow:transliterationOf est fonctionnelle : une translittération d'inscription transpose exactement une inscription source dans une autre écriture, l'unique texte dont elle recode les séquences de signes."
-

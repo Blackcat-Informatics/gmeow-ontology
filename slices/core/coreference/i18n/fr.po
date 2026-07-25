@@ -36,4 +36,3 @@ msgstr "« versionOf » est fonctionnel"
 msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states."
 msgstr "Affirme sur le porteur canonique que gmeow:versionOf est fonctionnelle : une version appartient à exactement une lignée, comme l'indique sa skos:definition."
-

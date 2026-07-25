@@ -60,4 +60,3 @@ msgstr "stateLanguage est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/stateLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about."
 msgstr "Affirme sur le porteur canonique que gmeow:stateLanguage est fonctionnelle: un relateur LanguageState décrit l'état d'exactement une langue, variété ou version sujette — la seule langue dont le statut fait l'objet de l'affirmation réifiée."
-

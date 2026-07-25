@@ -28,4 +28,3 @@ msgstr "tenureQuestion est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenureQuestion is functional: a gmeow:InquiryTenure records exactly one held-open question — an agent holding five questions open bears five tenures, and sharing happens at a single gmeow:Question individual rather than by multi-valuing this edge."
 msgstr "Affirme sur le porteur canonique que gmeow:tenureQuestion est fonctionnelle: une gmeow:InquiryTenure enregistre exactement une question maintenue ouverte — un agent maintenant cinq questions ouvertes porte cinq tenures, et le partage se fait au niveau d'un seul individu gmeow:Question plutôt qu'en multi-valuant cette relation."
-

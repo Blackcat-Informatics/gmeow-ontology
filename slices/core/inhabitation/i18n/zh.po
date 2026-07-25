@@ -60,4 +60,3 @@ msgstr "inhabitedHost 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure."
 msgstr "在规范载体上断言 gmeow:inhabitedHost 是函数性的:一个 gmeow:InhabitationTenure 恰好有一个被占用的宿主,因此同一主体占用第二个宿主即构成一个不同的租期。"
-

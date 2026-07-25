@@ -100,4 +100,3 @@ msgstr "tenureStandpoint est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenureStandpoint is functional: a standpoint-tenure records exactly one frame's position, so it names a single standpoint that becomes the vantage of the generated claim, and a different frame's position is a separate tenure rather than a second — never privileged — standpoint on one."
 msgstr "Affirme sur le porteur canonique que gmeow:tenureStandpoint est fonctionnelle: une tenure de point de vue enregistre exactement la position d'un seul repère, de sorte qu'elle nomme un unique point de vue qui devient la perspective de l'affirmation générée, et la position d'un repère différent constitue une tenure distincte plutôt qu'un second point de vue — jamais privilégié — sur celle-ci."
-

@@ -164,4 +164,3 @@ msgstr "vocabularySubsumedBy 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source."
 msgstr "在规范载体上断言 gmeow:vocabularySubsumedBy 是函数性的:每个受保护的 gmeow:ProjectionVocabulary 恰好是某一个 logic: 核心生成出的有损投影,若存在第二个包摄者,将与原则 17「表层由单一规范来源投影而来」的前提相矛盾。"
-

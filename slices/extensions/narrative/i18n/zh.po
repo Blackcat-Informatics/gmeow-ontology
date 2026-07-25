@@ -172,4 +172,3 @@ msgstr "storyTimeOf 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/storyTimeOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:storyTimeOf is functional: a story-time frame coordinatizes the in-universe chronology of exactly one narrative reference frame, and a competing continuity carries its own story-time frame rather than a second anchoring on this one."
 msgstr "在规范载体上断言 gmeow:storyTimeOf 是函数性的:一个故事时间参照系恰好为一个叙事参照系的宇宙内编年史提供坐标,竞争性的连续性设定会携带其自身的故事时间参照系,而不是在这一个参照系上添加第二个锚定。"
-

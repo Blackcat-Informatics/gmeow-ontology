@@ -28,4 +28,3 @@ msgstr "tenureQuestion 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenureQuestion is functional: a gmeow:InquiryTenure records exactly one held-open question — an agent holding five questions open bears five tenures, and sharing happens at a single gmeow:Question individual rather than by multi-valuing this edge."
 msgstr "在规范载体上断言 gmeow:tenureQuestion 是函数性的:一个 gmeow:InquiryTenure 恰好记录一个被悬置的问题——一个主体同时悬置五个问题就拥有五个保有,共享发生在单一的 gmeow:Question 个体层面,而不是通过给这条边赋多个值来实现。"
-

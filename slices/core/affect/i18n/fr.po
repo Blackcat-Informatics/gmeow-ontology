@@ -212,4 +212,3 @@ msgstr "weightingPolicy est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/weightingPolicyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:weightingPolicy is functional: a derived intensity combines its axes under exactly one declared weighting policy — the single set of diagonal/off-diagonal Gram weights — so two policies would specify two different metrics for one intensity."
 msgstr "Affirme sur le porteur canonique que gmeow:weightingPolicy est fonctionnelle : une intensité dérivée combine ses axes sous exactement une politique de pondération déclarée — l'ensemble unique de poids de Gram diagonaux/hors diagonale — de sorte que deux politiques spécifieraient deux métriques différentes pour une seule intensité."
-

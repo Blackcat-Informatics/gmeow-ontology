@@ -76,4 +76,3 @@ msgstr "segmentType est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:segmentType is functional: a content segment is of exactly one structural kind — a single gmeow:ContentSegmentType value such as chapter, section, or scene — because the kind axis is carried as a property value rather than a subclass (Principle 9) and one segment cannot simultaneously be two structural kinds."
 msgstr "Affirme sur le porteur canonique que gmeow:segmentType est fonctionnelle: un segment de contenu est d'exactement un type structurel — une seule valeur gmeow:ContentSegmentType telle que chapter, section ou scene — car l'axe du type est porté comme une valeur de propriété plutôt que comme une sous-classe (Principe 9), et un segment ne peut pas être simultanément de deux types structurels."
-

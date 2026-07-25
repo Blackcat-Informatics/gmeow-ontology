@@ -76,4 +76,3 @@ msgstr "realizationMode 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:realizationMode is functional: an Expression realizes its Work in one mode — notated, performed, improvised, oral, or machine-generated — so a notated and a performed rendition of the same Work are two Expressions, each with its single mode, rather than one Expression bearing several modes."
 msgstr "在规范载体上断言 gmeow:realizationMode 是函数性的:一个「表达」以一种模式实现其「作品」——记谱、演奏、即兴、口传或机器生成——因此同一作品的记谱版本与演奏版本是两个各自只有一种模式的「表达」,而不是一个「表达」承载多种模式。"
-

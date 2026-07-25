@@ -28,4 +28,3 @@ msgstr "sexualOrientationValue est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/sexualOrientationValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:sexualOrientationValue is functional: a gmeow:SexualOrientation facet names exactly one sexual-orientation value — a change of orientation is modelled as a new facet rather than a second value on this functional edge."
 msgstr "Affirme sur le porteur canonique que gmeow:sexualOrientationValue est fonctionnelle: une facette gmeow:SexualOrientation nomme exactement une valeur d'orientation sexuelle — un changement d'orientation est modélisé comme une nouvelle facette plutôt que comme une seconde valeur sur cette relation fonctionnelle."
-

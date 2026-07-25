@@ -76,4 +76,3 @@ msgstr "opaqueFrameIn 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain."
 msgstr "在规范载体上断言 gmeow:opaqueFrameIn 是函数性的:一个 gmeow:OpaqueFrame 恰好属于一个片段——一帧在某一个片段的链中占据单一位置。"
-

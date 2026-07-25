@@ -44,4 +44,3 @@ msgstr "employmentType est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/employmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:employmentType is functional: an employment has exactly one canonical type at a time, so a change of type is a new employment record rather than one employment that is both full-time and contract at once."
 msgstr "Affirme sur le porteur canonique que gmeow:employmentType est fonctionnelle : un emploi possède exactement un type canonique à la fois, de sorte qu'un changement de type constitue un nouvel enregistrement d'emploi plutôt qu'un seul emploi étant à la fois à temps plein et sous contrat."
-

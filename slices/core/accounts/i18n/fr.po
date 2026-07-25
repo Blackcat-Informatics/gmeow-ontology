@@ -36,4 +36,3 @@ msgstr "serviceShutdownDate est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:serviceShutdownDate is functional: a historical online service ceases operation once, so the flat shutdown date that projects to schema:dissolutionDate is a single dissolution timestamp per service, with any evidence- or standpoint-bearing dispute promoted to a destruction LifeEvent instead of a rival flat date."
 msgstr "Affirme sur le porteur canonique que gmeow:serviceShutdownDate est fonctionnelle: un service en ligne historique cesse ses activités une seule fois, de sorte que la date de fermeture plate qui se projette sur schema:dissolutionDate est un horodatage de dissolution unique par service, tout litige porteur de preuves ou de points de vue étant promu en un LifeEvent de destruction plutôt qu'en une date plate concurrente."
-

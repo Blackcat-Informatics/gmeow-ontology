@@ -4,7 +4,7 @@ expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
-Version **16**.
+Version **17**.
 
 This site documents **6484** vocabulary terms across **85** slices.
 
@@ -36,11 +36,11 @@ This site documents **6484** vocabulary terms across **85** slices.
 
 - [All slices](slices/index.md) — the 85 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
-- [Linkages](linkages/index.md) — 2125 term equivalences to external vocabularies.
+- [Linkages](linkages/index.md) — 2123 term equivalences to external vocabularies.
 - [Examples](examples/index.md) — 193 worked examples.
 - [External ontologies](external-ontologies/index.md) — 1803 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
-- [What GMEOW enforces](enforced-constraints/index.md) — 63 validation rules the toolchain enforces.
+- [What GMEOW enforces](enforced-constraints/index.md) — 71 validation rules the toolchain enforces.
 - [Recipes](recipes/index.md) — 6 task-oriented adoption recipes.
 - [Learning paths](learning-paths/index.md) — 5 curated adoption journeys.
 - [What is this?](four-boxes/index.md) — the ABox/TBox/RBox/CBox/ConfigBox doctrine.

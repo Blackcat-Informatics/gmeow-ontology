@@ -44,4 +44,3 @@ msgstr "employmentType 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/employmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:employmentType is functional: an employment has exactly one canonical type at a time, so a change of type is a new employment record rather than one employment that is both full-time and contract at once."
 msgstr "在规范载体上断言 gmeow:employmentType 是函数性的：一份雇佣关系在同一时刻恰好拥有一个规范类型，因此类型变更应记录为一条新的雇佣记录，而不是让同一份雇佣关系同时既是全职又是合同制。"
-

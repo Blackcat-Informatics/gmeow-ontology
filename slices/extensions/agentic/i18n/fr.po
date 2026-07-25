@@ -44,4 +44,3 @@ msgstr "usedTool est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls."
 msgstr "Affirme sur le porteur canonique que gmeow:usedTool est fonctionnelle : un appel d'outil invoque exactement un outil, puisque l'outillité est le rôle que joue un agent dans cet unique événement d'appel, et un tour multi-outils est enregistré comme plusieurs ToolCalls."
-

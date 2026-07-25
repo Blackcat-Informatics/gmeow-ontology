@@ -20,4 +20,3 @@ msgstr "ingestedAt est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:ingestedAt is functional: a gmeow:ImportActivity has a single transaction time — the one instant it recorded its claims into the system — so exactly one xsd:dateTime stamps the activity, keeping the ingest axis distinct from assertion and validity."
 msgstr "Affirme sur le porteur canonique que gmeow:ingestedAt est fonctionnelle : une gmeow:ImportActivity possède un unique temps de transaction — l'instant unique où elle a enregistré ses affirmations dans le système — de sorte qu'un unique xsd:dateTime horodate l'activité, maintenant l'axe d'ingestion distinct de ceux d'affirmation et de validité."
-

@@ -60,4 +60,3 @@ msgstr "verifierOutcome est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierOutcomeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on."
 msgstr "Affirme sur le porteur canonique que gmeow:verifierOutcome est fonctionnelle : un gmeow:VerifierVerdict possède exactement une valeur de résultat — le résultat unique tenu / non tenu / indéterminé sur lequel se fonde le portail d'échec bloquant."
-

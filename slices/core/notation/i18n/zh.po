@@ -52,4 +52,3 @@ msgstr "notationUsageTarget 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system."
 msgstr "在规范载体上断言 gmeow:notationUsageTarget 是函数性的:一个 gmeow:NotationSystemUsage 恰好有一个使用该记谱系统的目标实体。"
-

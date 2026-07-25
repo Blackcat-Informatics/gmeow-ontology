@@ -60,4 +60,3 @@ msgstr "stateLanguage 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/stateLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about."
 msgstr "在规范载体上断言 gmeow:stateLanguage 是函数性的:一个 LanguageState 关系体恰好描述一种主体语言、变体或版本的状态——即该具化断言所关乎其状态的那唯一一种语言。"
-

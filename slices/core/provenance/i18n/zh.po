@@ -20,4 +20,3 @@ msgstr "ingestedAt 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/ingestedAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:ingestedAt is functional: a gmeow:ImportActivity has a single transaction time — the one instant it recorded its claims into the system — so exactly one xsd:dateTime stamps the activity, keeping the ingest axis distinct from assertion and validity."
 msgstr "在规范载体上断言 gmeow:ingestedAt 是函数性的:一个 gmeow:ImportActivity 恰好有一个单一的事务时间——它将其主张记录进系统的那一时刻——因此恰好有一个 xsd:dateTime 为该活动打上时间戳,使摄入轴与断言轴、有效性轴保持区分。"
-

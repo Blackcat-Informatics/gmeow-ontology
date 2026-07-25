@@ -52,4 +52,3 @@ msgstr "« subEventOf » est transitif"
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."
 msgstr "Affirme sur le porteur canonique que gmeow:subEventOf est transitif : une partie d'une partie est une partie — la lecture à laquelle sa propre skos:definition s'engage (CIDOC-CRM P9). La barrière de cohérence native le lit pour clôturer la relation de sous-événement."
-

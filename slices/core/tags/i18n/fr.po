@@ -36,4 +36,3 @@ msgstr "taggingTagged est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingTaggedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act."
 msgstr "Affirme sur le porteur canonique que gmeow:taggingTagged est fonctionnelle: chaque relateur gmeow:Tagging s'applique à exactement une entité étiquetée, un nouveau relateur étant frappé pour chaque acte d'étiquetage distinct."
-

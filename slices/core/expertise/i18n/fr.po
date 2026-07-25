@@ -52,4 +52,3 @@ msgstr "skillProficiencyScale est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record."
 msgstr "Affirme sur le porteur canonique que gmeow:skillProficiencyScale est fonctionnelle: le niveau d'une gmeow:SkillProficiency est mesuré sur exactement une échelle (Dreyfus, NIH, évaluée ou auto-déclarée), de sorte que le même niveau atteint, lu sur une autre échelle, constitue un enregistrement de compétence distinct."
-

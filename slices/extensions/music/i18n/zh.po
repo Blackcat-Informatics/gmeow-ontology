@@ -764,4 +764,3 @@ msgstr "voiceTuningFrame 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/voiceTuningFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:voiceTuningFrame is functional: a Voice hosts exactly one TuningSystem under its closed-world shape, with coexisting tunings deferred to statement-layer claims (Principle 11)."
 msgstr "在规范载体上断言 gmeow:voiceTuningFrame 是函数性的:一个 Voice 在其闭世界形态下恰好承载一个 TuningSystem,共存的调律体系应交由陈述层的主张处理(原则 11)。"
-

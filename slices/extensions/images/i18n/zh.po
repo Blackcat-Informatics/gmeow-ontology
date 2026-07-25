@@ -108,4 +108,3 @@ msgstr "selectorType 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/selectorTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:selectorType is functional: a gmeow:RegionSelector has exactly one encoding kind — the single gmeow:SelectorType telling a reader how to decode its boundary coordinates."
 msgstr "在规范载体上断言 gmeow:selectorType 是函数性的:一个 gmeow:RegionSelector 恰好有一种编码类型——即告知读取者如何解码其边界坐标的唯一 gmeow:SelectorType。"
-

@@ -44,4 +44,3 @@ msgstr "partOf est transitif"
 msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."
 msgstr "Affirme sur le porteur canonique que gmeow:partOf est transitif : l'échine universelle partie-à-tout que sa skos:definition nomme comme transitive et intentionnellement large. La barrière de cohérence native lit ceci pour clore l'échine de partie."
-

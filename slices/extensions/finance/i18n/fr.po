@@ -132,4 +132,3 @@ msgstr "walletScheme est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets."
 msgstr "Affirme sur le porteur canonique que gmeow:walletScheme est fonctionnelle : un portefeuille crypto opère sur exactement un schéma de chaîne de blocs — un unique WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), un contenant multi-schémas étant modélisé comme plusieurs portefeuilles."
-

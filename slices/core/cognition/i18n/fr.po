@@ -44,4 +44,3 @@ msgstr "knowledgeProficiencySubject est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is."
 msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencySubject est fonctionnelle : une gmeow:KnowledgeProficiency concerne exactement une entité sujet — un sujet, une personne, un lieu ou un événement — constitutive de la compétence dont il s'agit."
-

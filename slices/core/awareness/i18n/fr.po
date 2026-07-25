@@ -20,4 +20,3 @@ msgstr "awarenessSubject est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:awarenessSubject is functional: each gmeow:AwarenessTenure reifies the awareness state of exactly one bearer agent, so this per-branch subject edge (Principle 4, deliberately not gufo:inheresIn) names a single experiencer for the mode-over-interval it records."
 msgstr "Affirme sur le porteur canonique que gmeow:awarenessSubject est fonctionnelle : chaque gmeow:AwarenessTenure réifie l'état de conscience d'exactement un agent porteur, de sorte que cette arête sujet par branche (Principe 4, délibérément distincte de gufo:inheresIn) nomme un unique sujet vivant l'expérience pour le mode-sur-intervalle qu'elle enregistre."
-

@@ -28,4 +28,3 @@ msgstr "minimumPopulation 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time."
 msgstr "在规范载体上断言 gmeow:minimumPopulation 是函数式的:一个空间聚合恰好携带一个 k-匿名阈值,即在投影时若结果所涉人口规模低于该单一最小值便会被抑制的那个数值。"
-

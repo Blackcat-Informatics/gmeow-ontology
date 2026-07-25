@@ -140,4 +140,3 @@ msgstr "unit 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/unitFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:unit is functional: a framed quantitative value is expressed in exactly one QUDT unit — the single unit the reading is stated in, held on the framed math:Quantity and never on the frame-independent gmeow:Magnitude, so a value read in another unit is a distinct framed quantity while a value bearing gmeow:unit but no reference frame is instead the logic:MeasurementFrameMissing violation."
 msgstr "在规范载体上断言 gmeow:unit 是函数性的:一个带参照系的定量值恰好以一个 QUDT 单位表达——即该读数所依据的唯一单位,承载于带参照系的 math:Quantity 之上,绝不承载于与参照系无关的 gmeow:Magnitude 之上,因此以另一单位读取的值构成一个不同的带参照系量,而带有 gmeow:unit 却没有参照系的值则构成 logic:MeasurementFrameMissing 违规。"
-

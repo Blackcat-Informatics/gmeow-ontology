@@ -36,4 +36,3 @@ msgstr "citingEntity 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing."
 msgstr "在规范载体上断言 gmeow:citingEntity 是函数式的：每个 gmeow:CitationAct 关系体恰好有一个施引方——即执行引用行为的唯一主张、作品、模块或数据集。"
-

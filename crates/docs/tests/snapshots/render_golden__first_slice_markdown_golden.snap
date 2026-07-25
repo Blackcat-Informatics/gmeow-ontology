@@ -30,7 +30,7 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `manifest.ttl` | `text/turtle` | `266cbc93bb4a` |
+| `manifest.ttl` | `text/turtle` | `9b80c28a6ae4` |
 
 ### Mappings
 
@@ -42,7 +42,7 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `module.ttl` | `text/turtle` | `f16507ba3529` |
+| `module.ttl` | `text/turtle` | `807ab997dee3` |
 
 ### Tests
 
@@ -50,14 +50,24 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 | --- | --- | --- |
 | `tests/structural.ttl` | `text/turtle` | `7024bdab47ba` |
 
-## Terms \(9\)
+### Translations
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `i18n/fr.po` | `application/octet-stream` | `7202e69b266f` |
+| `i18n/zh.po` | `application/octet-stream` | `b15cbc98cb7b` |
+
+## Terms \(12\)
 
 - [`gmeow:AccessibilityAssertion`](../../terms/accessibilityassertion/index.md) — Class
 - [`gmeow:AccessibilityFacet`](../../terms/accessibilityfacet/index.md) — Class
 - [`gmeow:AccessibilityPolarity`](../../terms/accessibilitypolarity/index.md) — Class
 - [`gmeow:assertionFacet`](../../terms/assertionfacet/index.md) — Property
+- [`gmeow:assertionFacetFunctionality`](../../terms/assertionfacetfunctionality/index.md) — Individual
 - [`gmeow:assertionPolarity`](../../terms/assertionpolarity/index.md) — Property
+- [`gmeow:assertionPolarityFunctionality`](../../terms/assertionpolarityfunctionality/index.md) — Individual
 - [`gmeow:assertionSubject`](../../terms/assertionsubject/index.md) — Property
+- [`gmeow:assertionSubjectFunctionality`](../../terms/assertionsubjectfunctionality/index.md) — Individual
 - [`gmeow:hasAccessibilityFeature`](../../terms/hasaccessibilityfeature/index.md) — Property
 - [`gmeow:hasAccessibilityNeed`](../../terms/hasaccessibilityneed/index.md) — Property
 - [`gmeow:hasBarrier`](../../terms/hasbarrier/index.md) — Property

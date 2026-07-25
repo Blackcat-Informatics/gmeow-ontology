@@ -116,4 +116,3 @@ msgstr "usedModel 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/usedModelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:usedModel is functional: a model invocation called exactly one model agent, so the invocation-to-model link carries a single gmeow:SoftwareAgent and a second model called is a second invocation rather than an added target on one."
 msgstr "在规范载体上断言 gmeow:usedModel 是函数性的:一次模型调用恰好调用了一个模型代理,因此调用到模型的链接只携带一个 gmeow:SoftwareAgent,调用第二个模型应视为第二次调用,而非在同一次调用上添加目标。"
-

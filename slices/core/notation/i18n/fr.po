@@ -52,4 +52,3 @@ msgstr "notationUsageTarget est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system."
 msgstr "Affirme sur le porteur canonique que gmeow:notationUsageTarget est fonctionnelle : un gmeow:NotationSystemUsage a exactement une entité cible qui utilise le système de notation."
-

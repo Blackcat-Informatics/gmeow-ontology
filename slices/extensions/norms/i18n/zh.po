@@ -244,4 +244,3 @@ msgstr "准则的奖励极与惩罚极是不同的"
 msgctxt "https://blackcatinformatics.ca/gmeow/criterionPoleDistinctness|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide."
 msgstr "断言一个 gmeow:Criterion 的 gmeow:rewardPole 与 gmeow:penaltyPole 必须相异：单一的极点不构成轴。当二者重合时，原生一致性关卡会引发一个违规。"
-

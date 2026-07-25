@@ -44,4 +44,3 @@ msgstr "usedTool 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls."
 msgstr "在规范载体上断言 gmeow:usedTool 是函数性的:一次工具调用恰好调用一个工具,因为「工具性」是代理在这一次调用事件中所扮演的角色,一个涉及多个工具的回合应记录为多个 ToolCall。"
-

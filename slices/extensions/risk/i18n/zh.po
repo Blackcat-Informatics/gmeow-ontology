@@ -68,4 +68,3 @@ msgstr "linkNext 无环"
 msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:linkNext is acyclic: a causal-cascade walk never reaches itself through gmeow:linkNext, as the Cascade prose states. linkNext is deliberately NOT transitive (it names the immediate next link, not every downstream one), so the native coherence gate enforces this with an internal reachability walk that raises a violation on any cycle, never by materialising the closure; the generated SHACL constraint surface is its projection."
 msgstr "在规范载体上断言 gmeow:linkNext 是无环的：一次因果级联行走绝不经由 gmeow:linkNext 到达自身，正如 Cascade 散文所述。linkNext 有意并非传递（它命名紧邻的下一个链接，而非每一个下游链接），故原生一致性门以一次内部可达性行走来强制此点，对任何环抛出违反，绝不物化闭包；所生成的 SHACL 约束面是其投影。"
-

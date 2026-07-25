@@ -44,4 +44,3 @@ msgstr "summarizesCommunity est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from."
 msgstr "Affirme sur le porteur canonique que gmeow:summarizesCommunity est fonctionnelle: un résumé de communauté condense exactement une communauté, le seul groupe dont les membres et fragments ont servi à générer le résumé."
-

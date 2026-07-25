@@ -20,4 +20,3 @@ msgstr "experiencer 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/experiencerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:experiencer is functional: a mental occurrent inheres in exactly one agent, so a gmeow:MentalProcess has a single experiencer — two agents reasoning about the same subject are two distinct processes."
 msgstr "在规范载体上断言 gmeow:experiencer 是函数性的：一个心理发生项恰好内在于一个主体，因此一个 gmeow:MentalProcess 只有唯一的体验者——两个主体就同一话题进行推理，构成两个不同的过程。"
-

@@ -28,4 +28,3 @@ msgstr "genderValue 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/genderValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:genderValue is functional: a gmeow:GenderIdentity facet asserts exactly one gender value — bigender or genderfluid persons are modelled as several facets, so multiplicity lives in the facet count and never in a multi-valued edge."
 msgstr "在规范载体上断言 gmeow:genderValue 是函数性的：一个 gmeow:GenderIdentity 侧面恰好断言一个性别值——双性别或流性别者被建模为多个侧面，因此多重性体现在侧面的数量上，而绝不体现在某条多值边上。"
-
