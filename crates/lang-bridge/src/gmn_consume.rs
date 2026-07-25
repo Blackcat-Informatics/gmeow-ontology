@@ -524,32 +524,57 @@ pub fn consume_project(
     // that references it, so each admissible blank rides exactly one emitted claim.
     let claim_quads = assemble_claim_quads(&claims, &admitted_claim_keys, &admitted_blank);
 
-    // Greedy prefix fit: include whole claims in canonical order while the running GMN-1 token
-    // estimate stays within budget (always at least one), disclosing any elided remainder.
     let mut emitted_quads: Vec<RdfQuad> = Vec::new();
     let mut emitted_claims = 0usize;
     let mut last_text = String::new();
     let mut last_tokens = 0u64;
-    for key in &admitted_claim_keys {
-        let mut candidate = emitted_quads.clone();
-        for q in claim_quads.get(key).into_iter().flatten() {
-            candidate.push((*q).clone());
+    if budget.is_none() {
+        // Unbudgeted fit (the common `gmn project` path): no elision is possible, so every
+        // admitted claim is emitted whole. Assemble the full admitted model and encode ONCE —
+        // byte-identical to the greedy loop's final iteration, since `gmn1_write` is deterministic
+        // over the whole quad set — instead of re-cloning + re-encoding the growing prefix per
+        // claim (which is O(n²) purely to compute the same final text and token count).
+        for key in &admitted_claim_keys {
+            for q in claim_quads.get(key).into_iter().flatten() {
+                emitted_quads.push((*q).clone());
+            }
         }
-        let candidate_model = Gmn0Model {
-            quads: candidate.clone(),
-        };
-        let doc = gmn1_write(&candidate_model, dict).map_err(GmnConsumeError::Codec)?;
-        let tokens = estimate_tokens(&doc.text);
-        if emitted_claims > 0
-            && let Some(b) = budget
-            && tokens > b
-        {
-            break; // stop before the budget is exceeded — a hard cap, never a mid-claim cut
+        emitted_claims = admitted_claim_keys.len();
+        if emitted_claims > 0 {
+            let doc = gmn1_write(
+                &Gmn0Model {
+                    quads: emitted_quads.clone(),
+                },
+                dict,
+            )
+            .map_err(GmnConsumeError::Codec)?;
+            last_tokens = estimate_tokens(&doc.text);
+            last_text = doc.text;
         }
-        emitted_quads = candidate;
-        emitted_claims += 1;
-        last_text = doc.text;
-        last_tokens = tokens;
+    } else {
+        // Greedy prefix fit: include whole claims in canonical order while the running GMN-1 token
+        // estimate stays within budget (always at least one), disclosing any elided remainder.
+        for key in &admitted_claim_keys {
+            let mut candidate = emitted_quads.clone();
+            for q in claim_quads.get(key).into_iter().flatten() {
+                candidate.push((*q).clone());
+            }
+            let candidate_model = Gmn0Model {
+                quads: candidate.clone(),
+            };
+            let doc = gmn1_write(&candidate_model, dict).map_err(GmnConsumeError::Codec)?;
+            let tokens = estimate_tokens(&doc.text);
+            if emitted_claims > 0
+                && let Some(b) = budget
+                && tokens > b
+            {
+                break; // stop before the budget is exceeded — a hard cap, never a mid-claim cut
+            }
+            emitted_quads = candidate;
+            emitted_claims += 1;
+            last_text = doc.text;
+            last_tokens = tokens;
+        }
     }
 
     // An all-excluded (or empty) input emits an empty projection — still a valid GMN-1 document.
