@@ -125,6 +125,8 @@ pub mod codes {
     pub const LANG_EXACT_PRESERVATION_VIOLATED: &str =
         "validate.lint.lang.exact-preservation-violated";
     pub const MATH_UNLIFTABLE_INGEST: &str = "validate.lint.math.unliftable-ingest";
+    pub const MATH_STRING_ONLY_COMPUTABLE_EXPRESSION: &str =
+        "validate.lint.math.string-only-computable-expression";
     pub const MATH_PROBABILITY_OUT_OF_BOUNDS: &str = "validate.lint.math.probability-out-of-bounds";
     pub const MATH_PROBABILITY_PARAMETER_CONSTRAINT: &str =
         "validate.lint.math.probability-distribution-parameter-constraint";
@@ -840,6 +842,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // logic:Correspondence) lifts fully or hard-fails; a run retaining a source but
     // producing no structured math: codomain has silently dropped its content.
     check_math_ingest_invariants(ds, &mut report);
+
+    // math: expression-AST source-lint gate — the native Rust twin of the SHACL-Core-
+    // derived math:StringOnlyComputableExpressionConstraint: a math:MathematicalExpression
+    // claiming to be computable (math:normalForm, math:compilesToLogicFormula, or
+    // math:expressionType) must carry at least one structured-child edge
+    // (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or
+    // math:literalValue) or it is represented only by a string.
+    check_math_expression_invariants(ds, &mut report);
 
     // math: probability-layer reasoned gate — the closed-unit-interval bound, the
     // role-carried positivity/dimension constraints on distribution parameters, the
@@ -1653,6 +1663,63 @@ fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
                 ),
             );
         }
+    }
+}
+
+/// The `math:` expression-AST invariants the charter designates as native
+/// Rust-validator primary gates over `math:MathematicalExpression`. Currently the
+/// source-lint half of `math:StringOnlyComputableExpression` (the SHACL-Core-derived
+/// half is `math:StringOnlyComputableExpressionConstraint` in `module.ttl`).
+fn check_math_expression_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_string_only_computable_expression(ds, report);
+}
+
+/// `math:StringOnlyComputableExpression` — a `math:MathematicalExpression` carrying at
+/// least one of the three "computable" trigger edges (`math:normalForm`,
+/// `math:compilesToLogicFormula`, `math:expressionType`) claims to be more than an
+/// opaque string: it claims a computable normal form, a logic:Formula compilation, or a
+/// classified expression type. That claim is only warranted if the expression ALSO
+/// carries at least one structured-child edge (`math:argumentSlot`, `math:boundVariable`,
+/// `math:hasMathematicalSymbol`, `math:literalValue`) — an actual AST structure to back
+/// it. An expression with a trigger edge but none of the four structured-child edges is
+/// represented only by a string: the computable claim is unwarranted. Mirrors
+/// `math:StringOnlyComputableExpressionConstraint`'s guard/or-of-exists shape exactly
+/// (same trigger set, same structured-child set), authored here as its native-Rust twin
+/// because the source-lint charter tier for this failure class is "source-lint + SHACL
+/// Core", not a SHACL-only shape.
+fn check_string_only_computable_expression(ds: &RdfDataset, report: &mut LintReport) {
+    let triggers = [
+        math_iri("normalForm"),
+        math_iri("compilesToLogicFormula"),
+        math_iri("expressionType"),
+    ];
+    let structured_children = [
+        math_iri("argumentSlot"),
+        math_iri("boundVariable"),
+        math_iri("hasMathematicalSymbol"),
+        math_iri("literalValue"),
+    ];
+    for expr in ds_subjects_of_type(ds, &math_iri("MathematicalExpression")) {
+        let has_trigger = triggers.iter().any(|p| ds_has_predicate(ds, &expr, p));
+        if !has_trigger {
+            continue;
+        }
+        let has_structured_child = structured_children
+            .iter()
+            .any(|p| ds_has_predicate(ds, &expr, p));
+        if has_structured_child {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_STRING_ONLY_COMPUTABLE_EXPRESSION,
+            expr.clone(),
+            format!(
+                "math:StringOnlyComputableExpression: expression {expr} carries a \
+                 math:normalForm, math:compilesToLogicFormula, or math:expressionType edge but \
+                 none of math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or \
+                 math:literalValue — it is represented only by a string"
+            ),
+        );
     }
 }
 
@@ -4348,6 +4415,72 @@ mod tests {
                 .any(|e| e.contains("math:UnliftableIngest")),
             "an ingest run that lifts a structured math: codomain must NOT raise \
              math:UnliftableIngest; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn string_only_computable_expression_fires_when_trigger_has_no_structured_child() {
+        // A math:MathematicalExpression claiming a computable normal form
+        // (math:normalForm) but carrying none of the four structured-child edges is
+        // represented only by a string: the claim is unwarranted.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:expr a math:MathematicalExpression ;\n\
+               math:normalForm ex:nf .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:StringOnlyComputableExpression")
+                    && e.contains("https://example.org/expr")),
+            "a math:MathematicalExpression with a trigger edge and no structured-child edge \
+             must raise math:StringOnlyComputableExpression; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn string_only_computable_expression_clean_when_trigger_has_structured_child() {
+        // The same trigger edge (math:normalForm), but this time backed by a
+        // structured-child edge (math:argumentSlot): the computable claim is warranted,
+        // so the gate must stay clean.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:expr a math:MathematicalExpression ;\n\
+               math:normalForm ex:nf ;\n\
+               math:argumentSlot ex:arg0 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:StringOnlyComputableExpression")),
+            "a math:MathematicalExpression with a trigger edge AND a structured-child edge \
+             must NOT raise math:StringOnlyComputableExpression; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn string_only_computable_expression_clean_when_no_trigger_edge() {
+        // No trigger edge at all: the expression makes no computable claim, so the gate
+        // is out of scope regardless of structured-child edges (none here either).
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:expr a math:MathematicalExpression .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:StringOnlyComputableExpression")),
+            "a math:MathematicalExpression with no trigger edge must NOT raise \
+             math:StringOnlyComputableExpression; errors: {:?}",
             report.errors()
         );
     }
