@@ -1,15 +1,16 @@
 # Competency question: "Open research inquiries by theme and status"
-# Expected: Procedures of type procedureTypeResearchPlan with inquiryStatus
-# pending or running, grouped by inquiryTheme.
+# Expected: plans carrying logic:prescriptionKindResearchPlan whose inquiryStatus
+# is a non-terminal enactment position, grouped by inquiryTheme.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?inquiry ?theme ?status WHERE {
-    ?inquiry a gmeow:Procedure .
-    ?inquiry gmeow:procedureType gmeow:procedureTypeResearchPlan .
+    ?inquiry a logic:Plan .
+    ?inquiry logic:prescriptionKind logic:prescriptionKindResearchPlan .
     ?inquiry gmeow:inquiryStatus ?status .
     ?inquiry gmeow:inquiryTheme ?theme .
-    FILTER(?status IN (gmeow:executionStatusPending, gmeow:executionStatusRunning))
+    FILTER(?status IN (logic:EnactmentPending, logic:EnactmentRunning))
 }
 ORDER BY ?theme ?status

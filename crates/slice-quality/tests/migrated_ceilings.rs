@@ -28,6 +28,31 @@ fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
 }
 
+/// Slices RETIRED since the golden was frozen.
+///
+/// The golden TSVs are a permanent historical record and are never edited — a
+/// dropped or perturbed ceiling must stay detectable forever. But a slice that no
+/// longer exists has no commitment to reproduce, so its frozen rows are skipped
+/// here rather than deleted there. Each entry names the slice and why it went,
+/// so the exemption is a recorded decision rather than a silent hole.
+const RETIRED_SLICES: &[(&str, &str)] = &[(
+    "https://blackcatinformatics.ca/gmeow/slices/procedures",
+    "process-model slice superseded by the canonical logic: prescription/enactment \
+     spine; its terms were removed rather than kept as a second source of truth",
+)];
+
+/// True when the row belongs to a slice retired since the freeze.
+fn is_retired(slice: &str) -> bool {
+    RETIRED_SLICES.iter().any(|(iri, _)| *iri == slice)
+}
+
+/// The frozen rows that still name a live slice.
+fn live_rows(rows: &[String]) -> Vec<&String> {
+    rows.iter()
+        .filter(|r| !is_retired(r.split('\t').next().unwrap_or("")))
+        .collect()
+}
+
 /// The non-comment, non-blank rows of a golden TSV fixture.
 fn golden_rows(name: &str) -> Vec<String> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -52,13 +77,15 @@ fn every_committed_projection_ceiling_is_reproduced_integer_exactly() {
         140,
         "the frozen projection-ceiling golden has 140 rows"
     );
+    let live = live_rows(&rows);
     assert_eq!(
         ceilings.ceilings.len(),
-        rows.len(),
-        "the loaded ProjectionCeilingCommitment set must have exactly the frozen row count"
+        live.len(),
+        "the loaded ProjectionCeilingCommitment set must have exactly the frozen row count \
+         for every slice that still exists"
     );
 
-    for row in &rows {
+    for row in live {
         let cols: Vec<&str> = row.split('\t').collect();
         assert_eq!(
             cols.len(),

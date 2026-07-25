@@ -26,6 +26,25 @@ fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
 }
 
+/// Slices RETIRED since the golden was frozen.
+///
+/// The golden TSVs are a permanent historical record and are never edited — a
+/// dropped or perturbed value must stay detectable forever. But a slice that no
+/// longer exists has no commitment to reproduce, so its frozen rows are skipped
+/// here rather than deleted there. Each entry names the slice and why it went,
+/// so the exemption is a recorded decision rather than a silent hole: every row
+/// of every LIVE slice keeps its full teeth.
+const RETIRED_SLICES: &[(&str, &str)] = &[(
+    "https://blackcatinformatics.ca/gmeow/slices/procedures",
+    "process-model slice superseded by the canonical logic: prescription/enactment \
+     spine; its terms were removed rather than kept as a second source of truth",
+)];
+
+/// True when the row belongs to a slice retired since the freeze.
+fn is_retired(slice: &str) -> bool {
+    RETIRED_SLICES.iter().any(|(iri, _)| *iri == slice)
+}
+
 /// The non-comment, non-blank rows of a golden TSV fixture.
 fn golden_rows(name: &str) -> Vec<String> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -55,6 +74,9 @@ fn every_pre_migration_axis_floor_is_reproduced_bit_exactly() {
             "golden axis-floor row is <slice-iri>\\t<axis-local>\\t<f64>: {row:?}"
         );
         let (slice, axis_local, floor_str) = (cols[0], cols[1], cols[2]);
+        if is_retired(slice) {
+            continue;
+        }
         let want_bits = floor_str
             .parse::<f64>()
             .unwrap_or_else(|_| panic!("golden floor {floor_str:?} parses as f64"))

@@ -71,6 +71,7 @@ https://blackcatinformatics.ca/gmeow/slices/observations	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/organization	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/pipeline	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/places	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/procedures	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/profiles	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/provenance	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/quality	axisGmn1Coverage	1.0
@@ -153,6 +154,7 @@ https://blackcatinformatics.ca/gmeow/slices/observations	axisDocMaturity	0.75000
 https://blackcatinformatics.ca/gmeow/slices/organization	axisDocMaturity	0.750000
 https://blackcatinformatics.ca/gmeow/slices/pipeline	axisDocMaturity	0.500000
 https://blackcatinformatics.ca/gmeow/slices/places	axisDocMaturity	0.750000
+https://blackcatinformatics.ca/gmeow/slices/procedures	axisDocMaturity	0.583300
 https://blackcatinformatics.ca/gmeow/slices/profiles	axisDocMaturity	0.500000
 https://blackcatinformatics.ca/gmeow/slices/provenance	axisDocMaturity	0.666700
 https://blackcatinformatics.ca/gmeow/slices/quality	axisDocMaturity	0.666700

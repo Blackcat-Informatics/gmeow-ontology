@@ -310,7 +310,7 @@ pub trait Stage: Send + Sync {
     fn cache_policy(&self) -> CachePolicy {
         CachePolicy::Persistent
     }
-    /// The typed dataflow (`gmeow:DataFlow` reified edges): for each upstream producer
+    /// The typed dataflow (`gmeow:BuildDataFlow` reified edges): for each upstream producer
     /// the stage reads only SPECIFIC named-graph entities from, a
     /// `(producer_id, sorted entity-graph IRIs)` pair, the whole list sorted by
     /// producer id. A producer ABSENT here (the default for every producer) is a
@@ -322,7 +322,7 @@ pub trait Stage: Send + Sync {
     /// Narrowing is a CORRECTNESS ASSERTION: declare an entity set only when the stage
     /// provably reads nothing else from that producer's product — a too-small set would
     /// serve a stale build. The loader HARD-fails if this disagrees with the RDF
-    /// `gmeow:DataFlow` declaration (single source of truth).
+    /// `gmeow:BuildDataFlow` declaration (single source of truth).
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &[]
     }

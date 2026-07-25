@@ -1,28 +1,23 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency question for the sources slice (crates/slicetest),
-# migrated from test_competency_import_provenance_query. TBox subset
-# over the asserted merged ontology (contains-check). No Gap-1 universal.
+# Competency cells for the sources slice.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sources/tests/> .
 
-ex:cqImportProvenance a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/import-provenance.rq" ;
-    gmeow:cqRationale "GMEOW must model import provenance: when a source was modified (sourceModifiedAt), its content digest, and where it came from (sourceLocation)." ;
-    gmeow:cqResultShape ex:cqImportProvenanceShape ;
-    gmeow:cqExpectRow ex:ipSourceModifiedAt, ex:ipContentDigest, ex:ipSourceLocation .
+# Empty over the TBox-only merged graph: no logic:Enactment instances exist, so
+# the ingestion query returns no rows. Pinning count 0 verifies the query parses
+# and runs and that the asserted graph carries no spurious enactments.
+ex:cqIngestionEnactments a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/ingestion-executions.rq" ;
+    gmeow:cqRationale "Over the asserted TBox there are no ingestion-plan enactments, so the query that finds enactments producing Observations but no Events returns the empty set."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqIngestionEnactmentsShape ;
+    gmeow:cqExpectRowCount 0 .
 
-ex:cqImportProvenanceShape a logic:ResultShape ;
+ex:cqIngestionEnactmentsShape a logic:ResultShape ;
     logic:declaresColumn
-        [ logic:columnVariable "property" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:shapeCardinality logic:RowsContains .
-
-ex:ipSourceModifiedAt a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:sourceModifiedAt ] .
-ex:ipContentDigest a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:contentDigest ] .
-ex:ipSourceLocation a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:sourceLocation ] .
+        [ logic:columnVariable "enactment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .

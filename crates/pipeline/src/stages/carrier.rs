@@ -4084,7 +4084,7 @@ fn build_snapshot_bundle(
 /// `graph/provenance` N-Triples. Only public unit names/IRIs + kinds +
 /// artifact paths reach the projection — NO runtime `UnitId` / `ArtifactId` /
 /// `OriginSetId` (S0.5). The fixed carrier-lane manifest + the realized process
-/// vocab (`gmeow:Procedure` / `gmeow:ProcedureStep` / `gmeow:Execution`) round it out.
+/// vocab (`logic:Plan` / `logic:ActionSchema` / `logic:Enactment`) round it out.
 fn build_provenance_projection(root: &Path) -> Result<String, gmeow_errors::Diag> {
     let (prov, expected) = crate::stages::source_load::attributed_base_provenance(root)?;
     // The hard-fail gate: every authored quad has ≥1 stage-origin occurrence and every

@@ -81,7 +81,6 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/pipeline",
     "https://blackcatinformatics.ca/gmeow/slices/places",
     "https://blackcatinformatics.ca/gmeow/slices/preference",
-    "https://blackcatinformatics.ca/gmeow/slices/procedures",
     "https://blackcatinformatics.ca/gmeow/slices/profiles",
     "https://blackcatinformatics.ca/gmeow/slices/provenance",
     "https://blackcatinformatics.ca/gmeow/slices/quality",

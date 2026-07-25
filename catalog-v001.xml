@@ -77,7 +77,6 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/pipeline" uri="slices/core/pipeline/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/places" uri="slices/core/places/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/preference" uri="slices/core/preference/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/procedures" uri="slices/extensions/procedures/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/profiles" uri="slices/core/profiles/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/provenance" uri="slices/core/provenance/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/quality" uri="slices/core/quality/module.ttl"/>
