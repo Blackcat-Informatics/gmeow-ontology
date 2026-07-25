@@ -86,9 +86,9 @@ pub const GLOSSARY_VARTRANS_PATH: &str = "generated/projections/glossary.vartran
 /// riding `stage-export-glossary`, reconstructed by the superset gate from `REP_GENERATED`.
 pub const GLOSSARY_TBX_PATH: &str = "generated/projections/glossary.tbx";
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::GMEOW_NS;
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
 /// The OntoLex-Lemon core namespace — the RDF-native terminology structure the vartrans
 /// lowering reuses (`ontolex:LexicalEntry`/`LexicalSense`/`Form`/`writtenRep`/`reference`).
 const ONTOLEX_NS: &str = "http://www.w3.org/ns/lemon/ontolex#";
@@ -141,14 +141,13 @@ pub fn build_corpus(root: &Path) -> Result<LangGlossaryCorpus, gmeow_errors::Dia
 /// and the human-readable table ([`render_glossary_table`]) project, so the graph and the
 /// table can never drift (they share one in-memory list, never two parses of the `.po`).
 fn build_entries(root: &Path) -> Result<Vec<Entry>, gmeow_errors::Diag> {
-    let catalog =
-        SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!("lang-glossary slice catalog: {e}"),
-                })
-            })?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!("lang-glossary slice catalog: {e}"),
+            })
+        })?;
     // The ontology-resident homograph escape — the SAME loader the make i18n-lint gate
     // consults (One Canonical Source), read from authored TTL only.
     let homographs = declared_homograph_sources(root);

@@ -74,10 +74,10 @@ use crate::emit::digest16;
 // ── Well-known predicate IRIs the compact-record folder recognizes ─────────────────
 
 #[cfg(test)]
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+use gmeow_ns::GMEOW_NS;
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
+use gmeow_ns::MATH_NS;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The RDF 1.2 `rdf:reifies` predicate. A reifier binding `x rdf:reifies <<( s p o )>>`

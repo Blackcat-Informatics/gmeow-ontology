@@ -180,6 +180,13 @@ pub const AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL: &str = "authoring.untagged-loc
 /// other. Only fires when the generated page is present (an absent on-demand `docs`
 /// output is a cache miss, not a drift finding).
 pub const AUTHORING_SEAM_REGISTRY_DRIFT: &str = "authoring.seam-registry-drift";
+/// A slice's `module.ttl` / `shapes.ttl` mints a claimed term (a typed vocabulary
+/// term, or a subject asserting `rdfs:isDefinedBy` at a GMEOW slice) into a
+/// namespace outside [`gmeow_ns::TERM_NAMESPACES`]. purrdf's ownership analyzer
+/// tests ownership against the term's own IRI, so such a term is invisible to it:
+/// it has no owning slice, and no cross-slice dependency edge into the minting
+/// slice is computable. The failure is otherwise silent.
+pub const AUTHORING_UNREGISTERED_TERM_NAMESPACE: &str = "authoring.unregistered-term-namespace";
 /// Family base for `authoring.*`.
 pub const AUTHORING_FAMILY: &str = "authoring.";
 
@@ -334,6 +341,7 @@ pub const ALL_CODES: &[&str] = &[
     AUTHORING_UNDECLARED_TERM,
     AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL,
     AUTHORING_SEAM_REGISTRY_DRIFT,
+    AUTHORING_UNREGISTERED_TERM_NAMESPACE,
     SLICE_DISCIPLINE_DUPLICATE_IRI,
     SLICE_DISCIPLINE_MISSING_TIER,
     SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,

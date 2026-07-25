@@ -33,7 +33,7 @@ use rayon::prelude::*;
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::statements::RDF12_PATH;
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 /// The committed logical path of the serialized GTS bundle — the single artifact
 /// this stage produces and every fold-reading leaf (and the sink) consumes.
@@ -469,11 +469,9 @@ fn serialize_carrier_snapshot_without_docs(
     // from `root` exactly like the guide blobs (its own freshly-discovered catalog, so the
     // set stays a pure function of the sources); empty until a source literal crosses the
     // threshold.
-    let lang_form_catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("lang-form slice catalog: {e}")))?;
+    let lang_form_catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("lang-form slice catalog: {e}")))?;
     blobs.extend(crate::stages::lang_form::build_surface_blobs(Some(
         &lang_form_catalog,
     ))?);
@@ -2782,11 +2780,9 @@ fn build_docs_archive(
     exec: &gmeow_docs::ExecutableDocsData,
     slice_quality_html: &[u8],
 ) -> Result<BlobRow, gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
 
     // Render each language's full site in parallel: the per-language renders are
@@ -2838,11 +2834,9 @@ fn build_docs_book_archive(
     model: &gmeow_docs::model::DocsModel,
     exec: &gmeow_docs::ExecutableDocsData,
 ) -> Result<BlobRow, gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
     let prefix = translations.internal_tag(gmeow_docs::i18n::ENGLISH);
 
@@ -4220,11 +4214,9 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
 /// additions), so a translated literal is never itself re-scanned — matching the
 /// original `quads_for_pattern` view of the base store.
 fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let catalog =
+        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
     let langs: Vec<String> = translations.languages().to_vec();
     if langs.is_empty() {
@@ -4297,7 +4289,7 @@ fn load_metadata(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
 /// (PIPELINE_SPINE §3.2) instead of one parse per derived graph.
 fn discover_slice_catalog(root: &Path) -> Result<purrdf::slice::SliceCatalog, gmeow_errors::Diag> {
     let slices_dir = root.join("slices");
-    purrdf::slice::SliceCatalog::discover(&slices_dir, crate::gmeow_ns::gmeow_slice_vocab())
+    purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
         .map_err(|e| stage_err(&format!("slice catalog discover: {e}")))
 }
 
@@ -4366,7 +4358,7 @@ fn build_slice_analysis(
         .collect::<Vec<_>>()
         .join("\n");
     let mut graph = emit_analysis_graph(
-        &crate::gmeow_ns::gmeow_slice_vocab(),
+        &gmeow_ns::gmeow_slice_vocab(),
         &report.edges,
         &authored_text,
         &digests,

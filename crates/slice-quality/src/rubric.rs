@@ -1028,5 +1028,5 @@ gmeow:pcc-b a gmeow:ProjectionCeilingCommitment ;\n\
         assert!(err.message().contains("sliceFoo"), "names the slice: {err}");
     }
 
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
 }

@@ -60,7 +60,7 @@ const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The `gmeow:` vocabulary namespace — the base of the documentation-graph
 /// predicate and enumeration IRIs (`gmeow:docFixtureKind…`, etc.).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// The distinct external-provenance named graph the read-only local overlay is
 /// re-homed into (the origin marker). Overlay triples are visible to reads
@@ -9311,8 +9311,8 @@ mod tests {
 
     // ── Conjecture-library persistence ───────────────────────────────────────
 
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-    const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+    use gmeow_ns::LOGIC_NS;
+    use gmeow_ns::MATH_NS;
     const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
     /// A `∀x. trigger(x, mark) → rdf:type(x, <cls>)` candidate, authored as a reified

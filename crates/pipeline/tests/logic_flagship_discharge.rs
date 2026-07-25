@@ -54,7 +54,7 @@ use support::flagship_discharge::{
 
 /// The `logic:` grounding namespace — used for the SCANNED failure classes (`logic:<Class>`),
 /// which stay slice-namespaced.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 /// Vocabulary IRIs for the closure / conjecture producers.
 const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";

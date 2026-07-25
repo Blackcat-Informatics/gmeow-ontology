@@ -25,7 +25,7 @@ use crate::store::{Node, Object, Store};
 // ── Namespace constants ───────────────────────────────────────────────────────
 
 /// The GMEOW vocabulary namespace; IRIs under it get the `gmeow:` CURIE prefix.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
@@ -85,7 +85,7 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it are surfaced as the term's logic stereotypes.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
 /// `logic:PathShape` — a named, parametric predicate-path traversal specification
 /// (design/LOGIC-PATHS.md). Its authored INSTANCES are first-class, reusable
@@ -103,11 +103,11 @@ const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/compl
 /// The language-grounding vocabulary namespace (`slices/grounding/lang`). Its
 /// slice owns first-class documented vocabulary in this namespace, exactly like
 /// `logic:` / `math:`.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 // ── Math grounding: worked ℚ⁷ SI-dimension instances ─────────────────────────
 /// The math-grounding vocabulary namespace (`slices/grounding/math`).
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+use gmeow_ns::MATH_NS;
 /// `math:hasDimension` — the predicate a worked instance's subject (a
 /// `Quantity`/`Integral`/`Measure`/measurable-function/…) declares its
 /// dimension object through. The SUBJECT-discovery predicate for
@@ -2232,10 +2232,7 @@ impl DocsModel {
         manifest: BTreeMap<String, TermProvenance>,
         catalog_source: CatalogSource<'_>,
     ) -> Result<Self, DocsError> {
-        let catalog = SliceCatalog::discover(
-            &root.join("slices"),
-            purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-        )?;
+        let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let central_sets = read_central_mapping_sets(root)?;
         let mut model = Self::from_catalog(&catalog, &ownership, &central_sets);
@@ -2312,8 +2309,7 @@ impl DocsModel {
     /// slice's own `examples/*.ttl` still populate, so `applicable_lossy` remains
     /// driven honestly by the slice's authored content.
     pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
-        let catalog =
-            SliceCatalog::discover(slice_dir, purrdf::SliceVocab::for_namespace(GMEOW_NS))?;
+        let catalog = SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         Ok(Self::from_catalog(&catalog, &ownership, &[]))
     }

@@ -47,15 +47,15 @@ use crate::emit::{digest16, ntriples_sorted};
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers so every
 /// `lang:` local name resolves to the same IRI across bridges.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 /// The `gmeow:` namespace base — the vantage and activity vocabulary the engine
 /// handoff attributes readings against.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 /// The `logic:` namespace base — carries the engine's `logic:confidence` (a
 /// confidence, never a `logic:probability`, absent a declared probability model).
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 /// The `rdf:type` predicate IRI.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";

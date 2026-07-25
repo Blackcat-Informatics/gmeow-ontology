@@ -231,6 +231,7 @@ pub fn authoring_integrity_findings(
     findings.extend(graft_isolation_findings(project_root)?);
     findings.extend(slice_discipline_findings(slices_dir)?);
     findings.extend(peerage_discipline_findings(slices_dir)?);
+    findings.extend(registered_minting_namespace_findings(slices_dir)?);
     findings.extend(profile_closure_findings(project_root)?);
     findings.extend(catalog_closure_findings(project_root)?);
     findings.extend(module_iri_findings(project_root)?);
@@ -537,7 +538,7 @@ fn detect_peerage_discipline(
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
 const OWL_IMPORTS: &str = "http://www.w3.org/2002/07/owl#imports";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const TIER_CORE: &str = "https://blackcatinformatics.ca/gmeow/tierCore";
 const TIER_EXTENSION: &str = "https://blackcatinformatics.ca/gmeow/tierExtension";
 const TIER_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/tierProfile";
@@ -1283,6 +1284,172 @@ pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
     }
     findings.sort_by(|a, b| a.message.cmp(&b.message));
     Ok(findings)
+}
+
+// ── R9: registered minting namespaces ────────────────────────────────────────
+//
+// purrdf's ownership analyzer decides "which slice owns this term" by testing the
+// TERM's own IRI against the namespaces the consumer declared
+// (`purrdf::SliceVocab::owns_term`, fed from `gmeow_ns::TERM_NAMESPACES`). A slice
+// that mints into a namespace GMEOW never registered is therefore INVISIBLE to
+// ownership analysis: its `rdfs:isDefinedBy` claims and its typed vocabulary terms
+// are dropped, every cross-slice reference to those terms resolves to no owner, and
+// no dependency edge is ever computable. Nothing reports it — the analysis simply
+// reports that the slice has no dependents, which is indistinguishable from a slice
+// nothing uses.
+//
+// This gate closes that hole at authoring time, on the SAME predicate the analyzer
+// uses, so "a slice may mint here" and "the analyzer can see terms minted here" are
+// one fact rather than two that can drift apart.
+//
+// **What counts as a MINTED TERM.** The gate keys on a VOCABULARY-TERM subject —
+// the exact trigger `inspect_rdf_dataset` uses for its `declared_terms` set — and
+// then requires that the term be GMEOW's own:
+//
+//   1. TERM: the subject is typed by one of purrdf's vocabulary-term types
+//      ([`VOCAB_TERM_TYPES`]). This is the T-Box mint, and it is the only kind of
+//      subject the owner-of-term join resolves a cross-slice reference against.
+//   2. GMEOW's: the IRI is under [`gmeow_ns::GMEOW_AUTHORITY`], OR the subject
+//      asserts `rdfs:isDefinedBy` at a GMEOW slice IRI.
+//
+// Both conditions keep the gate honest in the other direction:
+//
+// * a module that re-declares a FOREIGN term so it validates locally
+//   (`dcterms:created a owl:AnnotationProperty`, `ontolex:LexicalEntry a
+//   owl:Class`) is describing someone else's vocabulary, not minting: purrdf
+//   never treats those as owned either, so flagging them would be a false report
+//   about a term GMEOW does not own;
+// * a subject that merely APPEARS in a module (a `bfo:` IRI carried by a
+//   grounding correspondence) claims nothing and is likewise not gated;
+// * an A-BOX INDIVIDUAL is not a term. `slices/core/affect` deliberately mints
+//   external classifier-label identities under a separate authority path
+//   (`gmeow-registry/…`) so they never occupy the canonical `gmeow:` emotion
+//   namespace; they are typed `gmeow:AffectLabelSet`, not `owl:Class`, so purrdf
+//   never records them as declared vocabulary and neither does this gate. The
+//   ontology-term namespace discipline is about the vocabulary, not about
+//   instance identity.
+
+/// The `rdf:type` objects purrdf treats as a vocabulary-term declaration
+/// (`purrdf::slice::ownership`'s private `VOCAB_TERM_TYPES`). Mirrored here
+/// because the gate must key on EXACTLY the analyzer's notion of a declared term;
+/// a divergence in either direction would make the gate lie.
+const VOCAB_TERM_TYPES: &[&str] = &[
+    "http://www.w3.org/2002/07/owl#Class",
+    "http://www.w3.org/2002/07/owl#ObjectProperty",
+    "http://www.w3.org/2002/07/owl#DatatypeProperty",
+    "http://www.w3.org/2002/07/owl#AnnotationProperty",
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+    "http://www.w3.org/2000/01/rdf-schema#Class",
+    "http://www.w3.org/2000/01/rdf-schema#Datatype",
+];
+
+/// `rdf:type`.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `rdfs:isDefinedBy` — the explicit ownership claim.
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+
+/// The IRI prefix every GMEOW slice IRI carries (`gmeow:slices/<group>/<name>`).
+/// An `rdfs:isDefinedBy` whose object starts here is a claim of GMEOW ownership.
+fn slice_iri_prefix() -> String {
+    format!("{GMEOW_NS}slices/")
+}
+
+/// R9: every term a slice CLAIMS in its `module.ttl` / `shapes.ttl` must be minted
+/// into one of the registered term namespaces ([`gmeow_ns::TERM_NAMESPACES`]).
+///
+/// Discovered by MANIFEST, so a slice's authored surface is covered whether or not
+/// it ships a `module.ttl` (a pure-shape slice is gated too).
+pub fn registered_minting_namespace_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
+    let mut paths = Vec::new();
+    for manifest in all_manifests(slices_dir)? {
+        let Some(dir) = manifest.parent() else {
+            continue;
+        };
+        for authored in ["module.ttl", "shapes.ttl"] {
+            let p = dir.join(authored);
+            if p.is_file() {
+                paths.push(p);
+            }
+        }
+    }
+    paths.sort();
+    let files = load_ttl_files(&paths)?;
+    Ok(detect_unregistered_minting(&files, slices_dir))
+}
+
+/// The pure R9 logic over already-parsed authored files.
+///
+/// Each offending subject is reported ONCE per file with the reason it was
+/// treated as a claimed term, so the message says what to do: register the
+/// namespace in `gmeow_ns::TERM_NAMESPACES`, or mint the term inside an existing
+/// registered namespace.
+fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec<Finding> {
+    let slice_prefix = slice_iri_prefix();
+    let term_types: BTreeSet<&str> = VOCAB_TERM_TYPES.iter().copied().collect();
+    let mut findings = Vec::new();
+
+    for (path, ds) in files {
+        // Subjects typed as a vocabulary term — the trigger, mirroring purrdf's
+        // `declared_terms`. Only these can be a mint.
+        let mut declared_terms: BTreeSet<String> = BTreeSet::new();
+        // Subjects asserting GMEOW ownership: qualifies a foreign-authority IRI
+        // as GMEOW's own, and is named in the message when present.
+        let mut gmeow_owned: BTreeSet<String> = BTreeSet::new();
+        ds.for_each_quad(|s, p, o, _g| {
+            let Subject::Named(subject) = &s else {
+                return;
+            };
+            if gmeow_ns::registered_term_namespace(subject).is_some() {
+                return;
+            }
+            match (p, &o) {
+                (RDF_TYPE, Object::Named(class)) if term_types.contains(class.as_str()) => {
+                    declared_terms.insert(subject.clone());
+                }
+                (RDFS_IS_DEFINED_BY, Object::Named(owner)) if owner.starts_with(&slice_prefix) => {
+                    gmeow_owned.insert(subject.clone());
+                }
+                _ => {}
+            }
+        });
+
+        // Keep only GMEOW's OWN terms: minted under GMEOW's IRI authority, or
+        // claiming GMEOW ownership outright. A foreign term re-declared locally is
+        // neither, and purrdf never treats it as owned either.
+        let claimed: BTreeMap<String, BTreeSet<&'static str>> = declared_terms
+            .into_iter()
+            .filter(|subject| {
+                subject.starts_with(gmeow_ns::GMEOW_AUTHORITY) || gmeow_owned.contains(subject)
+            })
+            .map(|subject| {
+                let mut reasons = BTreeSet::from(["declared as a vocabulary term"]);
+                if gmeow_owned.contains(&subject) {
+                    reasons.insert("claims rdfs:isDefinedBy a GMEOW slice");
+                }
+                (subject, reasons)
+            })
+            .collect();
+
+        for (subject, reasons) in claimed {
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_UNREGISTERED_TERM_NAMESPACE,
+                format!(
+                    "{file} mints {subject} outside every registered term namespace ({reason}) — \
+                     purrdf's ownership analyzer only sees terms in [{registered}], so this term \
+                     has no owning slice and no dependency edge into it is computable; mint it \
+                     inside a registered namespace or register its namespace in \
+                     gmeow_ns::TERM_NAMESPACES",
+                    file = rel(path, root),
+                    reason = reasons.iter().copied().collect::<Vec<_>>().join(" and "),
+                    registered = gmeow_ns::TERM_NAMESPACES.join(", "),
+                ),
+                Some(subject),
+            ));
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    findings
 }
 
 // ── R7: grounding seam-registry drift ────────────────────────────────────────
@@ -2358,6 +2525,258 @@ mod tests {
                 .message
                 .contains("totallyBogusUndeclaredPredicateXYZ")
         );
+    }
+
+    // ── R9: registered minting namespaces ────────────────────────────────────
+
+    /// Build a one-slice fixture tree: `manifest.ttl` plus the given authored
+    /// `module.ttl` / `shapes.ttl` bodies, prefixed with the standard header.
+    fn temp_minting_slice(
+        name: &str,
+        module_body: &str,
+        shapes_body: Option<&str>,
+    ) -> tempfile::TempDir {
+        let tmp = tempfile::tempdir().expect("temp slices dir");
+        let slice_dir = tmp.path().join("core").join(name);
+        std::fs::create_dir_all(&slice_dir).unwrap();
+        let header = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+             @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n";
+        std::fs::write(
+            slice_dir.join("manifest.ttl"),
+            format!(
+                "{header}<https://blackcatinformatics.ca/gmeow/slices/{name}> a gmeow:Slice ;\n  \
+                 gmeow:sliceTier gmeow:tierCore ;\n  rdfs:label \"{name}\"@x-gmeow-english .\n"
+            ),
+        )
+        .unwrap();
+        std::fs::write(
+            slice_dir.join("module.ttl"),
+            format!("{header}{module_body}"),
+        )
+        .unwrap();
+        if let Some(body) = shapes_body {
+            std::fs::write(slice_dir.join("shapes.ttl"), format!("{header}{body}")).unwrap();
+        }
+        tmp
+    }
+
+    /// R9 FIRES: a slice minting its whole vocabulary into an unregistered
+    /// GMEOW-authority namespace — the `math`-shaped slice that was invisible to
+    /// ownership analysis. Both the T-Box typing and the `rdfs:isDefinedBy`
+    /// ownership claim are reported, and the fixture proves the gate is capable
+    /// of failing rather than being vacuously green.
+    #[test]
+    fn unregistered_minting_fires_on_a_slice_minting_into_its_own_namespace() {
+        let tmp = temp_minting_slice(
+            "chem",
+            "<https://blackcatinformatics.ca/chem/Molecule>\n  a owl:Class ;\n  \
+             rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chem> ;\n  \
+             rdfs:label \"molecule\"@x-gmeow-english .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(
+            findings.len(),
+            1,
+            "the unregistered mint must be flagged exactly once: {findings:?}"
+        );
+        assert_eq!(
+            findings[0].code,
+            codes::AUTHORING_UNREGISTERED_TERM_NAMESPACE
+        );
+        assert_eq!(findings[0].severity, Severity::Error);
+        assert!(
+            findings[0]
+                .message
+                .contains("https://blackcatinformatics.ca/chem/Molecule"),
+            "{}",
+            findings[0].message
+        );
+        // Both claim kinds are named, so the message says WHY it was gated.
+        assert!(
+            findings[0]
+                .message
+                .contains("declared as a vocabulary term")
+                && findings[0]
+                    .message
+                    .contains("claims rdfs:isDefinedBy a GMEOW slice"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// R9 fires on `shapes.ttl` too, not only `module.ttl`.
+    #[test]
+    fn unregistered_minting_fires_on_the_shape_surface() {
+        let tmp = temp_minting_slice(
+            "chem",
+            "gmeow:Fine a owl:Class ; rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/chem> .\n",
+            Some(
+                "<https://blackcatinformatics.ca/chem/BondShape> a owl:Class ;\n  \
+                 rdfs:label \"bond shape\"@x-gmeow-english .\n",
+            ),
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert!(
+            findings[0].message.contains("shapes.ttl")
+                && findings[0].message.contains("chem/BondShape"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// R9 is CLEAN for every registered namespace — the mutation control for the
+    /// firing test above. Minting the identical shapes into `gmeow:`, `logic:`,
+    /// `lang:` and `math:` produces zero findings, so the gate discriminates on
+    /// the namespace and not on the triple pattern.
+    #[test]
+    fn unregistered_minting_is_clean_for_every_registered_namespace() {
+        for (prefix, ns) in gmeow_ns::TERM_NAMESPACE_PREFIXES {
+            let tmp = temp_minting_slice(
+                "registered",
+                &format!(
+                    "{prefix}:Molecule\n  a owl:Class ;\n  rdfs:isDefinedBy \
+                     <https://blackcatinformatics.ca/gmeow/slices/registered> ;\n  \
+                     rdfs:label \"molecule\"@x-gmeow-english .\n"
+                ),
+                None,
+            );
+            let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+            assert!(
+                findings.is_empty(),
+                "{ns} is registered, so minting into it must be clean: {findings:?}"
+            );
+        }
+    }
+
+    /// R9 does NOT fire on a FOREIGN term re-declared locally so it validates
+    /// (`skos:definition a owl:AnnotationProperty`). GMEOW does not mint it,
+    /// purrdf never treats it as owned, and reporting it would be a false claim
+    /// about someone else's vocabulary.
+    #[test]
+    fn unregistered_minting_ignores_a_locally_redeclared_foreign_term() {
+        let tmp = temp_minting_slice(
+            "kernel",
+            "skos:definition a owl:AnnotationProperty .\n\
+             <http://purl.org/dc/terms/created> a owl:AnnotationProperty .\n\
+             <http://www.w3.org/ns/lemon/ontolex#LexicalEntry> a owl:Class .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a re-declared foreign term is described, not minted: {findings:?}"
+        );
+    }
+
+    /// A foreign-authority IRI that nonetheless claims `rdfs:isDefinedBy` a GMEOW
+    /// slice IS gated: the ownership claim is exactly what purrdf drops, whatever
+    /// the authority.
+    #[test]
+    fn unregistered_minting_fires_on_a_foreign_iri_claiming_gmeow_ownership() {
+        let tmp = temp_minting_slice(
+            "kernel",
+            "<http://example.org/borrowed/Term> a owl:Class ;\n  rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/kernel> .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert!(
+            findings[0]
+                .message
+                .contains("http://example.org/borrowed/Term"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// An A-BOX INDIVIDUAL minted under a separate GMEOW authority path is NOT a
+    /// vocabulary term and is not gated, even though it claims
+    /// `rdfs:isDefinedBy` a GMEOW slice. This is the live `slices/core/affect`
+    /// shape (`gmeow-registry/…` classifier-label identities); purrdf's
+    /// `declared_terms` trigger is the vocabulary typing, and this gate mirrors
+    /// it exactly rather than inventing a stricter rule about instance identity.
+    #[test]
+    fn unregistered_minting_ignores_an_abox_individual_under_a_registry_path() {
+        let tmp = temp_minting_slice(
+            "affect",
+            "gmeow:AffectLabelSet a owl:Class ; rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/affect> .\n\
+             <https://blackcatinformatics.ca/gmeow-registry/labelset/GoEmotions>\n  \
+             a gmeow:AffectLabelSet ;\n  rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/affect> ;\n  \
+             rdfs:label \"GoEmotions\"@x-gmeow-english .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert!(
+            findings.is_empty(),
+            "an A-Box individual is instance identity, not a minted term: {findings:?}"
+        );
+
+        // …but the SAME IRI typed as a vocabulary term IS gated, so the
+        // discrimination is on the typing and not on the namespace path.
+        let tmp = temp_minting_slice(
+            "affect",
+            "<https://blackcatinformatics.ca/gmeow-registry/labelset/GoEmotions>\n  \
+             a owl:Class ;\n  rdfs:isDefinedBy \
+             <https://blackcatinformatics.ca/gmeow/slices/affect> .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert!(
+            findings[0]
+                .message
+                .contains("gmeow-registry/labelset/GoEmotions"),
+            "{}",
+            findings[0].message
+        );
+    }
+
+    /// A subject that merely APPEARS in a module — no vocabulary typing, no
+    /// ownership claim — is not a mint and is not gated.
+    #[test]
+    fn unregistered_minting_ignores_a_merely_referenced_iri() {
+        let tmp = temp_minting_slice(
+            "kernel",
+            "gmeow:Thing a owl:Class ; rdfs:seeAlso <http://purl.obolibrary.org/obo/BFO_0000001> .\n\
+             <http://purl.obolibrary.org/obo/BFO_0000001> rdfs:label \"entity\"@x-gmeow-english .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a referenced/annotated external IRI is not a mint: {findings:?}"
+        );
+    }
+
+    /// The gate's namespace set is [`gmeow_ns::TERM_NAMESPACES`] itself, not a
+    /// second copy — so registering a namespace there is the ONE edit that makes
+    /// the gate accept mints into it.
+    #[test]
+    fn unregistered_minting_reports_the_registered_set_it_keyed_on() {
+        let tmp = temp_minting_slice(
+            "chem",
+            "<https://blackcatinformatics.ca/chem/Molecule> a owl:Class .\n",
+            None,
+        );
+        let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        for ns in gmeow_ns::TERM_NAMESPACES {
+            assert!(
+                findings[0].message.contains(ns),
+                "the message must name every registered namespace; missing {ns}"
+            );
+        }
     }
 
     #[test]

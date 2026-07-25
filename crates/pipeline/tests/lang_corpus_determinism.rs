@@ -46,7 +46,7 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::gmeow_slice_vocab;
+use gmeow_ns::gmeow_slice_vocab;
 use gmeow_pipeline::stages::{lang_form, lang_lowering, lang_projection};
 use purrdf::slice::SliceCatalog;
 

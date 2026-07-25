@@ -26,7 +26,7 @@ use gmeow_validate::findings::diag_from_shacl;
 use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
 use purrdf::shapes::term::{NamedNode, Term};
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const SHACL_SPARQL_CONSTRAINT: &str = "http://www.w3.org/ns/shacl#SPARQLConstraintComponent";
 
 /// A `ProfileOpenValueUse` `ValidationResult` at the given severity — the exact shape

@@ -53,9 +53,9 @@ use gmeow_errors::grade::{BoundedLattice, FindingCategory, GateVerdict, Grade, S
 use gmeow_errors::model::{Finding, Location, RelatedLabel, Severity};
 
 use crate::error::Parse;
-use crate::gmeow_ns::{GMEOW_NS, LOGIC_NS};
 use crate::stages::carrier::GRAPH_DIAGNOSTICS;
 use crate::stages::native_query::{Solutions, select, term_iri, term_str};
+use gmeow_ns::{GMEOW_NS, LOGIC_NS};
 
 use purrdf::TermValue;
 

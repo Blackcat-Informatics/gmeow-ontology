@@ -466,27 +466,15 @@ fn selected_single(
 
 /// The SHACL→JSON-Schema keying namespaces (the `gmeow` primary prefix plus the
 /// authored `logic`/`lang`/`math` prefixes) [`purrdf::shapes::json_schema::
-/// Namespaces::def_key`] needs to compute a class's `$defs` key — the SAME table
-/// `gmeow-pipeline`'s (private) `crate::gmeow_ns::gmeow_json_schema_namespaces`
-/// builds. Declared here rather than imported because `gmeow-pipeline` depends on
-/// `gmeow-docs` (importing it back would be circular); the four namespace
-/// literals are already independently declared in both crates (mirrors
-/// `crates/docs/src/model.rs`'s own `LOGIC_NS`/`LANG_NS`/`MATH_NS`). Construction
-/// cannot fail: `gmeow` is always declared.
+/// Namespaces::def_key`] needs to compute a class's `$defs` key.
+///
+/// This is [`gmeow_ns::gmeow_json_schema_namespaces`] — the SAME table
+/// `gmeow_pipeline::stages::export` keys `$defs` with, not a mirror of it. The
+/// four namespaces used to be re-declared here because `gmeow-pipeline` depends
+/// on `gmeow-docs` and importing the table back would have been circular;
+/// `gmeow-ns` sits below both, so there is one table and it cannot drift.
 fn json_schema_namespaces() -> purrdf::Namespaces {
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-    const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-    const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
-    purrdf::Namespaces::new(
-        "gmeow",
-        &[
-            ("gmeow".to_owned(), NAMESPACE.to_owned()),
-            ("logic".to_owned(), LOGIC_NS.to_owned()),
-            ("lang".to_owned(), LANG_NS.to_owned()),
-            ("math".to_owned(), MATH_NS.to_owned()),
-        ],
-    )
-    .expect("gmeow primary prefix is always declared")
+    gmeow_ns::gmeow_json_schema_namespaces()
 }
 
 /// Whether `term` (a documented CLASS IRI) names a `$defs` entry in

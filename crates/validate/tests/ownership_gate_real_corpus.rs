@@ -34,11 +34,8 @@ fn the_peerage_aware_dependency_gate_is_clean_on_the_real_corpus() {
         dir.display()
     );
 
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &dir,
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )
-    .expect("discover the real slice catalog");
+    let catalog = purrdf::slice::SliceCatalog::discover(&dir, gmeow_ns::gmeow_slice_vocab())
+        .expect("discover the real slice catalog");
     let report = purrdf::slice::OwnershipAnalyzer::new(&catalog)
         .analyze()
         .expect("analyze slice ownership over the real corpus");

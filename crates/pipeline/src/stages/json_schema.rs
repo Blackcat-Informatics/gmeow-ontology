@@ -233,7 +233,7 @@ mod tests {
             .expect("load fresh shape union");
         let compiled = purrdf::shapes::json_schema::compile(
             &shapes,
-            &crate::gmeow_ns::gmeow_json_schema_namespaces(),
+            &gmeow_ns::gmeow_json_schema_namespaces(),
         );
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(

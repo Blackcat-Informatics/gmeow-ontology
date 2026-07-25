@@ -34,7 +34,7 @@ use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
 use crate::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 // Full predicate IRIs used to resolve translated label / definition / title
 // values (the `.po` msgctxt predicate, CURIE-expanded). Mirror `model.rs`.

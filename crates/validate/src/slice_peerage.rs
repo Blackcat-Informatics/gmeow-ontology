@@ -1186,7 +1186,7 @@ mod tests {
     }
 
     fn vocab() -> purrdf::SliceVocab {
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/")
+        gmeow_ns::gmeow_slice_vocab()
     }
 
     fn write_manifest(root: &Path, group: &str, name: &str, ttl: &str) {

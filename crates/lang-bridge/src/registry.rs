@@ -519,7 +519,7 @@ impl Gmn1Target {
 /// The stable, shipped-identity IRIs the conformance-pack projection asserts over. NOT
 /// under `example.org`: the pack IS shipped bundle identity, so its subject and the parts it
 /// references live in the gmeow namespace beside `gmnCodebookCurrent`.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The pack subject: the current shipped GMN-1 conformance pack, mirroring how
 /// `gmnCodebookCurrent` names the current codebook.
