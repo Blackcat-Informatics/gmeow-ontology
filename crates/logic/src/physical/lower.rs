@@ -789,7 +789,6 @@ pub(crate) fn lower_math_expression(
 /// expression. Each root is lowered independently (a fresh [`TermDag`] and a fresh
 /// recursion-guard state per root), so ONE root's rejection is recorded against ONLY
 /// that root's entry — it never blinds any other root's `Ok` result.
-#[allow(dead_code)] // the reasoned-graph-gate call site is a later task's seam
 pub(crate) fn math_expression_structural_keys(
     ds: &purrdf::RdfDataset,
 ) -> BTreeMap<String, MathResult<String>> {
@@ -825,7 +824,6 @@ fn feed_structural(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
 /// framed, domain-tagged `blake3` hash into a fixed-width hex digest. Two nodes with the
 /// SAME digest are alpha-equivalent by construction (the arena is locally-nameless and
 /// hash-consed); two with different digests are structurally distinct.
-#[allow(dead_code)] // exercised by `alpha_class_iri` and a later reasoned-graph gate
 pub(crate) fn structural_digest(dag: &TermDag, id: NodeId) -> String {
     let content_key = dag.key(id);
     let mut hasher = blake3::Hasher::new();

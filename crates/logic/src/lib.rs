@@ -59,6 +59,12 @@ pub mod materialize;
 // all computed through the exact-rational (ℚ⁷) gmeow_math source at reason-verify
 // speed. Runs alongside the obligation checks in `verify`.
 pub mod math_dimension;
+// The `math:` expression-identity reasoned-graph gate — recomputed `math:structuralKey`
+// drift, `math:NormalizationDeclaration` surface leaks, and a claimed structural key on a
+// rejected expression, all decided over the ONE `math:` expression lowering
+// (`crate::physical::lower::math_expression_structural_keys`). Runs alongside
+// `math_dimension` in the same reason-verify pass.
+pub mod math_expression;
 // Fixed-arity n-ary predication → reified-binary lowering + the native n-ary
 // forward-chase ingestion entry. The reified encoding (`logic:instanceOf` /
 // `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,

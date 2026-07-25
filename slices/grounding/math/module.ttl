@@ -3026,6 +3026,42 @@ math:UnattributedNormalization
     gmeow:howToUse "Point math:UnattributedNormalizationConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
     skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf ; math:normalizationStrength math:algebraicNormalization . # no math:normalizationProcedure, no holding gmeow:Observation, no logic:preservationKind -> math:UnattributedNormalization"@x-gmeow-english .
 
+# --- math: expression-identity reasoned-gate failures (native, no logic:Constraint) --- #
+#
+# The three classes below are decided by the SAME architectural shape as
+# math:MalformedDimension / math:NonPositiveDefiniteNorm / math:AsymmetricGramMatrix: a
+# plain Rust computation over the frozen reasoned graph (crates/logic/src/math_expression.rs),
+# run alongside math_dimension's own sweep at reason-verify speed. Each recomputes or
+# reads off the ONE `math:` expression lowering (crates/logic/src/physical/lower.rs) —
+# never a divergent second source — so, exactly like those three siblings, NONE of them
+# carries a backing logic:Constraint/logic:Formula: the invariant is a genuine
+# computation (a content-addressed digest recompute, a lowering accept/reject verdict),
+# not a flat relational join the SHACL/Datalog fragment can express.
+
+math:StructuralKeyDrift
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Structural Key Drift"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression's authored math:structuralKey does not equal the digest recomputed from its own structure by the math: expression lowering. The key is a computed projection of the expression's α-equivalence class identity — same operator, same slot-indexed operands, same binding structure up to bound-variable renaming — never an independent authored value; a divergent string is drift, exactly as a divergent math:dimensionVector string is math:MalformedDimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SurfaceLeakInNormalForm
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Surface Leak In Normal Form"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NormalizationDeclaration's structural-identity computation is contaminated by surface-stratum material: the declaration itself, its math:normalizes source, or its math:normalizesTo target directly carries math:rendersAs. Normal-form identity — like the math:structuralKey it is decided from — is computed over structural content alone, independent of rendering or notation; a crossing that lets a rendered surface into that computation has leaked the surface into identity, mirroring lang:SurfaceLeakInContentKey one stratum over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:StructuralKeyOnRejectedExpression
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Structural Key On Rejected Expression"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression carries an authored math:structuralKey while the math: expression lowering rejects its own AST — a malformed argument-slot family, an unscoped variable occurrence, a cyclic or over-deep math:slotExpression graph, or another ill-formed construct the grammar refutes. A structural identity is a claim about a well-formed expression's shape; it cannot be claimed for an expression the grammar itself says is not one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- Binder AST properties -------------------------------------------------- #
 
 math:argumentSlot
@@ -15415,6 +15451,9 @@ math:ResultRoleConflation a logic:Situation .
 math:StringOnlyComputableExpression a logic:Situation .
 math:StringOnlyMemberCondition a logic:Situation .
 math:StringOnlyPreservationLaw a logic:Situation .
+math:StructuralKeyDrift a logic:Situation .
+math:StructuralKeyOnRejectedExpression a logic:Situation .
+math:SurfaceLeakInNormalForm a logic:Situation .
 math:UnanchoredAutomorphismGroup a logic:Situation .
 math:UnanchoredDiagnostic a logic:Situation .
 math:UnattributedNormalization a logic:Situation .

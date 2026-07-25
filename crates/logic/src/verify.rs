@@ -360,6 +360,13 @@ pub fn verify_with_reasoning_result(
     for finding in crate::math_dimension::check_math_dimension_findings(&reasoned) {
         report.add_finding(finding);
     }
+    // 6. The math: expression-identity reasoned gate — recomputed math:structuralKey
+    //    drift, math:NormalizationDeclaration surface leaks, and a claimed structural key
+    //    on an expression the math: lowering rejects. Runs alongside the measure-and-
+    //    dimension gate above, over this same frozen reasoned graph.
+    for finding in crate::math_expression::check_math_expression_findings(&reasoned) {
+        report.add_finding(finding);
+    }
 
     report.add_finding(
         Finding::new(

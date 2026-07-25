@@ -126,8 +126,16 @@ use session_common::*;
 /// multi-valued cell decline instead of mis-decoding, so no reasoning verdict on any
 /// well-formed input — including this fixed edge-only input, which authors no dimension
 /// cell — changes. (Value below is the post-`cargo fmt` state of the branch.)
+/// Re-blessed once more for the `math:` expression-identity reasoned gate
+/// (`math_expression.rs`): `physical/lower.rs`'s `math_expression_structural_keys` and
+/// `structural_digest` lose their `#[allow(dead_code)]` now that a live caller
+/// (`math_expression::check_math_expression_findings`, dispatched from `verify.rs`)
+/// exists — `physical/lower.rs` is a member of `BACKWARD_SOURCE`, folded via
+/// `include_str!` into `backward_source_hash()`, so the raw source-content digest moves.
+/// No lowering behavior changes (only an attribute), so no reasoning verdict on any
+/// input — including the fixed edge-only input below — changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "773d6bb9a332306e9c70ef7d5c4827f8c45d19b581bf96c9f049b3a2e66e6a0c";
+    "f10ca74e18b808ddf43ec57ef011a9a9ceb2364a293b2eb3090e6652f1644b0e";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -176,8 +184,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
 /// session identity moves with it, while the fixed edge-only input's reasoning verdict is
 /// unchanged.
+/// Re-blessed once more for the `math:` expression-identity reasoned gate (see the
+/// engine-descriptor golden above): `backward_source_hash` is one of the seven folded
+/// identity axes and moves with the changed `physical/lower.rs` engine source
+/// (a dropped `#[allow(dead_code)]`, no behavior change), while the fixed edge-only
+/// input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "fb1f5e8271ccdf6d82e6db41b05c9e17ccd76972a64c4fc96f78c93a5af3d688";
+    "f983d1ae3d6f3dc4603d02b6d51ff4decf00cc42fbf1da5abf7e48395e63e1d6";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
