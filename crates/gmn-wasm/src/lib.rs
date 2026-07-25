@@ -66,9 +66,10 @@ pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
 /// The pinned real token cost of every glyph the codec may emit — each glyph's
 /// `cl100k_base` BPE cost, the exact value
 /// [`gmeow_lang_bridge::gmn_glyph_token_cost`] returns natively. That primitive embeds a
-/// ~1.7 MB tiktoken vocabulary deliberately excluded from the wasm image (main #1377's
-/// wasm-clean lang-bridge), so the browser cannot run the tokenizer; the cost is pinned
-/// here instead. The native-only anti-rot test `pinned_glyph_costs_match_the_real_bpe`
+/// ~1.7 MB tiktoken vocabulary deliberately excluded from the wasm image (lang-bridge
+/// gates it `cfg(not(target_arch = "wasm32"))` to stay wasm-clean), so the browser cannot
+/// run the tokenizer; the cost is pinned here instead. The native-only anti-rot test
+/// `pinned_glyph_costs_match_the_real_bpe`
 /// asserts this table equals the real BPE cost for EVERY glyph in the codebook registry
 /// (and carries no stale entry), so a new glyph or a shifted cost hard-fails the on-gate
 /// suite until the table is re-pinned. Wasm reads the pinned cost; native cross-checks it.
@@ -176,8 +177,8 @@ pub fn from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
 
 // The token-cost anti-rot gate. Native-only because the ground truth
 // (`gmn_glyph_token_cost`) embeds a ~1.7 MB tiktoken vocabulary excluded from the wasm
-// image (main #1377); on `wasm32` it does not exist, and this crate compiles clean
-// without it precisely because `glyph_legend_json` reads the pinned `GLYPH_TOKEN_COSTS`.
+// image; on `wasm32` it does not exist, and this crate compiles clean without it
+// precisely because `glyph_legend_json` reads the pinned `GLYPH_TOKEN_COSTS`.
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use super::{GLYPH_TOKEN_COSTS, LANG_CODEBOOK};
