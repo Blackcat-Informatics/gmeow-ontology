@@ -18,6 +18,7 @@ pub(crate) mod builtin_gap;
 pub mod dl;
 pub mod el;
 pub mod ledger;
+pub(crate) mod enactment;
 pub(crate) mod math_gate;
 pub mod perf_ledger;
 pub(crate) mod refute;
