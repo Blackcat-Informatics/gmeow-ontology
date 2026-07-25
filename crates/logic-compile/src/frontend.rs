@@ -3348,7 +3348,11 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
     // would both corrupt the reasoned core and auto-assert the very structure the advice only
     // RECOMMENDS adding).
     let completeness_pred = nn(&logic_iri("completenessFormula"));
-    for schema in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("AbductiveSchema"))) {
+    for schema in subjects_with(
+        store,
+        &nn(RDF_TYPE),
+        &Node::iri(logic_iri("AbductiveSchema")),
+    ) {
         for obj in objects(store, &schema, &completeness_pred) {
             referenced.insert(term_str(&obj));
         }

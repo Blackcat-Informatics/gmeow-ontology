@@ -60,8 +60,9 @@ fn completeness_formulas_reconstruct_but_never_become_axioms() {
     for root in COMPLETENESS_ROOTS {
         let iri = format!("{LOGIC}{root}");
         // (2a) Reconstructable as a well-formed first-order formula through the public entry.
-        let formula = reconstruct_formula(dataset.as_ref(), &iri)
-            .unwrap_or_else(|e| panic!("completeness root {iri} must reconstruct: {}", e.message()));
+        let formula = reconstruct_formula(dataset.as_ref(), &iri).unwrap_or_else(|e| {
+            panic!("completeness root {iri} must reconstruct: {}", e.message())
+        });
         // (2b) NOT asserted as a free-standing top-level formula.
         assert!(
             !program.formulas.contains(&formula),
