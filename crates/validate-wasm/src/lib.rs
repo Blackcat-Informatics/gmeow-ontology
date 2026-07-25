@@ -67,7 +67,7 @@ const GMN_CODEBOOK_TTL: &[u8] = include_bytes!("../../../slices/grounding/lang/m
 /// `gmn_codebook_digest_is_pinned` host test recomputes it over the embedded bytes and
 /// hard-fails if the two drift, so this constant can never silently fall out of date.
 pub const GMN_CODEBOOK_DIGEST: &str =
-    "80352b2ef1de84283db8b84d4fc9a113f737296ac98ca2add11cdbb67f0f806b";
+    "cc52707bbdf641cfe253c9363d5861aa9737bed740ba8de8fe111a2c65d31f40";
 
 /// The graph-derived dictionary, built ONCE from the embedded codebook and memoized.
 ///
