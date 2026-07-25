@@ -838,12 +838,12 @@ maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix ov
 	  dir=.tmp/gmn-cost-matrix; mkdir -p "$$dir"; \
 	  if [ -n "$${HF_TOKEN:-}" ]; then AUTH=(-H "Authorization: Bearer $$HF_TOKEN"); else AUTH=(); fi; \
 	  echo "-> fetching Llama tokenizer.json ($(LLAMA_TOKENIZER_URL))"; \
-	  curl -fsSL "$${AUTH[@]}" "$(LLAMA_TOKENIZER_URL)" -o "$$dir/llama.json" || { \
+	  curl -fsSL $${AUTH[@]+"$${AUTH[@]}"} "$(LLAMA_TOKENIZER_URL)" -o "$$dir/llama.json" || { \
 	    echo "ERROR: Llama tokenizer.json fetch failed. Override LLAMA_TOKENIZER_URL or (for the"; \
 	    echo "  gated meta-llama repo) export HF_TOKEN. The five families are mandatory — no partial matrix."; \
 	    exit 1; }; \
 	  echo "-> fetching Gemma tokenizer.json ($(GEMMA_TOKENIZER_URL))"; \
-	  curl -fsSL "$${AUTH[@]}" "$(GEMMA_TOKENIZER_URL)" -o "$$dir/gemma.json" || { \
+	  curl -fsSL $${AUTH[@]+"$${AUTH[@]}"} "$(GEMMA_TOKENIZER_URL)" -o "$$dir/gemma.json" || { \
 	    echo "ERROR: Gemma tokenizer.json fetch failed. Gemma is gated:manual on google/gemma-2-2b —"; \
 	    echo "  accept its license and export HF_TOKEN, or override GEMMA_TOKENIZER_URL to an authorized"; \
 	    echo "  source. The five families are mandatory — no partial matrix."; \
