@@ -2790,8 +2790,20 @@ math:MalformedArgumentSlot
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Malformed Argument Slot"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:ArgumentSlot does not carry exactly one math:slotIndex and exactly one math:slotExpression, or when two slots of one application share an index. Operand order is carried by unique indexed slots; a slot missing its index or expression, or a duplicated index, is ill-formed."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ArgumentSlot does not carry exactly one math:slotIndex and exactly one math:slotExpression. Operand order is carried by unique indexed slots; a slot missing its index or expression is ill-formed. Distinct from math:DuplicateArgumentSlotIndex (two slots sharing one index) and math:NonContiguousArgumentSlots (a gap in the index sequence), which are each their own failure class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DuplicateArgumentSlotIndex
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Duplicate Argument Slot Index"@x-gmeow-english ;
+    skos:definition "The failure raised when two math:argumentSlot cells of one parent share the same math:slotIndex. Operand order is carried by unique indexed slots; a duplicated index makes that order ambiguous."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when two distinct math:argumentSlot cells of the same parent carry the same math:slotIndex."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:MalformedArgumentSlot (a slot missing its index or expression entirely) or math:NonContiguousArgumentSlots (a gap in the index sequence); this failure is specifically the sibling-uniqueness violation."@x-gmeow-english ;
+    gmeow:howToUse "Point math:ArgumentSlotIndexUniquenessConstraint (the self-join uniqueness rule over math:argumentSlot's math:slotIndex) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:app math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] , [ math:slotIndex 0 ; math:slotExpression exf:b ] . # duplicate index 0 -> math:DuplicateArgumentSlotIndex"@x-gmeow-english .
 
 math:NonContiguousArgumentSlots
     a owl:Class ;
@@ -2799,7 +2811,11 @@ math:NonContiguousArgumentSlots
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Non-Contiguous Argument Slots"@x-gmeow-english ;
     skos:definition "The failure raised when the math:argumentSlot indexes of a mathematical expression are not the strict zero-based contiguous sequence 0..n−1. Together with non-negativity and sibling-index uniqueness, the predecessor rule rejects leading gaps and interior gaps while preserving explicit operand order."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a mathematical expression's math:argumentSlot indexes skip a value — a leading gap (no slot at index 0) or an interior gap (e.g. indexes 0, 1, 3 with no 2) under one parent."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a duplicate index (that is math:DuplicateArgumentSlotIndex) or for a slot missing its index or expression entirely (that is math:MalformedArgumentSlot); this failure is specifically about a gap in an otherwise unique, non-negative index sequence."@x-gmeow-english ;
+    gmeow:howToUse "Point math:ArgumentSlotContiguityConstraint (the closed-world predecessor-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:app math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] , [ math:slotIndex 2 ; math:slotExpression exf:b ] . # index 1 missing -> math:NonContiguousArgumentSlots"@x-gmeow-english .
 
 math:UnresolvedSymbolReference
     a owl:Class ;
@@ -2807,7 +2823,11 @@ math:UnresolvedSymbolReference
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unresolved Symbol Reference"@x-gmeow-english ;
     skos:definition "The failure raised when a math:SymbolReference expression resolves to no math:MathematicalSymbol, resolves to more than one symbol, or points outside that class. A reference occurrence has exactly one local symbol identity; glyph and external-identifier ambiguity is represented on that symbol rather than by leaving the AST leaf unresolved."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:SymbolReference leaf carries zero math:hasMathematicalSymbol edges, more than one, or one whose target is not a math:MathematicalSymbol."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for glyph or external-identifier ambiguity on the resolved math:MathematicalSymbol itself — that ambiguity is represented ON the symbol, never by leaving the AST leaf unresolved."@x-gmeow-english ;
+    gmeow:howToUse "Point the exactly-one restriction on math:SymbolReference's math:hasMathematicalSymbol edge at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:xRef a math:SymbolReference . # no math:hasMathematicalSymbol edge -> math:UnresolvedSymbolReference"@x-gmeow-english .
 
 math:UnscopedVariableOccurrence
     a owl:Class ;
@@ -2816,6 +2836,18 @@ math:UnscopedVariableOccurrence
     rdfs:label "Unscoped Variable Occurrence"@x-gmeow-english ;
     skos:definition "The failure raised when a math:VariableOccurrence neither resolves to a math:VariableDeclaration through math:declaredVariable nor is marked free through a math:FreeVariableDeclaration. There is no implicit free variable; an occurrence that binds to nothing is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UntypedFreeVariable
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Untyped Free Variable"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FreeVariableDeclaration does not declare, through math:variableDomain, the math:Set it ranges over. A free variable is the explicit marker that an occurrence is not bound by a binder; without a declared domain it names no type/domain context and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:FreeVariableDeclaration omits its math:variableDomain — the declared type/domain context a free variable must carry since it is not introduced by a binder."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a math:VariableDeclaration introduced by a binder (through math:boundVariable): a bound declaration's scope comes from its binder, not from a declared domain; this failure is specific to the free, standalone case."@x-gmeow-english ;
+    gmeow:howToUse "Point the exactly-one restriction on math:FreeVariableDeclaration's math:variableDomain at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:xFree a math:FreeVariableDeclaration . # no math:variableDomain -> math:UntypedFreeVariable"@x-gmeow-english .
 
 math:MalformedBindingExpression
     a owl:Class ;
@@ -2833,6 +2865,18 @@ math:UndeclaredLogicLowering
     skos:definition "The failure raised when a truth-valued math:MathematicalExpression is lowered into logic: (math:compilesToLogicFormula) without declaring its math:denotationKind and its math:logicLoweringPreservation. Silent promotion of a mathematical expression to a logical assertion is forbidden — an equation is a denotable object until something declares it a proposition and lowers it, with recorded preservation, into the reasoning layer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:StringOnlyComputableExpression
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "String-Only Computable Expression"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression participates in checking, normalization, evaluation, or content-projection — carrying a math:normalForm, a math:compilesToLogicFormula, or a math:expressionType edge — yet carries none of the four structured-child edges (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue). An expression represented only by a string is not a computable AST node; a computable expression's structure is data, never prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression that carries a math:normalForm, math:compilesToLogicFormula, or math:expressionType edge has no math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue child — i.e. it is represented only by a string literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an expression that merely lacks all three triggering edges (math:normalForm, math:compilesToLogicFormula, math:expressionType); an expression not yet checked, normalized, evaluated, or content-projected carries no obligation to be structured."@x-gmeow-english ;
+    gmeow:howToUse "Point math:StringOnlyComputableExpressionConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:normalized math:normalForm exf:nf . # no argumentSlot/boundVariable/hasMathematicalSymbol/literalValue child -> math:StringOnlyComputableExpression"@x-gmeow-english .
+
 # --- Binder AST properties -------------------------------------------------- #
 
 math:argumentSlot
@@ -2846,7 +2890,7 @@ math:slotIndex
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "slot index"@x-gmeow-english ;
-    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; a family with a gap is math:NonContiguousArgumentSlots."@x-gmeow-english ;
+    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; two slots sharing an index are math:DuplicateArgumentSlotIndex; a family with a gap is math:NonContiguousArgumentSlots."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:slotExpression
@@ -2875,6 +2919,13 @@ math:declaredVariable
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "declared variable"@x-gmeow-english ;
     skos:definition "Relates a math:VariableOccurrence to the math:VariableDeclaration it refers to — the binding site or free declaration that gives the occurrence its identity. Domain math:VariableOccurrence, range math:VariableDeclaration (stated in prose). Every occurrence resolves to exactly one declaration; an occurrence resolving to none and not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:variableDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "variable domain"@x-gmeow-english ;
+    skos:definition "The declared type/domain context of a math:FreeVariableDeclaration — the math:Set (a number system or another set) the free variable ranges over. Domain math:FreeVariableDeclaration, range math:Set (stated in prose). Every math:FreeVariableDeclaration names exactly one; a free variable standing alone with no declared domain is untyped (math:UntypedFreeVariable)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:occursInScope
@@ -6569,6 +6620,18 @@ math:UngroundedTheoremClaim
     rdfs:label "Ungrounded Theorem Claim"@x-gmeow-english ;
     skos:definition "The failure raised when a theorem claim is stated as a truth bit rather than a theory-scoped, warranted claim: a math:Theorem (or a math:MathematicalStatement carrying math:statementRole math:roleTheorem) that lacks a theory context (math:roleInTheory), or that carries a theory context but neither a math:Proof (via math:provesStatement) nor a declared math:externalWarrant. A bare `a math:Theorem` with no theory context is ill-formed: theorem-hood is a role held under a named, versioned theory with a proof or external warrant, never a fact read off the type. Primary gate: the SHACL requirement (math:TheoremGroundingShape) that a theorem carry math:roleInTheory and a proof-or-warrant."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnscopedStatementRole
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unscoped Statement Role"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalStatement carries a math:statementRole yet does not itself carry a math:roleInTheory. A statement's epistemic role is always held under a named, versioned theory (math:roleInTheory) — theorem-hood, lemma-hood, and the rest are theory-scoped, never global; a statement with a role but no theory context is unscoped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalStatement names a math:statementRole but omits the math:roleInTheory that scopes that role to a named, versioned theory."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:UngroundedTheoremClaim (specific to the theorem role, also requiring a proof or external warrant); this failure is the general role/theory-scoping gate shared by every math:StatementRole, not the theorem-specific warrant obligation."@x-gmeow-english ;
+    gmeow:howToUse "Point math:UnscopedStatementRoleConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:claim a math:MathematicalStatement ; math:statementRole math:roleLemma . # no math:roleInTheory -> math:UnscopedStatementRole"@x-gmeow-english .
 
 # --- Process / observation disjointness (process is never the claim) --------- #
 # The OWL-axiom gate backing math:ProcessObservationConflation: an inference or
@@ -10376,6 +10439,13 @@ math:SymbolReference logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:hasMathematicalSymbol ; logic:maxQualifiedCardinality 1 ; logic:onClass math:MathematicalSymbol ] ;
     gmeow:enforcesFailureClass math:UnresolvedSymbolReference .
 
+math:FreeVariableDeclaration logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:allValuesFrom math:Set ] ,
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Set ] ;
+    gmeow:enforcesFailureClass math:UntypedFreeVariable .
+
 math:ApplicationExpression rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:operator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
     gmeow:enforcesFailureClass math:ApplicationOperatorCardinality .
@@ -12566,8 +12636,8 @@ math:ArgumentSlotIndexUniquenessConstraint
     logic:siblingPredicate math:argumentSlot ;
     logic:sharedPredicate math:slotIndex ;
     logic:formalizes math:SlotIndexUniquenessShape ;
-    gmeow:enforcesFailureClass math:MalformedArgumentSlot ;
-    logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous." .
+    gmeow:enforcesFailureClass math:DuplicateArgumentSlotIndex ;
+    logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous (math:DuplicateArgumentSlotIndex)." .
 
 # Every positive slot index must have a predecessor slot under the same parent.
 # The existing non-negative and sibling-uniqueness gates complete the proof:
@@ -13397,6 +13467,113 @@ math:cdA4 a logic:Formula ; logic:relation math:spaceDimension ;
 math:cdA5 a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "md" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
 
+# A math:MathematicalExpression that participates in checking, normalization,
+# evaluation, or content-projection — carrying a math:normalForm,
+# math:compilesToLogicFormula, or math:expressionType edge — must also carry at
+# least one structured-child edge (math:argumentSlot, math:boundVariable,
+# math:hasMathematicalSymbol, or math:literalValue); an expression carrying none
+# of the four is represented only by a string. The obligation is CONDITIONAL on
+# one of three alternative triggering edges rather than unconditional over the
+# whole class, so no single class-scoped OWL/RDFS restriction (EL-safe or
+# otherwise) can express it — a restriction binds unconditionally to every
+# instance of its class, never "if property A, B, or C, then property D, E, F,
+# or G". This is exactly the shape SHACL Core cannot express either (an
+# sh:or gated by another sh:or is a SHACL-SPARQL-shaped obligation), so it is
+# authored as a raw logic:Formula projecting to sh:SPARQLConstraint, mirroring
+# math:TheoremWarrantConstraint's guard/or-of-exists shape.
+math:StringOnlyComputableExpressionConstraint
+    a logic:Constraint ;
+    rdfs:label "String-only computable expression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:MathematicalExpression carrying a math:normalForm, math:compilesToLogicFormula, or math:expressionType edge must also carry at least one of math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue; an expression with none of the four is represented only by a string (math:StringOnlyComputableExpression)."@x-gmeow-english ;
+    logic:formalizes math:StringOnlyComputableExpressionShape ;
+    gmeow:enforcesFailureClass math:StringOnlyComputableExpression ;
+    logic:severity "Violation" ;
+    logic:message "A math:MathematicalExpression carrying a math:normalForm, math:compilesToLogicFormula, or math:expressionType edge must also carry at least one structured-child edge (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue); an expression represented only by a string is ill-formed (math:StringOnlyComputableExpression)." ;
+    logic:integrity math:sceForall .
+math:sceForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:sceImpl .
+math:sceImpl a logic:Formula ; logic:antecedent math:sceGuard ; logic:consequent math:sceOr .
+math:sceGuard a logic:Formula ; logic:and math:sceTypeGuard , math:sceTrigger .
+math:sceTypeGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MathematicalExpression ] .
+math:sceTrigger a logic:Formula ; logic:or math:sceTrigNormalForm , math:sceTrigLogicFormula , math:sceTrigExprType .
+math:sceTrigNormalForm a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nf" ] ;
+    logic:exists math:sceTrigNormalFormAtom .
+math:sceTrigNormalFormAtom a logic:Formula ; logic:relation math:normalForm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "nf" ] .
+math:sceTrigLogicFormula a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "lf" ] ;
+    logic:exists math:sceTrigLogicFormulaAtom .
+math:sceTrigLogicFormulaAtom a logic:Formula ; logic:relation math:compilesToLogicFormula ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lf" ] .
+math:sceTrigExprType a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "et" ] ;
+    logic:exists math:sceTrigExprTypeAtom .
+math:sceTrigExprTypeAtom a logic:Formula ; logic:relation math:expressionType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "et" ] .
+math:sceOr a logic:Formula ; logic:or math:sceHasArgSlot , math:sceHasBoundVar , math:sceHasSymbol , math:sceHasLiteral .
+math:sceHasArgSlot a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "slot" ] ;
+    logic:exists math:sceHasArgSlotAtom .
+math:sceHasArgSlotAtom a logic:Formula ; logic:relation math:argumentSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "slot" ] .
+math:sceHasBoundVar a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bv" ] ;
+    logic:exists math:sceHasBoundVarAtom .
+math:sceHasBoundVarAtom a logic:Formula ; logic:relation math:boundVariable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "bv" ] .
+math:sceHasSymbol a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sym" ] ;
+    logic:exists math:sceHasSymbolAtom .
+math:sceHasSymbolAtom a logic:Formula ; logic:relation math:hasMathematicalSymbol ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sym" ] .
+math:sceHasLiteral a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "lit" ] ;
+    logic:exists math:sceHasLiteralAtom .
+math:sceHasLiteralAtom a logic:Formula ; logic:relation math:literalValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lit" ] .
+
+# A math:MathematicalStatement's epistemic role (math:statementRole) is always
+# held under a named, versioned theory: math:roleInTheory is asserted on the
+# SAME statement subject that carries the role (see e.g. the bottleneck
+# stability theorem example, which carries both math:statementRole and
+# math:roleInTheory on one node) — a role individual such as math:roleTheorem is
+# a shared, closed-world value individual and cannot itself carry a
+# per-statement theory context. A statement that names a role but no theory is
+# unscoped. Guarded by type and by the statementRole edge (both quantified in
+# one forall, mirroring math:ArgumentSlotContiguityConstraint's ascAllSlots
+# double-quantifier idiom), requiring existence of math:roleInTheory.
+math:UnscopedStatementRoleConstraint
+    a logic:Constraint ;
+    rdfs:label "Unscoped statement-role constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:MathematicalStatement that carries a math:statementRole must also carry a math:roleInTheory; a statement with a role but no theory context is unscoped (math:UnscopedStatementRole)."@x-gmeow-english ;
+    logic:formalizes math:UnscopedStatementRoleShape ;
+    gmeow:enforcesFailureClass math:UnscopedStatementRole ;
+    logic:severity "Violation" ;
+    logic:message "A math:MathematicalStatement that carries a math:statementRole must also carry a math:roleInTheory; a statement with a role but no theory context is unscoped (math:UnscopedStatementRole)." ;
+    logic:integrity math:usrForall .
+math:usrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "role" ] ;
+    logic:forall math:usrImpl .
+math:usrImpl a logic:Formula ; logic:antecedent math:usrGuard ; logic:consequent math:usrExists .
+math:usrGuard a logic:Formula ; logic:and math:usrTypeGuard , math:usrRoleAtom .
+math:usrTypeGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MathematicalStatement ] .
+math:usrRoleAtom a logic:Formula ; logic:relation math:statementRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:usrExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "theory" ] ;
+    logic:exists math:usrTheoryAtom .
+math:usrTheoryAtom a logic:Formula ; logic:relation math:roleInTheory ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "theory" ] .
+
 # A signed-extended-real slot (math:extendedRealValue) holds a value on the extended real
 # line ℝ̄ = ℝ ∪ {−∞, +∞}: a finite numeric literal of either sign, or one of the two poles
 # math:PositiveInfinity / math:NegativeInfinity. The strongest cleanly-expressible logic:
@@ -13926,6 +14103,7 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotExpression" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotIndex" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/SymbolReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasMathematicalSymbol" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FreeVariableDeclaration> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/variableDomain" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/AutomorphismGroup> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/automorphismGroupOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/argumentSlot" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/boundVariable" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -14914,6 +15092,7 @@ math:DimensionMismatch a logic:Situation .
 math:DimensionalInhomogeneity a logic:Situation .
 math:DistributionParameterConstraint a logic:Situation .
 math:DistributionParameterRoleCardinality a logic:Situation .
+math:DuplicateArgumentSlotIndex a logic:Situation .
 math:ExactApproximateConflation a logic:Situation .
 math:ExactPreservationViolated a logic:Situation .
 math:IllFramedPValue a logic:Situation .
@@ -14949,6 +15128,7 @@ math:ProjectionConfidenceAsProbability a logic:Situation .
 math:ProjectionDroppedParameterization a logic:Situation .
 math:ResidualMeaningAsProperty a logic:Situation .
 math:ResultRoleConflation a logic:Situation .
+math:StringOnlyComputableExpression a logic:Situation .
 math:StringOnlyMemberCondition a logic:Situation .
 math:StringOnlyPreservationLaw a logic:Situation .
 math:UnanchoredAutomorphismGroup a logic:Situation .
@@ -14991,8 +15171,10 @@ math:UnqualifiedComplement a logic:Situation .
 math:UnqualifiedOrthogonalComplement a logic:Situation .
 math:UnresolvedSymbolReference a logic:Situation .
 math:UnscopedRandomVariable a logic:Situation .
+math:UnscopedStatementRole a logic:Situation .
 math:UnscopedVariableOccurrence a logic:Situation .
 math:UnsituatedNumber a logic:Situation .
+math:UntypedFreeVariable a logic:Situation .
 math:UnwiredFlagshipScenario a logic:Situation .
 math:WrongE8WeylOrder a logic:Situation .
 math:IncompleteCell a logic:Situation .
