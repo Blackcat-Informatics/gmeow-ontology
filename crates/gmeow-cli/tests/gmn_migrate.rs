@@ -6,7 +6,7 @@
 //! the `Commands::Gmn { Migrate }` clap dispatch in `src/lib.rs`, driven through
 //! `assert_cmd`. Before this leg the version-migration executor
 //! (`gmeow_lang_bridge::GmnMigration::migrate`) was reachable only from test code (issue
-//! #1377 req #19); this drives it end-to-end over the built binary and asserts:
+//! req #19); this drives it end-to-end over the built binary and asserts:
 //!
 //! * a stored v1 document migrates to v2 — a ¬→! rename, a ⊑ native survivor, and a
 //!   bridged ⊻→^ drop — with the header re-stamped and the preservation JUDGMENT reported;
