@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the agentic extension slice --
+# Declarative structural assertions for the agentic slice --
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_agentic.py. Each assertion
 # runs as a SPARQL ASK over the agentic module graph (gmeow:scopeModule) under

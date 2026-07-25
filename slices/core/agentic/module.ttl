@@ -92,7 +92,7 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Declarative constraint axioms (extension slices) — the closed-
+# Declarative constraint axioms — the closed-
 # world cardinality / class / literal obligations the hand-authored
 # gmeow:ToolCallShape states, authored here once as OWL restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes

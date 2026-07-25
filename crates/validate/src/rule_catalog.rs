@@ -595,7 +595,7 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     ),
     (
         codes::AUTHORING_GRAFT_LEAK,
-        "Move the norms-extension reference out of the core rights module; the graft is asserted on the extension side only.",
+        "Move the norms-slice reference out of the core rights module; the graft is asserted on the norms side only.",
     ),
     (
         codes::AUTHORING_UNDECLARED_TERM,

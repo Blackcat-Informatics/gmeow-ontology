@@ -9,11 +9,11 @@
 <https://blackcatinformatics.ca/gmeow/slices/notes>
     a gmeow:Slice ;
     rdfs:label "notes"@x-gmeow-english ;
-    skos:definition "The notes slice of the GMEOW ontology (extension tier): GMEOW Notes & Annotation Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The notes slice of the GMEOW ontology (core tier): GMEOW Notes & Annotation Module. Core by deep interlink — annotation rides directly on the core evidence/observation spine (its only dependencies are kernel and evidence), and retained working memory is required by every enactment binding rather than by one domain. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     dcterms:title "GMEOW Notes & Annotation Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
-    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ;

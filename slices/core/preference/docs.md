@@ -1,10 +1,10 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# The preference extension — a preference is never automatically a global winner
+# The preference slice — a preference is never automatically a global winner
 
 A contextual comparison over a candidate set will happily report "the best one" and
-let a consumer read it as a fact of the whole world. This extension refuses that
+let a consumer read it as a fact of the whole world. This slice refuses that
 shortcut. It records each comparison as a `gmeow:vantage`-indexed, defeasible,
 proof-carrying `gmeow:PreferenceObservation`; it keeps conflicting evaluators as
 **coexisting** cells, none privileged (Principle 9 — no single slot to win); and it
@@ -36,13 +36,15 @@ the SHACL). The compiled RDF 1.2 preference **instance data** — the actual can
 embeddings, comparison complexes, sections, obstructions, and model deltas of a
 running analysis — lives in the consumer `lillith_decodes`, not here.
 
-Cross-slice reuse obeys Principle 16 (DAG): axioms anchor **only** on core +
-`logic`/`math` grounding. Norms (`Assessment`/`Rubric`/`Criterion`/`EvaluationVerdict`/
-`Condition`), model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology,
-and embedding-projection (`VectorSpaceContract`) are **extensions** and are reused
-**only** at the instance level (Principle 5) and named by-reference as
-a native alignment cell in `mappings/equivalences.ttl` — never a subclass/domain/range
-axiom.
+Cross-slice reuse obeys the tier DAG: this is a **core** slice, so its axioms anchor
+only on core slices and the `logic`/`math` grounding. Norms is core and declared in
+`gmeow:sliceDependsOn`, so `usesRubric` and `onCriterion` carry real `rdfs:range`
+axioms onto `gmeow:Rubric` and `gmeow:Criterion` — the one canonical owner
+(Principle 4). Model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology and
+embedding-projection (`VectorSpaceContract`) are **extensions**, which a core slice may
+never reach by a subclass/domain/range axiom; they are reused **only** at the instance
+level (Principle 5) and named by-reference as a native alignment cell in
+`mappings/equivalences.ttl`.
 
 ## The pipeline
 
@@ -86,7 +88,7 @@ CandidateSet ─hasCandidate─┐
 | Promotion/rejection/rollback/evaluation receipts + activation-authority gate | vocabulary + gate | built |
 | Examples (pass witnesses) + counter-examples (fail witnesses) + competency | tests | built |
 | General k-criterion Pareto law / projected-DAG acyclicity | second-order boundary | `logic:expressivenessBoundary logic:SecondOrder` (honest boundary, never a faked formula) |
-| First-class `math:CliffordBundle`/`AssociatedBundle`/`SpinorBundle` | grounding object | **absent from `math:` — surfaced as a separate grounding follow-up** (an extension may not author grounding); the Cl(12)-bundle-over-E8 structure is expressed here compositionally (`math:CellularSheaf` + Clifford-fiber `math:SheafStalk`s over an E8-organized `math:CellComplex` + `math:connectionOfSheaf`) |
+| First-class `math:CliffordBundle`/`AssociatedBundle`/`SpinorBundle` | grounding object | **absent from `math:` — surfaced as a separate grounding concern** (only a grounding slice may author grounding); the Cl(12)-bundle-over-E8 structure is expressed here compositionally (`math:CellularSheaf` + Clifford-fiber `math:SheafStalk`s over an E8-organized `math:CellComplex` + `math:connectionOfSheaf`) |
 
 See [`design/PREFERENCE-SHEAF.md`](design/PREFERENCE-SHEAF.md) for the full thesis and
 the rule→gate map.

@@ -3,7 +3,7 @@
 
 # norms
 
-> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/norms` · **tier: extension**
+> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/norms` · **tier: core**
 
 Generalized deontics with indexed authority plus the rights graft
 (rights graft) — the constitutional keystone of the normative stack.
@@ -78,7 +78,7 @@ generated schema surface keeps a clean named domain.
 The blast-radius survey's ~150 mechanical sites and 5 class-dependent
 conflicts (core disjointness axiom, shape targets, ODRL projection
 templates, competency query, grounding tests) are this slice's
-**do-not-touch list**: with the extension absent, core rights is
+**do-not-touch list**: without the graft, core rights is
 byte-identical and behaves exactly as before.
 
 ## Deferred to the compiler-arc window
@@ -88,16 +88,15 @@ structural; LegalRuleML `<Override>` — the only target where precedence
 survives round-trip; LKIF-Core, DPV, SUMO normative attributes, UFO-L) and
 projections (ODRL JSON-LD, OPA/Rego, Cedar, XACML, LegalRuleML XML, each
 with declared-loss manifests — enforcement flattens the issuer index, said
-loudly). Target list fixed in norms extension; the `wip-aboutness-349` mapping-set
+loudly). Target list fixed in the norms slice; the `wip-aboutness-349` mapping-set
 precedent applies.
 
 ## The rubrics facility
 
 A rubric **is** a norm for judging: `Rubric ⊑ Norm`, so `normIssuer` (no
 anonymous evaluation standards), `overrides`, `AuthorityLevel`, and
-`PrecedenceTenure` arrive free. It lives in this slice because the P16 DAG
-rule bars extension→extension dependencies — one slice carries the deontic
-family.
+`PrecedenceTenure` arrive free. It lives in this slice because one slice
+carries the deontic family — a single canonical owner (Principle 4).
 
 - **Content reified, application solver-layer** (P12): `Criterion` with
   *named* poles (`CriterionPole` — "Power from the Bottom" vs "Passive

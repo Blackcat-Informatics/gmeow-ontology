@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the notes slice (extensions/notes) --
+# Declarative structural assertions for the notes slice (core/notes) --
 # the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
 # invariants formerly hand-written in tests/test_notes.py. Each assertion runs
 # as a SPARQL ASK over the notes module graph (gmeow:scopeModule) under the

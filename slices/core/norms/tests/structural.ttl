@@ -12,8 +12,8 @@
 # logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
-#   test_graft_axioms_live_extension_side_only — loads slices/core/rights/module.ttl
-#     as a separate graph and asserts that no norms-extension IRIs appear there;
+#   test_graft_axioms_live_norms_side_only — loads slices/core/rights/module.ttl
+#     as a separate graph and asserts that no norms-slice IRIs appear there;
 #     this is a cross-slice file-load check, not a module-scoped TBox assertion.
 #   test_graft_preserves_core_trio_classhood — checks gmeow:Permission,
 #     gmeow:Prohibition, gmeow:Duty which are SUBJECTS in slices/core/rights/module.ttl,

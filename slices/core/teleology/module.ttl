@@ -44,7 +44,7 @@ gmeow:Goal
     rdfs:subClassOf gmeow:SocialObject ;
     skos:definition "A described state of affairs that an agent may want, intend, or commit to bring about — the propositional content of the intentional modes, existing by social convention like every description (a gmeow:SocialObject). A goal asserts nothing and prescribes nothing by itself: it is satisfied by situations (gmeow:satisfiedBy), held by agents (gmeow:hasGoal or the reified modes), and partly defined by its named shadow (gmeow:counterGoal). Whether a given situation satisfies the goal is a vantage-indexed claim (Principle 9)."@x-gmeow-english ;
     skos:example "ex:reachOrbit a gmeow:Goal ; gmeow:counterGoal ex:scrubLaunch ; gmeow:satisfiedBy ex:firstStableOrbit ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the agent's holding of the goal (that is gmeow:hasGoal or a Desire/Intention/Commitment) and for prescriptive force — a Goal prescribes nothing; obligatory conduct arrives via the norms extension, never on the Goal itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the agent's holding of the goal (that is gmeow:hasGoal or a Desire/Intention/Commitment) and for prescriptive force — a Goal prescribes nothing; obligatory conduct arrives via the norms slice, never on the Goal itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one Goal individual and share it across every agent and mode aiming at it; attach gmeow:counterGoal for constitutive opposition and gmeow:satisfiedBy for achieving situations, recording disputed satisfaction as coexisting gmeow:accordingTo claims rather than a global verdict."@x-gmeow-english ;
     gmeow:useWhen "Use to name the propositional content an agent may want, intend, or commit to — the shared target that the intentional modes and the flat gmeow:hasGoal point at, and the thing a situation can satisfy."@x-gmeow-english .
@@ -255,7 +255,7 @@ DOCTRINE.
   * Whether a situation satisfies a goal is a vantage-indexed claim through the statement layer, never a global verdict (Principle 9). Whose goal it is, is indexed the same way: goals attributed to an agent by an observer and goals avowed by the agent are coexisting claims.
   * Flat-first, reify on demand (Principle 4): gmeow:hasGoal covers the 80% case; promote to Desire / Intention / Commitment when commitment grade, tenure, or standpoint matters; promote to gmeow:IntentionTenure (the StandpointTenure idiom) when adoption / revision of the intention is itself the fact of interest. Goals are revised by suppression, never deleted (Principle 10).
   * Goal decomposition, plan search, and means-end reasoning are solver-layer computations (Principle 12); the ontology records goals, their counter-goals, and who holds them.
-  * Deontic force lives elsewhere: a Goal prescribes nothing. Norms that make conduct obligatory arrive with the norms extension, which ranges gmeow:prescribedConduct over Goal — the dependency points extension → core, never back."""@x-gmeow-english ;
+  * Deontic force lives elsewhere: a Goal prescribes nothing. Norms that make conduct obligatory arrive with the core norms slice, which ranges gmeow:prescribedConduct over Goal — the dependency points norms → teleology, never back."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "GMEOW Teleology Module"@x-gmeow-english ;
     skos:definition "The GMEOW Teleology Module — goals, desires, intentions, and commitments."@x-gmeow-english ;

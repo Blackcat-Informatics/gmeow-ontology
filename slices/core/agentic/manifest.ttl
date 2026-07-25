@@ -9,11 +9,11 @@
 <https://blackcatinformatics.ca/gmeow/slices/agentic>
     a gmeow:Slice ;
     rdfs:label "agentic"@x-gmeow-english ;
-    skos:definition "The agentic slice of the GMEOW ontology (extension tier): GMEOW Agentic Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The agentic slice of the GMEOW ontology (core tier): GMEOW Agentic Module. Core by flagship load (Principle 14) — the gmeow memory MCP triad records its own store/revise calls here as ToolCall provenance, so tool-call attribution is a spine every consumer meets rather than an opt-in domain. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     dcterms:title "GMEOW Agentic Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
-    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/ai> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,

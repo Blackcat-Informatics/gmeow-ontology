@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# PREFERENCE-SHEAF — the design charter of the preference extension
+# PREFERENCE-SHEAF — the design charter of the preference slice
 
 *Manifesto voice. Declarative present tense is normative. Every hard rule maps to a gate.*
 
@@ -88,16 +88,20 @@ a global truth," built over the **same** shared `math:`/`logic:` grounding.
 
 ## DAG discipline (Principle 16 — inviolable)
 
-Axioms (`rdfs:subClassOf`/`domain`/`range`/`subPropertyOf`) anchor **only** on core +
-`logic`/`math` grounding. Norms, model-serving, semantic-topology, and
-embedding-projection are extensions: reused **only** at the instance level and named
-by-reference in `mappings/equivalences.ttl`. Where a typed range would come from an
-extension class, it is typed to that class's **core superclass** (`Rubric ⊑ Norm,
-SocialObject` → range `gmeow:SocialObject`; `Criterion ⊑ InformationObject`;
-`ModelArtifact ⊑ InformationObject`). No property `rdfs:range`/`domain`/`subClassOf`
-onto `embedding-projection:VectorSpaceContract` or `model-serving:ModelDeployment` —
-those appear only as IRIs in example data or inside a `logic:Constraint`/SPARQL body.
-The manifest `gmeow:sliceDependsOn` set is exactly `{core… , logic, math}`.
+Preference is a **core** slice, so its axioms
+(`rdfs:subClassOf`/`domain`/`range`/`subPropertyOf`) anchor **only** on core slices and
+the `logic`/`math` grounding — a core slice may never take an axiom edge into an
+extension. Norms is core and declared in `gmeow:sliceDependsOn`, so the seams that
+genuinely want its classes carry real ranges: `usesRubric` → `gmeow:Rubric`,
+`onCriterion` → `gmeow:Criterion`, the one canonical owner (Principle 4).
+model-serving, semantic-topology and embedding-projection remain extensions: reused
+**only** at the instance level and named by-reference in `mappings/equivalences.ttl`.
+Where a typed range would come from one of those extension classes, it is typed to that
+class's **core superclass** (`ModelArtifact ⊑ InformationObject`). No property
+`rdfs:range`/`domain`/`subClassOf` onto `embedding-projection:VectorSpaceContract` or
+`model-serving:ModelDeployment` — those appear only as IRIs in example data or inside a
+`logic:Constraint`/SPARQL body. The manifest `gmeow:sliceDependsOn` set is exactly
+`{core… , logic, math}`.
 
 ## Cell-scoped strict order (design decision, not a weakness)
 
@@ -143,7 +147,7 @@ relation, distinct from "not yet compared" and from a tie.
   recomputation is the consumer's.
 + A first-class `math:CliffordBundle`/`AssociatedBundle`/`SpinorBundle` object does
   **not** exist in `math:` grounding (only the prose "secondary reading" of
-  `math:Connection`). An extension may not author grounding, so this slice expresses the
+  `math:Connection`). Only a grounding slice may author grounding, so this slice expresses the
   Cl(12)-bundle-over-E8 structure **compositionally** (`math:CellularSheaf` with
   Clifford-module `math:SheafStalk`s over an E8-organized `math:CellComplex` +
   `math:connectionOfSheaf`) and the gap is **surfaced to the maintainer as a separate

@@ -1,24 +1,24 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative structural assertions for the preference extension slice — the
-# slice-resident MUST / MUST-NOT invariants of the ratified design set. Each
-# assertion runs as a SPARQL ASK over the preference module graph
-# (gmeow:scopeModule) under the native Rust slicetest harness (crates/slicetest).
+# Declarative structural assertions for the preference slice — the slice-resident
+# MUST / MUST-NOT invariants of the ratified design set. Each assertion runs as a
+# SPARQL ASK over the preference module graph (gmeow:scopeModule) under the native
+# Rust slicetest harness (crates/slicetest).
 #
 # The slice's one governing principle is protected here structurally: a preference
 # is NEVER a context-free global winner, so the slice mints NO preferred/primary
-# "winner-slot" term (Principle 9). And it is a BY-REFERENCE consumer extension: it
-# re-mints NONE of the seven named sibling slices' terms (AC7, no-duplication —
-# Principle 16); the reuse rides mappings/equivalences.ttl at the instance level,
-# never a redeclared owl:Class / owl:*Property in THIS module.
+# "winner-slot" term (Principle 9). And it is a CONSUMER slice: it re-mints NONE of
+# the sibling slices' terms (AC7, no-duplication — Principle 4, one canonical
+# source). Where the sibling is core and declared in gmeow:sliceDependsOn — norms —
+# the composition is carried by a real rdfs:range axiom in module.ttl; where it is
+# an extension (model-serving, semantic-topology) it rides
+# mappings/equivalences.ttl at the instance level. Either way the term is never
+# redeclared as an owl:Class / owl:*Property in THIS module.
 #
-# The manifest-level dependency discipline (preference depends ONLY on core +
-# logic/math grounding; norms / model-serving / ai / learning / provenance /
-# evidence / semantic-topology are reused by-reference only) is a MANIFEST
-# invariant, NOT expressible as an ASK over the single module graph, and is
-# therefore enforced by the slice-manifest / DAG gate rather than a
-# gmeow:StructuralAssertion here.
+# The manifest-level dependency discipline is a MANIFEST invariant, NOT expressible
+# as an ASK over the single module graph, and is therefore enforced by the
+# slice-manifest / DAG gate rather than a gmeow:StructuralAssertion here.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/preference/tests/> .
@@ -60,7 +60,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The norms-extension terms (Rubric, Assessment, Criterion, EvaluationVerdict, Condition, ComplianceAssessment) MUST NOT be rdfs:isDefinedBy the preference slice — they are reused ONLY by-reference at the instance level (mappings/equivalences.ttl), never redeclared/re-minted in this module (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The norms terms (Rubric, Assessment, Criterion, EvaluationVerdict, Condition, ComplianceAssessment) MUST NOT be rdfs:isDefinedBy the preference slice — norms is their one canonical owner, and preference reaches them through a declared gmeow:sliceDependsOn edge (rdfs:range gmeow:Rubric / gmeow:Criterion) or by-reference at the instance level, never by redeclaring/re-minting them in this module (AC7 no-duplication, Principle 4)." .
 
 # --- (b.2) model-serving terms are not re-minted here (MUST-NOT) --------------
 ex:saNoRemintModelServingTerms a gmeow:StructuralAssertion ;
@@ -75,7 +75,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The model-serving-extension terms (ModelArtifact, ModelDeployment, RuntimeExecution) MUST NOT be rdfs:isDefinedBy the preference slice — reused only by-reference at the instance level, never re-minted here (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The model-serving extension terms (ModelArtifact, ModelDeployment, RuntimeExecution) MUST NOT be rdfs:isDefinedBy the preference slice — a core slice may never take an axiom edge into an extension, so they are reused only by-reference at the instance level and never re-minted here (AC7 no-duplication, Principle 4)." .
 
 # --- (b.3) ai terms are not re-minted here (MUST-NOT) -------------------------
 ex:saNoRemintAiTerms a gmeow:StructuralAssertion ;
@@ -90,7 +90,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The ai-extension terms (ModelInvocation, Prompt, PromptTemplate, ModelCard) MUST NOT be rdfs:isDefinedBy the preference slice — reused only by-reference at the instance level, never re-minted here (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The ai terms (ModelInvocation, Prompt, PromptTemplate, ModelCard) MUST NOT be rdfs:isDefinedBy the preference slice — ai is their one canonical owner and they are reused at the instance level, never re-minted here (AC7 no-duplication, Principle 4)." .
 
 # --- (b.4) learning terms are not re-minted here (MUST-NOT) -------------------
 ex:saNoRemintLearningTerms a gmeow:StructuralAssertion ;
@@ -105,7 +105,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The learning-extension terms (LearningEvent, Teaching) MUST NOT be rdfs:isDefinedBy the preference slice — gmeow:PreferenceLearningEvent specializes gmeow:LearningEvent by reference, but the parent term itself is never redeclared/re-minted here (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The learning terms (LearningEvent, Teaching) MUST NOT be rdfs:isDefinedBy the preference slice — gmeow:PreferenceLearningEvent specializes gmeow:LearningEvent, but the parent term itself is never redeclared/re-minted here (AC7 no-duplication, Principle 4)." .
 
 # --- (b.5) provenance terms are not re-minted here (MUST-NOT) -----------------
 ex:saNoRemintProvenanceTerms a gmeow:StructuralAssertion ;
@@ -120,7 +120,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The provenance-extension terms (wasGeneratedBy, wasDerivedFrom, wasAttributedTo) MUST NOT be rdfs:isDefinedBy the preference slice — the slice REUSES the provenance spine (e.g. gmeow:cellObservation ⊑ gmeow:wasDerivedFrom) at the instance level, never re-minting the spine here (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The provenance terms (wasGeneratedBy, wasDerivedFrom, wasAttributedTo) MUST NOT be rdfs:isDefinedBy the preference slice — the slice REUSES the provenance spine (e.g. gmeow:cellObservation ⊑ gmeow:wasDerivedFrom), never re-minting the spine here (AC7 no-duplication, Principle 4)." .
 
 # --- (b.6) evidence terms are not re-minted here (MUST-NOT) -------------------
 ex:saNoRemintEvidenceTerms a gmeow:StructuralAssertion ;
@@ -135,7 +135,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The evidence-extension terms (EvidenceSpan, EvidenceClass) MUST NOT be rdfs:isDefinedBy the preference slice — reused only by-reference at the instance level (e.g. gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan), never re-minted here (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The evidence terms (EvidenceSpan, EvidenceClass) MUST NOT be rdfs:isDefinedBy the preference slice — reused at the instance level (e.g. gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan), never re-minted here (AC7 no-duplication, Principle 4)." .
 
 # --- (b.7) semantic-topology terms are not re-minted here (MUST-NOT) ----------
 ex:saNoRemintSemanticTopologyTerms a gmeow:StructuralAssertion ;
@@ -150,7 +150,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The semantic-topology-extension terms (TopologyClaim, ComplexCompilation, TopologyResult) MUST NOT be rdfs:isDefinedBy the preference slice — the preference sheaf apparatus is its own twin (gmeow:ComparisonCompilation / gmeow:ConsensusSection / gmeow:DisagreementObstruction) and reuses the sibling only by-reference, never re-minting it here (AC7 no-duplication, Principle 16)." .
+    gmeow:saRationale "The semantic-topology extension terms (TopologyClaim, ComplexCompilation, TopologyResult) MUST NOT be rdfs:isDefinedBy the preference slice — the preference sheaf apparatus is its own twin (gmeow:ComparisonCompilation / gmeow:ConsensusSection / gmeow:DisagreementObstruction), and a core slice may never take an axiom edge into an extension, so the sibling is reused only by-reference and never re-minted here (AC7 no-duplication, Principle 4)." .
 
 # --- (c) Key preference terms carry their expected CORE superclasses (MUST) ----
 ex:saKeyTermsCarryCoreSuperclasses a gmeow:StructuralAssertion ;

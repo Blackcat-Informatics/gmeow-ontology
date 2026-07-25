@@ -40,7 +40,7 @@ claim from a vantage:
   the licensed-falsehood safety property separates harmless fictional assertion
   from deception, for model outputs exactly as for human ones.
 
-## 3. Evaluation is the norms extension's Assessment
+## 3. Evaluation is the norms slice's Assessment
 
 `gmeow:Assessment ⊑ gmeow:Observation` (norms): *an LLM judge is just a
 vantage*; two judges disagreeing are two coexisting cells with no winner. The
@@ -54,9 +54,9 @@ slice deliberately mints NO evaluation machinery.
 event type, grounding gates as `gmeow:Mitigation` — zero new TBox; see the
 `ai-normative` fixture.
 
-## 5. System prompts and personas (norms extension, doctrine)
+## 5. System prompts and personas (norms slice, doctrine)
 
-A system `gmeow:Prompt` (new) enacting a voice is the norms extension's
+A system `gmeow:Prompt` (new) enacting a voice is the norms slice's
 `gmeow:Persona` (registers, activation `Condition`, `StyleGuide`) applied at
 prompt-assembly time. The seam stays instance-level until the projection that
 assembles prompts from personas lands extension-side.

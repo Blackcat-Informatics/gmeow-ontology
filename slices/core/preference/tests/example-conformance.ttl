@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Example-conformance cells for the preference extension slice. Each cell unions the module
+# Example-conformance cells for the preference slice. Each cell unions the module
 # with the named fixture and validates it against the canonical GENERATED projections
 # (generated/shapes/{validation-shapes,constraint-shapes,procedural-constraints}.ttl) under the
 # native Rust conformance harness — the slice hand-authors NO shapes.ttl; the pipeline DERIVES

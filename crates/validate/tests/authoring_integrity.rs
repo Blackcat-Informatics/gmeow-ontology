@@ -60,7 +60,7 @@ fn core_rights_module_has_no_norms_extension_leak() {
     let findings = authoring_integrity::graft_isolation_findings(&root).expect("graft isolation");
     assert!(
         findings.is_empty(),
-        "core rights module references norms-extension IRIs:\n{}",
+        "core rights module references norms-slice IRIs:\n{}",
         findings
             .iter()
             .map(|f| f.message.clone())

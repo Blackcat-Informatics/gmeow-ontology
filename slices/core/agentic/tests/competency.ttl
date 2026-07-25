@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency question for the agentic extension slice, executed by the
+# Declarative competency question for the agentic slice, executed by the
 # native Rust slice-test harness (crates/slicetest). Migrated from
 # tests/test_agentic.py::test_example_answers_which_tool_under_which_invocation.
 #
-# The worked example (slices/extensions/agentic/examples/agent-trajectory.ttl)
+# The worked example (slices/core/agentic/examples/agent-trajectory.ttl)
 # must answer: "Which tool produced this entity, called by which invocation,
 # with what arguments?"
 

@@ -136,8 +136,8 @@ pub const AUTHORING_MODULE_IRI_MISMATCH: &str = "authoring.module-iri-mismatch";
 /// A profile's `owl:imports` closure disagrees with the slice-tier partition
 /// (full ≠ root ∪ extensions, claims ⊄ core, or a slice outside core/ext/profile).
 pub const AUTHORING_PROFILE_CLOSURE: &str = "authoring.profile-closure";
-/// The core `rights` module references a norms-extension IRI — the graft must live
-/// on the extension side only, with zero core churn.
+/// The core `rights` module references a norms-slice IRI — the graft must live
+/// on the norms side only, with zero churn in the rights slice.
 pub const AUTHORING_GRAFT_LEAK: &str = "authoring.graft-leak";
 /// A fixture / example references a GMEOW vocabulary term that is not declared in
 /// the ontology or any slice module (an undeclared predicate SHACL leaves inert).

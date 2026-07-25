@@ -531,6 +531,7 @@ fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
 /// deliberate choice — a retirement PR that deletes a `shapes.ttl` but forgets to trim its entry
 /// here must still pass (shrinkage never reds the gate); only an unlisted ADDITION reds.
 const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
+    "slices/core/agentic/shapes.ttl",
     "slices/core/ai/shapes.ttl",
     "slices/core/concepts/shapes.ttl",
     "slices/core/diagnostics/shapes.ttl",
@@ -546,7 +547,6 @@ const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
     "slices/core/rights/shapes.ttl",
     "slices/core/standpoint/shapes.ttl",
     "slices/core/temporal/shapes.ttl",
-    "slices/extensions/agentic/shapes.ttl",
     "slices/extensions/graphrag/shapes.ttl",
     "slices/extensions/model-serving/shapes.ttl",
     "slices/extensions/music/shapes.ttl",

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency questions for the preference extension slice, executed by the native
+# Declarative competency questions for the preference slice, executed by the native
 # Rust slice-test harness over the full merged ontology, asserted lane (gmeow:reasoningNone).
 # Each question overlays a pass-witness scene (gmeow:cqDataFile, slice-relative) and pins its
 # rows exactly (RowsExact). Together they are the executable half of the slice's contract:
@@ -19,7 +19,7 @@
 
 # --- CQ / cq-ties: a within-vantage comparable tie -------------------------- #
 ex:cqTies a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-ties.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-ties.rq" ;
     gmeow:cqDataFile "examples/tie-cell.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqTiesShape ;
@@ -35,7 +35,7 @@ ex:cqTiesRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-incomparability: a positive Pareto void ------------------------ #
 ex:cqIncomparability a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-incomparability.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-incomparability.rq" ;
     gmeow:cqDataFile "examples/pareto-incomparable.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqIncomparabilityShape ;
@@ -51,7 +51,7 @@ ex:cqIncomparabilityRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cycle: the cross-vantage Condorcet 3-cycle --------------------- #
 ex:cqCycle a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cycle.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cycle.rq" ;
     gmeow:cqDataFile "examples/condorcet-cycle.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCycleShape ;
@@ -73,14 +73,14 @@ ex:cqCycleRow3 a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-cell-legal-no-reversal (G3 cell-scoping): a cross-cell reversal is legal - #
 ex:cqCrossCellLegalNoReversal a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-cell-legal-no-reversal.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-cell-legal-no-reversal.rq" ;
     gmeow:cqDataFile "tests/data/cross-cell-legal-conflict.ttl" ;
     gmeow:cqExpectRowCount 0 ;
     gmeow:cqRationale "GMEOW must answer 'is a cross-vantage reversal across two cells legal, or does it trip the within-cell strict-order gate?' (FLAG-1, Principle 9). This is gmeow:VantageScopedStrictOrderConstraint's (G3) exact bad-pattern — a reversed reified gmeow:PreferenceEdge pair joined to a single cell's order. Over the cross-cell-legal-conflict scene (cell 1 prefers A≻B, cell 2 prefers B≻A, each edge under its OWN order) it returns EXACTLY ZERO rows: the reversed edges live under different orders, so they never meet within one cell and G3 does not fire. The same pattern returns a row on the within-cell-order-cycle scene, so a zero count here is probative — the executable proof that G3 is genuinely cell-scoped and the cross-vantage conflict is the legal H1 obstruction." .
 
 # --- CQ / cq-pareto-frontier: the frontier is both non-dominated candidates - #
 ex:cqParetoFrontier a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-pareto-frontier.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-pareto-frontier.rq" ;
     gmeow:cqDataFile "examples/pareto-incomparable.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqParetoFrontierShape ;
@@ -99,7 +99,7 @@ ex:cqParetoFrontierRow2 a gmeow:ExpectedRow ;
 
 # --- CQ / cq-multi-evaluator: three co-equal vantages ----------------------- #
 ex:cqMultiEvaluator a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-multi-evaluator.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-multi-evaluator.rq" ;
     gmeow:cqDataFile "examples/multi-evaluator-no-winner.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqMultiEvaluatorShape ;
@@ -117,7 +117,7 @@ ex:cqMultiEvaluatorRow3 a gmeow:ExpectedRow ;
 
 # --- CQ / cq-global-winner-requires-consensus (GOVERNING) ------------------- #
 ex:cqGlobalWinnerRequiresConsensus a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-global-winner-requires-consensus.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-global-winner-requires-consensus.rq" ;
     gmeow:cqDataFile "examples/comparison-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqGlobalWinnerRequiresConsensusShape ;
@@ -135,7 +135,7 @@ ex:cqGlobalWinnerRequiresConsensusRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-projection-winner-requires-consensus (F1) ---------------------- #
 ex:cqProjectionWinnerRequiresConsensus a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-projection-winner-requires-consensus.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-projection-winner-requires-consensus.rq" ;
     gmeow:cqDataFile "tests/data/multi-context-winner.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqProjectionWinnerRequiresConsensusShape ;
@@ -157,7 +157,7 @@ ex:cqProjectionWinnerRequiresConsensusRow2 a gmeow:ExpectedRow ;
 
 # --- CQ / cq-deterministic-digest (F4) -------------------------------------- #
 ex:cqDeterministicDigest a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-deterministic-digest.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-deterministic-digest.rq" ;
     gmeow:cqDataFile "examples/projection-receipts-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqDeterministicDigestShape ;
@@ -185,7 +185,7 @@ ex:cqDeterministicDigestRow5 a gmeow:ExpectedRow ;
 
 # --- CQ / cq-hard-soft-orthogonal (AC3) ------------------------------------- #
 ex:cqHardSoftOrthogonal a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-hard-soft-orthogonal.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-hard-soft-orthogonal.rq" ;
     gmeow:cqDataFile "examples/hard-fails-soft-high.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHardSoftOrthogonalShape ;
@@ -203,7 +203,7 @@ ex:cqHardSoftOrthogonalRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-projection-receipt-discloses (AC4) ----------------------------- #
 ex:cqProjectionReceiptDiscloses a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-projection-receipt-discloses.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-projection-receipt-discloses.rq" ;
     gmeow:cqDataFile "examples/projection-receipts-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqProjectionReceiptDisclosesShape ;
@@ -233,7 +233,7 @@ ex:cqProjectionReceiptDisclosesRow4 a gmeow:ExpectedRow ;
 
 # --- CQ / cq-model-delta-provenance (AC5) ----------------------------------- #
 ex:cqModelDeltaProvenance a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-model-delta-provenance.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-model-delta-provenance.rq" ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqModelDeltaProvenanceShape ;
@@ -251,7 +251,7 @@ ex:cqModelDeltaProvenanceRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-optimizer-is-projection (AC4) ---------------------------------- #
 ex:cqOptimizerIsProjection a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-optimizer-is-projection.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-optimizer-is-projection.rq" ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqOptimizerIsProjectionShape ;
@@ -271,7 +271,7 @@ ex:cqOptimizerIsProjectionRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-promotion-defers-activation (AC6) ------------------------------ #
 ex:cqPromotionDefersActivation a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-promotion-defers-activation.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-promotion-defers-activation.rq" ;
     gmeow:cqDataFile "examples/promotion-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqPromotionDefersActivationShape ;
@@ -289,7 +289,7 @@ ex:cqPromotionDefersActivationRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-candidate-geometry (geometry) ---------------------------------- #
 ex:cqCandidateGeometry a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-candidate-geometry.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-candidate-geometry.rq" ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCandidateGeometryShape ;
@@ -309,7 +309,7 @@ ex:cqCandidateGeometryRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-slice-compose-norms -------------------------------------- #
 ex:cqCrossSliceComposeNorms a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-norms.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-slice-compose-norms.rq" ;
     gmeow:cqDataFile "examples/pareto-incomparable.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeNormsShape ;
@@ -328,7 +328,7 @@ ex:cqCrossSliceComposeNormsRow2 a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-slice-compose-model-serving ------------------------------ #
 ex:cqCrossSliceComposeModelServing a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-model-serving.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-slice-compose-model-serving.rq" ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeModelServingShape ;
@@ -344,7 +344,7 @@ ex:cqCrossSliceComposeModelServingRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-slice-compose-ai ----------------------------------------- #
 ex:cqCrossSliceComposeAi a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-ai.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-slice-compose-ai.rq" ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeAiShape ;
@@ -360,7 +360,7 @@ ex:cqCrossSliceComposeAiRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-slice-compose-learning ----------------------------------- #
 ex:cqCrossSliceComposeLearning a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-learning.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-slice-compose-learning.rq" ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeLearningShape ;
@@ -378,7 +378,7 @@ ex:cqCrossSliceComposeLearningRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-slice-compose-provenance --------------------------------- #
 ex:cqCrossSliceComposeProvenance a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-provenance.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-slice-compose-provenance.rq" ;
     gmeow:cqDataFile "examples/promotion-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeProvenanceShape ;
@@ -394,7 +394,7 @@ ex:cqCrossSliceComposeProvenanceRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-slice-compose-evidence ----------------------------------- #
 ex:cqCrossSliceComposeEvidence a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-evidence.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-slice-compose-evidence.rq" ;
     gmeow:cqDataFile "examples/model-delta-worked.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeEvidenceShape ;
@@ -410,7 +410,7 @@ ex:cqCrossSliceComposeEvidenceRow a gmeow:ExpectedRow ;
 
 # --- CQ / cq-cross-slice-compose-semantic-topology -------------------------- #
 ex:cqCrossSliceComposeSemanticTopology a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/extensions/preference/queries/competency/cq-cross-slice-compose-semantic-topology.rq" ;
+    gmeow:cqQueryFile "slices/core/preference/queries/competency/cq-cross-slice-compose-semantic-topology.rq" ;
     gmeow:cqDataFile "tests/data/multi-context-winner.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeSemanticTopologyShape ;

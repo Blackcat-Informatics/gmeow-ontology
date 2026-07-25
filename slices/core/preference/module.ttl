@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The preference extension slice.
-# It is a CONSUMER extension: it mints ONLY bridge terms that COMPOSE the shipped
+# The preference core slice.
+# It is a CONSUMER slice: it mints ONLY bridge terms that COMPOSE the shipped
 # grounding referents (math: sheaf/Clifford/E8/connection objects, the logic: loss
 # ledger and property-characteristic carrier) with the core candidate / observation /
 # standpoint / evidence / provenance spine. It grounds NOTHING itself and hand-authors
@@ -124,7 +124,7 @@ gmeow:contextPolicy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "context policy"@x-gmeow-english ;
     rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:ComparisonContext to the governing policy the comparison is bound by — typed to the core gmeow:SocialObject, because a policy is a social object, NOT the norms-extension gmeow:Norm (which is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the rule-set under which candidates are judged, so a policy change is a context change."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:ComparisonContext to the governing policy the comparison is bound by — typed to the core gmeow:SocialObject, because a governing policy is any social object and NOT specifically a norms gmeow:Norm — the wider range is deliberate, not a tier dodge. It names the rule-set under which candidates are judged, so a policy change is a context change."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:contextGeneration
@@ -257,8 +257,8 @@ gmeow:usesRubric
     rdfs:domain gmeow:PreferenceObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "uses rubric"@x-gmeow-english ;
-    rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — typed to the core gmeow:SocialObject (a rubric is a social object; norms gmeow:Rubric ⊑ gmeow:Norm ⊑ gmeow:SocialObject is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
+    rdfs:range gmeow:Rubric ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — ranged exactly over the norms gmeow:Rubric (⊑ gmeow:Norm ⊑ gmeow:SocialObject), the one canonical rubric term (Principle 4), now that norms is a core slice preference declares in gmeow:sliceDependsOn. It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:onCriterion
@@ -266,8 +266,8 @@ gmeow:onCriterion
     rdfs:domain gmeow:PreferenceObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "on criterion"@x-gmeow-english ;
-    rdfs:range gmeow:InformationObject ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the criterion its comparison is made along — typed to the core gmeow:InformationObject (a criterion is an information object; norms gmeow:Criterion ⊑ gmeow:InformationObject is reused only by-reference, never a range axiom — Principle 16). Two candidates preferred oppositely on two criteria are the Pareto-incomparability the slice records positively (gmeow:incomparableWith)."@x-gmeow-english ;
+    rdfs:range gmeow:Criterion ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the criterion its comparison is made along — ranged exactly over the norms gmeow:Criterion (⊑ gmeow:InformationObject), the one canonical criterion term (Principle 4), now that norms is a core slice preference declares in gmeow:sliceDependsOn. Two candidates preferred oppositely on two criteria are the Pareto-incomparability the slice records positively (gmeow:incomparableWith)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:PreferenceEvaluation
@@ -2652,7 +2652,7 @@ gmeow:grantsActivation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "grants activation"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "The activation-granting edge: a resource asserting that a deployment (model-serving gmeow:ModelDeployment, referenced at the instance level only — typed here to the core gmeow:InformationObject, never a range axiom onto the extension, Principle 16) is activated. It is FORBIDDEN on a gmeow:PromotionReceipt (gmeow:PromotionNotActivationConstraint) and, wherever asserted, MUST be backed by a held gmeow:ConsumerImprovementGate (gmeow:ActivationAuthorityConstraint) — a promotion alone is insufficient."@x-gmeow-english ;
+    skos:definition "The activation-granting edge: a resource asserting that a deployment (model-serving gmeow:ModelDeployment, referenced at the instance level only — typed here to the core gmeow:InformationObject, because a core slice may never take a range axiom onto an extension) is activated. It is FORBIDDEN on a gmeow:PromotionReceipt (gmeow:PromotionNotActivationConstraint) and, wherever asserted, MUST be backed by a held gmeow:ConsumerImprovementGate (gmeow:ActivationAuthorityConstraint) — a promotion alone is insufficient."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:activationAuthorizedBy
@@ -2867,14 +2867,14 @@ gmeow:ForbidContextFreeWinnerConstraint
     a owl:Ontology ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "GMEOW Preference Module"@x-gmeow-english ;
-    rdfs:comment "The extension mints ONLY bridge terms (Principle 19): it COMPOSES the shipped math: sheaf/Clifford/E8/connection objects (math:CellComplex, math:CellularSheaf, math:SheafStalk, math:LocalSection, math:GlobalSection/H0, math:GluingObstruction/H1, math:connectionOfSheaf/math:Holonomy, math:Relation, math:Multivector/math:CliffordAlgebra/math:MetricSignature, math:RootSystem/math:Lattice/math:WeylGroup), the logic: loss ledger and property-characteristic carrier (logic:preservationKind, logic:expressivenessBoundary, logic:PropertyCharacteristicAssertion, the strict-order/symmetry markers), and the core candidate/observation/standpoint/evidence/provenance spine — grounding NOTHING itself and hand-authoring no shapes (the pipeline derives them). Compiled RDF 1.2 preference INSTANCE data lives in the consumer lillith_decodes; this slice is the vocabulary."@x-gmeow-english ;
-    skos:definition "The preference consumer extension: it records a CONTEXTUAL comparison over a complete candidate set as a gmeow:vantage-indexed, defeasible, proof-carrying gmeow:PreferenceObservation; compiles the vantage-indexed orders into a math:CellComplex carried by a math:CellularSheaf; certifies a global winner IFF the per-vantage orders glue into a math:GlobalSection (H0) over the whole base AND discharge the math:GluingObstruction (H1); wraps every derived ranking as a lossy, disclosed, content-addressed gmeow:ProjectionReceipt; binds content-addressed model/config deltas over the full identity tuple; seams candidates by reference to the Cl(12)/E8/4096-d substrate; and keeps promotion strictly separate from activation authority. Its governing rule: a preference is NEVER automatically a global winner."@x-gmeow-english ;
+    rdfs:comment "The slice mints ONLY bridge terms (Principle 19): it COMPOSES the shipped math: sheaf/Clifford/E8/connection objects (math:CellComplex, math:CellularSheaf, math:SheafStalk, math:LocalSection, math:GlobalSection/H0, math:GluingObstruction/H1, math:connectionOfSheaf/math:Holonomy, math:Relation, math:Multivector/math:CliffordAlgebra/math:MetricSignature, math:RootSystem/math:Lattice/math:WeylGroup), the logic: loss ledger and property-characteristic carrier (logic:preservationKind, logic:expressivenessBoundary, logic:PropertyCharacteristicAssertion, the strict-order/symmetry markers), and the core candidate/observation/standpoint/evidence/provenance spine — grounding NOTHING itself and hand-authoring no shapes (the pipeline derives them). Compiled RDF 1.2 preference INSTANCE data lives in the consumer lillith_decodes; this slice is the vocabulary."@x-gmeow-english ;
+    skos:definition "The preference consumer slice: it records a CONTEXTUAL comparison over a complete candidate set as a gmeow:vantage-indexed, defeasible, proof-carrying gmeow:PreferenceObservation; compiles the vantage-indexed orders into a math:CellComplex carried by a math:CellularSheaf; certifies a global winner IFF the per-vantage orders glue into a math:GlobalSection (H0) over the whole base AND discharge the math:GluingObstruction (H1); wraps every derived ranking as a lossy, disclosed, content-addressed gmeow:ProjectionReceipt; binds content-addressed model/config deltas over the full identity tuple; seams candidates by reference to the Cl(12)/E8/4096-d substrate; and keeps promotion strictly separate from activation authority. Its governing rule: a preference is NEVER automatically a global winner."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
 # =========================================================================== #
 # Tail registration — every minted class to its logic: metatype (mirroring the  #
-# grounding/extension slices' metatype layer).                                 #
+# grounding/domain slices' metatype layer).                                    #
 # =========================================================================== #
 
 gmeow:CandidateSet a logic:Kind .

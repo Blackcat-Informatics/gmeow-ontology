@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinform
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# The Agentic extension — the agent's actions as auditable provenance
+# The Agentic slice — the agent's actions as auditable provenance
 
-The graphrag extension made the *pipeline* auditable; this slice makes the *agent's
+The graphrag extension made the *pipeline* auditable; this core slice makes the *agent's
 actions* auditable. A tool call is an event in the same provenance graph as
 the claims it produces: `gmeow:ToolCall` follows the ModelInvocation idiom exactly — a
 `gufo:EventType` under `gmeow:Activity` with one functional agent link and verbatim call

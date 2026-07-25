@@ -29,7 +29,7 @@ is mis-designed the moment it mints (`INHABITED-CONSUMER.md`).
   `standpoint` **claims** layer.
 - **`extensions/model-serving`** — the served artifact · deployment · runtime execution · session, and
   the computed upper-projections that trace an output to its subject.
-- **`extensions/agentic`** — the tool-call / trajectory layer.
+- **`core/agentic`** — the tool-call / trajectory layer.
 - **`core/awareness`** — the serving modes (`modeOnlineInference` / `modeOfflineReplay` / `modeTraining`).
 
 The design's "memory" and "claims" constituents are **not** separate slices — they are provided

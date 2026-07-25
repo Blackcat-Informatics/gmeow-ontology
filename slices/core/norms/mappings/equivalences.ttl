@@ -6,7 +6,7 @@
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix schema: <https://schema.org/> .
 
-# Term equivalences for the norms extension — GMEOW authoring source.
+# Term equivalences for the norms slice — GMEOW authoring source.
 # Compiled to mappings/gmeow-norms.sssom.tsv by the mapping compiler.
 
 gmeow:mapsetNorms a gmeow:MappingSet ;
