@@ -128,3 +128,20 @@
     gmeow:seamCarryingTerm math:Quantity , math:hasDimension , math:quantityValue ;
     gmeow:seamOwningDoc "MATHEMATICS-MEASURE-AND-DIMENSION.md" , "LANG-GMN.md" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
+# The logical grounding domain.
+#
+# One of the three subject-matter domains of docs/GROUNDING.md's "External
+# grounding ownership" table, declared here by the slice that owns it. A term
+# marked gmeow:groundingConceptDomain gmeow:groundingDomainLogical is a
+# GROUNDING CONCEPT that `logic:` must own; the tier rule fires when a grounding
+# slice references such a term while a non-grounding slice owns it.
+# --------------------------------------------------------------------------- #
+
+<https://blackcatinformatics.ca/gmeow/groundingDomainLogical>
+    a gmeow:GroundingDomain ;
+    rdfs:label "logical grounding domain"@x-gmeow-english ;
+    skos:definition "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role."@x-gmeow-english ;
+    gmeow:groundingDomainOwner <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .

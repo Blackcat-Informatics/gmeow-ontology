@@ -65,6 +65,21 @@ and its correspondence; they do not author a second alignment. RDF/OWL
 declaration syntax and generated validation syntax are serialization/compiler
 boundaries, not exceptions that grant external vocabularies semantic ownership.
 
+Each row of that table is declared as a `gmeow:GroundingDomain` individual in
+the owning slice's manifest, carrying the owner in `gmeow:groundingDomainOwner`.
+A term whose subject matter falls in one of the three domains is a **grounding
+concept**, and says so on itself: `gmeow:groundingConceptDomain` names its
+domain. That marker is what the tier rule is machine-checked against — a
+grounding slice referencing a marked term that a non-grounding slice owns is a
+violation, and the fix is always the fixed reconciliation direction (re-point
+the term's `rdfs:isDefinedBy` and move its block to the domain's owner; the IRI
+never changes, because ownership is by `rdfs:isDefinedBy`, not by namespace).
+The judgment is authored rather than inferred: subject matter is not visible in
+graph shape. The qualifier stays load-bearing in the other direction too — a
+grounding slice consuming ordinary domain vocabulary by reference is sanctioned,
+and formalizing a domain term in a `logic:Formula` does not make that term a
+grounding concept.
+
 Grounding correspondences are different from presentation-only projections.
 They compile to content-addressed `logic:Correspondence` records and ship in
 the `graph/correspondence-laws` named graph of `gmeow.gts`, while remaining

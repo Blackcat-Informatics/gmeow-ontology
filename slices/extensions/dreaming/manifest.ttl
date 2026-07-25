@@ -16,7 +16,7 @@
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceProfile "dreaming" ;
     gmeow:sliceDependsOn
-        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
         <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     gmeow:sliceConsumer "AI offline generative replay, synthetic experience, and counterfactual rehearsal over agent memory (GTS ai-package), and human dream-journaling / sleep-research corpora. Part of the Mentation program."@x-gmeow-english .

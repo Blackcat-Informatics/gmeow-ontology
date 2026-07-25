@@ -12906,3 +12906,111 @@ logic:existentialChaseDemonstrandBeta
     rdfs:label "existential chase demonstrand beta"@x-gmeow-english ;
     skos:definition "The second seeded demonstrand of the native existential chase: a logic:ExistentialChaseDemonstrand asserted with NO logic:demonstratesChaseWitness edge, so the chase must invent a fresh Skolem witness (a gmeow:InventedWitness) to satisfy its ∃demonstratesChaseWitness.ChaseWitnessLeaf obligation. Paired with logic:existentialChaseDemonstrandAlpha so the chase mints two DISTINCT nulls, one per instance, in the same world."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The graph-box role partition — description-logic knowledge-base partitioning.
+#
+# TBox / RBox / ABox is the description-logic partition of a knowledge base
+# into terminology, role behaviour, and assertions; CBox and ConfigBox extend
+# it to statement context and operational configuration. That subject matter is
+# a LOGICAL FORMALISM, so docs/GROUNDING.md's "External grounding ownership"
+# table places it in the logical grounding domain and its tier rule fixes the
+# reconciliation direction: `logic:` owns the concept and every other slice
+# consumes it. The cluster — the gmeow:GraphBoxRole value type, its five role
+# individuals, and the gmeow:graphBoxRole property that attaches them — moves
+# as ONE unit, because splitting a value type from its property across a
+# grounding and a non-grounding slice is the very split the rule forbids.
+#
+# Each term carries gmeow:groundingConceptDomain gmeow:groundingDomainLogical:
+# the authored judgment that its subject matter is logical, which is what the
+# slice-ownership.grounding-downward-dependency gate reads. Ownership is by
+# rdfs:isDefinedBy and physical module, so the IRIs stay in the gmeow:
+# namespace and not one referencing triple anywhere in the corpus changes.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:GraphBoxRole
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Graph Box Role"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "A documentation and validation role describing which graph layer a term, shape, module, or graph artifact primarily serves: assertional data (ABox), terminology/schema (TBox), role/property behavior (RBox), contextual statement metadata (CBox), or runtime/package/profile configuration (ConfigBox). Roles are descriptive annotations, may be multi-valued, and never partition the ontology into exactly one box per resource."@x-gmeow-english ;
+    skos:example "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using box roles as logical class membership, named-graph routing, or an exactly-one partition; a construct can legitimately serve more than one box."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:howToUse "Annotate the subject with one or more gmeow:graphBoxRole values. Tooling may render the roles in describe output, generated docs, validation reports, and GTS/package summaries, but the annotations do not alter OWL entailments."@x-gmeow-english ;
+    gmeow:useWhen "Use when a term, shape, generated report, or documentation surface needs to say whether it is about asserted data, schema/logic, role/property behavior, statement context, or operational configuration/profile metadata."@x-gmeow-english .
+
+gmeow:boxABox
+    a gmeow:GraphBoxRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ABox role"@x-gmeow-english ;
+    skos:definition "Assertional graph role: concrete instance data, examples, claims, and payload triples that are validated, transported, projected, or reasoned over by GMEOW tooling."@x-gmeow-english ;
+    skos:example "A slice example graph or a user's imported data graph is ABox-role content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for term definitions, class/property axioms, and shape declarations unless those resources are themselves being treated as data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:howToUse "Annotate examples, payload graph descriptors, and validation report context with this role when users need to see that a diagnostic came from asserted data."@x-gmeow-english ;
+    gmeow:useWhen "Use for resources that primarily describe asserted instance content rather than the schema that constrains it."@x-gmeow-english .
+
+gmeow:boxCBox
+    a gmeow:GraphBoxRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "CBox role"@x-gmeow-english ;
+    skos:definition "Contextual graph role: metadata about assertions, especially RDF 1.2 reifiers and statement annotations carrying provenance, evidence, confidence, temporal scope, standpoint, determinacy, validity, or disclosure context."@x-gmeow-english ;
+    skos:example "A reifier that records confidence and evidence for an assertion is CBox-role data."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for deployment configuration or package-profile metadata unless it is explicitly contextual metadata about an assertion; use gmeow:boxConfigBox for operational configuration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:howToUse "Annotate statement-metadata terms and reifier-focused SHACL shapes so validation can surface contextual assertion failures as CBox diagnostics."@x-gmeow-english ;
+    gmeow:useWhen "Use for statement context and assertion envelopes, especially when a shape or report is validating metadata attached to a reified statement."@x-gmeow-english .
+
+gmeow:boxConfigBox
+    a gmeow:GraphBoxRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ConfigBox role"@x-gmeow-english ;
+    skos:definition "Configuration graph role: runtime, package, profile, solver, deployment, service-description, and transport metadata that controls how GMEOW artifacts are built, selected, bundled, served, or consumed, without being statement-context metadata about a particular assertion."@x-gmeow-english ;
+    skos:example "A GTS profile or service-description term that configures an offline package carries the ConfigBox role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for provenance, evidence, confidence, standpoint, disclosure, or validity metadata attached to a particular assertion; those are CBox concerns."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:howToUse "Annotate configuration and profile surfaces so docs, exports, validation reports, and package summaries can distinguish operational configuration from assertion context."@x-gmeow-english ;
+    gmeow:useWhen "Use for configuration/profile terms and graph artifacts that describe how tooling, packages, services, solvers, transports, or deployment surfaces should operate."@x-gmeow-english .
+
+gmeow:boxRBox
+    a gmeow:GraphBoxRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "RBox role"@x-gmeow-english ;
+    skos:definition "Role/property graph role: property axioms and relationship behavior, including inverses, transitivity, property chains, disjointness, path behavior, and role-like constraints over predicates."@x-gmeow-english ;
+    skos:example "gmeow:partOf carries the RBox role because it is a transitive role/property spine."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for every object property automatically when the property is merely a simple data slot and no role behavior is being documented."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:howToUse "Annotate relationship spines, generated path constraints, and property-behavior documentation so reports can identify RBox failures without reverse-engineering the shape IRI."@x-gmeow-english ;
+    gmeow:useWhen "Use for properties, path shapes, and role-behavior declarations where the important diagnostic context is the predicate or relation itself."@x-gmeow-english .
+
+gmeow:boxTBox
+    a gmeow:GraphBoxRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "TBox role"@x-gmeow-english ;
+    skos:definition "Terminological graph role: classes, datatypes, shapes, profiles, restrictions, logic-profile declarations, and other schema or vocabulary constructs that describe how assertions are structured."@x-gmeow-english ;
+    skos:example "gmeow:GraphBoxRole and a SHACL node shape both carry the TBox role."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for ordinary instance claims unless the claim is explicitly about schema or vocabulary resources."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:howToUse "Annotate schema-bearing resources so docs and validation output can identify vocabulary/shape problems separately from data and statement-context problems."@x-gmeow-english ;
+    gmeow:useWhen "Use for terms, shapes, modules, and profile declarations that define the vocabulary or constraints used by data."@x-gmeow-english .
+
+gmeow:graphBoxRole
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "graph box role"@x-gmeow-english ;
+    rdfs:range gmeow:GraphBoxRole ;
+    skos:definition "Links a term, shape, module, graph artifact, or validation result source to one or more gmeow:GraphBoxRole individuals. The role is advisory metadata for documentation, validation diagnostics, and package consumers; it carries no OWL logical semantics."@x-gmeow-english ;
+    skos:example "gmeow:partOf gmeow:graphBoxRole gmeow:boxRBox ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as an ownership, import, or named-graph directive; the canonical source/projection rules still decide where data is authored and generated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:howToUse "Attach one or more role individuals such as gmeow:boxTBox, gmeow:boxCBox, or gmeow:boxConfigBox. Consumers should preserve unknown future roles and must not assume the value set is closed."@x-gmeow-english ;
+    gmeow:useWhen "Use to make a construct's graph-layer role explicit for readers and tools, especially when validation output needs to distinguish data, schema, role/property, and statement-context failures."@x-gmeow-english .

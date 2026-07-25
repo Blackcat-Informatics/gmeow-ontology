@@ -25,3 +25,20 @@
     gmeow:sliceConsumer "Every slice and consumer that needs mathematical identity, quantities, dimensions, typed expressions, category-theoretic structure, probability, statistics, or projection-preservation judgments. The preservation vocabulary and denotation seam come from the co-foundational `logic:` slice; expression rendering composes with the general `lang:Rendering` theory rather than forking a private display vocabulary. Observation slices qualify the math-owned `math:Quantity` with unit/frame, determinacy, uncertainty, and provenance instead of minting parallel quantity classes."@x-gmeow-english ;
     gmeow:sliceQualityTier gmeow:tierRegistered ;
     gmeow:sliceDocMaturity gmeow:docMaturityMinimal .
+
+# --------------------------------------------------------------------------- #
+# The mathematical grounding domain.
+#
+# One of the three subject-matter domains of docs/GROUNDING.md's "External
+# grounding ownership" table, declared here by the slice that owns it. A term
+# marked gmeow:groundingConceptDomain gmeow:groundingDomainMathematical is a
+# GROUNDING CONCEPT that `math:` must own; the tier rule fires when a grounding
+# slice references such a term while a non-grounding slice owns it.
+# --------------------------------------------------------------------------- #
+
+<https://blackcatinformatics.ca/gmeow/groundingDomainMathematical>
+    a gmeow:GroundingDomain ;
+    rdfs:label "mathematical grounding domain"@x-gmeow-english ;
+    skos:definition "Mathematical structures, quantities, and mathematical interchange languages — number systems, sets, relations, functions, algebraic and categorical structure, dimension and magnitude, probability and statistics, and the expression languages they are exchanged in. The `math:` slice is the sole owner of every grounding concept in this domain. Note the standing applied example of docs/GROUNDING.md's tier rule: math:Quantity and math:quantityValue carry dimension and magnitude and are in this domain, while the unit, frame, determinacy, uncertainty, and provenance qualifiers the observations slice adds to a quantity are NOT — they are consumer-side qualification, not mathematical structure."@x-gmeow-english ;
+    gmeow:groundingDomainOwner <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> .

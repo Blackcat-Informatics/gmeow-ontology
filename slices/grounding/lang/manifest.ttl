@@ -32,3 +32,20 @@
     gmeow:sliceConsumer "The meaning layer that gives forms denotations, the rendering-and-translation layer that maps between forms, and every generated lossy projection (OntoLex-Lemon, Universal Dependencies/CoNLL-U, NIF, TEI, BCP-47/ISO 639/ISO 15924, EBNF), each carrying a preservation judgment in the loss ledger. The Rust `lang-form` crate consumes the form AST as content-keyed forms — GMEOW's own identity discipline applied to language — and every textual, nominal, and notational surface across the ontology grounds in these sign-system and form terms. The `lang:` layer sits in the co-foundational grounding kernel (docs/GROUNDING.md): it denotes one way into `logic:` (which never depends back on it), the mathematics slice's rendering seam grafts onto the general `lang:` rendering theory rather than forking it, and its own declared/measured magnitudes (GMN codebook rates, glyph token costs) ground in `math:Quantity` through the registered quantity seam."@x-gmeow-english ;
     gmeow:sliceQualityTier gmeow:tierRegistered ;
     gmeow:sliceDocMaturity gmeow:docMaturityMinimal .
+
+# --------------------------------------------------------------------------- #
+# The linguistic grounding domain.
+#
+# One of the three subject-matter domains of docs/GROUNDING.md's "External
+# grounding ownership" table, declared here by the slice that owns it. A term
+# marked gmeow:groundingConceptDomain gmeow:groundingDomainLinguistic is a
+# GROUNDING CONCEPT that `lang:` must own; the tier rule fires when a grounding
+# slice references such a term while a non-grounding slice owns it.
+# --------------------------------------------------------------------------- #
+
+<https://blackcatinformatics.ca/gmeow/groundingDomainLinguistic>
+    a gmeow:GroundingDomain ;
+    rdfs:label "linguistic grounding domain"@x-gmeow-english ;
+    skos:definition "Linguistic, lexical, semiotic, and serialization formalisms — signs, forms, lexica, scripts, orthographies, grammars, notational surfaces, and the interchange syntaxes meaning is carried in. The `lang:` slice is the sole owner of every grounding concept in this domain."@x-gmeow-english ;
+    gmeow:groundingDomainOwner <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> .

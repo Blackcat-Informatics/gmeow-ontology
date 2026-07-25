@@ -58,17 +58,30 @@
 //! grounding slices are all `tierCore`), folded into the same function only
 //! because both existing `make validate` gate sites already call it.
 //!
-//! # R6: grounding doctrine (a grounding slice depends only on grounding slices)
+//! # R6: grounding doctrine (a grounding slice never consumes a grounding concept downward)
 //!
 //! [`peerage_aware_ownership_findings`] ALSO folds in
 //! [`grounding_doctrine_findings`]: `docs/GROUNDING.md`'s **tier rule** — "a
-//! grounding slice never depends on a non-grounding slice" — is invisible to
-//! [`is_forbidden_edge`], because all three grounding slices are
-//! `gmeow:tierCore`, so `logic → cognition` reads as an ordinary core→core
-//! crossing. This gate keys on the `gmeow:GroundingSlice` marker instead: a
-//! slice typed `gmeow:GroundingSlice` must not depend — DECLARED or COMPUTED —
-//! on a slice that is not. Grounding→grounding peer crossings are exactly the
-//! Principle 19 peerage grant above and never fire here.
+//! grounding slice never depends on a non-grounding slice **for a grounding
+//! concept**" — is invisible to [`is_forbidden_edge`], because all three
+//! grounding slices are `gmeow:tierCore`, so `logic → cognition` reads as an
+//! ordinary core→core crossing. This gate keys on the `gmeow:GroundingSlice`
+//! marker plus the referenced TERM's authored `gmeow:groundingConceptDomain`
+//! marker: a grounding slice must not reference a term that is declared a
+//! grounding concept while a non-grounding slice owns it.
+//!
+//! The "for a grounding concept" qualifier is load-bearing. A grounding slice
+//! consuming ordinary domain vocabulary by reference is sanctioned — `lang:`
+//! subclasses `gmeow:AttestationArtifact` precisely so it need not re-mint the
+//! attestation vocabulary, and `logic:` names domain predicates inside
+//! `logic:Formula` ASTs because formalizing slice vocabulary is what `logic:`
+//! is for. Dropping the qualifier makes both violations and admits only a
+//! corpus in which every formalized term has been swallowed into `logic:`.
+//! Which terms ARE grounding concepts is a judgment about subject matter that
+//! no graph shape yields, so it is authored as ontology data on the term
+//! ([`GroundingConceptIndex`]), never as a list in this file.
+//! Grounding→grounding peer crossings are exactly the Principle 19 peerage
+//! grant above and never fire here.
 //!
 //! # Genuine cross-slice TERM usage only
 //!
@@ -166,6 +179,16 @@ const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOw
 /// `gmeow:sliceCoFoundationalWith` — the symmetric grounding-peerage relation.
 const GMEOW_CO_FOUNDATIONAL_WITH: &str =
     "https://blackcatinformatics.ca/gmeow/sliceCoFoundationalWith";
+/// `gmeow:GroundingDomain` — one of the three external-grounding subject-matter
+/// domains of `docs/GROUNDING.md`'s "External grounding ownership" table.
+const GMEOW_GROUNDING_DOMAIN: &str = "https://blackcatinformatics.ca/gmeow/GroundingDomain";
+/// `gmeow:groundingDomainOwner` — the grounding slice a domain's concepts belong to.
+const GMEOW_GROUNDING_DOMAIN_OWNER: &str =
+    "https://blackcatinformatics.ca/gmeow/groundingDomainOwner";
+/// `gmeow:groundingConceptDomain` — the authored marker naming a term as a
+/// GROUNDING CONCEPT and placing it in one grounding domain.
+const GMEOW_GROUNDING_CONCEPT_DOMAIN: &str =
+    "https://blackcatinformatics.ca/gmeow/groundingConceptDomain";
 /// `rdfs:label`.
 const RDFS_LABEL_TERM: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 
@@ -537,6 +560,7 @@ type TermPredicates = BTreeMap<String, BTreeSet<String>>;
 /// [`NonCouplingPredicates`] set — built ONCE per catalog, over EVERY
 /// catalogued slice, so [`is_genuine_crossing_term`]'s Class B check never
 /// re-parses an artifact per crossing.
+#[derive(Debug, Default)]
 struct ReferencePredicateIndex {
     /// `(slice IRI, artifact logical path)` -> term IRI -> the set of
     /// predicates that reference it as an object anywhere in that artifact.
@@ -546,47 +570,21 @@ struct ReferencePredicateIndex {
 }
 
 impl ReferencePredicateIndex {
-    /// Index every `Module`/`Shapes`/`Mapping` artifact (the three
-    /// RDF-parseable roles that produce a *semantic* dependency edge — RFC §10)
-    /// of every catalogued slice, harvesting BOTH the per-artifact reference
-    /// predicates and the corpus-wide [`NonCouplingPredicates`] declarations
-    /// from the same single parse.
-    fn build(catalog: &SliceCatalog) -> Result<Self> {
-        let mut by_artifact = BTreeMap::new();
-        let mut non_coupling = NonCouplingPredicates::default();
-        for record in catalog.records() {
-            for artifact in &record.artifacts {
-                if !matches!(
-                    artifact.role,
-                    ArtifactRole::Module | ArtifactRole::Shapes | ArtifactRole::Mapping
-                ) {
-                    continue;
-                }
-                let ds = Dataset::parse_turtle(&artifact.content, &artifact.logical_path)
-                    .map_err(|e| parse_err(Path::new(&artifact.logical_path), &e.to_string()))?;
-                non_coupling.absorb(&ds);
-                let mut term_predicates: TermPredicates = BTreeMap::new();
-                ds.for_each_quad(|_s, p, o, _g| {
-                    if let Object::Named(iri) = o {
-                        term_predicates
-                            .entry(iri)
-                            .or_default()
-                            .insert(p.to_string());
-                    }
-                });
-                by_artifact.insert(
-                    (
-                        record.manifest.slice_iri.clone(),
-                        artifact.logical_path.clone(),
-                    ),
-                    term_predicates,
-                );
+    /// Absorb one already-parsed artifact graph: the per-artifact reference
+    /// predicates and the corpus-wide [`NonCouplingPredicates`] declarations.
+    fn absorb_artifact(&mut self, slice: &SliceIri, logical_path: &str, ds: &Dataset) {
+        self.non_coupling.absorb(ds);
+        let mut term_predicates: TermPredicates = BTreeMap::new();
+        ds.for_each_quad(|_s, p, o, _g| {
+            if let Object::Named(iri) = o {
+                term_predicates
+                    .entry(iri)
+                    .or_default()
+                    .insert(p.to_string());
             }
-        }
-        Ok(Self {
-            by_artifact,
-            non_coupling,
-        })
+        });
+        self.by_artifact
+            .insert((slice.clone(), logical_path.to_string()), term_predicates);
     }
 
     /// Whether `term`, as referenced from `from_slice`'s `logical_path`
@@ -611,6 +609,157 @@ impl ReferencePredicateIndex {
             return false;
         };
         preds.iter().all(|p| self.non_coupling.contains(p))
+    }
+}
+
+// ── Grounding concepts: the authored subject-matter judgment ─────────────────
+
+/// One `gmeow:GroundingDomain` individual: one of the three external-grounding
+/// subject-matter domains of `docs/GROUNDING.md`'s "External grounding
+/// ownership" table, read off the grounding manifest that declares it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct GroundingDomainRecord {
+    /// The domain individual's own IRI.
+    iri: String,
+    /// Its `rdfs:label` — the domain named in a finding message. Falls back to
+    /// the IRI's CURIE when unlabelled, never to a hard-coded English string.
+    label: String,
+    /// The grounding slice `gmeow:groundingDomainOwner` names as the sole owner
+    /// of every grounding concept in this domain.
+    owner: SliceIri,
+}
+
+/// Which terms the corpus DECLARES to be grounding concepts, and in which
+/// grounding domain.
+///
+/// `docs/GROUNDING.md`'s tier rule is qualified — "a grounding slice never
+/// depends on a non-grounding slice **for a grounding concept**" — and whether
+/// a term's subject matter is linguistic, mathematical or logical is a
+/// judgment about MEANING that no graph shape can decide. It is therefore
+/// authored as DATA on the term (`gmeow:groundingConceptDomain`), exactly like
+/// the seam registry and the grounding-slice marker, and read back here. There
+/// is deliberately no hard-coded IRI list: a gate that carries its own opinion
+/// about which concepts are foundational is a second source of truth, and one
+/// nobody can amend by authoring ontology.
+///
+/// Domains come from the `gmeow:GroundingSlice` manifests (the same place the
+/// `gmeow:Seam` registry lives); term markers come from the object-level
+/// artifacts, wherever the marked term physically lives — so a domain slice
+/// that mints a grounding concept and honestly marks it is caught, and so is
+/// the term after it has been promoted (the marker travels with the block).
+#[derive(Debug, Default)]
+struct GroundingConceptIndex {
+    /// Domain IRI -> its record. Read from grounding manifests.
+    domains: BTreeMap<String, GroundingDomainRecord>,
+    /// Term IRI -> the domain IRI its authored marker names.
+    term_domain: BTreeMap<String, String>,
+}
+
+impl GroundingConceptIndex {
+    /// Absorb every `<term> gmeow:groundingConceptDomain <domain>` marker in one
+    /// already-parsed artifact graph.
+    fn absorb_markers(&mut self, ds: &Dataset) {
+        ds.for_each_quad(|s, p, o, _g| {
+            if p != GMEOW_GROUNDING_CONCEPT_DOMAIN {
+                return;
+            }
+            let (Subject::Named(term), Object::Named(domain)) = (s, o) else {
+                return;
+            };
+            self.term_domain.insert(term, domain);
+        });
+    }
+
+    /// Absorb every `gmeow:GroundingDomain` individual declared in one manifest
+    /// graph. A domain with no `gmeow:groundingDomainOwner` is skipped rather
+    /// than guessed at: the owner is what makes the reconciliation direction
+    /// nameable, and the R6 finding below states it.
+    fn absorb_domains(&mut self, ds: &Dataset, path: &Path) -> Result<()> {
+        for iri in ds
+            .subjects_of_type(GMEOW_GROUNDING_DOMAIN)
+            .map_err(|e| parse_err(path, &e.to_string()))?
+        {
+            let Some(owner) = ds
+                .object_iris(&iri, GMEOW_GROUNDING_DOMAIN_OWNER)
+                .map_err(|e| parse_err(path, &e.to_string()))?
+                .into_iter()
+                .min()
+            else {
+                continue;
+            };
+            let label = ds
+                .objects(&iri, RDFS_LABEL_TERM)
+                .map_err(|e| parse_err(path, &e.to_string()))?
+                .into_iter()
+                .filter_map(|o| match o {
+                    Object::Literal { value, .. } => Some(value),
+                    _ => None,
+                })
+                .min()
+                .unwrap_or_else(|| seam_term_curie(&iri));
+            self.domains
+                .insert(iri.clone(), GroundingDomainRecord { iri, label, owner });
+        }
+        Ok(())
+    }
+
+    /// The domain record `term`'s authored marker places it in, or `None` when
+    /// `term` carries no marker (ordinary domain vocabulary — the case the
+    /// unqualified reading of the tier rule got wrong).
+    ///
+    /// A marker naming a domain no grounding manifest declares resolves to
+    /// `None`: an undeclared domain has no owner, so there is no reconciliation
+    /// direction to state. That combination is itself caught, as an
+    /// `authoring.undeclared-term` finding on the dangling domain IRI.
+    fn domain_of(&self, term: &str) -> Option<&GroundingDomainRecord> {
+        self.domains.get(self.term_domain.get(term)?)
+    }
+}
+
+/// Everything the architectural gates read out of the catalogued artifacts,
+/// harvested in ONE parse of each `Module`/`Shapes`/`Mapping` artifact (the
+/// three RDF-parseable roles that produce a *semantic* dependency edge — RFC
+/// §10) plus one read of each manifest's frozen graph.
+///
+/// Both consumers ([`classify`] and [`peerage_aware_ownership_findings`]) build
+/// exactly one of these, so no artifact is ever parsed twice per gate run.
+struct CorpusIndex {
+    /// Class-B evidence filtering (see [`is_genuine_crossing_term`]).
+    reference_predicates: ReferencePredicateIndex,
+    /// The authored grounding-concept judgment R6 is keyed on.
+    grounding_concepts: GroundingConceptIndex,
+}
+
+impl CorpusIndex {
+    /// Parse every semantic artifact once, feeding both indexes, then read the
+    /// grounding-domain declarations off the already-parsed manifest graphs.
+    fn build(catalog: &SliceCatalog) -> Result<Self> {
+        let mut reference_predicates = ReferencePredicateIndex::default();
+        let mut grounding_concepts = GroundingConceptIndex::default();
+        for record in catalog.records() {
+            for artifact in &record.artifacts {
+                if !matches!(
+                    artifact.role,
+                    ArtifactRole::Module | ArtifactRole::Shapes | ArtifactRole::Mapping
+                ) {
+                    continue;
+                }
+                let ds = Dataset::parse_turtle(&artifact.content, &artifact.logical_path)
+                    .map_err(|e| parse_err(Path::new(&artifact.logical_path), &e.to_string()))?;
+                reference_predicates.absorb_artifact(
+                    &record.manifest.slice_iri,
+                    &artifact.logical_path,
+                    &ds,
+                );
+                grounding_concepts.absorb_markers(&ds);
+            }
+            let manifest = manifest_dataset(record);
+            grounding_concepts.absorb_domains(&manifest, &record.manifest_path())?;
+        }
+        Ok(Self {
+            reference_predicates,
+            grounding_concepts,
+        })
     }
 }
 
@@ -728,7 +877,8 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
     let peers = peerage_pairs(catalog)?;
     let seams = seam_registry(catalog)?;
     let all_slice_iris = slice_iris(catalog);
-    let reference_predicates = ReferencePredicateIndex::build(catalog)?;
+    let corpus = CorpusIndex::build(catalog)?;
+    let reference_predicates = &corpus.reference_predicates;
 
     let mut verdicts = Vec::new();
     let mut crossings = Vec::new();
@@ -783,7 +933,7 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
                     &e.from_artifact.logical_path,
                     &e.referenced_term,
                     &all_slice_iris,
-                    &reference_predicates,
+                    reference_predicates,
                 )
             })
             .map(|e| &e.referenced_term)
@@ -865,6 +1015,15 @@ struct CrossingWitness {
     /// The [`EdgeKind`]s of every computed semantic edge carrying at least one
     /// genuine crossing term.
     computed_kinds: BTreeSet<EdgeKind>,
+    /// Every referenced term (owned by `to`) that survived
+    /// [`is_genuine_crossing_term`] on any computed semantic edge of this
+    /// crossing, sorted by IRI. Empty for a declaration-only crossing.
+    ///
+    /// Carried because [`grounding_doctrine_findings`] judges the tier rule
+    /// PER TERM — `docs/GROUNDING.md` forbids a grounding slice depending on a
+    /// non-grounding slice *for a grounding concept*, not in general — so the
+    /// slice pair alone is not enough to decide the verdict.
+    terms: BTreeSet<NamedNode>,
 }
 
 impl CrossingWitness {
@@ -933,23 +1092,28 @@ fn crossing_table(
         if !edge.edge_kind.is_semantic() {
             continue;
         }
-        let has_genuine_evidence = edge.evidence.iter().any(|e| {
-            is_genuine_crossing_term(
-                &edge.from_slice,
-                &e.from_artifact.logical_path,
-                &e.referenced_term,
-                all_slice_iris,
-                reference_predicates,
-            )
-        });
-        if !has_genuine_evidence {
+        let genuine: BTreeSet<NamedNode> = edge
+            .evidence
+            .iter()
+            .filter(|e| {
+                is_genuine_crossing_term(
+                    &edge.from_slice,
+                    &e.from_artifact.logical_path,
+                    &e.referenced_term,
+                    all_slice_iris,
+                    reference_predicates,
+                )
+            })
+            .map(|e| e.referenced_term.clone())
+            .collect();
+        if genuine.is_empty() {
             continue;
         }
-        by_pair
+        let witness = by_pair
             .entry((edge.from_slice.clone(), edge.to_slice.clone()))
-            .or_default()
-            .computed_kinds
-            .insert(edge.edge_kind);
+            .or_default();
+        witness.computed_kinds.insert(edge.edge_kind);
+        witness.terms.extend(genuine);
     }
 
     by_pair
@@ -1041,49 +1205,83 @@ fn forbidden_tier_findings(
 
 // ── R6: grounding doctrine ───────────────────────────────────────────────────
 
-/// Every crossing in `crossings` whose `from` slice is typed
-/// `gmeow:GroundingSlice` and whose `to` slice is not.
+/// Every `(crossing, term)` pair where a `gmeow:GroundingSlice` references a
+/// term owned by a non-grounding slice AND that term is an authored GROUNDING
+/// CONCEPT (`gmeow:groundingConceptDomain`).
 ///
-/// This encodes `docs/GROUNDING.md`'s **tier rule** — "a grounding slice never
-/// depends on a non-grounding slice for a grounding concept. Where a grounding
-/// concept is found split across a grounding and a non-grounding slice, the
-/// reconciliation direction is fixed: the grounding slice owns the concept and
-/// the non-grounding slice consumes it" — which [`is_forbidden_edge`] can never
-/// see, because all three grounding slices are authored `gmeow:tierCore` and a
-/// `logic → cognition` crossing therefore reads as an ordinary, legal core→core
-/// edge. The doctrine is a statement about the GROUNDING MARKER, so the gate
-/// keys on `gmeow:GroundingSlice` directly.
+/// This encodes `docs/GROUNDING.md`'s **tier rule** verbatim — "a grounding
+/// slice never depends on a non-grounding slice **for a grounding concept**.
+/// Where a grounding concept is found split across a grounding and a
+/// non-grounding slice, the reconciliation direction is fixed: the grounding
+/// slice owns the concept and the non-grounding slice consumes it" — which
+/// [`is_forbidden_edge`] can never see, because all three grounding slices are
+/// authored `gmeow:tierCore` and a `logic → cognition` crossing therefore reads
+/// as an ordinary, legal core→core edge.
+///
+/// # The qualifier is load-bearing
+///
+/// "For a grounding concept" is not decoration. A grounding slice consuming
+/// ordinary DOMAIN vocabulary by reference is exactly what the rule's own
+/// standing example prescribes on the other side of the seam: `lang:` names
+/// `gmeow:AttestationArtifact` because a GMN envelope IS an attestation
+/// artifact and lang "reuses the attestation vocabulary by reference rather
+/// than re-minting it", and `logic:` names `gmeow:claimModalForce` inside a
+/// `logic:Formula` because formalizing a slice's own vocabulary is what the
+/// `logic:` layer is FOR. Dropping the qualifier turns both into violations and
+/// makes the only conforming corpus one in which every formalized term has been
+/// swallowed into `logic:` — the reductio that shows the unqualified reading is
+/// not the rule.
+///
+/// So the gate cannot key on the slice pair alone. Whether a term's subject
+/// matter falls in one of the three grounding domains is a judgment about
+/// MEANING, unavailable from graph shape, and it is authored as data on the
+/// term ([`GroundingConceptIndex`]) rather than hard-coded here.
 ///
 /// Grounding→grounding crossings are the Principle 19 peerage grant and never
 /// fire here; they are governed instead by the seam registry ([`classify`]'s
 /// `Coverage::PeeredUnregisteredSeam`). Non-grounding→grounding is the ordinary,
 /// sanctioned consumption direction and never fires either.
 ///
-/// Judged on the DECLARED set as well as the computed one, for the same reason
-/// [`forbidden_tier_findings`] is: a grounding slice that AUTHORS
-/// `gmeow:sliceDependsOn <a domain slice>` has already broken the doctrine in
-/// its manifest, whether or not a single term crossing backs it up.
+/// Judged on the COMPUTED crossing terms only. A bare
+/// `gmeow:sliceDependsOn <a domain slice>` declaration in a grounding manifest
+/// is NOT itself a breach under the qualified rule — `lang:` legitimately
+/// depends on `versions`, `citations` and `documents` for domain vocabulary and
+/// must declare it — so unlike [`forbidden_tier_findings`], where the crossing
+/// is illegal whatever rides it, there is nothing to judge until a term does.
 fn grounding_doctrine_findings(
     crossings: &BTreeMap<(SliceIri, SliceIri), CrossingWitness>,
     grounding: &BTreeSet<SliceIri>,
+    concepts: &GroundingConceptIndex,
 ) -> Vec<Finding> {
     let mut findings = Vec::new();
     for ((from, to), witness) in crossings {
         if !grounding.contains(from) || grounding.contains(to) {
             continue;
         }
-        findings.push(crate::slice_ownership::finding(
-            Severity::Error,
-            crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
-            format!(
-                "{from} is a gmeow:GroundingSlice but depends on the non-grounding slice {to} \
-                 [{witness}] — a grounding slice never depends on a non-grounding slice \
-                 (docs/GROUNDING.md, the tier rule): the grounding slice owns the concept and \
-                 the non-grounding slice consumes it, never the reverse",
-                witness = witness.describe(),
-            ),
-            Some(from.clone()),
-        ));
+        for term in &witness.terms {
+            let Some(domain) = concepts.domain_of(term.as_str()) else {
+                continue;
+            };
+            findings.push(crate::slice_ownership::finding(
+                Severity::Error,
+                crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
+                format!(
+                    "{from} is a gmeow:GroundingSlice but depends on the non-grounding slice \
+                     {to} [{witness}] for the grounding concept {term} — that term is authored \
+                     gmeow:groundingConceptDomain <{domain_iri}> ({domain_label}), whose \
+                     gmeow:groundingDomainOwner is {owner}. docs/GROUNDING.md's tier rule fixes \
+                     the reconciliation direction: {owner} must own {term} (re-point its \
+                     rdfs:isDefinedBy and move its block there) and {to} must consume it. The \
+                     IRI does not change; ownership is by rdfs:isDefinedBy, never by namespace.",
+                    term = term.as_str(),
+                    witness = witness.describe(),
+                    domain_iri = domain.iri,
+                    domain_label = domain.label,
+                    owner = domain.owner,
+                ),
+                Some(from.clone()),
+            ));
+        }
     }
     findings
 }
@@ -1120,12 +1318,18 @@ pub fn peerage_aware_ownership_findings(
         .collect();
 
     let all_slice_iris = slice_iris(catalog);
-    let reference_predicates = ReferencePredicateIndex::build(catalog)?;
-    let crossings = crossing_table(report, catalog, &all_slice_iris, &reference_predicates);
+    let corpus = CorpusIndex::build(catalog)?;
+    let crossings = crossing_table(
+        report,
+        catalog,
+        &all_slice_iris,
+        &corpus.reference_predicates,
+    );
     findings.extend(forbidden_tier_findings(&crossings, catalog));
     findings.extend(grounding_doctrine_findings(
         &crossings,
         &grounding_slice_iris(catalog)?,
+        &corpus.grounding_concepts,
     ));
 
     for verdict in &classification.verdicts {
@@ -1872,7 +2076,7 @@ mod tests {
     fn class_b_non_coupling_predicates_are_derived_from_the_corpus_declarations() {
         let tmp = tempfile::tempdir().unwrap();
         let catalog = class_filter_catalog(tmp.path());
-        let index = ReferencePredicateIndex::build(&catalog).unwrap();
+        let index = CorpusIndex::build(&catalog).unwrap().reference_predicates;
 
         assert!(
             index
@@ -2016,13 +2220,16 @@ mod tests {
             .collect();
         assert_eq!(undeclared.len(), 1, "{findings:?}");
         assert_eq!(undeclared[0].severity, Severity::Error);
-        // `logic:` is a gmeow:GroundingSlice and `widgets` is not, so R6 fires
-        // on the same crossing — an independent, additional violation.
+        // `logic:` is a gmeow:GroundingSlice and `widgets` is not, but
+        // `gmeow:widgetOtherTerm` carries no gmeow:groundingConceptDomain
+        // marker: it is ordinary domain vocabulary, which docs/GROUNDING.md's
+        // tier rule explicitly permits a grounding slice to consume. The
+        // crossing is an UNDECLARED dependency (declare it) and nothing more.
         assert!(
-            findings
+            !findings
                 .iter()
                 .any(|f| f.code == crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY),
-            "{findings:?}"
+            "the tier rule is qualified 'for a grounding concept': {findings:?}"
         );
     }
 
@@ -2551,11 +2758,25 @@ mod tests {
     const GROUNDING_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
     const GROUNDING_MATH: &str = "https://blackcatinformatics.ca/gmeow/slices/math";
     const DOMAIN_COGNITION: &str = "https://blackcatinformatics.ca/gmeow/slices/cognition";
+    /// The `gmeow:GroundingDomain` individual `logic:` declares in its manifest.
+    const DOMAIN_LOGICAL: &str = "https://blackcatinformatics.ca/gmeow/groundingDomainLogical";
+    /// A term in `cognition` that IS a grounding concept: a knowledge-base
+    /// partition role, i.e. a logical formalism. Marked as such in the fixture.
+    const MARKED_CONCEPT: &str = "https://blackcatinformatics.ca/gmeow/kbPartitionRole";
+    /// A term in `cognition` that is ordinary domain vocabulary — unmarked.
+    const ORDINARY_TERM: &str = "https://blackcatinformatics.ca/gmeow/beliefState";
 
     /// Two mutually-peered `gmeow:GroundingSlice`s and one ordinary domain
     /// slice, ALL `gmeow:tierCore` — exactly the real corpus's shape, which is
     /// why `is_forbidden_edge` can never see this violation: every crossing
     /// among them is core -> core and therefore tier-legal.
+    ///
+    /// `logic:`'s manifest declares the logical `gmeow:GroundingDomain` (as the
+    /// real one does), and `cognition`'s `module.ttl` owns TWO terms: one
+    /// carrying the `gmeow:groundingConceptDomain` marker and one without it.
+    /// The pair is what makes the gate's discrimination testable — the same
+    /// slice pair, the same crossing direction, opposite verdicts, decided
+    /// ONLY by the authored marker.
     fn grounding_doctrine_catalog(root: &Path) -> SliceCatalog {
         write_manifest(
             root,
@@ -2566,6 +2787,11 @@ mod tests {
                 rdfs:label "logic" ;
                 gmeow:sliceTier gmeow:tierCore ;
                 gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/math> .
+
+            <https://blackcatinformatics.ca/gmeow/groundingDomainLogical>
+                a gmeow:GroundingDomain ;
+                rdfs:label "logical grounding domain" ;
+                gmeow:groundingDomainOwner <https://blackcatinformatics.ca/gmeow/slices/logic> .
             "#,
         );
         write_manifest(
@@ -2589,13 +2815,29 @@ mod tests {
                 gmeow:sliceTier gmeow:tierCore .
             "#,
         );
+        write_module(
+            root,
+            "core",
+            "cognition",
+            r#"gmeow:kbPartitionRole
+                a owl:ObjectProperty ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+                rdfs:label "kb partition role" ;
+                gmeow:groundingConceptDomain <https://blackcatinformatics.ca/gmeow/groundingDomainLogical> .
+
+            gmeow:beliefState
+                a owl:ObjectProperty ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+                rdfs:label "belief state" .
+            "#,
+        );
         SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
     }
 
     /// Proof the gate is NEEDED: the identical crossing is tier-legal, so R5
     /// alone would let it through silently.
     #[test]
-    fn a_grounding_to_domain_crossing_is_tier_legal_but_breaks_the_grounding_doctrine() {
+    fn a_grounding_to_marked_concept_crossing_is_tier_legal_but_breaks_the_grounding_doctrine() {
         let tmp = tempfile::tempdir().unwrap();
         let catalog = grounding_doctrine_catalog(tmp.path());
         let report = OwnershipReport {
@@ -2604,7 +2846,7 @@ mod tests {
                 GROUNDING_LOGIC,
                 DOMAIN_COGNITION,
                 EdgeKind::Ontology,
-                &["https://blackcatinformatics.ca/gmeow/beliefState"],
+                &[MARKED_CONCEPT],
                 ReconciliationStatus::Undeclared,
             )],
             diagnostics: vec![undeclared_diag(
@@ -2629,13 +2871,111 @@ mod tests {
         assert_eq!(doctrine[0].severity, Severity::Error);
         assert!(doctrine[0].message.contains(GROUNDING_LOGIC));
         assert!(doctrine[0].message.contains(DOMAIN_COGNITION));
+        // The message must NAME the offending concept, the grounding domain its
+        // subject matter falls in, and the grounding slice that must own it —
+        // a from/to pair alone is not an actionable finding.
+        assert!(
+            doctrine[0].message.contains(MARKED_CONCEPT),
+            "{}",
+            doctrine[0].message
+        );
+        assert!(
+            doctrine[0].message.contains(DOMAIN_LOGICAL),
+            "{}",
+            doctrine[0].message
+        );
+        assert!(
+            doctrine[0].message.contains("logical grounding domain"),
+            "the finding must name the domain by its authored rdfs:label: {}",
+            doctrine[0].message
+        );
     }
 
-    /// R6 judges the DECLARED set too: a grounding manifest that authors
-    /// `gmeow:sliceDependsOn` on a domain slice has broken the doctrine in the
-    /// manifest, with or without a single crossing term to back it.
+    /// The mutation twin of the test above, and the whole point of this
+    /// correction: the SAME grounding slice, the SAME non-grounding slice, the
+    /// SAME crossing direction, differing ONLY in that the referenced term
+    /// carries no `gmeow:groundingConceptDomain` marker — ordinary domain
+    /// vocabulary a grounding slice may consume by reference. It must NOT fire.
     #[test]
-    fn a_declared_grounding_to_domain_dependency_fires_with_no_evidence() {
+    fn a_grounding_slice_consuming_ordinary_domain_vocabulary_never_fires_the_doctrine_gate() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_doctrine_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                GROUNDING_LOGIC,
+                DOMAIN_COGNITION,
+                EdgeKind::Ontology,
+                &[ORDINARY_TERM],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(
+                GROUNDING_LOGIC,
+                DOMAIN_COGNITION,
+                EdgeKind::Ontology,
+            )],
+        };
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.code == crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY),
+            "docs/GROUNDING.md forbids the downward dependency only FOR A GROUNDING CONCEPT; \
+             gmeow:beliefState carries no gmeow:groundingConceptDomain marker: {findings:?}"
+        );
+    }
+
+    /// The discrimination is decided by the MARKER, not by the term IRI: one
+    /// edge naming both terms yields exactly ONE finding, and it names the
+    /// marked term. Guards against a gate that fires per EDGE (which would
+    /// report a single generic violation) or per TERM without filtering (which
+    /// would report two).
+    #[test]
+    fn one_edge_naming_both_a_marked_and_an_unmarked_term_fires_once_on_the_marked_one() {
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = grounding_doctrine_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                GROUNDING_LOGIC,
+                DOMAIN_COGNITION,
+                EdgeKind::Ontology,
+                &[ORDINARY_TERM, MARKED_CONCEPT],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(
+                GROUNDING_LOGIC,
+                DOMAIN_COGNITION,
+                EdgeKind::Ontology,
+            )],
+        };
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        let doctrine: Vec<&Finding> = findings
+            .iter()
+            .filter(|f| f.code == crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY)
+            .collect();
+        assert_eq!(doctrine.len(), 1, "{findings:?}");
+        assert!(
+            doctrine[0].message.contains(MARKED_CONCEPT),
+            "{}",
+            doctrine[0].message
+        );
+        assert!(
+            !doctrine[0].message.contains(ORDINARY_TERM),
+            "{}",
+            doctrine[0].message
+        );
+    }
+
+    /// A bare `gmeow:sliceDependsOn` from a grounding manifest onto a domain
+    /// slice is NOT a breach under the qualified rule — `lang:` legitimately
+    /// declares `versions`, `citations` and `documents` — so a declaration with
+    /// no grounding concept crossing it must stay silent. (The unqualified
+    /// reading fired here, which is exactly the over-fire being corrected.)
+    #[test]
+    fn a_declared_grounding_to_domain_dependency_alone_is_not_a_doctrine_breach() {
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path();
         write_manifest(
@@ -2647,6 +2987,11 @@ mod tests {
                 rdfs:label "logic" ;
                 gmeow:sliceTier gmeow:tierCore ;
                 gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+            <https://blackcatinformatics.ca/gmeow/groundingDomainLogical>
+                a gmeow:GroundingDomain ;
+                rdfs:label "logical grounding domain" ;
+                gmeow:groundingDomainOwner <https://blackcatinformatics.ca/gmeow/slices/logic> .
             "#,
         );
         write_manifest(
@@ -2667,17 +3012,11 @@ mod tests {
         };
 
         let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
-        let doctrine: Vec<&Finding> = findings
-            .iter()
-            .filter(|f| f.code == crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY)
-            .collect();
-        assert_eq!(doctrine.len(), 1, "{findings:?}");
         assert!(
-            doctrine[0]
-                .message
-                .contains("declared gmeow:sliceDependsOn"),
-            "{}",
-            doctrine[0].message
+            !findings
+                .iter()
+                .any(|f| f.code == crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY),
+            "a declaration is not itself a grounding-concept crossing: {findings:?}"
         );
     }
 
@@ -2714,7 +3053,9 @@ mod tests {
     }
 
     /// The sanctioned direction: a domain slice CONSUMING a grounding term is
-    /// exactly what the doctrine prescribes and must never fire R6.
+    /// exactly what the doctrine prescribes and must never fire R6 — even when
+    /// the consumed term is a marked grounding concept, which is the normal,
+    /// correct state of the world after a promotion.
     #[test]
     fn a_domain_to_grounding_crossing_never_fires_the_doctrine_gate() {
         let tmp = tempfile::tempdir().unwrap();
@@ -2737,6 +3078,161 @@ mod tests {
                 .iter()
                 .any(|f| f.code == crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY),
             "non-grounding -> grounding is the sanctioned consumption direction: {findings:?}"
+        );
+    }
+
+    /// A marker naming a `gmeow:GroundingDomain` no grounding manifest declares
+    /// resolves to nothing: an undeclared domain has no
+    /// `gmeow:groundingDomainOwner`, so there is no reconciliation direction the
+    /// finding could state, and inventing one would be the gate carrying its own
+    /// opinion. The dangling domain IRI is caught by `authoring.undeclared-term`
+    /// instead. Guards against a future `domain_of` that returns a synthetic
+    /// record rather than `None`.
+    #[test]
+    fn a_marker_naming_an_undeclared_grounding_domain_does_not_fire() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        write_manifest(
+            root,
+            "grounding",
+            "logic",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/logic>
+                a gmeow:Slice, gmeow:GroundingSlice ;
+                rdfs:label "logic" ;
+                gmeow:sliceTier gmeow:tierCore .
+            "#,
+        );
+        write_manifest(
+            root,
+            "core",
+            "cognition",
+            r#"<https://blackcatinformatics.ca/gmeow/slices/cognition>
+                a gmeow:Slice ;
+                rdfs:label "cognition" ;
+                gmeow:sliceTier gmeow:tierCore .
+            "#,
+        );
+        write_module(
+            root,
+            "core",
+            "cognition",
+            r#"gmeow:kbPartitionRole
+                a owl:ObjectProperty ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+                rdfs:label "kb partition role" ;
+                gmeow:groundingConceptDomain <https://blackcatinformatics.ca/gmeow/groundingDomainNeverDeclared> .
+            "#,
+        );
+        let catalog = SliceCatalog::discover(&root.join("slices"), vocab()).unwrap();
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge(
+                GROUNDING_LOGIC,
+                DOMAIN_COGNITION,
+                EdgeKind::Ontology,
+                &[MARKED_CONCEPT],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(
+                GROUNDING_LOGIC,
+                DOMAIN_COGNITION,
+                EdgeKind::Ontology,
+            )],
+        };
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.code == crate::codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY),
+            "an unowned domain names no reconciliation direction: {findings:?}"
+        );
+    }
+
+    /// The real corpus's own promotion, asserted as data rather than as prose:
+    /// the graph-box-role cluster IS marked as a logical grounding concept, the
+    /// logical domain IS owned by `logic:`, and every marked term IS owned by
+    /// the grounding slice its domain names. This is what makes the live gate's
+    /// zero honest — a zero produced by an EMPTY marker set would be vacuous.
+    #[test]
+    fn the_real_corpus_marks_the_box_role_cluster_and_owns_every_marked_concept() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices");
+        let catalog = SliceCatalog::discover(&dir, vocab()).unwrap();
+        let corpus = CorpusIndex::build(&catalog).unwrap();
+        let concepts = &corpus.grounding_concepts;
+        let report = purrdf::slice::OwnershipAnalyzer::new(&catalog)
+            .analyze()
+            .unwrap();
+
+        // All three grounding domains are declared, each owned by its slice.
+        let owners: BTreeMap<&str, &str> = concepts
+            .domains
+            .values()
+            .map(|d| (d.iri.as_str(), d.owner.as_str()))
+            .collect();
+        assert_eq!(
+            owners.get("https://blackcatinformatics.ca/gmeow/groundingDomainLogical"),
+            Some(&"https://blackcatinformatics.ca/gmeow/slices/logic"),
+            "{owners:?}"
+        );
+        assert_eq!(
+            owners.get("https://blackcatinformatics.ca/gmeow/groundingDomainLinguistic"),
+            Some(&"https://blackcatinformatics.ca/gmeow/slices/lang"),
+            "{owners:?}"
+        );
+        assert_eq!(
+            owners.get("https://blackcatinformatics.ca/gmeow/groundingDomainMathematical"),
+            Some(&"https://blackcatinformatics.ca/gmeow/slices/math"),
+            "{owners:?}"
+        );
+
+        // The marker set is NON-EMPTY and contains the whole box-role cluster:
+        // the value type, its five role individuals, and the property.
+        for local in [
+            "GraphBoxRole",
+            "boxABox",
+            "boxCBox",
+            "boxConfigBox",
+            "boxRBox",
+            "boxTBox",
+            "graphBoxRole",
+        ] {
+            let iri = format!("https://blackcatinformatics.ca/gmeow/{local}");
+            let domain = concepts
+                .domain_of(&iri)
+                .unwrap_or_else(|| panic!("gmeow:{local} must carry gmeow:groundingConceptDomain"));
+            assert_eq!(
+                domain.iri,
+                "https://blackcatinformatics.ca/gmeow/groundingDomainLogical"
+            );
+        }
+
+        // And the standing invariant the gate's zero rests on: EVERY marked
+        // term is owned by the grounding slice its domain names. A marked term
+        // owned elsewhere is precisely the R6 violation.
+        let mut misowned: Vec<(String, String, String)> = Vec::new();
+        for (term, domain_iri) in &concepts.term_domain {
+            let Some(domain) = concepts.domains.get(domain_iri) else {
+                continue;
+            };
+            let Some(owned) = NamedNode::new(term)
+                .ok()
+                .and_then(|n| report.ownership.get(&n))
+            else {
+                continue;
+            };
+            if owned.declared_owner != domain.owner {
+                misowned.push((
+                    term.clone(),
+                    owned.declared_owner.clone(),
+                    domain.owner.clone(),
+                ));
+            }
+        }
+        assert!(
+            misowned.is_empty(),
+            "every gmeow:groundingConceptDomain-marked term must be owned by its domain's \
+             gmeow:groundingDomainOwner; these are not: {misowned:?}"
         );
     }
 }

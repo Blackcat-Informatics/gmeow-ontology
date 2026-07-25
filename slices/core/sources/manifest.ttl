@@ -16,6 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     gmeow:sliceConsumer "Content-addressed sources under the claim spine and the GTS packages (blake3 digests)."@x-gmeow-english .

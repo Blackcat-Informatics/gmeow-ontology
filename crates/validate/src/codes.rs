@@ -137,16 +137,29 @@ pub const SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM: &str =
 /// still architecturally forbidden — declaring it does not license it).
 pub const SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY: &str = "slice-ownership.forbidden-dependency";
 /// `crates/validate/src/slice_peerage.rs` — a slice typed `gmeow:GroundingSlice`
-/// depends on a slice that is not (`docs/GROUNDING.md`, the tier rule: "a
-/// grounding slice never depends on a non-grounding slice … the grounding slice
-/// owns the concept and the non-grounding slice consumes it"). Invisible to
+/// references a GROUNDING CONCEPT owned by a slice that is not
+/// (`docs/GROUNDING.md`, the tier rule: "a grounding slice never depends on a
+/// non-grounding slice **for a grounding concept**. Where a grounding concept is
+/// found split across a grounding and a non-grounding slice, the reconciliation
+/// direction is fixed: the grounding slice owns the concept and the
+/// non-grounding slice consumes it"). Invisible to
 /// [`SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY`], because all three grounding slices
 /// are authored `gmeow:tierCore`, so a `logic: → cognition` crossing reads as an
 /// ordinary legal core→core edge; this code keys on the `gmeow:GroundingSlice`
-/// marker instead. Fires on a DECLARED `gmeow:sliceDependsOn` as well as a
-/// computed edge — a grounding manifest that authors the crossing has already
-/// broken the doctrine. Grounding→grounding peer crossings are the Principle 19
-/// peerage grant and never fire here.
+/// marker plus the referenced term's `gmeow:groundingConceptDomain` marker.
+///
+/// The "for a grounding concept" qualifier is enforced, not dropped: a grounding
+/// slice consuming ordinary domain vocabulary by reference (`lang:` subclassing
+/// `gmeow:AttestationArtifact`, `logic:` naming a domain predicate inside a
+/// `logic:Formula`) is sanctioned and never fires. Which terms are grounding
+/// concepts is authored on the terms as `gmeow:groundingConceptDomain`, whose
+/// domain's `gmeow:groundingDomainOwner` names the grounding slice that must own
+/// them — the remediation is to re-point that term's `rdfs:isDefinedBy` and move
+/// its block to the owning grounding slice (the IRI never changes). A bare
+/// DECLARED `gmeow:sliceDependsOn` on a domain slice does not fire on its own:
+/// under the qualified rule such a declaration is legitimate until a grounding
+/// concept actually crosses. Grounding→grounding peer crossings are the
+/// Principle 19 peerage grant and never fire here.
 pub const SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY: &str =
     "slice-ownership.grounding-downward-dependency";
 /// Family base for `slice-ownership.*`.
