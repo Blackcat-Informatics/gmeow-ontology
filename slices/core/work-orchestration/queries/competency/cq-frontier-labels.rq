@@ -1,0 +1,10 @@
+# Competency question: "What are the closed frontier-label positions an operator
+# can encounter?"
+# Expected: exactly the sixteen derived logic:FrontierLabel individuals.
+
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?label WHERE {
+    ?label a logic:FrontierLabel .
+}
+ORDER BY ?label

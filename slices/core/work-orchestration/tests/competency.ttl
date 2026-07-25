@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency cells for the work-orchestration slice.
+#
+# Each cell pins an EXACT roster rather than a lower bound, so that adding or
+# dropping a member fails on diff. A count-only or contains-only pin would let
+# the vocabulary drift silently, which for closed value classes is precisely the
+# failure they exist to prevent.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/tests/> .
+
+ex:cqFrontierLabels a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-frontier-labels.rq" ;
+    gmeow:cqRationale "The frontier label set is closed and DERIVED from the axis tuple, so its membership is a contract rather than a convenience. Three of the sixteen have no home in a bare twelve-state reading — compensation failed with the forward effect still committed, reconciliation foreclosed rather than pending, and cancellation with effects in flight — and those are exactly the positions an operator most needs surfaced, so a pin that tolerated their loss would be worthless."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqFrontierLabelsShape ;
+    gmeow:cqExpectRowCount 16 .
+
+ex:cqFrontierLabelsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "label" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 16 .
+
+ex:cqReviewContents a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-review-contents.rq" ;
+    gmeow:cqRationale "The operator review projection must carry all eight required contents plus its projection receipt. Pinning the count is what stops a surface that silently omits effect status or dissent from looking complete: partial completeness is the failure mode here, because the omission is invisible to the reader it misleads."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqReviewContentsShape ;
+    gmeow:cqExpectRowCount 10 .
+
+ex:cqReviewContentsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "content" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 10 .
+
+ex:cqContributionKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-contribution-kinds.rq" ;
+    gmeow:cqRationale "Exactly three contribution kinds, because the three carry different authority: model output is advice and may never authorize, an operator contribution may be a decision, and a tool contribution is an observation whose authority is the tool's correctness. A fourth kind, or a missing one, would blur the line the approval machinery depends on."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContributionKindsShape ;
+    gmeow:cqExpectRow ex:cqContributionModelRow , ex:cqContributionOperatorRow , ex:cqContributionToolRow ;
+    gmeow:cqExactRows true .
+
+ex:cqContributionKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqContributionModelRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionModel ] .
+ex:cqContributionOperatorRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionOperator ] .
+ex:cqContributionToolRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionTool ] .
