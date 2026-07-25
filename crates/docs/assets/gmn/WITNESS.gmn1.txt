@@ -1,0 +1,4 @@
+@gmn{v: 1, aliases: dict-v3, glyphs: 2}
+@c{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}
+@c{s: gmeow__gate1, p: gmeow__locatedIn, o: gmeow__yardNorth}
+@c{s: gmeow__gate1, p: gmeow__statusLabel, v: open}

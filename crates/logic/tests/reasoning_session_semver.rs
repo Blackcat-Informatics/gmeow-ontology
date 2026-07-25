@@ -125,9 +125,15 @@ use session_common::*;
 /// raw source-content digest moves on both axes. The change only makes an already-malformed
 /// multi-valued cell decline instead of mis-decoding, so no reasoning verdict on any
 /// well-formed input — including this fixed edge-only input, which authors no dimension
-/// cell — changes. (Value below is the post-`cargo fmt` state of the branch.)
+/// cell — changes.
+/// Re-blessed for the origin/main merge into this branch: this branch's ADDITIVE engine
+/// sources — the W4b browser reasoner `reason::reason_closure_dataset` (wrapping the
+/// unchanged native chase) and the W4 `conjecture_eval` orchestration module — combine with
+/// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
+/// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
+/// changes (all additions are inert on it).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "773d6bb9a332306e9c70ef7d5c4827f8c45d19b581bf96c9f049b3a2e66e6a0c";
+    "cbfd938bdd5c449089cbaf373e86e18cd44c748cc65b6b88235a883192d77169";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -177,7 +183,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// session identity moves with it, while the fixed edge-only input's reasoning verdict is
 /// unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "fb1f5e8271ccdf6d82e6db41b05c9e17ccd76972a64c4fc96f78c93a5af3d688";
+    "2cf35a8bfa43ca5d2a2b6830e464bd2252c9715c9099b2cdb95f5e2fe93a4e1a";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

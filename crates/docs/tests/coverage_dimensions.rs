@@ -7,7 +7,7 @@
 //! (1) `to_gmeow_rdf` actually emits the `gmeow:docCoversDimension` /
 //! `gmeow:docMissesDimension` incidence, the bounded `gmeow:coverageFraction`, and
 //! the FCA-derived `gmeow:docEarnedMaturity` (proven by grepping the emitted
-//! N-Quads, since `make sync` is a later task); (2) the THREE-WAY key
+//! N-Quads, since `make regen` is a later task); (2) the THREE-WAY key
 //! agreement — every coverage key ↔ `maturity::Dimension` variant ↔ `gmeow:dim*`
 //! individual in `slices/core/documentation/module.ttl` — with no orphan on any
 //! side; (3) the coverage/maturity path invokes NO reasoner (the incidence is a
@@ -45,6 +45,7 @@ fn representative_model() -> DocsModel {
         profiles: Vec::new(),
         depends_on: Vec::new(),
         artifacts: Vec::new(),
+        documents: Vec::new(),
         has_thesis_sentence: false,
         realized_state_complete: false,
     });

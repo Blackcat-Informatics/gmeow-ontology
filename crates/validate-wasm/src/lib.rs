@@ -181,6 +181,27 @@ pub fn validate(
         .map_err(|e| JsError::new(e.message()))
 }
 
+/// Extract a `gmeow.gts` bundle's RDF as **graph-preserving N-Quads text**, so an
+/// in-browser RDF engine (the vendored purrdf wasm) can parse and query the SAME
+/// bundle the pipeline shipped — the browser source of truth for the documentation
+/// playground and bundle explorer, replacing any second curated data path.
+///
+/// - `gts` — the `gmeow.gts` bundle bytes (the single canonical browser-query
+///   bundle; the container is read, not re-embedded).
+///
+/// Returns N-Quads (`application/n-quads`) covering every named graph in the bundle
+/// (the graph component of each quad is retained — the query surface sees the
+/// bundle's real graph structure, not a flattened union).
+///
+/// # Errors
+///
+/// Throws a JS exception if the container cannot be read, the statement layer cannot
+/// be folded, or the dataset cannot be serialized.
+#[wasm_bindgen]
+pub fn bundle_dataset(gts: &[u8]) -> Result<String, JsError> {
+    gmeow_validate::store::dataset_nquads_from_gts(gts).map_err(|e| JsError::new(e.message()))
+}
+
 // ── GMN-1 validator host tests ──────────────────────────────────────────────────────
 //
 // The validation logic is target-independent (the `#[wasm_bindgen]` fns compile natively

@@ -62,7 +62,7 @@ fn override_pairs(catalog: &UiCatalog) -> Vec<(String, String)> {
 fn ui_templates_is_a_well_formed_single_source() {
     // Both the renderer and the native `.pot` extraction read THIS table; if it
     // is clean, the single source is clean for every consumer.
-    assert_eq!(UI_TEMPLATES.len(), 218, "UI-template key count changed");
+    assert_eq!(UI_TEMPLATES.len(), 219, "UI-template key count changed");
 
     let mut keys: Vec<&str> = UI_TEMPLATES.iter().map(|(k, _)| *k).collect();
     let unsorted = keys.clone();

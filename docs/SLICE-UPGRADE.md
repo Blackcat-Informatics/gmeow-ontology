@@ -252,8 +252,8 @@ filled cell in a coverage table.
 
 ```bash
 make fmt
-make sync
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make regen
+make check-sync
 make validate
 make slicetest
 ```

@@ -73,8 +73,8 @@ text through the `gh` CLI. It writes:
 After changing `metadata/references.ttl`, regenerate exports:
 
 ```bash
-make sync
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make regen
+make check-sync
 ```
 
 For a complete PR, run `make check`.
