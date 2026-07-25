@@ -59,8 +59,9 @@ and more than one may co-apply to a single question (the property is non-functio
 
 Two type values carry **documented routing bridges** (no axiom): a `gmeow:typeWhy` question's
 explanandum is exactly the **abductive explanandum**, so abduction (the inference tetrad) answers
-`gmeow:typeWhy` questions; a `gmeow:typeHow` question is answered by a procedure described in the
-**procedures extension**. The bridges are routing for consumers, not entailments.
+`gmeow:typeWhy` questions; a `gmeow:typeHow` question is answered by a `logic:Plan` whose
+`logic:planGoal` is the sought end — the canonical process model. The bridges are routing for
+consumers, not entailments.
 
 ### gmeow:QuestionType · gmeow:questionType
 
@@ -68,7 +69,7 @@ explanandum is exactly the **abductive explanandum**, so abduction (the inferenc
 (domain `gmeow:Question`, range `gmeow:QuestionType`) classifies a question by pointing it at one or
 more of those values. It is **non-functional** on purpose — a "why … and how" question is both
 `gmeow:typeWhy` and `gmeow:typeHow` — so consumers route the explanandum to abduction and the
-procedure to the procedures extension off the co-applied values.
+method to a `logic:Plan` off the co-applied values.
 
 ## The inquiry attitude spine
 

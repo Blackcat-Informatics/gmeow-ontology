@@ -14821,6 +14821,535 @@ logic:dagCycleWitness
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
+# === Enactment layer: prescription versions, enactments, the transition   === #
+# === journal, checkpoints, continuation, and the prescription kind        === #
+# =========================================================================== #
+#
+# The PRESCRIPTION -> ENACTMENT -> COMMITMENT kernel. A logic:Plan is the
+# prescription: unchanged, it already reads as a workflow, a DAG, a repeatable
+# guide, a curriculum (activities whose success criterion is competency
+# attainment), a SCADA control plan (commands whose logic:planGoal is a
+# logic:MaintenanceGoal over a setpoint), or an organizational guide. This layer
+# mints VERSIONING, ENACTMENT and DURABILITY over that one plan concept and
+# mints no second plan concept.
+#
+# The normative charter is design/LOGIC-ENACTMENT.md; the durable-session
+# constructs it gives ontological twins to are specified in design/LOGIC-SESSION.md.
+
+logic:TransitionJournal
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Transition Journal"@x-gmeow-english ;
+    skos:definition "The hash-linked, append-only record of every transition an enactment has committed: an ordered chain of logic:JournalEntry nodes each naming its predecessor's head. It is the ontological twin of the runtime transition journal, and it is the ONE mechanism from which durability, idempotency, fencing and no-blind-retry all follow — a resubmitted operation carries a now-stale head, so double-apply is structurally impossible rather than guarded by a seen-set. Typed APART from logic:Path, which records the STATE sequence a transaction traversed: a journal records the COMMITTED-OPERATION sequence and survives crash and restart, whereas a path is the in-run state history."@x-gmeow-english ;
+    skos:example "ex:reviewJournal a logic:TransitionJournal ; logic:journalHead ex:entry7 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an enactment must be resumable across a crash, or when an operation must be provably applied at most once."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid as a record of state history (that is logic:Path) and avoid minting one per step (a journal spans the whole enactment)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one per logic:Enactment, append a logic:JournalEntry per committed transition, and carry the current head on logic:journalHead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:JournalEntry
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Journal Entry"@x-gmeow-english ;
+    skos:definition "One committed transition in a logic:TransitionJournal, binding the predecessor head it was applied against (logic:journalPrevHead), the content address of the delta applied (logic:journalDeltaIdentity), the typed outcome it produced (logic:journalOutcomeTag), and the head it establishes (logic:journalNewHead). The chain invariant is that an entry's logic:journalPrevHead equals its predecessor's logic:journalNewHead. Typed APART from logic:TransactionStep, which is an elementary state update inside one run: a journal entry is the DURABLE, content-addressed commit record whose staleness a later submission is checked against."@x-gmeow-english ;
+    skos:example "ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \"blake3:a1b2\" ; logic:journalNewHead \"blake3:c3d4\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a specific delta was durably committed against a specific prior head."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an attempted-but-uncommitted operation (that has no entry until it commits) and avoid rewriting an entry in place."@x-gmeow-english ;
+    gmeow:howToUse "Append one per commit; never mutate a landed entry; verify logic:journalPrevHead against the current head before accepting a submission."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:journalPrevHead
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "journal previous head"@x-gmeow-english ;
+    skos:definition "The algorithm-prefixed content address of the journal head this entry was applied against. A submission whose logic:journalPrevHead does not equal the journal's current head is stale and is refused — the structural basis of the no-blind-retry law. Distinct from logic:journalNewHead, which is the head this entry establishes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:journalNewHead
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "journal new head"@x-gmeow-english ;
+    skos:definition "The algorithm-prefixed content address this entry establishes as the journal head once it commits. The successor entry's logic:journalPrevHead must equal it; a gap or a fork is a chain-integrity violation. Distinct from logic:journalPrevHead, which names the head the entry was applied against."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:journalDeltaIdentity
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "journal delta identity"@x-gmeow-english ;
+    skos:definition "The content address of the logic:SnapshotDelta this entry committed — order-independent over the delta's additions and suppressions, so two submissions of the same change carry the same identity and are recognizably duplicate. This is the idempotency key: it is derived from content, never assigned by a caller."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:journalOutcomeTag
+    a owl:ObjectProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "journal outcome tag"@x-gmeow-english ;
+    skos:definition "Relates a logic:JournalEntry to the typed outcome its commit produced. Range logic:OperationOutcome (stated in prose). It records what the engine decided about the operation, never whether an external effect committed — that is the separate commitment-knowledge axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:journalHead
+    a owl:ObjectProperty ;
+    rdfs:domain logic:TransitionJournal ;
+    rdfs:range logic:JournalEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "journal head"@x-gmeow-english ;
+    skos:definition "Relates a logic:TransitionJournal to its most recent committed logic:JournalEntry — the position a new submission must name in its logic:journalPrevHead to be accepted. Functional: a journal has exactly one head at a time, and advancing it is the commit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:SnapshotDelta
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Snapshot Delta"@x-gmeow-english ;
+    skos:definition "A content-addressed, order-independent change between two logic:InputSnapshot generations: a set of additions and a set of suppressions. It is what makes 'what is new or changed since the previous occurrence?' answerable without diffing two whole snapshots — a recurring review discovers its newly added and changed inputs by reading a delta, and a curriculum's syllabus revision or a control recipe change is the same construct. Typed APART from logic:InputSnapshot, which is a closed generation: a delta is the difference BETWEEN two, never a generation itself."@x-gmeow-english ;
+    skos:example "ex:week12Delta a logic:SnapshotDelta ; logic:deltaAddition ex:adr-0042 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what changed between two closed input generations, and to derive the idempotency key of the operation that applies it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid as a substitute for the snapshot itself, and avoid ordering-sensitive construction (the content address must not depend on enumeration order)."@x-gmeow-english ;
+    gmeow:howToUse "Bind logic:deltaAddition and logic:deltaSuppression, then content-address the pair; carry the address as the applying entry's logic:journalDeltaIdentity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:deltaAddition
+    a owl:ObjectProperty ;
+    rdfs:domain logic:SnapshotDelta ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "delta addition"@x-gmeow-english ;
+    skos:definition "Relates a logic:SnapshotDelta to an input it introduces relative to the base generation. Multi-valued. Paired with logic:deltaSuppression, which names what the delta withdraws; an input that is neither added nor suppressed is carried forward unchanged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:deltaSuppression
+    a owl:ObjectProperty ;
+    rdfs:domain logic:SnapshotDelta ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "delta suppression"@x-gmeow-english ;
+    skos:definition "Relates a logic:SnapshotDelta to an input it withdraws relative to the base generation. Multi-valued. Suppression is not deletion: the withdrawn input remains readable in the base generation, and the delta records that it no longer participates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:PrescriptionVersion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Prescription Version"@x-gmeow-english ;
+    skos:definition "An immutable, content-addressed version of a logic:Plan — the prescription an enactment runs against. Exactly one logic:prescriptionOf names the plan it versions. A revision never mutates a version: it mints a new one and supersedes the old, so a landed enactment's prescription can always be recovered exactly as it was executed. Typed APART from logic:Plan, which is the continuing program identity across revisions: a version is one frozen state of that program."@x-gmeow-english ;
+    skos:example "ex:adrReviewV3 a logic:PrescriptionVersion ; logic:prescriptionOf ex:adrReviewPlan ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a plan can be revised while earlier runs against it must stay reproducible — a versioned curriculum, a revised control recipe, a workflow definition under change control."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mutating a landed version in place, and avoid minting one per enactment (many enactments share one version)."@x-gmeow-english ;
+    gmeow:howToUse "Content-address the plan's frozen form, bind logic:prescriptionOf, and record revision by minting a successor and superseding the predecessor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionOf
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PrescriptionVersion ;
+    rdfs:range logic:Plan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "prescription of"@x-gmeow-english ;
+    skos:definition "Relates a logic:PrescriptionVersion to the logic:Plan it is a frozen version of. Functional: a version versions exactly one plan. The inverse direction is deliberately absent — a plan does not carry a forward list of its versions, which would make the plan node mutable on every revision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:prescriptionDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:PrescriptionVersion ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "prescription digest"@x-gmeow-english ;
+    skos:definition "The algorithm-prefixed content address of a logic:PrescriptionVersion's frozen form. It is the value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot silently satisfy an authorization issued for its predecessor. Not functional: several digest algorithms may coexist over one version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:InputSnapshot
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Input Snapshot"@x-gmeow-english ;
+    skos:definition "The closed, content-addressed generation of inputs one enactment runs against — the corpus as of a moment, fixed for the whole run so the run is reproducible. Closedness is the point: an enactment against an open input set cannot be replayed and cannot support an honest 'what changed since last time' comparison. Typed APART from logic:SnapshotDelta, which is the difference between two generations rather than a generation."@x-gmeow-english ;
+    skos:example "ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \"blake3:9f8e\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to freeze the inputs of one enactment so the run is replayable and comparable to its predecessors."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid sharing one snapshot across enactments that ran at different times, and avoid treating a live query result as a snapshot."@x-gmeow-english ;
+    gmeow:howToUse "Content-address the closed input set, bind logic:snapshotDigest, and name it from the enactment via logic:enactmentInputSnapshot."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:snapshotDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:InputSnapshot ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "snapshot digest"@x-gmeow-english ;
+    skos:definition "The algorithm-prefixed content address of a logic:InputSnapshot's closed generation. A restore whose snapshot digest differs from the checkpoint's is refused: the run would otherwise resume against inputs it never started with. Not functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:Enactment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Enactment"@x-gmeow-english ;
+    skos:definition "One immutable occurrence of a logic:PrescriptionVersion against one logic:InputSnapshot, carrying its own logic:TransitionJournal. It reads uniformly as a workflow run, a walkthrough of a repeatable guide, a batch, one cohort's term, a control session, or one learner's enrolment — the occurrence, not the thing occurring. Typed APART from logic:Plan and logic:PrescriptionVersion, which are prescriptive and may be enacted many times, and APART from a calendar occurrence, which is the scheduling event that GENERATES an enactment rather than being one."@x-gmeow-english ;
+    skos:example "ex:adrReviewW12 a logic:Enactment ; logic:enactsPrescriptionVersion ex:adrReviewV3 ."@x-gmeow-english ;
+    gmeow:useWhen "Use for one durable, resumable occurrence of a prescription that must be replayable and separately auditable from its siblings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying an enactment with the scheduled occurrence that generated it, and avoid reusing one enactment for a repeat (a repeat is a new enactment)."@x-gmeow-english ;
+    gmeow:howToUse "Bind exactly one logic:enactsPrescriptionVersion and one logic:enactmentInputSnapshot, attach a logic:TransitionJournal, and record progress as journal entries and checkpoints."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:enactsPrescriptionVersion
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:PrescriptionVersion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enacts prescription version"@x-gmeow-english ;
+    skos:definition "Relates a logic:Enactment to the exactly-one logic:PrescriptionVersion it runs. Pinned at start: if the governing pointer moves to a newer version mid-run, this binding does not follow it, so the run stays reproducible against what it actually executed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:enactmentInputSnapshot
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:InputSnapshot ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment input snapshot"@x-gmeow-english ;
+    skos:definition "Relates a logic:Enactment to the exactly-one closed logic:InputSnapshot it runs against. Two enactments of one prescription differ precisely here, which is what makes a prior-occurrence comparison meaningful."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:enactmentJournal
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range logic:TransitionJournal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment journal"@x-gmeow-english ;
+    skos:definition "Relates a logic:Enactment to its logic:TransitionJournal — the durable commit chain that makes the enactment resumable. Functional: one journal per enactment, so the head is unambiguous."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:EnactmentCohort
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Enactment Cohort"@x-gmeow-english ;
+    skos:definition "A set of logic:Enactment occurrences of one prescription that share a schedule or input generation — a teaching cohort, a batch, a shift, a scheduled sweep across many targets. It groups siblings for comparison and for cohort-wide policy without making them one enactment. Typed APART from logic:Enactment, which is a single occurrence, and from a recurrence rule, which generates occurrences rather than collecting them."@x-gmeow-english ;
+    skos:example "ex:autumnCohort a logic:EnactmentCohort ; logic:cohortMember ex:enrolment-014 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when many enactments must be reasoned about together — a cohort's progression, a batch's throughput, a shift's handover."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid as a substitute for the schedule that generated the members, and avoid grouping enactments of different prescriptions."@x-gmeow-english ;
+    gmeow:howToUse "Bind logic:cohortMember per enactment; carry the shared generation on the members' own logic:enactmentInputSnapshot rather than on the cohort."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:cohortMember
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EnactmentCohort ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "cohort member"@x-gmeow-english ;
+    skos:definition "Relates a logic:EnactmentCohort to one of the logic:Enactment occurrences it groups. Multi-valued; membership is a grouping claim and carries no authority over the member's own bindings."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:EnactmentCheckpoint
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Enactment Checkpoint"@x-gmeow-english ;
+    skos:definition "A durable, content-addressed resume point for a whole logic:Enactment, binding the seven identity axes (data, rules, slice, contract, engine, annotation algebra, fragment) and the journal head it was taken at. Restore is identity-gated: a mismatch on ANY axis is refused rather than reconciled, because resuming a run against drifted rules or a drifted engine silently produces a result the run never would have produced. Typed APART from logic:StepCheckpoint, which resumes one step rather than the enactment."@x-gmeow-english ;
+    skos:example "ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \"blake3:5a6b\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to make a long or interruptible enactment resumable across a crash or a deliberate pause."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid restoring across an identity mismatch, and avoid treating a checkpoint as a snapshot of engine state (it re-materializes deterministically instead)."@x-gmeow-english ;
+    gmeow:howToUse "Bind all seven axis digests plus the folded logic:checkpointDescriptorHash and the logic:journalHead; on restore, check integrity, re-materialize, gate on identity, then gate on data generation, in that order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:StepCheckpoint
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Step Checkpoint"@x-gmeow-english ;
+    skos:definition "A durable resume point for one step of a logic:Enactment rather than the whole run — the granularity at which a long step with expensive prefix work can restart without redoing it. It carries the same identity gate as logic:EnactmentCheckpoint but is scoped to the step it names, and a step checkpoint is never a valid restore point for the enactment as a whole."@x-gmeow-english ;
+    skos:example "ex:ckptOcrStep a logic:StepCheckpoint ; logic:checkpointOfStep ex:ocrStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use when one step is long enough that restarting it from the beginning is materially wasteful."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a step checkpoint to resume the enactment, and avoid minting one per trivial step."@x-gmeow-english ;
+    gmeow:howToUse "Bind logic:checkpointOfStep alongside the seven axis digests, and restore it only within the enactment whose journal head it names."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:checkpointDescriptorHash
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint descriptor hash"@x-gmeow-english ;
+    skos:definition "The single folded content address over all seven checkpoint identity axes — the value a restore compares first, so a mismatch on ANY axis surfaces as one identity fault rather than requiring seven separate comparisons. Domain a checkpoint (stated in prose). It never replaces the per-axis digests: those name WHICH axis drifted once the fold has said that one did."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointDataDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint data digest"@x-gmeow-english ;
+    skos:definition "Identity axis one of seven: the content address of the authorized data generation the checkpoint was taken over. A restore against a different generation is refused even when every other axis matches, because the run would resume over inputs it never saw. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointRulesDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint rules digest"@x-gmeow-english ;
+    skos:definition "Identity axis two of seven: the content address of the rule set in force when the checkpoint was taken. Drifted rules would make the resumed run derive conclusions the original could not, so a mismatch is a refusal rather than an upgrade. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointSliceDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint slice digest"@x-gmeow-english ;
+    skos:definition "Identity axis three of seven: the content address of the vocabulary selection in force when the checkpoint was taken. A restore under a different selection may find terms undefined or newly defined, so the axis is gated rather than reconciled. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointContractDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint contract digest"@x-gmeow-english ;
+    skos:definition "Identity axis four of seven: the content address of the logic:ReasoningContract the checkpointed run executed under. Resuming under a different contract changes what counts as a complete answer, so the axis is part of identity rather than of configuration. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointEngineDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint engine digest"@x-gmeow-english ;
+    skos:definition "Identity axis five of seven: the logic:EngineContract descriptor hash of the engine that took the checkpoint. It is the axis that refuses a restore under a drifted engine — the case a purely data-level check would silently accept. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointAnnotationDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint annotation digest"@x-gmeow-english ;
+    skos:definition "Identity axis six of seven: the content address of the tuple-annotation algebra in force when the checkpoint was taken. A different algebra changes how derived annotations combine, so a resumed run would fold evidence differently. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointFragmentDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint fragment digest"@x-gmeow-english ;
+    skos:definition "Identity axis seven of seven: the content address of the certified decidable fragment the checkpointed run was admitted under. A restore outside that fragment would trade a certified-complete answer for an uncertified one without saying so. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointOfEnactment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EnactmentCheckpoint ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint of enactment"@x-gmeow-english ;
+    skos:definition "Relates a logic:EnactmentCheckpoint to the logic:Enactment it can resume. Functional: a checkpoint resumes exactly one enactment, which is what makes a cross-enactment restore detectable rather than merely discouraged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:checkpointOfStep
+    a owl:ObjectProperty ;
+    rdfs:domain logic:StepCheckpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "checkpoint of step"@x-gmeow-english ;
+    skos:definition "Relates a logic:StepCheckpoint to the plan step it can resume. Range a plan step node (stated in prose). Functional. Paired with logic:checkpointOfEnactment on the enactment-scoped sibling; a step checkpoint additionally names its enactment through that step's own run."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ContinuationKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Continuation Kind"@x-gmeow-english ;
+    skos:definition "The closed three-valued vocabulary distinguishing the three ways work continues after it has already begun: resuming the same enactment, repeating under a new input generation, or revising the prescription itself. They are pairwise disjoint and carry different required bindings, so conflating them — the common failure in which 'run it again' silently means any of the three — is structurally detectable. Its members are individuals, never subclasses."@x-gmeow-english ;
+    skos:example "ex:w12continuation logic:continuationKind logic:ContinuationResume ."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which of the three continuation operations an act is, whenever an enactment is picked up after an interruption."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a fourth value and avoid leaving the kind unstated when work continues."@x-gmeow-english ;
+    gmeow:howToUse "Select exactly one member and supply that member's required bindings; the disjointness constraint rejects a record carrying two."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ContinuationResume
+    a owl:NamedIndividual ,
+        logic:ContinuationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "resume"@x-gmeow-english ;
+    skos:definition "Continuation of the SAME logic:Enactment from a logic:EnactmentCheckpoint: the prescription version and the input snapshot are unchanged, and the journal continues rather than restarting. Requires a checkpoint whose identity gate passes. Distinguished from repeat, which mints a new enactment, and from revise, which mints a new prescription version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ContinuationRepeat
+    a owl:NamedIndividual ,
+        logic:ContinuationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "repeat"@x-gmeow-english ;
+    skos:definition "A NEW logic:Enactment of the same logic:PrescriptionVersion against a NEW logic:InputSnapshot — next week's occurrence of a recurring review, the next batch, the next cohort. The prior enactment stays closed and comparable. Distinguished from resume, which continues the existing enactment, and from revise, which changes the prescription."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ContinuationRevise
+    a owl:NamedIndividual ,
+        logic:ContinuationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "revise"@x-gmeow-english ;
+    skos:definition "Minting a NEW logic:PrescriptionVersion that supersedes its predecessor, because the prescription itself was wrong or has changed. In-flight enactments keep the version they pinned at start. Distinguished from resume and repeat, both of which leave the prescription untouched."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:continuationKind
+    a owl:ObjectProperty ;
+    rdfs:range logic:ContinuationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "continuation kind"@x-gmeow-english ;
+    skos:definition "Relates a continuation record to the exactly-one logic:ContinuationKind it is. Domain a continuation record (stated in prose). Functional: a record carrying two kinds is the conflation the disjointness constraint rejects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:PriorEnactmentRequirement
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Prior Enactment Requirement"@x-gmeow-english ;
+    skos:definition "A precondition over OTHER enactments rather than over world state: this enactment may not start until a named prior enactment reached a named state. It is what a curriculum prerequisite, an operator certification, a prior-shift handover and an upstream-DAG dependency all are. Typed APART from logic:precondition, which gates on the situation obtaining at a state: a prior-enactment requirement gates on the RUN HISTORY of a different occurrence."@x-gmeow-english ;
+    skos:example "ex:calc2Prereq a logic:PriorEnactmentRequirement ; logic:requiredPriorPrescription ex:calc1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use when eligibility to begin depends on another occurrence having completed — prerequisites, certifications, handovers, upstream stages."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a condition on world state (use logic:precondition) and avoid encoding a mere ordering preference as a requirement."@x-gmeow-english ;
+    gmeow:howToUse "Name the required prescription and the state its enactment must have reached; the frontier reads unmet requirements as a blocking reason."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:requiredPriorPrescription
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PriorEnactmentRequirement ;
+    rdfs:range logic:Plan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "required prior prescription"@x-gmeow-english ;
+    skos:definition "Relates a logic:PriorEnactmentRequirement to the logic:Plan whose enactment must already have reached the required state. It names the plan rather than a specific enactment, so the requirement is stated once and satisfied by whichever occurrence the subject actually ran."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:requiredPriorState
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PriorEnactmentRequirement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "required prior state"@x-gmeow-english ;
+    skos:definition "Relates a logic:PriorEnactmentRequirement to the enactment state the prior occurrence must have reached. Range logic:EnactmentState (stated in prose). Naming the state rather than assuming completion lets a requirement be satisfied by, for example, a prior run that reached a reviewed-but-not-closed position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:Deviation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Deviation"@x-gmeow-english ;
+    skos:definition "A recorded, authorized departure from the prescription during an enactment — a control-plan deviation, a curriculum accommodation, an organizational exception, a workflow manual override. It records WHAT differed, WHO authorized it, and against WHICH step, so the run stays auditable rather than merely non-conforming. Typed APART from logic:Constraint violation, which is an integrity finding nobody authorized: a deviation is a sanctioned difference."@x-gmeow-english ;
+    skos:example "ex:ocrManualOverride a logic:Deviation ; logic:deviationFromStep ex:ocrStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an enactment legitimately departs from its prescription and the departure must be visible and attributed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid as a way to silence a constraint violation, and avoid recording a deviation with no authorizing party."@x-gmeow-english ;
+    gmeow:howToUse "Bind the step departed from and the authorizing party; the review projection surfaces deviations alongside the steps they alter."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:deviationFromStep
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Deviation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deviation from step"@x-gmeow-english ;
+    skos:definition "Relates a logic:Deviation to the prescribed step it departs from. Range a plan step node (stated in prose). Functional: a deviation names one step, and a departure spanning several steps is several deviations, so each carries its own authorization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:PrescriptionKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Prescription Kind"@x-gmeow-english ;
+    skos:definition "The open classification of what KIND of prescription a logic:Plan is — a data pipeline, a lab protocol, a recipe, a curriculum, a control plan, an organizational guide. It is a VALUE carried on the plan, never a subclass of logic:Plan: minting a subclass per genre would fork the one canonical plan concept the kernel exists to keep single. Its members are individuals and more than one may co-apply."@x-gmeow-english ;
+    skos:example "ex:adrReviewPlan logic:prescriptionKind logic:prescriptionKindOrganizationalGuide ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the genre of a plan for routing, display and profile selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a logic:Plan subclass per genre, and avoid treating the kind as licensing different execution semantics."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more members through logic:prescriptionKind; extend the vocabulary with a new individual rather than a new class."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKind
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Plan ;
+    rdfs:range logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "prescription kind"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to a logic:PrescriptionKind classifying its genre. Non-functional: a plan may be both a data pipeline and an ingestion, and the co-application is meaningful rather than a modelling error."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:prescriptionKindAgentFlow
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "agent flow"@x-gmeow-english ;
+    skos:definition "A prescription whose steps are the moves of an autonomous agent — tool calls, retrievals, decisions. Distinguished from a business process, whose steps are organizational rather than agentic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindBusinessProcess
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "business process"@x-gmeow-english ;
+    skos:definition "A prescription describing an organizational workflow with roles, handoffs and approvals. Distinguished from an organizational guide, which is advisory rather than an executed process."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindCiBuild
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "CI build"@x-gmeow-english ;
+    skos:definition "A prescription describing an automated build or integration pipeline whose steps compile, test and publish. Distinguished from a data pipeline, whose steps transform data rather than produce artifacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindDataPipeline
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "data pipeline"@x-gmeow-english ;
+    skos:definition "A prescription whose steps transform data from sources to derived products. Distinguished from an ingestion, which is the narrower act of bringing material in under a canonical layout."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindIngestion
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ingestion"@x-gmeow-english ;
+    skos:definition "A prescription that brings external material into a canonical layout — copy, extract, assess posture, derive claims, record what stayed unresolved. Distinguished from a data pipeline, which transforms already-ingested material."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindLabProtocol
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lab protocol"@x-gmeow-english ;
+    skos:definition "A prescription describing a laboratory or field procedure whose steps must be executed and recorded exactly for the result to be admissible. Distinguished from a recipe, which tolerates substitution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindRecipe
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recipe"@x-gmeow-english ;
+    skos:definition "A prescription with ingredients, steps and a yield, tolerant of substitution and scaling. Distinguished from a lab protocol, whose steps are not discretionary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindResearchPlan
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "research plan"@x-gmeow-english ;
+    skos:definition "A prescription organizing an open inquiry — themes to pursue, sources to consult, questions whose answerhood conditions are not yet settled. Distinguished from the other kinds by having an epistemic rather than a productive goal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindCurriculum
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "curriculum"@x-gmeow-english ;
+    skos:definition "A prescription whose steps are learning activities and whose success criterion is competency attainment, typically decomposed by logic:DecompositionMethod into modules and gated by logic:PriorEnactmentRequirement prerequisites. Distinguished from a repeatable guide by carrying attainment criteria rather than only instructions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindControlPlan
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "control plan"@x-gmeow-english ;
+    skos:definition "A prescription whose primitive operations are commands to a physical process and whose logic:planGoal is characteristically a logic:MaintenanceGoal over a setpoint — so a successful occurrence never closes the goal. Distinguished from the other kinds by irreversible external effect and by requiring exclusive control of its actuators."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindOrganizationalGuide
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "organizational guide"@x-gmeow-english ;
+    skos:definition "A prescription stating how an organization expects work to be done, governed by policy and typically requiring approval at named steps. Distinguished from a business process by being normative guidance rather than an executed instance flow."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:prescriptionKindRepeatableGuide
+    a owl:NamedIndividual ,
+        logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "repeatable guide"@x-gmeow-english ;
+    skos:definition "A prescription a human follows step by step and may walk through many times, each walkthrough its own logic:Enactment. Distinguished from a curriculum by carrying no attainment criteria, and from a lab protocol by not gating admissibility on exact execution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
 # The well-founded materializer's intra-engine phase plan — dogfooded as data. #
 #                                                                             #
 # This logic:Plan is the AUTHORED MODEL of the phase sequence the native       #
