@@ -61,6 +61,39 @@ gmeow:ContradictionKind
     gmeow:howToUse "Add a new flavour as a gmeow:ContradictionKind individual with rdfs:label and skos:definition; reference it from a gmeow:Contradiction via gmeow:contradictionKind."@x-gmeow-english ;
     gmeow:useWhen "Use as the open value vocabulary for the contradiction-flavour axis — the kinds (factual, temporal, numeric, framing, …) that gmeow:contradictionKind draws from; mint a fresh individual for a flavour not seeded."@x-gmeow-english .
 
+gmeow:DistanceMetric
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Distance Metric"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An open value vocabulary of vector similarity/distance functions — a CORE-tier primitive: both extensions/graphrag's retrieval substrate and extensions/embedding-projection's comparable vector spaces reuse the same three-value seed (gmeow:distanceMetricCosine / gmeow:distanceMetricDotProduct / gmeow:distanceMetricEuclidean) rather than each minting its own."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Embedding
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Embedding"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:embeddingOf ;
+            owl:someValuesFrom gmeow:InformationObject ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:embeddingModel ;
+            owl:someValuesFrom gmeow:SoftwareAgent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:distanceMetric ;
+            owl:someValuesFrom gmeow:DistanceMetric ;
+        ] ;
+    skos:definition "A vector representation of an information object (usually a core gmeow:Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (GraphRAG provenance design): model, dimensionality, and metric have no agreed RDF representation, so the refusal is recorded in the alignment trailer rather than papered over. The vector payload stays OUTSIDE the graph (extensions/graphrag's gmeow:vectorRef, P12); the graph carries the provenance that makes it auditable. A CORE-tier primitive: extensions/graphrag's per-object rows and extensions/embedding-projection's pack-level aggregate (gmeow:aggregatesEmbedding) both build on this one Embedding, never a competing per-extension definition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:MemoryItem
     a logic:Role ,
         owl:Class ;
@@ -166,6 +199,20 @@ gmeow:PromptTemplate
     gmeow:howToUse "Type the artifact gmeow:PromptTemplate, content-address each version with gmeow:contentDigest, and let concrete gmeow:Prompt individuals link to it via gmeow:filledFrom so an output traces to the exact template version."@x-gmeow-english ;
     gmeow:useWhen "Use for a reusable, versioned prompt carrying unfilled variables — a published artifact (e.g. the claim-extraction template shipped as data) that concrete prompts instantiate."@x-gmeow-english .
 
+gmeow:RetrievalEvent
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Retrieval Event"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:againstIndex ;
+            owl:someValuesFrom gmeow:VectorIndex ;
+        ] ;
+    skos:definition "One retrieval against a vector index: the query, the index queried, and the chunks returned — the answer to 'why did the model see this passage?'. An agent-memory recall is a RetrievalEvent too (the core MemoryItem doctrine's read operation). Per-chunk relevance rides extensions/graphrag's gmeow:retrievalScore statement annotations on each gmeow:retrievedChunk triple. A CORE-tier primitive: any embedding consumer that runs retrieval (extensions/graphrag's corpus pipeline today) reuses this one activity rather than minting a competing one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:SupportPolarity
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -178,6 +225,24 @@ gmeow:SupportPolarity
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Reference one of the three seeded individuals (gmeow:polaritySupports / gmeow:polarityRefutes / gmeow:polarityNeutral) from a span via gmeow:supportPolarity."@x-gmeow-english ;
     gmeow:useWhen "Use as the closed three-value vocabulary (supports / refutes / neutral) that gmeow:supportPolarity draws from for a span's stance toward its claim."@x-gmeow-english .
+
+gmeow:VectorIndex
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Vector Index"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A built retrieval structure over a corpus's embeddings — the artifact a RetrievalEvent queries. Carries its algorithm (extensions/graphrag's gmeow:indexAlgorithm), parameters (verbatim, for reproducibility), and metric; its build provenance rides the EXISTING gmeow:wasGeneratedBy, tying index contents to the corpus state (contentDigest) at build time. A CORE-tier primitive: extensions/embedding-projection's gmeow:DerivedVectorIndex specializes this class directly rather than through extensions/graphrag."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:againstIndex
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RetrievalEvent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "against index"@x-gmeow-english ;
+    rdfs:range gmeow:VectorIndex ;
+    skos:definition "The index this retrieval queried. Functional: federated retrieval is several RetrievalEvents under one parent activity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:chunkOf
     a owl:ObjectProperty ;
@@ -273,6 +338,62 @@ gmeow:detectedBy
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:detectedBy at the detecting gmeow:Agent; rival detectors of the same conflict are separate gmeow:Contradiction individuals rather than several detectors on one."@x-gmeow-english ;
     gmeow:useWhen "Use to attribute a gmeow:Contradiction to the agent that surfaced it — a person, an NLI model, or an eval run's judge — because detection is itself contestable."@x-gmeow-english .
+
+gmeow:distanceMetric
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "distance metric"@x-gmeow-english ;
+    rdfs:range gmeow:DistanceMetric ;
+    skos:definition "The similarity/distance function under which an embedding or index is meaningful — cosine and euclidean disagree about what is 'near', so the metric is provenance, not a detail. Domain-free: carried by Embedding and VectorIndex alike, and reused by extensions/embedding-projection's gmeow:VectorSpaceContract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:distanceMetricCosine
+    a gmeow:DistanceMetric ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "cosine"@x-gmeow-english ;
+    skos:definition "Cosine similarity — angle between vectors, magnitude-invariant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:distanceMetricDotProduct
+    a gmeow:DistanceMetric ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "dot product"@x-gmeow-english ;
+    skos:definition "Inner-product similarity — magnitude-sensitive; common for normalized embeddings."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:distanceMetricEuclidean
+    a gmeow:DistanceMetric ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "euclidean"@x-gmeow-english ;
+    skos:definition "Euclidean (L2) distance between vectors."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:embeddingDimensions
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embedding dimensions"@x-gmeow-english ;
+    rdfs:range xsd:positiveInteger ;
+    skos:definition "The dimensionality of the embedding vector."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:embeddingModel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embedding model"@x-gmeow-english ;
+    rdfs:range gmeow:SoftwareAgent ;
+    skos:definition "The model agent that produced this embedding. Two models' embeddings of the same chunk are two Embedding individuals — never merged (P9: machine-derived values are attributed)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:embeddingOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Embedding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "embedding of"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    skos:definition "The information object this embedding represents. Functional: one embedding represents exactly one object under one model."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:filledFrom
     a owl:ObjectProperty ;
@@ -602,10 +723,10 @@ gmeow:usedModel
 
 <https://blackcatinformatics.ca/gmeow/slices/ai>
     a owl:Ontology ;
-    rdfs:comment "A GeneratedClaim is a QUERY, not a class: a StandpointClaim whose vantage is a SoftwareAgent and which gmeow:wasGeneratedBy a ModelInvocation — a direct triple on the claim individual; on the reified RDF 1.2 statement form the invocation link is gmeow:mappedFrom, keeping axiom annotations AnnotationProperty-clean for the DL downcast (P3). A hallucination is a claim node with no gmeow:groundedIn span — flagged (P10), never deleted. Pipeline observability (corpus, embeddings, indexes, retrievals, GraphRAG artifacts) lives in extensions/graphrag, consumer-named per P15."@x-gmeow-english ;
+    rdfs:comment "A GeneratedClaim is a QUERY, not a class: a StandpointClaim whose vantage is a SoftwareAgent and which gmeow:wasGeneratedBy a ModelInvocation — a direct triple on the claim individual; on the reified RDF 1.2 statement form the invocation link is gmeow:mappedFrom, keeping axiom annotations AnnotationProperty-clean for the DL downcast (P3). A hallucination is a claim node with no gmeow:groundedIn span — flagged (P10), never deleted. GraphRAG-specific pipeline observability (corpus, extracted entity/relationship, community, and index-wiring artifacts) lives in extensions/graphrag, consumer-named per P15; the generic vector/embedding/retrieval PRIMITIVES (gmeow:Embedding, gmeow:VectorIndex, gmeow:DistanceMetric, gmeow:RetrievalEvent) are core-tier here because any embedding consumer — not only GraphRAG — needs them (extensions/embedding-projection is the other current consumer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "GMEOW AI Claim Module"@x-gmeow-english ;
-    skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints ONLY what is genuinely absent: the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
+    skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints what is genuinely absent from the claim layer (the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role) PLUS the generic vector/embedding/retrieval primitives (Embedding, VectorIndex, DistanceMetric, RetrievalEvent) every embedding consumer needs — core-tier infrastructure, never duplicated per extension. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
@@ -629,11 +750,27 @@ gmeow:Chunk rdfs:subClassOf
 gmeow:MemoryItem rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+# Embedding/RetrievalEvent cardinality axioms (gmeow:EmbeddingProvenanceShape,
+# gmeow:RetrievalEventShape), migrated here from extensions/graphrag's
+# module.ttl alongside the classes they constrain (both promoted to this
+# core-tier slice as shared vector/embedding primitives).
+gmeow:Embedding rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:RetrievalEvent rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/chunkOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanStart> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanEnd> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/distanceMetric> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RetrievalEvent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/againstIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingModel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # =========================================================================== #
 # Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
