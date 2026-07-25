@@ -313,7 +313,7 @@ ex:cqCrossSliceComposeNorms a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/pareto-incomparable.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCrossSliceComposeNormsShape ;
-    gmeow:cqRationale "GMEOW must answer 'does the preference slice compose the norms gmeow:Criterion by reference?' (Principle 16). The pareto-incomparable scene joins two criterion-indexed observations to their norms gmeow:Criterion via gmeow:onCriterion; the asserted answer is exactly those two rows." ;
+    gmeow:cqRationale "GMEOW must answer 'does the preference slice compose the core observations gmeow:Criterion by reference?' (Principle 16). The pareto-incomparable scene joins two criterion-indexed observations to their gmeow:Criterion via gmeow:onCriterion; the asserted answer is exactly those two rows." ;
     gmeow:cqExpectRow ex:cqCrossSliceComposeNormsRow1 , ex:cqCrossSliceComposeNormsRow2 .
 ex:cqCrossSliceComposeNormsShape a logic:ResultShape ;
     logic:declaresColumn [ logic:columnVariable "observation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;

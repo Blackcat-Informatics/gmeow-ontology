@@ -2,13 +2,17 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Preference extension — BY-REFERENCE composition bridges. The preference slice is
-# a CONSUMER extension: it mints its own bridge vocabulary but reuses the seven
-# named sibling slices (norms, model-serving, ai, learning, provenance, evidence,
+# a CONSUMER extension: it mints its own bridge vocabulary but reuses the six
+# named sibling extensions (model-serving, ai, learning, provenance, evidence,
 # semantic-topology) ONLY at the instance level and BY REFERENCE (Principle 5 /
 # Principle 16) — never a subclass/domain/range axiom against another extension.
-# Each row below documents that by-reference reuse: a preference term relates to
-# the sibling term it composes with, so the composition is a shipped, auditable
-# correspondence rather than an implicit dependency. Compiled to
+# The evaluative-primitive vocabulary (Rubric, Criterion, EvaluationVerdict,
+# Condition) is core-owned by the observations slice, so referencing it is a
+# legal ext->core dependency, not a sibling-extension crossing — it keeps the
+# same by-reference alignment-cell idiom below for continuity, not because the
+# tier model requires it. Each row below documents the reuse: a preference term
+# relates to the term it composes with, so the composition is a shipped,
+# auditable correspondence rather than an implicit dependency. Compiled to
 # mappings/gmeow-preference.sssom.tsv by `gmeow compile-mappings`.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -21,35 +25,35 @@ gmeow:mapsetPreference a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/preference" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "By-reference composition bridges from the preference extension to the seven named sibling slices (norms, model-serving, ai, learning, provenance, evidence, semantic-topology). Each row documents an instance-level reuse (Principle 5 / Principle 16), NOT a redeclaration: the preference slice composes the sibling term, it does not re-mint it." .
+    gmeow:setComment "By-reference composition bridges from the preference extension to the core observations evaluative-primitive vocabulary and the six named sibling extensions (model-serving, ai, learning, provenance, evidence, semantic-topology). Each row documents an instance-level reuse (Principle 5 / Principle 16), NOT a redeclaration: the preference slice composes the term, it does not re-mint it." .
 
-# ── norms: rubric / criterion / verdict / contract, reused by-reference ────────
+# ── observations (core): rubric / criterion / verdict / contract, reused by-reference ─
 gmeow:usesRubric skos:relatedMatch gmeow:Rubric {|
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:usesRubric ranges over the core gmeow:SocialObject and reuses the norms gmeow:Rubric by reference at the instance level (Principle 16) — the rubric a preference observation applies, never a redeclared range axiom."
+    gmeow:comment "gmeow:usesRubric ranges over the core gmeow:SocialObject and reuses the core observations gmeow:Rubric by reference at the instance level (Principle 16) — the rubric a preference observation applies, never a redeclared range axiom."
 |} .
 
 gmeow:onCriterion skos:relatedMatch gmeow:Criterion {|
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:onCriterion ranges over the core gmeow:InformationObject and reuses the norms gmeow:Criterion by reference at the instance level (Principle 16) — the criterion a comparison is made along, never a redeclared range axiom."
+    gmeow:comment "gmeow:onCriterion ranges over the core gmeow:InformationObject and reuses the core observations gmeow:Criterion by reference at the instance level (Principle 16) — the criterion a comparison is made along, never a redeclared range axiom."
 |} .
 
 gmeow:verifierOutcome skos:relatedMatch gmeow:EvaluationVerdict {|
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:verifierOutcome ranges over the core logic:QualityValue and reuses the norms gmeow:EvaluationVerdict vocabulary (verdictHeld / verdictNotHeld / verdictUndetermined) by reference at the instance level (Principle 16), rather than minting a parallel verdict axis."
+    gmeow:comment "gmeow:verifierOutcome ranges over the core logic:QualityValue and reuses the core observations gmeow:EvaluationVerdict vocabulary (verdictHeld / verdictNotHeld / verdictUndetermined) by reference at the instance level (Principle 16), rather than minting a parallel verdict axis."
 |} .
 
 gmeow:verifierContract skos:relatedMatch gmeow:Condition {|
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject and reuses the norms gmeow:Condition (via gmeow:formalizedAs) by reference at the instance level (Principle 16) — the contract a verdict verifies against, never a redeclared range axiom."
+    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject and reuses the core observations gmeow:Condition (via the norms gmeow:formalizedAs) by reference at the instance level (Principle 16) — the contract a verdict verifies against, never a redeclared range axiom."
 |} .
 
 # ── model-serving: the base model artifact, reused by-reference ────────────────

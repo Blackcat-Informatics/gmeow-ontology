@@ -229,15 +229,6 @@ gmeow:Payment
     skos:definition "A payment event — a financial transaction whose purpose is to discharge an obligation or transfer value. A thin subclass of FinancialTransaction distinguished by the paymentMethod facet."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:PaymentMethod
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "Payment Method"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The method or instrument used to make a payment — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
 gmeow:Posting
     a logic:Kind ,
         owl:Class ;
@@ -725,41 +716,6 @@ gmeow:paymentMethod
     rdfs:range gmeow:PaymentMethod ;
     skos:definition "The method of payment — cash, cheque, credit card, bank transfer, cryptocurrency, etc. Non-functional: a single payment may involve several methods (e.g. split payment)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:paymentMethodBankTransfer
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "bank transfer"@x-gmeow-english ;
-    skos:definition "Payment made by bank transfer or wire."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCash
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "cash"@x-gmeow-english ;
-    skos:definition "Payment made in physical currency."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCheque
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "cheque"@x-gmeow-english ;
-    skos:definition "Payment made by cheque."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCreditCard
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "credit card"@x-gmeow-english ;
-    skos:definition "Payment made by credit card."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:paymentMethodCrypto
-    a gmeow:PaymentMethod ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
-    rdfs:label "cryptocurrency"@x-gmeow-english ;
-    skos:definition "Payment made in cryptocurrency."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:postingAccount
     a owl:ObjectProperty ;

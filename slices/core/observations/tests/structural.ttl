@@ -304,3 +304,80 @@ ASK {
     gmeow:pressure a gmeow:GenericQuality .
 }""" ;
     gmeow:saRationale "The YAMATO quality stratification MUST be grounded in the observation spine: the persistent gmeow:Quality borne by its bearer, dated readings attached through observationOf, the frame-independent Magnitude, and the trueQuantity/unit/referenceFrame seams lifted into logic:. The guarded constraint requires a numeric value only when a math:Quantity bears a unit; the generic math:quantityValue remains usable for abstract values and declared rates without becoming globally measurement-relative." .
+
+# --- 22. Condition is an InformationObject (MUST) ---------------------------
+# gmeow:Condition was promoted here from the norms extension (Principle 16): a
+# foundational evaluative primitive several non-norms slices genuinely need.
+ex:saConditionIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Condition rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:Condition MUST be a subclass of gmeow:InformationObject — conditions are stored information objects, never entailed (Principle 12). The norms-resident gmeow:ConditionGroup specializes it (checked in the norms module)." .
+
+# --- 23. Criterion is an InformationObject (MUST) ---------------------------
+ex:saCriterionIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Criterion rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:Criterion MUST be a subclass of gmeow:InformationObject — one evaluative axis of a rubric, with named poles (gmeow:rewardPole / gmeow:penaltyPole, checked in the norms module where gmeow:CriterionPole lives)." .
+
+# --- 24. Rubric is a logic:Kind SocialObject for judging (MUST) -------------
+# The norms extension additionally declares gmeow:Rubric rdfs:subClassOf
+# gmeow:Norm — a norms->observations bridge axiom authored there (Principle 16).
+ex:saRubricIsSocialObjectForJudging a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Rubric a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:SocialObject .
+}""" ;
+    gmeow:saRationale "gmeow:Rubric MUST be a logic:Kind social object for judging — a reified evaluation framework whose criteria, poles, scales, and anchors are first-class content." .
+
+# --- 25. Assessment is a vantage-indexed observation (MUST / MUST-NOT) ------
+ex:saAssessmentIsVantageIndexedObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:Assessment rdfs:subClassOf gmeow:Observation .
+    FILTER NOT EXISTS { gmeow:assessmentCriterion rdfs:subPropertyOf gmeow:observationMethod }
+    FILTER NOT EXISTS { gmeow:assessmentRubric rdfs:subPropertyOf gmeow:observationMethod }
+}""" ;
+    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, and gmeow:assessmentCriterion / gmeow:assessmentRubric MUST NOT be subproperties of gmeow:observationMethod — they play the observationMethod ROLE without the subproperty axiom (the claimModality pattern, since Criterion and Rubric are Entities, not QualityValues)." .
+
+# --- 26. Three EvaluationVerdict seeds exist (MUST) -------------------------
+ex:saEvaluationVerdictSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:verdictHeld         a gmeow:EvaluationVerdict .
+    gmeow:verdictNotHeld      a gmeow:EvaluationVerdict .
+    gmeow:verdictUndetermined a gmeow:EvaluationVerdict .
+}""" ;
+    gmeow:saRationale "The three EvaluationVerdict seed individuals (held, not held, undetermined) MUST exist — they form the closed trichotomy for condition evaluation outcomes, reused by both gmeow:evaluationVerdict and gmeow:complianceVerdict (norms)." .
+
+# --- 27. No fourth EvaluationVerdict individual exists (MUST-NOT) ----------
+ex:saNoExtraEvaluationVerdict a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?x a gmeow:EvaluationVerdict .
+    FILTER (?x NOT IN (gmeow:verdictHeld, gmeow:verdictNotHeld, gmeow:verdictUndetermined))
+}""" ;
+    gmeow:saRationale "No fourth gmeow:EvaluationVerdict individual MUST NOT exist — the held/not-held/undetermined trichotomy is closed by design (a fourth verdict would violate the semantics)." .

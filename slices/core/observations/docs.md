@@ -123,6 +123,33 @@ machinery, not finance-domain. `gmeow:monetaryValue` carries the decimal;
 without its currency is ill-formed (Principle 11). Canonical superset of
 schema:MonetaryAmount and the FIBO monetary amount.
 
+## The evaluative-primitive vocabulary
+
+### gmeow:Assessment · gmeow:assessmentCriterion · gmeow:assessmentRubric
+
+Promoted to core from the norms extension (Principle 16): scoring a target against a
+criterion or rubric is a genuinely cross-domain need (the preference extension reuses it
+too), not norms-domain-specific. `Assessment ⊑ Observation` — vantage = the judge, human or
+model; two disagreeing judges are coexisting cells, no winner (Principle 9).
+`assessmentCriterion` / `assessmentRubric` play the `observationMethod` ROLE but are
+deliberately not its subproperties (observationMethod is functional with a QualityValue
+range; Criterion and Rubric are Entities — the claimModality axiom pattern). The
+norms-resident `assessmentTarget` and `assessmentScoreValue` facets stay in the norms
+module (they are not reused outside it).
+
+### gmeow:Criterion · gmeow:Condition · gmeow:EvaluationVerdict · gmeow:Rubric
+
+The remaining evaluative primitives, likewise promoted from norms: `Criterion` (one
+evaluative axis of a rubric, with named poles), `Condition` (a describable circumstance
+whose canonical form is prose, never executed — Principle 12), `EvaluationVerdict` (the
+closed held/not-held/undetermined trichotomy, seeded by `verdictHeld` /
+`verdictNotHeld` / `verdictUndetermined`), and `Rubric` (a reified evaluation framework,
+`⊑ SocialObject`). The norms extension additionally declares `Rubric rdfs:subClassOf Norm`
+— a norms→observations bridge axiom (extension depending on core is legal; the reverse is
+not, which is exactly why these primitives live here rather than in norms). Domain-specific
+machinery that reuses these primitives (`ConditionGroup`, `ConditionExpression`,
+`CriterionPole`, `ScoreAnchor`, `ScoreScale`, `ComplianceAssessment`, …) stays in norms.
+
 ## Solver boundary & alignment
 
 Aggregation, calibration, consensus derivation, trajectory reconstruction, and

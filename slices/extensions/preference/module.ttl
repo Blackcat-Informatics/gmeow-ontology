@@ -258,7 +258,7 @@ gmeow:usesRubric
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "uses rubric"@x-gmeow-english ;
     rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — typed to the core gmeow:SocialObject (a rubric is a social object; norms gmeow:Rubric ⊑ gmeow:Norm ⊑ gmeow:SocialObject is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — typed to the core gmeow:SocialObject (a rubric is a social object; the observations gmeow:Rubric ⊑ gmeow:SocialObject (norms further declares gmeow:Rubric ⊑ gmeow:Norm) is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:onCriterion
@@ -267,7 +267,7 @@ gmeow:onCriterion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "on criterion"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the criterion its comparison is made along — typed to the core gmeow:InformationObject (a criterion is an information object; norms gmeow:Criterion ⊑ gmeow:InformationObject is reused only by-reference, never a range axiom — Principle 16). Two candidates preferred oppositely on two criteria are the Pareto-incomparability the slice records positively (gmeow:incomparableWith)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the criterion its comparison is made along — typed to the core gmeow:InformationObject (a criterion is an information object; the observations gmeow:Criterion ⊑ gmeow:InformationObject is reused only by-reference, never a range axiom — Principle 16). Two candidates preferred oppositely on two criteria are the Pareto-incomparability the slice records positively (gmeow:incomparableWith)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:PreferenceEvaluation
@@ -1170,11 +1170,11 @@ gmeow:VerifierVerdict
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "Verifier Verdict"@x-gmeow-english ;
     logic:subClassOf gmeow:Observation ;
-    skos:definition "A hard-or-soft verifier's verdict on a candidate under a contract: a gmeow:Observation carrying its hardness class (gmeow:hardConstraintClass → gmeow:ConstraintHardness {hard, soft}), the candidate it verifies (gmeow:verifiesCandidate), its contract (gmeow:verifierContract, typed to the core gmeow:InformationObject — a contract rides the norms gmeow:Condition + gmeow:formalizedAs by reference, never a range axiom), and its outcome value (gmeow:verifierOutcome, typed to the core logic:QualityValue — reusing the norms gmeow:EvaluationVerdict vocabulary gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined at the instance level). A HARD verdict of gmeow:verdictNotHeld is unrankable-as-winner within its contract's vantages (gmeow:HardFailureNotOverriddenConstraint), no matter how high the soft aggregate. It is NOT a gmeow:PreferenceObservation (a soft comparison): the two axes are structurally disjoint."@x-gmeow-english ;
+    skos:definition "A hard-or-soft verifier's verdict on a candidate under a contract: a gmeow:Observation carrying its hardness class (gmeow:hardConstraintClass → gmeow:ConstraintHardness {hard, soft}), the candidate it verifies (gmeow:verifiesCandidate), its contract (gmeow:verifierContract, typed to the core gmeow:InformationObject — a contract rides the observations gmeow:Condition + the norms gmeow:formalizedAs by reference, never a range axiom), and its outcome value (gmeow:verifierOutcome, typed to the core logic:QualityValue — reusing the observations gmeow:EvaluationVerdict vocabulary gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined at the instance level). A HARD verdict of gmeow:verdictNotHeld is unrankable-as-winner within its contract's vantages (gmeow:HardFailureNotOverriddenConstraint), no matter how high the soft aggregate. It is NOT a gmeow:PreferenceObservation (a soft comparison): the two axes are structurally disjoint."@x-gmeow-english ;
     skos:example "ex:vv1 a gmeow:VerifierVerdict ; gmeow:vantage ex:safetyChecker ; gmeow:verifiesCandidate ex:candA ; gmeow:hardConstraintClass gmeow:constraintHardnessHard ; gmeow:verifierContract ex:noPiiContract ; gmeow:verifierOutcome gmeow:verdictNotHeld ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding a verifier verdict into a gmeow:strictlyOver edge (the hard and soft axes are disjoint — gmeow:HardSoftDisjointnessConstraint) and avoid overriding a hard gmeow:verdictNotHeld with a high soft score."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the check gmeow:VerifierVerdict, attribute it with gmeow:vantage, bind the candidate (gmeow:verifiesCandidate) and contract (gmeow:verifierContract), classify its hardness (gmeow:hardConstraintClass), and carry the outcome value with gmeow:verifierOutcome reusing the norms verdict vocabulary."@x-gmeow-english ;
+    gmeow:howToUse "Type the check gmeow:VerifierVerdict, attribute it with gmeow:vantage, bind the candidate (gmeow:verifiesCandidate) and contract (gmeow:verifierContract), classify its hardness (gmeow:hardConstraintClass), and carry the outcome value with gmeow:verifierOutcome reusing the observations verdict vocabulary."@x-gmeow-english ;
     gmeow:useWhen "Use for a hard-or-soft verifier's contract verdict on a candidate — the structurally-disjoint check that a hard failure of makes a candidate unrankable-as-winner regardless of soft score."@x-gmeow-english .
 
 gmeow:ConstraintHardness
@@ -1230,7 +1230,7 @@ gmeow:verifierContract
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "verifier contract"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "Relates a gmeow:VerifierVerdict to the contract it verifies against — typed to the core gmeow:InformationObject (a contract rides the norms gmeow:Condition + gmeow:formalizedAs by reference at the instance level, never a range axiom — Principle 16). The hard-failure gate is scoped per (candidate, contract): a hard failure gates winner-eligibility only within the vantages under THAT contract (G5)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:VerifierVerdict to the contract it verifies against — typed to the core gmeow:InformationObject (a contract rides the observations gmeow:Condition + the norms gmeow:formalizedAs by reference at the instance level, never a range axiom — Principle 16). The hard-failure gate is scoped per (candidate, contract): a hard failure gates winner-eligibility only within the vantages under THAT contract (G5)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:verifierOutcome
@@ -1239,7 +1239,7 @@ gmeow:verifierOutcome
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "verifier outcome"@x-gmeow-english ;
     rdfs:range logic:QualityValue ;
-    skos:definition "Relates a gmeow:VerifierVerdict to its outcome value — typed to the core logic:QualityValue, REUSING the norms gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined) at the instance level rather than minting a parallel verdict axis. Functional: one verdict has one outcome. A hard gmeow:verdictNotHeld is what the hard-failure gate keys on."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:VerifierVerdict to its outcome value — typed to the core logic:QualityValue, REUSING the observations gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined) at the instance level rather than minting a parallel verdict axis. Functional: one verdict has one outcome. A hard gmeow:verdictNotHeld is what the hard-failure gate keys on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:selectedCandidate
@@ -2121,7 +2121,7 @@ gmeow:ModelConfigDelta
     rdfs:label "Model Config Delta"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ,
         [ a owl:Restriction ; owl:onProperty gmeow:contentDigest ; owl:allValuesFrom rdfs:Literal ] ;
-    skos:definition "The content-addressed record of a model/config change a preference learning run produced — its identity is the REUSED gmeow:contentDigest over the WHOLE identity tuple (AC5). Every leg is mandatory (gmeow:ModelConfigDeltaCompletenessConstraint): the base artifact (gmeow:deltaBaseArtifact, typed to the core gmeow:InformationObject — model-serving gmeow:ModelArtifact by reference), tokenizer (gmeow:deltaTokenizer), codebook (gmeow:deltaCodebook), dataset projection (gmeow:deltaDatasetProjection → own gmeow:ProjectionReceipt), selection query (gmeow:deltaSelectionQuery, stored-not-executed, Principle 12), prompt (gmeow:deltaPromptIdentity → ai gmeow:Prompt), rubric (gmeow:deltaRubricIdentity, typed to the core gmeow:SocialObject — norms gmeow:Rubric by reference), engine (gmeow:deltaEngine), optimizer (gmeow:deltaOptimizer), seed (gmeow:deltaSeed), and evaluation evidence (gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan). A delta missing any leg is not a reproducible identity. It is NOT the gmeow:PreferenceLearningEvent that produced it."@x-gmeow-english ;
+    skos:definition "The content-addressed record of a model/config change a preference learning run produced — its identity is the REUSED gmeow:contentDigest over the WHOLE identity tuple (AC5). Every leg is mandatory (gmeow:ModelConfigDeltaCompletenessConstraint): the base artifact (gmeow:deltaBaseArtifact, typed to the core gmeow:InformationObject — model-serving gmeow:ModelArtifact by reference), tokenizer (gmeow:deltaTokenizer), codebook (gmeow:deltaCodebook), dataset projection (gmeow:deltaDatasetProjection → own gmeow:ProjectionReceipt), selection query (gmeow:deltaSelectionQuery, stored-not-executed, Principle 12), prompt (gmeow:deltaPromptIdentity → ai gmeow:Prompt), rubric (gmeow:deltaRubricIdentity, typed to the core gmeow:SocialObject — the observations gmeow:Rubric by reference), engine (gmeow:deltaEngine), optimizer (gmeow:deltaOptimizer), seed (gmeow:deltaSeed), and evaluation evidence (gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan). A delta missing any leg is not a reproducible identity. It is NOT the gmeow:PreferenceLearningEvent that produced it."@x-gmeow-english ;
     skos:example "ex:delta1 a gmeow:ModelConfigDelta ; gmeow:deltaBaseArtifact ex:baseCkpt ; gmeow:deltaTokenizer ex:tok1 ; gmeow:deltaCodebook ex:cb1 ; gmeow:deltaDatasetProjection ex:rec1 ; gmeow:deltaSelectionQuery ex:sq1 ; gmeow:deltaPromptIdentity ex:sysPrompt ; gmeow:deltaRubricIdentity ex:rubric1 ; gmeow:deltaEngine ex:eng1 ; gmeow:deltaOptimizer ex:opt1 ; gmeow:deltaSeed 42 ; gmeow:deltaEvaluationEvidence ex:span1 ; gmeow:contentDigest \"blake3:c0de…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting any of the eleven legs (a partial delta is not a reproducible identity — gmeow:ModelConfigDeltaCompletenessConstraint) and avoid minting a separate delta id; the reused gmeow:contentDigest over the whole tuple IS the identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -2229,7 +2229,7 @@ gmeow:deltaRubricIdentity
     a owl:ObjectProperty ; rdfs:domain gmeow:ModelConfigDelta ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ; rdfs:label "delta rubric identity"@x-gmeow-english ;
     rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:ModelConfigDelta to its rubric leg — typed to the core gmeow:SocialObject (norms gmeow:Rubric ⊑ gmeow:SocialObject is reused only by-reference, never a range axiom — Principle 16). The evaluative frame the training optimized under."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:ModelConfigDelta to its rubric leg — typed to the core gmeow:SocialObject (the observations gmeow:Rubric ⊑ gmeow:SocialObject is reused only by-reference, never a range axiom — Principle 16). The evaluative frame the training optimized under."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:deltaEngine
     a owl:ObjectProperty ; rdfs:domain gmeow:ModelConfigDelta ;
@@ -2643,7 +2643,7 @@ gmeow:gateVerdict
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "gate verdict"@x-gmeow-english ;
     rdfs:range logic:QualityValue ;
-    skos:definition "Relates a gmeow:ConsumerImprovementGate to its verdict value — typed to the core logic:QualityValue, REUSING the norms gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld) at the instance level. Functional: one gate, one verdict. Only gmeow:verdictHeld authorizes activation (gmeow:ActivationAuthorityConstraint)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:ConsumerImprovementGate to its verdict value — typed to the core logic:QualityValue, REUSING the observations gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld) at the instance level. Functional: one gate, one verdict. Only gmeow:verdictHeld authorizes activation (gmeow:ActivationAuthorityConstraint)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:grantsActivation

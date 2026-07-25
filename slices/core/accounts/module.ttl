@@ -46,6 +46,15 @@ gmeow:OnlineService
     gmeow:howToUse "Type the platform as OnlineService, record its liveness with gmeow:serviceStatus and, for a defunct service, gmeow:serviceShutdownDate; link accounts to it with gmeow:accountService so a shut-down service keeps its accounts on record (P10)."@x-gmeow-english ;
     gmeow:useWhen "Use for the platform or service an account lives on — a social network, code forge, email provider, or federated instance — modelled as a first-class object that carries its own liveness and shutdown history."@x-gmeow-english .
 
+gmeow:PaymentMethod
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "Payment Method"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The method or instrument used to make a payment — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:ServiceStatus
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -184,6 +193,41 @@ gmeow:nostrPubkey
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Carry the pubkey as a literal on the OnlineAccount and pair it with gmeow:nip05 when a domain verifies it; treat a pubkey that links to a real person as sensitive via gmeow:hasSensitivity."@x-gmeow-english ;
     gmeow:useWhen "Use for the Nostr public key (npub or hex form) that cryptographically identifies a decentralized-identity account, independent of any single relay or service."@x-gmeow-english .
+
+gmeow:paymentMethodBankTransfer
+    a gmeow:PaymentMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "bank transfer"@x-gmeow-english ;
+    skos:definition "Payment made by bank transfer or wire."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:paymentMethodCash
+    a gmeow:PaymentMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "cash"@x-gmeow-english ;
+    skos:definition "Payment made in physical currency."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:paymentMethodCheque
+    a gmeow:PaymentMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "cheque"@x-gmeow-english ;
+    skos:definition "Payment made by cheque."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:paymentMethodCreditCard
+    a gmeow:PaymentMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "credit card"@x-gmeow-english ;
+    skos:definition "Payment made by credit card."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:paymentMethodCrypto
+    a gmeow:PaymentMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
+    rdfs:label "cryptocurrency"@x-gmeow-english ;
+    skos:definition "Payment made in cryptocurrency."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:serviceShutdownDate
     a owl:DatatypeProperty ;

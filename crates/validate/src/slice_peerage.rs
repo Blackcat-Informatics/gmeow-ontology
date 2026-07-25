@@ -93,6 +93,28 @@
 //!   module ONLY via `gmeow:usesTerm` is excluded exactly like a pure Class 2
 //!   crossing — and, symmetrically, a term ALSO referenced via a non-meta
 //!   predicate is never excluded.
+//! * **Class 4 — competency-query integration tests.** A `queries/competency/
+//!   *.rq` SPARQL file (`purrdf`'s `ArtifactRole::CompetencyQuery`) tests
+//!   whether the COMPOSED (post-fold) ontology can answer a competency
+//!   question — inherently cross-slice by design, an integration test over the
+//!   merged bundle, conceptually identical to the already-non-semantic
+//!   `EdgeKind::Test`. A crossing whose evidence entry's `from_artifact.role`
+//!   IS `ArtifactRole::CompetencyQuery` is never genuine; a term ALSO
+//!   referenced by a genuine (non-competency-query) artifact still counts,
+//!   since the exclusion is per-evidence-entry, not per-edge.
+//! * **Class 5 — internal `skos:relatedMatch` correspondences.** A slice's own
+//!   `mappings/*.ttl` asserting `<own-term> skos:relatedMatch <other-gmeow-
+//!   term>` is a soft, by-reference CORRESPONDENCE cell — "never a redeclared
+//!   range axiom" — a meta-level "see also" link between two GMEOW terms,
+//!   never a build dependency. [`ReferencePredicateIndex`] also indexes
+//!   `ArtifactRole::Mapping` artifacts and, for those, treats
+//!   `skos:relatedMatch` as the sole pure-meta predicate: a term reachable
+//!   from a slice's mapping artifact ONLY via `skos:relatedMatch` is excluded,
+//!   and — symmetrically — a term ALSO referenced structurally (any other
+//!   predicate) in that same mapping artifact is never excluded. External
+//!   alignments (`skos:broadMatch`/`closeMatch` to a non-`gmeow` vocabulary)
+//!   are untouched: their objects are never a catalogued GMEOW slice's own
+//!   term in the first place, so they never reach this filter at all.
 //!
 //! [`classify`] and [`forbidden_tier_findings`] both apply
 //! [`is_genuine_crossing_term`] to every piece of an edge's evidence; an edge
@@ -469,25 +491,45 @@ const GROUNDING_META_PREDICATES: &[&str] = &[
 /// never genuine object-level term usage.
 const GMEOW_USES_TERM: &str = "https://blackcatinformatics.ca/gmeow/usesTerm";
 
+/// `skos:relatedMatch` — a soft, by-reference correspondence between two
+/// terms ("never a redeclared range axiom"). Authored FROM a slice's own
+/// `mappings/*.ttl` naming another catalogued GMEOW slice's term as object,
+/// it is a meta-level "see also" link, never a build dependency — folded into
+/// [`ReferencePredicateIndex::is_pure_meta`]'s exclusion set for
+/// [`ArtifactRole::Mapping`] artifacts specifically (never for
+/// `Module`/`Shapes`, where the identical predicate string would carry a
+/// different, non-mapping meaning if it ever appeared there).
+const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
+
 /// Per-artifact, the set of predicates by which that artifact references each
 /// term IRI as the OBJECT of a triple — built ONCE per catalog, over EVERY
 /// catalogued slice (not only the grounding three: [`GMEOW_USES_TERM`] is
-/// authored from any slice), so [`is_genuine_crossing_term`]'s Class 2/Class 3
-/// check never re-parses an artifact per crossing.
+/// authored from any slice), so [`is_genuine_crossing_term`]'s Class 2/Class 3/
+/// Class 5 check never re-parses an artifact per crossing.
+/// Every predicate by which an artifact references a term IRI as an object,
+/// keyed by term.
+type TermPredicates = BTreeMap<String, BTreeSet<String>>;
+
 struct ReferencePredicateIndex {
-    /// `(slice IRI, artifact logical path)` -> term IRI -> the set of
-    /// predicates that reference it as an object anywhere in that artifact.
-    by_artifact: BTreeMap<(SliceIri, String), BTreeMap<String, BTreeSet<String>>>,
+    /// `(slice IRI, artifact logical path)` -> the artifact's role, and term
+    /// IRI -> the set of predicates that reference it as an object anywhere in
+    /// that artifact.
+    by_artifact: BTreeMap<(SliceIri, String), (ArtifactRole, TermPredicates)>,
 }
 
 impl ReferencePredicateIndex {
-    /// Index every `Module`/`Shapes` artifact (the two ownership-bearing,
-    /// RDF-parseable roles — RFC §10) of every catalogued slice.
+    /// Index every `Module`/`Shapes`/`Mapping` artifact (the three
+    /// ownership-bearing, RDF-parseable roles this engine's meta-predicate
+    /// exclusions care about — RFC §10, and `mappings/*.ttl` for Class 5's
+    /// `skos:relatedMatch` correspondences) of every catalogued slice.
     fn build(catalog: &SliceCatalog) -> Result<Self> {
         let mut by_artifact = BTreeMap::new();
         for record in catalog.records() {
             for artifact in &record.artifacts {
-                if !matches!(artifact.role, ArtifactRole::Module | ArtifactRole::Shapes) {
+                if !matches!(
+                    artifact.role,
+                    ArtifactRole::Module | ArtifactRole::Shapes | ArtifactRole::Mapping
+                ) {
                     continue;
                 }
                 let ds = Dataset::parse_turtle(&artifact.content, &artifact.logical_path)
@@ -500,7 +542,7 @@ impl ReferencePredicateIndex {
                 });
                 by_artifact.insert(
                     (record.manifest.slice_iri.clone(), artifact.logical_path.clone()),
-                    term_predicates,
+                    (artifact.role.clone(), term_predicates),
                 );
             }
         }
@@ -508,44 +550,63 @@ impl ReferencePredicateIndex {
     }
 
     /// Whether `term`, as referenced from `from_slice`'s `logical_path`
-    /// artifact, is EXCLUSIVELY named via a [`GROUNDING_META_PREDICATES`]
-    /// entry or [`GMEOW_USES_TERM`] — i.e. every triple in that artifact whose
-    /// object is `term` uses a pure law/formalization or documentation-index
-    /// predicate. `false` (never pure-meta; the no-optionality-safe default is
-    /// GENUINE) when the artifact was not indexed (a non-`Module`/`Shapes`
-    /// role, e.g. a `Query` edge) or `term` was never seen as an object at all
-    /// in that artifact.
+    /// artifact, is EXCLUSIVELY named via a pure meta-predicate for that
+    /// artifact's role — for `Module`/`Shapes`, a [`GROUNDING_META_PREDICATES`]
+    /// entry or [`GMEOW_USES_TERM`] (Class 2/3); for `Mapping`,
+    /// [`SKOS_RELATED_MATCH`] (Class 5) — i.e. every triple in that artifact
+    /// whose object is `term` uses a pure law/formalization,
+    /// documentation-index, or internal-correspondence predicate. `false`
+    /// (never pure-meta; the no-optionality-safe default is GENUINE) when the
+    /// artifact was not indexed (a non-`Module`/`Shapes`/`Mapping` role, e.g. a
+    /// `Query` edge) or `term` was never seen as an object at all in that
+    /// artifact.
     fn is_pure_meta(&self, from_slice: &str, logical_path: &str, term: &str) -> bool {
-        let Some(term_predicates) = self
+        let Some((role, term_predicates)) = self
             .by_artifact
             .get(&(from_slice.to_string(), logical_path.to_string()))
         else {
             return false;
         };
-        match term_predicates.get(term) {
-            Some(preds) if !preds.is_empty() => preds.iter().all(|p| {
+        let Some(preds) = term_predicates.get(term).filter(|preds| !preds.is_empty()) else {
+            return false;
+        };
+        match role {
+            ArtifactRole::Module | ArtifactRole::Shapes => preds.iter().all(|p| {
                 GROUNDING_META_PREDICATES.contains(&p.as_str()) || p.as_str() == GMEOW_USES_TERM
             }),
+            ArtifactRole::Mapping => preds.iter().all(|p| p.as_str() == SKOS_RELATED_MATCH),
             _ => false,
         }
     }
 }
 
-/// Whether `term` (referenced from `from_slice`'s `from_artifact` artifact) is
-/// GENUINE cross-slice term usage — neither Class 1 (the raw IRI of some other
-/// catalogued slice, cited as DATA) nor Class 2/3 (a PURE grounding
-/// law/formalization back-reference, [`GROUNDING_META_PREDICATES`], or a PURE
-/// `gmeow:usesTerm` documentation-index reference, [`GMEOW_USES_TERM`]). Used
-/// to filter an edge's evidence before it can produce an
+/// Whether `term` (referenced from `from_slice`'s `from_artifact` artifact,
+/// via `from_artifact_role`) is GENUINE cross-slice term usage — none of:
+///
+/// * Class 1 — the raw IRI of some other catalogued slice, cited as DATA;
+/// * Class 2/3 — a PURE grounding law/formalization back-reference
+///   ([`GROUNDING_META_PREDICATES`]) or a PURE `gmeow:usesTerm`
+///   documentation-index reference ([`GMEOW_USES_TERM`]);
+/// * Class 4 — evidence from an [`ArtifactRole::CompetencyQuery`] artifact (a
+///   `queries/competency/*.rq` integration test over the composed ontology,
+///   never a build dependency);
+/// * Class 5 — a PURE internal `skos:relatedMatch` correspondence authored
+///   from a `Mapping` artifact ([`SKOS_RELATED_MATCH`]).
+///
+/// Used to filter an edge's evidence before it can produce an
 /// undeclared/forbidden/peered-unregistered-seam finding.
 fn is_genuine_crossing_term(
     from_slice: &SliceIri,
+    from_artifact_role: &ArtifactRole,
     from_artifact_logical_path: &str,
     term: &NamedNode,
     slice_iris: &BTreeSet<SliceIri>,
     reference_predicates: &ReferencePredicateIndex,
 ) -> bool {
     if slice_iris.contains(term.as_str()) {
+        return false;
+    }
+    if *from_artifact_role == ArtifactRole::CompetencyQuery {
         return false;
     }
     !reference_predicates.is_pure_meta(from_slice, from_artifact_logical_path, term.as_str())
@@ -678,6 +739,7 @@ pub fn classify(report: &OwnershipReport, catalog: &SliceCatalog) -> Result<Peer
             .filter(|e| {
                 is_genuine_crossing_term(
                     from_slice,
+                    &e.from_artifact.role,
                     &e.from_artifact.logical_path,
                     &e.referenced_term,
                     &all_slice_iris,
@@ -798,6 +860,7 @@ fn forbidden_tier_findings(report: &OwnershipReport, catalog: &SliceCatalog) -> 
             let has_genuine_evidence = edge.evidence.iter().any(|e| {
                 is_genuine_crossing_term(
                     &edge.from_slice,
+                    &e.from_artifact.role,
                     &e.from_artifact.logical_path,
                     &e.referenced_term,
                     &all_slice_iris,
@@ -962,6 +1025,23 @@ mod tests {
         std::fs::write(dir.join("module.ttl"), prefixed).unwrap();
     }
 
+    /// Write a slice's `mappings/<file>.ttl` (an [`ArtifactRole::Mapping`]
+    /// artifact) — needed to exercise [`ReferencePredicateIndex`]'s Class 5
+    /// `skos:relatedMatch` handling, which re-parses REAL mapping content off
+    /// the catalog rather than trusting a hand-built [`OwnershipReport`]
+    /// fixture.
+    fn write_mapping(root: &Path, group: &str, name: &str, file: &str, ttl: &str) {
+        let dir = root.join("slices").join(group).join(name).join("mappings");
+        std::fs::create_dir_all(&dir).unwrap();
+        let prefixed = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+             {ttl}"
+        );
+        std::fs::write(dir.join(file), prefixed).unwrap();
+    }
+
     /// A catalog with the three grounding slices, mutually peered, `logic:`
     /// hosting one seam `lang -> logic` carrying `logic:Foo`, and `math:`
     /// hosting one seam `lang -> math` carrying `math:Quantity` (the real
@@ -1050,6 +1130,19 @@ mod tests {
         }
     }
 
+    /// An [`ArtifactEvidence`] for a specific role + logical path — needed to
+    /// exercise Class 4 (`ArtifactRole::CompetencyQuery`) and Class 5
+    /// (`ArtifactRole::Mapping`), which [`artifact_evidence`]'s hard-coded
+    /// `Module`/`module.ttl` cannot represent.
+    fn artifact_evidence_with(slice: &str, role: ArtifactRole, logical_path: &str) -> ArtifactEvidence {
+        ArtifactEvidence {
+            slice: slice.to_string(),
+            role,
+            logical_path: logical_path.to_string(),
+            raw_digest: "deadbeef".to_string(),
+        }
+    }
+
     fn edge(
         from: &str,
         to: &str,
@@ -1068,6 +1161,26 @@ mod tests {
                     referenced_term: nn(t),
                 })
                 .collect(),
+            reconciliation,
+        }
+    }
+
+    /// A [`DependencyEdge`] built from an explicit evidence list — needed when
+    /// a test must control per-evidence-entry `from_artifact` (role/logical
+    /// path), unlike [`edge`], which always attaches the uniform
+    /// `Module`/`module.ttl` [`artifact_evidence`].
+    fn edge_with_evidence(
+        from: &str,
+        to: &str,
+        kind: EdgeKind,
+        evidence: Vec<EdgeEvidence>,
+        reconciliation: ReconciliationStatus,
+    ) -> DependencyEdge {
+        DependencyEdge {
+            from_slice: from.to_string(),
+            to_slice: to.to_string(),
+            edge_kind: kind,
+            evidence,
             reconciliation,
         }
     }
@@ -1327,6 +1440,23 @@ mod tests {
                 rdfs:label "widgets" .
             "#,
         );
+        write_mapping(
+            root,
+            "core",
+            "quality",
+            "widgets-correspondences.ttl",
+            r#"gmeow:qualityRelatedMatchOnlyTerm
+                a rdfs:Resource ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
+                skos:relatedMatch gmeow:widgetRelatedMatchOnlyTerm .
+
+            gmeow:qualityRelatedMatchAndStructuralTerm
+                a rdfs:Resource ;
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
+                skos:relatedMatch gmeow:widgetRelatedMatchAndStructuralTerm ;
+                gmeow:relatedTerm gmeow:widgetRelatedMatchAndStructuralTerm .
+            "#,
+        );
         write_manifest(
             root,
             "core",
@@ -1551,6 +1681,185 @@ mod tests {
             classification.verdicts.len(),
             1,
             "a term with a genuine co-use alongside gmeow:usesTerm must never be suppressed: {:?}",
+            classification.verdicts
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert_eq!(findings[0].code, "slice-ownership.undeclared-dependency");
+    }
+
+    // ── Class 4 (competency query) / Class 5 (skos:relatedMatch) exclusion ────
+
+    #[test]
+    fn class_4_competency_query_only_crossing_is_suppressed() {
+        // The crossing's ONLY evidence is a `queries/competency/*.rq`
+        // artifact — an integration test over the composed ontology, never a
+        // build dependency, so this must never surface as a dependency at
+        // all.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge_with_evidence(
+                QUALITY,
+                WIDGETS,
+                EdgeKind::Query,
+                vec![EdgeEvidence {
+                    from_artifact: artifact_evidence_with(
+                        QUALITY,
+                        ArtifactRole::CompetencyQuery,
+                        "queries/competency/can-quality-answer.rq",
+                    ),
+                    referenced_term: nn("https://blackcatinformatics.ca/gmeow/widgetCompetencyTerm"),
+                }],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(QUALITY, WIDGETS, EdgeKind::Query)],
+        };
+
+        let classification = classify(&report, &catalog).expect("classify must not hard-fail");
+        assert!(
+            classification.verdicts.is_empty(),
+            "a competency-query-only crossing has zero genuine terms and must be suppressed \
+             entirely: {:?}",
+            classification.verdicts
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a competency-query-only crossing must never fire a finding: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn a_term_named_via_a_competency_query_and_a_genuine_artifact_is_never_excluded() {
+        // The SAME referenced term is named via BOTH a competency-query
+        // artifact AND a genuine (`Module`) artifact — per spec, the
+        // competency-query exclusion is per-evidence-entry, so co-presence of
+        // a genuine reference means the crossing still counts.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let term = "https://blackcatinformatics.ca/gmeow/widgetCompetencyAndRealTerm";
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge_with_evidence(
+                QUALITY,
+                WIDGETS,
+                EdgeKind::Query,
+                vec![
+                    EdgeEvidence {
+                        from_artifact: artifact_evidence_with(
+                            QUALITY,
+                            ArtifactRole::CompetencyQuery,
+                            "queries/competency/can-quality-answer.rq",
+                        ),
+                        referenced_term: nn(term),
+                    },
+                    EdgeEvidence {
+                        from_artifact: artifact_evidence(QUALITY),
+                        referenced_term: nn(term),
+                    },
+                ],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(QUALITY, WIDGETS, EdgeKind::Query)],
+        };
+
+        let classification = classify(&report, &catalog).unwrap();
+        assert_eq!(
+            classification.verdicts.len(),
+            1,
+            "a term also referenced by a genuine non-competency-query artifact must never be \
+             suppressed: {:?}",
+            classification.verdicts
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert_eq!(findings.len(), 1, "{findings:?}");
+        assert_eq!(findings[0].code, "slice-ownership.undeclared-dependency");
+    }
+
+    #[test]
+    fn class_5_internal_related_match_only_crossing_is_suppressed() {
+        // `quality`'s mapping names `gmeow:widgetRelatedMatchOnlyTerm` ONLY
+        // via `skos:relatedMatch` — a soft internal correspondence, never a
+        // build dependency.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge_with_evidence(
+                QUALITY,
+                WIDGETS,
+                EdgeKind::Mapping,
+                vec![EdgeEvidence {
+                    from_artifact: artifact_evidence_with(
+                        QUALITY,
+                        ArtifactRole::Mapping,
+                        "mappings/widgets-correspondences.ttl",
+                    ),
+                    referenced_term: nn(
+                        "https://blackcatinformatics.ca/gmeow/widgetRelatedMatchOnlyTerm",
+                    ),
+                }],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(QUALITY, WIDGETS, EdgeKind::Mapping)],
+        };
+
+        let classification = classify(&report, &catalog).expect("classify must not hard-fail");
+        assert!(
+            classification.verdicts.is_empty(),
+            "a pure internal skos:relatedMatch crossing has zero genuine terms and must be \
+             suppressed entirely: {:?}",
+            classification.verdicts
+        );
+
+        let findings = peerage_aware_ownership_findings(&report, &catalog).unwrap();
+        assert!(
+            findings.is_empty(),
+            "a pure internal skos:relatedMatch crossing must never fire a finding: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn a_term_named_via_related_match_and_a_structural_use_is_never_excluded() {
+        // `quality`'s mapping names `gmeow:widgetRelatedMatchAndStructuralTerm`
+        // via BOTH `skos:relatedMatch` (correspondence) AND `gmeow:relatedTerm`
+        // (a stand-in for a real, non-meta object-level predication in the
+        // SAME artifact) — per spec, co-presence of a structural use means the
+        // term is NEVER excluded, even though `skos:relatedMatch` also names
+        // it.
+        let tmp = tempfile::tempdir().unwrap();
+        let catalog = class_filter_catalog(tmp.path());
+        let report = OwnershipReport {
+            ownership: std::collections::HashMap::new(),
+            edges: vec![edge_with_evidence(
+                QUALITY,
+                WIDGETS,
+                EdgeKind::Mapping,
+                vec![EdgeEvidence {
+                    from_artifact: artifact_evidence_with(
+                        QUALITY,
+                        ArtifactRole::Mapping,
+                        "mappings/widgets-correspondences.ttl",
+                    ),
+                    referenced_term: nn(
+                        "https://blackcatinformatics.ca/gmeow/widgetRelatedMatchAndStructuralTerm",
+                    ),
+                }],
+                ReconciliationStatus::Undeclared,
+            )],
+            diagnostics: vec![undeclared_diag(QUALITY, WIDGETS, EdgeKind::Mapping)],
+        };
+
+        let classification = classify(&report, &catalog).unwrap();
+        assert_eq!(
+            classification.verdicts.len(),
+            1,
+            "a term with a genuine structural co-use must never be suppressed: {:?}",
             classification.verdicts
         );
 

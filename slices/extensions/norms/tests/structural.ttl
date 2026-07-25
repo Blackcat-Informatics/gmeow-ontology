@@ -223,17 +223,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:PrecedenceTenure MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom (Principle 10)." .
 
-# --- 20. Condition subclasses InformationObject; ConditionGroup subclasses Condition (MUST) ---
+# --- 20. ConditionGroup subclasses the core observations Condition (MUST) -----
+# gmeow:Condition itself is core-owned by observations (its own subclass-of-
+# InformationObject invariant is pinned there); this cell checks only the
+# norms-resident ConditionGroup's specialization of it.
 ex:saConditionIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Condition rdfs:subClassOf gmeow:InformationObject .
     gmeow:ConditionGroup rdfs:subClassOf gmeow:Condition .
 }""" ;
-    gmeow:saRationale "gmeow:Condition MUST be a subclass of gmeow:InformationObject and gmeow:ConditionGroup MUST be a subclass of gmeow:Condition — conditions are stored information objects, never entailed (Principle 12)." .
+    gmeow:saRationale "gmeow:ConditionGroup MUST be a subclass of the core observations gmeow:Condition — conditions are stored information objects, never entailed (Principle 12)." .
 
 # --- 22. formalizedAs is NOT functional (MUST-NOT) ---
 ex:saFormalizedAsNotFunctional a gmeow:StructuralAssertion ;
@@ -304,29 +306,6 @@ ex:saEvaluationVerdictNotSubpropertyObservationResult a gmeow:StructuralAssertio
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:evaluationVerdict rdfs:subPropertyOf gmeow:observationResult . }""" ;
     gmeow:saRationale "gmeow:evaluationVerdict MUST NOT be rdfs:subPropertyOf gmeow:observationResult — QualityValue is disjoint from Entity in the DL profile (the claimModality precedent)." .
-
-# --- 28. Three EvaluationVerdict seeds exist (MUST) ---
-ex:saEvaluationVerdictSeeds a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK {
-    gmeow:verdictHeld         a gmeow:EvaluationVerdict .
-    gmeow:verdictNotHeld      a gmeow:EvaluationVerdict .
-    gmeow:verdictUndetermined a gmeow:EvaluationVerdict .
-}""" ;
-    gmeow:saRationale "The three EvaluationVerdict seed individuals (held, not held, undetermined) MUST exist — they form the closed trichotomy for condition evaluation outcomes." .
-
-# --- 29. No fourth EvaluationVerdict individual exists (MUST-NOT) ---
-ex:saNoExtraEvaluationVerdict a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:mustNot ;
-    gmeow:saScope gmeow:scopeModule ;
-    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK {
-    ?x a gmeow:EvaluationVerdict .
-    FILTER (?x NOT IN (gmeow:verdictHeld, gmeow:verdictNotHeld, gmeow:verdictUndetermined))
-}""" ;
-    gmeow:saRationale "No fourth gmeow:EvaluationVerdict individual MUST NOT exist — the held/not-held/undetermined trichotomy is closed by design (a fourth verdict would violate the semantics)." .
 
 # --- 30. violates and complies are owl:ObjectProperty, NOT functional, no propertyChain (MUST) ---
 ex:saViolatesCompliesAreObjectProperties a gmeow:StructuralAssertion ;
@@ -409,20 +388,20 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Rule MUST be rdfs:subClassOf gmeow:Norm and the two subproperty grafts (ruleAssignee/normBearer and ruleAction/prescribedConduct) MUST be asserted in the norms module — zero core churn." .
 
-# --- 38. Rubric is a logic:Kind norm for judging (MUST) ----------------------
+# --- 38. Rubric is a norm for judging; hasCriterion specializes hasPart (MUST) -
+# gmeow:Rubric's own type/logic:Kind/SocialObject definition is core-owned by
+# observations (checked there); this cell pins the one bridge axiom authored
+# here (Rubric ⊑ Norm) plus the norms-resident gmeow:hasCriterion property.
 ex:saRubricIsNormForJudging a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX logic: <https://blackcatinformatics.ca/logic/>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Rubric a owl:Class , logic:Kind ;
-        rdfs:subClassOf gmeow:Norm , gmeow:SocialObject .
+    gmeow:Rubric rdfs:subClassOf gmeow:Norm .
     gmeow:hasCriterion rdfs:subPropertyOf gmeow:hasPart .
 }""" ;
-    gmeow:saRationale "gmeow:Rubric MUST be a logic:Kind norm/social object for judging, and gmeow:hasCriterion MUST specialize gmeow:hasPart. Replaces the stale gufo:Kind assertion." .
+    gmeow:saRationale "gmeow:Rubric MUST be rdfs:subClassOf gmeow:Norm (the norms-authored bridge axiom onto the core observations Rubric class), and gmeow:hasCriterion MUST specialize gmeow:hasPart." .
 
 # --- 39. Exemplar is a logic:SubKind CitationAct with polarity seeds (MUST) --
 ex:saExemplarIsCitationActWithPolarity a gmeow:StructuralAssertion ;
@@ -457,7 +436,10 @@ ASK {
     gmeow:saRationale "gmeow:Persona MUST be a logic:Kind relator whose bearer ranges over gmeow:Agent. Replaces stale gufo:Kind/Relator assertions." .
 # test append
 
-# --- 41. Criterion and CriterionPole are InformationObjects with named poles (MUST)
+# --- 41. CriterionPole is an InformationObject with named poles (MUST) --------
+# gmeow:Criterion's own subclass-of-InformationObject invariant is core-owned
+# by observations (checked there); this cell pins the norms-resident
+# gmeow:CriterionPole and the reward/penalty pole properties that range over it.
 ex:saCriterionCarriesNamedPoles a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -465,12 +447,11 @@ ex:saCriterionCarriesNamedPoles a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Criterion rdfs:subClassOf gmeow:InformationObject .
     gmeow:CriterionPole rdfs:subClassOf gmeow:InformationObject .
     gmeow:rewardPole rdfs:range gmeow:CriterionPole .
     gmeow:penaltyPole rdfs:range gmeow:CriterionPole .
 }""" ;
-    gmeow:saRationale "gmeow:Criterion and gmeow:CriterionPole MUST be subclasses of gmeow:InformationObject, and gmeow:rewardPole / gmeow:penaltyPole MUST range over gmeow:CriterionPole." .
+    gmeow:saRationale "gmeow:CriterionPole MUST be a subclass of gmeow:InformationObject, and gmeow:rewardPole / gmeow:penaltyPole MUST range over it — the named-poles contract on the core observations gmeow:Criterion." .
 
 # --- 42. exemplarSubject is an open, optional ObjectProperty (MUST / MUST-NOT)
 ex:saExemplarSubjectIsOpenAndOptional a gmeow:StructuralAssertion ;
@@ -487,7 +468,12 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:exemplarSubject MUST be an owl:ObjectProperty with no rdfs:range and MUST NOT be functional, so entity-pattern exemplars stay open and may coexist with selector-pinned exemplars." .
 
-# --- 43. Assessment is a vantage-indexed observation (MUST / MUST-NOT)
+# --- 43. Assessment's norms-resident facets: target, score, anchor/exemplar (MUST / MUST-NOT)
+# gmeow:Assessment itself (subclass of Observation) and gmeow:assessmentCriterion /
+# gmeow:assessmentRubric (not subproperties of observationMethod) are core-owned
+# by observations and checked there; this cell pins the norms-resident
+# gmeow:assessmentTarget, gmeow:assessmentScoreValue, gmeow:anchorMeaning, and
+# gmeow:exemplarRationale facets.
 ex:saAssessmentIsVantageIndexedObservation a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -496,15 +482,12 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
-    gmeow:Assessment rdfs:subClassOf gmeow:Observation .
     gmeow:assessmentTarget rdfs:subPropertyOf gmeow:observedFeature .
-    FILTER NOT EXISTS { gmeow:assessmentCriterion rdfs:subPropertyOf gmeow:observationMethod }
-    FILTER NOT EXISTS { gmeow:assessmentRubric rdfs:subPropertyOf gmeow:observationMethod }
     FILTER NOT EXISTS { ?rec logic:characterizes gmeow:anchorMeaning ; logic:characteristicSort logic:functionalProperty }
     FILTER NOT EXISTS { ?rec2 logic:characterizes gmeow:exemplarRationale ; logic:characteristicSort logic:functionalProperty }
     gmeow:assessmentScoreValue a owl:DatatypeProperty .
 }""" ;
-    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:assessmentCriterion / gmeow:assessmentRubric MUST NOT be subproperties of gmeow:observationMethod, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property." .
+    gmeow:saRationale "gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property — the norms-resident facets of the core observations gmeow:Assessment." .
 
 # --- 44. Persona expression machinery is open and plural (MUST / MUST-NOT)
 ex:saExpressionMachineryIsOpenAndPlural a gmeow:StructuralAssertion ;

@@ -7,19 +7,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-gmeow:Assessment
-    a logic:SubKind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Assessment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ;
-    skos:definition "An observation that scores a target against a criterion (or whole rubric) — vantage = the judge, human or model: an LLM judge is just a vantage, and two models disagreeing are two coexisting cells with no winner (Principle 9). The judge model's identity and prompt digest travel as observation provenance. gmeow:assessmentCriterion / gmeow:assessmentRubric play the observationMethod ROLE but are deliberately not subproperties of it (observationMethod is functional with a QualityValue range; Criterion and Rubric are Entities — the claimModality axiom pattern). Scoring-density expectations by target granularity reuse kernel gmeow:hasGranularity on the target."@x-gmeow-english ;
-    skos:example "ex:as1 a gmeow:Assessment ; gmeow:assessmentTarget ex:chapter3 ; gmeow:assessmentCriterion ex:agency ; gmeow:assessmentScoreValue 0.9 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating a model's score as ground truth (an LLM judge is just a vantage — Principle 9) and avoid omitting a zero score; a zero is a score, not an absence (false positives are worse than zeros)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one Assessment per criterion (a 21-axis pass is 21 Assessments), naming the target with gmeow:assessmentTarget, the criterion/rubric with gmeow:assessmentCriterion / gmeow:assessmentRubric, the score with gmeow:assessmentScoreValue, and the judge as observation vantage."@x-gmeow-english ;
-    gmeow:useWhen "Use for a score of a target against a criterion or rubric — an observation whose vantage is the judge, human or model; disagreeing judges are coexisting cells with no winner."@x-gmeow-english .
-
 gmeow:AuthorityLevel
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -45,19 +32,6 @@ gmeow:ComplianceAssessment
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the assessment, name the event with gmeow:assessedEvent, the norm with gmeow:assessedNorm, the verdict with gmeow:complianceVerdict, and carry the assessor as the observation vantage."@x-gmeow-english ;
     gmeow:useWhen "Use the reified form when who-judged, on-what-evidence, or how-confidently an event complied or violated must be first-class."@x-gmeow-english .
-
-gmeow:Condition
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Condition"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A describable circumstance — the trigger of a conditional norm, the activation context of a persona, the antecedent of a causal link (risk design). The canonical form is PROSE (gmeow:conditionText, mandatory by SHACL); machine formalizations attach via gmeow:formalizedAs, and each formalization is a claim of equivalence to the prose, challengeable through the statement layer. Whether the condition held at some moment is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. The ontology stores conditions; it never executes them (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:c1 a gmeow:Condition ; gmeow:conditionText \"the data subject has requested erasure\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid executing or evaluating a condition during validation (the ontology stores conditions, never runs them — Principle 12) and avoid treating an attached formalization as the canonical form; the prose is canonical."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the condition with mandatory gmeow:conditionText prose, attach machine formalizations via gmeow:formalizedAs (each a challengeable equivalence claim), and record whether it held as a gmeow:ConditionEvaluation."@x-gmeow-english ;
-    gmeow:useWhen "Use for a describable circumstance — a norm's trigger, a persona's activation context, a causal antecedent — whose canonical form is prose and whose holding is observed, never entailed."@x-gmeow-english .
 
 gmeow:ConditionEvaluation
     a logic:SubKind ,
@@ -111,19 +85,6 @@ gmeow:ConditionParameter
     gmeow:howToUse "Mint the parameter with gmeow:parameterName and exactly one of gmeow:parameterValue / gmeow:parameterEntity, then attach it to the condition via gmeow:conditionParameter."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a named slot of a condition template so one Condition can serve many norms with different values — 'threshold = 0.8', 'jurisdiction = Canada'."@x-gmeow-english .
 
-gmeow:Criterion
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Criterion"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "One evaluative axis of a rubric — what is being judged, with NAMED poles: a reward pole and a penalty pole that are small information objects with their own labels and definitions ('Power from the Bottom' vs 'Passive Victimhood'), not just numeric extremes. Anchors (gmeow:hasScoreAnchor) pin score ranges to meanings and exemplars."@x-gmeow-english ;
-    skos:example "ex:agency a gmeow:Criterion ; gmeow:rewardPole ex:powerFromBottom ; gmeow:penaltyPole ex:passiveVictimhood ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reducing poles to bare numeric extremes (poles are named information objects) and avoid using a criterion outside a rubric — attach it via gmeow:hasCriterion."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the criterion, give it mandatory distinct gmeow:rewardPole / gmeow:penaltyPole, pin score ranges with gmeow:hasScoreAnchor, classify it with gmeow:criterionDomain, and optionally override the rubric scale with gmeow:usesScale."@x-gmeow-english ;
-    gmeow:useWhen "Use for one evaluative axis of a rubric — what is being judged, with named reward and penalty poles and calibration anchors."@x-gmeow-english .
-
 gmeow:CriterionDomain
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -163,19 +124,6 @@ gmeow:DeonticModality
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Reference the seeded modality individuals from a norm; extend the axis for supererogation, exemption, or other forces by minting a fresh gmeow:DeonticModality individual rather than a subclass."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for the deontic-force axis — the seeded forces (obligation, prohibition, permission, recommendation) a norm declares via gmeow:deonticModality."@x-gmeow-english .
-
-gmeow:EvaluationVerdict
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Evaluation Verdict"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The outcome of a condition evaluation — held, not held, or undetermined. A closed three-member value vocabulary. Semantically the observationResult of a ConditionEvaluation, but not declared rdfs:subPropertyOf-reachable because QualityValues are disjoint from Entities in the DL profile (the claimModality precedent, standpoint module)."@x-gmeow-english ;
-    skos:example "ex:ev1 gmeow:evaluationVerdict gmeow:verdictUndetermined ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting a fourth verdict (the trichotomy is closed) and avoid modelling it as an observationResult subproperty — QualityValue is disjoint from Entity (the claimModality pattern)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Reference one of the three seeded verdict individuals from an evaluation or compliance assessment; undetermined is a first-class outcome, not an absence."@x-gmeow-english ;
-    gmeow:useWhen "Use as the closed value vocabulary for evaluation outcomes — held, not held, undetermined — reused by both gmeow:evaluationVerdict and gmeow:complianceVerdict."@x-gmeow-english .
 
 gmeow:Exemplar
     a logic:SubKind ,
@@ -285,19 +233,15 @@ gmeow:PrecedenceTenure
     gmeow:howToUse "Mint the tenure, name the prevailing and yielding norms with gmeow:precedenceHigher/precedenceLower, scope it with gmeow:precedenceScope, and carry its interval via the inherited gmeow:duringInterval."@x-gmeow-english ;
     gmeow:useWhen "Use the reified form when the precedence held over an interval — its adoption, revision, or withdrawal — is itself the fact of interest, e.g. 'Tier 2 overrode X until v3.5'."@x-gmeow-english .
 
-gmeow:Rubric
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Rubric"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Norm ,
-        gmeow:SocialObject ;
-    skos:definition "A norm for judging — a reified evaluation framework whose criteria, poles, scales, and anchors are first-class content. Being a Norm, a rubric names its issuer (no anonymous evaluation standards), may be overridden, and carries authority within its issuing system. Applying a rubric is solver work; the results come back as vantage-indexed Assessments (Principle 12). Member criteria attach via gmeow:hasCriterion (⊑ gmeow:hasPart)."@x-gmeow-english ;
-    skos:example "ex:voiceRubric a gmeow:Rubric ; gmeow:systemIssuer ex:editorial ; gmeow:hasCriterion ex:agency ; gmeow:usesScale ex:zeroToOne ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid baking the scoring function into triples (applying a rubric is permanently solver work — Principle 12; results return as Assessments) and avoid an anonymous rubric (being a Norm, it must name its issuer)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the rubric, name its issuer, attach criteria with gmeow:hasCriterion, set a default scale with gmeow:usesScale; applying it yields vantage-indexed gmeow:Assessment cells, never asserted scores."@x-gmeow-english ;
-    gmeow:useWhen "Use for a reified evaluation framework — a norm for judging whose criteria, poles, scales, and anchors are first-class content, issued and overridable like any norm."@x-gmeow-english .
+# gmeow:Rubric is now core-owned by the observations slice (its full definition
+# lives there); this bridge axiom is the one triple that MUST stay physically
+# authored here, because it couples the core term to the norms-domain
+# gmeow:Norm class — an observations->norms edge would be forbidden, but this
+# norms->observations edge (Rubric is legally reused, ext depending on core) is
+# not. Being a Norm, a rubric names its issuer (no anonymous evaluation
+# standards), may be overridden, and carries authority within its issuing
+# system (Principle 16).
+gmeow:Rubric rdfs:subClassOf gmeow:Norm .
 
 gmeow:Rule
     rdfs:subClassOf gmeow:Norm .
@@ -430,32 +374,6 @@ gmeow:assessedNorm
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:assessedNorm once from the assessment to its gmeow:Norm, paired with gmeow:assessedEvent and gmeow:complianceVerdict."@x-gmeow-english ;
     gmeow:useWhen "Use on a ComplianceAssessment to name the single norm against which the event is judged."@x-gmeow-english .
-
-gmeow:assessmentCriterion
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment criterion"@x-gmeow-english ;
-    rdfs:range gmeow:Criterion ;
-    skos:definition "The criterion applied. Functional: a 21-axis scoring pass is 21 Assessments (zeros included — a zero is a score, not an absence). Plays the observationMethod role without the subproperty axiom (claimModality pattern). An assessment names a criterion or a rubric, or both (SHACL)."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentCriterion ex:agency ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one criterion per assessment (it is functional — split a multi-axis pass into one Assessment per axis) and avoid omitting both criterion and rubric (at least one is required — SHACL)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentCriterion once per assessment; it plays the observationMethod role without the subproperty axiom (claimModality pattern). Pair with gmeow:assessmentRubric for version context."@x-gmeow-english ;
-    gmeow:useWhen "Use on an Assessment to name the single criterion applied — one Assessment per criterion, zeros included."@x-gmeow-english .
-
-gmeow:assessmentRubric
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment rubric"@x-gmeow-english ;
-    rdfs:range gmeow:Rubric ;
-    skos:definition "The rubric under which this assessment was made — version-pinning context for the score. Functional. Plays the observationMethod role without the subproperty axiom (claimModality pattern)."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentRubric ex:voiceRubric ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one rubric per assessment (it is functional) and avoid omitting both rubric and criterion (at least one is required — SHACL)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentRubric once per assessment; it plays the observationMethod role without the subproperty axiom, pinning the rubric version the score belongs to."@x-gmeow-english ;
-    gmeow:useWhen "Use on an Assessment to name the rubric under which it was made — version-pinning context for the score."@x-gmeow-english .
 
 gmeow:assessmentScoreValue
     a owl:DatatypeProperty ;
@@ -1277,27 +1195,6 @@ gmeow:usesScale
     gmeow:howToUse "Assert gmeow:usesScale once from the rubric or criterion to a gmeow:ScoreScale; a criterion-level scale overrides the rubric default."@x-gmeow-english ;
     gmeow:useWhen "Use to name the score scale a rubric (as default) or a criterion (as override) uses."@x-gmeow-english .
 
-gmeow:verdictHeld
-    a gmeow:EvaluationVerdict ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "held"@x-gmeow-english ;
-    skos:definition "The evaluator found the condition to hold."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:verdictNotHeld
-    a gmeow:EvaluationVerdict ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "not held"@x-gmeow-english ;
-    skos:definition "The evaluator found the condition not to hold."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:verdictUndetermined
-    a gmeow:EvaluationVerdict ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "undetermined"@x-gmeow-english ;
-    skos:definition "The evaluator could not determine whether the condition held."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
 # The generated best-practice recommendation catalog: the gmeow:NormativeSystem that
 # gathers every gmeow:deonticRecommendation gmeow:Rule the validator materialises from an
 # advisory finding (each recommendation norm attaches via gmeow:partOf). Issued by the
@@ -1368,6 +1265,10 @@ gmeow:Persona rdfs:subClassOf
 gmeow:StyleGuide rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:styleGuideFor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+# gmeow:Assessment is core-owned (observations); this cardinality-restriction axiom stays
+# authored here because two of its restricted properties — gmeow:assessmentTarget and
+# gmeow:assessmentScoreValue — remain norms-domain properties (a norms->observations edge
+# on the Assessment subject, legal; an observations->norms edge would not be).
 gmeow:Assessment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:assessmentTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:assessmentScoreValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
@@ -1487,6 +1388,10 @@ gmeow:ConditionGroup rdfs:subClassOf
 gmeow:ConditionParameter rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:parameterName ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+# gmeow:Criterion is core-owned (observations); this restriction axiom stays authored
+# here because both restricted properties (gmeow:rewardPole, gmeow:penaltyPole) range
+# over the norms-domain gmeow:CriterionPole (a norms->observations edge on the
+# Criterion subject, legal; an observations->norms edge would not be).
 gmeow:Criterion rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:rewardPole ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CriterionPole ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:penaltyPole ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CriterionPole ] .

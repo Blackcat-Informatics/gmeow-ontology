@@ -204,12 +204,12 @@ gmeow:acceptsPaymentMethod
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "accepts payment method"@x-gmeow-english ;
     rdfs:range gmeow:PaymentMethod ;
-    skos:definition "Relates an organization to a payment method it accepts — reusing the finance-slice gmeow:PaymentMethod individuals (cash, credit card, bank transfer, cryptocurrency, …). Non-functional: a business may accept several. Projects to schema:paymentAccepted (the method's label)."@x-gmeow-english ;
+    skos:definition "Relates an organization to a payment method it accepts — reusing the accounts-slice gmeow:PaymentMethod individuals (cash, credit card, bank transfer, cryptocurrency, …). Non-functional: a business may accept several. Projects to schema:paymentAccepted (the method's label)."@x-gmeow-english ;
     skos:example "ex:acme gmeow:acceptsPaymentMethod gmeow:paymentMethodCreditCard ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a free-text method string (reuse the gmeow:PaymentMethod vocabulary) and avoid conflating accepted methods with accepted currencies (that is gmeow:acceptsCurrency)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more gmeow:acceptsPaymentMethod triples to the organization referencing gmeow:PaymentMethod individuals; the schema:paymentAccepted projection reads each method's label."@x-gmeow-english ;
-    gmeow:useWhen "Use to record which payment methods a business accepts, referencing the finance-slice gmeow:PaymentMethod value individuals (cash, credit card, bank transfer, cryptocurrency)."@x-gmeow-english .
+    gmeow:useWhen "Use to record which payment methods a business accepts, referencing the accounts-slice gmeow:PaymentMethod value individuals (cash, credit card, bank transfer, cryptocurrency)."@x-gmeow-english .
 
 gmeow:alumniOf
     a owl:ObjectProperty ;

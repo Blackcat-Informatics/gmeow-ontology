@@ -16,4 +16,4 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
-    gmeow:sliceConsumer "Online accounts for the mail corpus, email delivery, and finance."@x-gmeow-english .
+    gmeow:sliceConsumer "Online accounts for the mail corpus, email delivery, and finance; the PaymentMethod value vocabulary for finance and organization."@x-gmeow-english .
