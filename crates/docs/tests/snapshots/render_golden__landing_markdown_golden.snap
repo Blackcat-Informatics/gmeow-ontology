@@ -4,9 +4,9 @@ expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
-Version **16**.
+Version **17**.
 
-This site documents **6479** vocabulary terms across **85** slices.
+This site documents **6483** vocabulary terms across **85** slices.
 
 ## I want to…
 
@@ -27,8 +27,8 @@ This site documents **6479** vocabulary terms across **85** slices.
 
 | Category | Terms |
 | --- | --- |
-| [Classes](classes/index.md) | 1809 |
-| [Properties](properties/index.md) | 3086 |
+| [Classes](classes/index.md) | 1810 |
+| [Properties](properties/index.md) | 3089 |
 | [Individuals](individuals/index.md) | 1583 |
 | [Datatypes](datatypes/index.md) | 1 |
 
