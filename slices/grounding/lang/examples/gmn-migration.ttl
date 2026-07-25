@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# A worked GMN version migration: the executor-facing demonstrator for
+# gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo and the gmeow:GmnMigrationRewrite
+# leg it aggregates. Only ONE GMN dialect major ships today, so this scene
+# authors a SYNTHETIC source→target pair (ex:gmnDialectVSrc owl:versionInfo "1"
+# → ex:gmnDialectVTgt owl:versionInfo "2") carrying a GENUINE schema delta, so
+# the migration executor's preservation judgment is exercised non-trivially and
+# not as a v1→v1 identity.
+#
+# The crossing is a judged logic:Correspondence — a section/retraction with
+# exact preservation and a retained mnemomorphic witness, NEVER a boolean flag.
+# It carries two operator-grain rewrites:
+#
+#   1. A glyph RENAME *and* a precedence CHANGE of the real logic:not operator:
+#      module.ttl denotes logic:not as ¬ at gmeow:gmnPrecedence 90; the target
+#      major re-spells it ! and re-binds it at 80. The version-STABLE anchor is
+#      the denoted term logic:not (gmeow:gmnRewriteTerm), not either glyph.
+#
+#   2. A BRIDGED DROP: ex:gmnLegacyXorOp is a source-only operator the target
+#      major removes from its native inventory. Because the migration authors a
+#      covering rewrite (⊻ → ^), the executor re-surfaces it instead of hard-
+#      failing — a dropped operator with NO covering rewrite is the
+#      lang:GmnUnbridgedGlyphDrop HARD FAIL the executor refuses to apply.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/> .
+
+# --- The two synthetic dialect majors of the migration lineage -------------- #
+
+ex:gmnDialectVSrc
+    a gmeow:InformationObject ;
+    rdfs:label "synthetic GMN dialect major 1 (migration source)"@x-gmeow-english ;
+    owl:versionInfo "1" .
+
+ex:gmnDialectVTgt
+    a gmeow:InformationObject ;
+    rdfs:label "synthetic GMN dialect major 2 (migration target)"@x-gmeow-english ;
+    owl:versionInfo "2" ;
+    # The target major's NATIVE operator inventory, authored graph-natively with
+    # gmeow:gmnVersionDefinesOperator so the migrate executor derives target_inventory
+    # from the graph, never a Rust constant. logic:subClassOf is a NATIVE SURVIVOR the
+    # target keeps unchanged: it carries NO rewrite, so its membership here is precisely
+    # what lets it survive the crossing rather than drop. logic:not needs no entry (its
+    # rewrite bridges it, so membership is never consulted). Any operator absent here with
+    # no covering rewrite (e.g. math:pi) is the lang:GmnUnbridgedGlyphDrop hard fail the
+    # executor refuses to silently apply.
+    gmeow:gmnVersionDefinesOperator logic:subClassOf .
+
+# --- The judged version-migration crossing ---------------------------------- #
+# A section/retraction with exact preservation and a mnemomorphic witness: the
+# migration re-expresses every source operator in the target major with no loss,
+# exactly because every surface delta is bridged by an authored rewrite.
+
+ex:gmnMigrationVSrcToVTgt
+    a logic:Correspondence ;
+    rdfs:label "synthetic GMN v1 → v2 migration"@x-gmeow-english ;
+    gmeow:gmnMigratesFrom ex:gmnDialectVSrc ;
+    gmeow:gmnMigratesTo ex:gmnDialectVTgt ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true ;
+    gmeow:gmnMigrationRewrite ex:gmnRewriteNotBang , ex:gmnRewriteXorCaret .
+
+# Rewrite 1: rename ¬ → ! AND re-bind precedence 90 → 80, anchored on logic:not.
+ex:gmnRewriteNotBang
+    a gmeow:GmnMigrationRewrite ;
+    rdfs:label "logic:not ¬→! rename + 90→80 precedence change"@x-gmeow-english ;
+    gmeow:gmnRewriteTerm logic:not ;
+    gmeow:gmnRewriteFromGlyph "¬" ;
+    gmeow:gmnRewriteToGlyph "!" ;
+    gmeow:gmnRewriteFromPrecedence 90 ;
+    gmeow:gmnRewriteToPrecedence 80 .
+
+# Rewrite 2: a source-only operator the target native inventory drops, BRIDGED
+# by re-surfacing it under a new glyph ⊻ → ^ so the crossing stays lossless.
+ex:gmnLegacyXorOp
+    a gmeow:InformationObject ;
+    rdfs:label "synthetic source-only exclusive-or operator"@x-gmeow-english .
+
+ex:gmnRewriteXorCaret
+    a gmeow:GmnMigrationRewrite ;
+    rdfs:label "bridged drop: ⊻→^ for the retired xor operator"@x-gmeow-english ;
+    gmeow:gmnRewriteTerm ex:gmnLegacyXorOp ;
+    gmeow:gmnRewriteFromGlyph "⊻" ;
+    gmeow:gmnRewriteToGlyph "^" .

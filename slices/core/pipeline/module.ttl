@@ -531,6 +531,7 @@ gmeow:pipeline-build
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
+        gmeow:stage-gmn-training-corpus ,
         gmeow:stage-slice-brief ,
         gmeow:stage-reason ,
         gmeow:stage-goal-directed ,
@@ -624,6 +625,18 @@ gmeow:stage-math-producers
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "math_producers" .
+
+gmeow:stage-gmn-training-corpus
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "gmn-training-corpus"@x-gmeow-english ;
+    skos:definition "Emit the rejection-sampled, proof-carrying GMN training corpus (req #21/#20): a productive functor over the carrier's glyph signature that DETERMINISTICALLY enumerates well-typed GMN terms up to a bounded depth over the binary operator forms (resolve_operator_forms) applied to a small typed constant base, then REJECTION-SAMPLES each candidate through five deterministic verifiers — (1) it parses via gmn1_read, (2) round-trips via gmn0_canonically_equal, (3) typechecks under the logic-compile IR + native order-sorted backward prover, (4) discharges a Curry–Howard proof obligation, and (5) carries no security-ring leakage (the Task 9 consume-path filter). Each KEPT candidate is folded as a gmeow:GmnTrainingExample carrying task/input/target, the five verdicts, the discharged proof-obligation derivation IRI, and its gmnSchemaVersion provenance; each REJECTED candidate is recorded (never silently dropped) as a gmeow:GmnRejectedCandidate carrying its typed lang: failure class. It consumes gmeow:stage-compile-logic (the typechecker/prover lane) and gmeow:stage-mappings (the projected GMN forms / glyph registry lane), and attaches the corpus as the bundle-internal graph/gmn-training-corpus (folded into gmeow.gts by gmeow:stage-snapshot). Corpus GENERATION only — it never trains a model."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "gmn-training-corpus" ;
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ,
+        gmeow:stage-mappings .
 
 gmeow:stage-slice-brief
     a gmeow:PipelineStage ;
@@ -772,6 +785,7 @@ gmeow:stage-snapshot
         gmeow:stage-export-profiles ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-skos-surface ,
+        gmeow:stage-gmn-training-corpus ,
         gmeow:stage-goal-directed ,
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
@@ -1176,6 +1190,10 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
+
+gmeow:stage-gmn-training-corpus
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/gmn-training-corpus> .
 
 gmeow:stage-slice-brief
     gmeow:attachesGraph
@@ -1745,20 +1763,25 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/projections/lang/ebnf/gmn.ebnf",
     "generated/projections/lang/ebnf/gts.ebnf",
     "generated/projections/lang/ebnf/turtle.ebnf",
-    "generated/projections/lang/gmn1/conformance-pack.ttl",
-    "generated/projections/lang/gmn1/expression-rendering.gmn",
-    "generated/projections/lang/gmn1/flagship-acceptance.gmn",
-    "generated/projections/lang/gmn1/forms-and-sign-systems.gmn",
-    "generated/projections/lang/gmn1/gmn-dialect.gmn",
-    "generated/projections/lang/gmn1/gmn-grounding-glyphs.gmn",
-    "generated/projections/lang/gmn1/inscription-reading.gmn",
-    "generated/projections/lang/gmn1/multilingual-document.gmn",
-    "generated/projections/lang/gmn1/notation-systems.gmn",
-    "generated/projections/lang/gmn1/person-names.gmn",
-    "generated/projections/lang/gmn1/proficiency.gmn",
-    "generated/projections/lang/gmn1/pvalue-tri-slice.gmn",
-    "generated/projections/lang/gmn1/pydantic-projection-profile.gmn",
-    "generated/projections/lang/gmn1/word-etymology.gmn",
+    "generated/projections/lang/gmn1/v1/authority-links.gmn",
+    "generated/projections/lang/gmn1/v1/conformance-pack.ttl",
+    "generated/projections/lang/gmn1/v1/expression-rendering.gmn",
+    "generated/projections/lang/gmn1/v1/flagship-acceptance.gmn",
+    "generated/projections/lang/gmn1/v1/forms-and-sign-systems.gmn",
+    "generated/projections/lang/gmn1/v1/gbnf/gmn.gbnf",
+    "generated/projections/lang/gmn1/v1/gmn-dialect.gmn",
+    "generated/projections/lang/gmn1/v1/gmn-grounding-glyphs.gmn",
+    "generated/projections/lang/gmn1/v1/inscription-reading.gmn",
+    "generated/projections/lang/gmn1/v1/lark/gmn.lark",
+    "generated/projections/lang/gmn1/v1/multilingual-document.gmn",
+    "generated/projections/lang/gmn1/v1/notation-systems.gmn",
+    "generated/projections/lang/gmn1/v1/person-names.gmn",
+    "generated/projections/lang/gmn1/v1/proficiency.gmn",
+    "generated/projections/lang/gmn1/v1/pvalue-tri-slice.gmn",
+    "generated/projections/lang/gmn1/v1/pydantic-projection-profile.gmn",
+    "generated/projections/lang/gmn1/v1/token-metrics.ttl",
+    "generated/projections/lang/gmn1/v1/verbalizations.ttl",
+    "generated/projections/lang/gmn1/v1/word-etymology.gmn",
     "generated/projections/lang/nif/forms-and-sign-systems.sentAnchor.anno.jsonld",
     "generated/projections/lang/nif/forms-and-sign-systems.sentAnchor.nif.nt",
     "generated/projections/lang/ontolex-lemon/forms-and-sign-systems.ttl",

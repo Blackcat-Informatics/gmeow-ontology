@@ -256,3 +256,26 @@ After any change, run `make sync` or the registered generator in check mode; the
 compiler runs the cross-layer invariants on its own output and refuses to emit on
 violation. Never hand-edit generated mapping artifacts under `generated/mappings/`,
 `generated/projections/`, or `generated/queries/` — `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` fails on drift.
+
+## GMN-1 — the token-compact model notation projection
+
+Alongside the vocabulary downcasts above, the `lang:` grounding slice projects
+**GMN-1** (Grounded Model Notation), a token-compact serialization of the model
+authored for LLM producers and constrained decoding. Like every projection it is a
+lossy, directional **view of `gmeow.gts`** — graph-derived, never hand-authored —
+and it is version-keyed by the graph-resolved dialect major under
+`generated/projections/lang/gmn1/v<major>/**` (see
+[the pipeline spine § 6.1](./PIPELINE_SPINE.md)). The ecosystem projects to:
+
+| Layer | Expresses | Generated artifact |
+|---|---|---|
+| **EBNF / ABNF grammar** | the reference GMN grammar, per formalism | `generated/projections/lang/ebnf/gmn.ebnf`, `generated/projections/lang/abnf/gmn.abnf` |
+| **GBNF / Lark grammar** | the same graph-derived grammar as a real **constrained-decode** artifact | `generated/projections/lang/gmn1/v*/gbnf/gmn.gbnf`, `.../v*/lark/gmn.lark` |
+| **token-metrics** | a math-grounded `gmeow:Measurement` 7-vector (byte-fallback compression gate) | `generated/projections/lang/gmn1/v*/token-metrics.ttl` |
+| **verbalizations** | GMN↔controlled-NL `lang:translationCorrespondence` pairs | `generated/projections/lang/gmn1/v*/verbalizations.ttl` |
+| **primer card** | a ~500-token teachability card | folded into `llms.txt` / `llms-full.txt` + MCP `gmeow://ontology/gmn1-primer` |
+| **training corpus** | a rejection-sampled, proof-carrying corpus (`stage-gmn-training-corpus`) | bundle-internal graph `graph/gmn-training-corpus` |
+
+The verifier surface (`gmn_validate` / `gmn_expand` / `gmn_explain`) is documented in
+[the MCP server guide](./mcp-server.md). Never hand-edit these artifacts — they
+regenerate from the bundle and are drift-gated exactly like the mapping projections above.

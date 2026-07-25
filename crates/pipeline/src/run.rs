@@ -208,6 +208,17 @@ pub fn full_spec() -> PipelineSpec {
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
+        // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
+        // #21/#20). A productive functor over the glyph signature: it consumes
+        // stage-compile-logic (the typechecker/prover lane) and stage-mappings (the projected
+        // GMN forms / glyph registry lane), enumerates well-typed GMN terms, rejection-samples
+        // each through five verifiers, and attaches the certified corpus (+ typed rejections)
+        // as graph/gmn-training-corpus (folded into gmeow.gts by stage-snapshot).
+        st(
+            "stage-gmn-training-corpus",
+            "gmn-training-corpus",
+            &["stage-compile-logic", "stage-mappings"],
+        ),
         // Compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and attach
         // the union as graph/authoring-briefs (folded into gmeow.gts by stage-snapshot).
         // It reads the authored slice sources directly, but consumes the four
@@ -350,6 +361,9 @@ pub fn full_spec() -> PipelineSpec {
                 // The generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl),
                 // folded as its own graph/fanout/skos named graph.
                 "stage-export-skos-surface",
+                // The certified GMN training corpus (graph/gmn-training-corpus), folded into
+                // gmeow.gts (bundle-internal, dual carriage exactly like graph/goal-directed).
+                "stage-gmn-training-corpus",
                 // The proof-carrying backward engine's checked answers + proof derivations,
                 // folded into graph/goal-directed of gmeow.gts.
                 "stage-goal-directed",
@@ -1297,12 +1311,13 @@ fn reconcile_gmn1_digest_gates(
 
     let pack_report = crate::stages::gmn1_gate::check_gmn1_pack_root(root)?;
     if !pack_report.is_clean() {
-        let focus = "generated/projections/lang/gmn1/conformance-pack.ttl";
-        drifted.push(focus.to_string());
+        // The finding focus is the version-keyed pack path the check resolved (gmn1/v<major>/…).
+        let focus = pack_report.pack_rel.clone();
+        drifted.push(focus.clone());
         attach_pipeline_finding(
             ledger,
             CODE_GMN1_PACK_ROOT_MISMATCH,
-            focus,
+            &focus,
             format!(
                 "conformance pack declares gmeow:gmnPackRoot {:?} but its parts recompute to {}",
                 pack_report.declared_root, pack_report.recomputed_root
