@@ -15172,7 +15172,7 @@ logic:ContinuationRevise
     a owl:NamedIndividual ,
         logic:ContinuationKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "revise"@x-gmeow-english ;
+    rdfs:label "revise the prescription"@x-gmeow-english ;
     skos:definition "Minting a NEW logic:PrescriptionVersion that supersedes its predecessor, because the prescription itself was wrong or has changed. In-flight enactments keep the version they pinned at start. Distinguished from resume and repeat, both of which leave the prescription untouched."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -15180,7 +15180,7 @@ logic:continuationKind
     a owl:ObjectProperty ;
     rdfs:range logic:ContinuationKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "continuation kind"@x-gmeow-english ;
+    rdfs:label "has continuation kind"@x-gmeow-english ;
     skos:definition "Relates a continuation record to the exactly-one logic:ContinuationKind it is. Domain a continuation record (stated in prose). Functional: a record carrying two kinds is the conflation the disjointness constraint rejects."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -15249,7 +15249,7 @@ logic:prescriptionKind
     rdfs:domain logic:Plan ;
     rdfs:range logic:PrescriptionKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "prescription kind"@x-gmeow-english ;
+    rdfs:label "has prescription kind"@x-gmeow-english ;
     skos:definition "Relates a logic:Plan to a logic:PrescriptionKind classifying its genre. Non-functional: a plan may be both a data pipeline and an ingestion, and the co-application is meaningful rather than a modelling error."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -15419,7 +15419,7 @@ logic:enactmentState
     rdfs:domain logic:Enactment ;
     rdfs:range logic:EnactmentState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "enactment state"@x-gmeow-english ;
+    rdfs:label "has enactment state"@x-gmeow-english ;
     skos:definition "Relates a logic:Enactment to its exactly-one lifecycle position on axis one. Carrying a value from any other axis here is the conflation the non-conflation constraint rejects."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -15488,7 +15488,7 @@ logic:stepState
     a owl:ObjectProperty ;
     rdfs:range logic:StepState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "step state"@x-gmeow-english ;
+    rdfs:label "has step state"@x-gmeow-english ;
     skos:definition "Relates a step occurrence within an enactment to its exactly-one position on axis two. Domain a step occurrence (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -15557,7 +15557,7 @@ logic:approvalState
     a owl:ObjectProperty ;
     rdfs:range logic:ApprovalState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "approval state"@x-gmeow-english ;
+    rdfs:label "has approval state"@x-gmeow-english ;
     skos:definition "Relates an authorization record to its exactly-one position on axis three. Domain an authorization record (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -15626,7 +15626,7 @@ logic:effectProtocolPosition
     a owl:ObjectProperty ;
     rdfs:range logic:EffectProtocolPosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "effect protocol position"@x-gmeow-english ;
+    rdfs:label "has effect protocol position"@x-gmeow-english ;
     skos:definition "Relates an external-effect exchange record to its exactly-one position on axis four. Domain an effect exchange record (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -15685,7 +15685,7 @@ logic:recurrenceState
     a owl:ObjectProperty ;
     rdfs:range logic:RecurrenceState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "recurrence state"@x-gmeow-english ;
+    rdfs:label "has recurrence state"@x-gmeow-english ;
     skos:definition "Relates a recurring prescription's schedule to its exactly-one position on the recurrence axis. Domain a schedule record (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -15947,7 +15947,7 @@ logic:rejectionKind
     rdfs:domain logic:RefinementRejection ;
     rdfs:range logic:RejectionKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "rejection kind"@x-gmeow-english ;
+    rdfs:label "has rejection kind"@x-gmeow-english ;
     skos:definition "Relates a logic:RefinementRejection to its exactly-one typed reason. Functional: a candidate blocked on two grounds yields two rejections, so each remedy is separately actionable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -16159,7 +16159,7 @@ logic:proposalBlockedStep
 logic:Advisory
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Advisory"@x-gmeow-english ;
+    rdfs:label "Model Advisory"@x-gmeow-english ;
     skos:definition "A model-generated decomposition, recommendation, summary or draft: attributed evidence that may inform a decision and may never constitute one. It is structurally barred from authorizing a pin, deciding an approval, or carrying a proof. Typed APART from logic:AdviceGuidance, which is authored usage prose attached to a TERM for a human author's benefit; an Advisory is generated content about a SITUATION, with a different subject, lifetime and consumer."@x-gmeow-english ;
     skos:example "ex:suggestedOcrPlan a logic:Advisory ; logic:advisoryAbout ex:ocrTask ."@x-gmeow-english ;
     gmeow:useWhen "Use for anything a model produced that a reader might otherwise mistake for a decision or a derivation."@x-gmeow-english ;
@@ -16211,7 +16211,7 @@ logic:searchFragment
     rdfs:domain logic:RefinementEpisode ;
     rdfs:range logic:SearchFragment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "search fragment"@x-gmeow-english ;
+    rdfs:label "has search fragment"@x-gmeow-english ;
     skos:definition "Relates a logic:RefinementEpisode to the decidable fragment its search ran within. Functional; an episode without one cannot claim a complete roster."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -16674,7 +16674,7 @@ logic:reconciliationVerdict
     rdfs:domain logic:ReconciliationResult ;
     rdfs:range logic:ReconciliationVerdict ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "reconciliation verdict"@x-gmeow-english ;
+    rdfs:label "has reconciliation verdict"@x-gmeow-english ;
     skos:definition "Relates a logic:ReconciliationResult to its exactly-one verdict. Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -16941,7 +16941,7 @@ logic:approvalBindingFault
     a owl:ObjectProperty ;
     rdfs:range logic:ApprovalBindingFault ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "approval binding fault"@x-gmeow-english ;
+    rdfs:label "has approval binding fault"@x-gmeow-english ;
     skos:definition "Relates a refusal record to the typed reason an authorization did not detach. Domain a refusal record (stated in prose). Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17387,7 +17387,7 @@ logic:FrontierCompensationFailedForwardCommitted a owl:NamedIndividual , logic:F
 
 logic:FrontierReconciliationImpossible a owl:NamedIndividual , logic:FrontierLabel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "reconciliation impossible"@x-gmeow-english ;
+    rdfs:label "reconciliation foreclosed"@x-gmeow-english ;
     skos:definition "The label DERIVED from the reconciliation-impossible class: no means of determining what happened remains. Distinct from reconciliation-required, where probing is still available; the next action here is escalation, not another probe."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -17439,7 +17439,7 @@ logic:skipReason
     rdfs:domain logic:FrontierEntry ;
     rdfs:range logic:SkipReason ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "skip reason"@x-gmeow-english ;
+    rdfs:label "has skip reason"@x-gmeow-english ;
     skos:definition "Relates a skipped logic:FrontierEntry to its typed reason. Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17484,7 +17484,7 @@ logic:OutcomeUnsupportedFragment a owl:NamedIndividual , logic:OperationOutcome 
 
 logic:OutcomeIncomplete a owl:NamedIndividual , logic:OperationOutcome ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "incomplete"@x-gmeow-english ;
+    rdfs:label "incomplete operation"@x-gmeow-english ;
     skos:definition "The operation was sound but did not finish, for a typed cause. Sound-but-partial: what it did derive is correct, and what it did not derive is unknown rather than false."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -17504,7 +17504,7 @@ logic:operationOutcome
     a owl:ObjectProperty ;
     rdfs:range logic:OperationOutcome ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "operation outcome"@x-gmeow-english ;
+    rdfs:label "has operation outcome"@x-gmeow-english ;
     skos:definition "Relates an operation record to its exactly-one outcome. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17549,7 +17549,7 @@ logic:incompleteCause
     a owl:ObjectProperty ;
     rdfs:range logic:IncompleteCause ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "incomplete cause"@x-gmeow-english ;
+    rdfs:label "has incomplete cause"@x-gmeow-english ;
     skos:definition "Relates an incomplete operation record to its typed cause. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17594,7 +17594,7 @@ logic:integrityFault
     a owl:ObjectProperty ;
     rdfs:range logic:IntegrityFault ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "integrity fault"@x-gmeow-english ;
+    rdfs:label "has integrity fault"@x-gmeow-english ;
     skos:definition "Relates an invalid operation record to its typed fault. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17633,7 +17633,7 @@ logic:rebuildReason
     a owl:ObjectProperty ;
     rdfs:range logic:RebuildReason ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "rebuild reason"@x-gmeow-english ;
+    rdfs:label "has rebuild reason"@x-gmeow-english ;
     skos:definition "Relates a requires-full-rebuild operation record to its typed reason. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17672,7 +17672,7 @@ logic:unsupportedCondition
     a owl:ObjectProperty ;
     rdfs:range logic:UnsupportedFragmentCondition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "unsupported condition"@x-gmeow-english ;
+    rdfs:label "has unsupported condition"@x-gmeow-english ;
     skos:definition "Relates an unsupported-fragment operation record to its typed condition. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

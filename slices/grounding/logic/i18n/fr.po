@@ -14,318 +14,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 
-msgctxt "https://blackcatinformatics.ca/logic/Rule|rdfs:label"
-msgid "Rule"
-msgstr "Règle"
-
-msgctxt "https://blackcatinformatics.ca/logic/Rule|skos:definition"
-msgid "A productive Horn or stratified-negation derivation whose logic:head is entailed when every positive logic:body atom holds, every logic:negatedBody atom is absent in its declared closure, and every guard succeeds. It is not a general logic:Formula or an integrity logic:Constraint: constructs outside the rule fragment remain formula trees and are carried as projection residue rather than approximated."
-msgstr "Une dérivation productive de Horn ou à négation stratifiée dont la logic:head est entraînée lorsque chaque atome positif de logic:body est satisfait, que chaque atome de logic:negatedBody est absent de sa clôture déclarée et que chaque garde réussit. Il ne s'agit ni d'une logic:Formula générale ni d'une logic:Constraint d'intégrité : les constructions extérieures au fragment des règles restent des arbres de formules et sont transportées comme résidus de projection plutôt qu'approximées."
-
-msgctxt "https://blackcatinformatics.ca/logic/Rule|skos:example"
-msgid "A rule can derive ex:ancestor(x,z) from ex:parent(x,y) and ex:ancestor(y,z), with its variables bound positively in the body."
-msgstr "Une règle peut dériver ex:ancestor(x,z) de ex:parent(x,y) et ex:ancestor(y,z), ses variables étant liées positivement dans le corps."
-
-msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:avoidWhen"
-msgid "Do not encode disjunction, strong negation, or an unstratified negative cycle as a Horn rule."
-msgstr "Ne pas encoder une disjonction, une négation forte ou un cycle négatif non stratifié sous forme de règle de Horn."
-
-msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:howToUse"
-msgid "Provide one head, the positive and optional stratified-negative body atoms, and any explicit guards or aggregate specification."
-msgstr "Fournir une tête, les atomes positifs du corps et les éventuels atomes négatifs stratifiés, ainsi que toute garde explicite ou spécification d'agrégat."
-
-msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:useWhen"
-msgid "Use for productive Horn, existential-rule, or stratified-negation derivations."
-msgstr "Utiliser pour les dérivations productives de Horn, à règles existentielles ou à négation stratifiée."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|rdfs:label"
-msgid "Term Carrier"
-msgstr "Porteur de terme"
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|skos:definition"
-msgid "An ordered slot in an atomic formula's logic:argument list or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker. It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."
-msgstr "Un emplacement ordonné dans la liste logic:argument d'une formule atomique ou dans le bloc logic:quantifiedVariable d'un quantificateur. Il porte exactement un logic:termIndex commençant à zéro et exactement un genre de valeur : logic:termIri, logic:termVariable, logic:termLiteral ou logic:termSequenceMarker. Ce n'est pas la valeur du terme elle-même, mais le nœud RDF qui conserve son genre et sa position indépendamment de l'ordre des triplets."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|skos:example"
-msgid "An atom's second argument can be represented by a carrier with logic:termIndex 1 and logic:termVariable 'object'."
-msgstr "Le deuxième argument d'un atome peut être représenté par un porteur ayant logic:termIndex 1 et logic:termVariable 'object'."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:avoidWhen"
-msgid "Do not place two value kinds on one carrier or infer its position from Turtle serialization order."
-msgstr "Ne pas placer deux genres de valeurs sur un même porteur ni déduire sa position de l'ordre de sérialisation Turtle."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:howToUse"
-msgid "Assign one contiguous zero-based index and one of the four exclusive term-value predicates."
-msgstr "Attribuer un indice contigu commençant à zéro et l'un des quatre prédicats exclusifs de valeur de terme."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:useWhen"
-msgid "Use for each ordered atom argument and each ordered quantifier binding."
-msgstr "Utiliser pour chaque argument atomique ordonné et chaque liaison ordonnée de quantificateur."
-
-msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|rdfs:label"
-msgid "Formula Constructor Constraint"
-msgstr "Contrainte de constructeur de formule"
-
-msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|skos:definition"
-msgid "Requires every logic:Formula to select exactly one constructor family: atomic relation, strong negation, conjunction, disjunction, material implication (keyed by logic:antecedent), biconditional, universal quantification, or existential quantification. It does not choose among serialized operands; it prevents one node from having two incompatible logical meanings."
-msgstr "Exige que chaque logic:Formula sélectionne exactement une famille de constructeurs : relation atomique, négation forte, conjonction, disjonction, implication matérielle (signalée par logic:antecedent), biconditionnelle, quantification universelle ou quantification existentielle. Elle ne choisit pas parmi les opérandes sérialisés ; elle empêche qu'un même nœud ait deux significations logiques incompatibles."
-
-msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|skos:example"
-msgid "A node with both logic:relation and logic:not violates this constraint because it cannot be both an atom and a negation."
-msgstr "Un nœud portant à la fois logic:relation et logic:not viole cette contrainte, car il ne peut être simultanément un atome et une négation."
-
-msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:avoidWhen"
-msgid "Do not use this constraint to limit how many operands a selected constructor carries; arity is a separate typed-IR invariant."
-msgstr "Ne pas employer cette contrainte pour limiter le nombre d'opérandes d'un constructeur sélectionné ; l'arité constitue un invariant distinct de l'IR typé."
-
-msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:howToUse"
-msgid "Validate every authored formula tree before lowering it; reject a focus node unless exactly one listed constructor predicate is present."
-msgstr "Valider chaque arbre de formule produit avant son abaissement ; rejeter le nœud focal sauf si exactement un des prédicats constructeurs énumérés est présent."
-
-msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:useWhen"
-msgid "Use when validating canonical RDF formula trees before parsing, canonicalization, or projection."
-msgstr "Utiliser lors de la validation des arbres de formules RDF canoniques avant analyse, canonisation ou projection."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|rdfs:label"
-msgid "Implication Consequent Constraint"
-msgstr "Contrainte du conséquent d'implication"
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|skos:definition"
-msgid "Requires a logic:Formula carrying logic:antecedent to carry logic:consequent as the ordered second operand of the same material implication. It is not a rule that derives a consequent; it is a structural integrity condition on the implication node."
-msgstr "Exige qu'une logic:Formula portant logic:antecedent porte aussi logic:consequent comme second opérande ordonné de la même implication matérielle. Ce n'est pas une règle qui dérive un conséquent, mais une condition d'intégrité structurelle du nœud d'implication."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|skos:example"
-msgid "An implication node with an antecedent atom but no consequent formula violates this constraint."
-msgstr "Un nœud d'implication ayant un atome antécédent mais aucune formule conséquente viole cette contrainte."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:avoidWhen"
-msgid "Do not read the required edge as logical modus ponens; it only completes the serialized constructor."
-msgstr "Ne pas interpréter l'arête requise comme un modus ponens logique ; elle ne fait que compléter le constructeur sérialisé."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:howToUse"
-msgid "When logic:antecedent is present, require one resource-valued logic:consequent before constructing Formula::Implies."
-msgstr "Lorsque logic:antecedent est présent, exiger un logic:consequent à valeur de ressource avant de construire Formula::Implies."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:useWhen"
-msgid "Use when validating the ordered pair that encodes material implication."
-msgstr "Utiliser lors de la validation de la paire ordonnée qui encode l'implication matérielle."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|rdfs:label"
-msgid "Implication Antecedent Constraint"
-msgstr "Contrainte de l'antécédent d'implication"
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|skos:definition"
-msgid "Requires a logic:Formula carrying logic:consequent to carry logic:antecedent as the ordered first operand of the same material implication. It is not an inverse entailment from conclusion to premise; it is the reverse structural completeness check for the serialized pair."
-msgstr "Exige qu'une logic:Formula portant logic:consequent porte aussi logic:antecedent comme premier opérande ordonné de la même implication matérielle. Ce n'est pas un entraînement inverse de la conclusion vers la prémisse, mais le contrôle réciproque de complétude structurelle de la paire sérialisée."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|skos:example"
-msgid "A formula node with a consequent formula but no antecedent formula violates this constraint."
-msgstr "Un nœud de formule ayant une formule conséquente mais aucune formule antécédente viole cette contrainte."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:avoidWhen"
-msgid "Do not use the constraint to infer that a consequent semantically entails its antecedent."
-msgstr "Ne pas employer cette contrainte pour inférer qu'un conséquent entraîne sémantiquement son antécédent."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:howToUse"
-msgid "When logic:consequent is present, require one resource-valued logic:antecedent before constructing Formula::Implies."
-msgstr "Lorsque logic:consequent est présent, exiger un logic:antecedent à valeur de ressource avant de construire Formula::Implies."
-
-msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:useWhen"
-msgid "Use with logic:ImplicationConsequentConstraint to validate both halves of an implication."
-msgstr "Utiliser avec logic:ImplicationConsequentConstraint pour valider les deux moitiés d'une implication."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|rdfs:label"
-msgid "Term Carrier Value Constraint"
-msgstr "Contrainte de valeur du porteur de terme"
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|skos:definition"
-msgid "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, or sequence marker. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."
-msgstr "Exige que chaque logic:TermCarrier porte exactement un genre de valeur de terme : IRI, variable, littéral ou marqueur de séquence. Elle ne contraint pas l'ordinal du porteur ; logic:termIndex et la contiguïté au niveau de la liste sont vérifiés séparément."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|skos:example"
-msgid "A carrier with both logic:termIri ex:a and logic:termVariable 'a' violates this constraint even though the spellings resemble one another."
-msgstr "Un porteur ayant à la fois logic:termIri ex:a et logic:termVariable 'a' viole cette contrainte, même si leurs graphies se ressemblent."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:avoidWhen"
-msgid "Do not collapse IRI, variable, literal, and sequence-marker values into a shared string field; their kinds affect formula meaning."
-msgstr "Ne pas réduire les valeurs IRI, variable, littéral et marqueur de séquence à un champ textuel commun ; leur genre influe sur le sens de la formule."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:howToUse"
-msgid "Reject a carrier unless exactly one of the four term-value predicates has exactly one value."
-msgstr "Rejeter un porteur sauf si exactement un des quatre prédicats de valeur de terme possède exactement une valeur."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:useWhen"
-msgid "Use whenever an RDF argument or quantifier-binding carrier is reconstructed as a typed IR term."
-msgstr "Utiliser chaque fois qu'un argument RDF ou un porteur de liaison de quantificateur est reconstruit comme terme d'IR typé."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|rdfs:label"
-msgid "Term Carrier Index Constraint"
-msgstr "Contrainte d'indice du porteur de terme"
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|skos:definition"
-msgid "Requires every declared logic:TermCarrier to carry a logic:termIndex. It is not the list-level ordering check: uniqueness and zero-based contiguity are verified across all sibling carriers by the typed-IR frontend."
-msgstr "Exige que chaque logic:TermCarrier déclaré porte un logic:termIndex. Ce n'est pas le contrôle d'ordre au niveau de la liste : l'unicité et la contiguïté à partir de zéro sont vérifiées sur l'ensemble des porteurs frères par le frontal de l'IR typé."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|skos:example"
-msgid "A logic:TermCarrier with logic:termVariable 'x' but no logic:termIndex violates this constraint."
-msgstr "Un logic:TermCarrier ayant logic:termVariable 'x' mais aucun logic:termIndex viole cette contrainte."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:avoidWhen"
-msgid "Do not infer an omitted index from RDF statement order, which has no semantic ordering."
-msgstr "Ne pas déduire un indice omis de l'ordre des énoncés RDF, qui ne porte aucun ordre sémantique."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:howToUse"
-msgid "Require one non-negative integer index on each carrier, then validate the sibling index set as 0 through n minus 1."
-msgstr "Exiger un indice entier non négatif sur chaque porteur, puis valider l'ensemble des indices frères comme allant de 0 à n moins 1."
-
-msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:useWhen"
-msgid "Use when validating ordered argument lists and quantifier binding blocks."
-msgstr "Utiliser lors de la validation des listes ordonnées d'arguments et des blocs de liaison de quantificateurs."
-
-msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|rdfs:label"
-msgid "Literal Datatype Constraint"
-msgstr "Contrainte de type de données du littéral"
-
-msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:definition"
-msgid "Requires a carrier with logic:termLiteralDatatype to carry logic:termLiteral, so a datatype IRI can never float without the lexical literal it types. It does not require a datatype for every literal; absence denotes a plain literal."
-msgstr "Exige qu'un porteur ayant logic:termLiteralDatatype porte aussi logic:termLiteral, afin qu'un IRI de type de données ne puisse jamais flotter sans le littéral lexical qu'il type. Elle n'exige pas un type de données pour chaque littéral ; l'absence désigne un littéral simple."
-
-msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:example"
-msgid "A carrier with logic:termLiteralDatatype xsd:integer but no logic:termLiteral violates this constraint."
-msgstr "Un porteur ayant logic:termLiteralDatatype xsd:integer mais aucun logic:termLiteral viole cette contrainte."
-
-msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:avoidWhen"
-msgid "Do not attach logic:termLiteralDatatype to an IRI, variable, or sequence-marker carrier."
-msgstr "Ne pas attacher logic:termLiteralDatatype à un porteur d'IRI, de variable ou de marqueur de séquence."
-
-msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:howToUse"
-msgid "Accept zero or one datatype IRI only on a carrier whose sole value kind is logic:termLiteral."
-msgstr "N'accepter zéro ou un IRI de type de données que sur un porteur dont l'unique genre de valeur est logic:termLiteral."
-
-msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:useWhen"
-msgid "Use when reconstructing typed literal terms from their lexical and datatype components."
-msgstr "Utiliser lors de la reconstruction de termes littéraux typés à partir de leurs composantes lexicale et de type de données."
-
-msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|rdfs:label"
-msgid "Constraint Sugar"
-msgstr "Sucre syntaxique de contrainte"
-
-msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|skos:definition"
-msgid "An authoring descriptor that the logic frontend expands into one canonical logic:Constraint with a reified integrity formula. A constraint-sugar record names a closed validation pattern and its parameters; it is not itself a logic:Formula AST node, so formula constructor checks never mistake validation metadata for an object-level sentence."
-msgstr "Un descripteur de création que le frontal logique développe en une unique logic:Constraint canonique munie d'une formule d'intégrité réifiée. Un enregistrement de sucre syntaxique nomme un motif de validation fermé et ses paramètres ; il n'est pas lui-même un nœud d'AST logic:Formula, de sorte que les contrôles des constructeurs de formules ne confondent jamais les métadonnées de validation avec une phrase du niveau objet."
-
-msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|skos:example"
-msgid "A logic:ChoiceGroupConstraint record can require exactly one of two predicates without being treated as either operand of the formula it compiles."
-msgstr "Un enregistrement logic:ChoiceGroupConstraint peut exiger exactement l'un de deux prédicats sans être traité comme l'un des opérandes de la formule qu'il compile."
-
-msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:avoidWhen"
-msgid "Do not use a sugar class when the integrity condition needs a formula shape the selected closed pattern cannot preserve."
-msgstr "Ne pas utiliser une classe de sucre syntaxique lorsque la condition d'intégrité exige une forme de formule que le motif fermé choisi ne peut préserver."
-
-msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:howToUse"
-msgid "Select the narrowest sugar subclass, provide its target and pattern parameters, and inspect the compiled logic:Constraint projection."
-msgstr "Choisir la sous-classe de sucre syntaxique la plus étroite, fournir sa cible et les paramètres du motif, puis examiner la projection logic:Constraint compilée."
-
-msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:useWhen"
-msgid "Use for a supported closed-world validation pattern whose canonical expansion is deterministic."
-msgstr "Utiliser pour un motif de validation en monde fermé pris en charge dont le développement canonique est déterministe."
-
-msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|rdfs:label"
-msgid "Conversion Target"
-msgstr "Cible de conversion"
-
-msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:definition"
-msgid "A legal output language for a lowering: every emitted construct must inhabit this target, while anything it cannot express remains explicit flagged residue. It is not a logic:ProjectionTarget, which requests a presentation of an answer; a conversion target instead delimits the IR or dialect into which canonical content may be legalized."
-msgstr "Un langage de sortie légal pour un abaissement : toute construction émise doit appartenir à cette cible, tandis que ce qu'elle ne peut exprimer reste un résidu explicite et signalé. Ce n'est pas une logic:ProjectionTarget, qui demande une présentation d'une réponse ; une cible de conversion délimite plutôt l'IR ou le dialecte dans lequel le contenu canonique peut être légalisé."
-
-msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:example"
-msgid "logic:RelationalCore a logic:ConversionTarget ."
-msgstr "Par exemple : logic:RelationalCore a logic:ConversionTarget ."
-
-msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|rdfs:label"
-msgid "Choice Group Constraint"
-msgstr "Contrainte de groupe de choix"
-
-msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:definition"
-msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte de cardinalité d'un groupe de choix (P1) : une cible logic:onClass, un ensemble de prédicats logic:choicePredicate et un logic:choiceMode ('exactly-one', 'at-most-one' ou l'alias 'exactly-one-of-N'). Le compilateur le développe en une logic:Constraint canonique dont l'intégrité est la formule XOR ou au-plus portant sur l'exigence existentielle de chaque prédicat. Réservé au frontal : ce n'est pas un nouveau genre de nœud, seulement un raccourci de création."
-
-msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:example"
-msgid "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
-msgstr "Exemple : ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
-
-msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|rdfs:label"
-msgid "Guarded Implication Constraint"
-msgstr "Contrainte d'implication gardée"
-
-msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:definition"
-msgid "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte d'implication gardée (P2) : une cible logic:onClass, un prédicat logic:trigger éventuellement fixé par logic:triggerValue et un ou plusieurs prédicats compagnons logic:requires. Il se développe en une logic:Constraint canonique ∀x. C(x) ∧ trigger(x, …) → ∃ compagnon. Raccourci de création réservé au frontal."
-
-msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:example"
-msgid "ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
-msgstr "Exemple : ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
-
-msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|rdfs:label"
-msgid "Disjunctive Requiredness Constraint"
-msgstr "Contrainte d'obligation disjonctive"
-
-msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:definition"
-msgid "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte d'obligation disjonctive (P3) : une cible logic:onClass et un ensemble de prédicats logic:anyOf dont au moins un est requis. Il se développe en une logic:Constraint canonique ∀x. C(x) → (∃p1 ∨ … ∨ ∃pn). Raccourci de création réservé au frontal."
-
-msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:example"
-msgid "ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
-msgstr "Exemple : ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
-
-msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|rdfs:label"
-msgid "Path Value Type Constraint"
-msgstr "Contrainte de type des valeurs de chemin"
-
-msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:definition"
-msgid "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte d'appartenance de type des valeurs d'un chemin (P4) : une cible logic:onClass, un prédicat logic:valuePath et une logic:valueClass requise. Il se développe en une logic:Constraint canonique ∀x. C(x) → ∀v. P(x,v) → D(v). Raccourci de création réservé au frontal."
-
-msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:example"
-msgid "ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
-msgstr "Exemple : ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
-
-msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|rdfs:label"
-msgid "Cross Node Constraint"
-msgstr "Contrainte entre nœuds"
-
-msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:definition"
-msgid "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte de cooccurrence ou d'inégalité entre nœuds (P5) : une cible logic:onClass et deux rôles, logic:roleA et logic:roleB, qui doivent selon logic:crossMode soit coexister, soit différer sans jamais lier la même valeur. Il se développe en une logic:Constraint canonique dont l'intégrité est la bi-implication ou la jointure avec inégalité au moyen de logic:termEqual. Raccourci de création réservé au frontal."
-
-msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:example"
-msgid "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
-msgstr "Exemple : ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
-
-msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|rdfs:label"
-msgid "Forbidden Pattern Constraint"
-msgstr "Contrainte de motif interdit"
-
-msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:definition"
-msgid "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte de motif interdit (P7) : une cible logic:onClass et un logic:forbiddenPredicate éventuellement fixé à une logic:forbiddenValue. Il se développe en une logic:Constraint canonique ∀x. C(x) → ¬∃b. forbidden(x,b), ou dans la forme à valeur fixe ¬ forbidden(x, value). Raccourci de création réservé au frontal."
-
-msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:example"
-msgid "ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
-msgstr "Exemple : ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
-
-msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|rdfs:label"
-msgid "Aggregate Constraint"
-msgstr "Contrainte d'agrégat"
-
-msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:definition"
-msgid "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte de comparaison d'agrégat (P6) : une cible logic:onClass, un agrégat sur un chemin avec logic:aggFunction, logic:aggDistinct facultatif et logic:aggPath, un logic:aggComparator et un opérande droit logic:aggCompareTo, IRI de propriété comparée ou littéral. Il se développe en une logic:Constraint canonique portant l'intégrité FOL réifiée et un satellite d'agrégat structuré, abaissé en sh:SPARQLConstraint avec regroupement et condition d'agrégat. Raccourci de création réservé au frontal."
-
-msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:example"
-msgid "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
-msgstr "Exemple : ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
-
 msgctxt "https://blackcatinformatics.ca/logic/GroundingCorrespondence|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Grounding Correspondence"
 msgstr "Correspondance d'ancrage"
@@ -6609,10 +6297,6 @@ msgctxt "https://blackcatinformatics.ca/logic/contributesTo|http://www.w3.org/20
 msgid "Relates a sub-gmeow:Goal whose satisfaction advances a gmeow:Goal without settling it. Domain gmeow:Goal, range gmeow:Goal (stated in prose). One of the four decomposition relations carrying satisfaction dependency; weaker than logic:necessaryFor (required) and logic:sufficientFor (settles on its own), and distinct from gmeow:properPartOf, which carries only structural part-hood."
 msgstr "Relie un sous-gmeow:Goal dont la satisfaction fait avancer un gmeow:Goal sans le régler. Domaine gmeow:Goal, image gmeow:Goal (énoncé en prose). L'une des quatre relations de décomposition portant une dépendance de satisfaction ; plus faible que logic:necessaryFor (requis) et logic:sufficientFor (règle à lui seul), et distincte de gmeow:properPartOf, qui ne porte qu'une appartenance structurelle de partie."
 
-msgctxt "https://blackcatinformatics.ca/logic/ControlFlowEdge|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A reified control-flow edge between two process nodes — the canonical FLOW-GRAPH form of control flow, mediating a source node (logic:flowFrom) and a target node (logic:flowTo). Complementary to, NOT a duplicate of, the structured-program combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback): the combinators are the program-TREE form an interpreter walks, while a logic:ControlFlowEdge is the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over. A graph carrying a logic:Iteration loop edge (or any back-edge) is outside the DAG fragment. Downstream reified control-flow relators such as gmeow:ControlFlow specialize this class. A Relator mediating two distinct relata (its flowFrom and flowTo nodes), satisfying the relator-mediation discipline."
-msgstr "Une arête de flux de contrôle réifiée entre deux nœuds de processus — la forme canonique en GRAPHE-DE-FLUX du flux de contrôle, médiant un nœud source (logic:flowFrom) et un nœud cible (logic:flowTo). Complémentaire, NON un doublon, des combinateurs de programme structuré (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback) : les combinateurs sont la forme en ARBRE-DE-PROGRAMME qu'un interpréteur parcourt, tandis qu'une logic:ControlFlowEdge est la forme en arête binaire sur laquelle le certificateur d'acyclicité de flux de travail DAG exécute Tarjan SCC. Un graphe portant une arête de boucle logic:Iteration (ou toute arête arrière) est en dehors du fragment DAG. Les relateurs de flux de contrôle réifiés en aval tels que gmeow:ControlFlow spécialisent cette classe. Un Relateur médiant deux relata distincts (ses nœuds flowFrom et flowTo), satisfaisant la discipline de médiation de relateur."
-
 msgctxt "https://blackcatinformatics.ca/logic/correlates|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:DependencyModel to a logic:probability-annotated fact (the reified base triple) that participates in the model's explicit joint distribution. The set of correlated facts is the support over which logic:jointOutcome enumerates joint assignments; any logic:probability fact NOT correlated by the model is treated as independent. The range is intentionally left open (no rdfs:range): a correlated fact is a reified logic:probability statement, which carries no dedicated class in this standalone module."
 msgstr "Relie un logic:DependencyModel à un fait annoté par logic:probability (le triple de base réifié) qui participe à la distribution conjointe explicite du modèle. L'ensemble des faits corrélés est le support sur lequel logic:jointOutcome énumère les affectations conjointes ; tout fait logic:probability NON corrélé par le modèle est traité comme indépendant. L'image est intentionnellement laissée ouverte (aucun rdfs:range) : un fait corrélé est un énoncé logic:probability réifié, qui ne porte aucune classe dédiée dans ce module autonome."
@@ -6900,10 +6584,6 @@ msgstr "La politique d'exécution de ressources du profil de flux-de-travail-DAG
 msgctxt "https://blackcatinformatics.ca/logic/dataflowConsumes|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a process node — a logic:Plan step, a pipeline stage, or a procedure step — to an upstream node whose product it reads: the canonical binary dataflow dependency, oriented consumer -> producer (an executor inverts it to schedule producers first). The transitive closure must be acyclic for the DAG-workflow profile (logic:DagWorkflowResource); a cycle takes the plan out of the certified acyclic fragment and is disclosed through logic:dagCycleWitness, never silently dropped. Domain and range a process node (stated in prose, matching the module's convention). The reified FLOW-GRAPH counterpart is logic:DataFlowEdge; downstream surfaces such as gmeow:dataflowConsumes specialize this property."
 msgstr "Relie un nœud de processus — une étape logic:Plan, un étage de pipeline ou une étape de procédure — à un nœud amont dont il lit le produit : la dépendance binaire canonique de flux-de-données, orientée consumer -> producer (un exécuteur l'inverse pour ordonnancer d'abord les producteurs). La clôture transitive doit être acyclique pour le profil de flux-de-travail-DAG (logic:DagWorkflowResource) ; un cycle sort le plan du fragment acyclique certifié et est divulgué via logic:dagCycleWitness, jamais abandonné silencieusement. Domaine et portée un nœud de processus (exprimé en prose, conforme à la convention du module). La contrepartie réifiée de GRAPHE-DE-FLUX est logic:DataFlowEdge ; les surfaces en aval telles que gmeow:dataflowConsumes spécialisent cette propriété."
-
-msgctxt "https://blackcatinformatics.ca/logic/DataFlowEdge|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A reified dataflow edge between two process nodes — the FLOW-GRAPH counterpart of the logic:dataflowConsumes property, mediating a source (producer) node via logic:flowFrom and a target (consumer) node via logic:flowTo. Use the property form (logic:dataflowConsumes) for a bare binary dependency and this reified form when an edge must carry its own attributes (the flowing entity, a guard, an order). Downstream reified dataflow relators such as gmeow:DataFlow specialize this class. A Relator mediating two distinct relata, satisfying the relator-mediation discipline."
-msgstr "Une arête de flux de données réifiée entre deux nœuds de processus — l'homologue GRAPHE-DE-FLUX de la propriété logic:dataflowConsumes, médiatisant un nœud source (producteur) par logic:flowFrom et un nœud cible (consommateur) par logic:flowTo. Employez la forme propriété (logic:dataflowConsumes) pour une dépendance binaire nue et cette forme réifiée dès qu'une arête doit porter ses propres attributs (l'entité en circulation, une garde, un ordre). Les relateurs de flux de données réifiés en aval tels que gmeow:DataFlow spécialisent cette classe. Un Relateur médiatisant deux relata distincts, respectant la discipline de médiation par relateur."
 
 msgctxt "https://blackcatinformatics.ca/logic/dataflowProduces|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The inverse of logic:dataflowConsumes: relates a process node to a downstream node that reads its product (producer -> consumer). The canonical authored direction is logic:dataflowConsumes, so this inverse is normally left to be inferred rather than asserted. Domain and range a process node (stated in prose)."
@@ -10704,10 +10384,6 @@ msgstr "Un porteur de guidage positif de première classe : un objet interrogeab
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceField|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "advice source field"
 msgstr "champ source de conseil"
-
-msgctxt "https://blackcatinformatics.ca/logic/adviceSourceField|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The soft-advice peer of logic:candidateSourceField, borne by a realized advice carrier — an advisory logic:Constraint (avoidWhen) or a logic:AdviceGuidance (useWhen) — rather than a governance candidate: names which annotation field of the carrier's logic:formalizes term (a logic:ProseField from the closed set) the carrier's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Deliberately domain-free — it is shared by both advice-carrier kinds, so it must not entail either type (an rdfs:domain would). Single-valued, range logic:ProseField."
-msgstr "Le pendant de conseil souple de logic:candidateSourceField, porté par un porteur de conseil réalisé — une logic:Constraint consultative (avoidWhen) ou une logic:AdviceGuidance (useWhen) — plutôt que par un candidat de gouvernance : indique quel champ d'annotation du terme logic:formalizes du porteur (un logic:ProseField issu de l'ensemble fermé) la logic:message du porteur doit faire apparaître VERBATIM. La porte de vérification native check_advice_message_prose_binding résout la prose @x-gmeow-english actuelle de ce champ et échoue durement en cas de divergence, de sorte que le conseil actif pour la machine ne peut jamais dériver silencieusement de la prose qu'il formalise. Une liaison de chaîne directe, non un condensé stocké, car le message EST la prose. Délibérément sans domaine — il est partagé par les deux sortes de porteurs de conseil, il ne doit donc entraîner aucun des deux types (ce que ferait un rdfs:domain). À valeur unique, de portée logic:ProseField."
 
 msgctxt "https://blackcatinformatics.ca/logic/EntityUniversalDomainAdvice|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "use gmeow:Entity as the universal domain"
@@ -16704,3 +16380,1707 @@ msgstr "adviceSourceField est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:adviceSourceField is functional: a realized advice carrier (an advisory logic:Constraint or a logic:AdviceGuidance) names exactly one logic:ProseField from the closed set (definition, use-when, or avoid-when) — the single field whose prose its logic:message must surface verbatim, so a carrier cannot ambiguously bind to two source fields at once."
 msgstr "Affirme sur le porteur canonique que logic:adviceSourceField est fonctionnelle : un porteur de conseil réalisé (une logic:Constraint consultative ou une logic:AdviceGuidance) désigne exactement un logic:ProseField parmi l'ensemble fermé (`definition`, `use-when`, ou `avoid-when`) — l'unique champ dont sa logic:message doit restituer la prose mot pour mot, de sorte qu'un porteur ne saurait se lier de façon ambiguë à deux champs sources à la fois."
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionableFrontier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Actionable Frontier"
+msgstr "Frontière actionnable"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionableFrontier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w12Frontier a logic:ActionableFrontier ; logic:frontierOfEnactment ex:adrReviewW12 ."
+msgstr "Exemple : ex:w12Frontier a logic:ActionableFrontier ; logic:frontierOfEnactment ex:adrReviewW12 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Advisory|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:suggestedOcrPlan a logic:Advisory ; logic:advisoryAbout ex:ocrTask ."
+msgstr "Exemple : ex:suggestedOcrPlan a logic:Advisory ; logic:advisoryAbout ex:ocrTask ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AdvisoryNeverAuthorityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an advisory never occupies an authority position"
+msgstr "un avis consultatif n'occupe jamais une position d'autorité"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalBindingFault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Approval Binding Fault"
+msgstr "Défaut de liaison d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalBindingFault|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payRefusal logic:approvalBindingFault logic:FaultDigestMismatch ."
+msgstr "Exemple : ex:payRefusal logic:approvalBindingFault logic:FaultDigestMismatch ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCancelled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval cancelled"
+msgstr "approbation annulée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCommitment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Approval Commitment"
+msgstr "Engagement d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCommitmentCompletenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an approval commitment binds all six fields"
+msgstr "un engagement d'approbation lie les six champs"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCreated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval created"
+msgstr "approbation créée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalDetached|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval detached"
+msgstr "approbation détachée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalDischarged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval discharged"
+msgstr "approbation acquittée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalExpired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval expired"
+msgstr "approbation expirée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalNull|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval null"
+msgstr "approbation inexistante"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalReleased|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval released"
+msgstr "approbation libérée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Approval State"
+msgstr "État d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrApproval logic:approvalState logic:ApprovalDetached ."
+msgstr "Exemple : ex:ocrApproval logic:approvalState logic:ApprovalDetached ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalViolated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval violated"
+msgstr "approbation violée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ArgumentNormalization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Argument Normalization"
+msgstr "Normalisation des arguments"
+
+msgctxt "https://blackcatinformatics.ca/logic/AuthorizationProof|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Authorization Proof"
+msgstr "Preuve d'autorisation"
+
+msgctxt "https://blackcatinformatics.ca/logic/AuthorizationProof|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payAuthProof a logic:AuthorizationProof ; logic:proofEstablishes ex:payIntent ."
+msgstr "Exemple : ex:payAuthProof a logic:AuthorizationProof ; logic:proofEstablishes ex:payIntent ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axis Transition Law"
+msgstr "Loi de transition d'axe"
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisTransitionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:enactmentStateLaw a logic:AxisTransitionLaw ; logic:lawGovernsAxis logic:EnactmentState ."
+msgstr "Exemple : ex:enactmentStateLaw a logic:AxisTransitionLaw ; logic:lawGovernsAxis logic:EnactmentState ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapabilityGapProposal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Capability Gap Proposal"
+msgstr "Proposition de comblement de capacité"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapabilityGapProposal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrProposal a logic:CapabilityGapProposal ; logic:proposalMissingCapability ex:pdfOcr ."
+msgstr "Exemple : ex:ocrProposal a logic:CapabilityGapProposal ; logic:proposalMissingCapability ex:pdfOcr ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapabilityGapProposalCompletenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a capability-gap proposal binds all eight fields"
+msgstr "une proposition de comblement de capacité lie les huit champs"
+
+msgctxt "https://blackcatinformatics.ca/logic/ClockAttribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Clock Attribution"
+msgstr "Attribution d'horloge"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compensation Attempt"
+msgstr "Tentative de compensation"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationAttempt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:refundAttempt a logic:CompensationAttempt ; logic:compensatesEffect ex:payReceipt ."
+msgstr "Exemple : ex:refundAttempt a logic:CompensationAttempt ; logic:compensatesEffect ex:payReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationBindsExactForwardEffectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a compensation names the exact forward receipt"
+msgstr "une compensation nomme le reçu aller exact"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compensation Outcome"
+msgstr "Résultat de compensation"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:refundOutcome a logic:CompensationOutcome ; logic:outcomeOfCompensation ex:refundAttempt ."
+msgstr "Exemple : ex:refundOutcome a logic:CompensationOutcome ; logic:outcomeOfCompensation ex:refundAttempt ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationSuccessRequiresReceiptConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a compensation outcome carries its own receipt"
+msgstr "un résultat de compensation porte son propre reçu"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContextAssembly|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Context Assembly"
+msgstr "Assemblage de contexte"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContextAssembly|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w12Context a logic:ContextAssembly ; logic:assemblyForEnactment ex:adrReviewW12 ."
+msgstr "Exemple : ex:w12Context a logic:ContextAssembly ; logic:assemblyForEnactment ex:adrReviewW12 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a context assembly names the enactment it served"
+msgstr "un assemblage de contexte nomme l'exécution effective qu'il a servie"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Continuation Kind"
+msgstr "Genre de continuation"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:w12continuation logic:continuationKind logic:ContinuationResume ."
+msgstr "Exemple : ex:w12continuation logic:continuationKind logic:ContinuationResume ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationRepeat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repeat"
+msgstr "répétition"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationResume|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resume"
+msgstr "reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContradictionAdjudication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Contradiction Adjudication"
+msgstr "Arbitrage de contradiction"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContradictionAdjudication|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payAdjudication a logic:ContradictionAdjudication ; logic:adjudicatesAttempt ex:payAttempt1 ."
+msgstr "Exemple : ex:payAdjudication a logic:ContradictionAdjudication ; logic:adjudicatesAttempt ex:payAttempt1 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DeadlineConsumption|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Deadline Consumption"
+msgstr "Consommation d'échéance"
+
+msgctxt "https://blackcatinformatics.ca/logic/DeadlineConsumption|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reviewDeadline a logic:DeadlineConsumption ; logic:deadlineExhausted true ."
+msgstr "Exemple : ex:reviewDeadline a logic:DeadlineConsumption ; logic:deadlineExhausted true ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DecompositionMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Decomposition Method"
+msgstr "Méthode de décomposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/DecompositionMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrByPagePartition a logic:DecompositionMethod ; logic:methodDecomposes ex:ocrTask ."
+msgstr "Exemple : ex:ocrByPagePartition a logic:DecompositionMethod ; logic:methodDecomposes ex:ocrTask ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliveryAtLeastOnce|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "at least once"
+msgstr "au moins une fois"
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliveryAtMostOnce|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "at most once"
+msgstr "au plus une fois"
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliveryExactlyOnce|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exactly once"
+msgstr "exactement une fois"
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliverySemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Delivery Semantics"
+msgstr "Sémantique de livraison"
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliverySemantics|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payProvider logic:deliverySemantics logic:DeliveryAtLeastOnce ."
+msgstr "Exemple : ex:payProvider logic:deliverySemantics logic:DeliveryAtLeastOnce ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Deviation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Deviation"
+msgstr "Écart autorisé"
+
+msgctxt "https://blackcatinformatics.ca/logic/Deviation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrManualOverride a logic:Deviation ; logic:deviationFromStep ex:ocrStep ."
+msgstr "Exemple : ex:ocrManualOverride a logic:Deviation ; logic:deviationFromStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DispatchIntent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dispatch Intent"
+msgstr "Intention d'émission"
+
+msgctxt "https://blackcatinformatics.ca/logic/DispatchIntentCompletenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a dispatch intent binds all nine fields"
+msgstr "une intention d'émission lie les neuf champs"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectAbandoned|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect abandoned"
+msgstr "effet abandonné"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Effect Attempt"
+msgstr "Tentative d'effet"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectAttempted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect attempted"
+msgstr "effet tenté"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectCompensated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect compensated"
+msgstr "effet compensé"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectCompensating|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect compensating"
+msgstr "effet en cours de compensation"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectIntended|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect intended"
+msgstr "effet projeté"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Effect Protocol Position"
+msgstr "Position protocolaire de l'effet"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payDispatch logic:effectProtocolPosition logic:EffectReconciling ."
+msgstr "Exemple : ex:payDispatch logic:effectProtocolPosition logic:EffectReconciling ."
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectReceipted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect receipted"
+msgstr "effet accusé de réception"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectReconciled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect reconciled"
+msgstr "effet rapproché"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectReconciling|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect reconciling"
+msgstr "effet en cours de rapprochement"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectRecordsAreObservedNotDerivedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect attempts and receipts are observed, never derived"
+msgstr "les tentatives et reçus d'effet sont observés, jamais dérivés"
+
+msgctxt "https://blackcatinformatics.ca/logic/Enactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Enactment"
+msgstr "Exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/Enactment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:adrReviewW12 a logic:Enactment ; logic:enactsPrescriptionVersion ex:adrReviewV3 ."
+msgstr "Exemple : ex:adrReviewW12 a logic:Enactment ; logic:enactsPrescriptionVersion ex:adrReviewV3 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentCancelled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment cancelled"
+msgstr "exécution effective annulée"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentCheckpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Enactment Checkpoint"
+msgstr "Point de reprise d'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentCohort|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Enactment Cohort"
+msgstr "Cohorte d'exécutions effectives"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentCohort|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:autumnCohort a logic:EnactmentCohort ; logic:cohortMember ex:enrolment-014 ."
+msgstr "Exemple : ex:autumnCohort a logic:EnactmentCohort ; logic:cohortMember ex:enrolment-014 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment completed"
+msgstr "exécution effective achevée"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment failed"
+msgstr "exécution effective échouée"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentPaused|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment paused"
+msgstr "exécution effective suspendue"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentPending|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment pending"
+msgstr "exécution effective en attente"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentRunning|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment running"
+msgstr "exécution effective en cours"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Enactment State"
+msgstr "État d'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:adrReviewW12 logic:enactmentState logic:EnactmentRunning ."
+msgstr "Exemple : ex:adrReviewW12 logic:enactmentState logic:EnactmentRunning ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ExternalEffectReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "External Effect Receipt"
+msgstr "Reçu d'effet externe"
+
+msgctxt "https://blackcatinformatics.ca/logic/ExternalEffectReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payReceipt a logic:ExternalEffectReceipt ; logic:receiptOfAttempt ex:payAttempt1 ."
+msgstr "Exemple : ex:payReceipt a logic:ExternalEffectReceipt ; logic:receiptOfAttempt ex:payAttempt1 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ExternalOutcomeUnknown|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "External Outcome Unknown"
+msgstr "Issue externe inconnue"
+
+msgctxt "https://blackcatinformatics.ca/logic/ExternalOutcomeUnknown|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payUnknown a logic:ExternalOutcomeUnknown ; logic:unknownOfAttempt ex:payAttempt1 ."
+msgstr "Exemple : ex:payUnknown a logic:ExternalOutcomeUnknown ; logic:unknownOfAttempt ex:payAttempt1 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultContentIntegrity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content integrity"
+msgstr "intégrité du contenu"
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultDataGeneration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "data generation"
+msgstr "génération de données"
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultDifferentEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "different enactment"
+msgstr "exécution effective différente"
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultDigestMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "digest mismatch"
+msgstr "empreinte non concordante"
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultExpiredWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expired window"
+msgstr "fenêtre expirée"
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultIdentityMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "identity mismatch"
+msgstr "identité non concordante"
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultOperatorPolicyMismatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operator-policy mismatch"
+msgstr "liaison opérateur-politique non concordante"
+
+msgctxt "https://blackcatinformatics.ca/logic/FaultRematerialization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "re-materialization"
+msgstr "rematérialisation"
+
+msgctxt "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "acyclic-method fragment"
+msgstr "fragment à méthodes acycliques"
+
+msgctxt "https://blackcatinformatics.ca/logic/FragmentBoundedDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bounded-depth fragment"
+msgstr "fragment à profondeur bornée"
+
+msgctxt "https://blackcatinformatics.ca/logic/FragmentTotallyOrdered|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "totally-ordered fragment"
+msgstr "fragment totalement ordonné"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierBlockedCapabilityOrResource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "blocked by missing capability or resource"
+msgstr "bloqué par une capacité ou une ressource manquante"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierBlockedPrecondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "blocked by unmet precondition"
+msgstr "bloqué par une précondition non satisfaite"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierCancelled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cancelled"
+msgstr "annulé"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierCancelledWithInFlightEffects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cancelled with in-flight effects"
+msgstr "annulé avec des effets en vol"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierClosureRequiresSaturationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a frontier claiming closure carries a saturation witness"
+msgstr "une frontière se déclarant close porte un témoin de saturation"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationEligible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compensation eligible"
+msgstr "compensation admissible"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationFailedForwardCommitted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compensation failed with forward effect committed"
+msgstr "compensation échouée alors que l'effet aller est validé"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compensation required"
+msgstr "compensation requise"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "completed"
+msgstr "achevé"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Frontier Entry"
+msgstr "Entrée de frontière"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrEntry a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyApprovalRequired ."
+msgstr "Exemple : ex:ocrEntry a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyApprovalRequired ."
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Frontier Label"
+msgstr "Étiquette de frontière"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrEntry logic:entryLabel logic:FrontierBlockedCapabilityOrResource ."
+msgstr "Exemple : ex:ocrEntry logic:entryLabel logic:FrontierBlockedCapabilityOrResource ."
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierMutuallyExclusive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mutually exclusive with another candidate"
+msgstr "mutuellement exclusif avec un autre candidat"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierReadyApprovalRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ready but approval required"
+msgstr "prêt mais approbation requise"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierReadyAuthorized|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ready and authorized"
+msgstr "prêt et autorisé"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierReconciliationRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciliation required"
+msgstr "rapprochement requis"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierSkippedWithTypedReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skipped with a typed reason"
+msgstr "ignoré avec un motif typé"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierTerminallyFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "terminally failed"
+msgstr "échoué de manière terminale"
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierWaitingOnEventTimeOrInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "waiting for event, time or input"
+msgstr "en attente d'un événement, d'une échéance ou d'une entrée"
+
+msgctxt "https://blackcatinformatics.ca/logic/IdempotencyContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Idempotency Contract"
+msgstr "Contrat d'idempotence"
+
+msgctxt "https://blackcatinformatics.ca/logic/IdempotencyContractCompletenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an idempotency contract binds all five fields"
+msgstr "un contrat d'idempotence lie les cinq champs"
+
+msgctxt "https://blackcatinformatics.ca/logic/IncompleteCancellation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cancellation"
+msgstr "annulation"
+
+msgctxt "https://blackcatinformatics.ca/logic/IncompleteCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Cause"
+msgstr "Cause d'incomplétude"
+
+msgctxt "https://blackcatinformatics.ca/logic/IncompleteCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:frontierRun logic:incompleteCause logic:IncompleteStepBudget ."
+msgstr "Exemple : ex:frontierRun logic:incompleteCause logic:IncompleteStepBudget ."
+
+msgctxt "https://blackcatinformatics.ca/logic/IncompleteDeadline|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deadline"
+msgstr "échéance"
+
+msgctxt "https://blackcatinformatics.ca/logic/IncompletePageBudget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "page budget"
+msgstr "budget de pagination"
+
+msgctxt "https://blackcatinformatics.ca/logic/IncompleteStepBudget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step budget"
+msgstr "budget de pas"
+
+msgctxt "https://blackcatinformatics.ca/logic/InputSnapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Input Snapshot"
+msgstr "Instantané d'entrée"
+
+msgctxt "https://blackcatinformatics.ca/logic/IntegrityFault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Integrity Fault"
+msgstr "Défaut d'intégrité"
+
+msgctxt "https://blackcatinformatics.ca/logic/IntegrityFault|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restoreAttempt logic:integrityFault logic:FaultIdentityMismatch ."
+msgstr "Exemple : ex:restoreAttempt logic:integrityFault logic:FaultIdentityMismatch ."
+
+msgctxt "https://blackcatinformatics.ca/logic/JournalEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Journal Entry"
+msgstr "Entrée de journal"
+
+msgctxt "https://blackcatinformatics.ca/logic/LeaseExclusivityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a lease carries a fencing identity"
+msgstr "un bail porte une identité de clôture"
+
+msgctxt "https://blackcatinformatics.ca/logic/LivenessCertificate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Liveness Certificate"
+msgstr "Certificat de vivacité"
+
+msgctxt "https://blackcatinformatics.ca/logic/LivenessCertificate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:kernelLiveness a logic:LivenessCertificate ; logic:certifiesDeadlockFreedom true ."
+msgstr "Exemple : ex:kernelLiveness a logic:LivenessCertificate ; logic:certifiesDeadlockFreedom true ."
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Operation Outcome"
+msgstr "Issue d'opération"
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:frontierRun logic:operationOutcome logic:OutcomeApplied ."
+msgstr "Exemple : ex:frontierRun logic:operationOutcome logic:OutcomeApplied ."
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationalCapabilityGap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Operational Capability Gap"
+msgstr "Lacune de capacité opérationnelle"
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationalCapabilityGap|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:noOcrProvider a logic:OperationalCapabilityGap ; logic:gapBlockedStep ex:ocrStep ."
+msgstr "Exemple : ex:noOcrProvider a logic:OperationalCapabilityGap ; logic:gapBlockedStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/OutcomeApplied|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applied"
+msgstr "appliqué"
+
+msgctxt "https://blackcatinformatics.ca/logic/OutcomeEngineFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "engine failure"
+msgstr "défaillance du moteur"
+
+msgctxt "https://blackcatinformatics.ca/logic/OutcomeInvalid|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invalid"
+msgstr "invalide"
+
+msgctxt "https://blackcatinformatics.ca/logic/OutcomeRequiresFullRebuild|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requires full rebuild"
+msgstr "nécessite une reconstruction complète"
+
+msgctxt "https://blackcatinformatics.ca/logic/OutcomeUnsupportedFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unsupported fragment"
+msgstr "fragment non pris en charge"
+
+msgctxt "https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Pinned Executable Subgraph"
+msgstr "Sous-graphe exécutable épinglé"
+
+msgctxt "https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrPin a logic:PinnedExecutableSubgraph ; logic:pinInstantiatesMethod ex:ocrByPagePartition ."
+msgstr "Exemple : ex:ocrPin a logic:PinnedExecutableSubgraph ; logic:pinInstantiatesMethod ex:ocrByPagePartition ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PreparationReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Preparation Receipt"
+msgstr "Reçu de préparation"
+
+msgctxt "https://blackcatinformatics.ca/logic/PreparationReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:stagedForOcr a logic:PreparationReceipt ; logic:receiptOfPreparation ex:stageForOcr ."
+msgstr "Exemple : ex:stagedForOcr a logic:PreparationReceipt ; logic:receiptOfPreparation ex:stageForOcr ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PreparationStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Preparation Step"
+msgstr "Étape de préparation"
+
+msgctxt "https://blackcatinformatics.ca/logic/PreparationStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:stageForOcr a logic:PreparationStep ; logic:preparationOf ex:ocrStep ."
+msgstr "Exemple : ex:stageForOcr a logic:PreparationStep ; logic:preparationOf ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Prescription Kind"
+msgstr "Genre de prescription"
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:adrReviewPlan logic:prescriptionKind logic:prescriptionKindOrganizationalGuide ."
+msgstr "Exemple : ex:adrReviewPlan logic:prescriptionKind logic:prescriptionKindOrganizationalGuide ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Prescription Version"
+msgstr "Version de prescription"
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:adrReviewV3 a logic:PrescriptionVersion ; logic:prescriptionOf ex:adrReviewPlan ."
+msgstr "Exemple : ex:adrReviewV3 a logic:PrescriptionVersion ; logic:prescriptionOf ex:adrReviewPlan ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PriorEnactmentRequirement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Prior Enactment Requirement"
+msgstr "Exigence d'exécution effective antérieure"
+
+msgctxt "https://blackcatinformatics.ca/logic/PriorEnactmentRequirement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:calc2Prereq a logic:PriorEnactmentRequirement ; logic:requiredPriorPrescription ex:calc1 ."
+msgstr "Exemple : ex:calc2Prereq a logic:PriorEnactmentRequirement ; logic:requiredPriorPrescription ex:calc1 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RebuildFragmentChanged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fragment changed"
+msgstr "fragment modifié"
+
+msgctxt "https://blackcatinformatics.ca/logic/RebuildNonIncrementalRetraction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "non-incremental retraction"
+msgstr "rétractation non incrémentale"
+
+msgctxt "https://blackcatinformatics.ca/logic/RebuildReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rebuild Reason"
+msgstr "Motif de reconstruction"
+
+msgctxt "https://blackcatinformatics.ca/logic/RebuildReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:applyDelta logic:rebuildReason logic:RebuildRuleSetChanged ."
+msgstr "Exemple : ex:applyDelta logic:rebuildReason logic:RebuildRuleSetChanged ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RebuildRuleSetChanged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rule set changed"
+msgstr "jeu de règles modifié"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReceiptRequiresAttemptConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a receipt names the attempt it reports on"
+msgstr "un reçu nomme la tentative dont il rend compte"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciledCommitted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "committed"
+msgstr "validé"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciledNotCommitted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not committed"
+msgstr "non validé"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciledStillUnknown|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "still unknown"
+msgstr "toujours inconnu"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationImpossible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reconciliation Impossible"
+msgstr "Rapprochement impossible"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationImpossible|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payUnresolvable a logic:ReconciliationImpossible ; logic:impossibleOfAttempt ex:payAttempt1 ."
+msgstr "Exemple : ex:payUnresolvable a logic:ReconciliationImpossible ; logic:impossibleOfAttempt ex:payAttempt1 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationProbe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reconciliation Probe"
+msgstr "Sonde de rapprochement"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationProbe|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payProbe1 a logic:ReconciliationProbe ; logic:probesAttempt ex:payAttempt1 ."
+msgstr "Exemple : ex:payProbe1 a logic:ReconciliationProbe ; logic:probesAttempt ex:payAttempt1 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reconciliation Result"
+msgstr "Résultat de rapprochement"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payProbe1Result a logic:ReconciliationResult ; logic:reconciliationVerdict logic:ReconciledCommitted ."
+msgstr "Exemple : ex:payProbe1Result a logic:ReconciliationResult ; logic:reconciliationVerdict logic:ReconciledCommitted ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reconciliation Verdict"
+msgstr "Verdict de rapprochement"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payProbe1 logic:reconciliationVerdict logic:ReconciledCommitted ."
+msgstr "Exemple : ex:payProbe1 logic:reconciliationVerdict logic:ReconciledCommitted ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceActive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence active"
+msgstr "récurrence active"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceEnded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence ended"
+msgstr "récurrence terminée"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceScheduled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence scheduled"
+msgstr "récurrence planifiée"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceSkipped|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence skipped"
+msgstr "récurrence sautée"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recurrence State"
+msgstr "État de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:weeklyAdrSchedule logic:recurrenceState logic:RecurrenceActive ."
+msgstr "Exemple : ex:weeklyAdrSchedule logic:recurrenceState logic:RecurrenceActive ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceSuspended|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence suspended"
+msgstr "récurrence suspendue"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Refinement Candidate Set"
+msgstr "Ensemble de candidats de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrCandidates a logic:RefinementCandidateSet ; logic:refinementCandidate ex:ocrViaTesseract ."
+msgstr "Exemple : ex:ocrCandidates a logic:RefinementCandidateSet ; logic:refinementCandidate ex:ocrViaTesseract ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSetClosureConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a refinement episode declares its search fragment"
+msgstr "un épisode de raffinement déclare son fragment de recherche"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Refinement Episode"
+msgstr "Épisode de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrRefinement a logic:RefinementEpisode ; logic:refinesStep ex:ocrTask ."
+msgstr "Exemple : ex:ocrRefinement a logic:RefinementEpisode ; logic:refinesStep ex:ocrTask ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementRejection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Refinement Rejection"
+msgstr "Rejet de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/logic/RefinementRejection|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tesseractRejection a logic:RefinementRejection ; logic:rejectionKind logic:RejectedCapability ."
+msgstr "Exemple : ex:tesseractRejection a logic:RefinementRejection ; logic:rejectionKind logic:RejectedCapability ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RejectedApproval|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejected on approval"
+msgstr "rejeté pour défaut d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/RejectedCapability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejected on capability"
+msgstr "rejeté pour capacité absente"
+
+msgctxt "https://blackcatinformatics.ca/logic/RejectedPrecondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejected on precondition"
+msgstr "rejeté pour précondition non satisfaite"
+
+msgctxt "https://blackcatinformatics.ca/logic/RejectedResource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejected on resource"
+msgstr "rejeté pour ressource indisponible"
+
+msgctxt "https://blackcatinformatics.ca/logic/RejectionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rejection Kind"
+msgstr "Genre de rejet"
+
+msgctxt "https://blackcatinformatics.ca/logic/RejectionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tesseractRejection logic:rejectionKind logic:RejectedCapability ."
+msgstr "Exemple : ex:tesseractRejection logic:rejectionKind logic:RejectedCapability ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ResourceLease|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Resource Lease"
+msgstr "Bail de ressource"
+
+msgctxt "https://blackcatinformatics.ca/logic/ResourceLease|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:valveLease a logic:ResourceLease ; logic:fencingIdentity 47 ."
+msgstr "Exemple : ex:valveLease a logic:ResourceLease ; logic:fencingIdentity 47 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/RevisionLens|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Revision Lens"
+msgstr "Lentille de révision"
+
+msgctxt "https://blackcatinformatics.ca/logic/RevisionLens|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:adrRevisionLens a logic:RevisionLens ; logic:lensGoverns ex:adrReviewPlan ."
+msgstr "Exemple : ex:adrRevisionLens a logic:RevisionLens ; logic:lensGoverns ex:adrReviewPlan ."
+
+msgctxt "https://blackcatinformatics.ca/logic/SearchFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Search Fragment"
+msgstr "Fragment de recherche"
+
+msgctxt "https://blackcatinformatics.ca/logic/SearchFragment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrRefinement logic:searchFragment logic:FragmentAcyclicMethod ."
+msgstr "Exemple : ex:ocrRefinement logic:searchFragment logic:FragmentAcyclicMethod ."
+
+msgctxt "https://blackcatinformatics.ca/logic/SkipAlreadySatisfied|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "already satisfied"
+msgstr "déjà satisfait"
+
+msgctxt "https://blackcatinformatics.ca/logic/SkipNotApplicable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not applicable"
+msgstr "non applicable"
+
+msgctxt "https://blackcatinformatics.ca/logic/SkipOperatorDeclined|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operator declined"
+msgstr "refusé par l'opérateur"
+
+msgctxt "https://blackcatinformatics.ca/logic/SkipPolicyExcluded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "policy excluded"
+msgstr "exclu par la politique"
+
+msgctxt "https://blackcatinformatics.ca/logic/SkipReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Skip Reason"
+msgstr "Motif d'omission"
+
+msgctxt "https://blackcatinformatics.ca/logic/SkipReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrSkip logic:skipReason logic:SkipAlreadySatisfied ."
+msgstr "Exemple : ex:ocrSkip logic:skipReason logic:SkipAlreadySatisfied ."
+
+msgctxt "https://blackcatinformatics.ca/logic/SnapshotDelta|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Snapshot Delta"
+msgstr "Delta d'instantané"
+
+msgctxt "https://blackcatinformatics.ca/logic/SnapshotDelta|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:week12Delta a logic:SnapshotDelta ; logic:deltaAddition ex:adr-0042 ."
+msgstr "Exemple : ex:week12Delta a logic:SnapshotDelta ; logic:deltaAddition ex:adr-0042 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/StepCancelled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step cancelled"
+msgstr "étape annulée"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepCheckpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Step Checkpoint"
+msgstr "Point de reprise d'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepCheckpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ckptOcrStep a logic:StepCheckpoint ; logic:checkpointOfStep ex:ocrStep ."
+msgstr "Exemple : ex:ckptOcrStep a logic:StepCheckpoint ; logic:checkpointOfStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/StepCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step completed"
+msgstr "étape achevée"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step failed"
+msgstr "étape échouée"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepPending|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step pending"
+msgstr "étape en attente"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepReady|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step ready"
+msgstr "étape prête"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepRunning|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step running"
+msgstr "étape en cours"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepSkipped|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step skipped"
+msgstr "étape ignorée"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Step State"
+msgstr "État d'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrStep logic:stepState logic:StepWaiting ."
+msgstr "Exemple : ex:ocrStep logic:stepState logic:StepWaiting ."
+
+msgctxt "https://blackcatinformatics.ca/logic/StepWaiting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step waiting"
+msgstr "étape en attente d'un signal"
+
+msgctxt "https://blackcatinformatics.ca/logic/TransitionJournal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transition Journal"
+msgstr "Journal de transitions"
+
+msgctxt "https://blackcatinformatics.ca/logic/TransitionJournal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reviewJournal a logic:TransitionJournal ; logic:journalHead ex:entry7 ."
+msgstr "Exemple : ex:reviewJournal a logic:TransitionJournal ; logic:journalHead ex:entry7 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/UnsupportedConstruct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unadmitted construct"
+msgstr "construction non admise"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnsupportedFragmentCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unsupported Fragment Condition"
+msgstr "Condition de fragment non pris en charge"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnsupportedFragmentCondition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:searchRun logic:unsupportedCondition logic:UnsupportedMethodSet ."
+msgstr "Exemple : ex:searchRun logic:unsupportedCondition logic:UnsupportedMethodSet ."
+
+msgctxt "https://blackcatinformatics.ca/logic/UnsupportedMethodSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "method set outside fragment"
+msgstr "jeu de méthodes hors fragment"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnsupportedNonTerminating|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "non-terminating pattern"
+msgstr "motif non terminant"
+
+msgctxt "https://blackcatinformatics.ca/logic/adjudicatesAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "adjudicates attempt"
+msgstr "arbitre la tentative"
+
+msgctxt "https://blackcatinformatics.ca/logic/advisoryAbout|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "advisory about"
+msgstr "avis portant sur"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalDecision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval decision"
+msgstr "décision d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval enactment"
+msgstr "exécution effective de l'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalIntentDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval intent digest"
+msgstr "empreinte de l'intention approuvée"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalOperator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval operator"
+msgstr "opérateur de l'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval policy"
+msgstr "politique d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalValidityWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval validity window"
+msgstr "fenêtre de validité de l'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyExcluded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assembly excluded"
+msgstr "élément exclu de l'assemblage"
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyExclusionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assembly exclusion reason"
+msgstr "motif d'exclusion de l'assemblage"
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyForEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assembly for enactment"
+msgstr "assemblage pour l'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyGuidanceVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assembly guidance version"
+msgstr "version de directive de l'assemblage"
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyIncluded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assembly included"
+msgstr "élément inclus dans l'assemblage"
+
+msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt of intent"
+msgstr "tentative de l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/certifiesDeadlockFreedom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "certifies deadlock freedom"
+msgstr "certifie l'absence d'interblocage"
+
+msgctxt "https://blackcatinformatics.ca/logic/certifiesNoOrphanIntent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "certifies no orphan intent"
+msgstr "certifie l'absence d'intention orpheline"
+
+msgctxt "https://blackcatinformatics.ca/logic/certifiesReachability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "certifies reachability"
+msgstr "certifie l'accessibilité"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointAnnotationDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint annotation digest"
+msgstr "empreinte d'annotation du point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointContractDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint contract digest"
+msgstr "empreinte de contrat du point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointDataDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint data digest"
+msgstr "empreinte de données du point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointDescriptorHash|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint descriptor hash"
+msgstr "hachage du descripteur de point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointEngineDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint engine digest"
+msgstr "empreinte de moteur du point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointFragmentDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint fragment digest"
+msgstr "empreinte de fragment du point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointOfEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint of enactment"
+msgstr "point de reprise de l'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointOfStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint of step"
+msgstr "point de reprise de l'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointRulesDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint rules digest"
+msgstr "empreinte de règles du point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointSliceDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint slice digest"
+msgstr "empreinte de tranche du point de reprise"
+
+msgctxt "https://blackcatinformatics.ca/logic/clockObservedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "clock observed at"
+msgstr "instant observé de l'horloge"
+
+msgctxt "https://blackcatinformatics.ca/logic/clockSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "clock source"
+msgstr "source d'horloge"
+
+msgctxt "https://blackcatinformatics.ca/logic/cohortMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cohort member"
+msgstr "membre de la cohorte"
+
+msgctxt "https://blackcatinformatics.ca/logic/compensatesEffect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compensates effect"
+msgstr "compense l'effet"
+
+msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compensation receipt"
+msgstr "reçu de compensation"
+
+msgctxt "https://blackcatinformatics.ca/logic/deadlineExhausted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deadline exhausted"
+msgstr "échéance épuisée"
+
+msgctxt "https://blackcatinformatics.ca/logic/deadlineOfEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deadline of enactment"
+msgstr "échéance de l'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/deltaAddition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "delta addition"
+msgstr "ajout du delta"
+
+msgctxt "https://blackcatinformatics.ca/logic/deltaSuppression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "delta suppression"
+msgstr "suppression du delta"
+
+msgctxt "https://blackcatinformatics.ca/logic/derivationIdentifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivation identifier"
+msgstr "identifiant de dérivation"
+
+msgctxt "https://blackcatinformatics.ca/logic/deviationFromStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deviation from step"
+msgstr "écart par rapport à l'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/effectKnowledge|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect knowledge"
+msgstr "connaissance de l'effet"
+
+msgctxt "https://blackcatinformatics.ca/logic/enactmentInputSnapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment input snapshot"
+msgstr "instantané d'entrée de l'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/enactmentJournal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment journal"
+msgstr "journal de l'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/enactsPrescriptionVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enacts prescription version"
+msgstr "exécute la version de prescription"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry action"
+msgstr "action de l'entrée"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAxisWitness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry axis witness"
+msgstr "témoin d'axe de l'entrée"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry label"
+msgstr "étiquette de l'entrée"
+
+msgctxt "https://blackcatinformatics.ca/logic/expectedJournalHead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected journal head"
+msgstr "tête de journal attendue"
+
+msgctxt "https://blackcatinformatics.ca/logic/fencingIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fencing identity"
+msgstr "identité de clôture"
+
+msgctxt "https://blackcatinformatics.ca/logic/frontierOfEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier of enactment"
+msgstr "frontière de l'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/frontierSaturationWitness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier saturation witness"
+msgstr "témoin de saturation de la frontière"
+
+msgctxt "https://blackcatinformatics.ca/logic/frontierVantage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier vantage"
+msgstr "point de vue de la frontière"
+
+msgctxt "https://blackcatinformatics.ca/logic/gapBlockedStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gap blocked step"
+msgstr "étape bloquée par la lacune"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasFrontierEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has frontier entry"
+msgstr "possède l'entrée de frontière"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasRejection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has rejection"
+msgstr "possède le rejet"
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyDuplicateSemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "idempotency duplicate semantics"
+msgstr "sémantique des doublons d'idempotence"
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "idempotency key"
+msgstr "clé d'idempotence"
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyProviderEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "idempotency provider evidence"
+msgstr "preuve du fournisseur pour l'idempotence"
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyRetention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "idempotency retention"
+msgstr "rétention d'idempotence"
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "idempotency scope"
+msgstr "portée d'idempotence"
+
+msgctxt "https://blackcatinformatics.ca/logic/impossibleOfAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "impossible of attempt"
+msgstr "impossibilité relative à la tentative"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentActionSchemaVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent action schema version"
+msgstr "version du schéma d'action de l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentApprovalRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent approval required"
+msgstr "approbation requise pour l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent digest"
+msgstr "empreinte de l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentIdempotency|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent idempotency"
+msgstr "idempotence de l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentNormalizedArguments|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent normalized arguments"
+msgstr "arguments normalisés de l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentOfEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent of enactment"
+msgstr "intention de l'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentOfStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent of step"
+msgstr "intention de l'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentPolicy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent policy"
+msgstr "politique de l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/intentTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intent target"
+msgstr "cible de l'intention"
+
+msgctxt "https://blackcatinformatics.ca/logic/journalDeltaIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "journal delta identity"
+msgstr "identité du delta journalisé"
+
+msgctxt "https://blackcatinformatics.ca/logic/journalHead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "journal head"
+msgstr "tête de journal"
+
+msgctxt "https://blackcatinformatics.ca/logic/journalNewHead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "journal new head"
+msgstr "nouvelle tête de journal"
+
+msgctxt "https://blackcatinformatics.ca/logic/journalOutcomeTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "journal outcome tag"
+msgstr "étiquette d'issue du journal"
+
+msgctxt "https://blackcatinformatics.ca/logic/journalPrevHead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "journal previous head"
+msgstr "tête de journal précédente"
+
+msgctxt "https://blackcatinformatics.ca/logic/knowledgePrecedes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "knowledge precedes"
+msgstr "précède en connaissance"
+
+msgctxt "https://blackcatinformatics.ca/logic/lawAdmits|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "law admits"
+msgstr "la loi admet"
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "law governs axis"
+msgstr "la loi régit l'axe"
+
+msgctxt "https://blackcatinformatics.ca/logic/leaseExpiry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lease expiry"
+msgstr "expiration du bail"
+
+msgctxt "https://blackcatinformatics.ca/logic/leaseOwner|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lease owner"
+msgstr "titulaire du bail"
+
+msgctxt "https://blackcatinformatics.ca/logic/leaseScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lease scope"
+msgstr "portée du bail"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGetPutHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lens get-put law holds"
+msgstr "la loi get-put de la lentille est vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGoverns|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lens governs"
+msgstr "la lentille régit"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensPutGetHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lens put-get law holds"
+msgstr "la loi put-get de la lentille est vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/logic/methodApplicability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "method applicability"
+msgstr "applicabilité de la méthode"
+
+msgctxt "https://blackcatinformatics.ca/logic/methodDecomposes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "method decomposes"
+msgstr "la méthode décompose"
+
+msgctxt "https://blackcatinformatics.ca/logic/methodDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "method digest"
+msgstr "empreinte de la méthode"
+
+msgctxt "https://blackcatinformatics.ca/logic/methodYields|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "method yields"
+msgstr "la méthode produit"
+
+msgctxt "https://blackcatinformatics.ca/logic/normalizationRecipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "normalization recipe"
+msgstr "recette de normalisation"
+
+msgctxt "https://blackcatinformatics.ca/logic/outcomeOfCompensation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "outcome of compensation"
+msgstr "issue de la compensation"
+
+msgctxt "https://blackcatinformatics.ca/logic/pinAuthority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin authority"
+msgstr "autorité de l'épinglage"
+
+msgctxt "https://blackcatinformatics.ca/logic/pinDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin digest"
+msgstr "empreinte de l'épinglage"
+
+msgctxt "https://blackcatinformatics.ca/logic/pinInstantiatesMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pin instantiates method"
+msgstr "l'épinglage instancie la méthode"
+
+msgctxt "https://blackcatinformatics.ca/logic/preparationOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preparation of"
+msgstr "préparation de"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prescription digest"
+msgstr "empreinte de la prescription"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindAgentFlow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "agent flow"
+msgstr "flux d'agent"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindBusinessProcess|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "business process"
+msgstr "processus métier"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindCiBuild|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CI build"
+msgstr "construction d'intégration continue"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindControlPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "control plan"
+msgstr "plan de conduite"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindCurriculum|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "curriculum"
+msgstr "cursus"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindDataPipeline|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "data pipeline"
+msgstr "chaîne de traitement de données"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindIngestion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ingestion"
+msgstr "ingestion"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindLabProtocol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lab protocol"
+msgstr "protocole de laboratoire"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindOrganizationalGuide|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "organizational guide"
+msgstr "guide organisationnel"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindRecipe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recipe"
+msgstr "recette"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindRepeatableGuide|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repeatable guide"
+msgstr "guide reproductible"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKindResearchPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "research plan"
+msgstr "plan de recherche"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prescription of"
+msgstr "prescription de"
+
+msgctxt "https://blackcatinformatics.ca/logic/probesAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "probes attempt"
+msgstr "sonde la tentative"
+
+msgctxt "https://blackcatinformatics.ca/logic/producedCandidateSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "produced candidate set"
+msgstr "ensemble de candidats produit"
+
+msgctxt "https://blackcatinformatics.ca/logic/proofEstablishes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proof establishes"
+msgstr "la preuve établit"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalBlockedStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal blocked step"
+msgstr "étape bloquée visée par la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalExpectedEffects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal expected effects"
+msgstr "effets attendus de la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalExpectedInputs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal expected inputs"
+msgstr "entrées attendues de la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalExpectedOutputs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal expected outputs"
+msgstr "sorties attendues de la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalMissingCapability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal missing capability"
+msgstr "capacité manquante visée par la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalRequiredContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal required contract"
+msgstr "contrat requis par la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalSecurityLifecycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal security and lifecycle needs"
+msgstr "besoins de sécurité et de cycle de vie de la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalVerificationMethod|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proposal verification method"
+msgstr "méthode de vérification de la proposition"
+
+msgctxt "https://blackcatinformatics.ca/logic/providerCorrelationId|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider correlation identity"
+msgstr "identité de corrélation du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt evidence"
+msgstr "preuve du reçu"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt of attempt"
+msgstr "reçu de la tentative"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt of preparation"
+msgstr "reçu de la préparation"
+
+msgctxt "https://blackcatinformatics.ca/logic/recoveryWitness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recovery witness"
+msgstr "témoin de récupération"
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementBudget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement budget"
+msgstr "budget de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement candidate"
+msgstr "candidat de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementServesGoal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement serves goal"
+msgstr "le raffinement sert le but"
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementWorldSnapshot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement world snapshot"
+msgstr "instantané du monde pour le raffinement"
+
+msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refines step"
+msgstr "raffine l'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/rejectedCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejected candidate"
+msgstr "candidat rejeté"
+
+msgctxt "https://blackcatinformatics.ca/logic/rejectionWitness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejection witness"
+msgstr "témoin du rejet"
+
+msgctxt "https://blackcatinformatics.ca/logic/requiredPriorPrescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required prior prescription"
+msgstr "prescription antérieure requise"
+
+msgctxt "https://blackcatinformatics.ca/logic/requiredPriorState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required prior state"
+msgstr "état antérieur requis"
+
+msgctxt "https://blackcatinformatics.ca/logic/resultOfProbe|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "result of probe"
+msgstr "résultat de la sonde"
+
+msgctxt "https://blackcatinformatics.ca/logic/selectedPin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected pin"
+msgstr "épinglage sélectionné"
+
+msgctxt "https://blackcatinformatics.ca/logic/snapshotDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "snapshot digest"
+msgstr "empreinte de l'instantané"
+
+msgctxt "https://blackcatinformatics.ca/logic/unknownOfAttempt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unknown of attempt"
+msgstr "inconnue relative à la tentative"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionableFrontier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The derived set of what could happen next in an enactment, together with why each item can or cannot proceed. Its CLOSEDNESS is certified, not asserted: the frontier carries a saturation witness showing the derivation ran to a fixed point, because a roster truncated by a budget cut and presented as complete is how a system silently omits the action it should have taken. Typed APART from a work queue, which lists what someone intends to do; a frontier is derived from state and carries its own completeness status."
+msgstr "L'ensemble dérivé de ce qui peut advenir ensuite dans une exécution effective, assorti de la raison pour laquelle chaque élément peut ou ne peut pas progresser. Sa CLÔTURE est certifiée, non postulée : la frontière porte un témoin de saturation attestant que la dérivation a atteint un point fixe, car une liste tronquée par une coupure de budget et présentée comme complète est précisément la façon dont un système omet silencieusement l'action qu'il aurait dû entreprendre. Typée À PART d'une file de travail, qui énumère ce que quelqu'un a l'intention de faire ; une frontière est dérivée de l'état et porte son propre statut de complétude."
+
+msgctxt "https://blackcatinformatics.ca/logic/Advisory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A model-generated decomposition, recommendation, summary or draft: attributed evidence that may inform a decision and may never constitute one. It is structurally barred from authorizing a pin, deciding an approval, or carrying a proof. Typed APART from logic:AdviceGuidance, which is authored usage prose attached to a TERM for a human author's benefit; an Advisory is generated content about a SITUATION, with a different subject, lifetime and consumer."
+msgstr "Une décomposition, recommandation, synthèse ou ébauche produite par un modèle : une preuve attribuée qui peut éclairer une décision et ne peut jamais en tenir lieu. Elle est structurellement empêchée d'autoriser un épinglage, de trancher une approbation ou de porter une preuve. Typée À PART de logic:AdviceGuidance, qui est de la prose d'usage rédigée et rattachée à un TERME au bénéfice d'un auteur humain ; un avis consultatif est un contenu engendré portant sur une SITUATION, avec un sujet, une durée de vie et un destinataire différents."
+
+msgctxt "https://blackcatinformatics.ca/logic/AdvisoryNeverAuthorityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:Advisory that authorizes a pin. Model-generated content is attributed evidence and may never be the thing that licenses an action; the separation is enforced structurally rather than left to convention, because a convention is exactly what fails under time pressure."
+msgstr "La logic:Constraint qui rejette un logic:Advisory autorisant un épinglage. Un contenu produit par un modèle est une preuve attribuée et ne peut jamais être ce qui autorise une action ; la séparation est imposée structurellement plutôt que laissée à une convention, car une convention est précisément ce qui cède sous la pression du temps."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalBindingFault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed vocabulary of WHY an authorization failed to detach: a digest mismatch, a different enactment, an elapsed window, or a different operator-policy binding. Typing the fault separately for each is what lets a conformance corpus prove the four are detected independently rather than collapsing into one undifferentiated refusal."
+msgstr "Le vocabulaire clos des raisons pour lesquelles une autorisation n'a pas pu se détacher : empreinte non concordante, exécution effective différente, fenêtre écoulée, ou liaison opérateur-politique différente. Typer le défaut séparément dans chaque cas est ce qui permet à un corpus de conformité de prouver que les quatre sont détectés indépendamment, au lieu de se confondre en un refus indifférencié."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCancelled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authorizing party withdrew the commitment before it was discharged. Terminal. Distinguished from released, in which the party who BENEFITED from the commitment gave it up."
+msgstr "La partie autorisante a retiré l'engagement avant qu'il ne soit acquitté. Terminal. À distinguer de « libérée », où c'est la partie BÉNÉFICIAIRE de l'engagement qui y a renoncé."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCommitment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An authorization modelled as a social commitment with a detachment lifecycle rather than as a boolean. Six bindings are mandatory: the exact dispatch-intent digest, the enactment and step, the authorized operator identity, the governing policy, the decision, and the validity window. Exact binding then falls out as a DETACHMENT condition — an intent whose digest differs simply never detaches this commitment — and revocation, delegation, escalation and quorum become expressible instead of absent."
+msgstr "Une autorisation modélisée comme un engagement social doté d'un cycle de détachement, plutôt que comme un booléen. Six liaisons sont obligatoires : l'empreinte exacte de l'intention d'émission, l'exécution effective et l'étape, l'identité de l'opérateur autorisé, la politique régissante, la décision et la fenêtre de validité. La liaison exacte découle alors d'une condition de DÉTACHEMENT — une intention dont l'empreinte diffère ne détache tout simplement jamais cet engagement — et la révocation, la délégation, l'escalade et le quorum deviennent exprimables au lieu d'être absents."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCommitmentCompletenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ApprovalCommitment that omits any of its six bindings. Each omission is a distinct way an authorization could authorize more than it was meant to, which is why they are gated together rather than individually optional."
+msgstr "La logic:Constraint qui rejette un logic:ApprovalCommitment omettant l'une quelconque de ses six liaisons. Chaque omission est une manière distincte pour une autorisation d'autoriser plus qu'il n'était prévu, d'où leur mise sous condition conjointe plutôt qu'une facultativité individuelle."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCreated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A commitment exists but its antecedent has not yet been met, so it authorizes nothing yet. Distinguished from detached, at which point it does."
+msgstr "Un engagement existe mais son antécédent n'est pas encore satisfait : il n'autorise donc encore rien. À distinguer de « détachée », état à partir duquel il autorise."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalDetached|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The commitment's antecedent is met and the authorization is live for the exact intent it names. Detachment is the moment an approval starts authorizing; an intent whose digest differs from the one named never detaches this commitment."
+msgstr "L'antécédent de l'engagement est satisfait et l'autorisation est active pour l'intention exacte qu'elle nomme. Le détachement est le moment où une approbation commence à autoriser ; une intention dont l'empreinte diffère de celle nommée ne détache jamais cet engagement."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalDischarged|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authorized act occurred and the commitment is satisfied. Terminal. It does not authorize a second act: a repeat needs its own commitment."
+msgstr "L'acte autorisé a eu lieu et l'engagement est satisfait. Terminal. Il n'autorise pas un second acte : une répétition exige son propre engagement."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalExpired|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The validity window closed before the authorized act occurred. Terminal. Expiry is evaluated against an attributed clock, so a dispatch whose expiry check names no clock source is refused."
+msgstr "La fenêtre de validité s'est refermée avant que l'acte autorisé n'ait lieu. Terminal. L'expiration s'apprécie au regard d'une horloge attribuée : une émission dont le contrôle d'expiration ne nomme aucune source d'horloge est refusée."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalNull|http://www.w3.org/2004/02/skos/core#definition"
+msgid "No commitment exists. The absence of an authorization, made explicit so that 'unapproved' is a recorded position rather than missing data."
+msgstr "Aucun engagement n'existe. L'absence d'autorisation, rendue explicite afin que « non approuvé » soit une position consignée plutôt qu'une donnée manquante."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalReleased|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The party the commitment was owed to gave it up, so it lapses without being discharged or violated. Terminal. Distinguished from cancelled, which is withdrawal by the authorizing party."
+msgstr "La partie envers laquelle l'engagement était dû y a renoncé : il s'éteint donc sans être acquitté ni violé. Terminal. À distinguer de « annulée », qui est un retrait par la partie autorisante."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Axis three of seven: the closed lifecycle of an authorization treated as a social commitment rather than a boolean flag. Modelling approval as a commitment with a DETACHMENT lifecycle is what makes revocation, delegation, escalation and expiry first-class instead of absent, and what turns exact-binding into a detachment condition rather than a comparison."
+msgstr "Axe trois sur sept : le cycle de vie clos d'une autorisation traitée comme un engagement social plutôt que comme un drapeau booléen. Modéliser l'approbation comme un engagement doté d'un cycle de DÉTACHEMENT est ce qui rend la révocation, la délégation, l'escalade et l'expiration pleinement exprimables au lieu d'absentes, et ce qui transforme la liaison exacte en une condition de détachement plutôt qu'en une comparaison."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalViolated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authorized act was not performed although the commitment was live and its window open, or an act was performed outside what it authorized. Terminal, and a finding rather than a routine outcome."
+msgstr "L'acte autorisé n'a pas été accompli alors que l'engagement était actif et sa fenêtre ouverte, ou bien un acte a été accompli hors de ce qu'il autorisait. Terminal, et constituant un constat plutôt qu'une issue ordinaire."
+
+msgctxt "https://blackcatinformatics.ca/logic/ArgumentNormalization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The pinned recipe by which effect arguments are canonicalized before being digested, together with the resulting canonical form. Pinning it is a SECURITY requirement: with two normalizations in play an approval can be obtained for a benign serialization and a materially different one dispatched under the same digest. Only resolved surfaces enter the digest; runtime handles never do."
+msgstr "La recette figée selon laquelle les arguments d'un effet sont canonicalisés avant d'être empreints, ainsi que la forme canonique obtenue. La figer est une exigence de SÉCURITÉ : avec deux normalisations en circulation, une approbation peut être obtenue pour une sérialisation anodine tandis qu'une sérialisation matériellement différente est émise sous la même empreinte. Seules les surfaces résolues entrent dans l'empreinte ; jamais les références d'exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/AuthorizationProof|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A checkable proof term establishing that a dispatch or a pin was licensed — one whose stated conclusion is RECOMPUTED by the checker rather than trusted. This is strictly stronger than a faithfulness check over cited evidence: a fabricated authorization citing entirely real identifiers passes the weaker check and fails this one. It is what makes 'advice is never authority' an unforgeable property rather than a convention."
+msgstr "Un terme de preuve vérifiable établissant qu'une émission ou un épinglage était autorisé — un terme dont la conclusion annoncée est RECALCULÉE par le vérificateur plutôt que tenue pour acquise. C'est strictement plus fort qu'un contrôle de fidélité sur les preuves citées : une autorisation fabriquée citant des identifiants parfaitement réels passe le contrôle faible et échoue à celui-ci. C'est ce qui fait de « l'avis n'est jamais l'autorité » une propriété infalsifiable plutôt qu'une convention."
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authored, machine-checkable statement of which transitions one lifecycle axis admits, carried as a logic:Formula rather than as prose. Making the admitted relation data is what lets deadlock-freedom and reachability be PROVED over an axis instead of asserted about it. Typed APART from logic:Constraint, which rejects an ill-formed record: a transition law describes the legal moves, and a constraint enforces one."
+msgstr "L'énoncé rédigé et vérifiable par machine des transitions qu'un axe de cycle de vie admet, porté comme une logic:Formula plutôt que comme de la prose. Faire de la relation admise une donnée est ce qui permet de PROUVER l'absence d'interblocage et l'accessibilité sur un axe au lieu de les affirmer. Typé À PART de logic:Constraint, qui rejette un enregistrement mal formé : une loi de transition décrit les mouvements licites, une contrainte en impose un."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapabilityGapProposal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete, actionable statement of what would close a logic:OperationalCapabilityGap: the missing capability, the contract it must satisfy, its expected inputs, outputs and effects, how its correctness would be verified, what security and lifecycle handling it needs, and the step it unblocks. All eight are mandatory, because a proposal missing any one of them is a complaint rather than a request — and the whole point of surfacing a gap instead of substituting a weaker tool is that the gap comes with its own remedy."
+msgstr "L'énoncé complet et actionnable de ce qui comblerait une logic:OperationalCapabilityGap : la capacité manquante, le contrat qu'elle doit satisfaire, ses entrées, sorties et effets attendus, la manière dont sa correction serait vérifiée, les besoins de sécurité et de cycle de vie qu'elle appelle, et l'étape qu'elle débloque. Les huit sont obligatoires, car une proposition à laquelle il en manque un seul est une plainte et non une demande — et tout l'intérêt de faire remonter une lacune plutôt que de lui substituer un outil plus faible est que la lacune s'accompagne de son propre remède."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapabilityGapProposalCompletenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:CapabilityGapProposal that omits any of its eight mandatory fields. A partial proposal reports a blockage without its remedy, which is exactly the outcome raising a gap instead of substituting a weaker capability is meant to avoid."
+msgstr "La logic:Constraint qui rejette une logic:CapabilityGapProposal omettant l'un quelconque de ses huit champs obligatoires. Une proposition partielle signale un blocage sans son remède, ce qui est précisément le résultat que l'on cherche à éviter en faisant remonter une lacune plutôt qu'en lui substituant une capacité plus faible."
+
+msgctxt "https://blackcatinformatics.ca/logic/ClockAttribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The record of WHOSE clock a time-bounded judgment was made against. Expiry, validity windows and retention are all evaluated against somebody's notion of now, and provider-consumer skew is the canonical failure of every one of them. A dispatch whose expiry evaluation names no clock source is refused, because an unattributed 'still valid' is unfalsifiable."
+msgstr "Le relevé de l'horloge au regard de laquelle un jugement borné dans le temps a été porté. L'expiration, les fenêtres de validité et la rétention s'apprécient toutes au regard de la notion de « maintenant » de quelqu'un, et le décalage entre fournisseur et consommateur est la défaillance canonique de chacune d'elles. Une émission dont l'appréciation d'expiration ne nomme aucune source d'horloge est refusée, car un « encore valide » non attribué est infalsifiable."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationAttempt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A NEW action taken to counteract a forward effect known to have committed — with its own preconditions, its own effects, its own attempt and receipt, and its own possibility of failing. It is emphatically NOT an undo: the forward effect remains in the record, history is corrected forward rather than rewritten, and a compensation that fails leaves the system in a genuinely inconsistent state that needs escalation rather than retry."
+msgstr "Une action NOUVELLE entreprise pour contrecarrer un effet aller dont on sait qu'il a été validé — avec ses propres préconditions, ses propres effets, sa propre tentative et son propre reçu, et sa propre possibilité d'échouer. Ce n'est catégoriquement PAS une annulation : l'effet aller demeure au dossier, l'histoire est corrigée en avant plutôt que réécrite, et une compensation qui échoue laisse le système dans un état véritablement incohérent qui appelle une escalade plutôt qu'une nouvelle tentative."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationBindsExactForwardEffectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:CompensationAttempt that names no forward receipt. Binding to the exact receipt rather than to an action schema is what stops one compensation being read as covering every effect of its kind, which is the reading under which a single refund appears to undo many charges."
+msgstr "La logic:Constraint qui rejette une logic:CompensationAttempt ne nommant aucun reçu aller. Se lier au reçu exact plutôt qu'à un schéma d'action est ce qui empêche de lire une compensation comme couvrant tous les effets de son espèce — lecture sous laquelle un unique remboursement paraît annuler de nombreux débits."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "What a logic:CompensationAttempt achieved, established by its own receipt exactly as a forward effect's outcome is. A compensation may not be recorded as successful on the strength of having been attempted: the asymmetry between attempting and achieving is the whole reason the saga exists, and it does not stop applying just because the action is corrective."
+msgstr "Ce qu'une logic:CompensationAttempt a effectivement accompli, établi par son propre reçu exactement comme l'est l'issue d'un effet aller. Une compensation ne peut être consignée comme réussie au seul motif d'avoir été tentée : l'asymétrie entre tenter et accomplir est la raison d'être même de la saga, et elle ne cesse pas de s'appliquer sous prétexte que l'action est correctrice."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationSuccessRequiresReceiptConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:CompensationOutcome with no receipt. Compensation is a new action, so the gap between attempting and achieving applies to it exactly as to a forward effect; recording success on the strength of having tried is the failure this constraint exists to prevent. Coded separately from the not-an-inverse constraint because the two are independent obligations and a corpus must be able to trip each alone."
+msgstr "La logic:Constraint qui rejette un logic:CompensationOutcome dépourvu de reçu. La compensation est une action nouvelle : l'écart entre tenter et accomplir lui s'applique exactement comme à un effet aller, et consigner une réussite au seul motif d'avoir essayé est la défaillance que cette contrainte existe pour empêcher. Codée séparément de la contrainte « pas un inverse » parce que les deux sont des obligations indépendantes et qu'un corpus doit pouvoir déclencher chacune isolément."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContextAssembly|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The record of what was put in front of a decider: what was included, from where, under what budget, and — critically — what was EXCLUDED. Recording exclusions is what makes recorded dissent meaningful, because 'the operator saw the objection and proceeded' and 'the objection was never surfaced' are different situations that an inclusion-only record cannot tell apart. Typed APART from the decision itself: an assembly is what was available to decide with."
+msgstr "Le relevé de ce qui a été soumis à celui qui décide : ce qui a été inclus, d'où, sous quel budget, et — de façon décisive — ce qui a été EXCLU. Consigner les exclusions est ce qui donne son sens à une dissidence consignée, car « l'opérateur a vu l'objection et a poursuivi » et « l'objection n'a jamais été présentée » sont deux situations distinctes qu'un relevé limité aux inclusions ne peut départager. Typé À PART de la décision elle-même : un assemblage est ce dont on disposait pour décider."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ContextAssembly with no named enactment. An assembly exists to answer what was surfaced to a PARTICULAR run; unbound, it answers nothing and the guidance-version record it carries has no subject."
+msgstr "La logic:Constraint qui rejette un logic:ContextAssembly ne nommant aucune exécution effective. Un assemblage existe pour répondre à la question de ce qui a été présenté à une exécution PARTICULIÈRE ; non lié, il ne répond à rien et le relevé de version de directive qu'il porte n'a pas de sujet."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed three-valued vocabulary distinguishing the three ways work continues after it has already begun: resuming the same enactment, repeating under a new input generation, or revising the prescription itself. They are pairwise disjoint and carry different required bindings, so conflating them — the common failure in which 'run it again' silently means any of the three — is structurally detectable. Its members are individuals, never subclasses."
+msgstr "Le vocabulaire clos à trois valeurs distinguant les trois manières dont un travail se poursuit une fois commencé : reprendre la même exécution effective, la répéter sous une nouvelle génération d'entrées, ou réviser la prescription elle-même. Elles sont deux à deux disjointes et portent des liaisons obligatoires différentes : les confondre — défaillance courante où « relance-le » signifie silencieusement l'une quelconque des trois — est structurellement détectable. Ses membres sont des individus, jamais des sous-classes."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationRepeat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A NEW logic:Enactment of the same logic:PrescriptionVersion against a NEW logic:InputSnapshot — next week's occurrence of a recurring review, the next batch, the next cohort. The prior enactment stays closed and comparable. Distinguished from resume, which continues the existing enactment, and from revise, which changes the prescription."
+msgstr "Une NOUVELLE logic:Enactment de la même logic:PrescriptionVersion face à un NOUVEL logic:InputSnapshot — l'occurrence de la semaine suivante d'une revue récurrente, le lot suivant, la cohorte suivante. L'exécution effective antérieure demeure close et comparable. À distinguer de la reprise, qui poursuit l'exécution existante, et de la révision, qui modifie la prescription."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationResume|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Continuation of the SAME logic:Enactment from a logic:EnactmentCheckpoint: the prescription version and the input snapshot are unchanged, and the journal continues rather than restarting. Requires a checkpoint whose identity gate passes. Distinguished from repeat, which mints a new enactment, and from revise, which mints a new prescription version."
+msgstr "Poursuite de la MÊME logic:Enactment à partir d'un logic:EnactmentCheckpoint : la version de prescription et l'instantané d'entrée sont inchangés, et le journal se poursuit au lieu de repartir. Exige un point de reprise dont le contrôle d'identité est concluant. À distinguer de la répétition, qui crée une nouvelle exécution effective, et de la révision, qui crée une nouvelle version de prescription."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationRevise|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Minting a NEW logic:PrescriptionVersion that supersedes its predecessor, because the prescription itself was wrong or has changed. In-flight enactments keep the version they pinned at start. Distinguished from resume and repeat, both of which leave the prescription untouched."
+msgstr "Création d'une NOUVELLE logic:PrescriptionVersion qui supplante la précédente, parce que la prescription elle-même était erronée ou a changé. Les exécutions effectives en vol conservent la version qu'elles ont épinglée au départ. À distinguer de la reprise et de la répétition, qui laissent toutes deux la prescription intacte."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContradictionAdjudication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed operator decision that resolves a contradictory commitment state — the provider reporting committed where the local ledger reports otherwise. It exists because that state is REACHABLE and would otherwise be a trap: compensation requires proof of commitment, retry requires proof of non-commitment, and a contradictory reading supplies neither. Adjudication is a standpoint-indexed decision, never a derivation."
+msgstr "La décision attribuée d'un opérateur qui tranche un état d'engagement contradictoire — le fournisseur signalant « validé » là où le registre local dit le contraire. Elle existe parce que cet état est ATTEIGNABLE et constituerait autrement un piège : la compensation exige la preuve de la validation, la nouvelle tentative exige la preuve de la non-validation, et une lecture contradictoire ne fournit ni l'une ni l'autre. L'arbitrage est une décision indexée par point de vue, jamais une dérivation."
+
+msgctxt "https://blackcatinformatics.ca/logic/DeadlineConsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "How much of a declared deadline an enactment has used and whether it is exhausted — the time-shaped sibling of the engine's existing step and budget accounting, which this layer reuses rather than duplicating for every other resource. Recorded so that 'we ran out of time' is a derivable state with a witness rather than an operator's impression."
+msgstr "La part d'une échéance déclarée qu'une exécution effective a consommée et le fait qu'elle soit ou non épuisée — le pendant temporel de la comptabilité de pas et de budget déjà présente dans le moteur, que cette couche réutilise au lieu de la dupliquer pour chaque autre ressource. Consigné afin que « nous avons manqué de temps » soit un état dérivable assorti d'un témoin plutôt qu'une impression d'opérateur."
+
+msgctxt "https://blackcatinformatics.ca/logic/DecompositionMethod|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named, versioned, content-addressed schema for decomposing one abstract task into a subplan, gated by an applicability condition. It is the reusable unit means-end search selects among: a curriculum's course-into-modules rule, a control plan's phase-into-steps rule, an organizational guide's policy-into-procedure rule. Typed APART from logic:PinnedExecutableSubgraph, which is one committed INSTANTIATION of a method against one situation; the method is the schema and outlives every pin made from it."
+msgstr "Un schéma nommé, versionné et adressé par contenu pour décomposer une tâche abstraite en un sous-plan, conditionné par un critère d'applicabilité. C'est l'unité réutilisable parmi lesquelles la recherche moyens-fins choisit : la règle cursus-vers-modules d'un cursus, la règle phase-vers-étapes d'un plan de conduite, la règle politique-vers-procédure d'un guide organisationnel. Typé À PART de logic:PinnedExecutableSubgraph, qui est une INSTANCIATION arrêtée d'une méthode face à une situation ; la méthode est le schéma et survit à chaque épinglage qui en découle."
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliveryAtLeastOnce|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider may duplicate but never drop. A retry is only safe under a live idempotency key, which is why the retention window is load-bearing rather than informational."
+msgstr "Le fournisseur peut dupliquer mais ne perd jamais. Une nouvelle tentative n'est sûre que sous une clé d'idempotence encore vivante, raison pour laquelle la fenêtre de rétention est porteuse et non purement informative."
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliveryAtMostOnce|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider may drop but never duplicate. A retry is safe from a duplication standpoint but may silently lose the effect entirely."
+msgstr "Le fournisseur peut perdre mais ne duplique jamais. Une nouvelle tentative est sûre du point de vue de la duplication, mais peut faire perdre l'effet en silence et en totalité."
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliveryExactlyOnce|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider guarantees neither loss nor duplication for a given key within its retention window. The guarantee lapses with the window, so it is not a standing property of the provider."
+msgstr "Le fournisseur ne garantit ni perte ni duplication pour une clé donnée à l'intérieur de sa fenêtre de rétention. La garantie s'éteint avec la fenêtre : ce n'est donc pas une propriété permanente du fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/logic/DeliverySemantics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "What a provider actually guarantees about duplicate delivery. A retry licence is only sound RELATIVE to this: the same idempotency contract means something different against an at-most-once provider than against an at-least-once one, and assuming exactly-once where the provider offers at-least-once is how duplicate effects happen."
+msgstr "Ce qu'un fournisseur garantit réellement quant à la livraison en double. Un droit de réessai n'est fondé que RELATIVEMENT à cela : le même contrat d'idempotence ne signifie pas la même chose face à un fournisseur « au plus une fois » que face à un fournisseur « au moins une fois », et présumer « exactement une fois » là où le fournisseur n'offre que « au moins une fois » est précisément ainsi que surviennent les effets en double."
+
+msgctxt "https://blackcatinformatics.ca/logic/Deviation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded, authorized departure from the prescription during an enactment — a control-plan deviation, a curriculum accommodation, an organizational exception, a workflow manual override. It records WHAT differed, WHO authorized it, and against WHICH step, so the run stays auditable rather than merely non-conforming. Typed APART from logic:Constraint violation, which is an integrity finding nobody authorized: a deviation is a sanctioned difference."
+msgstr "Un écart consigné et autorisé par rapport à la prescription au cours d'une exécution effective — écart de plan de conduite, aménagement de cursus, exception organisationnelle, dérogation manuelle dans un flux de travail. Il consigne CE QUI a différé, QUI l'a autorisé et à l'égard de QUELLE étape, de sorte que l'exécution demeure auditable plutôt que simplement non conforme. Typé À PART d'une violation de logic:Constraint, qui est un constat d'intégrité que personne n'a autorisé : un écart est une différence sanctionnée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DispatchIntent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The durable pre-effect record: what is about to be done to the world, bound tightly enough that nothing else can be substituted for it. Nine bindings are mandatory - the enactment, the step, the action-schema version, the exactly normalized arguments, the target, the governing policy, the approval requirement, the content digest, and the journal head it is applied against. The digest is what an approval binds to; the journal head is what makes a resubmission after an interruption structurally detectable rather than a matter of remembering."
+msgstr "Le relevé durable préalable à l'effet : ce qui est sur le point d'être fait au monde, lié assez étroitement pour que rien d'autre ne puisse lui être substitué. Neuf liaisons sont obligatoires — l'exécution effective, l'étape, la version du schéma d'action, les arguments exactement normalisés, la cible, la politique régissante, l'exigence d'approbation, l'empreinte de contenu, et la tête de journal au regard de laquelle il s'applique. L'empreinte est ce à quoi une approbation se lie ; la tête de journal est ce qui rend une resoumission après interruption structurellement détectable plutôt que tributaire de la mémoire."
+
+msgctxt "https://blackcatinformatics.ca/logic/Advisory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Advisory"
+msgstr "Avis consultatif de modèle"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalCommitment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \\\"blake3:7f21\\\" ."
+msgstr "Exemple : ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \\\"blake3:7f21\\\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ArgumentNormalization|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \\\"canonical-nt-sorted\\\" ."
+msgstr "Exemple : ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \\\"canonical-nt-sorted\\\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ClockAttribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \\\"2026-07-25T04:00:00Z\\\"^^xsd:dateTime ."
+msgstr "Exemple : ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \\\"2026-07-25T04:00:00Z\\\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationRevise|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "revise the prescription"
+msgstr "réviser la prescription"
+
+msgctxt "https://blackcatinformatics.ca/logic/DispatchIntent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payIntent a logic:DispatchIntent ; logic:intentDigest \\\"blake3:7f21\\\" ."
+msgstr "Exemple : ex:payIntent a logic:DispatchIntent ; logic:intentDigest \\\"blake3:7f21\\\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectAttempt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \\\"txn-9f21ab\\\" ."
+msgstr "Exemple : ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \\\"txn-9f21ab\\\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentCheckpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \\\"blake3:5a6b\\\" ."
+msgstr "Exemple : ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \\\"blake3:5a6b\\\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/FrontierReconciliationImpossible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciliation foreclosed"
+msgstr "rapprochement forclos"
+
+msgctxt "https://blackcatinformatics.ca/logic/IdempotencyContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \\\"P1D\\\"^^xsd:duration ."
+msgstr "Exemple : ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \\\"P1D\\\"^^xsd:duration ."
+
+msgctxt "https://blackcatinformatics.ca/logic/InputSnapshot|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \\\"blake3:9f8e\\\" ."
+msgstr "Exemple : ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \\\"blake3:9f8e\\\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/JournalEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \\\"blake3:a1b2\\\" ; logic:journalNewHead \\\"blake3:c3d4\\\" ."
+msgstr "Exemple : ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \\\"blake3:a1b2\\\" ; logic:journalNewHead \\\"blake3:c3d4\\\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/OutcomeIncomplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "incomplete operation"
+msgstr "opération incomplète"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalBindingFault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has approval binding fault"
+msgstr "porte le défaut de liaison d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has approval state"
+msgstr "porte l'état d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has continuation kind"
+msgstr "porte le genre de continuation"
+
+msgctxt "https://blackcatinformatics.ca/logic/effectProtocolPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has effect protocol position"
+msgstr "porte la position protocolaire de l'effet"
+
+msgctxt "https://blackcatinformatics.ca/logic/enactmentState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has enactment state"
+msgstr "porte l'état d'exécution effective"
+
+msgctxt "https://blackcatinformatics.ca/logic/incompleteCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has incomplete cause"
+msgstr "porte la cause d'incomplétude"
+
+msgctxt "https://blackcatinformatics.ca/logic/integrityFault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has integrity fault"
+msgstr "porte le défaut d'intégrité"
+
+msgctxt "https://blackcatinformatics.ca/logic/operationOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has operation outcome"
+msgstr "porte l'issue d'opération"
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has prescription kind"
+msgstr "porte le genre de prescription"
+
+msgctxt "https://blackcatinformatics.ca/logic/rebuildReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has rebuild reason"
+msgstr "porte le motif de reconstruction"
+
+msgctxt "https://blackcatinformatics.ca/logic/reconciliationVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has reconciliation verdict"
+msgstr "porte le verdict de rapprochement"
+
+msgctxt "https://blackcatinformatics.ca/logic/recurrenceState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has recurrence state"
+msgstr "porte l'état de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/logic/rejectionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has rejection kind"
+msgstr "porte le genre de rejet"
+
+msgctxt "https://blackcatinformatics.ca/logic/searchFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has search fragment"
+msgstr "porte le fragment de recherche"
+
+msgctxt "https://blackcatinformatics.ca/logic/skipReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has skip reason"
+msgstr "porte le motif d'omission"
+
+msgctxt "https://blackcatinformatics.ca/logic/stepState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has step state"
+msgstr "porte l'état d'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/unsupportedCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has unsupported condition"
+msgstr "porte la condition de non-prise en charge"
