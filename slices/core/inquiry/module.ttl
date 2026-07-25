@@ -367,58 +367,6 @@ gmeow:wondersWhether
     gmeow:useWhen "Use to record an agent idly entertaining a question — typically a polar one — without committing effort to answer it; the low-investment erotetic leaning, distinct from active inquiry."@x-gmeow-english .
 
 
-# === Research-inquiry facets (re-homed from the retired process-model slice) ===
-#
-# A research inquiry IS a logic:Plan carrying logic:prescriptionKindResearchPlan.
-# These four facets qualify such a plan; they were previously domained on the
-# retired procedure class and are retyped onto the canonical plan concept.
-
-gmeow:inquiryPriority
-    a owl:DatatypeProperty ;
-    rdfs:domain logic:Plan ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
-    rdfs:label "inquiry priority"@x-gmeow-english ;
-    rdfs:range xsd:integer ;
-    skos:definition "The priority of a research inquiry on a 1-10 scale. Applies to a logic:Plan carrying logic:prescriptionKindResearchPlan. A bare ordering hint for triage, never a claim that a higher number is more important to any particular standpoint."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:inquirySource
-    a owl:ObjectProperty ;
-    rdfs:domain logic:Plan ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
-    rdfs:label "inquiry source"@x-gmeow-english ;
-    rdfs:range gmeow:Entity ;
-    skos:definition "The source that prompted a research inquiry — a document, an observation, a tip. Applies to a logic:Plan carrying logic:prescriptionKindResearchPlan. Reuses the sources spine rather than minting a parallel provenance link."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxCBox ,
-        gmeow:boxRBox .
-
-gmeow:inquiryStatus
-    a owl:ObjectProperty ;
-    rdfs:domain logic:Plan ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
-    rdfs:label "inquiry status"@x-gmeow-english ;
-    rdfs:range logic:EnactmentState ;
-    skos:definition "The status of a research inquiry, drawn from the logic:EnactmentState lifecycle axis — the position of the occurrence pursuing the inquiry. Non-functional: competing assessments coexist. It reads the enactment axis rather than minting a second status vocabulary."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:inquiryTheme
-    a owl:DatatypeProperty ;
-    rdfs:domain logic:Plan ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
-    rdfs:label "inquiry theme"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The thematic area of a research inquiry. Applies to a logic:Plan carrying logic:prescriptionKindResearchPlan. Open vocabulary — any literal is valid, because a theme is an editorial grouping rather than a closed classification."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:resolvedByArtifact
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Question ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
-    rdfs:label "resolved by artifact"@x-gmeow-english ;
-    rdfs:range gmeow:Entity ;
-    skos:definition "Relates a question to the artifact that settled it — a document, a dataset, a decision record. Distinct from gmeow:hasAnswer, which names the answer content: this names the thing whose production resolved the inquiry. Non-functional; several artifacts may jointly resolve one question."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 <https://blackcatinformatics.ca/gmeow/slices/inquiry>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
