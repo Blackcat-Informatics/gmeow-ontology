@@ -2088,7 +2088,7 @@ mod tests {
     // ── structural_digest: alpha-equivalence, injectivity, and interning properties ────
     //
     // These properties exercise `structural_digest`/`lower_math_expression` at the
-    // property level (Task 7a of the #1443 hardening plan): alpha-equivalent inputs
+    // property level: alpha-equivalent inputs
     // (differing ONLY in a bound-variable declaration's IRI/label) must share one
     // digest; structurally distinct inputs must never collide; and interning one
     // expression's alpha-variants into a SHARED dag must add nodes for the distinct

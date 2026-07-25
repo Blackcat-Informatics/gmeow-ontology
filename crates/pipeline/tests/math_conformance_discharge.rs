@@ -78,6 +78,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_errors::code::register_code;
+use gmeow_errors::grade::{FindingCategory, Grade, Severity, Standpoint};
+use gmeow_errors::Diag;
 use gmeow_validate::lint::structural_lint_dataset;
 use gmeow_validate::store::shacl_validate_dataset;
 use purrdf::shapes::shapes::{Constraint, Shape, Shapes};
@@ -522,22 +525,38 @@ fn reasoned_tripped(fixture: &Path, conformance_modules: &Arc<RdfDataset>) -> BT
 // effort; unavailability degrades to a labeled "unverified" bucket, never a silent pass).
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
+/// Build an ad-hoc [`Diag`] from a plain message — `gmeow_errors::Diag` is this repo's sole
+/// first-party error type (the Phase-6 Diag-substrate honest invariant bans bare `String` in
+/// `Err` position), so every fallible helper below reports through one instead.
+fn harness_diag(message: impl Into<String>) -> Diag {
+    Diag::new(
+        register_code("test.pipeline.math-conformance-discharge.channel-error"),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    )
+}
+
 /// Silence the default panic-hook stderr spew for an EXPECTED, documented environment gap
 /// (missing `generated/shapes/*.ttl` in a fresh worktree) while still recovering the panic
 /// message for the report.
-fn silence_panics<T>(f: impl FnOnce() -> T + std::panic::UnwindSafe) -> Result<T, String> {
+fn silence_panics<T>(f: impl FnOnce() -> T + std::panic::UnwindSafe) -> Result<T, Diag> {
     let prev_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(|_| {}));
     let result = std::panic::catch_unwind(f);
     std::panic::set_hook(prev_hook);
     result.map_err(|payload| {
-        if let Some(s) = payload.downcast_ref::<&str>() {
+        let message = if let Some(s) = payload.downcast_ref::<&str>() {
             (*s).to_owned()
         } else if let Some(s) = payload.downcast_ref::<String>() {
             s.clone()
         } else {
             "panic with non-string payload".to_owned()
-        }
+        };
+        harness_diag(message)
     })
 }
 
@@ -670,14 +689,14 @@ fn competency_query_files() -> BTreeSet<String> {
         .collect()
 }
 
-fn run_competency_channel() -> Result<(), String> {
+fn run_competency_channel() -> Result<(), Diag> {
     let spec_path = math_root().join("tests").join("competency.ttl");
-    gmeow_slicetest::exec::run_competency_file(&spec_path).map_err(|e| e.to_string())
+    gmeow_slicetest::exec::run_competency_file(&spec_path)
 }
 
-fn run_structural_channel() -> Result<(), String> {
+fn run_structural_channel() -> Result<(), Diag> {
     let spec_path = math_root().join("tests").join("structural.ttl");
-    gmeow_slicetest::exec::run_structural_file(&spec_path).map_err(|e| e.to_string())
+    gmeow_slicetest::exec::run_structural_file(&spec_path)
 }
 
 fn structural_assertion_iris() -> BTreeSet<String> {
@@ -690,7 +709,7 @@ fn structural_assertion_iris() -> BTreeSet<String> {
 /// (`crates/slicetest` `flagship_manifest`) — `assert_flagship_manifest` needs no
 /// `generated/` artifact (it unions two slice-local fixtures and cross-references disk
 /// paths), so it is run for real.
-fn run_flagship_manifest_channel() -> Result<(), String> {
+fn run_flagship_manifest_channel() -> Result<(), Diag> {
     silence_panics(std::panic::AssertUnwindSafe(|| {
         gmeow_slicetest::flagship::assert_flagship_manifest(
             &math_root(),
