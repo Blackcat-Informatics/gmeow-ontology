@@ -62,7 +62,7 @@ The normative design is a set of charters under [`design/`](./design/):
 | [`design/MATHEMATICS.md`](./design/MATHEMATICS.md) | manifesto | realized | vision, doctrine, the grounding-layer posture |
 | [`design/MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md`](./design/MATHEMATICS-EXTERNAL-CORPUS-CROSSWALK.md) | coverage audit | realized | anonymized, mechanically gated dispositions for 95 topics from a private comparison corpus |
 | [`design/MATHEMATICS-NUMBERS-AND-SETS.md`](./design/MATHEMATICS-NUMBERS-AND-SETS.md) | charter | realized | the bedrock: number systems and exactness, arithmetic, sets, relations and functions |
-| [`design/MATHEMATICS-EXPRESSIONS.md`](./design/MATHEMATICS-EXPRESSIONS.md) | charter | realized (reference layer, typed AST, strict slot contiguity, ACT core; content-addressed interning pending) | the mathematical core: the reference, expression-AST, object, ACT, and statement/proof layers |
+| [`design/MATHEMATICS-EXPRESSIONS.md`](./design/MATHEMATICS-EXPRESSIONS.md) | charter | realized (reference layer, typed AST, strict slot contiguity, ACT core, content-addressed `math:structuralKey` interning and attributed normalization identity) | the mathematical core: the reference, expression-AST, object, ACT, and statement/proof layers |
 | [`design/MATHEMATICS-MEASURE-AND-DIMENSION.md`](./design/MATHEMATICS-MEASURE-AND-DIMENSION.md) | charter | realized (incl. the native ℚ⁷ homogeneity gate) | measurable spaces, measures, integration, dimensional analysis, units |
 | [`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md) | charter | realized | the structure hierarchy, homomorphism laws, E8, exact Clifford algebras and extensions, homomorphic encryption, secret sharing |
 | [`design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](./design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | charter | realized | calculus binders, computational topology, cellular sheaves and Hodge structure, Hamiltonian systems, manifolds |
@@ -71,7 +71,7 @@ The normative design is a set of charters under [`design/`](./design/):
 | [`design/MATHEMATICS-STATISTICS.md`](./design/MATHEMATICS-STATISTICS.md) | charter | realized (external computational engines remain projections) | statistical models, estimation, inference, p-values, interval paradigms, diagnostics, and the process/result/claim split |
 | [`design/MATHEMATICS-BRIDGES.md`](./design/MATHEMATICS-BRIDGES.md) | charter | vocabulary realized (ingest-run spine + native unliftable gate); the R/ONNX/proof lifters themselves are design-only | executable-artifact ingestion: R, ONNX, and proof-assistant lifts |
 | [`design/MATHEMATICS-PROJECTIONS.md`](./design/MATHEMATICS-PROJECTIONS.md) | contract | partially realized — shipped grounding correspondences and projection-failure records are live; full document/codec emitters remain design | outbound lossy lowerings (MathML, OpenMath, Data Cube, STATO, QUDT) and inbound refusal contracts |
-| [`design/MATHEMATICS-RUNTIME.md`](./design/MATHEMATICS-RUNTIME.md) | runtime | partially realized — exact Clifford kernel and producer shipped; general ingestion and solver profiles design-only | ingestion as projection run backwards, expression interning, exact bounded calculation, the solver-profile handoff, acceptance gates |
+| [`design/MATHEMATICS-RUNTIME.md`](./design/MATHEMATICS-RUNTIME.md) | runtime | partially realized — exact Clifford kernel and producer shipped, content-addressed expression interning (`math:structuralKey` / normalization identity) realized; general ingestion and solver profiles design-only | ingestion as projection run backwards, expression interning, exact bounded calculation, the solver-profile handoff, acceptance gates |
 | [`design/MATHEMATICS-CONFORMANCE.md`](./design/MATHEMATICS-CONFORMANCE.md) | enforcement | realized across the canonical structural, probability, statistics, and grounding-correspondence surfaces; codec-only rows remain pending | the gate matrix — each hard rule, its gate kind, and the `math:` failure class it raises |
 | [`design/MATHEMATICS-REFERENCES.md`](./design/MATHEMATICS-REFERENCES.md) | references | realized (alignment lanes authored in `mappings/equivalences.ttl`) | the external-authority landscape (OpenMath, Wikidata, OEIS, DLMF, QUDT, xsd) and the anchoring posture |
 
@@ -235,7 +235,7 @@ homogeneity.
 | A chart's/tangent space's dimension matches its manifold | `math:ChartDimensionShape` / `math:TangentSpaceDimensionShape` (SHACL-SPARQL) | `math:DimensionMismatch` |
 | A compactification names all four roles (+ a conformal one its conformal factor) | `math:CompactificationShape` / `math:ConformalCompactificationShape` | `math:UnderspecifiedCompactification` |
 | A complement names its ambient space and complement-semantics | `math:ComplementShape` | `math:UnqualifiedComplement` |
-| An argument slot has exactly one index and expression; indexes are unique, non-negative, zero-based, and contiguous | derived `math:ArgumentSlotShape` / `math:SlotIndexUniquenessShape` / `math:ArgumentSlotContiguityConstraint` | `math:MalformedArgumentSlot` / `math:NonContiguousArgumentSlots` |
+| An argument slot has exactly one index and expression; indexes are unique, non-negative, zero-based, and contiguous | derived `math:ArgumentSlotShape` / `math:SlotIndexUniquenessShape` / `math:ArgumentSlotContiguityConstraint` | `math:MalformedArgumentSlot` / `math:DuplicateArgumentSlotIndex` / `math:NonContiguousArgumentSlots` |
 | A symbol-reference AST leaf resolves to exactly one local mathematical symbol | derived exact-one SymbolReference shape | `math:UnresolvedSymbolReference` |
 | A variable occurrence resolves to a declaration | `math:VariableOccurrenceShape` | `math:UnscopedVariableOccurrence` |
 
@@ -287,7 +287,7 @@ argument-slot uniqueness gate the tensor graph rides), so `native_contract_hash`
 | A PCA names its inputs, policy, and outputs | `math:PCAAnalysisShape` | `math:IncompletePCAAnalysis` |
 | A residual/latent meaning is a vantage-held observation, not a property | `math:ResidualInterpretationClaimShape` | `math:ResidualMeaningAsProperty` |
 | An embedding names its source, target, function, and model | `math:EmbeddingShape` | `math:UnderspecifiedEmbedding` |
-| A tensor computation graph declares its (AST-reusing) computation nodes | `math:TensorComputationGraphShape` / `math:SlotIndexUniquenessShape` | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
+| A tensor computation graph declares its (AST-reusing) computation nodes | `math:TensorComputationGraphShape` / `math:SlotIndexUniquenessShape` | `math:MalformedTensorComputationGraph` / `math:DuplicateArgumentSlotIndex` |
 | A weight tensor names its parameter space | `math:WeightTensorShape` | `math:UnframedWeightTensor` |
 
 ## Anonymized external-corpus coverage

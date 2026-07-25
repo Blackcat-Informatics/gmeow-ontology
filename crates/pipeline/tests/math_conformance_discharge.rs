@@ -2,15 +2,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! TOTAL execution-discharge reconciliation over the `math:` conformance charter
-//! ([`MATHEMATICS-CONFORMANCE.md`]) — every one of its twelve `###`-headed gate-matrix
+//! ([`MATHEMATICS-CONFORMANCE.md`]) — every one of its thirteen `###`-headed gate-matrix
 //! sections, not a curated subset.
 //!
 //! Where [`crate::gmn_conformance_discharge`] hand-curates one small, stable subsection of
 //! the `lang:` matrix (13 SHACL rows, 6 codec classes), this harness is GENERIC over the
 //! whole `math:` charter: it parses every section's table generically (locate the `###`
 //! heading, read to the next heading, extract each row's `Primary gate` and `Failure class`
-//! cells), so a later charter edit — including the still-unwritten "Normalization identity"
-//! section a follow-on task will add — is picked up automatically with no code change here.
+//! cells), so a later charter edit to an ALREADY-REGISTERED section (adding, removing, or
+//! retiering a row) is picked up automatically with no code change here; registering a
+//! wholly NEW `###` heading still needs one [`SECTIONS`] entry (as "Normalization identity
+//! rules" now has).
 //!
 //! For each cited `math:<Class>`, this reconciles FOUR things:
 //!
@@ -131,15 +133,21 @@ struct ConformanceSection {
     slice_ns: &'static str,
 }
 
-/// ALL twelve `###`-headed sections of `MATHEMATICS-CONFORMANCE.md`, by their REAL heading
-/// text (read from the charter, not guessed). A thirteenth section (the anticipated
-/// "Normalization identity" heading a later task adds) is picked up automatically the
-/// moment it exists, because [`matrix_rows`] is driven by this list, not by a hardcoded
-/// row count.
+/// ALL thirteen `###`-headed sections of `MATHEMATICS-CONFORMANCE.md`, by their REAL heading
+/// text (read from the charter, not guessed), including "Normalization identity rules". Any
+/// row added to, removed from, or retiered within an already-registered section's table is
+/// picked up automatically, because [`matrix_rows`] is driven by this list, not by a
+/// hardcoded row count.
 const SECTIONS: &[ConformanceSection] = &[
     ConformanceSection {
         charter_path: "design/MATHEMATICS-CONFORMANCE.md",
         heading: "### Expression and mathematical-core rules",
+        slice_prefix: "math",
+        slice_ns: MATH_NS,
+    },
+    ConformanceSection {
+        charter_path: "design/MATHEMATICS-CONFORMANCE.md",
+        heading: "### Normalization identity rules",
         slice_prefix: "math",
         slice_ns: MATH_NS,
     },

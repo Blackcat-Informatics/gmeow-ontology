@@ -50,16 +50,45 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A computable expression is not represented only by a string literal | source-lint + SHACL Core | `math:StringOnlyComputableExpression` |
 | An `ApplicationExpression` has exactly one operator | SHACL Core | `math:ApplicationOperatorCardinality` |
 | Each `ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
-| Slot indexes are unique per application | SHACL-SPARQL (`math:ArgumentSlotIndexUniquenessConstraint`) | `math:MalformedArgumentSlot` |
+| Slot indexes are unique per application | SHACL-SPARQL (`math:ArgumentSlotIndexUniquenessConstraint`) | `math:DuplicateArgumentSlotIndex` |
 | Slot indexes are non-negative, zero-based, and contiguous | canonical `logic:Constraint` → SHACL-SPARQL (`math:ArgumentSlotContiguityConstraint`), composed with the non-negative and uniqueness gates | `math:NonContiguousArgumentSlots` |
 | Every variable occurrence is bound or explicitly declared free | SHACL-SPARQL | `math:UnscopedVariableOccurrence` |
 | A free variable declares type/domain context | SHACL Core | `math:UntypedFreeVariable` |
 | A `SymbolReference` resolves to exactly one local `math:MathematicalSymbol`; external identifiers align from that symbol | SHACL Core derived from the exact-one OWL restriction | `math:UnresolvedSymbolReference` |
-| A truth-valued expression lowered to `logic:` declares denotation kind and lowering preservation | SHACL Core | `math:UndeclaredLogicLowering` |
+| A truth-valued expression lowered to `logic:` declares denotation kind and lowering preservation | SHACL-SPARQL (`math:LogicLoweringDeclaredConstraint`, a guarded-implication requiring `math:denotationKind` and `math:logicLoweringPreservation`) | `math:UndeclaredLogicLowering` |
 | A theorem/lemma/… role is asserted under a theory context (not as unconditional truth) | SHACL-SPARQL | `math:UnscopedStatementRole` |
-| A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL Core | `math:UngroundedVerificationResult` |
+| A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL-SPARQL (`math:FormalVerificationResultVantageGroundingConstraint`, a conditional-existence rule over the grounding observation and its vantage) | `math:UngroundedVerificationResult` |
+| A `math:Theorem` (or a statement carrying `math:statementRole math:roleTheorem`) carries a theory context (`math:roleInTheory`) and is warranted by an in-graph `math:Proof` (`math:provesStatement`) or a declared `math:externalWarrant` — theorem-hood is a role held under a named, versioned theory with a proof or external warrant, never a fact read off the type | SHACL-SPARQL (`math:TheoremWarrantConstraint`, a disjunctive existence over the proof and warrant arms) | `math:UngroundedTheoremClaim` |
 | Every `math:ArithmeticOperation` carries its signature — a `math:operatorDomain` and a `math:operatorCodomain`, each a `math:NumberSystem` (the required-exactly-one restriction targets the class, so all eight operators are framed) | SHACL Core (OWL-axiom tier) | `math:UnframedOperator` |
 | A `math:ClosedFormFunction` names both its body (`math:definingExpression`) and its formal argument (`math:formalArgument`); its `math:functionParameter`s are unconstrained (0..n), and its `math:domain`/`math:codomain` come from the inherited `math:Function` gate | SHACL Core (OWL-axiom tier) | `math:UnboundClosedForm` |
+
+### Normalization identity rules
+
+`math:normalForm` stays a plain edge from an expression to its declared normal form; the attributed
+reason FOR that edge is the mediating `math:NormalizationDeclaration`, naming the source
+(`math:normalizes`), the target (`math:normalizesTo` — the SAME object the `math:normalForm` edge
+names), the `math:NormalizationStrength` the claim is held at, and, for a claim coarser than
+structural, the `math:NormalizationProcedure` that licenses it. "These formulas are the same" is an
+inferential act, not a lexical fact, so the gates below enforce that a normal-form claim is always
+declared, that a structural-strength claim is checked directly against the computed
+`math:structuralKey` digests, and that a coarser claim is attributed to a vantage and a procedure.
+The structural-key digest itself is a computed projection of an expression's AST — never an
+independently authored value — so it may drift from its own recomputation, leak surface-stratum
+material into an identity computation that must stay structural, or be claimed for an expression the
+grammar rejects; the three Rust-validator rows below are the SAME architectural shape as
+`math:MalformedDimension` / `math:NonPositiveDefiniteNorm` / `math:AsymmetricGramMatrix` (a plain
+Rust computation over the frozen reasoned graph, never a divergent second source), so none of them
+carries a backing `logic:Constraint`.
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| Every `math:normalForm` edge from a source expression to a target expression has a `math:NormalizationDeclaration` naming that same pair (`math:normalizes` the source, `math:normalizesTo` the target) — a normal-form claim is never a bare edge | SHACL-SPARQL (`math:UndeclaredNormalFormConstraint`, a closed-world conditional-existence rule) | `math:UndeclaredNormalForm` |
+| A `math:NormalizationDeclaration` held at `math:structuralNormalization` has a `math:normalizes` source and a `math:normalizesTo` target whose `math:structuralKey` digests agree (and neither is missing) — structural identity is decided directly against the computed digests, never asserted on faith | SHACL-SPARQL (`math:FalseStructuralNormalizationClaimConstraint`, a closed-world digest-equality rule) | `math:FalseStructuralNormalizationClaim` |
+| A `math:NormalizationDeclaration` held at any strength coarser than `math:structuralNormalization` carries a `math:normalizationProcedure`, is named by a `gmeow:Observation` (via `gmeow:observationResult`) that itself carries a `gmeow:vantage`, and carries a `logic:preservationKind` — a coarser-than-structural equivalence is a claim held by a vantage, attributed to a procedure, and preservation-judged, never asserted for free | SHACL-SPARQL (`math:UnattributedNormalizationConstraint`, a closed-world conditional-existence rule) | `math:UnattributedNormalization` |
+| A `math:MathematicalExpression`'s authored `math:structuralKey` equals the digest recomputed from its own structure by the `math:` expression lowering — the key is a computed projection of the expression's α-equivalence class identity, never an independently authored value | Rust validator | `math:StructuralKeyDrift` |
+| A `math:NormalizationDeclaration`'s structural-identity computation is not contaminated by surface-stratum material — the declaration itself, its `math:normalizes` source, or its `math:normalizesTo` target carries no `math:rendersAs` edge crossing into the computation | Rust validator | `math:SurfaceLeakInNormalForm` |
+| A `math:MathematicalExpression` carries an authored `math:structuralKey` only when the `math:` expression lowering accepts its own AST as well-formed — a structural-identity claim cannot be made for an expression the grammar itself rejects | Rust validator | `math:StructuralKeyOnRejectedExpression` |
+| No two `math:argumentSlot` cells of the same parent share the same `math:slotIndex` — operand order is carried by unique indexed slots, so a duplicated index makes that order ambiguous | SHACL-SPARQL (`math:ArgumentSlotIndexUniquenessConstraint`, a `logic:SelfJoinUniquenessConstraint`) | `math:DuplicateArgumentSlotIndex` |
 
 ### Numbers-and-sets rules
 
@@ -83,7 +112,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | An algebraic structure declares its underlying set, operation, and axioms | SHACL Core | `math:IncompleteAlgebraicStructure` |
 | A ring declares the distributivity law tying its two operations together | SHACL Core | `math:NonDistributiveRing` |
 | A homomorphism declares its preserved operation and preservation law | SHACL Core | `math:UnderspecifiedHomomorphism` |
-| A preservation law denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyPreservationLaw` |
+| A preservation law denotes a `logic:` formula, not a string | SHACL-SPARQL (`math:PreservationLawNodeKindConstraint`, a path node-kind rule projected as a SPARQL-AF constraint) | `math:StringOnlyPreservationLaw` |
 | A Lie group declares its root system | SHACL Core | `math:IncompleteLieStructure` |
 | A root system declares its Cartan matrix, Weyl group, and rank | SHACL Core | `math:IncompleteLieStructure` |
 | An automorphism group is anchored to the structure it is the symmetry of | SHACL Core | `math:UnanchoredAutomorphismGroup` |
@@ -119,11 +148,11 @@ Lean mathlib (structural, by reference).
 | An authored `math:dimensionVector` string matches the canonical render of the structured exponents (a computed projection, never a divergent second source) | Rust validator | `math:MalformedDimension` |
 
 The dimensional-homogeneity checks are the charter's distinguished **reasoned gate**: rather than
-trusting an asserted dimension label, the native validator computes each dimension's exponent
-vector in the ℚ-vector space over the seven SI base dimensions and derives homogeneity by exact
-rational arithmetic (a product of dimensions adds exponent vectors; commensurability is vector
-equality). This is what a units vocabulary that records conversions as data cannot express, and it
-is why these rows are Rust-validator gates rather than SHACL.
+trusting an asserted dimension label, the check computes each dimension's exponent vector in the
+ℚ-vector space over the seven SI base dimensions and derives homogeneity by exact rational
+arithmetic (a product of dimensions adds exponent vectors; commensurability is vector equality).
+This is what a units vocabulary that records conversions as data cannot express, and it is why these
+rows are Rust-validator gates rather than plain SHACL.
 
 The gate is not a bare Rust side-channel, however: the invariant it enforces is authored as two
 real `logic:Formula` first-order ASTs in `module.ttl` — `math:dimensionalHomogeneityLaw`
@@ -132,14 +161,33 @@ real `logic:Formula` first-order ASTs in `module.ttl` — `math:dimensionalHomog
 composed with its measure's) — exactly as the algebra preservation laws are authored (`math:`
 expresses the law, `logic:` owns reasoning over it; the relation atoms are reified as `logic:Type`
 individuals per the HiLog reflection, carrying `rdfs:seeAlso` back to the first-class `math:`
-property they reflect so no near-synonym is minted). The native ℚ⁷ validator is then declared as the
-**executable lowering** of these two laws through `math:dimensionalHomogeneityLowering`, a loss-ledger
-record carrying `logic:preservationKind logic:ExactPreservation`: because the validator decides the
-laws' `dimEqual` and `dimProduct` conclusions by exact rational arithmetic over the exponent vectors,
-it neither misses a genuine inhomogeneity nor reports a spurious one — it yields exactly the answers
-the canonical laws entail. So the row above reads "Rust validator" as *the declared exact lowering of
-the `logic:` law*, a first-class queryable object in the same loss ledger every other GMEOW lowering
-rides (Principle 17), never a mere side-channel. A violation raises `math:DimensionalInhomogeneity`.
+property they reflect so no near-synonym is minted). `math:DimensionalInhomogeneity` is decided
+directly by the reasoner, not by a standalone Rust sweep reading the same conclusions off the side:
+the two `logic:Constraint`s that formalize these laws (`math:DimensionalHomogeneityConstraint`,
+`math:IntegralDimensionCompositionConstraint`) are compiled into violation-emitting forward
+`EvalRule`s (`crates/logic/src/reason/math_gate.rs`) and driven through a native forward semi-naive
+chase over the reasoned closure `verify()` checks, so the marker is **reasoner-derived from the
+authored laws**, never a Rust side-channel decision — `crates/logic/src/math_dimension.rs` (which
+still separately decides `math:MalformedDimension`, `math:AsymmetricGramMatrix`, and
+`math:NonPositiveDefiniteNorm` by its own exact-rational sweep, since those three are genuine
+computations no relational join can express) explicitly documents that it no longer computes
+dimensional homogeneity for exactly this reason, so the law has one committed source of truth rather
+than a Rust sweep and a reasoner path agreeing by construction. The row above still reads "Rust
+validator" — the exact-rational ℚ⁷ arithmetic the compiled `EvalRule`s execute is native code, not a
+SHACL/Datalog-expressible join — but the "Rust validator" here names the reasoner's own compiled
+lowering of the authored `logic:Formula` law, not a standalone side-channel sweep. A violation raises
+`math:DimensionalInhomogeneity`.
+
+The same reasoned-graph sweep (`crates/logic/src/math_dimension.rs`) that decides
+`math:MalformedDimension`'s zero-denominator-exponent case also certifies every authored
+`math:GramMatrix`, since neither symmetry nor an exact LDLᵀ positive-definiteness factorization is a
+flat relational join SHACL/Datalog can express:
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A `math:RationalValue` declares a non-zero `math:denominator` — `p/0` is not a rational value | SHACL Core (`math:RationalValueDenominatorNonZeroConstraint`, the `logic:` forbidden-value gate, projected as `sh:not [ sh:hasValue 0 ]`) | `math:ZeroDenominator` |
+| A `math:GramMatrix` is symmetric — every `math:MatrixEntry` at (row, column) has a transpose entry at (column, row) carrying the same `math:entryValue` | Rust validator (the exact-rational transpose-equality sweep; declarative twin `math:GramMatrixSymmetryConstraint` → SHACL-SPARQL) | `math:AsymmetricGramMatrix` |
+| A `math:Norm` induced by a symmetric bilinear form, or a `math:GramMatrix` authored `math:definiteness math:positiveDefinite`, is genuinely positive-definite — certified by the exact-rational LDLᵀ factorization (all pivots `> 0` by Sylvester's criterion), the sole positive-definiteness enforcement point the runtime distance builtin trusts | Rust validator (declarative twin `math:NormPositiveDefiniteConstraint` / `math:GramPositiveDefiniteConstraint` → SHACL Core / SHACL-SPARQL) | `math:NonPositiveDefiniteNorm` |
 
 ### Analysis-and-geometry rules
 
@@ -181,12 +229,12 @@ silent prose.
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | Each `math:ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
-| Slot indexes are unique within one application/binder | SHACL-SPARQL | `math:MalformedArgumentSlot` |
+| Slot indexes are unique within one application/binder | SHACL-SPARQL | `math:DuplicateArgumentSlotIndex` |
 | Slot indexes form the strict zero-based contiguous sequence 0..n−1 | canonical `logic:Constraint` → SHACL-SPARQL | `math:NonContiguousArgumentSlots` |
 | Each `math:SymbolReference` resolves to exactly one local `math:MathematicalSymbol` | SHACL Core | `math:UnresolvedSymbolReference` |
 | A `math:VariableOccurrence` resolves to a declaration (bound or explicitly free) | SHACL Core | `math:UnscopedVariableOccurrence` |
 | A binder binds a variable over a body | SHACL Core | `math:MalformedBindingExpression` |
-| A truth-valued expression lowered into `logic:` (`math:compilesToLogicFormula`) declares its denotation kind and preservation | SHACL Core | `math:UndeclaredLogicLowering` |
+| A truth-valued expression lowered into `logic:` (`math:compilesToLogicFormula`) declares its denotation kind and preservation | SHACL-SPARQL (`math:LogicLoweringDeclaredConstraint`, a guarded-implication requiring `math:denotationKind` and `math:logicLoweringPreservation`) | `math:UndeclaredLogicLowering` |
 | A `math:Derivative` names what it differentiates, its variable, and its order | SHACL Core | `math:UnderspecifiedDerivative` |
 | A `math:Limit` names its expression and its limit point (mode optional) | SHACL Core | `math:UnderspecifiedLimit` |
 | A `math:Series`/`math:Sequence` carries a `math:Convergence` naming what it converges to and the mode | SHACL Core | `math:UnderspecifiedConvergence` |
@@ -202,6 +250,27 @@ silent prose.
 | A `math:PersistentHomology` activity names its input, one filtration, and a persistence-diagram output | SHACL Core derived from OWL restrictions | `math:IncompletePersistentHomologyAnalysis` |
 | A `math:HamiltonianSystem` names its smooth state space, symplectic form, Hamiltonian function, and generated flow | SHACL Core derived from OWL restrictions | `math:IncompleteHamiltonianSystem` |
 | A `math:CellularSheaf` names its base complex, at least one stalk, and at least one restriction map | SHACL Core derived from OWL restrictions | `math:IncompleteCellularSheaf` |
+| A `math:Connection` names what it is a connection ON — a `math:CellularSheaf` (`math:connectionOfSheaf`) or an `math:Atlas`/bundle (`math:connectionOn`) | SHACL Core derived from OWL restrictions | `math:IncompleteConnection` |
+| A `math:ParallelTransport` names both its `math:transportConnection` (the rule) and its `math:transportAlong` (the path) | SHACL Core derived from OWL restrictions | `math:IncompleteParallelTransport` |
+| A `math:Holonomy` names both its `math:holonomyLoop` (the closed loop) and its `math:holonomyOf` (the connection whose transport it composes) | SHACL Core derived from OWL restrictions | `math:IncompleteHolonomy` |
+| A `math:Cell` declares its `math:cellDimension` — an undimensioned cell cannot sit in a `math:CellComplex`'s graded boundary chain | SHACL Core | `math:IncompleteCell` |
+| A `math:CellIncidence` names its `math:incidenceCoface`, `math:incidenceFace`, and `math:incidenceSign` — all three are constitutive of a signed boundary coefficient | SHACL Core | `math:UnorientedIncidence` |
+| The twice-applied boundary vanishes (∂∘∂ = 0) — every codimension-2 composition path has its cancelling partner face (simplicial) or signed sum (general CW) | SHACL-SPARQL (`math:BoundarySquareZeroConstraint` / `math:GeneralBoundarySquareZeroConstraint`) | `math:BrokenBoundarySquareZero` |
+| The twice-applied coboundary vanishes (δ∘δ = 0) — every codimension-2 co-composition path has its cancelling partner coface | SHACL-SPARQL (`math:CoboundarySquareZeroConstraint`) | `math:BrokenCoboundarySquareZero` |
+| The boundary/coboundary adjunction δ = ∂* holds — a boundary `math:CellIncidence` and its `math:adjointIncidence` transpose carry agreeing ±1 signs | SHACL-SPARQL (`math:BoundaryCoboundaryAdjunctionConstraint`) | `math:BrokenBoundaryCoboundaryAdjunction` |
+| A `math:CochainComplex` names its `math:cochainCoboundary` — the `math:CoboundaryOperator` whose degree-plus-one maps assemble it | SHACL Core | `math:IncompleteCochainComplex` |
+| A `math:Coboundary` names its `math:coboundaryOf` — the `math:CoboundaryOperator` it is an image under (c = δd) | SHACL Core | `math:IncompleteCoboundary` |
+| A `math:Chain` names its `math:chainOf` — the `math:ChainComplex` it is a graded element of | SHACL Core | `math:UngroundedChain` |
+| A `math:Cycle` names its `math:cycleOf` — the `math:ChainComplex` whose kernel of ∂ it lies in | SHACL Core | `math:UngroundedCycle` |
+| A `math:GlobalSection` names its frame — its `math:overSheaf` carrier and its `math:sectionRegion` | SHACL Core derived from OWL restrictions | `math:IncompleteGlobalSection` |
+| A `math:GlobalSection`'s `math:sectionRegion` equals the whole `math:sheafBaseComplex` of its `math:overSheaf`, never a proper subcomplex — a section typed global is not silently scoped local | SHACL-SPARQL (`math:MisscopedSectionConstraint`, a cross-node equality rule) | `math:MisscopedSection` |
+| A declared `math:GlobalSection` restricts consistently along each `math:SheafRestrictionMap` — the `math:RestrictionImage` transporting the source stalk's value agrees with the target stalk's `math:stalkValue` | SHACL-SPARQL (`math:SectionGluingConsistencyConstraint`, a cross-node equality rule) | `math:SectionGluingInconsistency` |
+| A `math:RestrictionImage` names both its `math:imageSourceValue` and its `math:imageTargetValue` — the pair the map realizes for one declared source value | SHACL Core | `math:IncompleteRestrictionImage` |
+| A `math:LocalSection` anchors to genuine stalk-and-restriction semantics — its `math:overSheaf` carrier and its `math:sectionRegion` | SHACL Core derived from OWL restrictions | `math:IncompleteSheafSection` |
+| A `math:GluingObstruction` names its `math:obstructionOf` sheaf — an H¹ obstruction is defined only relative to the sheaf whose local-to-global lifting it obstructs | SHACL Core | `math:UnanchoredGluingObstruction` |
+| A Hodge decomposition names its signal, its exact/coexact/harmonic components, its boundary operator, its carrier sheaf, its exact reconstruction residual, and its three pairwise-orthogonality inner products | SHACL Core derived from OWL restrictions | `math:IncompleteHodgeDecomposition` |
+| A `math:CombinatorialLaplacian` names its `math:CellComplex`, its `math:laplacianDegree`, and both its `math:upperBoundaryOperator` and `math:lowerBoundaryOperator` | SHACL Core derived from OWL restrictions | `math:IncompleteCombinatorialLaplacian` |
+| A Mapper construction names its source metric space, filter (lens) function, cover of the filter codomain, per-element clustering rule, and output nerve complex | SHACL Core derived from OWL restrictions | `math:IncompleteMapperConstruction` |
 
 The named-complement rule is the charter's distinguished gate: it generalizes the
 bedrock set-theoretic complement (`math:complementWithin`, replaced) to
@@ -234,6 +303,14 @@ property of the vector.
 | A `math:Filtration` declares at least one `math:FiltrationStage`, and every stage names its `math:filtrationThreshold` and `math:stageStructure` (structural presence only — monotonicity ε₁ ≤ ε₂ ⇒ containment is the first-order law `math:filtrationMonotonicityLaw`, not a shape) | SHACL Core | `math:UnderspecifiedFiltration` |
 | A `math:PersistenceLifetime` names its `math:overFiltration`, its `math:persistenceFeature`, its `math:bornAt`, and its `math:diesAt` — a finite `math:Quantity` or `math:PositiveInfinity` for an essential feature, never omitted | SHACL Core | `math:UnderspecifiedPersistenceLifetime` |
 | A `math:StabilityCalibrationRecord` names its `math:calibrationEvidence`, its `math:credenceDerivationKind`, and its `math:stabilityGuarantee` — the persistence-derived credence is warranted, not a heuristic | SHACL Core | `math:UngroundedStabilityCalibration` |
+| A vector-symbolic operation names the `math:VectorSpace` it composes in, the `math:Basis` fixing its coordinates, its operand vectors, its capacity descriptor, and its recovery-loss (fidelity) contract | SHACL Core derived from OWL restrictions | `math:IncompleteVectorSymbolicOperation` |
+| A `math:MultiparameterFiltration` names its `math:filtrationIndexPoset` and at least one `math:hasFiltrationStage` | SHACL Core derived from OWL restrictions | `math:IncompleteMultiparameterFiltration` |
+| A `math:MultiparameterFiltration`'s stages carry a genuine `math:multiIndex`, not only a single real `math:filtrationThreshold` — a nominally multi-parameter filtration must not silently degrade to the one-parameter case | SHACL-SPARQL (`math:CollapsedMultiparameterFiltrationConstraint`) | `math:CollapsedMultiparameterFiltration` |
+| A `math:MultiparameterFiltration`'s coordinates are not functionally dependent — no per-stage diagonal `math:multiIndex` and, across stages, a genuine coordinate-independence witness | SHACL-SPARQL (`math:DiagonalDegenerateFiltrationConstraint` / `math:MultiparameterFunctionalDependenceConstraint`) | `math:DiagonalDegenerateFiltration` |
+| A `math:PersistenceModule` names its `math:moduleIndex` (the index poset) and at least one `math:structureMap` (a comparable-pair transition map) | SHACL Core derived from OWL restrictions | `math:IncompletePersistenceModule` |
+| A `math:PersistenceMorphism` names both its `math:morphismSource` and its `math:morphismTarget` | SHACL Core derived from OWL restrictions | `math:IncompletePersistenceMorphism` |
+| A `math:ZigzagDiagram` declares at least one `math:backwardArrow` — a zigzag with only forward arrows has collapsed to ordinary forward-only persistence | SHACL-SPARQL (`math:DegenerateZigzagDiagramConstraint`) | `math:DegenerateZigzagDiagram` |
+| A `math:PersistenceModule` and a `math:PersistenceLifetime` are never the same individual — the whole algebraic functor is not the birth–death interval of a single feature | SHACL-SPARQL (paired shape over the directly-asserted `owl:disjointWith`, `math:PersistenceModuleLifetimeConflationShape`) | `math:PersistenceModuleLifetimeConflation` |
 
 The residual-meaning rule is the charter's distinguished gate: because no direct
 "meaning" property is minted, the only way to state what a residual or latent
@@ -253,8 +330,8 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | A `ProbabilityValue` lies in `[0, 1]` | SHACL Core (range) + Rust numeric check | `math:ProbabilityOutOfBounds` |
-| Odds/log-odds are modeled as scale transforms, not as `ProbabilityValue` | OWL axiom (disjointness) | `math:ProbabilityScaleConflation` |
-| A probability value names its probability frame/model | SHACL Core | `math:UnframedProbabilityValue` |
+| Odds/log-odds are modeled as scale transforms, not as `ProbabilityValue` | OWL axiom (disjointness) projected to SHACL Core (`math:ProbabilityScaleConflationShape`, a directly-asserted disjointness — `math:OddsValue`/`math:LogOddsValue` and `math:ProbabilityValue` share no disjoint ancestor, so the disjointness is asserted directly on the pair and the paired shape surfaces it as `sh:not [ sh:class ]`) | `math:ProbabilityScaleConflation` |
+| A probability value names its probability frame/model | SHACL-SPARQL (`math:ProbabilityValueFramedConstraint`, an at-least-one choice-group over `gmeow:hasReferenceFrame`/`logic:probabilityModel`) | `math:UnframedProbabilityValue` |
 | A probability value is not inferred from confidence without a declared mapping | source-lint + SHACL-SPARQL | `math:ConfidenceAsProbability` |
 | A `ProbabilitySpace` has sample-space, σ-algebra, and measure objects (possibly symbolic) | SHACL Core | `math:IncompleteProbabilitySpace` |
 | A `RandomVariable` has domain/codomain and a space or distribution context | SHACL Core | `math:UnscopedRandomVariable` |
@@ -264,6 +341,8 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | A conditional/conditional-independence assertion names its conditioning set | SHACL Core | `math:UnconditionedAssertion` |
 | A probability-model lowering into `logic:` is declared for a reasoning-facing model | Rust validator | `math:MissingProbabilityModelLowering` |
 | A dependency-model declaration is structurally complete (DAG, CPT/factor totality) | Rust validator | `math:IncompleteDependencyModel` |
+| A `math:ProbabilityEvent` (a measurable set of outcomes) is never also typed a `logic:Event` (an occurrent) — the measure-theoretic set-of-outcomes and the occurrence are distinct | SHACL Core (paired shape over the directly-asserted `owl:disjointWith`) | `math:ProbabilityEventOccurrentConflation` |
+| An information measure (an entropy, divergence, Fisher information, or surprisal) declares its required frame component — its probability distribution, its logarithm base, its information unit, a divergence's reference distribution, a Fisher information's likelihood model or score parameter, or a surprisal's outcome | SHACL Core derived from OWL restrictions | `math:IncompleteInformationMeasure` |
 
 ### Statistics rules
 
@@ -274,10 +353,11 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 | A `PValue` references a test, null hypothesis, test statistic, null distribution, and tail/sidedness | SHACL-SPARQL | `math:IllFramedPValue` |
 | A `ConfidenceInterval` has lower/upper bounds and a confidence level | SHACL Core | `math:IncompleteConfidenceInterval` |
 | A `CredibleInterval` has a posterior context and a credible mass | SHACL Core | `math:IncompleteCredibleInterval` |
-| Confidence and credible intervals are not interchanged | OWL axiom (disjointness) | `math:IntervalKindConflation` |
+| Confidence and credible intervals are not interchanged | OWL axiom (disjointness) projected to SHACL-SPARQL (`math:IntervalKindConflationShape` — the disjointness is ENTAILED through the disjoint `math:FrequentistResult`/`math:BayesianResult` paradigm parents rather than asserted directly on the pair, so the paired shape needs the reasoned closure and is a SPARQL-AF constraint) | `math:IntervalKindConflation` |
 | An `EffectSize` identifies its contrast, scale, and frame | SHACL Core | `math:UnframedEffectSize` |
 | A `ModelDiagnostic` identifies the fitted model and the diagnostic method | SHACL Core | `math:UnanchoredDiagnostic` |
 | A missingness mechanism is explicit where an analysis depends on it | SHACL-SPARQL | `math:ImplicitMissingness` |
+| A `math:CalibrationDiagnostic` (the statistical sense: predicted probabilities against observed frequencies) is never also a `math:StabilityCalibrationRecord` (the topological sense: a credence calibrated against a bottleneck stability bound) — they share only the word "calibration" | SHACL Core (paired shape over the directly-asserted `owl:disjointWith`) | `math:CalibrationSenseConflation` |
 
 ### Process/result/claim separation
 
@@ -311,7 +391,7 @@ rules below turn the shared bridge contract into gates.
 | A bridge run is a `gmeow:Activity` (the executed `put`-leg occurrence, not an Observation) | OWL axiom (subclass) + structural | (structural assertion) |
 | A bridge run retains a `logic:loadBearing` `math:parseSource` witness and carries the process-layer in-band witness (`logic:instantiatesSchema` / `logic:instantiatesPlan`) | SHACL Core | `math:UngroundedIngestRun` |
 | A bridge's lift is lawful — its residue is carried in the `logic:mnemomorphic` witness or enumerated `unsupported`; an unsupported or silently-partial drop hard-fails | Rust validator | `math:UnliftableIngest` |
-| A proof QED result object is grounded *by* an observation with a vantage (result ≠ claim) | SHACL Core | `math:UngroundedVerificationResult` |
+| A proof QED result object is grounded *by* an observation with a vantage (result ≠ claim) | SHACL-SPARQL (`math:FormalVerificationResultVantageGroundingConstraint`, a conditional-existence rule over the grounding observation and its vantage) | `math:UngroundedVerificationResult` |
 | A `math:FittedModel` references data (`math:fittedToData`) and a model specification (`math:modelFormula`) | SHACL Core | `math:UnfittedModel` |
 
 The unliftable-ingest rule is the charter's distinguished **native validator** gate. It is not a bare
