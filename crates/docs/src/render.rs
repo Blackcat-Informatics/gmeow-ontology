@@ -7485,6 +7485,153 @@ mod tests {
         }
     }
 
+    // ── seam-registry render ↔ drift-gate parser contract ────────────────────
+    //
+    // `gmeow_validate::authoring_integrity::detect_seam_registry_drift` reads this
+    // page BACK, per seam, to prove it never drifts from the authored `gmeow:Seam`
+    // registry. That gate parses the exact table shape `md_seam_registry` writes —
+    // bolded name cell, `;`-joined `from → to` legs whose slice identity is the slug
+    // in the rendered link's href, backticked (and possibly linked) carrying-term
+    // CURIEs, backticked owning-doc filenames. These tests pin that contract from
+    // the RENDERER's side, so a change to this function's markup that the gate
+    // cannot read fails here rather than turning the gate into a false positive (or,
+    // worse, a false negative) in production.
+
+    /// A two-slice, two-seam model whose seam registry exercises both rendered
+    /// forms: a resolvable slice (link) and a term with its own term page (link).
+    fn seam_model() -> DocsModel {
+        use crate::model::{DocSeam, DocSeamDirection, DocSlice};
+        fn slice(local: &str, title: &str) -> DocSlice {
+            DocSlice {
+                iri: format!("{GMEOW_NS}slices/{local}"),
+                label: Some(local.to_string()),
+                title: Some(title.to_string()),
+                tier: None,
+                identifier: None,
+                creators: Vec::new(),
+                consumers: Vec::new(),
+                profiles: Vec::new(),
+                depends_on: Vec::new(),
+                artifacts: Vec::new(),
+                has_thesis_sentence: false,
+                realized_state_complete: false,
+            }
+        }
+        let mut model = tiny_model();
+        model.slices = vec![
+            slice("lang", "Language grounding"),
+            slice("logic", "Logic grounding"),
+            slice("math", "Mathematics grounding"),
+        ];
+        model.seams = vec![
+            DocSeam {
+                iri: format!("{GMEOW_NS}seam/compilation"),
+                label: Some("Compilation seam".to_string()),
+                definition: Some("The math → logic lowering seam.".to_string()),
+                directions: vec![DocSeamDirection {
+                    from: format!("{GMEOW_NS}slices/math"),
+                    to: format!("{GMEOW_NS}slices/logic"),
+                }],
+                carrying_terms: vec![
+                    "https://blackcatinformatics.ca/math/compilesToLogicTerm".to_string(),
+                ],
+                owning_docs: vec!["MATHEMATICS-EXPRESSIONS.md".to_string()],
+            },
+            DocSeam {
+                iri: format!("{GMEOW_NS}seam/denotation"),
+                label: Some("Denotation seam".to_string()),
+                definition: Some("The lang → logic meaning seam.".to_string()),
+                directions: vec![
+                    DocSeamDirection {
+                        from: format!("{GMEOW_NS}slices/lang"),
+                        to: format!("{GMEOW_NS}slices/logic"),
+                    },
+                    DocSeamDirection {
+                        from: format!("{GMEOW_NS}slices/math"),
+                        to: format!("{GMEOW_NS}slices/logic"),
+                    },
+                ],
+                carrying_terms: vec![
+                    "https://blackcatinformatics.ca/lang/denotationKind".to_string(),
+                    "https://blackcatinformatics.ca/lang/denotationTarget".to_string(),
+                ],
+                owning_docs: vec!["LANG-MEANING.md".to_string()],
+            },
+        ];
+        model
+    }
+
+    /// The `gmeow_validate` seam records the [`seam_model`] seams project to — the
+    /// authored side of the comparison, built by hand so this test needs no
+    /// repository (and no `generated/`) at all.
+    fn seam_model_records() -> Vec<gmeow_validate::slice_peerage::SeamRecord> {
+        use gmeow_validate::slice_peerage::SeamRecord;
+        seam_model()
+            .seams
+            .iter()
+            .map(|seam| SeamRecord {
+                iri: seam.iri.clone(),
+                name: seam.label.clone().expect("the fixture labels every seam"),
+                labels: vec![(
+                    seam.label.clone().expect("the fixture labels every seam"),
+                    Some("x-gmeow-english".to_string()),
+                )],
+                carrying_terms: seam.carrying_terms.iter().map(|t| to_curie(t)).collect(),
+                carrying_term_iris: seam.carrying_terms.iter().cloned().collect(),
+                directions: seam
+                    .directions
+                    .iter()
+                    .map(|d| (d.from.clone(), d.to.clone()))
+                    .collect(),
+                owning_docs: seam.owning_docs.iter().cloned().collect(),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn seam_registry_render_is_readable_by_the_drift_gate() {
+        let page = md_seam_registry(&seam_model());
+        // Non-vacuity: the render really produced the table and both seams.
+        assert!(
+            page.contains("| Seam | Direction | Carrying terms | Owning doc |"),
+            "{page}"
+        );
+        assert!(page.contains("**Denotation seam**"), "{page}");
+        assert!(page.contains("**Compilation seam**"), "{page}");
+        let findings = gmeow_validate::authoring_integrity::detect_seam_registry_drift(
+            &seam_model_records(),
+            &page,
+        );
+        assert!(
+            findings.is_empty(),
+            "the drift gate must read this render back with zero drift; markup and \
+             parser have diverged:\n{}\n--- page ---\n{page}",
+            findings
+                .iter()
+                .map(|f| f.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+    }
+
+    #[test]
+    fn seam_registry_render_parity_fails_when_a_seam_loses_a_direction_leg() {
+        // Teeth for the parity test above: the gate is genuinely reading the
+        // rendered legs, not passing whatever it is handed.
+        let mut model = seam_model();
+        model.seams[1].directions.remove(1);
+        let findings = gmeow_validate::authoring_integrity::detect_seam_registry_drift(
+            &seam_model_records(),
+            &md_seam_registry(&model),
+        );
+        assert!(
+            findings.iter().any(
+                |f| f.message.contains("Denotation seam") && f.message.contains("math → logic")
+            ),
+            "a leg dropped from the render must be caught: {findings:?}"
+        );
+    }
+
     /// The "What GMEOW enforces" page renders the advice
     /// recommendation tier as a DISTINCT section from the compliance rules, headed by
     /// the single `#advice-` anchor and carrying each realized term's verbatim

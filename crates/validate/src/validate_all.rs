@@ -607,14 +607,24 @@ impl ValidationRun {
                 project_root,
                 &slices_path,
             )?;
-            for finding in authoring
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
-            {
+            // EVERY authoring finding is folded, not just the Errors. An Error is
+            // Binding (it hard-fails the run); a non-Error is Advisory (it is
+            // reported and never gates). Dropping the non-Errors would silently
+            // discard the R7 seam-registry gate's "NOT COMPARED against a
+            // materialized page" record — the one thing that must never vanish, since
+            // its whole purpose is to keep an uncompared projection from reading as a
+            // clean one. Advisory findings do not affect `ValidationRun::ok`, so the
+            // gate's hard-fail surface is unchanged.
+            for finding in authoring {
+                let standpoint = if finding.severity == Severity::Error {
+                    Standpoint::Binding
+                } else {
+                    Standpoint::Advisory
+                };
                 intern_finding(
                     &mut run_ledger,
                     StageId::new("validate.authoring_integrity"),
-                    Standpoint::Binding,
+                    standpoint,
                     &finding,
                 );
             }
