@@ -17165,6 +17165,607 @@ logic:lexCons a logic:Formula ; logic:relation logic:fencingIdentity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "fence" ] .
 
 # =========================================================================== #
+# === Enactment layer: lens laws, the actionable frontier, derivation      === #
+# === contracts, the total operation outcome, and context assembly         === #
+# =========================================================================== #
+
+logic:RevisionLens
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Revision Lens"@x-gmeow-english ;
+    skos:definition "Revising a prescription to accommodate an observed state, and restoring a checkpoint, are the two legs of one bidirectional transformation, so they are governed by lens laws rather than by ad-hoc rules. Revise is a PUT: it pushes observed state back into a prescription. Restore is GET after PUT: it recovers what was pushed. Stating them this way buys two machine-checkable properties that three separate hand-authored constraints would only approximate."@x-gmeow-english ;
+    skos:example "ex:adrRevisionLens a logic:RevisionLens ; logic:lensGoverns ex:adrReviewPlan ."@x-gmeow-english ;
+    gmeow:useWhen "Use to govern how observed execution state flows back into a prescription and how a checkpoint recovers it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the laws with per-case revision rules, and avoid a lens whose legs are not both executable."@x-gmeow-english ;
+    gmeow:howToUse "Bind what it governs and assert the two laws; discharge them the way any correspondence law is discharged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:lensGoverns
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RevisionLens ;
+    rdfs:range logic:Plan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lens governs"@x-gmeow-english ;
+    skos:definition "Relates a logic:RevisionLens to the plan whose revision and restore it governs. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lensPutGetHolds
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:RevisionLens ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lens put-get law holds"@x-gmeow-english ;
+    skos:definition "Whether revising to accommodate an observed state and then re-deriving yields that state — the law saying a revision actually incorporated the change it was made for. A revision that does not survive re-derivation changed the prescription without changing what it prescribes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lensGetPutHolds
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:RevisionLens ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lens get-put law holds"@x-gmeow-english ;
+    skos:definition "Whether a revision that changes nothing declines to mint a new version — the law against spurious version churn. Without it every no-op review produces a new prescription version and the revision lineage stops meaning anything."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:recoveryWitness
+    a owl:ObjectProperty ;
+    rdfs:domain logic:EnactmentCheckpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recovery witness"@x-gmeow-english ;
+    skos:definition "The witness a checkpoint carries of the state it was taken from, so restoring is RECOVERY rather than reconstruction. Range a witness node (stated in prose). It is strictly stronger than comparing digests and refusing on mismatch: a digest says the state differs, a recovery witness says what the state WAS."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ActionableFrontier
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Actionable Frontier"@x-gmeow-english ;
+    skos:definition "The derived set of what could happen next in an enactment, together with why each item can or cannot proceed. Its CLOSEDNESS is certified, not asserted: the frontier carries a saturation witness showing the derivation ran to a fixed point, because a roster truncated by a budget cut and presented as complete is how a system silently omits the action it should have taken. Typed APART from a work queue, which lists what someone intends to do; a frontier is derived from state and carries its own completeness status."@x-gmeow-english ;
+    skos:example "ex:w12Frontier a logic:ActionableFrontier ; logic:frontierOfEnactment ex:adrReviewW12 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to derive and present what an enactment can do next, with reasons."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming closure without a saturation witness, and avoid hand-maintaining a frontier as data."@x-gmeow-english ;
+    gmeow:howToUse "Derive it, bind the saturation witness, and carry one entry per candidate action with its axis tuple and label."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:frontierOfEnactment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ActionableFrontier ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "frontier of enactment"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionableFrontier to the enactment it was derived for. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:frontierSaturationWitness
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ActionableFrontier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "frontier saturation witness"@x-gmeow-english ;
+    skos:definition "The evidence that the frontier derivation reached a fixed point rather than a budget cut — the settled predicate set and the steps consumed. Range a saturation witness (stated in prose). Functional and MANDATORY for any frontier claiming closure: without it, closedness is an assertion the reader cannot check."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:FrontierEntry
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Frontier Entry"@x-gmeow-english ;
+    skos:definition "One candidate action on a logic:ActionableFrontier, carrying the axis tuple that positions it and the label derived from that tuple. Keeping the tuple alongside the label is what stops the two drifting apart: the label is a projection for readers, and the tuple is the thing it is a projection OF."@x-gmeow-english ;
+    skos:example "ex:ocrEntry a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyApprovalRequired ."@x-gmeow-english ;
+    gmeow:useWhen "Use for each candidate action a frontier derivation produced."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an entry carrying a label with no axis tuple behind it."@x-gmeow-english ;
+    gmeow:howToUse "Bind the action, the axis positions, and exactly one derived label."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:hasFrontierEntry
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ActionableFrontier ;
+    rdfs:range logic:FrontierEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has frontier entry"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionableFrontier to one of its entries. Multi-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:entryAction
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "entry action"@x-gmeow-english ;
+    skos:definition "Relates a logic:FrontierEntry to the candidate action it positions. Range a plan step or action schema (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:entryAxisWitness
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "entry axis witness"@x-gmeow-english ;
+    skos:definition "Relates a logic:FrontierEntry to an axis position that contributed to its label. Range a lifecycle axis value (stated in prose). Multi-valued: the label is a function of the whole tuple, and carrying every contributing position is what lets an operator ask why an action carries the label it does."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:entryLabel
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry ;
+    rdfs:range logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "entry label"@x-gmeow-english ;
+    skos:definition "Relates a logic:FrontierEntry to its exactly-one derived label. Functional. Derived by a total function from the axis tuple, so no reachable tuple is unlabelled and none carries two."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:FrontierLabel
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Frontier Label"@x-gmeow-english ;
+    skos:definition "The operator-facing name for a position on the actionable frontier, DERIVED from the axis tuple by a total, disjoint function rather than assigned. Deriving rather than assigning is what stops the labels drifting from the axes they summarize, and it is what lets a totality proof show every reachable tuple has exactly one label and every label is reachable."@x-gmeow-english ;
+    skos:example "ex:ocrEntry logic:entryLabel logic:FrontierBlockedCapabilityOrResource ."@x-gmeow-english ;
+    gmeow:useWhen "Use to present a frontier position to an operator."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning a label directly, and avoid adding one without extending the derivation that produces it."@x-gmeow-english ;
+    gmeow:howToUse "Let the derivation assign it from the axis tuple; carry the tuple alongside as the witness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierReadyAuthorized a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ready and authorized"@x-gmeow-english ;
+    skos:definition "Preconditions hold and policy permits dispatch without further authorization. The only label under which an effect may leave the system unattended."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierReadyApprovalRequired a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "ready but approval required"@x-gmeow-english ;
+    skos:definition "Preconditions hold but an authorization must detach before dispatch. Distinguished from ready-and-authorized on the approval axis alone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierBlockedPrecondition a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "blocked by unmet precondition"@x-gmeow-english ;
+    skos:definition "A precondition does not hold in the current state. Remediable by changing the world, unlike a capability block."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierBlockedCapabilityOrResource a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "blocked by missing capability or resource"@x-gmeow-english ;
+    skos:definition "No available actor holds the capability, or a required resource is unavailable. This is the label that carries a capability-gap proposal rather than a retry suggestion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierWaitingOnEventTimeOrInput a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "waiting for event, time or input"@x-gmeow-english ;
+    skos:definition "The action is blocked pending something that has not arrived. Not a failure: the distinction is what lets the enactment be resumed rather than restarted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierMutuallyExclusive a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mutually exclusive with another candidate"@x-gmeow-english ;
+    skos:definition "The action cannot proceed together with another frontier candidate. A derived obstruction rather than a per-action property: exclusivity is a relation, and it becomes visible only when local frontiers are glued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierReconciliationRequired a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reconciliation required"@x-gmeow-english ;
+    skos:definition "An effect's outcome is undetermined and must be resolved before anything else. The only next action from this label is a probe; redispatch and compensation are both unlicensed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierCompensationEligible a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compensation eligible"@x-gmeow-english ;
+    skos:definition "A forward effect is proved committed and compensation is permitted but not demanded. Distinguished from compensation-required, where policy or a failed enactment makes it obligatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierCompensationRequired a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compensation required"@x-gmeow-english ;
+    skos:definition "A committed forward effect must be counteracted for the enactment to reach a consistent terminal state. Distinguished from eligible: here declining is itself a decision with consequences."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierCompleted a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "completed"@x-gmeow-english ;
+    skos:definition "The action reached its terminal position successfully and needs nothing further. It asserts nothing about whether the enactment's goal is met."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierSkippedWithTypedReason a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "skipped with a typed reason"@x-gmeow-english ;
+    skos:definition "The action was deliberately not taken and the reason is typed rather than free text. The typing is the point: an untyped skip is indistinguishable from an oversight."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierCancelled a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "cancelled"@x-gmeow-english ;
+    skos:definition "The action was stopped by decision. Distinguished from terminally-failed, which is an outcome rather than a choice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierTerminallyFailed a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "terminally failed"@x-gmeow-english ;
+    skos:definition "The action failed and no continuation is available. Distinguished from an undetermined external outcome, which is epistemic rather than a failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierCompensationFailedForwardCommitted a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "compensation failed with forward effect committed"@x-gmeow-english ;
+    skos:definition "Compensation was required, attempted, and failed, while the forward effect remains committed — a genuinely inconsistent state needing escalation, not retry. Homeless in a labelling that stops at compensation-required, and the case an operator most needs surfaced."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierReconciliationImpossible a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reconciliation impossible"@x-gmeow-english ;
+    skos:definition "The label DERIVED from the reconciliation-impossible class: no means of determining what happened remains. Distinct from reconciliation-required, where probing is still available; the next action here is escalation, not another probe."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FrontierCancelledWithInFlightEffects a owl:NamedIndividual , logic:FrontierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "cancelled with in-flight effects"@x-gmeow-english ;
+    skos:definition "The enactment was cancelled while an effect remained unresolved. Cancellation does not resolve commitment knowledge, so the outstanding effect still demands reconciliation — arguably the hardest real case and one a plain cancelled label hides."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SkipReason
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Skip Reason"@x-gmeow-english ;
+    skos:definition "The closed vocabulary of why an action was deliberately not taken: it was not applicable, it was already satisfied, policy excluded it, or an operator declined it. Typed so that a skip is auditable and distinguishable from an oversight, which an untyped skip is not."@x-gmeow-english ;
+    skos:example "ex:ocrSkip logic:skipReason logic:SkipAlreadySatisfied ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an action is skipped."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid free-text skip reasons and avoid skipping without one."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member to the skipped entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SkipNotApplicable a owl:NamedIndividual , logic:SkipReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "not applicable"@x-gmeow-english ;
+    skos:definition "The action's applicability condition did not hold for this occurrence. Distinguished from already-satisfied: the action was never called for, rather than already done."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SkipAlreadySatisfied a owl:NamedIndividual , logic:SkipReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "already satisfied"@x-gmeow-english ;
+    skos:definition "The action's intended effect already obtains, so taking it would be redundant. Distinguished from not-applicable: it was called for and is already achieved."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SkipPolicyExcluded a owl:NamedIndividual , logic:SkipReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "policy excluded"@x-gmeow-english ;
+    skos:definition "Governing policy excluded the action for this occurrence. Distinguished from an approval block: policy forbids it outright rather than requiring authorization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SkipOperatorDeclined a owl:NamedIndividual , logic:SkipReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "operator declined"@x-gmeow-english ;
+    skos:definition "An authorized operator chose not to take the action. Attributed, because a declined action is a decision somebody made and not a property of the state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:skipReason
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry ;
+    rdfs:range logic:SkipReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "skip reason"@x-gmeow-english ;
+    skos:definition "Relates a skipped logic:FrontierEntry to its typed reason. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:frontierVantage
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FrontierEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "frontier vantage"@x-gmeow-english ;
+    skos:definition "The standpoint a frontier entry's label is relative to. Range a standpoint (stated in prose). Whether an action requires approval is a claim UNDER a policy, and two governing policies can disagree, so classifications coexist as attributed observations rather than collapsing to one global verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:OperationOutcome
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Operation Outcome"@x-gmeow-english ;
+    skos:definition "The total six-way outcome of an engine operation. It closes a real gap: the existing evaluation-status axis is three-valued and has no value for cancellation and none for engine failure, while invalid input lives on a different axis entirely. Collapsing those into 'incomplete' loses the distinction between a run that was cut short, one that was asked something malformed, and one where the engine itself broke."@x-gmeow-english ;
+    skos:example "ex:frontierRun logic:operationOutcome logic:OutcomeApplied ."@x-gmeow-english ;
+    gmeow:useWhen "Use to report what became of one engine operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing cancellation, invalidity and engine failure into a single incomplete result."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member, plus the typed cause enumeration its value calls for."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:OutcomeApplied a owl:NamedIndividual , logic:OperationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "applied"@x-gmeow-english ;
+    skos:definition "The operation completed and its effect on the engine state was applied. The only outcome under which a result may be read as complete."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:OutcomeRequiresFullRebuild a owl:NamedIndividual , logic:OperationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "requires full rebuild"@x-gmeow-english ;
+    skos:definition "The operation cannot be applied incrementally and the state must be rebuilt from scratch. A recoverable outcome, distinguished from failure: nothing is wrong, the incremental path simply does not apply."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:OutcomeUnsupportedFragment a owl:NamedIndividual , logic:OperationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "unsupported fragment"@x-gmeow-english ;
+    skos:definition "The input lies outside the fragment the engine is certified for. Distinguished from incomplete: no budget would have sufficed, because the engine was never entitled to terminate on this input."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:OutcomeIncomplete a owl:NamedIndividual , logic:OperationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "incomplete"@x-gmeow-english ;
+    skos:definition "The operation was sound but did not finish, for a typed cause. Sound-but-partial: what it did derive is correct, and what it did not derive is unknown rather than false."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:OutcomeInvalid a owl:NamedIndividual , logic:OperationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "invalid"@x-gmeow-english ;
+    skos:definition "The operation was rejected because its input was malformed or its precondition failed, for a typed integrity fault. Nothing was attempted, so no partial result exists."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:OutcomeEngineFailure a owl:NamedIndividual , logic:OperationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "engine failure"@x-gmeow-english ;
+    skos:definition "The engine itself failed. Distinguished from every other outcome because it says nothing about the input: retrying the same request may succeed, and no conclusion about the query may be drawn."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:operationOutcome
+    a owl:ObjectProperty ;
+    rdfs:range logic:OperationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "operation outcome"@x-gmeow-english ;
+    skos:definition "Relates an operation record to its exactly-one outcome. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:IncompleteCause
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Incomplete Cause"@x-gmeow-english ;
+    skos:definition "Why an operation was incomplete: a step budget, a cancellation, a deadline, or a page budget. Typed because the remedies differ — a step budget suggests raising it, a cancellation suggests nothing, and a deadline suggests scheduling."@x-gmeow-english ;
+    skos:example "ex:frontierRun logic:incompleteCause logic:IncompleteStepBudget ."@x-gmeow-english ;
+    gmeow:useWhen "Use alongside an incomplete outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an untyped incomplete result."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member whenever the outcome is incomplete."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IncompleteStepBudget a owl:NamedIndividual , logic:IncompleteCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step budget"@x-gmeow-english ;
+    skos:definition "The declared derivation budget was exhausted. Remediable by raising the budget, unlike a cancellation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IncompleteCancellation a owl:NamedIndividual , logic:IncompleteCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "cancellation"@x-gmeow-english ;
+    skos:definition "The caller cancelled the operation before it finished. Not a resource limit: the engine would have completed given the chance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IncompleteDeadline a owl:NamedIndividual , logic:IncompleteCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deadline"@x-gmeow-english ;
+    skos:definition "A wall-clock deadline elapsed. Distinguished from a step budget: the same work may complete under identical step limits on a less loaded machine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IncompletePageBudget a owl:NamedIndividual , logic:IncompleteCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "page budget"@x-gmeow-english ;
+    skos:definition "A page or byte budget over the answer set was exhausted. The derivation may have been complete; the delivery was not."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:incompleteCause
+    a owl:ObjectProperty ;
+    rdfs:range logic:IncompleteCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "incomplete cause"@x-gmeow-english ;
+    skos:definition "Relates an incomplete operation record to its typed cause. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:IntegrityFault
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Integrity Fault"@x-gmeow-english ;
+    skos:definition "Why an operation was rejected as invalid, in the ORDER the restore gate checks them: corrupt content, failed re-materialization, identity mismatch, then data-generation mismatch. The ordering is part of the contract — a corrupt checkpoint must be rejected before an identity comparison is even attempted, because comparing identities read out of corrupt bytes is meaningless."@x-gmeow-english ;
+    skos:example "ex:restoreAttempt logic:integrityFault logic:FaultIdentityMismatch ."@x-gmeow-english ;
+    gmeow:useWhen "Use alongside an invalid outcome, especially on a checkpoint restore."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reporting an identity mismatch for input that failed the content-integrity check."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member, respecting the gate order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultContentIntegrity a owl:NamedIndividual , logic:IntegrityFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "content integrity"@x-gmeow-english ;
+    skos:definition "Gate one: the stored bytes do not match their own digest. Checked first, because every later comparison would be reading corrupt data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultRematerialization a owl:NamedIndividual , logic:IntegrityFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "re-materialization"@x-gmeow-english ;
+    skos:definition "Gate two: the state could not be deterministically re-derived from its recorded inputs. Distinguished from corruption: the bytes were intact and the replay still diverged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultIdentityMismatch a owl:NamedIndividual , logic:IntegrityFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "identity mismatch"@x-gmeow-english ;
+    skos:definition "Gate three: one of the seven identity axes differs from the checkpoint's. The folded descriptor hash reports THAT one differs; the per-axis digests report which."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FaultDataGeneration a owl:NamedIndividual , logic:IntegrityFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "data generation"@x-gmeow-english ;
+    skos:definition "Gate four: the authorized data generation differs from the one the checkpoint was taken over. Checked last because it is the only gate a caller can legitimately intend to cross, by explicitly re-authorizing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:integrityFault
+    a owl:ObjectProperty ;
+    rdfs:range logic:IntegrityFault ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "integrity fault"@x-gmeow-english ;
+    skos:definition "Relates an invalid operation record to its typed fault. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:RebuildReason
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rebuild Reason"@x-gmeow-english ;
+    skos:definition "Why an operation demanded a full rebuild rather than an incremental application: the rule set changed, a retraction crossed a non-incremental boundary, or the fragment changed. Typed so a rebuild is explainable rather than mysterious, and so a frequent cause can be measured and addressed."@x-gmeow-english ;
+    skos:example "ex:applyDelta logic:rebuildReason logic:RebuildRuleSetChanged ."@x-gmeow-english ;
+    gmeow:useWhen "Use alongside a requires-full-rebuild outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an unexplained rebuild."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RebuildRuleSetChanged a owl:NamedIndividual , logic:RebuildReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rule set changed"@x-gmeow-english ;
+    skos:definition "The governing rules changed, so previously derived conclusions can no longer be trusted incrementally."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RebuildNonIncrementalRetraction a owl:NamedIndividual , logic:RebuildReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "non-incremental retraction"@x-gmeow-english ;
+    skos:definition "A retraction crossed a boundary the incremental algebra does not support, so the closure must be recomputed rather than adjusted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RebuildFragmentChanged a owl:NamedIndividual , logic:RebuildReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "fragment changed"@x-gmeow-english ;
+    skos:definition "The certified fragment changed, so the prior closure was computed under a different entitlement to terminate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:rebuildReason
+    a owl:ObjectProperty ;
+    rdfs:range logic:RebuildReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rebuild reason"@x-gmeow-english ;
+    skos:definition "Relates a requires-full-rebuild operation record to its typed reason. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:UnsupportedFragmentCondition
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unsupported Fragment Condition"@x-gmeow-english ;
+    skos:definition "What placed an input outside the certified fragment: an unadmitted construct, a non-terminating pattern, or a method set outside the declared search fragment. Typed so an unsupported verdict names the offending condition instead of refusing opaquely — a refusal a caller cannot act on is barely better than a wrong answer."@x-gmeow-english ;
+    skos:example "ex:searchRun logic:unsupportedCondition logic:UnsupportedMethodSet ."@x-gmeow-english ;
+    gmeow:useWhen "Use alongside an unsupported-fragment outcome."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an opaque unsupported refusal."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one member and name the offending construct alongside it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnsupportedConstruct a owl:NamedIndividual , logic:UnsupportedFragmentCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "unadmitted construct"@x-gmeow-english ;
+    skos:definition "The input uses a construct the certified fragment does not admit. Remediable by rephrasing within the fragment or selecting a different contract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnsupportedNonTerminating a owl:NamedIndividual , logic:UnsupportedFragmentCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "non-terminating pattern"@x-gmeow-english ;
+    skos:definition "The input contains a pattern with no termination certificate. Distinguished from a budget exhaustion: no budget makes it terminate, it simply runs longer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnsupportedMethodSet a owl:NamedIndividual , logic:UnsupportedFragmentCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method set outside fragment"@x-gmeow-english ;
+    skos:definition "The decomposition methods available fall outside the declared search fragment. The refusal that keeps an undecidable method set from masquerading as a budget exhaustion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:unsupportedCondition
+    a owl:ObjectProperty ;
+    rdfs:range logic:UnsupportedFragmentCondition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "unsupported condition"@x-gmeow-english ;
+    skos:definition "Relates an unsupported-fragment operation record to its typed condition. Domain an operation record (stated in prose). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ContextAssembly
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Context Assembly"@x-gmeow-english ;
+    skos:definition "The record of what was put in front of a decider: what was included, from where, under what budget, and — critically — what was EXCLUDED. Recording exclusions is what makes recorded dissent meaningful, because 'the operator saw the objection and proceeded' and 'the objection was never surfaced' are different situations that an inclusion-only record cannot tell apart. Typed APART from the decision itself: an assembly is what was available to decide with."@x-gmeow-english ;
+    skos:example "ex:w12Context a logic:ContextAssembly ; logic:assemblyForEnactment ex:adrReviewW12 ."@x-gmeow-english ;
+    gmeow:useWhen "Use wherever a decision was made against assembled material and the assembly must be auditable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid recording inclusions without exclusions, and avoid conflating the assembly with the decision."@x-gmeow-english ;
+    gmeow:howToUse "Bind the enactment served, every inclusion, every exclusion with its reason, and the governing guidance version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:assemblyForEnactment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assembly for enactment"@x-gmeow-english ;
+    skos:definition "Relates a logic:ContextAssembly to the enactment it served. Functional and MANDATORY: an assembly with no named beneficiary cannot answer 'what was surfaced to THIS run', which is the question it exists for."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assemblyIncluded
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assembly included"@x-gmeow-english ;
+    skos:definition "Relates a logic:ContextAssembly to something surfaced to the decider. Range any surfaced item (stated in prose). Multi-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assemblyExcluded
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assembly excluded"@x-gmeow-english ;
+    skos:definition "Relates a logic:ContextAssembly to something available but NOT surfaced. Range any excluded item (stated in prose). Multi-valued. The half of the record that makes dissent interpretable: without it, silence is unreadable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assemblyExclusionReason
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ContextAssembly ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assembly exclusion reason"@x-gmeow-english ;
+    skos:definition "Why material available to the assembly was not surfaced — a budget, a relevance filter, a policy. Recording it distinguishes a deliberate omission from an accidental one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:assemblyGuidanceVersion
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ContextAssembly ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "assembly guidance version"@x-gmeow-english ;
+    skos:definition "The exact version of the guidance that governed the assembly. Range a versioned guidance record (stated in prose). Functional: 'which rules were we operating under' must be answerable for a past occurrence, not only the current one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:FrontierClosureRequiresSaturationConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a frontier claiming closure carries a saturation witness"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ActionableFrontier with no saturation witness. Closedness is the frontier's whole value, and an unwitnessed claim of it is exactly how a roster truncated by a budget cut passes for complete — after which the system confidently omits the action it should have taken."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ActionableFrontier must carry a logic:frontierSaturationWitness; a roster without one cannot be claimed closed." ;
+    logic:integrity logic:fcsForall .
+logic:fcsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:fcsImpl .
+logic:fcsImpl a logic:Formula ; logic:antecedent logic:fcsGuard ; logic:consequent logic:fcsCons .
+logic:fcsGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ActionableFrontier ] .
+logic:fcsCons a logic:Formula ; logic:relation logic:frontierSaturationWitness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "witness" ] .
+
+logic:ContextAssemblyRecordsExclusionsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a context assembly names the enactment it served"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ContextAssembly with no named enactment. An assembly exists to answer what was surfaced to a PARTICULAR run; unbound, it answers nothing and the guidance-version record it carries has no subject."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ContextAssembly must bind logic:assemblyForEnactment; an assembly with no beneficiary cannot say what was surfaced to which run." ;
+    logic:integrity logic:careForall .
+logic:careForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:careImpl .
+logic:careImpl a logic:Formula ; logic:antecedent logic:careGuard ; logic:consequent logic:careCons .
+logic:careGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContextAssembly ] .
+logic:careCons a logic:Formula ; logic:relation logic:assemblyForEnactment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
+
+# =========================================================================== #
 # The well-founded materializer's intra-engine phase plan — dogfooded as data. #
 #                                                                             #
 # This logic:Plan is the AUTHORED MODEL of the phase sequence the native       #
