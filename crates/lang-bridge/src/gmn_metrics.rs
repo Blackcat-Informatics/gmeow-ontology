@@ -298,12 +298,20 @@ mod tests {
         assert_eq!(estimate_tokens("abcde"), 2, "five chars round up to two");
         // Counted by CHARACTER, not UTF-8 byte: four 3-byte glyphs are four chars ⇒ one token,
         // never twelve. The byte-fallback penalty lives in the worst-case bound, not here.
-        assert_eq!(estimate_tokens("→→→→"), 1, "four multibyte glyphs are four chars");
+        assert_eq!(
+            estimate_tokens("→→→→"),
+            1,
+            "four multibyte glyphs are four chars"
+        );
     }
 
     #[test]
     fn ratio_is_bounded_with_a_vacuous_denominator_perfect() {
-        assert_eq!(ratio(0, 0), 1.0, "0/0 is trivially perfect (nothing to fail)");
+        assert_eq!(
+            ratio(0, 0),
+            1.0,
+            "0/0 is trivially perfect (nothing to fail)"
+        );
         assert_eq!(ratio(0, 5), 0.0);
         assert_eq!(ratio(1, 2), 0.5);
         assert_eq!(ratio(3, 3), 1.0);
