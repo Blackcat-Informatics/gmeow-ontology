@@ -148,7 +148,7 @@ resolver = "2"
 # is gated on the framework namespace alone, so every slice minting into
 # `logic:`/`lang:`/`math:` is invisible to the dependency analyzer. Move back to a `tag =`
 # pin once a release carries the fix.
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "ac2805fd790b4a8f7e9e6df64dcb87a51289d6e7" }
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "76f2595528e5d64fd708aa1c24d9055db084870e" }
 
 [workspace.package]
 version = "0.2.0"
