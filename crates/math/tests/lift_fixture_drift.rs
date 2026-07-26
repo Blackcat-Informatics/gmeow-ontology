@@ -7,10 +7,10 @@
 //! worked examples that happen to resemble a lift: each is the EXACT output of
 //! [`gmeow_math::producers::r_lift`] / [`onnx_lift`](gmeow_math::producers::onnx_lift) /
 //! [`proof_lift`](gmeow_math::producers::proof_lift), which in turn is the exact output of
-//! the shipped `gmeow_math_lift` front-end over a real committed artifact. The same
-//! discipline the `math:` slice already applies to
-//! `tests/conformance-fixtures/ingest-run-lifted.ttl` (byte-identical to
-//! `r_bridge_lift`'s graph).
+//! the shipped `gmeow_math_lift` front-end over a real committed artifact. `lifted-r.ttl`
+//! carries a second duty: it is the `rBridge` flagship's `gmeow:demonstratedByExample`, so
+//! `crates/pipeline/tests/math_flagship_discharge.rs` additionally asserts it is
+//! graph-isomorphic to `r_lift`'s output.
 //!
 //! A fixture that is merely *committed* rots silently: a parser improvement changes the
 //! producer, `gmeow.gts` carries the new graph, and the on-disk file quietly stops

@@ -19,14 +19,15 @@
 //!    the `gmeow:demonstratedByProducer` identifier to the matching native
 //!    [`gmeow_math::producers`] entrypoint, RUNS it, and asserts its output equals the pinned
 //!    falsifiable datum the scenario claims (|W(E8)| = 696729600; Dec(Enc(a)⊕Enc(b)) = a+b; a
-//!    grounded verification result; an ingest run with the pinned lifted-observation count; an
+//!    grounded verification result; an executed R lift whose `math:` codomain is the pinned
+//!    size and whose run IRI is content-addressed on the script it parsed; an
 //!    exact-rational PCA whose dominant axis and LDLᵀ pivots are the pinned exact values).
 //!
 //! The five (counter-example, example, failure-class, producer) tuples are READ from the
 //! manifest, never hard-coded — a manifest edit that unwires a flagship is caught here.
 
 use gmeow_math::Rational;
-use gmeow_math::producers;
+use gmeow_math::producers::{self, PRODUCER_NS};
 
 mod support;
 use support::flagship_discharge::{
@@ -108,12 +109,18 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
             // No-drift tie: the worked-example fixture the manifest names IS the producer output.
             assert_producer_matches_example(flagship, &out.turtle);
         }
-        // rBridge: the ingest run lifts exactly the pinned observation count (non-empty lift).
-        "math::producers::r_bridge_lift" => {
-            let out = producers::r_bridge_lift();
+        // rBridge: the EXECUTABLE R front-end lifts the committed mtcars.R script into a
+        // math: codomain of the pinned size, under a run IRI content-addressed on the script's
+        // own bytes. Nothing here is hand-written: the graph is whatever the parser derived.
+        "math::producers::r_lift" => {
+            let out = producers::r_lift();
             assert_eq!(
-                out.lifted_observations, 5,
-                "the R-bridge lift must produce the pinned number of ingest observations"
+                out.codomain_nodes, 131,
+                "the executable R lift must produce the pinned math: codomain size"
+            );
+            assert!(
+                out.ingest_run.starts_with(PRODUCER_NS),
+                "the R lift's math:RIngestRun must be minted under the producer namespace"
             );
             // No-drift tie: the worked-example fixture the manifest names IS the producer output.
             assert_producer_matches_example(flagship, &out.turtle);

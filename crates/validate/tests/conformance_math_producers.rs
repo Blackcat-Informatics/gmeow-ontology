@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Real-SHACL conformance for the eleven `math:` producers: five flagship-acceptance
+//! Real-SHACL conformance for the ten `math:` producers: five flagship-acceptance
 //! producers, the probability seam, p-value tri-slice, and exact Clifford producers, and
 //! the three EXECUTABLE lifts (`r_lift`, `onnx_lift`, `proof_lift`) — whose graphs no
-//! author wrote at all.
+//! author wrote at all. `r_lift` is BOTH: it is the `rBridge` flagship's producer.
 //!
 //! `gmeow-validate` depends on `gmeow-math`, so this crate can call the native
 //! producers directly and validate their emitted RDF graph fragments against the
@@ -25,7 +25,7 @@ use conformance_support::*;
 use gmeow_math::producers::{
     self, PRODUCER_NS, additive_he_demo, clifford_twelve_thirteen, e8_weyl_order,
     exact_pca_residual, onnx_lift, probability_model_seam, proof_ingest, proof_lift,
-    pvalue_tri_slice, r_bridge_lift, r_lift,
+    pvalue_tri_slice, r_lift,
 };
 use purrdf::shapes::report::Severity;
 use purrdf::shapes::term::Term;
@@ -60,7 +60,7 @@ fn producer_violations(turtle: &str) -> Vec<String> {
 // genuinely-irreducible whole-ontology conformance (~20 s each), so — exactly like the
 // `conformance_{finance,agentic,ai_claims,music_analysis}` domain conformance binaries —
 // this binary is carved out of the per-commit `default-filter` in `.config/nextest.toml`
-// and runs on the `maint-heavy` profile. The five producers' pinned falsifiable values
+// and runs on the `maint-heavy` profile. The five flagship producers' pinned falsifiable values
 // stay enforced ON the per-commit gate by `crates/pipeline/tests/math_flagship_discharge.rs`,
 // which RUNS every producer and asserts its output; this binary is the extra cross-crate
 // proof that the producer output also validates clean against the real shape corpus.
@@ -89,15 +89,6 @@ fn proof_ingest_graph_validates_clean() {
     assert!(
         v.is_empty(),
         "proof producer graph raised math violations: {v:#?}"
-    );
-}
-
-#[test]
-fn r_bridge_lift_graph_validates_clean() {
-    let v = producer_violations(&r_bridge_lift().turtle);
-    assert!(
-        v.is_empty(),
-        "R-bridge producer graph raised math violations: {v:#?}"
     );
 }
 
@@ -144,7 +135,7 @@ fn clifford_twelve_thirteen_graph_validates_clean() {
 // ---------------------------------------------------------------------------------------
 // The three EXECUTABLE lifts.
 //
-// The eight producers above write their Turtle from an in-code corpus: an author decided
+// The seven producers above write their Turtle from an in-code corpus: an author decided
 // what the graph says, and this binary proves the shapes accept it. The three below write
 // no RDF at all — the graph is whatever `gmeow_math_lift`'s R / ONNX / TSTP front-ends
 // actually derive from real committed artifacts (`crates/math-lift/fixtures/mtcars.R`,
@@ -196,8 +187,6 @@ fn producers_pin_their_falsifiable_values() {
     assert_eq!(he.decrypted_sum, (he.a + he.b).rem_euclid(he.modulus));
 
     assert!(proof_ingest().grounded);
-
-    assert_eq!(r_bridge_lift().lifted_observations, 5);
 
     let pca = exact_pca_residual();
     assert_eq!(pca.dominant_axis, 0);

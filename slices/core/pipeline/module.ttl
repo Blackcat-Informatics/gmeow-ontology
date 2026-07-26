@@ -1191,7 +1191,6 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-lift> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice> ,
-        <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-lift> .
 
 gmeow:stage-gmn-training-corpus

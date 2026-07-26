@@ -1,24 +1,30 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The eleven native producers of the `math:` grounding slice: five flagship-acceptance
-//! producers, the probability layer's live `logic:probabilityModel` seam producer, and the
-//! signature `lang:` → `logic:` → `math:` p-value tri-slice producer, plus the exact
-//! `Cl(12)` → `Cl(13)` positive-extension producer, plus the three EXECUTABLE ingestion
-//! lifts ([`r_lift`], [`onnx_lift`], [`proof_lift`]).
+//! The ten native producers of the `math:` grounding slice: five bound to the
+//! flagship-acceptance manifest ([`e8_weyl_order`], [`additive_he_demo`], [`proof_ingest`],
+//! [`r_lift`], [`exact_pca_residual`]), plus the probability layer's live
+//! `logic:probabilityModel` seam producer, the signature `lang:` → `logic:` → `math:`
+//! p-value tri-slice producer, the exact `Cl(12)` → `Cl(13)` positive-extension producer,
+//! and the two remaining EXECUTABLE ingestion lifts ([`onnx_lift`], [`proof_lift`]).
 //!
 //! Each flagship scenario in `slices/grounding/math/examples/flagship-acceptance.ttl`
 //! names a native producer entrypoint (`gmeow:demonstratedByProducer`). This module IS
 //! those five entrypoints — deterministic, exact-arithmetic Rust functions that each
 //!
 //! 1. compute a **falsifiable pinned value** (the E8 Weyl order, the homomorphic-sum
-//!    equality, the grounded verification verdict, the lifted-observation count, and the
+//!    equality, the grounded verification verdict, the R lift's codomain size, and the
 //!    exact PCA dominant axis / LDLᵀ pivots), and
 //! 2. emit a **deterministic RDF graph fragment** (Turtle) in the exact `math:` / `gmeow:`
 //!    / `logic:` vocabulary the slice's SHACL shapes expect, so the emitted graph validates
 //!    clean against the math shapes (no `math:` failure) once merged with the ontology.
 //!
-//! [`probability_model_seam`] is a SIXTH producer, folded into the bundle the SAME way
+//! The `rBridge` flagship's producer is [`r_lift`] — the EXECUTABLE R front-end run over a
+//! real committed script, not a hand-written imitation of one. There is no second, in-code
+//! R-bridge producer: an emitter that parsed nothing was strictly subsumed by the one that
+//! runs the shipped parser, so it was removed rather than kept alongside it.
+//!
+//! [`probability_model_seam`] is folded into the bundle the SAME way
 //! (Design A) but NOT bound to a `gmeow:FlagshipScenario` — the flagship manifest's "five,
 //! not adjectives" depth-bar contract stays exactly five. It exists so the probability
 //! layer's `logic:probabilityModel` reasoning seam has a LIVE A-box crossing triple inside
@@ -29,22 +35,22 @@
 //! native producers are the one established path for demonstrator A-box content to ride
 //! inside `gmeow.gts` as queryable RDF).
 //!
-//! [`pvalue_tri_slice`] is a SEVENTH producer, folded the SAME way and likewise NOT
+//! [`pvalue_tri_slice`] is folded the SAME way and likewise NOT
 //! flagship-bound. It carries the charter's signature tri-slice round-trip — the sentence
 //! "the p-value was 0.03" grounded as a `lang:SurfaceForm` → a `logic:Formula` → a
 //! well-framed `math:PValue` with a framed `math:pValue` measure — as ONE genuinely grounded
 //! chain (a `lang:denotesLogicFormula` denotation whose target is the formula, and the
 //! formula predicating over the specific p-value) inside `gmeow.gts` itself.
 //!
-//! [`clifford_twelve_thirteen`] is the EIGHTH producer, likewise non-flagship. It calculates
+//! [`clifford_twelve_thirteen`] is likewise non-flagship. It calculates
 //! both `Cl(12,0)` → `Cl(13,0)` and `Cl(6,6)` → `Cl(7,6)` with the exact sparse Clifford
 //! kernel, including generator laws, pseudoscalar squares, algebra dimensions, and the
 //! `8192 = 4096 + 4096` last-generator split. It exposes no E8 action or equivalence: such a
 //! claim requires a supplied faithful representation/equivariant map, not dimensional
 //! coincidence.
 //!
-//! [`r_lift`], [`onnx_lift`], and [`proof_lift`] are the NINTH, TENTH, and ELEVENTH
-//! producers, likewise non-flagship. They differ from every producer above in one decisive
+//! [`r_lift`], [`onnx_lift`], and [`proof_lift`] are the three EXECUTABLE lifts ([`r_lift`]
+//! flagship-bound, the other two not). They differ from every producer above in one decisive
 //! way: their graphs are not written here at all. Each calls the SAME
 //! `gmeow_math_lift::{r,onnx,proof}::lift` entrypoint the shipped `gmeow` CLI calls, over a
 //! REAL committed artifact (`mtcars.R`, `mlp.onnx`, `theorem-subclass.tstp`) embedded at
@@ -283,103 +289,6 @@ pub fn proof_ingest() -> ProofIngest {
         verification_result,
         grounding_observation,
         grounded: true,
-        turtle: t,
-    }
-}
-
-// ===========================================================================
-// Flagship 4 — the universal R → math: bridge.
-// ===========================================================================
-
-/// The number of observations in the canonical in-code R ingest corpus. Each lifts into
-/// exactly one `math:Residual`, so the emitted `math:IngestRun`'s lifted-observation count is
-/// this value.
-pub const R_BRIDGE_OBSERVATIONS: usize = 5;
-
-/// The pinned result of [`r_bridge_lift`].
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RBridgeLift {
-    /// The IRI of the emitted `math:RIngestRun`.
-    pub ingest_run: String,
-    /// The exact number of lifted observations (one `math:Residual` per observation).
-    pub lifted_observations: usize,
-    /// The graph: a grounded ingest run producing a fitted model and one residual per
-    /// observation, each `gmeow:wasGeneratedBy` the run.
-    pub turtle: String,
-}
-
-/// Lift a canonical, fixed in-code R-style statistical ingest corpus (`N =
-/// [`R_BRIDGE_OBSERVATIONS`]` observations of an `lm(mpg ~ wt + hp)` fit) into a
-/// `math:RIngestRun` graph. The run retains its source witness (`math:parseSource`), carries
-/// the process-layer witness (`logic:instantiatesSchema` / `logic:instantiatesPlan`) and its
-/// law-spine (`math:ingestCorrespondence` → a `logic:Correspondence`) — satisfying
-/// `math:IngestRunShape` — and produces a structured `math:` codomain (a `math:FittedModel`
-/// over a `math:ModelFormula` and one `math:Residual` per observation, each
-/// `gmeow:wasGeneratedBy` the run), so the native `math:UnliftableIngest` lint sees a
-/// non-empty lift. Nothing is dropped silently.
-pub fn r_bridge_lift() -> RBridgeLift {
-    let ingest_run = format!("{PRODUCER_NS}rRun");
-
-    let mut t = header();
-    t.push_str("# Flagship 4 — lifting an R lm(mpg ~ wt + hp) fit into the math: codomain.\n");
-    t.push_str("p:rRun a math:RIngestRun ;\n");
-    t.push_str("    math:parseSource p:rSrcWitness ;\n");
-    t.push_str("    logic:instantiatesSchema p:rBridgeSchema ;\n");
-    t.push_str("    logic:instantiatesPlan p:rBridgePlan ;\n");
-    t.push_str("    math:ingestCorrespondence p:rCorr .\n\n");
-    t.push_str("# The retained, load-bearing source witness (the R call, by reference).\n");
-    t.push_str("p:rSrcWitness a math:MathematicalObject ;\n");
-    t.push_str("    math:retainedSource \"fit <- lm(mpg ~ wt + hp, data = mtcars)\" ;\n");
-    t.push_str("    logic:loadBearing true .\n");
-    // The schema/plan witnesses are bare in-band references: math:IngestRunShape requires
-    // the logic:instantiatesSchema / logic:instantiatesPlan edges (min 1, no class), and
-    // typing these as full logic:ActionSchema / logic:Plan would drag in their own
-    // capability/precondition/goal obligations the ingest witness does not carry.
-    t.push_str("p:rBridgeSchema a math:MathematicalObject .\n");
-    t.push_str("p:rBridgePlan a math:MathematicalObject .\n\n");
-    t.push_str("# The lift's law-spine: a lossy lens with a retained (mnemomorphic) witness.\n");
-    t.push_str("p:rCorr a logic:Correspondence ;\n");
-    t.push_str("    logic:preservationKind logic:ValidationOnly ;\n");
-    t.push_str("    logic:correspondenceRelation logic:RelatedMatch ;\n");
-    t.push_str("    logic:morphismClass logic:LossyLens ;\n");
-    t.push_str("    logic:hasDeterminacy logic:Vague ;\n");
-    t.push_str("    logic:mnemomorphic true .\n\n");
-    t.push_str("# The model formula: the ~ is a binder over indexed argument slots.\n");
-    t.push_str("p:mpgFormula a math:ModelFormula ;\n");
-    t.push_str("    math:argumentSlot p:respSlot , p:wtSlot , p:hpSlot .\n");
-    t.push_str(
-        "p:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression p:mpgVar .\n",
-    );
-    t.push_str(
-        "p:wtSlot   a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression p:wtVar .\n",
-    );
-    t.push_str(
-        "p:hpSlot   a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression p:hpVar .\n",
-    );
-    t.push_str("p:mpgVar a math:VariableExpression .\n");
-    t.push_str("p:wtVar  a math:VariableExpression .\n");
-    t.push_str("p:hpVar  a math:VariableExpression .\n\n");
-    t.push_str("# The lifted codomain: the data (by reference) and the fitted model.\n");
-    t.push_str("p:mtcarsMatrix a math:DatasetMatrix ;\n");
-    t.push_str("    gmeow:wasGeneratedBy p:rRun .\n");
-    t.push_str("p:mtcarsFit a math:FittedModel ;\n");
-    t.push_str("    math:modelFormula p:mpgFormula ;\n");
-    t.push_str("    math:fittedToData p:mtcarsMatrix ;\n");
-    t.push_str("    gmeow:wasGeneratedBy p:rRun .\n\n");
-    let _ = writeln!(
-        t,
-        "# One math:Residual per lifted observation (N = {R_BRIDGE_OBSERVATIONS})."
-    );
-    for i in 0..R_BRIDGE_OBSERVATIONS {
-        let _ = writeln!(
-            t,
-            "p:obs{i}Residual a math:Residual ;\n    math:residualOf p:mtcarsFit ;\n    gmeow:wasGeneratedBy p:rRun ."
-        );
-    }
-
-    RBridgeLift {
-        ingest_run,
-        lifted_observations: R_BRIDGE_OBSERVATIONS,
         turtle: t,
     }
 }
@@ -1097,10 +1006,11 @@ pub struct RLift {
 /// `gmeow` CLI calls) over the embedded `mtcars.R` fixture and ship its `math:RIngestRun`
 /// graph in the bundle.
 ///
-/// Unlike [`r_bridge_lift`], which writes its Turtle here by hand from a canonical in-code
-/// corpus, this producer writes no RDF at all: the graph is whatever the recursive-descent
-/// R parser and its lift tier actually derive from a real script. That is the point — the
-/// bundle then carries evidence about the executable bridge, not about a template.
+/// This producer writes no RDF at all: the graph is whatever the recursive-descent R parser
+/// and its lift tier actually derive from a real script. That is the point — the bundle
+/// carries evidence about the executable bridge, not about a template. It is the `rBridge`
+/// flagship's producer: the acceptance manifest's `gmeow:demonstratedByExample` names the
+/// committed `tests/fixtures/lifted-r.ttl` this emits byte for byte.
 ///
 /// # Panics
 ///
@@ -1345,56 +1255,6 @@ mod tests {
     #[test]
     fn proof_ingest_is_deterministic() {
         assert_eq!(proof_ingest().turtle, proof_ingest().turtle);
-    }
-
-    // ---- Flagship 4 -------------------------------------------------------
-
-    #[test]
-    fn r_bridge_lift_pins_the_observation_count() {
-        let l = r_bridge_lift();
-        assert_eq!(l.lifted_observations, 5);
-        assert_eq!(l.ingest_run, prod("rRun"));
-    }
-
-    #[test]
-    fn r_bridge_lift_graph_is_a_grounded_nonempty_lift() {
-        let l = r_bridge_lift();
-        let idx = index_turtle(l.turtle.as_bytes()).expect("parse R bridge graph");
-        assert!(has_type(&idx, &prod("rRun"), &math_iri("RIngestRun")));
-        // IngestRunShape obligations.
-        assert!(first_iri(&idx, &prod("rRun"), &math_iri("parseSource")).is_some());
-        assert!(
-            first_iri(
-                &idx,
-                &prod("rRun"),
-                "https://blackcatinformatics.ca/logic/instantiatesSchema"
-            )
-            .is_some()
-        );
-        assert!(
-            first_iri(
-                &idx,
-                &prod("rRun"),
-                "https://blackcatinformatics.ca/logic/instantiatesPlan"
-            )
-            .is_some()
-        );
-        assert!(first_iri(&idx, &prod("rRun"), &math_iri("ingestCorrespondence")).is_some());
-        // Exactly N residuals, each generated by the run (the non-empty lift the native
-        // math:UnliftableIngest lint requires).
-        for i in 0..5 {
-            let residual = prod(&format!("obs{i}Residual"));
-            assert!(has_type(&idx, &residual, &math_iri("Residual")));
-            assert_eq!(
-                first_iri(&idx, &residual, &gmeow_iri("wasGeneratedBy")).as_deref(),
-                Some(prod("rRun").as_str())
-            );
-        }
-    }
-
-    #[test]
-    fn r_bridge_lift_is_deterministic() {
-        assert_eq!(r_bridge_lift().turtle, r_bridge_lift().turtle);
     }
 
     // ---- Flagship 5 -------------------------------------------------------
