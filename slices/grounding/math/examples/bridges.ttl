@@ -200,6 +200,7 @@ ex:proofCorr a logic:Correspondence ;
 # The lifted codomain: the dependency graph and the proof it underlies.
 ex:pythagorasDAG a math:ProofDependencyGraph ;
     rdfs:label "Pythagorean theorem dependency DAG"@x-gmeow-english ;
+    math:dependencyGraphOf ex:pythagorasProof ;
     gmeow:wasGeneratedBy ex:proofRun .
 ex:pythagorasProof a math:Proof ;
     math:provesStatement ex:pythagorasStatement ;
@@ -212,8 +213,12 @@ ex:euclidParallelAxiom a math:Axiom .
 ex:similarTrianglesStep a math:ProofStep ;
     math:hasPremise ex:similarTrianglesLemma ;
     math:hasConclusion ex:ratioEquality ;
+    math:usesInferenceRule ex:ruleSimilarityTransfer ;
     math:dependsOnAxiom ex:euclidParallelAxiom ;
     math:provesGoal ex:similarTrianglesGoal .
+# The step-level licence: which rule fired here, distinct from the proof's overall
+# math:usesProofMethod strategy.
+ex:ruleSimilarityTransfer a math:Operation .
 ex:similarTrianglesLemma a math:MathematicalObject .
 ex:ratioEquality a math:MathematicalObject .
 

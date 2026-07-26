@@ -74,11 +74,9 @@
 //!
 //! # What this lift refuses rather than fakes
 //!
-//! - The `math:ProofDependencyGraph` carries no edge to the `math:Proof` it underlies. The
-//!   class definition says it "names the math:Proof it underlies", but the slice declares no
-//!   property for that edge, and the shipped fixtures (`tests/fixtures/bridges.ttl:85-86`,
-//!   `examples/bridges.ttl:192-194`) both emit the DAG with only its type, its label, and
-//!   `gmeow:wasGeneratedBy`. This lift emits exactly that rather than mint a term.
+//! - The `math:FormalVerificationResult` is NOT accompanied by a `math:ProofCheckActivity`.
+//!   This bridge parses and structurally checks a derivation; it does not run a proof
+//!   assistant, so claiming the process node would name an activity that never occurred.
 //! - The `math:FormalVerificationResult` claims `math:verificationPassed` from ONE named
 //!   vantage — this bridge's own structural checker — and says in its standpoint's label
 //!   exactly what that checker did and did not do. It never claims the inferences were
@@ -251,6 +249,11 @@ impl Lift<'_> {
         self.sink.typed(&proof, &math("Proof"));
         self.label(&proof, &format!("TSTP derivation of {rendered}"));
 
+        // The DAG names the proof it underlies. Without this edge the two would be related
+        // only by co-generation from the same run, which is a run-scoped coincidence rather
+        // than the structural fact the class definition asserts.
+        self.sink.iri(&dag, &math("dependencyGraphOf"), &proof);
+
         // The proof discharges the goal its terminal step reaches, and decomposes into the
         // derived steps and the axioms they rest on.
         let goal = self.emit_goal(&rendered);
@@ -328,6 +331,13 @@ impl Lift<'_> {
         self.sink.iri(&node, &math("hasConclusion"), &clause_iri);
         self.sink
             .iri(&node, &math("formalizesExpression"), &term_iri);
+        // The rule that licensed THIS step, on the step itself. The proof term carries the
+        // same rule as its math:operator, but that is the term's structure; a consumer asking
+        // "which steps fired resolution?" should not have to walk into a proof term to find
+        // out. An asserted leaf returns above and carries math:dependsOnAxiom instead — it
+        // has no inference rule, which is exactly the distinction the property draws.
+        let rule_iri = self.emit_operation("rule", &rule, &rule);
+        self.sink.iri(&node, &math("usesInferenceRule"), &rule_iri);
         for parent in &step.parents {
             let parent_node = self.step_node[parent].clone();
             self.sink.iri(&node, &math("hasPremise"), &parent_node);
@@ -1071,9 +1081,10 @@ mod tests {
 
     #[test]
     fn the_dependency_graph_is_emitted_with_exactly_the_shape_the_fixture_pins() {
-        // math:ProofDependencyGraph has no declared property naming the math:Proof it
-        // underlies, so the lift emits the type, a label, and the generation back-edge —
-        // the same three the shipped fixtures carry — and mints no term of its own.
+        // math:ProofDependencyGraph's definition says it "names the math:Proof it
+        // underlies"; math:dependencyGraphOf is that edge. The DAG carries it plus its
+        // type, label, and generation back-edge — and nothing else, so a future addition
+        // is a deliberate change to this list rather than a silent one.
         let ttl = turtle(FIXTURE);
         let graph = Graph::of(&ttl);
         let dag = graph
@@ -1094,7 +1105,21 @@ mod tests {
                 crate::ns::RDF_TYPE.to_owned(),
                 LABEL.to_owned(),
                 gmeow("wasGeneratedBy"),
+                math("dependencyGraphOf"),
             ])
+        );
+        // …and it points at the proof this run actually produced, not merely at some proof.
+        let proof = graph
+            .subjects_typed(&math("Proof"))
+            .iter()
+            .next()
+            .expect("one proof")
+            .clone();
+        assert!(
+            graph
+                .objects(&dag, &math("dependencyGraphOf"))
+                .contains(&proof),
+            "the DAG must name the proof it underlies"
         );
         assert!(graph.label(&dag).contains("3 steps, 2 inferences"));
     }

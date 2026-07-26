@@ -6294,6 +6294,30 @@ math:dependsOnAxiom
     skos:definition "Relates a math:Proof or math:ProofStep to a math:Axiom it depends on. Domain a math:Proof or math:ProofStep, range math:Axiom (stated in prose). The axiom dependencies are what a proof dependency DAG records, so a theorem's foundations are first-class and queryable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+math:dependencyGraphOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dependency graph of"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofDependencyGraph to the math:Proof it underlies. Domain math:ProofDependencyGraph, range math:Proof (stated in prose). math:ProofDependencyGraph's own definition names the proof it underlies, so without this property that naming is prose only and the DAG floats unattached in the lifted graph — a consumer asking which proof a DAG belongs to would have to infer it from co-generation by the same math:ProofIngestRun, which is a run-scoped coincidence rather than the structural fact."@x-gmeow-english ;
+    skos:example "ex:pDag a math:ProofDependencyGraph ; math:dependencyGraphOf ex:pProof ."@x-gmeow-english ;
+    skos:scopeNote "Direction follows the math: *Of convention (math:parameterSpaceOf, math:architectureOf, math:weightOf): the subject is the derived structure, the object the thing it is derived from."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to relate a DAG to a statement or a goal — a dependency graph underlies the derivation, not the claim; that is math:provesStatement's and math:provesGoal's job."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly one per lifted dependency graph, alongside the math:proofStep edges that give the proof its steps."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a proof-assistant or prover dependency DAG is lifted beside the proof it records, so the pair is queryable as one structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:usesInferenceRule
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uses inference rule"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."@x-gmeow-english ;
+    skos:example "ex:pStep a math:ProofStep ; math:usesInferenceRule ex:resolution ."@x-gmeow-english ;
+    skos:scopeNote "Range is deliberately open, mirroring gmeow:appliedRule's scope note. That property is NOT reusable here: it asserts rdfs:domain gmeow:InferenceApplication, so applying it to a math:ProofStep would entail typing a math:MathematicalObject as a logic:Relator."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a proof's overall strategy (direct, by induction, by contradiction) — that is math:usesProofMethod on the math:Proof."@x-gmeow-english ;
+    gmeow:howToUse "Emit one per derived step. An asserted leaf has no inference rule and carries math:dependsOnAxiom instead."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a lifted derivation records WHICH rule fired at a step, so a proof DAG is queryable by inference rule rather than only by shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:provesStatement
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;

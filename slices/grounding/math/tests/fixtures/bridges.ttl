@@ -91,6 +91,7 @@ ex:pCorr a logic:Correspondence ;
     logic:preservationKind logic:ValidationOnly ;
     logic:mnemomorphic true .
 ex:pDag a math:ProofDependencyGraph ;
+    math:dependencyGraphOf ex:pProof ;
     gmeow:wasGeneratedBy ex:proofRun .
 ex:pProof a math:Proof ;
     gmeow:wasGeneratedBy ex:proofRun ;
