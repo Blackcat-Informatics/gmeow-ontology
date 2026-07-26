@@ -781,6 +781,25 @@ impl Lift<'_> {
         match term.kind {
             TermKind::Main | TermKind::Transform => {
                 let factor = &term.factors[0];
+                // A random-effects term — `(1 | site)`, `(slope | group)`. It is a grouping
+                // structure, not an opaque string: the left side is the effect that varies
+                // and the right side is the factor it varies by. Refusing it made lmer,
+                // glmer and lme unreachable estimators — declared in the table but
+                // impossible to trigger, since every valid mixed model has one.
+                if let RExpr::Binary { op, lhs, rhs } = factor.unparenthesized()
+                    && matches!(op, BinaryOp::Or)
+                {
+                    let left = self.emit_expression(lhs)?;
+                    let right = self.emit_expression(rhs)?;
+                    let node = self.app("r-random-effect", &[left.node, right.node]);
+                    let iri = self.emit_application(
+                        node,
+                        "r-random-effect",
+                        "random effect | grouping factor",
+                        &[left.node, right.node],
+                    );
+                    return Ok((node, iri));
+                }
                 if !self.liftable_as_math(factor) {
                     return Err(unliftable(format!(
                         "formula term `{}` has no math: image; a term that would survive only as \
@@ -3715,6 +3734,26 @@ mod tests {
         let a = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         let b = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         assert_eq!(a, b, "the lift is idempotent: no clock, no counter");
+    }
+
+    #[test]
+    fn a_mixed_model_random_effect_lifts() {
+        // lmer / glmer / lme were DECLARED estimators that no valid call could reach:
+        // every mixed model carries a `( … | … )` term, and that term was refused as
+        // having no math: image. A grouping structure is not an opaque string — the left
+        // side is the effect that varies, the right the factor it varies by.
+        for src in [
+            "fit <- lmer(y ~ x + (1 | site), data = d)\n",
+            "fit <- glmer(y ~ x + (1 | site), family = binomial, data = d)\n",
+            "fit <- lme(y ~ x + (slope | group), data = d)\n",
+        ] {
+            let ttl = turtle(src);
+            assert_eq!(typed(&ttl, "FittedModel"), 1, "{src} → {ttl}");
+            assert!(
+                ttl.contains("random effect | grouping factor"),
+                "the grouping structure is lifted, not stringified:\n{ttl}"
+            );
+        }
     }
 
     #[test]
