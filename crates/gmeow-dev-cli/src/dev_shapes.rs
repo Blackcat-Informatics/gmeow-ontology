@@ -498,7 +498,18 @@ fn collect_legacy_shape_files(dir: &Path, out: &mut Vec<PathBuf>) {
     for path in entries {
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
         if path.is_dir() {
-            if name == "generated" || name == "target" || name.starts_with('.') {
+            // `counter-examples/` is excluded on purpose, and the purpose is not
+            // convenience. A slice proves its no-hand-authored-shapes ban is
+            // non-vacuous by committing a fail-witness that DOES hand-author a
+            // node shape. Sweeping that witness into the live shape universe
+            // would mean the only way to keep this scan clean is to leave the
+            // ban unwitnessed — the scanner would be punishing exactly the
+            // evidence that makes the rule enforceable.
+            if name == "generated"
+                || name == "target"
+                || name == "counter-examples"
+                || name.starts_with('.')
+            {
                 continue;
             }
             collect_legacy_shape_files(&path, out);
