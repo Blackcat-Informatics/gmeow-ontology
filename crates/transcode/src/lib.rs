@@ -42,10 +42,17 @@ use gmeow_logic_compile::projections::{
     text::{project_datalog, project_n3},
 };
 use purrdf::loss::pair_loss_ledger;
+use purrdf::native_codecs::jsonld;
 use purrdf::{
     NativeRdfFormat, RdfDataset, RdfLookaside, SerializeGraph, TermId, dataset_from_bytes,
     import_gts_events, serialize_dataset_base_only, serialize_dataset_to_format,
 };
+
+/// gmeow's bundled YAML-LD schema. purrdf is namespace-neutral and would stamp its
+/// own `purrdf.schema.json` header; the consumer's schema is gmeow's, so the YAML-LD
+/// serializer is always handed this rather than `None`. Carried here verbatim from
+/// the former `stages::yaml_ld` wrapper so this crate needs no pipeline dependency.
+const GMEOW_BUNDLED_SCHEMA: &str = "gmeow.schema.json";
 
 /// A supported transcode codec (source or target).
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -166,7 +173,7 @@ impl Codec {
             "gufo" => Ok(Self::Gufo),
             "canonical-rdf12" => Ok(Self::CanonicalRdf12),
             other => Err(gmeow_errors::Diag::of_kind(
-                crate::transcode::UnknownCodec {
+                crate::UnknownCodec {
                     message: other.to_owned(),
                 },
             )),
@@ -272,7 +279,7 @@ define_diag_kind! {
 pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     if from.is_projection() {
         return Err(gmeow_errors::Diag::of_kind(
-            crate::transcode::NonInvertibleSource {
+            crate::NonInvertibleSource {
                 message: format!(
                     "codec `{}` is a projection (semantic-subset) target and cannot be used as \
              a decode source; provide a syntax codec instead",
@@ -283,7 +290,7 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, gme
     }
     if !from.can_decode() {
         return Err(gmeow_errors::Diag::of_kind(
-            crate::transcode::UndecodableInput {
+            crate::UndecodableInput {
                 message: format!(
                     "codec `{}` is not currently decodable via the oxigraph path; \
              provide nquads (N-Quads-star) or gts instead",
@@ -296,7 +303,7 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, gme
     match from {
         Codec::Gts => {
             let bundle = import_gts_events(input).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                gmeow_errors::Diag::of_kind(crate::CodecError {
                     message: e.to_string(),
                 })
             })?;
@@ -306,19 +313,19 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, gme
         // hand-rolled native JSON-LD(-star) parser (no `oxigraph::io`), which now
         // returns the frozen IR directly — the RDF 1.2 statement layer is folded at
         // `dataset_from_quads` freeze time inside the parser (no oxigraph quad bridge).
-        Codec::JsonLd => crate::stages::yaml_ld::parse_jsonld_star(input).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+        Codec::JsonLd => jsonld::parse_jsonld(input).map_err(|e| e.to_string()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::CodecError {
                 message: format!("jsonld parse: {e}"),
             })
         }),
         _ => {
             let fmt = codec_to_native_format(from).ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                gmeow_errors::Diag::of_kind(crate::CodecError {
                     message: format!("no native format mapping for `{}`", from.name()),
                 })
             })?;
             dataset_from_bytes(input, fmt).map_err(|m| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError { message: m })
+                gmeow_errors::Diag::of_kind(crate::CodecError { message: m })
             })
         }
     }
@@ -358,7 +365,7 @@ pub fn transcode(
         let bytes =
             purrdf::gts_write::to_gts(&dataset, &RdfLookaside::default(), "gmeow-transcode")
                 .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                    gmeow_errors::Diag::of_kind(crate::CodecError {
                         message: e.to_string(),
                     })
                 })?;
@@ -375,15 +382,15 @@ pub fn transcode(
     if matches!(to, Codec::JsonLdStar | Codec::YamlLdStar) {
         let text = match to {
             Codec::JsonLdStar => {
-                crate::stages::yaml_ld::serialize_graph(&dataset).map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                jsonld::serialize_dataset_to_jsonld(&dataset).map_err(|e| e.to_string()).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::CodecError {
                         message: format!("jsonld-star serialize: {e}"),
                     })
                 })?
             }
-            Codec::YamlLdStar => crate::stages::yaml_ld::serialize_graph_yaml(&dataset, None)
+            Codec::YamlLdStar => jsonld::serialize_dataset_to_yamlld(&dataset, Some(GMEOW_BUNDLED_SCHEMA)).map_err(|e| e.to_string())
                 .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                    gmeow_errors::Diag::of_kind(crate::CodecError {
                         message: format!("yaml-ld-star serialize: {e}"),
                     })
                 })?,
@@ -402,17 +409,17 @@ pub fn transcode(
         let nq =
             serialize_dataset_base_only(&dataset, "application/n-quads", SerializeGraph::Dataset)
                 .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                gmeow_errors::Diag::of_kind(crate::CodecError {
                     message: format!("jsonld base nquads serialize: {e}"),
                 })
             })?;
         let base = dataset_from_bytes(&nq, NativeRdfFormat::NQuads).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+            gmeow_errors::Diag::of_kind(crate::CodecError {
                 message: format!("jsonld base nquads->dataset: {e}"),
             })
         })?;
-        let text = crate::stages::yaml_ld::serialize_graph(&base).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+        let text = jsonld::serialize_dataset_to_jsonld(&base).map_err(|e| e.to_string()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::CodecError {
                 message: format!("jsonld serialize: {e}"),
             })
         })?;
@@ -426,12 +433,12 @@ pub fn transcode(
 
     // Syntax-to-syntax path via the native codecs.
     let fmt = codec_to_native_format(to).ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+        gmeow_errors::Diag::of_kind(crate::CodecError {
             message: format!("no native format mapping for `{}`", to.name()),
         })
     })?;
     let outcome = serialize_dataset_to_format(&dataset, fmt, base_iri).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+        gmeow_errors::Diag::of_kind(crate::CodecError {
             message: e.to_string(),
         })
     })?;
@@ -458,19 +465,19 @@ fn transcode_to_projection(
     // Serialize the IR to Turtle via the native codecs.
     let turtle_outcome = serialize_dataset_to_format(dataset, NativeRdfFormat::Turtle, None)
         .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+            gmeow_errors::Diag::of_kind(crate::CodecError {
                 message: format!("projection pre-step turtle serialize: {e}"),
             })
         })?;
     let turtle_str = String::from_utf8(turtle_outcome.bytes).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+        gmeow_errors::Diag::of_kind(crate::CodecError {
             message: format!("projection pre-step turtle utf8: {e}"),
         })
     })?;
 
     // Parse with the logic front-end.
     let (program, _diagnostics) = parse_logic_str(&turtle_str, None).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+        gmeow_errors::Diag::of_kind(crate::CodecError {
             message: format!("logic front-end parse: {e}"),
         })
     })?;
@@ -483,7 +490,7 @@ fn transcode_to_projection(
     let (content, actual_drop_count) = match to {
         Codec::OwlDl => {
             let result = project_owl_dl(&program, &mut loss).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                gmeow_errors::Diag::of_kind(crate::CodecError {
                     message: format!("owl-dl projection: {e}"),
                 })
             })?;
@@ -492,7 +499,7 @@ fn transcode_to_projection(
         }
         Codec::OwlEl => {
             let result = project_owl_el(&program, &mut loss).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                gmeow_errors::Diag::of_kind(crate::CodecError {
                     message: format!("owl-el projection: {e}"),
                 })
             })?;
@@ -511,7 +518,7 @@ fn transcode_to_projection(
         }
         Codec::Gufo => {
             let result = project_gufo(&program, &mut loss).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                gmeow_errors::Diag::of_kind(crate::CodecError {
                     message: format!("gufo projection: {e}"),
                 })
             })?;
@@ -521,7 +528,7 @@ fn transcode_to_projection(
         Codec::CanonicalRdf12 => {
             // Exact: interns nothing, so its realized-loss count is 0 by construction.
             let result = project_canonical_rdf12(&program).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                gmeow_errors::Diag::of_kind(crate::CodecError {
                     message: format!("canonical-rdf12 projection: {e}"),
                 })
             })?;
@@ -975,7 +982,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
         let err =
             read_to_dataset(b"anything", Codec::OwlDl).expect_err("expected NonInvertibleSource");
         assert!(
-            err.is::<crate::transcode::NonInvertibleSource>(),
+            err.is::<crate::NonInvertibleSource>(),
             "got {err:?}"
         );
     }
@@ -985,7 +992,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
         let err =
             read_to_dataset(b"anything", Codec::JsonLdStar).expect_err("expected UndecodableInput");
         assert!(
-            err.is::<crate::transcode::UndecodableInput>(),
+            err.is::<crate::UndecodableInput>(),
             "got {err:?}"
         );
     }
@@ -995,7 +1002,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
         let err =
             read_to_dataset(b"anything", Codec::YamlLdStar).expect_err("expected UndecodableInput");
         assert!(
-            err.is::<crate::transcode::UndecodableInput>(),
+            err.is::<crate::UndecodableInput>(),
             "got {err:?}"
         );
     }
@@ -1019,7 +1026,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
     #[test]
     fn from_cli_str_fails_on_bogus() {
         let err = Codec::from_cli_str("bogus").expect_err("expected UnknownCodec");
-        assert!(err.is::<crate::transcode::UnknownCodec>());
+        assert!(err.is::<crate::UnknownCodec>());
     }
 
     // ── canonical_codec_name compatibility ────────────────────────────────────

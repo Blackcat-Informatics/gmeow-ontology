@@ -79,6 +79,10 @@ members = [
     "crates/music",
     # DAG-driven single-pass build executor (#861): typed stages over an
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
+    # The universal RDF-1.2 transcode hub. A LEAF (purrdf + logic-compile +
+    # errors): both gmeow-pipeline and the MCP `convert` tool spoke through it,
+    # so it must depend on neither.
+    "crates/transcode",
     "crates/pipeline",
 
     # The purrdf semantic C-ABI (purrdf P8 / #842): builds libpurrdf (cdylib +

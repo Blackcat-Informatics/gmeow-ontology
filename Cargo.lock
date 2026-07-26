@@ -1840,6 +1840,7 @@ dependencies = [
  "gmeow-slice-brief",
  "gmeow-slice-quality",
  "gmeow-slicetest",
+ "gmeow-transcode",
  "gmeow-validate",
  "insta",
  "jsonschema",
@@ -1909,6 +1910,17 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-validate",
  "purrdf",
+]
+
+[[package]]
+name = "gmeow-transcode"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-logic-compile",
+ "purrdf",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

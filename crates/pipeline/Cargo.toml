@@ -50,6 +50,11 @@ gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str + the RDF/text projections) the
 # transcode stage drives, split out of gmeow-logic in #732.
 gmeow-logic-compile = { path = "../logic-compile" }
+# The transcode hub, extracted to a leaf so the MCP `convert` tool can reach it
+# without a pipeline dependency. Re-exported from lib.rs as `transcode` so every
+# existing `gmeow_pipeline::transcode::*` caller is unchanged. stages::yaml_ld's
+# Stage impl still calls into it, which is why the edge points this way.
+gmeow-transcode = { path = "../transcode" }
 # The affect-intensity geometry compute (√(xᵀGx) over gmeow:coreAffectGram): the
 # `mappings` stage's EmotionML lowering projects the canonical schadenfreude example, so
 # the worked-<emotion> intensity + per-dimension unit-clamp values are COMPUTED from the

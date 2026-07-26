@@ -61,7 +61,11 @@ pub mod run;
 pub mod scheduler;
 pub mod scoreboards;
 pub mod stages;
-pub mod transcode;
+// The transcode hub now lives in the leaf crate `gmeow-transcode` so the MCP
+// `convert` tool can reach it without pulling gmeow-pipeline into a wasm build.
+// Re-exported under the original path so `gmeow_pipeline::transcode::*` callers
+// (crates/gmeow-cli/src/commands.rs) are unchanged.
+pub use gmeow_transcode as transcode;
 pub mod transform;
 pub mod up_projection_corpus;
 pub mod up_projection_gates;
