@@ -891,7 +891,6 @@ fn inject_subclass_shortcuts(
     })
 }
 
-
 /// Build the abductive producer's input graph: the bundle `ontology` (its authored
 /// `logic:AbductiveSchema` vocabulary + the TBox disjointness/subclass/howToUse axioms,
 /// carrying the folded reason-stage closure) UNIONED with the user's parsed A-Box

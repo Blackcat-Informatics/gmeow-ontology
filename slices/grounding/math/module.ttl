@@ -10778,10 +10778,11 @@ math:MathematicalExpression logic:subClassOf
 # gap this restriction closes (see the G11 hardening note on
 # math:UndeclaredNormalFormConstraint below). The sibling logic:allValuesFrom
 # restriction carries the math:NormalizationStrength class constraint so the derived
-# shape gets an sh:class, not a bare sh:maxCount; the min-qualified sibling restoring
-# sh:minCount 1 for this exact-one antecedent lives in the raw-triple appendix block
-# below (module.ttl's "exact-one minCount restoration" idiom, matching
-# math:FunctionPiece/math:pieceDomain's identical two-block split). The
+# shape gets an sh:class, not a bare sh:maxCount; the logic:minQualifiedCardinality
+# sibling restoring sh:minCount 1 for this exact-one antecedent is authored here
+# directly (logic:minQualifiedCardinality lowers to owl:minQualifiedCardinality —
+# see crates/logic-compile/src/restriction.rs — so there is no need for the raw-triple
+# rdfs: appendix idiom math:FunctionPiece/math:pieceDomain still uses). The
 # gmeow:enforcesFailureClass binding below names the class-scoped failure the DERIVED
 # shape raises for EITHER half of the exact-one pair (the min-qualified restriction is
 # the one actually reachable in practice — a declaration cannot easily acquire two
@@ -10791,7 +10792,8 @@ math:MathematicalExpression logic:subClassOf
 # anonymous cardinality violation.
 math:NormalizationDeclaration logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:allValuesFrom math:NormalizationStrength ] ,
-    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxQualifiedCardinality 1 ; logic:onClass math:NormalizationStrength ] ;
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxQualifiedCardinality 1 ; logic:onClass math:NormalizationStrength ] ,
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:minQualifiedCardinality 1 ; logic:onClass math:NormalizationStrength ] ;
     gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
 
 math:ApplicationExpression rdfs:subClassOf
@@ -13005,14 +13007,6 @@ math:AnalyticPropertyBackedConstraint
 # math:FunctionPiece — the min-qualified sibling restoring sh:minCount for the exact-one
 # math:pieceDomain antecedent (the max-qualified half is in the Turtle block above).
 <https://blackcatinformatics.ca/math/FunctionPiece> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/pieceDomain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Interval> ] .
-# math:NormalizationDeclaration — the min-qualified sibling restoring sh:minCount for the
-# exact-one math:normalizationStrength antecedent (the max-qualified half, the
-# logic:allValuesFrom math:NormalizationStrength class constraint, and the
-# gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength binding are all in the
-# Turtle block above): a strength-less declaration is no longer satisfiable, and the
-# violation it raises is a named, typed math:UndeclaredNormalizationStrength.
-<https://blackcatinformatics.ca/math/NormalizationDeclaration> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/normalizationStrength> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/NormalizationStrength> ] .
-
 # A math:SetBuilderExpression's math:memberCondition must be a resource denoting a
 # logic: formula (a blank node or IRI), not an opaque literal string (a path node-kind
 # constraint).
@@ -15178,6 +15172,7 @@ math:ActivationFunction a logic:AbstractIndividualType .
 math:Algebra a logic:AbstractIndividualType .
 math:AlgebraicNumber a logic:AbstractIndividualType .
 math:AlgebraicStructure a logic:AbstractIndividualType .
+math:AlphaEquivalenceClass a logic:AbstractIndividualType .
 math:AlternativeHypothesis a logic:AbstractIndividualType .
 math:AnalysisPlan a logic:AbstractIndividualType .
 math:AnalyticProperty a logic:AbstractIndividualType .
