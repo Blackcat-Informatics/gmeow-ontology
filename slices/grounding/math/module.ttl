@@ -5515,7 +5515,7 @@ math:inParameterSpace
 
 math:TensorShape
     a owl:Class ;
-    rdfs:subClassOf math:MathematicalObject ;
+    logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Tensor Shape"@x-gmeow-english ;
     skos:definition "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."@x-gmeow-english ;
@@ -5540,7 +5540,7 @@ math:TensorAxis
 
 math:TensorElementType
     a owl:Class ;
-    rdfs:subClassOf math:MathematicalObject ;
+    logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Tensor Element Type"@x-gmeow-english ;
     skos:definition "The datatype of a tensor's elements AS A TERM — a 32-bit float, a bfloat16, an int8, a bool, a complex or string element — rather than as a fragment of a rendered type label. A subclass of math:MathematicalObject, named through math:tensorElementType and bearing its format's spelling as its rdfs:label. It is a term so that 'every float16 tensor in this model' is a graph query over one shared node instead of a substring match, and so that an element format with no RDF datatype image (bfloat16, an 8-bit float, a 4-bit integer) has exactly the standing of one that has (xsd:float). Distinct from math:numericDatatype, which names the RDF datatype an approximate value's LITERAL is carried in: no literal is carried here, because a tensor element type describes a tensor whose values never cross."@x-gmeow-english ;
