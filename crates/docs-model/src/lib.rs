@@ -19,12 +19,18 @@
 pub mod badge;
 pub mod card;
 pub mod coverage;
+// describe/i18n_compile reach `gmeow_validate::{language_tags, distinctiveness}`,
+// which that crate gates native-only (its Wikidata/HTTP-adjacent half). Mirror
+// the gate here rather than widening validate's wasm surface: nothing in the
+// browser engine's path needs either module.
+#[cfg(not(target_arch = "wasm32"))]
 pub mod describe;
 pub mod error;
 pub mod exec;
 pub mod formats;
 pub mod gmn1_primer;
 pub mod i18n;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod i18n_compile;
 pub mod llms;
 pub mod maturity;

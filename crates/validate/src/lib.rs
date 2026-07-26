@@ -80,7 +80,9 @@ pub mod coverage;
 pub mod crate_layering;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod crossref;
-#[cfg(not(target_arch = "wasm32"))]
+// Pure computation (its only import is `std::collections`) — no filesystem, no
+// network. It was gated only by sitting inside the native-only block; the
+// browser-side slice-quality axes need it, so it belongs on both targets.
 pub mod distinctiveness;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod dsl;

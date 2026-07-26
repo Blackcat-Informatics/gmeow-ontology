@@ -18,7 +18,6 @@ path = "src/lib.rs"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 regex = "1"
-rayon = "1"
 purrdf.workspace = true
 gmeow-errors = { path = "../errors" }
 # The validate crate owns the annotation invariants and structural lints the
@@ -47,6 +46,12 @@ gmeow-logic = { path = "../logic" }
 # encoder. A leaf crate with no reasoning-runtime or pipeline deps (lang-bridge does
 # NOT depend on slice-quality), so no dependency cycle.
 gmeow-lang-bridge = { path = "../lang-bridge" }
+
+# rayon: native-only. wasm32 has no threads, and the browser engine that
+# consumes this crate (through the MCP tool surface) must build for wasm32, so
+# the parallel scoring fan-out is compiled out there and the dependency with it.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rayon = "1"
 
 [dev-dependencies]
 pretty_assertions = "1"

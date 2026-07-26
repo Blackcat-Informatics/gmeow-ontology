@@ -35,6 +35,10 @@ use std::sync::Arc;
 
 use gmeow_lang_bridge::GmnDictionary;
 use purrdf::RdfDataset;
+// rayon is a native-only dependency: wasm32 has no threads (GitHub Pages serves
+// no COOP/COEP headers, so `SharedArrayBuffer` is unavailable), and the browser
+// engine that consumes this crate must build for wasm32.
+#[cfg(not(target_arch = "wasm32"))]
 use rayon::prelude::*;
 
 pub use lint::{
@@ -736,10 +740,22 @@ fn score_slices_with_rubric_timed(
             },
         )
     };
-    if dirs.len() <= 1 {
+    // On wasm32 the parallel branch is compiled out entirely -- there are no
+    // threads to fan out to. `par_iter().map(..).collect()` into a Vec preserves
+    // input order, so the serial path is byte-identical to the parallel one
+    // rather than merely equivalent; `serial_and_parallel_scores_are_byte_identical`
+    // pins that against the real rubric.
+    #[cfg(target_arch = "wasm32")]
+    {
         dirs.iter().map(score).collect()
-    } else {
-        dirs.par_iter().map(score).collect()
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        if dirs.len() <= 1 {
+            dirs.iter().map(score).collect()
+        } else {
+            dirs.par_iter().map(score).collect()
+        }
     }
 }
 
