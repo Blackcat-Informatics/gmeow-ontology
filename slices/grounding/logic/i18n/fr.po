@@ -19228,3 +19228,83 @@ msgstr "Relie un logic:ExternalOutcomeUnknown à la tentative dont l'issue est i
 msgctxt "https://blackcatinformatics.ca/logic/unsupportedCondition|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates an unsupported-fragment operation record to its typed condition. Domain an operation record (stated in prose). Functional."
 msgstr "Relie un relevé d'opération « fragment non pris en charge » à sa condition typée. Domaine : un relevé d'opération (énoncé en prose). Fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a checkpoint carries its folded identity"
+msgstr "un point de reprise porte son identité repliée"
+
+msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:EnactmentCheckpoint with no folded descriptor hash. Restore is identity-gated across seven axes, and the fold is the value the gate compares first; without it a restore would have to trust seven separate comparisons it cannot perform, which in practice means performing none."
+msgstr "La logic:Constraint qui rejette un logic:EnactmentCheckpoint dépourvu de hachage de descripteur replié. La restauration est conditionnée par l'identité sur sept axes, et le repli est la valeur que la barrière compare en premier ; sans lui, une restauration devrait se fier à sept comparaisons distinctes qu'elle ne peut effectuer, ce qui revient en pratique à n'en effectuer aucune."
+
+msgctxt "https://blackcatinformatics.ca/logic/ClockAttributionRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a clock attribution names its source"
+msgstr "une attribution d'horloge nomme sa source"
+
+msgctxt "https://blackcatinformatics.ca/logic/ClockAttributionRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ClockAttribution with no named source. Expiry, validity windows and retention are all judged against somebody's notion of now, and provider-consumer skew is the canonical failure of each; an unattributed 'still valid' is unfalsifiable, which makes it worse than an absent judgment because it reads as one."
+msgstr "La logic:Constraint qui rejette une logic:ClockAttribution sans source nommée. L'expiration, les fenêtres de validité et la rétention s'apprécient toutes au regard de la notion de « maintenant » de quelqu'un, et le décalage entre fournisseur et consommateur est la défaillance canonique de chacune ; un « encore valide » non attribué est infalsifiable, ce qui le rend pire qu'un jugement absent, puisqu'il se lit comme un jugement."
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationNotInverseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a compensation is not typed as its forward effect"
+msgstr "une compensation n'est pas typée comme son effet aller"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationNotInverseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:CompensationAttempt that is also typed as a logic:ExternalEffectReceipt. Compensation is a NEW action with its own attempt, its own receipt and its own possibility of failing; typing it as the receipt of the effect it addresses collapses the counteraction into the thing counteracted, which is precisely the guaranteed-inverse reading that makes a failed compensation invisible."
+msgstr "La logic:Constraint qui rejette une logic:CompensationAttempt également typée comme un logic:ExternalEffectReceipt. La compensation est une action NOUVELLE, dotée de sa propre tentative, de son propre reçu et de sa propre possibilité d'échouer ; la typer comme le reçu de l'effet qu'elle vise fait s'effondrer la contre-mesure dans la chose contrée, ce qui est précisément la lecture « inverse garanti » qui rend invisible une compensation échouée."
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationKindDisjointnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resume, repeat and revise are not conflated"
+msgstr "reprise, répétition et révision ne sont pas confondues"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationKindDisjointnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a continuation record that is typed as more than one logic:ContinuationKind. The three carry different required bindings and different consequences — resume continues a run, repeat mints a new one, revise supersedes the prescription — so a record claiming two of them has not said which actually happened, which is the conflation the closed vocabulary exists to make detectable."
+msgstr "La logic:Constraint qui rejette un relevé de continuation typé par plus d'un logic:ContinuationKind. Les trois portent des liaisons obligatoires différentes et des conséquences différentes — la reprise poursuit une exécution, la répétition en crée une nouvelle, la révision supplante la prescription — de sorte qu'un relevé en revendiquant deux n'a pas dit lequel a réellement eu lieu, ce qui est la confusion que le vocabulaire clos existe pour rendre détectable."
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentPinsPrescriptionAndSnapshotConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an enactment pins both a prescription version and an input snapshot"
+msgstr "une exécution effective épingle à la fois une version de prescription et un instantané d'entrée"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentPinsPrescriptionAndSnapshotConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:Enactment that does not bind both the prescription version it runs and the closed input generation it runs against. These two bindings are what make an occurrence reproducible and comparable to its siblings; an enactment missing either is a record that something happened without a recoverable account of what it was doing or over what."
+msgstr "La logic:Constraint qui rejette une logic:Enactment ne liant pas à la fois la version de prescription qu'elle exécute et la génération d'entrées close face à laquelle elle se déroule. Ces deux liaisons sont ce qui rend une occurrence reproductible et comparable à ses semblables ; une exécution effective à laquelle il manque l'une ou l'autre est le relevé que quelque chose a eu lieu, sans compte rendu récupérable de ce qu'elle faisait ni de ce sur quoi."
+
+msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a journal entry names both of its heads"
+msgstr "une entrée de journal nomme ses deux têtes"
+
+msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:JournalEntry missing either the head it was applied against or the head it establishes. The chain is the mechanism from which durability, idempotency and the no-blind-retry law all follow; an entry that names only one end cannot be linked, and a chain that cannot be linked cannot detect a stale resubmission."
+msgstr "La logic:Constraint qui rejette une logic:JournalEntry à laquelle manque soit la tête au regard de laquelle elle s'est appliquée, soit la tête qu'elle établit. La chaîne est le mécanisme dont découlent la durabilité, l'idempotence et la loi d'interdiction du réessai aveugle ; une entrée ne nommant qu'une extrémité ne peut être chaînée, et une chaîne qui ne peut être chaînée ne peut détecter une resoumission périmée."
+
+msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an unknown outcome names the attempt it is unknown about"
+msgstr "une issue inconnue nomme la tentative dont l'issue est inconnue"
+
+msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ExternalOutcomeUnknown that names no attempt. Retry from an undetermined position is licensed only by a discharged idempotency contract or a reconciliation verdict, and both are reached THROUGH the attempt: an unknown outcome with no attempt is unresolvable in principle, so nothing could ever license a retry from it and nothing could ever close it."
+msgstr "La logic:Constraint qui rejette un logic:ExternalOutcomeUnknown ne nommant aucune tentative. Le réessai depuis une position indéterminée n'est autorisé que par un contrat d'idempotence acquitté ou un verdict de rapprochement, et l'on atteint l'un comme l'autre PAR la tentative : une issue inconnue sans tentative est irrésoluble en principe, de sorte que rien ne pourrait jamais y autoriser un réessai ni jamais la clore."
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an operational capability gap names the step it blocks"
+msgstr "une lacune de capacité opérationnelle nomme l'étape qu'elle bloque"
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:OperationalCapabilityGap that names no blocked step. Surfacing a gap instead of substituting a weaker capability is only worth doing if the gap is answerable to a concrete blockage; a gap with no blocked step is a general complaint about provisioning, which no operator can act on and no proposal can close."
+msgstr "La logic:Constraint qui rejette une logic:OperationalCapabilityGap ne nommant aucune étape bloquée. Faire remonter une lacune plutôt que lui substituer une capacité plus faible ne vaut la peine que si la lacune est redevable d'un blocage concret ; une lacune sans étape bloquée est une plainte générale sur l'approvisionnement, sur laquelle aucun opérateur ne peut agir et qu'aucune proposition ne peut combler."
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a prescription version is content-addressed"
+msgstr "une version de prescription est adressée par contenu"
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Immutability here is enforced by content-addressing rather than by a mutability flag: a version whose bytes are not addressed cannot be shown to be the one an enactment ran, so revising it in place becomes undetectable and the whole supersession discipline stops meaning anything."
+msgstr "La logic:Constraint qui rejette une logic:PrescriptionVersion dépourvue d'empreinte. L'immuabilité est ici imposée par l'adressage par contenu plutôt que par un drapeau de mutabilité : une version dont les octets ne sont pas adressés ne peut être montrée comme étant celle qu'une exécution effective a exécutée, de sorte que la réviser sur place devient indétectable et que toute la discipline de supplantation cesse de signifier quoi que ce soit."
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a reconciliation result carries a verdict"
+msgstr "un résultat de rapprochement porte un verdict"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ReconciliationResult with no logic:ReconciliationVerdict. A probe that completed and recorded nothing is indistinguishable from a probe that never ran, and the difference matters: the first leaves an effect where it was, the second leaves it unprobed and still owing a reconciliation."
+msgstr "La logic:Constraint qui rejette un logic:ReconciliationResult dépourvu de logic:ReconciliationVerdict. Une sonde qui s'est achevée sans rien consigner est indiscernable d'une sonde qui n'a jamais été lancée, et la différence compte : la première laisse un effet là où il était, la seconde le laisse non sondé et devant toujours un rapprochement."

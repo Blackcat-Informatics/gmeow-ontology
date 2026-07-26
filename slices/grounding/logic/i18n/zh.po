@@ -19228,3 +19228,83 @@ msgstr "把 logic:ExternalOutcomeUnknown 关联到那次结果未定的尝试。
 msgctxt "https://blackcatinformatics.ca/logic/unsupportedCondition|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates an unsupported-fragment operation record to its typed condition. Domain an operation record (stated in prose). Functional."
 msgstr "把一条「不受支持片段」的操作记录关联到它的类型化条件。定义域为操作记录（以散文陈述）。函数性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a checkpoint carries its folded identity"
+msgstr "检查点携带其折叠身份"
+
+msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:EnactmentCheckpoint with no folded descriptor hash. Restore is identity-gated across seven axes, and the fold is the value the gate compares first; without it a restore would have to trust seven separate comparisons it cannot perform, which in practice means performing none."
+msgstr "拒斥无折叠描述符哈希之 logic:EnactmentCheckpoint 的 logic:Constraint。恢复须经七个轴的身份闸门，而折叠值正是闸门首先比对之物；若无它，恢复便只能依赖七次它无法执行的单独比对——实际上等于一次也不执行。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ClockAttributionRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a clock attribution names its source"
+msgstr "时钟归属指明其来源"
+
+msgctxt "https://blackcatinformatics.ca/logic/ClockAttributionRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ClockAttribution with no named source. Expiry, validity windows and retention are all judged against somebody's notion of now, and provider-consumer skew is the canonical failure of each; an unattributed 'still valid' is unfalsifiable, which makes it worse than an absent judgment because it reads as one."
+msgstr "拒斥未指明来源之 logic:ClockAttribution 的 logic:Constraint。过期、有效窗口与保留期，无不依据某方对「此刻」的认定来判断，而提供方与消费方之间的偏移正是三者共同的典型失效之源；一句无归属的「仍然有效」不可证伪，这使它比「根本没有判断」更糟——因为它读起来就像一个判断。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationNotInverseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a compensation is not typed as its forward effect"
+msgstr "补偿不得被类型化为其正向效应"
+
+msgctxt "https://blackcatinformatics.ca/logic/CompensationNotInverseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:CompensationAttempt that is also typed as a logic:ExternalEffectReceipt. Compensation is a NEW action with its own attempt, its own receipt and its own possibility of failing; typing it as the receipt of the effect it addresses collapses the counteraction into the thing counteracted, which is precisely the guaranteed-inverse reading that makes a failed compensation invisible."
+msgstr "拒斥同时被类型化为 logic:ExternalEffectReceipt 之 logic:CompensationAttempt 的 logic:Constraint。补偿是一项全新行动，有自己的尝试、自己的回执、以及自己失败的可能；把它类型化为它所针对之效应的回执，等于把「抵消之举」塌缩进「被抵消之物」，而这恰恰是那种「保证逆操作」的读法——正是它使一次失败的补偿变得不可见。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationKindDisjointnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resume, repeat and revise are not conflated"
+msgstr "续行、重做与修订不得混同"
+
+msgctxt "https://blackcatinformatics.ca/logic/ContinuationKindDisjointnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a continuation record that is typed as more than one logic:ContinuationKind. The three carry different required bindings and different consequences — resume continues a run, repeat mints a new one, revise supersedes the prescription — so a record claiming two of them has not said which actually happened, which is the conflation the closed vocabulary exists to make detectable."
+msgstr "拒斥被类型化为一种以上 logic:ContinuationKind 之续行记录的 logic:Constraint。三者各自要求不同的必备绑定，也各有不同的后果——续行延续一次运行，重做铸造一次新的，修订取代规定——故一条同时主张其中两者的记录，并未说明究竟发生了哪一种，而这正是该封闭词汇表存在所要使之可检出的混同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentPinsPrescriptionAndSnapshotConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an enactment pins both a prescription version and an input snapshot"
+msgstr "实施同时固定一个规定版本与一份输入快照"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentPinsPrescriptionAndSnapshotConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:Enactment that does not bind both the prescription version it runs and the closed input generation it runs against. These two bindings are what make an occurrence reproducible and comparable to its siblings; an enactment missing either is a record that something happened without a recoverable account of what it was doing or over what."
+msgstr "拒斥未同时绑定「所运行的规定版本」与「所依据的封闭输入世代」之 logic:Enactment 的 logic:Constraint。正是这两项绑定使一次发生可复现、且可与其同辈相比对；缺其一者，便只是一条「有事发生过」的记录，而对它当时在做什么、依据什么，皆无可取回的交代。"
+
+msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a journal entry names both of its heads"
+msgstr "日志条目指明其两端的头"
+
+msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:JournalEntry missing either the head it was applied against or the head it establishes. The chain is the mechanism from which durability, idempotency and the no-blind-retry law all follow; an entry that names only one end cannot be linked, and a chain that cannot be linked cannot detect a stale resubmission."
+msgstr "拒斥「缺少其所依据之头、或缺少其所确立之头」的 logic:JournalEntry 的 logic:Constraint。该链正是持久性、幂等性与「禁止盲目重试」律令三者共同源出的机制；只指明一端的条目无法接续成链，而无法成链者，便无从检出陈旧的重新提交。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an unknown outcome names the attempt it is unknown about"
+msgstr "未知结果指明其所未知的那次尝试"
+
+msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ExternalOutcomeUnknown that names no attempt. Retry from an undetermined position is licensed only by a discharged idempotency contract or a reconciliation verdict, and both are reached THROUGH the attempt: an unknown outcome with no attempt is unresolvable in principle, so nothing could ever license a retry from it and nothing could ever close it."
+msgstr "拒斥未指明任何尝试之 logic:ExternalOutcomeUnknown 的 logic:Constraint。自未定位置重试，唯有已履行的幂等契约或一项核实裁断方可许可，而二者皆须经由那次尝试才能抵达：没有尝试的未知结果在原则上无从解决，因而永远不会有什么能许可自它重试，也永远不会有什么能将它了结。"
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an operational capability gap names the step it blocks"
+msgstr "运行能力缺口指明其所阻塞的步骤"
+
+msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:OperationalCapabilityGap that names no blocked step. Surfacing a gap instead of substituting a weaker capability is only worth doing if the gap is answerable to a concrete blockage; a gap with no blocked step is a general complaint about provisioning, which no operator can act on and no proposal can close."
+msgstr "拒斥未指明任何被阻塞步骤之 logic:OperationalCapabilityGap 的 logic:Constraint。把缺口显式提出、而不以更弱的能力取而代之，唯有当该缺口对一处具体阻塞负责时才值得；没有被阻塞步骤的缺口，只是一句关于供给的泛泛抱怨——操作者无从据以行动，任何提案也无从将其填补。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a prescription version is content-addressed"
+msgstr "规定版本按内容寻址"
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Immutability here is enforced by content-addressing rather than by a mutability flag: a version whose bytes are not addressed cannot be shown to be the one an enactment ran, so revising it in place becomes undetectable and the whole supersession discipline stops meaning anything."
+msgstr "拒斥无摘要之 logic:PrescriptionVersion 的 logic:Constraint。此处的不可变性由内容寻址来施行，而非由某个可变性标志：一个字节未被寻址的版本，无法被证明就是某次实施当初所运行的那一个，于是就地修订便无从检出，整套取代纪律也随之失去意义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a reconciliation result carries a verdict"
+msgstr "核实结果携带一项裁断"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ReconciliationResult with no logic:ReconciliationVerdict. A probe that completed and recorded nothing is indistinguishable from a probe that never ran, and the difference matters: the first leaves an effect where it was, the second leaves it unprobed and still owing a reconciliation."
+msgstr "拒斥无 logic:ReconciliationVerdict 之 logic:ReconciliationResult 的 logic:Constraint。一次完成却什么也未记录的探询，与一次从未运行的探询无从分辨，而这一区别至关紧要：前者使效应停留在原处，后者则使它仍未被探询，且仍欠着一次核实。"
