@@ -163,6 +163,63 @@ impl Rung {
     }
 }
 
+/// How a retained source rides on the witness.
+///
+/// Textual artifacts ride verbatim; a binary artifact rides as `xsd:base64Binary`, which is
+/// the same bytes in an RDF-legal lexical form. Either way the SOURCE is present, which is
+/// what `math:parseSource` requires and what `logic:mnemomorphic` asserts.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RetainedSource {
+    /// A textual source, retained verbatim.
+    Text(String),
+    /// A binary source, retained as base64.
+    Binary(String),
+}
+
+impl RetainedSource {
+    /// Retain `bytes`, choosing the encoding by whether they are valid UTF-8.
+    ///
+    /// A textual format stays readable in the graph; a binary one is never lossily
+    /// stringified, which would retain a corrupted source and make the witness a lie.
+    #[must_use]
+    pub fn of(bytes: &[u8]) -> Self {
+        match std::str::from_utf8(bytes) {
+            Ok(text) => Self::Text(text.to_owned()),
+            Err(_) => Self::Binary(base64(bytes)),
+        }
+    }
+}
+
+/// Standard base64 (RFC 4648, padded) — the `xsd:base64Binary` lexical form.
+///
+/// Hand-rolled rather than a dependency: the alphabet is fixed and the transform is 20
+/// lines, and this crate takes no dependency it can write correctly itself.
+fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let b = [
+            chunk[0],
+            chunk.get(1).copied().unwrap_or(0),
+            chunk.get(2).copied().unwrap_or(0),
+        ];
+        let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
+        out.push(ALPHABET[(n >> 18) as usize & 63] as char);
+        out.push(ALPHABET[(n >> 12) as usize & 63] as char);
+        out.push(if chunk.len() > 1 {
+            ALPHABET[(n >> 6) as usize & 63] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            ALPHABET[n as usize & 63] as char
+        } else {
+            '='
+        });
+    }
+    out
+}
+
 /// The identity of one ingest run: its IRI and the IRIs of its four frame witnesses.
 ///
 /// Every IRI is a pure function of the bridge kind, the mint base, and the source bytes,
@@ -184,6 +241,12 @@ pub struct RunFrame {
     pub correspondence_iri: String,
     /// The IRI prefix every codomain node this run generates is minted under.
     pub mint_base: String,
+    /// The source itself, retained on the witness. This is what makes the witness
+    /// mnemomorphic rather than amnesic.
+    pub source: RetainedSource,
+    /// Constructs the lift did NOT carry into `math:`, enumerated on the witness so a
+    /// declared loss has queryable content. Empty for an exact lift.
+    pub unmapped: Vec<String>,
 }
 
 impl RunFrame {
@@ -204,6 +267,20 @@ impl RunFrame {
             correspondence_iri: format!("{mint_base}{slug}-corr-{digest}"),
             mint_base: format!("{run_iri}/"),
             run_iri,
+            source: RetainedSource::of(source),
+            unmapped: Vec::new(),
+        }
+    }
+
+    /// Record a construct the lift did not carry into `math:`.
+    ///
+    /// Call before [`RunFrame::emit`]; the residue rides on the source witness. A lift that
+    /// declares a rung weaker than `logic:ExactPreservation` and enumerates nothing is
+    /// asserting a loss it cannot name.
+    pub fn record_unmapped(&mut self, construct: impl Into<String>) {
+        let construct = construct.into();
+        if !self.unmapped.contains(&construct) {
+            self.unmapped.push(construct);
         }
     }
 
@@ -231,8 +308,30 @@ impl RunFrame {
         // definition rejects "a bare droppable string — an opaque blob is the amnesic
         // case". Its IRI is content-addressed on the source bytes, so the witness names
         // exactly one artifact.
+        //
+        // It must also CARRY the source. That definition demands a witness "carrying enough
+        // of the source to recover what the lift did not map", and a node bearing only a
+        // type and logic:loadBearing carries strictly LESS than the opaque blob the same
+        // sentence already rejects. Since logic:mnemomorphic — asserted below — is what
+        // discharges the section law, an empty witness would make that flag a decoration and
+        // the proof bridge's SectionRetraction rung unearned.
         sink.typed(&self.source_witness_iri, &math("MathematicalObject"));
         sink.boolean(&self.source_witness_iri, &logic("loadBearing"), true);
+        match &self.source {
+            RetainedSource::Text(text) => {
+                sink.string(&self.source_witness_iri, &math("retainedSource"), text);
+            }
+            RetainedSource::Binary(b64) => {
+                sink.base64(&self.source_witness_iri, &math("retainedSource"), b64);
+            }
+        }
+        for construct in &self.unmapped {
+            sink.string(
+                &self.source_witness_iri,
+                &math("unmappedConstruct"),
+                construct,
+            );
+        }
 
         // The process layer: what the run is an instance of, and what it enacts.
         let capability = format!("{}capability", self.mint_base);

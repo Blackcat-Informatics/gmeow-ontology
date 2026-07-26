@@ -5613,6 +5613,30 @@ math:parseSource
     skos:definition "Relates a math:IngestRun to the in-band source witness it retains — the mnemomorphic complement that lets the up-projection (put) leg recover the source rather than synthesize a plausible one. Domain math:IngestRun; range the retained source witness, a structured node marked logic:loadBearing true and carrying enough of the source to recover what the lift did not map (never a bare droppable string — an opaque blob is the amnesic case), stated in prose. The witness is why 'retain the source' is a law (the Mnemomorphism gate), not a decoration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+math:retainedSource
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "retained source"@x-gmeow-english ;
+    skos:definition "The source artifact a math:parseSource witness retains, verbatim. Domain the retained source witness, range a literal (stated in prose): the source text for a textual artifact, or xsd:base64Binary for a binary one. This is what makes the witness mnemomorphic rather than amnesic — math:parseSource requires a witness 'carrying enough of the source to recover what the lift did not map', and a witness bearing only a type and logic:loadBearing carries strictly less than the opaque blob that definition already rejects. It is the retained half of the put leg: with it, get is a projection along a witness; without it, get is a reconstruction."@x-gmeow-english ;
+    skos:example "ex:rSrc a math:MathematicalObject ; logic:loadBearing true ; math:retainedSource \"fit <- lm(mpg ~ wt, data = mtcars)\" ."@x-gmeow-english ;
+    skos:scopeNote "It carries the SOURCE, never the lifted structure — the structure is the codomain the run generated. Retaining both is the point: the correspondence's get and put legs need different halves."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it on a lifted math: object to stash the prose it came from; that is the amnesic string-placeholder pattern the ingestion rules forbid. It belongs on the witness, once per run."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly one per math:parseSource witness, alongside logic:loadBearing true and any math:unmappedConstruct enumeration."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a lift claims logic:mnemomorphic true — that flag is what discharges the section law, and it is only true if the source is actually retained."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:unmappedConstruct
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "unmapped construct"@x-gmeow-english ;
+    skos:definition "Names a construct present in the retained source that the lift did NOT carry into the math: codomain — MULTI-valued. Domain the math:parseSource witness, range a literal naming the construct (stated in prose). The second half of what math:parseSource demands: the witness must let a consumer recover WHAT THE LIFT DID NOT MAP, which the source alone answers only by re-parsing it. Enumerating the residue makes a lossy lens's loss queryable rather than merely declared by its logic:preservationKind rung."@x-gmeow-english ;
+    skos:example "ex:rSrc math:unmappedConstruct \"r-call: message(...)\" , \"r-call: warning(...)\" ."@x-gmeow-english ;
+    skos:scopeNote "It records what was NOT carried. A construct routed elsewhere — to logic: through math:compilesToLogicFormula, say — was carried and is not residue."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it as a general diagnostics channel; a malformed source is a typed hard failure, not residue. Residue is what a WELL-FORMED source legitimately loses at this rung."@x-gmeow-english ;
+    gmeow:howToUse "Emit one per distinct unmapped construct on the witness. An exact lift emits none, which is itself the claim that nothing was lost."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a lift's correspondence declares a rung weaker than logic:ExactPreservation, so the declared loss is accompanied by its actual content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:ingestCorrespondence
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
