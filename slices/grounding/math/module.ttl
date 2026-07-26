@@ -13024,9 +13024,24 @@ math:ascForall a logic:Formula ;
 math:ascImpl a logic:Formula ;
     logic:antecedent math:ascGuard ;
     logic:consequent math:ascAllSlots .
-math:ascGuard a logic:Formula ; logic:relation rdf:type ;
+# The guard range-restricts `this` to nodes with AT LEAST ONE math:argumentSlot — the
+# same sh:targetSubjectsOf math:argumentSlot idiom math:ArgumentSlotIndexUniquenessConstraint
+# uses — rather than an explicit `rdf:type(this, math:MathematicalExpression)` test. A node
+# with an argumentSlot is already a math:MathematicalExpression by math:argumentSlot's own
+# rdfs:domain axiom, and a math:MathematicalExpression with NO argumentSlot trivially
+# satisfies math:ascAllSlots (its universal quantification ranges over zero slots), so the
+# two guards admit identical verdicts; this form additionally derives a
+# `sh:targetSubjectsOf` shape rather than a `sh:targetClass` one, which purrdf's SHACL
+# engine selects directly off the DATA graph's OWN asserted math:argumentSlot edges — no
+# `rdfs:subClassOf` walk needed — so the rule fires for every subclass-typed application
+# root without depending on the consumer's data graph restating the bundle's class
+# hierarchy.
+math:ascGuard a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "guardSlot" ] ;
+    logic:exists math:ascGuardHasSlot .
+math:ascGuardHasSlot a logic:Formula ; logic:relation math:argumentSlot ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
-        [ logic:termIndex 1 ; logic:termIri math:MathematicalExpression ] .
+        [ logic:termIndex 1 ; logic:termVariable "guardSlot" ] .
 math:ascAllSlots a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "slot" ] ,
         [ logic:termIndex 1 ; logic:termVariable "index" ] ;

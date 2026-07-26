@@ -206,7 +206,12 @@ fn gmeow_classes(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
 /// reflexive closure minus the start node. Traversing `logic:subClassOf` too is what
 /// lets a slice ground its SubKind→Kind edge as `logic:subClassOf` (zero ungrounded
 /// rdfs residue) while the OntoUML identity checks still trace it to its Kind.
-fn proper_ancestors(ds: &RdfDataset, cls: &str) -> HashSet<String> {
+///
+/// `pub(crate)`: also the Tier-1 consumer path's subclass-closure injection
+/// ([`crate::data_validate`]) reuses this exact BFS over the bundle's ontology dataset,
+/// so the `sh:targetClass` shortcut edges it synthesizes trace the SAME subsumption
+/// lattice (both `rdfs:subClassOf` and `logic:subClassOf`) these OntoUML checks do.
+pub(crate) fn proper_ancestors(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let mut seen: HashSet<String> = HashSet::new();
     let mut queue: VecDeque<String> = VecDeque::new();
     queue.push_back(cls.to_owned());

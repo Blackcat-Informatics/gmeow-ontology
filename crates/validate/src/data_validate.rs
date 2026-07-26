@@ -29,12 +29,13 @@
 //! reader untars `shapes-archive` and applies the exclusion set) rather than in
 //! the Python CLI surface, which passes only raw bytes.
 
+use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use gmeow_errors::Report;
 use gmeow_errors::model::Location;
-use purrdf::RdfDataset;
 use purrdf::shapes::shape_union::EXCLUDED;
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
 use crate::gufo::{self, GufoConfig};
 use crate::report_bridge::{build_report, shacl_findings_from_report};
@@ -132,11 +133,27 @@ pub struct Tier1Shapes {
     /// (or applies) the split.
     #[cfg(not(target_arch = "wasm32"))]
     shapes_dataset: Arc<RdfDataset>,
-    /// The bundle's imported RDF, carrying the formalized terms'
-    /// `gmeow:howToUse` / `gmeow:useWhen` prose each split advisory surfaces as its
-    /// corrective suggestion / contextual guidance. Native-only (see
-    /// `shapes_dataset`).
-    #[cfg(not(target_arch = "wasm32"))]
+    /// The bundle's imported RDF (the ontology): the source of the formalized terms'
+    /// `gmeow:howToUse` / `gmeow:useWhen` prose the native-only advisory split reads, AND
+    /// (cross-platform) the class-hierarchy authority [`inject_subclass_shortcuts`] walks
+    /// via [`gufo::proper_ancestors`].
+    ///
+    /// Tier-1 validates an external data graph IN ISOLATION (see [`Tier1Shapes::validate`]):
+    /// the user's file need not restate the bundle's TBox, so it typically carries no
+    /// `rdfs:subClassOf` triples at all. purrdf's SHACL engine resolves `sh:targetClass`
+    /// (and value-node `sh:class`) ONLY over `rdfs:subClassOf` edges present in the graph it
+    /// is validating — it never reaches into the bundle for them — so a shape targeting a
+    /// superclass (e.g. `sh:targetClass math:MathematicalExpression`) silently selects NO
+    /// focus node when every real instance is typed with a subclass
+    /// (`math:ApplicationExpression`, `math:BindingExpression`, …). `validate` reads this
+    /// field to synthesize the missing shortcut edges for exactly the classes the data graph
+    /// actually uses, so the bundle's class hierarchy governs focus selection without the
+    /// user needing to restate it.
+    ///
+    /// Unlike `shapes_dataset` above (native-only: it exists solely for the advisory-split
+    /// feature), this field is NOT gated to native — every Tier-1 consumer, wasm included,
+    /// needs the bundle's class hierarchy to select `sh:targetClass` focus nodes correctly
+    /// over subclass-typed data.
     ontology: Arc<RdfDataset>,
 }
 
@@ -165,13 +182,13 @@ impl Tier1Shapes {
                     detail: format!("bundled SHACL shapes failed to parse as a dataset: {e}"),
                 })
             })?;
-        #[cfg(not(target_arch = "wasm32"))]
+        // Cross-platform (native AND wasm — see the `ontology` field doc): the bundle's
+        // ontology, the class-hierarchy authority the subclass-shortcut injection reads.
         let ontology = crate::store::dataset_from_gts(gts_bytes)?;
         Ok(Self {
             shapes,
             #[cfg(not(target_arch = "wasm32"))]
             shapes_dataset,
-            #[cfg(not(target_arch = "wasm32"))]
             ontology,
         })
     }
@@ -191,6 +208,11 @@ impl Tier1Shapes {
         origin: &str,
     ) -> gmeow_errors::Result<Report> {
         let dataset = data_dataset_flat(data_bytes, data_format)?;
+        // Inject the bundle's class-hierarchy shortcuts for exactly the classes this data
+        // graph uses, so `sh:targetClass` (and any SPARQL-embedded `a/<rdfs:subClassOf>*`
+        // path) selects a subclass-typed focus node without the user needing to restate the
+        // bundle's TBox. See the `ontology` field doc for why this is necessary.
+        let dataset = inject_subclass_shortcuts(dataset, &self.ontology)?;
 
         let shacl_report = store::shacl_validate_dataset(&dataset, &self.shapes);
 
@@ -244,7 +266,23 @@ impl Tier1Shapes {
                 advisory_ledger.attach(projection.diag, StageId::new("validate.advisory"));
                 report.add_rule(advisory.rule());
             }
-            for note in advisory_ledger.findings("validate") {
+            for mut note in advisory_ledger.findings("validate") {
+                // The advisory dual-projection only ever carries the focus node's
+                // LOGICAL anchor (`build_advisory` sets `logical`, never `path` — it has
+                // no `origin` to hand it), so patch in the physical artifact path the
+                // same way the gUFO discipline findings above do. Without this, an
+                // advisory Note is the one finding on this surface with no SARIF
+                // `artifactLocation.uri` — invisible now that Half A lets a
+                // `sh:targetClass`-targeted advisory shape actually match a
+                // subclass-typed individual instead of silently never firing.
+                if let Some(loc) = note.locations.first_mut() {
+                    loc.path = Some(origin.to_owned());
+                } else {
+                    note.add_location(Location {
+                        path: Some(origin.to_owned()),
+                        ..Location::default()
+                    });
+                }
                 report.add_finding(note);
             }
         }
@@ -688,6 +726,84 @@ fn flatten_to_default_graph(dataset: &RdfDataset) -> gmeow_errors::Result<Arc<Rd
     })
 }
 
+/// Synthesize and merge the bundle's class-hierarchy shortcut edges for exactly the
+/// distinct `rdf:type` classes `dataset` uses, so `sh:targetClass` (SHACL's own
+/// `rdfs:subClassOf` closure) selects a subclass-typed focus node without the data graph
+/// needing to restate the bundle's TBox.
+///
+/// For each distinct type IRI `C` the flattened data graph asserts via `rdf:type`, this
+/// walks `C`'s full transitive superclass set in `ontology` (via [`gufo::proper_ancestors`],
+/// which follows BOTH `rdfs:subClassOf` and `logic:subClassOf`) and adds one direct
+/// `C rdfs:subClassOf A` SHORTCUT edge per ancestor `A` — collapsing any multi-hop bundle
+/// chain to a single hop, so the engine's own `sh:targetClass` resolution selects
+/// `C`-typed focus nodes for every shape targeting any ancestor of `C`, exactly as the
+/// merged-dataset dev-authoring gate (`validate_all`) already does.
+///
+/// Cost is proportional to the number of DISTINCT types the data graph actually uses (not
+/// to the bundle's whole class hierarchy, and never per focus node): `ontology` is already
+/// decoded once per bundle load, so this pays one ancestor walk per distinct type, not one
+/// per instance.
+///
+/// # Errors
+///
+/// Returns `Err` if the synthesized shortcut Turtle fails to parse (an internal invariant
+/// violation — every synthesized IRI is a term the ontology dataset already accepted) or
+/// the merge fails to freeze.
+fn inject_subclass_shortcuts(
+    dataset: Arc<RdfDataset>,
+    ontology: &RdfDataset,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let Some(type_id) = dataset.term_id_by_value(&TermValue::iri(crate::model::rdf::TYPE)) else {
+        return Ok(dataset);
+    };
+    let mut used_types: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(class_iri) = dataset.resolve(quad.o) {
+            used_types.insert(class_iri.to_owned());
+        }
+    }
+    if used_types.is_empty() {
+        return Ok(dataset);
+    }
+
+    let mut shortcuts = String::new();
+    for class_iri in &used_types {
+        let mut ancestors: Vec<String> = gufo::proper_ancestors(ontology, class_iri)
+            .into_iter()
+            .collect();
+        ancestors.sort();
+        for ancestor in ancestors {
+            shortcuts.push('<');
+            shortcuts.push_str(class_iri);
+            shortcuts.push_str("> <");
+            shortcuts.push_str(crate::model::rdfs::SUB_CLASS_OF);
+            shortcuts.push_str("> <");
+            shortcuts.push_str(&ancestor);
+            shortcuts.push_str("> .\n");
+        }
+    }
+    if shortcuts.is_empty() {
+        return Ok(dataset);
+    }
+
+    let shortcut_dataset = purrdf::parse_dataset(shortcuts.as_bytes(), "text/turtle", None)
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("internal subclass-shortcut synthesis failed to parse: {e}"),
+            })
+        })?;
+
+    use purrdf::RdfDatasetBuilder;
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_dataset(&dataset);
+    builder.push_dataset(&shortcut_dataset);
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Dataset {
+            detail: format!("subclass-shortcut merge failed: {e}"),
+        })
+    })
+}
+
 /// True for the JSON-LD format ids (handled outside the native-codec router).
 fn is_json_ld(format: &str) -> bool {
     let f = format.trim().to_ascii_lowercase();
@@ -1110,5 +1226,139 @@ gmeow:Entity gmeow:howToUse \"Type each instance with its most specific sortal.\
         assert_eq!(cbor_text_field(&meta, "rep"), Some("shapes-archive"));
         assert_eq!(cbor_text_field(&meta, "absent"), None);
         assert_eq!(cbor_text_field(&Value::Null, "rep"), None);
+    }
+
+    /// The shared subclass-hierarchy fixture for the [`inject_subclass_shortcuts`] proofs
+    /// below: `ex:A ⊑ ex:B ⊑ ex:C` (a two-hop chain, so a one-hop-only fix would fail the
+    /// transitivity proof), plus an unrelated `ex:D` with no subsumption edge to `ex:A`.
+    const SUBCLASS_ONTOLOGY: &str = "\
+@prefix ex: <https://ex.test/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:A rdfs:subClassOf ex:B .
+ex:B rdfs:subClassOf ex:C .
+";
+
+    /// A `sh:targetClass` shape requiring `ex:name` on instances of `class_local`
+    /// (e.g. `C`, `D`) — the pattern G12 diagnosed as dead when every real instance is
+    /// typed with a proper subclass rather than the targeted class itself.
+    fn subclass_probe_shapes(class_local: &str) -> String {
+        format!(
+            "\
+@prefix ex: <https://ex.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+<https://ex.test/{class_local}Shape> a sh:NodeShape ;
+    sh:targetClass ex:{class_local} ;
+    sh:property [ sh:path ex:name ; sh:minCount 1 ] .
+"
+        )
+    }
+
+    /// G12 regression (Half A): a focus node typed ONLY as a proper subclass (`ex:x a
+    /// ex:A`, never `ex:x a ex:C` directly) IS selected by a shape whose `sh:targetClass`
+    /// names an ANCESTOR (`ex:C`) the isolated data graph never restates — the exact defect
+    /// the shipped `gmeow validate <file>` CLI hit on `math:ArgumentSlotContiguityConstraint`
+    /// (`sh:targetClass math:MathematicalExpression` never selecting an
+    /// `math:ApplicationExpression`-typed root). Without [`inject_subclass_shortcuts`], this
+    /// finding is silently absent because the isolated data graph carries no
+    /// `rdfs:subClassOf` triple at all.
+    #[test]
+    fn subclass_typed_focus_node_is_selected_across_the_bundle_hierarchy() {
+        let tier1 = tier1_from_ttl(&subclass_probe_shapes("C"), SUBCLASS_ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://ex.test/A> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://ex.test/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
+            "a node typed only as a proper subclass of the shape's sh:targetClass must still \
+             be selected as a focus node (missing ex:name must be flagged): {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+    }
+
+    /// G12 regression (Half A), the negative twin: a shape targeting an UNRELATED class
+    /// (`ex:D`, no subsumption edge to/from `ex:A` in [`SUBCLASS_ONTOLOGY`]) must NOT select
+    /// an `ex:A`-typed focus node — the shortcut injection must not over-approximate and
+    /// select every instance for every shape regardless of its real class.
+    #[test]
+    fn unrelated_class_shape_is_not_selected() {
+        let tier1 = tier1_from_ttl(&subclass_probe_shapes("D"), SUBCLASS_ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://ex.test/A> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://ex.test/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        assert!(
+            !report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
+            "a shape targeting an unrelated, unconnected class must select NO focus node: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
+    }
+
+    /// G12 regression (Half A), the transitivity proof: the shape targets `ex:C`, the data
+    /// is typed only `ex:A`, and [`SUBCLASS_ONTOLOGY`] connects them ONLY via the two-hop
+    /// chain `ex:A ⊑ ex:B ⊑ ex:C` — `ex:A` carries no DIRECT `rdfs:subClassOf ex:C` edge, so
+    /// this fails if the shortcut injection only walked one hop instead of the full
+    /// transitive ancestor set ([`gufo::proper_ancestors`], the same BFS the OntoUML
+    /// disciplines already trust).
+    #[test]
+    fn subclass_shortcut_injection_is_transitive_across_two_hops() {
+        // Sanity: the fixture really is two hops, not a direct edge (guards against a
+        // fixture typo silently turning this into the single-hop test above).
+        let ontology = purrdf::parse_dataset(SUBCLASS_ONTOLOGY.as_bytes(), "text/turtle", None)
+            .expect("ontology parses");
+        assert!(
+            !gufo::proper_ancestors(&ontology, "https://ex.test/A").is_empty(),
+            "fixture sanity: ex:A must have at least one ancestor"
+        );
+        assert!(
+            SUBCLASS_ONTOLOGY
+                .lines()
+                .filter(|l| l.contains("ex:A") && l.contains("ex:C"))
+                .count()
+                == 0,
+            "fixture sanity: ex:A must NOT carry a direct edge to ex:C"
+        );
+
+        let tier1 = tier1_from_ttl(&subclass_probe_shapes("C"), SUBCLASS_ONTOLOGY);
+        let data = "<https://ex.test/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                    <https://ex.test/A> .\n";
+        let report = tier1
+            .validate(
+                data.as_bytes(),
+                "n-triples",
+                "https://ex.test/",
+                "user-data.ttl",
+            )
+            .expect("Tier-1 validate must succeed");
+
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code.starts_with(crate::codes::SHACL_FAMILY)),
+            "a two-hop transitive ancestor (ex:A ⊑ ex:B ⊑ ex:C) must still be reached by the \
+             shortcut injection: {:?}",
+            report.findings.iter().map(|f| &f.code).collect::<Vec<_>>()
+        );
     }
 }
