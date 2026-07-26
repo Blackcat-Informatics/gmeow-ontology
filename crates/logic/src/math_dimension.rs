@@ -5,26 +5,28 @@
 //!
 //! Runs at reasoning speed (`make reason-verify`) over the frozen reasoned graph,
 //! alongside the typed-formalization-governance obligation checks. It computes
-//! dimensional homogeneity, integral dimensional composition, `math:dimensionVector`
-//! string drift, and the positive-definiteness of every authored `math:GramMatrix`
-//! used as a metric form — all THROUGH the one exact-rational (ℚ⁷) source
-//! [`gmeow_math::dimension`] and the exact-rational inner-product engine
-//! [`gmeow_math::InnerProductSpace`], never asserted data.
+//! `math:dimensionVector` string drift, zero-denominator exponent malformation, and
+//! the positive-definiteness of every authored `math:GramMatrix` used as a metric
+//! form — all THROUGH the one exact-rational (ℚ⁷) source [`gmeow_math::dimension`]
+//! and the exact-rational inner-product engine [`gmeow_math::InnerProductSpace`],
+//! never asserted data.
 //!
 //! Each violation is a `Severity::Error` [`Finding`] naming the typed `math:`
-//! failure class it decides (`math:DimensionalInhomogeneity`,
-//! `math:MalformedDimension`, `math:AsymmetricGramMatrix`,
+//! failure class it decides (`math:MalformedDimension`, `math:AsymmetricGramMatrix`,
 //! `math:NonPositiveDefiniteNorm`), so a single such finding hard-fails the gate.
-//! It is the executable lowering of
-//! `math:dimensionalHomogeneityLaw`, `math:integralDimensionCompositionLaw`, and the
-//! Gram positive-definiteness constraint authored in the `math:` slice: the laws are
-//! the source, this gate the enforcement.
+//! Dimensional homogeneity and integral dimensional composition are no longer
+//! decided here — the reasoner materializes `math:DimensionalInhomogeneity`
+//! directly from the authored `math:dimensionalHomogeneityLaw` /
+//! `math:integralDimensionCompositionLaw` `logic:Formula` ASTs, surfaced as a
+//! `verify.dimensional-inhomogeneity` finding by the production `verify()` entrypoint
+//! (see `crates/logic/tests/dimension_gate.rs`); this Rust sweep would be a
+//! redundant second source of truth for that law.
 
 use gmeow_errors::{Finding, Severity};
-use gmeow_math::dimension::{DimVector, load_dimension_vector, node_dimension};
+use gmeow_math::dimension::{DimVector, load_dimension_vector};
 use gmeow_math::{
-    IndexOutOfRange, InnerProductSpace, Rational, TripleIndex, all_iris, first_iri, first_literal,
-    has_type, index_dataset, load_gram, subjects,
+    IndexOutOfRange, InnerProductSpace, Rational, TripleIndex, first_iri, first_literal, has_type,
+    index_dataset, load_gram, subjects,
 };
 use purrdf::RdfDataset;
 use std::collections::BTreeMap;
@@ -32,8 +34,6 @@ use std::collections::BTreeMap;
 /// Namespace root for the `math:` measure-and-dimension vocabulary.
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 
-/// The finding code for a dimensional-homogeneity / integral-composition violation.
-const CODE_INHOMOGENEITY: &str = "verify.math.dimensional-inhomogeneity";
 /// The finding code for a malformed dimension (drift / zero-denominator power).
 const CODE_MALFORMED: &str = "verify.math.malformed-dimension";
 /// The finding code for a non-positive-definite authored Gram / metric form.
@@ -81,8 +81,6 @@ pub fn check_math_dimension_findings(reasoned: &RdfDataset) -> Vec<Finding> {
 
     check_dimension_vector_drift(&index, &mut findings);
     check_zero_denominator_exponents(&index, &mut findings);
-    check_homogeneity(&index, &mut findings);
-    check_integral_composition(&index, &mut findings);
     check_gram_positive_definiteness(&index, &mut findings);
 
     findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
@@ -138,105 +136,6 @@ fn check_zero_denominator_exponents(index: &TripleIndex, findings: &mut Vec<Find
                     "math:MalformedDimension: dimension-exponent cell {cell} declares \
                      math:exponentDenominator 0 — an exact-rational power needs a non-zero \
                      denominator; the cell is ill-formed"
-                ),
-            ));
-        }
-    }
-}
-
-/// Homogeneity: every `math:homogeneousOperand` of a `math:DimensionalExpression`
-/// shares one ℚ⁷ dimension. An undimensioned operand, or two or more distinct
-/// carried dimensions, raises `math:DimensionalInhomogeneity`.
-fn check_homogeneity(index: &TripleIndex, findings: &mut Vec<Finding>) {
-    let homogeneous_operand = math("homogeneousOperand");
-    for expr in subjects_of_type(index, &math("DimensionalExpression")) {
-        let mut operands = all_iris(index, &expr, &homogeneous_operand);
-        operands.sort();
-        let mut seen: Vec<(DimVector, String)> = Vec::new();
-        let mut undimensioned: Vec<String> = Vec::new();
-        for operand in operands {
-            let Some(dim_iri) = node_dimension(index, &operand) else {
-                undimensioned.push(operand);
-                continue;
-            };
-            let Some(vec) = dim_vector(index, &dim_iri) else {
-                continue;
-            };
-            if !seen.iter().any(|(v, _)| *v == vec) {
-                seen.push((vec, dim_iri));
-            }
-        }
-        if !undimensioned.is_empty() {
-            findings.push(error(
-                CODE_INHOMOGENEITY,
-                format!(
-                    "math:DimensionalInhomogeneity: dimensional expression {expr} combines \
-                     undimensioned operand(s) [{}] — every math:homogeneousOperand must carry a \
-                     math:hasDimension to be shown homogeneous",
-                    undimensioned.join(", ")
-                ),
-            ));
-        }
-        if seen.len() >= 2 {
-            let mut dims: Vec<String> = seen.into_iter().map(|(_, d)| d).collect();
-            dims.sort();
-            findings.push(error(
-                CODE_INHOMOGENEITY,
-                format!(
-                    "math:DimensionalInhomogeneity: dimensional expression {expr} combines operands \
-                     of differing dimensions [{}]",
-                    dims.join(", ")
-                ),
-            ));
-        }
-    }
-}
-
-/// Integral composition: `dim(result) == dim(integrand) ⊕ dim(measure)` (exponent-
-/// vector addition). An undimensioned part or a mismatch raises
-/// `math:DimensionalInhomogeneity`.
-fn check_integral_composition(index: &TripleIndex, findings: &mut Vec<Finding>) {
-    for integral in subjects_of_type(index, &math("Integral")) {
-        let Some(result_dim) = node_dimension(index, &integral) else {
-            continue;
-        };
-        let integrand = first_iri(index, &integral, &math("integrand"));
-        let measure = first_iri(index, &integral, &math("withRespectTo"));
-        let (Some(integrand), Some(measure)) = (integrand, measure) else {
-            // Missing integrand/measure is math:IncompleteIntegral (SHACL IntegralShape).
-            continue;
-        };
-        let (Some(idim), Some(mdim)) = (
-            node_dimension(index, &integrand),
-            node_dimension(index, &measure),
-        ) else {
-            findings.push(error(
-                CODE_INHOMOGENEITY,
-                format!(
-                    "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
-                     {result_dim} but its integrand ({integrand}) or measure ({measure}) carries no \
-                     math:hasDimension, so the composition cannot be verified"
-                ),
-            ));
-            continue;
-        };
-        let (Some(rv), Some(iv), Some(mv)) = (
-            dim_vector(index, &result_dim),
-            dim_vector(index, &idim),
-            dim_vector(index, &mdim),
-        ) else {
-            continue;
-        };
-        let Ok(composed) = iv.add(&mv) else {
-            continue;
-        };
-        if rv != composed {
-            findings.push(error(
-                CODE_INHOMOGENEITY,
-                format!(
-                    "math:DimensionalInhomogeneity: integral {integral} declares result dimension \
-                     {result_dim} but its integrand ({idim}) and measure ({mdim}) compose to a \
-                     different dimension"
                 ),
             ));
         }

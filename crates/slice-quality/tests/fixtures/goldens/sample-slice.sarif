@@ -158,10 +158,10 @@
             }
           ],
           "message": {
-            "text": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."
+            "text": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "c2db47ec61187a9f"
+            "gmeowFindingHash/v2": "3602792e02f76370"
           },
           "ruleId": "slice-quality.axis-advice"
         },

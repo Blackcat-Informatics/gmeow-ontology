@@ -60,8 +60,8 @@ applies to schema.org / vCard / FOAF (Principle 4). It is the downgrade for lega
 it recedes naturally as RDF-1.2-native reasoners and stores arrive. The canonical source never
 changes.
 
-*Embodied in:* `make sync`, `queries/rdf12-project.rq` (a codec between two
-generated forms). *Tested by:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` and the OWL↔RDF 1.2
+*Embodied in:* `make regen`, `queries/rdf12-project.rq` (a codec between two
+generated forms). *Tested by:* `make check-sync` and the OWL↔RDF 1.2
 round-trip / isomorphism gate.
 
 ## 4. One canonical source; everything else a generated lossy projection
@@ -74,7 +74,7 @@ alignment layer (the mapping compiler), and to the RDF 1.2 ↔ OWL relationship 
 The reasoned core stays clean; lossiness is pushed to the boundary and made explicit.
 
 *Embodied in:* [`docs/projections.md`](./docs/projections.md); [`README.md`](./README.md) §
-The mapping compiler. *Tested by:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`, projection round-trips.
+The mapping compiler. *Tested by:* `make check-sync`, projection round-trips.
 
 ## 5. Maximal superset, maximal bridging — by reference
 
@@ -121,7 +121,7 @@ Generation without verification is a second source of truth in disguise. Every d
 mapping artifacts, the RDF 1.2 view, the OWL compat form — must be regenerable and proven
 non-divergent, so drift is *impossible* rather than merely discouraged.
 
-*Embodied in:* `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`, the `projection_lint` /
+*Embodied in:* `make check-sync`, the `projection_lint` /
 `statement_lint` invariants, `make check`.
 
 ## 8. Reasoning-gated and FAIR

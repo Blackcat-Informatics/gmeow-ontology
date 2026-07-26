@@ -69,7 +69,7 @@ gmeow:GateFatalUpsetShape
         sh:select """
             PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
             SELECT ?this WHERE {
-                ?this a gmeow:Finding ;
+                ?this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* gmeow:Finding ;
                       gmeow:findingSeverity gmeow:severityError ;
                       gmeow:findingStandpoint gmeow:standpointBinding ;
                       gmeow:findingCategory ?cat .
@@ -84,7 +84,7 @@ gmeow:GateFatalUpsetShape
         sh:select """
             PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
             SELECT $this WHERE {
-                $this a gmeow:Finding ;
+                $this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* gmeow:Finding ;
                       gmeow:findingSeverity gmeow:severityError ;
                       gmeow:findingStandpoint gmeow:standpointBinding ;
                       gmeow:findingCategory ?cat .

@@ -10,6 +10,12 @@ pub mod certificate;
 /// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
 /// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
 pub mod conjecture;
+/// The pure, wasm-clean conjecture-evaluation orchestration
+/// ([`conjecture_eval::evaluate_conjecture_ttl`]): the single authority that parses a
+/// candidate `logic:` document + KB Turtle, runs the symmetric [`conjecture::conjecture_test`],
+/// and projects a deterministic verdict — shared by the native MCP/CLI surface and the
+/// browser conjecture playground so both produce byte-identical N-Triples.
+pub mod conjecture_eval;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;
@@ -76,6 +82,10 @@ pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 pub mod probabilistic;
 pub mod profile_gate;
 pub mod provenance;
+/// Verified PURREMB external-relation provider: a query-scoped nearest-neighbour relation
+/// over a fully verified embedding artifact, exposing retrieved RDF 1.2 identities to the
+/// native annotated relational evaluator as derived query inputs.
+pub mod purremb_relation;
 pub mod query_ir;
 pub mod reason;
 /// The shared named-graph boundary of the object-level reasoning EDB.

@@ -460,6 +460,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "ProbLog-style weighted-inference evaluator for logic:ProbabilisticProfile — a separate execution path with no reference from dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance",
     ),
     (
+        "purremb_relation.rs",
+        "query-scoped external-relation provider over a verified PURREMB embedding artifact — consumes the ExternalRelationProvider contract from external_relation.rs and is invoked only through the &dyn ExternalRelationProvider trait object supplied per query by callers; no production file in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it, so its bytes are an external EDB input, not part of what dispatch_query decides",
+    ),
+    (
         "reasoning_graphs.rs",
         "shared constants and membership predicate for the forward object-level named-graph boundary — consumed by pipeline assembly and coherence gates, not backward dispatch",
     ),
@@ -522,6 +526,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "reference_resolver.rs",
         "declarative SLD/Datalog reference oracle — used only inside #[cfg(test)] cross-checks (dispatch.rs::tests, physical/magic.rs::tests), not the production dispatch decision path",
+    ),
+    (
+        "conjecture_eval.rs",
+        "the conjecture-and-refutation evaluation ORCHESTRATION (parse a candidate logic:Formula, re-home the KB into the scenario world, run conjecture_test, project the verdict) — a high-level entry over conjecture.rs/result_rdf.rs, not a backward-dispatch decision source dispatch_query consults",
     ),
 ];
 

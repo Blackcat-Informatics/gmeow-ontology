@@ -71,9 +71,9 @@ The rule that governs every row:
 
 External vocabularies are aligned by reference and projected to, never copied into the canon. The
 mechanism is the repository's established one, not a bespoke predicate: an external link is a
-`gmeow:TermEquivalence` record in a canonical file under the slice's `mappings/`
-(`gmeow:alignSubject`/`gmeow:alignPredicate`/`gmeow:alignObject`, a `semapv:` justification, and a
-confidence), marked `logic:GroundingCorrespondence`, and lowered as a shipped
+native RDF-1.2 alignment cell — a reified `S skos:*Match O {| gmeow:sssomFile …; gmeow:justification
+…; gmeow:confidence … |}` statement — in a canonical file under the slice's `mappings/`,
+marked `logic:GroundingCorrespondence`, and lowered as a shipped
 `logic:Correspondence` — the ninth `logic:` IR node kind. There is **no**
 free-standing `authorityLink` property in the mathematics slice; a Wikidata QID, a QUDT unit IRI, or
 an OpenMath symbol is a `skos:exactMatch`/`skos:closeMatch` alignment carrying its preservation

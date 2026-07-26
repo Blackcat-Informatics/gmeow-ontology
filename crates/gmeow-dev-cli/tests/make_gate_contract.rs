@@ -164,6 +164,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "coverage",
         "acceptance",
         "reason-verify",
+        "wasm-parity",
         "lint-alignment",
         "i18n-lint",
         "doc-lint",
@@ -207,7 +208,13 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         target_recipe(&source, "check-full").contains("CHECK_SYNC_MODE=update cargo xtask check"),
         "forced-full local check owns update-mode synchronization"
     );
-    assert!(target_recipe(&source, "sync").contains("$(GMEOW_DEV) sync"));
+    // `make sync` is removed: the standalone regenerate lane is `make regen`; `make check`
+    // owns its own sync pass, so agents run ONLY `make check` for the gate.
+    assert!(target_recipe(&source, "regen").contains("$(GMEOW_DEV) sync"));
+    assert!(
+        !source.lines().any(|line| line.starts_with("sync:")),
+        "the standalone `make sync` target must be removed (it duplicated `make check`'s sync pass)"
+    );
     assert!(
         target_recipe(&source, "check-sync")
             .contains("sync --mode $(CHECK_SYNC_MODE) --outputs generated"),
@@ -220,10 +227,10 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     assert_eq!(
         source
             .lines()
-            .filter(|line| line.starts_with("sync:"))
+            .filter(|line| line.starts_with("regen:"))
             .count(),
         1,
-        "standalone update-mode sync has one Make authority"
+        "standalone regenerate lane (`make regen`) has one Make authority"
     );
 
     assert_eq!(
@@ -289,7 +296,7 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
     );
     assert_eq!(
         source
-            .matches("run: make sync GMEOW_DEV=./dist/bin/gmeow-dev")
+            .matches("run: make regen GMEOW_DEV=./dist/bin/gmeow-dev")
             .count(),
         1,
         "one matrix step must define both cold generations through the prebuilt producer"
@@ -311,14 +318,9 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         "semantic validation must not block publication of the byte-proven authority"
     );
     assert!(
-        source.contains("  bundle-validate:\n    needs: [producer]")
-            && source.contains("run: make validate-gts GMEOW_DEV=./dist/bin/gmeow-dev"),
-        "the authoritative bundle must still receive mandatory semantic validation"
-    );
-    assert!(
         source.contains(
-            "needs: [producer, bundle-validate, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
+            "needs: [producer, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
         ),
-        "the aggregate quality gate must require authoritative bundle validation"
+        "the aggregate quality gate must require the retained quality jobs"
     );
 }

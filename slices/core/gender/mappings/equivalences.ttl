@@ -20,254 +20,198 @@ gmeow:mapsetGender a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Gender alignments — gender-identity values to GSSO and Homosaurus v4 (the authoritative sex-gender / LGBTQ+ vocabularies) and the gender-carrying property to schema.org, FOAF and Wikidata P21 (P21 is Wikidata's accepted sex-or-gender field). EVERY external identifier was verified against the local authoritative copies (Homosaurus v4 + GSSO from /opt/foundation; Wikidata via API) — scraped IDs proved unreliable. Note Wikidata has NO gender-identity item for 'woman'/'man' distinct from the SEX values female/male (Q6581072/Q6581097), which are mapped to sexAssignedAtBirth instead — itself evidence of the sex/gender conflation GMEOW refuses; GSSO does carry distinct woman/man gender identities. The value vocab is OPEN (demigirl/demiboy/questioning are canonical until verified IDs exist). The reified, self-asserted, co-equal gmeow:IdentityFacet machinery (hasGenderIdentity/genderValue, selfAsserted, displayable suppression) is CANONICAL. sexAssignedAtBirth is a recorded administrative datum; documentary sex on records uses external gedcom:sex directly." .
 
-gmeow:eqGender001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:GenderIdentity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0000571 ;
+gmeow:GenderIdentity skos:closeMatch homosaurus:homoit0000571 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Homosaurus v4 'Gender identity'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Gender identity'"
+|} .
 
-gmeow:eqGender002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:gender ;
+gmeow:genderValue skos:closeMatch schema:gender {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "lossy — schema:gender conflates sex/gender" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "lossy — schema:gender conflates sex/gender"
+|} .
 
-gmeow:eqGender003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:gender ;
+gmeow:genderValue skos:closeMatch foaf:gender {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "lossy legacy binary-leaning property" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "lossy legacy binary-leaning property"
+|} .
 
-gmeow:eqGender004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P21 ;
+gmeow:genderValue skos:closeMatch wdt:P21 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata's accepted gender field (P21 'sex or gender')" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata's accepted gender field (P21 'sex or gender')"
+|} .
 
-gmeow:eqGender005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderWoman ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gsso:000369 ;
+gmeow:genderWoman skos:closeMatch gsso:000369 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GSSO 'woman' (a gender identity, not a sex)" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "GSSO 'woman' (a gender identity, not a sex)"
+|} .
 
-gmeow:eqGender006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderWoman ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0001509 ;
+gmeow:genderWoman skos:closeMatch homosaurus:homoit0001509 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Homosaurus v4 'Women'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Women'"
+|} .
 
-gmeow:eqGender007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderMan ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gsso:000370 ;
+gmeow:genderMan skos:closeMatch gsso:000370 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GSSO 'man'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "GSSO 'man'"
+|} .
 
-gmeow:eqGender008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderMan ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0001008 ;
+gmeow:genderMan skos:closeMatch homosaurus:homoit0001008 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Homosaurus v4 'Men'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Men'"
+|} .
 
-gmeow:eqGender009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderNonBinary ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0001048 ;
+gmeow:genderNonBinary skos:closeMatch homosaurus:homoit0001048 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Homosaurus v4 'Non-binary people'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Non-binary people'"
+|} .
 
-gmeow:eqGender010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderNonBinary ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gsso:000395 ;
+gmeow:genderNonBinary skos:closeMatch gsso:000395 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "GSSO 'nonbinary person'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "GSSO 'nonbinary person'"
+|} .
 
-gmeow:eqGender011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderNonBinary ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q48270 ;
+gmeow:genderNonBinary skos:closeMatch wd:Q48270 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'non-binary'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'non-binary'"
+|} .
 
-gmeow:eqGender012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderAgender ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0000021 ;
+gmeow:genderAgender skos:closeMatch homosaurus:homoit0000021 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Homosaurus v4 'Agender people'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Agender people'"
+|} .
 
-gmeow:eqGender013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderAgender ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q505371 ;
+gmeow:genderAgender skos:closeMatch wd:Q505371 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'agender'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'agender'"
+|} .
 
-gmeow:eqGender014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderGenderqueer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0001921 ;
+gmeow:genderGenderqueer skos:closeMatch homosaurus:homoit0001921 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Homosaurus v4 'Genderqueer identity'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Genderqueer identity'"
+|} .
 
-gmeow:eqGender015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderGenderqueer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gsso:000131 ;
+gmeow:genderGenderqueer skos:closeMatch gsso:000131 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GSSO 'genderqueer'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "GSSO 'genderqueer'"
+|} .
 
-gmeow:eqGender016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderGenderqueer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q12964198 ;
+gmeow:genderGenderqueer skos:closeMatch wd:Q12964198 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'genderqueer'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'genderqueer'"
+|} .
 
-gmeow:eqGender017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderGenderfluid ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0000570 ;
+gmeow:genderGenderfluid skos:closeMatch homosaurus:homoit0000570 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Homosaurus v4 'Genderfluid people'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Genderfluid people'"
+|} .
 
-gmeow:eqGender018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderGenderfluid ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q18116794 ;
+gmeow:genderGenderfluid skos:closeMatch wd:Q18116794 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'genderfluid'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'genderfluid'"
+|} .
 
-gmeow:eqGender019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderBigender ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q859614 ;
+gmeow:genderBigender skos:closeMatch wd:Q859614 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'bigender'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'bigender'"
+|} .
 
-gmeow:eqGender020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderTwoSpirit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0001480 ;
+gmeow:genderTwoSpirit skos:closeMatch homosaurus:homoit0001480 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Homosaurus v4 'Two-Spirit people'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Two-Spirit people'"
+|} .
 
-gmeow:eqGender021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderTwoSpirit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gsso:007398 ;
+gmeow:genderTwoSpirit skos:closeMatch gsso:007398 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "GSSO 'Two-Spirit gender identity'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "GSSO 'Two-Spirit gender identity'"
+|} .
 
-gmeow:eqGender022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:genderTwoSpirit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q301702 ;
+gmeow:genderTwoSpirit skos:closeMatch wd:Q301702 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'two-spirit'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'two-spirit'"
+|} .
 
-gmeow:eqGender023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sexAssignedAtBirth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P21 ;
+gmeow:sexAssignedAtBirth skos:closeMatch wdt:P21 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'sex or gender' property — narrower here; loose" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'sex or gender' property — narrower here; loose"
+|} .
 
-gmeow:eqGender024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sexAssignedAtBirth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fhir:administrative-gender ;
+gmeow:sexAssignedAtBirth skos:closeMatch fhir:administrative-gender {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "FHIR administrative gender — loose neighbour, not birth-sex proper" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "FHIR administrative gender — loose neighbour, not birth-sex proper"
+|} .
 
-gmeow:eqGender025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:saabFemale ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q6581072 ;
+gmeow:saabFemale skos:closeMatch wd:Q6581072 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'female' (the sex value behind P21; NOT a gender identity)" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'female' (the sex value behind P21; NOT a gender identity)"
+|} .
 
-gmeow:eqGender026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:saabMale ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q6581097 ;
+gmeow:saabMale skos:closeMatch wd:Q6581097 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'male'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'male'"
+|} .
 
-gmeow:eqGender027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:saabIntersex ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1097630 ;
+gmeow:saabIntersex skos:closeMatch wd:Q1097630 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'intersex'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Wikidata 'intersex'"
+|} .
 
-gmeow:eqGender028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:saabIntersex ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject homosaurus:homoit0000618 ;
+gmeow:saabIntersex skos:closeMatch homosaurus:homoit0000618 {|
+    gmeow:sssomFile "gmeow-gender.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Homosaurus v4 'Intersex people'" ;
-    gmeow:sssomFile "gmeow-gender.sssom.tsv" .
+    gmeow:comment "Homosaurus v4 'Intersex people'"
+|} .

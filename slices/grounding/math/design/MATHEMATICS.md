@@ -103,7 +103,7 @@ from the general `gmeow:` ontology namespace the domain slices share. Terms this
 other slices keep their home namespace — the `observations` spine (`gmeow:Observation`,
 `gmeow:vantage`, and measurement qualifiers over the math-owned `math:Quantity`),
 `provenance`/`events` (`gmeow:Activity`, `gmeow:wasGeneratedBy`),
-and the alignment vocabulary (`gmeow:TermEquivalence`) — and the slice is still *declared* with the
+and the alignment vocabulary (native `skos:*Match` alignment cells) — and the slice is still *declared* with the
 `gmeow:` slice-manifest vocabulary (`gmeow:Slice`, `gmeow:sliceTier`, `gmeow:sliceDependsOn`). A
 worked example therefore mixes all three namespaces on purpose: a `math:` object *held via* a
 `gmeow:Observation` and *denoting into* a `logic:` formula is the grounding-layer composition made

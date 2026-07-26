@@ -284,7 +284,7 @@ fn render_every_format(
 /// sourced ENTIRELY from THIS run's in-memory upstream products — never a
 /// disk read of `generated/catalog/*.nq` or `generated/schemas/*.json`
 /// (the stale-disk-fold class; those files do not exist at all until a prior
-/// `make sync` has materialized them, and this module never writes to disk).
+/// `make regen` has materialized them, and this module never writes to disk).
 /// The one on-disk-adjacent call, [`crate::stages::constraint_catalog::render_constraint_catalog`],
 /// is a pure function of the AUTHORED sources (root ontology + slice
 /// modules), not a read of the generated projection, so it needs no upstream
@@ -457,7 +457,7 @@ fn source_snippets(site: &BTreeMap<String, Vec<u8>>) -> Result<BTreeMap<String, 
 /// The rendered Pydantic model package — THIS run's in-memory
 /// `stage-export-pydantic` product artifacts, never a disk read (that
 /// producer's committed-tree sibling, `pydantic::render_models_python_package`,
-/// is documented as "the standalone `make sync SYNC_OUTPUTS=docs` entry" that
+/// is documented as "the standalone `make regen SYNC_OUTPUTS=docs` entry" that
 /// requires an already-materialized `generated/shapes` tree; this module has
 /// the fresher, in-memory bytes already, from the same run that fed Design C).
 fn pydantic_docs_tree(

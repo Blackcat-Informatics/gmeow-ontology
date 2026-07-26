@@ -13,6 +13,18 @@
 // ./playground.trig.
 
 import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
+import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
+import reasonInit, {
+  reason as wasmReason,
+  conjecture as wasmConjecture,
+} from "./reason/gmeow_reason_wasm.js";
+import gmnInit, {
+  to_gmn1 as wasmToGmn1,
+  from_gmn1 as wasmFromGmn1,
+  glyph_legend as wasmGlyphLegend,
+} from "./gmn/gmeow_gmn_wasm.js";
+
+const GMEOW_NS = "https://blackcatinformatics.ca/gmeow/";
 
 const FORMATS = [
   ["turtle", "Turtle"],
@@ -22,6 +34,473 @@ const FORMATS = [
   ["rdfxml", "RDF/XML"],
   ["jsonld", "JSON-LD"],
 ];
+
+// ── Shared browser-bundle loader ────────────────────────────────────────────
+// The single client entry point every browser surface (SPARQL playground, bundle
+// explorer, validation panels) uses to obtain the queryable ontology — so no
+// surface invents a second fetch/parse path. It boots the purrdf engine once,
+// fetches the object-level core bundle N-Quads, verifies its byte length against
+// the emitted content-address manifest (a truncated or swapped asset is rejected),
+// and returns the parsed Dataset. Iteration order over the returned dataset is
+// stable-sorted by callers so a native↔wasm witness can byte-compare results.
+let _engineReady = null;
+async function ensureEngine() {
+  if (!_engineReady) {
+    _engineReady = init(new URL("./purrdf/gmeow_rdf_wasm_bg.wasm", import.meta.url));
+  }
+  await _engineReady;
+}
+
+export async function loadCoreBundle() {
+  await ensureEngine();
+  const manifest = await (
+    await fetch(new URL("./bundle-manifest.json", import.meta.url))
+  ).json();
+  const nq = await (await fetch(new URL("./gmeow-core.nq", import.meta.url))).text();
+  const expected = manifest["assets/gmeow-core.nq"]?.bytes;
+  const actual = new TextEncoder().encode(nq).length;
+  if (expected === undefined) {
+    throw new Error(
+      "core bundle integrity: manifest is missing the assets/gmeow-core.nq entry — " +
+        "cannot verify the bundle byte length (a missing manifest entry is a hard failure, not a bypass)",
+    );
+  }
+  if (actual !== expected) {
+    throw new Error(
+      `core bundle integrity: expected ${expected} bytes, got ${actual}`,
+    );
+  }
+  return Dataset.parse(nq, "nquads");
+}
+
+/** The URL of the full `gmeow.gts` bundle (the Tier-1 validate surface's shapes
+ * source), resolved relative to this module. */
+export function fullBundleUrl() {
+  return new URL("./gmeow.gts", import.meta.url);
+}
+
+// ── Live Tier-1 validation (W1) ─────────────────────────────────────────────
+// Each counter-example fixture on a term page ships a "run validation" button
+// carrying the fixture's base64-encoded Turtle. On click we load the FULL gmeow.gts
+// bundle (its shapes-archive), run the REAL Tier-1 validator (gmeow-validate-wasm)
+// entirely in-browser, and render the unified-diagnostics findings — each linking
+// through its helpUri into the constraint catalog. This is the SAME validator the
+// on-gate authority runs; the native↔wasm parity witness lane proves they agree.
+let _validatorReady = null;
+async function ensureValidator() {
+  if (!_validatorReady) {
+    _validatorReady = validateInit(
+      new URL("./validate/gmeow_validate_wasm_bg.wasm", import.meta.url),
+    );
+  }
+  await _validatorReady;
+}
+
+let _bundleBytes = null;
+async function fullBundleBytes() {
+  if (!_bundleBytes) {
+    _bundleBytes = new Uint8Array(await (await fetch(fullBundleUrl())).arrayBuffer());
+  }
+  return _bundleBytes;
+}
+
+/** Run Tier-1 conformance of `turtle` against the bundle shapes, returning the
+ * canonical diagnostics report `{ tool, findings: [...] }`. */
+export async function runFixtureValidation(turtle, origin) {
+  await ensureValidator();
+  const bundle = await fullBundleBytes();
+  return JSON.parse(wasmValidate(turtle, "turtle", bundle, GMEOW_NS, origin || "fixture.ttl"));
+}
+
+function renderFindings(container, report, catalogHref) {
+  const findings = report.findings ?? [];
+  container.replaceChildren();
+  if (findings.length === 0) {
+    container.textContent = "Conforms — no Tier-1 findings.";
+    return;
+  }
+  const ul = document.createElement("ul");
+  // Stable sort so the rendered order is deterministic (native/wasm comparable).
+  for (const f of [...findings].sort((a, b) =>
+    `${a.code} ${a.message}`.localeCompare(`${b.code} ${b.message}`),
+  )) {
+    const li = document.createElement("li");
+    // The finding `code` IS the constraint-catalog anchor (the validator's helpUri
+    // slug); link into the catalog when a base href is supplied.
+    const code = catalogHref
+      ? Object.assign(document.createElement("a"), {
+          href: `${catalogHref}#${f.code}`,
+          textContent: f.code,
+        })
+      : Object.assign(document.createElement("code"), { textContent: f.code });
+    li.append(`${f.severity ?? "error"}: `, code, ` — ${f.message ?? ""}`);
+    ul.append(li);
+  }
+  container.replaceChildren(ul);
+}
+
+for (const btn of document.querySelectorAll(".gmeow-run-validation")) {
+  btn.addEventListener("click", async () => {
+    const results = btn.parentElement.querySelector(".gmeow-validation-results");
+    results.textContent = "Validating…";
+    try {
+      const turtle = new TextDecoder().decode(
+        Uint8Array.from(atob(btn.dataset.turtle), (c) => c.charCodeAt(0)),
+      );
+      renderFindings(
+        results,
+        await runFixtureValidation(turtle, btn.dataset.origin),
+        btn.dataset.catalogHref,
+      );
+    } catch (e) {
+      results.textContent = `Validation failed: ${e.message ?? e}`;
+    }
+  });
+}
+
+// ── Bundle explorer (W2b) ───────────────────────────────────────────────────
+// Browser `gmeow info`/`describe` over the object-level core bundle: load it via
+// the shared loader, show the `info` summary, and run a client-side `DESCRIBE` for
+// the entered term. The DESCRIBE is the SAME the native `gmeow describe` produces
+// (proven byte-identical by the F2 witness lane).
+const explorerForm = document.getElementById("gmeow-explorer-form");
+if (explorerForm) {
+  const infoEl = document.getElementById("gmeow-explorer-info");
+  const iriEl = document.getElementById("gmeow-explorer-iri");
+  const resultsEl = document.getElementById("gmeow-explorer-results");
+  let explorerDataset = null;
+  loadCoreBundle()
+    .then((ds) => {
+      explorerDataset = ds;
+      infoEl.textContent = `info — ${ds.size} triples in the object-level core bundle.`;
+    })
+    .catch((e) => {
+      infoEl.textContent = `Failed to load the bundle: ${e.message ?? e}`;
+    });
+  explorerForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!explorerDataset) return;
+    const term = iriEl.value.trim();
+    if (!term) return;
+    // A CURIE (gmeow:Foo) or a full IRI; the describe query brackets a full IRI.
+    const subject = term.includes("://") ? `<${term}>` : term;
+    resultsEl.replaceChildren();
+    try {
+      const turtle = explorerDataset.query(
+        `PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\nDESCRIBE ${subject}`,
+      );
+      const pre = document.createElement("pre");
+      pre.textContent = turtle && turtle.trim() ? turtle : "No triples describe that term.";
+      resultsEl.append(pre);
+    } catch (err) {
+      resultsEl.textContent = `Describe error: ${err.message ?? err}`;
+    }
+  });
+}
+
+// ── Shared reasoner single-flight ───────────────────────────────────────────
+// The vendored gmeow-reason-wasm engine backs BOTH the live entailment panel (W4b)
+// and the conjecture playground (W4). Boot it exactly once, sharing one instantiation
+// promise across both surfaces (reuse `_reasonReady`, never a second wasm fetch).
+let _reasonReady = null;
+const ensureReasoner = async () => {
+  if (!_reasonReady) {
+    _reasonReady = reasonInit(new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url));
+  }
+  await _reasonReady;
+};
+
+// ── Live entailment panel (W4b) ─────────────────────────────────────────────
+// Run the native GMEOW structured-DL reasoner (gmeow-reason-wasm) over pasted RDF
+// entirely in-browser and show the inference diff (the entailed triples). The wasm
+// chase is byte-identical to the native one (proven by the F3 witness lane).
+const reasonForm = document.getElementById("gmeow-reason-form");
+if (reasonForm) {
+  const inputEl = document.getElementById("gmeow-reason-input");
+  const resultsEl = document.getElementById("gmeow-reason-results");
+  reasonForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsEl.textContent = "Reasoning…";
+    try {
+      await ensureReasoner();
+      const closure = wasmReason(inputEl.value, "turtle");
+      const lines = closure.split("\n").filter((l) => l.trim());
+      resultsEl.replaceChildren();
+      const h = document.createElement("p");
+      h.textContent =
+        lines.length === 0
+          ? "No new entailments."
+          : `Entailed ${lines.length} triple${lines.length === 1 ? "" : "s"}:`;
+      const pre = document.createElement("pre");
+      pre.textContent = closure.trim();
+      resultsEl.append(h, pre);
+    } catch (e) {
+      resultsEl.textContent = `Reasoning failed: ${e.message ?? e}`;
+    }
+  });
+}
+
+// ── Conjecture playground (W4) ──────────────────────────────────────────────
+// Run the native GMEOW SYMMETRIC conjecture engine (gmeow-reason-wasm's `conjecture`
+// export) entirely in-browser and render BOTH legs of the test: the proof leg
+// (KB ⊨ φ), the counterproof leg (KB ∪ {φ} ⊨ ⊥) with its contradiction witness, and
+// the Belnap classification. The wasm verdict is byte-identical to the native one
+// (proven by the W4 conjecture witness lane). On boot the controller fetches +
+// byte-verifies the curated demo library against the bundle manifest (a truncated or
+// swapped asset is rejected), then offers a set of runnable demos exercising every
+// Belnap-to-lifecycle branch.
+const conjectureForm = document.getElementById("gmeow-conjecture-form");
+if (conjectureForm) {
+  const LOGIC_PREFIX =
+    "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n" +
+    "@prefix ex:  <http://ex/> .\n" +
+    "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n";
+  const STANDPOINT =
+    "https://blackcatinformatics.ca/gmeow/examples/conjecture/demo-standpoint";
+  // A reified ground-atom candidate `ex:a rdf:type ex:B`.
+  const GROUND_ATOM =
+    LOGIC_PREFIX +
+    "ex:phi a logic:Formula ;\n" +
+    "    logic:relation rdf:type ;\n" +
+    "    logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;\n" +
+    "    logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .\n";
+  // A universally-quantified Horn candidate `∀x. trigger(x, mark) → rdf:type(x, B)`.
+  const FORALL_HORN =
+    LOGIC_PREFIX +
+    "ex:cand a logic:Formula ;\n" +
+    "    logic:forall ex:body ;\n" +
+    '    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] .\n' +
+    "ex:body a logic:Formula ;\n" +
+    "    logic:antecedent ex:ant ;\n" +
+    "    logic:consequent ex:con .\n" +
+    "ex:ant a logic:Formula ;\n" +
+    "    logic:relation ex:trigger ;\n" +
+    '    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] ;\n' +
+    "    logic:argument [ logic:termIndex 1 ; logic:termIri ex:mark ] .\n" +
+    "ex:con a logic:Formula ;\n" +
+    "    logic:relation rdf:type ;\n" +
+    '    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] ;\n' +
+    "    logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .\n";
+  // Each demo is a self-contained (formula, KB, standpoint) triple that decisively
+  // exercises one Belnap-to-lifecycle branch — so the symmetric legs are observable.
+  const DEMOS = [
+    {
+      id: "corroborated",
+      label: "Corroborated — the proof leg fires (KB ⊨ φ)",
+      formula: GROUND_ATOM,
+      kb:
+        "@prefix ex:  <http://ex/> .\n" +
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+        "ex:a rdf:type ex:B .\n",
+    },
+    {
+      id: "refuted",
+      label: "Refuted-in-standpoint — the counterproof leg fires (KB ∪ {φ} ⊨ ⊥), with witness",
+      formula: FORALL_HORN,
+      kb:
+        "@prefix ex:  <http://ex/> .\n" +
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n" +
+        "ex:a ex:trigger ex:mark .\n" +
+        "ex:a rdf:type ex:A .\n" +
+        "ex:A owl:disjointWith ex:B .\n",
+    },
+    {
+      id: "open",
+      label: "Open — neither leg fires (no proof, no counterproof)",
+      formula: FORALL_HORN,
+      kb:
+        "@prefix ex:  <http://ex/> .\n" +
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+        "ex:a ex:trigger ex:mark .\n" +
+        "ex:a rdf:type ex:A .\n",
+    },
+  ];
+
+  const statusEl = document.getElementById("gmeow-conjecture-status");
+  const selectEl = document.getElementById("gmeow-conjecture-select");
+  const resultsEl = document.getElementById("gmeow-conjecture-results");
+  for (const demo of DEMOS) {
+    const opt = document.createElement("option");
+    opt.value = demo.id;
+    opt.textContent = demo.label;
+    selectEl.append(opt);
+  }
+
+  // Verify the shipped curated demo library is byte-intact against the manifest — the
+  // same integrity discipline `loadCoreBundle` applies (a missing manifest entry or a
+  // byte-length mismatch is a HARD FAILURE, never a silent bypass).
+  const verifyLibrary = async () => {
+    const manifest = await (
+      await fetch(new URL("./bundle-manifest.json", import.meta.url))
+    ).json();
+    const ttl = await (
+      await fetch(new URL("./conjectures.ttl", import.meta.url))
+    ).text();
+    const expected = manifest["assets/conjectures.ttl"]?.bytes;
+    const actual = new TextEncoder().encode(ttl).length;
+    if (expected === undefined) {
+      throw new Error(
+        "conjecture library integrity: manifest is missing the assets/conjectures.ttl " +
+          "entry — cannot verify the demo library (a missing manifest entry is a hard failure)",
+      );
+    }
+    if (actual !== expected) {
+      throw new Error(
+        `conjecture library integrity: expected ${expected} bytes, got ${actual}`,
+      );
+    }
+  };
+
+  // Parse the deterministic verdict N-Triples for the facets the panel renders: the
+  // lifecycle, the Belnap information state (which decides the two legs), and the
+  // contradiction-witness premises (present exactly for a refutation).
+  const parseVerdict = (nt) => {
+    const local = (iri) => iri.slice(iri.lastIndexOf("/") + 1);
+    let lifecycle = null;
+    let information = null;
+    const premises = [];
+    for (const line of nt.split("\n")) {
+      const m = line.match(/<([^>]*)>\s+<([^>]*)>\s+(.*)\s\.\s*$/);
+      if (!m) continue;
+      const [, , pred, obj] = m;
+      if (pred.endsWith("/conjectureLifecycleState")) {
+        lifecycle = local(obj.replace(/[<>]/g, ""));
+      } else if (pred.endsWith("/resultInformation")) {
+        information = local(obj.replace(/[<>]/g, ""));
+      } else if (pred.endsWith("/witnessPremise")) {
+        const lit = obj.match(/^"((?:[^"\\]|\\.)*)"/);
+        if (lit) premises.push(lit[1]);
+      }
+    }
+    // The symmetric legs, read off the Belnap information state.
+    const hasProof = information === "InfoSupported" || information === "InfoBoth";
+    const hasCounterproof = information === "InfoOpposed" || information === "InfoBoth";
+    return { lifecycle, information, premises, hasProof, hasCounterproof };
+  };
+
+  const leg = (ok) => (ok ? "✓ holds" : "✗ does not hold");
+
+  verifyLibrary().then(
+    () => {
+      statusEl.textContent =
+        "Ready — pick a curated demo and press Test to run the symmetric engine.";
+    },
+    (e) => {
+      statusEl.textContent = `Conjecture library failed to load: ${e.message ?? e}`;
+    },
+  );
+
+  conjectureForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsEl.textContent = "Testing…";
+    try {
+      await ensureReasoner();
+      const demo = DEMOS.find((d) => d.id === selectEl.value) ?? DEMOS[0];
+      const nt = wasmConjecture(demo.kb, "turtle", demo.formula, STANDPOINT);
+      const v = parseVerdict(nt);
+      resultsEl.replaceChildren();
+
+      const verdict = document.createElement("p");
+      verdict.className = "gmeow-conjecture-verdict";
+      verdict.textContent = `Lifecycle: ${v.lifecycle ?? "unknown"} · Belnap: ${
+        v.information ?? "unknown"
+      }`;
+
+      const legs = document.createElement("ul");
+      const proof = document.createElement("li");
+      proof.textContent = `Proof leg (KB ⊨ φ): ${leg(v.hasProof)}`;
+      const counter = document.createElement("li");
+      counter.textContent = `Counterproof leg (KB ∪ {φ} ⊨ ⊥): ${leg(
+        v.hasCounterproof,
+      )}`;
+      legs.append(proof, counter);
+      resultsEl.append(verdict, legs);
+
+      if (v.premises.length) {
+        const wh = document.createElement("p");
+        wh.textContent = "Contradiction witness — the jointly-inconsistent premises:";
+        const wl = document.createElement("ul");
+        for (const p of v.premises.slice().sort()) {
+          const li = document.createElement("li");
+          const code = document.createElement("code");
+          code.textContent = p;
+          li.append(code);
+          wl.append(li);
+        }
+        resultsEl.append(wh, wl);
+      }
+
+      const h = document.createElement("p");
+      h.textContent = "Verdict (deterministic N-Triples projection):";
+      const pre = document.createElement("pre");
+      pre.textContent = nt.trim();
+      resultsEl.append(h, pre);
+    } catch (e) {
+      resultsEl.textContent = `Conjecture test failed: ${e.message ?? e}`;
+    }
+  });
+}
+
+// Transcode authored RDF into the token-compact GMN-1 surface and back
+// (gmeow-gmn-wasm) entirely in-browser. `to_gmn1` then `from_gmn1` is the round-trip
+// the native↔wasm witness pins byte-for-byte; the panel shows both legs plus the
+// codebook's glyph legend (each glyph's real LLM-token cost).
+const gmnForm = document.getElementById("gmeow-gmn-form");
+if (gmnForm) {
+  let _gmnReady = null;
+  const ensureGmn = async () => {
+    if (!_gmnReady) {
+      _gmnReady = gmnInit(new URL("./gmn/gmeow_gmn_wasm_bg.wasm", import.meta.url));
+    }
+    await _gmnReady;
+  };
+  const inputEl = document.getElementById("gmeow-gmn-input");
+  const legendEl = document.getElementById("gmeow-gmn-legend");
+  const resultsEl = document.getElementById("gmeow-gmn-results");
+  // Render the glyph legend once the engine is up (deterministic, from the codebook).
+  const renderLegend = () => {
+    if (!legendEl || legendEl.childElementCount) return;
+    try {
+      const entries = JSON.parse(wasmGlyphLegend());
+      if (!entries.length) return;
+      const label = document.createElement("span");
+      label.textContent = "Glyphs: ";
+      legendEl.append(label);
+      for (const { glyph, tokenCost } of entries) {
+        const chip = document.createElement("span");
+        chip.className = "gmeow-gmn-glyph";
+        chip.textContent = glyph;
+        chip.title = `${glyph} — ${tokenCost} LLM token${tokenCost === 1 ? "" : "s"}`;
+        legendEl.append(chip);
+      }
+    } catch {
+      /* legend is auxiliary — never block the transcode on it */
+    }
+  };
+  gmnForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resultsEl.textContent = "Transcoding…";
+    try {
+      await ensureGmn();
+      renderLegend();
+      const gmn1 = wasmToGmn1(inputEl.value, "turtle");
+      const back = wasmFromGmn1(gmn1);
+      resultsEl.replaceChildren();
+      const h1 = document.createElement("p");
+      h1.textContent = "GMN-1 surface:";
+      const pre1 = document.createElement("pre");
+      pre1.textContent = gmn1.trim();
+      const h2 = document.createElement("p");
+      h2.textContent = "Reads back to (canonical N-Quads):";
+      const pre2 = document.createElement("pre");
+      pre2.textContent = back.trim();
+      resultsEl.append(h1, pre1, h2, pre2);
+    } catch (e) {
+      resultsEl.textContent = `Transcode failed: ${e.message ?? e}`;
+    }
+  });
+}
 
 const form = document.getElementById("gmeow-sparql");
 const queryEl = document.getElementById("gmeow-sparql-query");
@@ -37,7 +516,7 @@ let dataset = null;
 
 async function main() {
   setStatus("Loading the query engine…");
-  await init(new URL("./purrdf/gmeow_rdf_wasm_bg.wasm", import.meta.url));
+  await ensureEngine();
 
   setStatus("Loading the ontology…");
   const trig = await (await fetch(new URL("./playground.trig", import.meta.url))).text();

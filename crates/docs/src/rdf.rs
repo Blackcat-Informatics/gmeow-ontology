@@ -22,6 +22,7 @@ use crate::render::{
     concern_display, concern_slug, precompute_alignment_facets, provenance_chain, slice_display,
     slice_slug, term_advice_facet, term_slug,
 };
+use crate::source_map::SourceToPageMap;
 
 /// The GMEOW namespace IRI prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -549,6 +550,76 @@ pub fn to_gmeow_rdf(
                 &subject,
                 &format!("{GMEOW}docEarnedMaturity"),
                 &format!("<{GMEOW}{}>", anchor.local_name()),
+                &mut lines,
+            );
+        }
+    }
+
+    // Canonical slice-Markdown documents (docs.md + every recursively-discovered
+    // `text/markdown` source). Each document is projected as a first-class
+    // `gmeow:DocumentedDocument` carrying its owning slice, normalized source path,
+    // title, raw content digest, and its RESOLVED generated page location — the
+    // last minted by the single `SourceToPageMap` link-rewrite authority, so the
+    // "no dangling internal document link" invariant is a graph-level check rather
+    // than a per-renderer string pass. The map is a pure function of the model's
+    // document set, already validated at discovery (a UTF-8, path-collision, or
+    // page-collision defect hard-fails there), so re-building it here is total.
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
+    for slice in &model.slices {
+        for doc in &slice.documents {
+            let Some(node_slug) = page_map.node_slug(&doc.slice_iri, &doc.source_path) else {
+                continue;
+            };
+            let subject = format!("<{GMEOW}documentation/document/{node_slug}>");
+            triple(
+                &subject,
+                RDF_TYPE,
+                &format!("<{GMEOW}DocumentedDocument>"),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}documents"),
+                &format!("<{}>", doc.slice_iri),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}docSourcePath"),
+                &literal(&doc.source_path),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}docTitle"),
+                &literal(&doc.title),
+                &mut lines,
+            );
+            triple(
+                &subject,
+                &format!("{GMEOW}docRawDigest"),
+                &literal(&doc.raw_digest),
+                &mut lines,
+            );
+            // The RESOLVED page location — the resolver projection. `page_of`
+            // returns the trailing-slash page path the `SourceToPageMap` minted;
+            // the top-level `docs.md` resolves to its slice page.
+            if let Some(page) = page_map.page_of(&doc.slice_iri, &doc.source_path) {
+                triple(
+                    &subject,
+                    &format!("{GMEOW}docUrl"),
+                    &literal(page),
+                    &mut lines,
+                );
+            }
+            annotate(
+                &subject,
+                &doc.title,
+                &format!(
+                    "Documentation page for `{}` in slice {}.",
+                    doc.source_path, doc.slice_iri
+                ),
                 &mut lines,
             );
         }
@@ -1494,6 +1565,7 @@ mod tests {
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline: None,
@@ -1555,6 +1627,7 @@ mod tests {
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),
+            advice_entries: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             pipeline: None,

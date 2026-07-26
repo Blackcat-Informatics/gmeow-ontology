@@ -46,7 +46,7 @@
     {
       "severity": "warning",
       "code": "slice-quality.axis-advice",
-      "message": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).",
+      "message": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },

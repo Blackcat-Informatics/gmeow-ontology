@@ -2,21 +2,41 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! A small, dependency-free DAG runner for the full host gate. It owns the
-//! worktree lock, runs synchronization and Rust preparation once, then schedules
-//! independent gates concurrently without imposing a thread cap on any child
-//! tool.
+//! HOST-GLOBAL gate lock (`make check`/`make regen` mutually exclude across every
+//! worktree on the machine — see [`host_lock_path`]), runs synchronization and Rust
+//! preparation once, then schedules independent gates concurrently without imposing a
+//! thread cap on any child tool.
 
 mod evidence;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{File, OpenOptions, TryLockError};
 use std::io::{Read, Seek, SeekFrom, Write};
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitCode, Stdio};
 use std::time::{Duration, Instant};
 
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
+/// Overrides the host-global gate-lock path (for CI runners or tests that want a
+/// scoped lock instead of the machine-wide one).
+const HOST_LOCK_ENV: &str = "GMEOW_TASK_HOST_LOCK";
+
+/// The HOST-GLOBAL gate-lock path. `make check` and `make regen` take THIS lock, so at
+/// most ONE GMEOW gate runs on the entire host at a time — regardless of worktree —
+/// and concurrent gates in sibling worktrees can never interfere (shared build/target
+/// contention, disk pressure, or a mid-flight bundle regeneration another worktree
+/// reads). `/tmp` is present and shared by every process on the host; override with
+/// [`HOST_LOCK_ENV`]. Kept byte-identical to the `gmeow-dev` copy so both agree.
+fn host_lock_path() -> PathBuf {
+    if let Some(explicit) = std::env::var_os(HOST_LOCK_ENV)
+        && !explicit.is_empty()
+    {
+        return PathBuf::from(explicit);
+    }
+    PathBuf::from("/tmp/gmeow-task/host-runner.lock")
+}
 const TOOLCHAIN_RECEIPT_FILES: &[&str] = &[
     "Cargo.toml",
     "Cargo.lock",
@@ -49,7 +69,6 @@ const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "rust-gate",
     "validate",
-    "validate-gts",
     "constitution-check",
     "crate-check",
     "audit",
@@ -57,6 +76,7 @@ const FINAL_DEPS: &[&str] = &[
     "coverage",
     "acceptance",
     "reason-verify",
+    "wasm-parity",
     "lint-alignment",
     "i18n-lint",
     "doc-lint",
@@ -92,11 +112,6 @@ const CHECK_DAG: &[Task] = &[
         dependencies: AFTER_SYNC,
     },
     Task {
-        name: "validate-gts",
-        target: "validate-gts",
-        dependencies: AFTER_SYNC,
-    },
-    Task {
         name: "constitution-check",
         target: "constitution-check",
         dependencies: AFTER_SYNC,
@@ -129,6 +144,11 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "reason-verify",
         target: "reason-verify",
+        dependencies: AFTER_SYNC,
+    },
+    Task {
+        name: "wasm-parity",
+        target: "wasm-parity",
         dependencies: AFTER_SYNC,
     },
     Task {
@@ -174,12 +194,16 @@ struct WorktreeLock {
 
 impl WorktreeLock {
     fn acquire(root: &Path) -> Option<Self> {
-        let dir = root.join(".cache/gmeow-task");
-        if let Err(e) = std::fs::create_dir_all(&dir) {
-            eprintln!("xtask: create {}: {e}", dir.display());
-            return None;
+        let path = host_lock_path();
+        if let Some(dir) = path.parent() {
+            if let Err(e) = std::fs::create_dir_all(dir) {
+                eprintln!("xtask: create {}: {e}", dir.display());
+                return None;
+            }
+            // Sticky + world-writable so a gate started by ANY user on the host contends
+            // on this SAME lock file (true host-global atomicity), not just this user's.
+            let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o1777));
         }
-        let path = dir.join("runner.lock");
         let mut file = match OpenOptions::new()
             .read(true)
             .write(true)
@@ -189,10 +213,13 @@ impl WorktreeLock {
         {
             Ok(file) => file,
             Err(e) => {
-                eprintln!("xtask: open {}: {e}", path.display());
+                eprintln!("xtask: open host gate lock {}: {e}", path.display());
                 return None;
             }
         };
+        // World-writable so a cross-user holder can still record its owner line; the
+        // flock below is the actual host-wide mutual-exclusion guarantee.
+        let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
         match file.try_lock() {
             Ok(()) => {
                 let owner = format!(
@@ -200,26 +227,28 @@ impl WorktreeLock {
                     std::process::id(),
                     root.display()
                 );
-                if let Err(e) = file
+                // Owner line is diagnostic only (a cross-user pre-existing file may deny
+                // the write); the flock is what makes the gate host-atomic, so a failed
+                // owner write must NOT drop the lock.
+                let _ = file
                     .set_len(0)
                     .and_then(|()| file.seek(SeekFrom::Start(0)).map(|_| ()))
                     .and_then(|()| file.write_all(owner.as_bytes()))
-                    .and_then(|()| file.flush())
-                {
-                    eprintln!("xtask: initialize worktree lock: {e}");
-                    return None;
-                }
+                    .and_then(|()| file.flush());
                 Some(Self { file })
             }
             Err(TryLockError::WouldBlock) => {
                 let mut owner = String::new();
                 let _ = file.seek(SeekFrom::Start(0));
                 let _ = file.read_to_string(&mut owner);
-                eprintln!("xtask: worktree task already running: {}", owner.trim());
+                eprintln!(
+                    "xtask: another GMEOW gate is already running on this host: {}",
+                    owner.trim()
+                );
                 None
             }
             Err(TryLockError::Error(e)) => {
-                eprintln!("xtask: acquire worktree lock: {e}");
+                eprintln!("xtask: acquire host gate lock: {e}");
                 None
             }
         }

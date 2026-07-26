@@ -98,7 +98,7 @@ gmeow:ClaimNeedsEvidenceShape
         sh:select """
             PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
             SELECT ?this WHERE {
-                ?this a gmeow:StandpointClaim ;
+                ?this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* gmeow:StandpointClaim ;
                       gmeow:observationMethod gmeow:methodLlmExtraction .
             }
         """ ;

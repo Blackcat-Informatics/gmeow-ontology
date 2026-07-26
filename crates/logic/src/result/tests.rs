@@ -307,6 +307,7 @@ fn verdict(consistent: bool, unsupported: Vec<&str>) -> DlVerdict {
             unsupported: unsupported.into_iter().map(str::to_owned).collect(),
         },
         gaps: Vec::new(),
+        boundary_findings: Vec::new(),
     }
 }
 

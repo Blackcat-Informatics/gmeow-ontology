@@ -25,364 +25,290 @@ gmeow:mapsetCreativeWorks a gmeow:MappingSet ;
 # FRBRcore — the canonical WEMI vocabulary
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Work ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject frbr:Work ;
+gmeow:Work owl:equivalentClass frbr:Work {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "FRBR Work — abstract intellectual creation." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FRBR Work — abstract intellectual creation."
+|} .
 
-gmeow:eqCw002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Expression ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject frbr:Expression ;
+gmeow:Expression owl:equivalentClass frbr:Expression {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "FRBR Expression — realization in language/notation." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FRBR Expression — realization in language/notation."
+|} .
 
-gmeow:eqCw003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Manifestation ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject frbr:Manifestation ;
+gmeow:Manifestation owl:equivalentClass frbr:Manifestation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "FRBR Manifestation — edition/format/release." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FRBR Manifestation — edition/format/release."
+|} .
 
-gmeow:eqCw004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Item ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject frbr:Item ;
+gmeow:Item owl:equivalentClass frbr:Item {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "FRBR Item — single exemplar." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FRBR Item — single exemplar."
+|} .
 
-gmeow:eqCw005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:realizes ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject frbr:realization ;
+gmeow:realizes owl:equivalentProperty frbr:realization {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Expression realizes Work." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Expression realizes Work."
+|} .
 
-gmeow:eqCw006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:embodies ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject frbr:embodiment ;
+gmeow:embodies owl:equivalentProperty frbr:embodiment {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Manifestation embodies Expression." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Manifestation embodies Expression."
+|} .
 
-gmeow:eqCw007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:exemplifies ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject frbr:exemplar ;
+gmeow:exemplifies owl:equivalentProperty frbr:exemplar {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Item exemplifies Manifestation." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Item exemplifies Manifestation."
+|} .
 
 # --------------------------------------------------------------------------- #
 # FaBiO — SPAR ontologies for scholarly works
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Work ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fabio:Work ;
+gmeow:Work skos:closeMatch fabio:Work {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "FaBiO Work is scholarly-publication-scoped; GMEOW Work is universal." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FaBiO Work is scholarly-publication-scoped; GMEOW Work is universal."
+|} .
 
-gmeow:eqCw009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Expression ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fabio:Expression ;
+gmeow:Expression skos:closeMatch fabio:Expression {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "FaBiO Expression is scholarly-scoped." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FaBiO Expression is scholarly-scoped."
+|} .
 
-gmeow:eqCw010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Manifestation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fabio:Manifestation ;
+gmeow:Manifestation skos:closeMatch fabio:Manifestation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "FaBiO Manifestation is scholarly-scoped." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FaBiO Manifestation is scholarly-scoped."
+|} .
 
-gmeow:eqCw011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Item ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fabio:Item ;
+gmeow:Item skos:closeMatch fabio:Item {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "FaBiO Item is scholarly-scoped." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "FaBiO Item is scholarly-scoped."
+|} .
 
 # --------------------------------------------------------------------------- #
 # LRMoo — object-oriented LRM (ex-FRBRoo)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Work ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject lrmoo:F1_Work ;
+gmeow:Work owl:equivalentClass lrmoo:F1_Work {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "LRMoo F1 Work — aligned by reference, not axiom import." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "LRMoo F1 Work — aligned by reference, not axiom import."
+|} .
 
-gmeow:eqCw013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Expression ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject lrmoo:F2_Expression ;
+gmeow:Expression owl:equivalentClass lrmoo:F2_Expression {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "LRMoo F2 Expression." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "LRMoo F2 Expression."
+|} .
 
-gmeow:eqCw014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Manifestation ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject lrmoo:F3_Manifestation ;
+gmeow:Manifestation owl:equivalentClass lrmoo:F3_Manifestation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "LRMoo F3 Manifestation." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "LRMoo F3 Manifestation."
+|} .
 
-gmeow:eqCw015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Item ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject lrmoo:F5_Item ;
+gmeow:Item owl:equivalentClass lrmoo:F5_Item {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "LRMoo F5 Item." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "LRMoo F5 Item."
+|} .
 
-gmeow:eqCw016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeWorkConception ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lrmoo:F27_Work_Conception ;
+gmeow:eventTypeWorkConception skos:closeMatch lrmoo:F27_Work_Conception {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "LRMoo F27 Work Conception ≈ GMEOW event type value." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "LRMoo F27 Work Conception ≈ GMEOW event type value."
+|} .
 
-gmeow:eqCw017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeExpressionCreation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lrmoo:F28_Expression_Creation ;
+gmeow:eventTypeExpressionCreation skos:closeMatch lrmoo:F28_Expression_Creation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "LRMoo F28 Expression Creation ≈ GMEOW event type value." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "LRMoo F28 Expression Creation ≈ GMEOW event type value."
+|} .
 
 # --------------------------------------------------------------------------- #
 # CIDOC-CRM — creation events
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeWorkConception ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject crm:E65_Creation ;
+gmeow:eventTypeWorkConception skos:broadMatch crm:E65_Creation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "CIDOC E65 Creation is broader than work conception." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CIDOC E65 Creation is broader than work conception."
+|} .
 
 # --------------------------------------------------------------------------- #
 # BIBFRAME 2.0 — Library of Congress
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Work ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bibframe:Work ;
+gmeow:Work skos:closeMatch bibframe:Work {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Lossy: BIBFRAME conflates Work+Expression by design." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Lossy: BIBFRAME conflates Work+Expression by design."
+|} .
 
-gmeow:eqCw020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Manifestation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bibframe:Instance ;
+gmeow:Manifestation skos:closeMatch bibframe:Instance {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "BIBFRAME Instance ≈ FRBR Manifestation." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "BIBFRAME Instance ≈ FRBR Manifestation."
+|} .
 
-gmeow:eqCw021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Item ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject bibframe:Item ;
+gmeow:Item skos:closeMatch bibframe:Item {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "BIBFRAME Item ≈ FRBR Item." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "BIBFRAME Item ≈ FRBR Item."
+|} .
 
 # --------------------------------------------------------------------------- #
 # schema.org — lossy projection layer
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWork ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject schema:CreativeWork ;
+gmeow:CreativeWork skos:exactMatch schema:CreativeWork {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "co-extensive at the top creative-work class; schema.org flattening the WEMI sub-structure is a preservation loss, not an extension difference — the WEMI tiers (gmeow:Work etc.) map separately by closeMatch" ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "co-extensive at the top creative-work class; schema.org flattening the WEMI sub-structure is a preservation loss, not an extension difference — the WEMI tiers (gmeow:Work etc.) map separately by closeMatch"
+|} .
 
-gmeow:eqCw023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Work ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:CreativeWork ;
+gmeow:Work skos:closeMatch schema:CreativeWork {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Lossy: schema.org has no Work/Expression distinction." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Lossy: schema.org has no Work/Expression distinction."
+|} .
 
-gmeow:eqCw024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:BookRelease ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:Book ;
+gmeow:BookRelease skos:broadMatch schema:Book {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "schema:Book is broader (may denote abstract work); BookRelease is concrete." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "schema:Book is broader (may denote abstract work); BookRelease is concrete."
+|} .
 
-gmeow:eqCw025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject schema:MediaObject ;
+gmeow:MediaObject skos:exactMatch schema:MediaObject {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "direct 1:1 correspondence; schema:ImageObject/AudioObject map in as narrower subclasses" ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "direct 1:1 correspondence; schema:ImageObject/AudioObject map in as narrower subclasses"
+|} .
 
-gmeow:eqCw026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:WebPage ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:WebPage ;
+gmeow:WebPage owl:equivalentClass schema:WebPage {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "Direct correspondence." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Direct correspondence."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — hub via authorityLink + skos:*Match (never owl:sameAs, P5)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Work ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q386724 ;
+gmeow:Work skos:closeMatch wd:Q386724 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'work' (Q386724)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'work' (Q386724)."
+|} .
 
-gmeow:eqCw028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Manifestation ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject wd:Q3331189 ;
+gmeow:Manifestation skos:broadMatch wd:Q3331189 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Wikidata 'version, edition or translation' (Q3331189) — lossy: muddles edition (Manifestation) and translation (Expression)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'version, edition or translation' (Q3331189) — lossy: muddles edition (Manifestation) and translation (Expression)."
+|} .
 
-gmeow:eqCw029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Document ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q571 ;
+gmeow:Document skos:closeMatch wd:Q571 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'book' (Q571) — close match to Document/Work." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'book' (Q571) — close match to Document/Work."
+|} .
 
-gmeow:eqCw030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeLiterary ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q7725634 ;
+gmeow:workTypeLiterary skos:exactMatch wd:Q7725634 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'literary work' (Q7725634)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'literary work' (Q7725634)."
+|} .
 
-gmeow:eqCw031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeWritten ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q47461344 ;
+gmeow:workTypeWritten skos:exactMatch wd:Q47461344 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'written work' (Q47461344)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'written work' (Q47461344)."
+|} .
 
-gmeow:eqCw032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeNarrative ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q1318295 ;
+gmeow:workTypeNarrative skos:exactMatch wd:Q1318295 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'narrative' (Q1318295)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'narrative' (Q1318295)."
+|} .
 
-gmeow:eqCw033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeMusical ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q2188189 ;
+gmeow:workTypeMusical skos:exactMatch wd:Q2188189 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'musical work' (Q2188189)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'musical work' (Q2188189)."
+|} .
 
 
 
-gmeow:eqCw035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeVisual ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q4502142 ;
+gmeow:workTypeVisual skos:exactMatch wd:Q4502142 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'visual artwork' (Q4502142)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'visual artwork' (Q4502142)."
+|} .
 
-gmeow:eqCw036 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypePhotographic ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q125191 ;
+gmeow:workTypePhotographic skos:exactMatch wd:Q125191 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'photograph' (Q125191)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'photograph' (Q125191)."
+|} .
 
-gmeow:eqCw037 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeAudiovisual ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject wd:Q478798 ;
+gmeow:workTypeAudiovisual skos:broadMatch wd:Q478798 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'image' (Q478798) — broader than audiovisual." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'image' (Q478798) — broader than audiovisual."
+|} .
 
-gmeow:eqCw038 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:workTypeFilm ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q11424 ;
+gmeow:workTypeFilm skos:exactMatch wd:Q11424 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'film' (Q11424)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'film' (Q11424)."
+|} .
 
 # --------------------------------------------------------------------------- #
 # CRediT — Contributor Roles Taxonomy (NISO Z39.104-2022)
@@ -394,171 +320,135 @@ gmeow:eqCw038 a gmeow:TermEquivalence ;
 # GMEOW rebuilds the role taxonomy natively (Principle 6) and bridges by
 # reference (Principle 5).
 
-gmeow:eqCw039 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleConceptualization ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:conceptualization ;
+gmeow:roleConceptualization skos:exactMatch credit:conceptualization {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT conceptualization role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT conceptualization role."
+|} .
 
-gmeow:eqCw040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleDataCuration ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:data-curation ;
+gmeow:roleDataCuration skos:exactMatch credit:data-curation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT data curation role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT data curation role."
+|} .
 
-gmeow:eqCw041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleFormalAnalysis ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:formal-analysis ;
+gmeow:roleFormalAnalysis skos:exactMatch credit:formal-analysis {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT formal analysis role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT formal analysis role."
+|} .
 
-gmeow:eqCw042 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleFundingAcquisition ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:funding-acquisition ;
+gmeow:roleFundingAcquisition skos:exactMatch credit:funding-acquisition {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT funding acquisition role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT funding acquisition role."
+|} .
 
-gmeow:eqCw043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleInvestigation ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:investigation ;
+gmeow:roleInvestigation skos:exactMatch credit:investigation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT investigation role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT investigation role."
+|} .
 
-gmeow:eqCw044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleMethodology ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:methodology ;
+gmeow:roleMethodology skos:exactMatch credit:methodology {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT methodology role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT methodology role."
+|} .
 
-gmeow:eqCw045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleProjectAdministration ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:project-administration ;
+gmeow:roleProjectAdministration skos:exactMatch credit:project-administration {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT project administration role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT project administration role."
+|} .
 
-gmeow:eqCw046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleResources ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:resources ;
+gmeow:roleResources skos:exactMatch credit:resources {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT resources role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT resources role."
+|} .
 
-gmeow:eqCw047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleSoftware ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:software ;
+gmeow:roleSoftware skos:exactMatch credit:software {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT software role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT software role."
+|} .
 
-gmeow:eqCw048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleSupervision ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:supervision ;
+gmeow:roleSupervision skos:exactMatch credit:supervision {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT supervision role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT supervision role."
+|} .
 
-gmeow:eqCw049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleValidation ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:validation ;
+gmeow:roleValidation skos:exactMatch credit:validation {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT validation role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT validation role."
+|} .
 
-gmeow:eqCw050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleVisualization ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:visualization ;
+gmeow:roleVisualization skos:exactMatch credit:visualization {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT visualization role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT visualization role."
+|} .
 
-gmeow:eqCw051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleWritingOriginalDraft ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:writing-original-draft ;
+gmeow:roleWritingOriginalDraft skos:exactMatch credit:writing-original-draft {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT writing – original draft role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT writing – original draft role."
+|} .
 
-gmeow:eqCw052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:roleWritingReviewEditing ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject credit:writing-review-editing ;
+gmeow:roleWritingReviewEditing skos:exactMatch credit:writing-review-editing {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:comment "CRediT writing – review & editing role." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "CRediT writing – review & editing role."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata — music-specific universal terms added by music universal terms
 # --------------------------------------------------------------------------- #
 
-gmeow:eqCw057 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:derivationTypeCover ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q155171 ;
+gmeow:derivationTypeCover skos:exactMatch wd:Q155171 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'cover version' (Q155171)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'cover version' (Q155171)."
+|} .
 
-gmeow:eqCw058 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:derivationTypeRemix ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q214272 ;
+gmeow:derivationTypeRemix skos:exactMatch wd:Q214272 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'remix' (Q214272)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'remix' (Q214272)."
+|} .
 
-gmeow:eqCw059 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:derivationTypeArrangement ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q379755 ;
+gmeow:derivationTypeArrangement skos:exactMatch wd:Q379755 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata 'arrangement' (Q379755)." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'arrangement' (Q379755)."
+|} .
 
-gmeow:eqCw060 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Genre ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q188451 ;
+gmeow:Genre skos:closeMatch wd:Q188451 {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'music genre' (Q188451) — GMEOW Genre is a broader, cross-domain information object." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "Wikidata 'music genre' (Q188451) — GMEOW Genre is a broader, cross-domain information object."
+|} .
 
 
 # --------------------------------------------------------------------------- #
@@ -573,136 +463,106 @@ gmeow:eqCw060 a gmeow:TermEquivalence ;
 # GMEOW captures these as Contribution relators; the flat properties below
 # are the lossy shortcut equivalents.
 
-gmeow:eqCw053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:contributor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pav:contributedBy ;
+gmeow:contributor skos:closeMatch pav:contributedBy {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "PAV contributedBy is a flat property; GMEOW contributor is the relator player." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "PAV contributedBy is a flat property; GMEOW contributor is the relator player."
+|} .
 
-gmeow:eqCw054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:datePublished ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pav:authoredOn ;
+gmeow:datePublished skos:closeMatch pav:authoredOn {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "PAV authoredOn is content-authorship date; GMEOW datePublished is the manifestation release date." ;
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "PAV authoredOn is content-authorship date; GMEOW datePublished is the manifestation release date."
+|} .
 
-gmeow:eqCw055 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAuthor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:made ;
+gmeow:hasAuthor skos:closeMatch foaf:made {|
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "linkage row declaring the foaf projection's made inverse (work-to-agent vs agent-to-work — close, deliberately not strong; the projection emits the inverse template, PROV activity alignment phase 3)";
-    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+    gmeow:comment "linkage row declaring the foaf projection's made inverse (work-to-agent vs agent-to-work — close, deliberately not strong; the projection emits the inverse template, PROV activity alignment phase 3)"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqDcTerms017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:requires ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:requires ;
+gmeow:requires skos:closeMatch dcterms:requires {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DCTerms requires — a related resource that is required by the described resource" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms requires — a related resource that is required by the described resource"
+|} .
 
-gmeow:eqDcTerms018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:isRequiredBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isRequiredBy ;
+gmeow:isRequiredBy skos:closeMatch dcterms:isRequiredBy {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DCTerms isRequiredBy — a related resource that requires the described resource" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms isRequiredBy — a related resource that requires the described resource"
+|} .
 
-gmeow:eqDcTerms021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasVersion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:hasVersion ;
+gmeow:hasVersion skos:closeMatch dcterms:hasVersion {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms hasVersion — a related resource that is a version of the described resource" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms hasVersion — a related resource that is a version of the described resource"
+|} .
 
-gmeow:eqDcTerms023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:conformsTo ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:conformsTo ;
+gmeow:conformsTo skos:closeMatch dcterms:conformsTo {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms conformsTo — an established standard to which the described resource conforms" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms conformsTo — an established standard to which the described resource conforms"
+|} .
 
-gmeow:eqDcTerms028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:medium ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:medium ;
+gmeow:medium skos:closeMatch dcterms:medium {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DCTerms medium — the material or physical carrier of a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms medium — the material or physical carrier of a creative work"
+|} .
 
-gmeow:eqDcTerms029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:audience ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:audience ;
+gmeow:audience skos:closeMatch dcterms:audience {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DCTerms audience — the intended audience of a creative work" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms audience — the intended audience of a creative work"
+|} .
 
-gmeow:eqDcTerms032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasManifestationFormat ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:format ;
+gmeow:hasManifestationFormat skos:closeMatch dcterms:format {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "DCTerms format — the file format, physical medium, or dimensions of the resource. GMEOW hasManifestationFormat covers the physical/digital carrier aspect; extent covers the size/duration aspect." ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms format — the file format, physical medium, or dimensions of the resource. GMEOW hasManifestationFormat covers the physical/digital carrier aspect; extent covers the size/duration aspect."
+|} .
 
-gmeow:eqProperties010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAuthor ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:author ;
+gmeow:hasAuthor owl:equivalentProperty schema:author {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAuthor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:maker ;
+gmeow:hasAuthor skos:closeMatch foaf:maker {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:hasContributor skos:closeMatch doap:developer {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7
+|} .
+
+gmeow:hasContributor skos:closeMatch dcterms:contributor {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms contributor — GMEOW's flat hasContributor shortcut downcasts to dcterms:contributor by projection"
+|} .
+
+gmeow:hasAuthor skos:closeMatch dcterms:creator {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasContributor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject doap:developer ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties057 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasContributor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:contributor ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms contributor — GMEOW's flat hasContributor shortcut downcasts to dcterms:contributor by projection" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties058 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAuthor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:creator ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "DCTerms creator — GMEOW's flat hasAuthor (chief creator) downcasts to dcterms:creator by projection" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "DCTerms creator — GMEOW's flat hasAuthor (chief creator) downcasts to dcterms:creator by projection"
+|} .

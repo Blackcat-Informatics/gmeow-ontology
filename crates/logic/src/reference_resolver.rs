@@ -66,6 +66,19 @@ fn struct_unsupported(role: &str) -> gmeow_errors::Diag {
     ))
 }
 
+/// Lower a ground quoted-triple `QTerm` to its native `TermValue::Triple` for use as an
+/// EDB pattern filter in the declarative oracle. A well-formed parser-produced triple
+/// always lowers; a malformed one (only reachable by constructing a `QTerm` directly) is a
+/// typed oracle error, never a silent wildcard.
+fn triple_edb_term(term: &QTerm, role: &str) -> gmeow_errors::Result<TermValue> {
+    crate::physical::qterm_to_value(term).map_err(|_| {
+        reference_err(format!(
+            "a malformed quoted-triple term is not supported as {role} by the declarative \
+             reference oracle"
+        ))
+    })
+}
+
 // ── Public entry point ────────────────────────────────────────────────────────
 
 /// Resolve `program` against `world` using the declarative SLD oracle.
@@ -244,6 +257,11 @@ impl<'a> ResolveState<'a> {
                     // to a `Const` and surfaces here like any other constant.
                     match chase_var(v.as_str(), subst, 0) {
                         QTerm::Const(c) => Some((v, c)),
+                        // A goal variable bound to a ground quoted-triple surfaces as its
+                        // canonical `<<( s p o )>>` value.
+                        triple @ QTerm::Triple { .. } => {
+                            Some((v, crate::query_ir::qterm_display(&triple)))
+                        }
                         // An unbound goal variable produces no binding row.
                         QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
                     }
@@ -305,6 +323,9 @@ impl<'a> ResolveState<'a> {
     ) -> gmeow_errors::Result<()> {
         let lookup = |name: &str| match chase_var(name, subst, 0) {
             QTerm::Const(c) => Some(std::borrow::Cow::Owned(c)),
+            triple @ QTerm::Triple { .. } => Some(std::borrow::Cow::Owned(
+                crate::query_ir::qterm_display(&triple),
+            )),
             QTerm::Var(_) | QTerm::Num(_) | QTerm::Struct(_) => None,
         };
         // A metric-form builtin reads its exact-rational Gram/vector cells directly out
@@ -326,7 +347,9 @@ impl<'a> ResolveState<'a> {
                 // the caller reads.  A free (unaliased) target chases to itself.
                 let root = match chase_var(&var, subst, 0) {
                     QTerm::Var(root) => root,
-                    QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => var,
+                    QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => {
+                        var
+                    }
                 };
                 new_subst.insert(root, crate::physical::emit_surface(&value));
                 self.resolve_conjunct(rest, &new_subst, seen)
@@ -453,6 +476,8 @@ impl<'a> ResolveState<'a> {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             // A bare number is never an EDB subject in oracle-resolved programs.
             QTerm::Var(_) | QTerm::Num(_) => None,
+            // A ground quoted-triple is a native `TermValue::Triple` pattern filter.
+            QTerm::Triple { .. } => Some(triple_edb_term(&atom.args[0], "an EDB subject")?),
             // G14: a structured (compound) term is NEVER a silent wildcard here. Structured
             // programs route to `resolve_fol` upstream, so this is a hard-fail guard against
             // a routing bug matching arbitrary EDB, not a documented reachable path.
@@ -461,6 +486,7 @@ impl<'a> ResolveState<'a> {
         let obj_term: Option<TermValue> = match &atom.args[1] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             QTerm::Var(_) | QTerm::Num(_) => None,
+            QTerm::Triple { .. } => Some(triple_edb_term(&atom.args[1], "an EDB object")?),
             QTerm::Struct(_) => return Err(struct_unsupported("an EDB object")),
         };
 
@@ -546,6 +572,9 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
         // variable.  After this, only Const/Var remain.
         let norm = |t: QTerm| match t {
             QTerm::Num(n) => QTerm::Const(crate::physical::emit_integer_surface(n)),
+            // A ground quoted-triple normalizes to its canonical constant surface so the
+            // ground-vs-ground unification below compares it like any other constant.
+            triple @ QTerm::Triple { .. } => QTerm::Const(crate::query_ir::qterm_display(&triple)),
             other => other,
         };
         let h_val = norm(resolve_term(h, &new_subst));
@@ -564,6 +593,9 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
             }
             (QTerm::Num(_), _) | (_, QTerm::Num(_)) => {
                 unreachable!("Num normalized to Const above")
+            }
+            (QTerm::Triple { .. }, _) | (_, QTerm::Triple { .. }) => {
+                unreachable!("Triple normalized to Const above")
             }
             // A structured (compound) term is never produced on the flat SLD oracle path
             // (structured programs route to the full-FOL resolver); it unifies with nothing
@@ -592,7 +624,7 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
 /// unbound variable.
 fn resolve_term(t: &QTerm, subst: &Binding) -> QTerm {
     match t {
-        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => t.clone(),
         QTerm::Var(v) => chase_var(v, subst, 0),
     }
 }
@@ -634,7 +666,7 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
     fn rename_term(t: &QTerm, suffix: &str) -> QTerm {
         match t {
             QTerm::Var(v) => QTerm::Var(format!("{}{}", v, suffix)),
-            QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) => t.clone(),
+            QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => t.clone(),
         }
     }
 
@@ -669,6 +701,18 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
                 gram: rename_term(gram, suffix),
                 x: rename_term(x, suffix),
                 y: rename_term(y, suffix),
+            },
+            // LOWERING-ONLY (`crate::relational_core::lower_constraint_violation_rules`),
+            // never authored on the `.logic` query surface this SLD reference oracle
+            // reads — carried for exhaustiveness with the same renaming treatment.
+            QBuiltin::DimEqual { d1, d2 } => QBuiltin::DimEqual {
+                d1: rename_term(d1, suffix),
+                d2: rename_term(d2, suffix),
+            },
+            QBuiltin::DimProduct { d_f, d_m, d_r } => QBuiltin::DimProduct {
+                d_f: rename_term(d_f, suffix),
+                d_m: rename_term(d_m, suffix),
+                d_r: rename_term(d_r, suffix),
             },
         }
     }
@@ -705,6 +749,8 @@ fn term_canonical_or_wildcard(t: &QTerm) -> gmeow_errors::Result<String> {
         QTerm::Var(_) => Ok(String::new()),
         // A bare number canonicalizes to its decimal text for memo-keying purposes.
         QTerm::Num(n) => Ok(n.to_string()),
+        // A ground quoted-triple canonicalizes to its `<<( s p o )>>` surface memo key.
+        QTerm::Triple { .. } => Ok(crate::query_ir::qterm_display(t)),
         QTerm::Struct(_) => Err(struct_unsupported("an IDB call argument")),
     }
 }

@@ -10,128 +10,100 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqFibo005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:FinancialTransaction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fnd-pas-ps:TransactionEvent ;
+gmeow:FinancialTransaction skos:closeMatch fibo-fnd-pas-ps:TransactionEvent {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "a financial transaction event; canonical FIBO defining module is FND ProductsAndServices, not FBC FinancialProductsAndServices" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "a financial transaction event; canonical FIBO defining module is FND ProductsAndServices, not FBC FinancialProductsAndServices"
+|} .
 
-gmeow:eqFibo006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LedgerAccount ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fnd-acc-ae:Account ;
+gmeow:LedgerAccount skos:closeMatch fibo-fnd-acc-ae:Account {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "a book-keeping account; GMEOW distinguishes LedgerAccount from FinancialAccount" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "a book-keeping account; GMEOW distinguishes LedgerAccount from FinancialAccount"
+|} .
 
-gmeow:eqFibo007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Posting ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fnd-acc-ae:BookEntry ;
+gmeow:Posting skos:closeMatch fibo-fnd-acc-ae:BookEntry {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "an accounting entry / posting in double-entry bookkeeping" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "an accounting entry / posting in double-entry bookkeeping"
+|} .
 
-gmeow:eqFibo008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Asset ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fbc-fi-fi:FinancialInstrument ;
+gmeow:Asset skos:closeMatch fibo-fbc-fi-fi:FinancialInstrument {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "a financial asset / instrument; GMEOW Asset is broader (includes real estate)" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "a financial asset / instrument; GMEOW Asset is broader (includes real estate)"
+|} .
 
-gmeow:eqFibo009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Holding ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fbc-fi-fi:Holding ;
+gmeow:Holding skos:closeMatch fibo-fbc-fi-fi:Holding {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "a holding of a financial asset by an agent" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "a holding of a financial asset by an agent"
+|} .
 
-gmeow:eqSchemaOrgFin001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:FinancialAccount ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:BankAccount ;
+gmeow:FinancialAccount skos:closeMatch schema:BankAccount {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "a bank account; GMEOW FinancialAccount is broader (also credit, investment, wallet)" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "a bank account; GMEOW FinancialAccount is broader (also credit, investment, wallet)"
+|} .
 
-gmeow:eqSchemaOrgFin002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:FinancialAccount ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:DepositAccount ;
+gmeow:FinancialAccount skos:relatedMatch schema:DepositAccount {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "a deposit account is a kind of bank account" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "a deposit account is a kind of bank account"
+|} .
 
-gmeow:eqSchemaOrgFin006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:iban ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject schema:iban ;
+gmeow:iban skos:exactMatch schema:iban {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "International Bank Account Number" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "International Bank Account Number"
+|} .
 
-gmeow:eqSchemaOrgFin007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:accountBalance ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:accountBalance ;
+gmeow:accountBalance skos:closeMatch schema:accountBalance {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "the balance of a bank account" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "the balance of a bank account"
+|} .
 
-gmeow:eqSchemaOrgFin008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:FinancialTransaction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:MoneyTransfer ;
+gmeow:FinancialTransaction skos:closeMatch schema:MoneyTransfer {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "a money transfer; GMEOW FinancialTransaction is broader (also fees, interest, refunds)" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "a money transfer; GMEOW FinancialTransaction is broader (also fees, interest, refunds)"
+|} .
 
-gmeow:eqSchemaOrgFin009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Payment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Payment ;
+gmeow:Payment skos:closeMatch schema:Payment {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a payment action; GMEOW Payment is a thin subclass of FinancialTransaction" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "a payment action; GMEOW Payment is a thin subclass of FinancialTransaction"
+|} .
 
-gmeow:eqSchemaOrgFin010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Invoice ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Invoice ;
+gmeow:Invoice skos:closeMatch schema:Invoice {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "a billing document" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "a billing document"
+|} .
 
-gmeow:eqSchemaOrgFin011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Order ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Order ;
+gmeow:Order skos:closeMatch schema:Order {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a purchase or sales order; GMEOW Order is a subclass of Agreement" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "a purchase or sales order; GMEOW Order is a subclass of Agreement"
+|} .
 
-gmeow:eqSchemaOrgFin012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CryptoWallet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:BankAccount ;
+gmeow:CryptoWallet skos:closeMatch schema:BankAccount {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema.org has no crypto-specific account term; BankAccount is the closest match. Projection loses crypto-specific semantics: wallet address, blockchain/network scheme, custody/private-key properties, and transaction provenance." ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "schema.org has no crypto-specific account term; BankAccount is the closest match. Projection loses crypto-specific semantics: wallet address, blockchain/network scheme, custody/private-key properties, and transaction provenance."
+|} .

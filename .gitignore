@@ -10,7 +10,7 @@ htmlcov/
 
 # Ephemeral / generated products — reproducible from canonical sources, never committed.
 # generated/ is a git-ignored local/release projection of generated/dist/gmeow.gts:
-# `make sync` materializes the whole tree from canonical sources and reconstructs it
+# `make regen` materializes the whole tree from canonical sources and reconstructs it
 # from the bundle. It is a product, not a committed input. (The retained products that
 # ride outside this projection — catalog-v001.xml and packages/python/gmeow_models/ —
 # live outside generated/ and stay tracked.)
@@ -37,6 +37,10 @@ htmlcov/
 
 # Toolchain temp directories (hard-kill leftovers)
 .gmeow-tmp-*/
+
+# Maint-lane scratch: fetched-at-maint-time external assets (e.g. the restricted-license
+# Llama/Gemma tokenizer.json the token-cost-matrix lane curls in) — never committed.
+/.tmp/
 
 # Rust build artifacts
 /target/

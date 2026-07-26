@@ -24,107 +24,85 @@ gmeow:mapsetPreference a gmeow:MappingSet ;
     gmeow:setComment "By-reference composition bridges from the preference extension to the seven named sibling slices (norms, model-serving, ai, learning, provenance, evidence, semantic-topology). Each row documents an instance-level reuse (Principle 5 / Principle 16), NOT a redeclaration: the preference slice composes the sibling term, it does not re-mint it." .
 
 # ── norms: rubric / criterion / verdict / contract, reused by-reference ────────
-gmeow:eqPreference001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:usesRubric ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:Rubric ;
+gmeow:usesRubric skos:relatedMatch gmeow:Rubric {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:usesRubric ranges over the core gmeow:SocialObject and reuses the norms gmeow:Rubric by reference at the instance level (Principle 16) — the rubric a preference observation applies, never a redeclared range axiom." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:usesRubric ranges over the core gmeow:SocialObject and reuses the norms gmeow:Rubric by reference at the instance level (Principle 16) — the rubric a preference observation applies, never a redeclared range axiom."
+|} .
 
-gmeow:eqPreference002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:onCriterion ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:Criterion ;
+gmeow:onCriterion skos:relatedMatch gmeow:Criterion {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:onCriterion ranges over the core gmeow:InformationObject and reuses the norms gmeow:Criterion by reference at the instance level (Principle 16) — the criterion a comparison is made along, never a redeclared range axiom." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:onCriterion ranges over the core gmeow:InformationObject and reuses the norms gmeow:Criterion by reference at the instance level (Principle 16) — the criterion a comparison is made along, never a redeclared range axiom."
+|} .
 
-gmeow:eqPreference003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:verifierOutcome ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:EvaluationVerdict ;
+gmeow:verifierOutcome skos:relatedMatch gmeow:EvaluationVerdict {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:verifierOutcome ranges over the core logic:QualityValue and reuses the norms gmeow:EvaluationVerdict vocabulary (verdictHeld / verdictNotHeld / verdictUndetermined) by reference at the instance level (Principle 16), rather than minting a parallel verdict axis." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:verifierOutcome ranges over the core logic:QualityValue and reuses the norms gmeow:EvaluationVerdict vocabulary (verdictHeld / verdictNotHeld / verdictUndetermined) by reference at the instance level (Principle 16), rather than minting a parallel verdict axis."
+|} .
 
-gmeow:eqPreference004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:verifierContract ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:Condition ;
+gmeow:verifierContract skos:relatedMatch gmeow:Condition {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject and reuses the norms gmeow:Condition (via gmeow:formalizedAs) by reference at the instance level (Principle 16) — the contract a verdict verifies against, never a redeclared range axiom." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject and reuses the norms gmeow:Condition (via gmeow:formalizedAs) by reference at the instance level (Principle 16) — the contract a verdict verifies against, never a redeclared range axiom."
+|} .
 
 # ── model-serving: the base model artifact, reused by-reference ────────────────
-gmeow:eqPreference005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:deltaBaseArtifact ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:ModelArtifact ;
+gmeow:deltaBaseArtifact skos:relatedMatch gmeow:ModelArtifact {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:deltaBaseArtifact ranges over the core gmeow:InformationObject and reuses the model-serving gmeow:ModelArtifact by reference at the instance level (Principle 16) — the checkpoint a config delta is a change FROM, never a redeclared range axiom against the model-serving extension." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:deltaBaseArtifact ranges over the core gmeow:InformationObject and reuses the model-serving gmeow:ModelArtifact by reference at the instance level (Principle 16) — the checkpoint a config delta is a change FROM, never a redeclared range axiom against the model-serving extension."
+|} .
 
 # ── ai: model invocation and prompt, reused by-reference ──────────────────────
-gmeow:eqPreference006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:candidateGeneratedBy ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:ModelInvocation ;
+gmeow:candidateGeneratedBy skos:relatedMatch gmeow:ModelInvocation {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "gmeow:candidateGeneratedBy reuses the ai gmeow:ModelInvocation by reference (Principle 16) — the invocation that minted a candidate, joining ordinary provenance queries rather than re-grounding generation." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:candidateGeneratedBy reuses the ai gmeow:ModelInvocation by reference (Principle 16) — the invocation that minted a candidate, joining ordinary provenance queries rather than re-grounding generation."
+|} .
 
-gmeow:eqPreference007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:deltaPromptIdentity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:Prompt ;
+gmeow:deltaPromptIdentity skos:relatedMatch gmeow:Prompt {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "gmeow:deltaPromptIdentity reuses the ai gmeow:Prompt by reference (Principle 16) — the exact prompt leg of a model-config delta's identity tuple, never a re-minted prompt vocabulary." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:deltaPromptIdentity reuses the ai gmeow:Prompt by reference (Principle 16) — the exact prompt leg of a model-config delta's identity tuple, never a re-minted prompt vocabulary."
+|} .
 
 # ── learning: the learning event, specialized by-reference ────────────────────
-gmeow:eqPreference008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PreferenceLearningEvent ;
-    gmeow:alignPredicate skos:narrowMatch ;
-    gmeow:alignObject gmeow:LearningEvent ;
+gmeow:PreferenceLearningEvent skos:narrowMatch gmeow:LearningEvent {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "gmeow:PreferenceLearningEvent specializes the learning gmeow:LearningEvent — it reuses the shipped learning-event term by reference (Principle 16) rather than minting a parallel training vocabulary; a preference-learning run IS a kind of learning event, so the alignment is skos:narrowMatch (the preference term is strictly narrower than the learning-slice term), not a symmetric closeMatch." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:PreferenceLearningEvent specializes the learning gmeow:LearningEvent — it reuses the shipped learning-event term by reference (Principle 16) rather than minting a parallel training vocabulary; a preference-learning run IS a kind of learning event, so the alignment is skos:narrowMatch (the preference term is strictly narrower than the learning-slice term), not a symmetric closeMatch."
+|} .
 
 # ── provenance: the derivation spine, reused by-reference ──────────────────────
-gmeow:eqPreference009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:recordsProjectionPreservation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:wasDerivedFrom ;
+gmeow:recordsProjectionPreservation skos:relatedMatch gmeow:wasDerivedFrom {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "compiling observations into a sheaf is a projection whose preservation/loss ledger rides the provenance derivation spine — gmeow:recordsProjectionPreservation composes with gmeow:wasDerivedFrom by reference (Principle 16 / Principle 17), never re-minting the provenance vocabulary." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "compiling observations into a sheaf is a projection whose preservation/loss ledger rides the provenance derivation spine — gmeow:recordsProjectionPreservation composes with gmeow:wasDerivedFrom by reference (Principle 16 / Principle 17), never re-minting the provenance vocabulary."
+|} .
 
 # ── evidence: the evidence span, reused by-reference ──────────────────────────
-gmeow:eqPreference010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:deltaEvaluationEvidence ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:EvidenceSpan ;
+gmeow:deltaEvaluationEvidence skos:relatedMatch gmeow:EvidenceSpan {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "gmeow:deltaEvaluationEvidence reuses the evidence gmeow:EvidenceSpan by reference (Principle 16) — the evidence leg that makes a config delta's evaluation warrant auditable, never a re-minted evidence term." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:deltaEvaluationEvidence reuses the evidence gmeow:EvidenceSpan by reference (Principle 16) — the evidence leg that makes a config delta's evaluation warrant auditable, never a re-minted evidence term."
+|} .
 
 # ── semantic-topology: the standpoint claim wrapper, reused by-reference ───────
-gmeow:eqPreference011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:DisagreementObstruction ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject gmeow:TopologyClaim ;
+gmeow:DisagreementObstruction skos:relatedMatch gmeow:TopologyClaim {|
+    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "gmeow:DisagreementObstruction is the preference-side H1 twin of the semantic-topology sheaf apparatus: both wrap a math: object (here math:GluingObstruction) under the same H0/H1 gluing picture that gmeow:TopologyClaim governs. Related by reference (Principle 16) — the preference slice reuses the sibling's obstruction/consensus pattern at the instance level, never redeclaring gmeow:TopologyClaim." ;
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" .
+    gmeow:comment "gmeow:DisagreementObstruction is the preference-side H1 twin of the semantic-topology sheaf apparatus: both wrap a math: object (here math:GluingObstruction) under the same H0/H1 gluing picture that gmeow:TopologyClaim governs. Related by reference (Principle 16) — the preference slice reuses the sibling's obstruction/consensus pattern at the instance level, never redeclaring gmeow:TopologyClaim."
+|} .

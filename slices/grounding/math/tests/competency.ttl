@@ -239,10 +239,10 @@ ex:cqSetCardinality a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/set-cardinality.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Each set reports its cardinality; over the fixture the answer is exactly {primesUnderTen → finite, allNaturals → ℵ₀}." ;
+    gmeow:cqRationale "Each set reports its cardinality; over the fixture the answer is exactly {primesUnderTen → finite, allNaturals → ℵ₀, xsdByteValueSpace → finite (the grounded xsd:byte value-space pigeonhole bound)}." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqCardinalityShape ;
-    gmeow:cqExpectRow ex:rowPrimes , ex:rowAllNaturals .
+    gmeow:cqExpectRow ex:rowPrimes , ex:rowAllNaturals , ex:rowXsdByteValueSpace .
 
 ex:cqCardinalityShape a logic:ResultShape ;
     logic:declaresColumn
@@ -257,6 +257,10 @@ ex:rowPrimes a gmeow:ExpectedRow ;
 ex:rowAllNaturals a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri exf:allNaturals ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cardinality" ; gmeow:cellValueIri math:alephNull ] .
+
+ex:rowXsdByteValueSpace a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri math:xsdByteValueSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cardinality" ; gmeow:cellValueIri math:cardinalityFinite ] .
 
 # === Q4b — an ordered interval's endpoints and endpoint inclusions ========== #
 
@@ -298,7 +302,7 @@ ex:cqNamedConstantsAndAnchors a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/math/queries/competency/named-constants-and-anchors.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "A named constant reports the external anchor reached through its gmeow:TermEquivalence alignment; over the fixture the answer is exactly {math:pi → wd:Q167}." ;
+    gmeow:cqRationale "A named constant reports the external anchor reached through its fixture-local anchor record; over the fixture the answer is exactly {math:pi → wd:Q167}." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqConstantsShape ;
     gmeow:cqExpectRow ex:rowPiAnchor .

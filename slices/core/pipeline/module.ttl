@@ -454,6 +454,27 @@ gmeow:pipeline-dataflow-validate-compile-logic
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
 
+# stage-validate ALSO reads the graph/reasoning named graph of stage-reason's product
+# (the typed Reasoning handle's backing graph): the D5 abductive (constructive-advice)
+# wing reads the REASONED graph, so the validator feeds its producer the union of the
+# authored source graph and the derived closure read off that handle — catching a
+# subject/relatum that only an inference makes true, not only asserted ones. The edge is
+# narrowed to graph/reasoning: that projection reifies every derived axiom, so its digest
+# is a faithful cache key for the closure the validator folds, and the narrowing keeps the
+# validator's graph/diagnostics attachment a genuine delta (the reason product also carries
+# a graph of that name). This makes stage-validate a descendant of stage-reason (acyclic:
+# stage-reason consumes source-load/compile-logic, never validate).
+gmeow:pipeline-dataflow-validate-reason
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: reason → validate"@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-validate: the validator reads the reason product's graph/reasoning named graph so the abductive (constructive-advice) wing sees the reasoned graph — entailed types and relata, not only asserted ones — by unioning the derived closure with the authored source graph. Narrowed to graph/reasoning, whose reified derived axioms are a faithful cache key for the folded closure and keep the validator's graph/diagnostics attachment a genuine delta."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-reason ;
+    gmeow:buildFlowTo gmeow:stage-validate ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+
 # stage-goal-directed reads ONLY the graph/reasoning named graph of stage-reason's
 # product (the typed Reasoning handle's backing graph): the reasoned rdfs:subClassOf
 # closure's derived, non-EDB axioms are the subsort_edges the order-sorted
@@ -510,6 +531,7 @@ gmeow:pipeline-build
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
+        gmeow:stage-gmn-training-corpus ,
         gmeow:stage-slice-brief ,
         gmeow:stage-reason ,
         gmeow:stage-goal-directed ,
@@ -536,6 +558,7 @@ gmeow:pipeline-build
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-glossary ,
+        gmeow:stage-export-skos-surface ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-references ,
@@ -602,6 +625,18 @@ gmeow:stage-math-producers
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "math_producers" .
+
+gmeow:stage-gmn-training-corpus
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "gmn-training-corpus"@x-gmeow-english ;
+    skos:definition "Emit the rejection-sampled, proof-carrying GMN training corpus (req #21/#20): a productive functor over the carrier's glyph signature that DETERMINISTICALLY enumerates well-typed GMN terms up to a bounded depth over the binary operator forms (resolve_operator_forms) applied to a small typed constant base, then REJECTION-SAMPLES each candidate through five deterministic verifiers — (1) it parses via gmn1_read, (2) round-trips via gmn0_canonically_equal, (3) typechecks under the logic-compile IR + native order-sorted backward prover, (4) discharges a Curry–Howard proof obligation, and (5) carries no security-ring leakage (the Task 9 consume-path filter). Each KEPT candidate is folded as a gmeow:GmnTrainingExample carrying task/input/target, the five verdicts, the discharged proof-obligation derivation IRI, and its gmnSchemaVersion provenance; each REJECTED candidate is recorded (never silently dropped) as a gmeow:GmnRejectedCandidate carrying its typed lang: failure class. It consumes gmeow:stage-compile-logic (the typechecker/prover lane) and gmeow:stage-mappings (the projected GMN forms / glyph registry lane), and attaches the corpus as the bundle-internal graph/gmn-training-corpus (folded into gmeow.gts by gmeow:stage-snapshot). Corpus GENERATION only — it never trains a model."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "gmn-training-corpus" ;
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ,
+        gmeow:stage-mappings .
 
 gmeow:stage-slice-brief
     a gmeow:PipelineStage ;
@@ -676,6 +711,7 @@ gmeow:stage-validate
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-result-shapes ,
+        gmeow:stage-reason ,
         gmeow:stage-source-load .
 
 gmeow:stage-conformance
@@ -733,7 +769,7 @@ gmeow:stage-snapshot
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "snapshot"@x-gmeow-english ;
-    skos:definition "Assemble the structured multi-named-graph dist snapshot (gmeow.gts bytes) in memory: the authored default graph plus the import closure, metadata, alignment, RDF 1.2 statement, slice-analysis, verify-attestation, and documentation metadata graph. Derived documentation payloads remain external and are regenerated by make sync SYNC_OUTPUTS=docs. Split from the sink so every fold-reading export leaf consumes THIS run's freshly-composed fold rather than re-reading the committed file from disk (the single-pass invariant)."@x-gmeow-english ;
+    skos:definition "Assemble the structured multi-named-graph dist snapshot (gmeow.gts bytes) in memory: the authored default graph plus the import closure, metadata, alignment, RDF 1.2 statement, slice-analysis, verify-attestation, and documentation metadata graph. Derived documentation payloads remain external and are regenerated by make regen SYNC_OUTPUTS=docs. Split from the sink so every fold-reading export leaf consumes THIS run's freshly-composed fold rather than re-reading the committed file from disk (the single-pass invariant)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -748,6 +784,8 @@ gmeow:stage-snapshot
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-profiles ,
         gmeow:stage-export-research-objects ,
+        gmeow:stage-export-skos-surface ,
+        gmeow:stage-gmn-training-corpus ,
         gmeow:stage-goal-directed ,
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
@@ -955,6 +993,17 @@ gmeow:stage-export-glossary
     gmeow:stageImpl "glossary" ;
     gmeow:producesFormat "markdown" .
 
+gmeow:stage-export-skos-surface
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: skos surface"@x-gmeow-english ;
+    skos:definition "Emit the generated SKOS concept-scheme surface (generated/skos/gmeow-skos.ttl): a projection of the lifted logic: NodeKind::Annotation axioms (rdfs:label/comment and skos:definition/prefLabel/altLabel/scopeNote on every GMEOW-authored term), grouped under one skos:ConceptScheme. This is the outbound face of logic: isSupersetOf SKOS/RDFS — the annotation surface is authored once atop RDF 1.2, lifted into the canonical IR, and projected back out here rather than authored as a second source. A source-reading leaf like gmeow:stage-export-glossary: it reads the authored slice modules directly (through the annotation lift), consuming no upstream product. The RDF `.ttl` rides as the canonical fold of the RDF-fanout named graph graph/fanout/skos/gmeow-skos.ttl (attached by gmeow:stage-snapshot, reconstructed byte-for-byte by the superset gate)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "skos_surface" ;
+    gmeow:producesFormat "skos" .
+
 gmeow:stage-export-metadata
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -1142,6 +1191,10 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
 
+gmeow:stage-gmn-training-corpus
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/gmn-training-corpus> .
+
 gmeow:stage-slice-brief
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/authoring-briefs> .
@@ -1212,6 +1265,7 @@ gmeow:stage-snapshot
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/lillith-pipeline.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/scores.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/skos/gmeow-skos.ttl> ,
         <https://blackcatinformatics.ca/gmeow/graph/projections/activitystreams.edoal> ,
         <https://blackcatinformatics.ca/gmeow/graph/projections/bibframe.edoal> ,
         <https://blackcatinformatics.ca/gmeow/graph/projections/bibo.edoal> ,
@@ -1286,6 +1340,7 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-projections-glossary-vartrans ,
     gmeow:fanout-projections-list-functions-fno ,
     gmeow:fanout-quality-assessment ,
+    gmeow:fanout-skos-surface ,
     gmeow:fanout-profiles ,
     gmeow:fanout-research-objects ,
     gmeow:fanout-edoal-projections .
@@ -1408,6 +1463,14 @@ gmeow:fanout-projections-glossary-vartrans a gmeow:FanoutExtraction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/glossary.vartrans.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-skos-surface a gmeow:FanoutExtraction ;
+    rdfs:label "fanout skos surface"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/skos/gmeow-skos.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/skos/gmeow-skos.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-projections-list-functions-fno a gmeow:FanoutExtraction ;
@@ -1700,20 +1763,25 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/projections/lang/ebnf/gmn.ebnf",
     "generated/projections/lang/ebnf/gts.ebnf",
     "generated/projections/lang/ebnf/turtle.ebnf",
-    "generated/projections/lang/gmn1/conformance-pack.ttl",
-    "generated/projections/lang/gmn1/expression-rendering.gmn",
-    "generated/projections/lang/gmn1/flagship-acceptance.gmn",
-    "generated/projections/lang/gmn1/forms-and-sign-systems.gmn",
-    "generated/projections/lang/gmn1/gmn-dialect.gmn",
-    "generated/projections/lang/gmn1/gmn-grounding-glyphs.gmn",
-    "generated/projections/lang/gmn1/inscription-reading.gmn",
-    "generated/projections/lang/gmn1/multilingual-document.gmn",
-    "generated/projections/lang/gmn1/notation-systems.gmn",
-    "generated/projections/lang/gmn1/person-names.gmn",
-    "generated/projections/lang/gmn1/proficiency.gmn",
-    "generated/projections/lang/gmn1/pvalue-tri-slice.gmn",
-    "generated/projections/lang/gmn1/pydantic-projection-profile.gmn",
-    "generated/projections/lang/gmn1/word-etymology.gmn",
+    "generated/projections/lang/gmn1/v1/authority-links.gmn",
+    "generated/projections/lang/gmn1/v1/conformance-pack.ttl",
+    "generated/projections/lang/gmn1/v1/expression-rendering.gmn",
+    "generated/projections/lang/gmn1/v1/flagship-acceptance.gmn",
+    "generated/projections/lang/gmn1/v1/forms-and-sign-systems.gmn",
+    "generated/projections/lang/gmn1/v1/gbnf/gmn.gbnf",
+    "generated/projections/lang/gmn1/v1/gmn-dialect.gmn",
+    "generated/projections/lang/gmn1/v1/gmn-grounding-glyphs.gmn",
+    "generated/projections/lang/gmn1/v1/inscription-reading.gmn",
+    "generated/projections/lang/gmn1/v1/lark/gmn.lark",
+    "generated/projections/lang/gmn1/v1/multilingual-document.gmn",
+    "generated/projections/lang/gmn1/v1/notation-systems.gmn",
+    "generated/projections/lang/gmn1/v1/person-names.gmn",
+    "generated/projections/lang/gmn1/v1/proficiency.gmn",
+    "generated/projections/lang/gmn1/v1/pvalue-tri-slice.gmn",
+    "generated/projections/lang/gmn1/v1/pydantic-projection-profile.gmn",
+    "generated/projections/lang/gmn1/v1/token-metrics.ttl",
+    "generated/projections/lang/gmn1/v1/verbalizations.ttl",
+    "generated/projections/lang/gmn1/v1/word-etymology.gmn",
     "generated/projections/lang/nif/forms-and-sign-systems.sentAnchor.anno.jsonld",
     "generated/projections/lang/nif/forms-and-sign-systems.sentAnchor.nif.nt",
     "generated/projections/lang/ontolex-lemon/forms-and-sign-systems.ttl",
@@ -1849,6 +1917,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/shapes/result-shapes.ttl",
     "generated/shapes/validation-shapes.shex",
     "generated/shapes/validation-shapes.ttl",
+    "generated/skos/gmeow-skos.ttl",
     "generated/statements/gmeow-statements.owl.ttl",
     "generated/statements/gmeow.rdf12.ttl",
     "generated/transcode-loss-matrix.json",

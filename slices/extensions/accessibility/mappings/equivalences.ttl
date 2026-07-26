@@ -20,36 +20,30 @@ gmeow:mapsetAccessibility a gmeow:MappingSet ;
 # schema.org — accessibilityFeature / accessibilityHazard
 # --------------------------------------------------------------------------- #
 
-gmeow:eqA11y001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAccessibilityFeature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:accessibilityFeature ;
+gmeow:hasAccessibilityFeature skos:closeMatch schema:accessibilityFeature {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema:accessibilityFeature is a flat textual enum on Place/CreativeWork; GMEOW hasAccessibilityFeature is an object property ranging over AccessibilityFacet individuals. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "schema:accessibilityFeature is a flat textual enum on Place/CreativeWork; GMEOW hasAccessibilityFeature is an object property ranging over AccessibilityFacet individuals. Directional lossy projection."
+|} .
 
-gmeow:eqA11y002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasBarrier ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:accessibilityHazard ;
+gmeow:hasBarrier skos:closeMatch schema:accessibilityHazard {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "schema:accessibilityHazard is a flat textual enum for hazards; GMEOW hasBarrier is an object property ranging over AccessibilityFacet individuals. Directional lossy projection." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "schema:accessibilityHazard is a flat textual enum for hazards; GMEOW hasBarrier is an object property ranging over AccessibilityFacet individuals. Directional lossy projection."
+|} .
 
 # --------------------------------------------------------------------------- #
 # SOSA — AccessibilityAssertion as a kind of observation
 # --------------------------------------------------------------------------- #
 
-gmeow:eqA11y003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:AccessibilityAssertion ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:AccessibilityAssertion skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "sosa:Observation is the generic observation class; gmeow:AccessibilityAssertion is a specialised gufo:Relator for accessibility claims. Both carry provenance and result." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "sosa:Observation is the generic observation class; gmeow:AccessibilityAssertion is a specialised gufo:Relator for accessibility claims. Both carry provenance and result."
+|} .
 
 # --------------------------------------------------------------------------- #
 # WHO ICF — AccessibilityFacet individuals bridge to ICF categories
@@ -57,112 +51,90 @@ gmeow:eqA11y003 a gmeow:TermEquivalence ;
 # ICF codes use the HL7 FHIR sid: http://hl7.org/fhir/sid/icf
 # Specific codes referenced conceptually; alignment is by reference only.
 
-gmeow:eqA11y010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetWheelchair ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#d4> ;
+gmeow:facetWheelchair skos:closeMatch <http://hl7.org/fhir/sid/icf#d4> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Mobility" ;
-    gmeow:comment "ICF d4 (Mobility) encompasses wheelchair and step-free locomotion." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF d4 (Mobility) encompasses wheelchair and step-free locomotion."
+|} .
 
-gmeow:eqA11y011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetWheelchair ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#e115> ;
+gmeow:facetWheelchair skos:closeMatch <http://hl7.org/fhir/sid/icf#e115> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Products and technology for personal mobility" ;
-    gmeow:comment "ICF e115 covers assistive products for personal mobility (wheelchairs, walkers, ramps)." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF e115 covers assistive products for personal mobility (wheelchairs, walkers, ramps)."
+|} .
 
-gmeow:eqA11y012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetStepFree ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#d4> ;
+gmeow:facetStepFree skos:closeMatch <http://hl7.org/fhir/sid/icf#d4> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Mobility" ;
-    gmeow:comment "ICF d4 (Mobility) encompasses step-free locomotion." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF d4 (Mobility) encompasses step-free locomotion."
+|} .
 
-gmeow:eqA11y013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetVisual ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#b2> ;
+gmeow:facetVisual skos:closeMatch <http://hl7.org/fhir/sid/icf#b2> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Sensory functions and pain" ;
-    gmeow:comment "ICF b2 covers sensory functions including vision." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF b2 covers sensory functions including vision."
+|} .
 
-gmeow:eqA11y014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetVisual ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#e135> ;
+gmeow:facetVisual skos:closeMatch <http://hl7.org/fhir/sid/icf#e135> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Products and technology for communication" ;
-    gmeow:comment "ICF e135 covers assistive products for communication including visual aids." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF e135 covers assistive products for communication including visual aids."
+|} .
 
-gmeow:eqA11y015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetAuditory ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#b2> ;
+gmeow:facetAuditory skos:closeMatch <http://hl7.org/fhir/sid/icf#b2> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Sensory functions and pain" ;
-    gmeow:comment "ICF b2 covers sensory functions including hearing." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF b2 covers sensory functions including hearing."
+|} .
 
-gmeow:eqA11y016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetAuditory ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#e125> ;
+gmeow:facetAuditory skos:closeMatch <http://hl7.org/fhir/sid/icf#e125> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Products and technology for communication" ;
-    gmeow:comment "ICF e125 covers assistive products for communication including hearing aids and induction loops." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF e125 covers assistive products for communication including hearing aids and induction loops."
+|} .
 
-gmeow:eqA11y017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetCognitive ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#b1> ;
+gmeow:facetCognitive skos:closeMatch <http://hl7.org/fhir/sid/icf#b1> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Mental functions" ;
-    gmeow:comment "ICF b1 covers mental functions including cognitive processes." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF b1 covers mental functions including cognitive processes."
+|} .
 
-gmeow:eqA11y018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetCognitive ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#e140> ;
+gmeow:facetCognitive skos:closeMatch <http://hl7.org/fhir/sid/icf#e140> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "Products and technology for education" ;
-    gmeow:comment "ICF e140 covers assistive products for learning and education, relevant to cognitive access." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF e140 covers assistive products for learning and education, relevant to cognitive access."
+|} .
 
-gmeow:eqA11y019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetLifeSupport ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#e5> ;
+gmeow:facetLifeSupport skos:closeMatch <http://hl7.org/fhir/sid/icf#e5> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "Services, systems and policies" ;
-    gmeow:comment "ICF e5 covers services, systems and policies including health and medical services relevant to life-support access." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF e5 covers services, systems and policies including health and medical services relevant to life-support access."
+|} .
 
-gmeow:eqA11y020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetClearance ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject <http://hl7.org/fhir/sid/icf#d4> ;
+gmeow:facetClearance skos:closeMatch <http://hl7.org/fhir/sid/icf#d4> {|
+    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "Mobility" ;
-    gmeow:comment "ICF d4 (Mobility) encompasses the spatial requirements for physical clearance." ;
-    gmeow:sssomFile "gmeow-accessibility.sssom.tsv" .
+    gmeow:comment "ICF d4 (Mobility) encompasses the spatial requirements for physical clearance."
+|} .

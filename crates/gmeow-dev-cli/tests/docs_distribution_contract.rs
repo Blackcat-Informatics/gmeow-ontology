@@ -94,9 +94,9 @@ fn target_recipe(source: &str, target: &str) -> String {
 fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     let source = pages_workflow();
     assert!(
-        source.contains("run: make sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
+        source.contains("run: make regen SYNC_MODE=update SYNC_OUTPUTS=docs"),
         "AC3 (source-backed export): .github/workflows/pages.yml must render the \
-         Pages site from canonical sources via the exact step `run: make sync SYNC_MODE=update \
+         Pages site from canonical sources via the exact step `run: make regen SYNC_MODE=update \
          SYNC_OUTPUTS=docs` — it must never publish a stale or hand-copied tree"
     );
     assert!(
@@ -112,12 +112,13 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
 }
 
 #[test]
-fn ac3_makefile_sync_delegates_to_gmeow_dev_sync() {
+fn ac3_makefile_regen_delegates_to_gmeow_dev_sync() {
     let source = makefile();
-    let recipe = target_recipe(&source, "sync");
+    // `make sync` was removed; the standalone regenerate lane is `make regen`.
+    let recipe = target_recipe(&source, "regen");
     assert!(
         recipe.contains("$(GMEOW_DEV) sync"),
-        "AC3: the standalone Makefile `sync:` recipe must delegate to the single \
+        "AC3: the standalone Makefile `regen:` recipe must delegate to the single \
          `$(GMEOW_DEV) sync` producer binary invocation; recipe was: {recipe:?}"
     );
 }
@@ -207,6 +208,39 @@ fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
         "AC2/AC6: the rendered docs destinations and the distribution catalog schema must \
          name the SAME slug set (bijection catalog <-> rendered); rendered={rendered_slugs:?} \
          catalog={catalog_slugs:?}"
+    );
+}
+
+#[test]
+fn site_sub_assets_are_priced_but_never_enter_the_eight_slug_bijection() {
+    let bijection: BTreeSet<String> = CANONICAL_SLUGS.iter().map(|s| s.to_string()).collect();
+    let sub_assets: BTreeSet<String> =
+        gmeow_pipeline::stages::distribution_catalog::declared_site_sub_asset_slugs()
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect();
+    // The interactive engines + browser bundle ARE priced as first-class sub-assets…
+    assert!(
+        !sub_assets.is_empty(),
+        "the vendored interactive engines + browser bundle must be priced as site sub-assets"
+    );
+    // …but they are SUB-ASSETS of `site`, never top-level distributions, so the
+    // eight-slug bijection is untouched (a sub-asset leaking into it would be a ninth
+    // distribution, which the bijection test above would also catch).
+    assert!(
+        sub_assets.is_disjoint(&bijection),
+        "AC2/AC6: site sub-assets {sub_assets:?} must be DISJOINT from the eight-slug \
+         distribution bijection {CANONICAL_SLUGS:?} — they are sub-assets, not distributions"
+    );
+    // The release-time digest producer prices exactly the declared set (one authority).
+    let priced: BTreeSet<String> =
+        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
+            .into_iter()
+            .map(|(slug, _, _)| slug.to_string())
+            .collect();
+    assert_eq!(
+        priced, sub_assets,
+        "the release-time sub-asset pricing set must equal the catalog-declared sub-asset set"
     );
 }
 
@@ -506,7 +540,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     let bundle = std::fs::read(&bundle_path).unwrap_or_else(|e| {
         panic!(
             "cannot read the shipped bundle {} ({e}); materialize it first with \
-             `make sync SYNC_OUTPUTS=generated`",
+             `make regen SYNC_OUTPUTS=generated`",
             bundle_path.display()
         )
     });
@@ -519,7 +553,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
 
 /// Compile the REAL `dcat.rq` from the authored `dsl/mappings/projections/dcat.ttl`
 /// source (a pure function of committed, tracked sources — no dependency on a prior
-/// `make sync` materializing the git-ignored `generated/` tree) and fold it into a
+/// `make regen` materializing the git-ignored `generated/` tree) and fold it into a
 /// minimal synthetic GTS snapshot carrying just the `queries-archive` blob, exactly
 /// as the real bundle carries it. Mirrors the equivalent private test helper in
 /// `crates/pipeline/src/docs_distribution.rs`, built here from ONLY the public API
@@ -579,9 +613,12 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
         media_type: "text/html".to_string(),
     }];
     let gts_bytes = synthetic_gts_with_dcat_query();
-    let manifest =
-        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &gts_bytes)
-            .expect("build the real docs distribution manifest");
+    let manifest = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
+        &entries,
+        &[],
+        &gts_bytes,
+    )
+    .expect("build the real docs distribution manifest");
     let manifest_dir = docs_dir.join("manifest");
     std::fs::create_dir_all(&manifest_dir).expect("mkdir manifest");
     std::fs::write(manifest_dir.join("docs-manifest.ttl"), &manifest).expect("write manifest");

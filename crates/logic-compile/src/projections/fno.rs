@@ -1018,7 +1018,8 @@ mod tests {
     /// A-Box FnO individual (`fno:Parameter`/`fno:Function`/`fno:Output`/
     /// `fno:Implementation`) carries all four structural annotations — the exact
     /// contract `gmeow_validate::lint::structural_lint_dataset` enforces at
-    /// `make validate-gts`, caught here in a fast `cargo nextest -p
+    /// the whole-bundle SHACL validation (`make validate` / the pipeline
+    /// stage-validate), caught here in a fast `cargo nextest -p
     /// gmeow-logic-compile` instead.
     #[test]
     fn fno_abox_individuals_carry_full_structural_annotations() {

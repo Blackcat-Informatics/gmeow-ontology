@@ -42,14 +42,148 @@ use session_common::*;
 /// `compare_sqdist` / `BilinearFormError`) on the runtime engine surface (`physical/builtin_eval.rs`,
 /// `physical/mod.rs`) also folds into the runtime engine-source content digest, so the golden below
 /// is the merged value (both this branch's fmt and PR 1385's bilinear API move the digest).
+/// Re-blessed for the fragment-certified refutation kernel: `reason/refute.rs` is registered
+/// as a new load-bearing `NATIVE_CONTRACT_COMPONENTS` engine component (the unified beyond-Horn
+/// decider the `reason/dl.rs` decide path now invokes), so the native contract hash folded into
+/// this descriptor moves. The kernel is inert on this input (it registers no family sub-decider
+/// yet), so no reasoning verdict changes — only the source-content digest.
+/// Re-blessed for Family 5 (the FIRST real refutation sub-decider): `reason/refute/datatype.rs`
+/// is a new engine source module registered in `SUB_DECIDERS`, and `reason/dl.rs` now consults it
+/// for datatype value-space coverage (promoting the facet / cardinality / oneOf families exactly
+/// when the subsolver decides). Both move the native-contract source-content digest folded into
+/// this descriptor. This DOES change reasoning verdicts on the datatype value-space fragment
+/// (previously-withheld W3C-divergence cases are now soundly decided), but NOT on this fixed
+/// datatype-free input, so the fixed-input session verdict is unchanged. (Value below
+/// is the post-`cargo fmt` state of the Family 5 branch — the behaviour-preserving format
+/// pass over `reason/refute.rs` folds into the raw source-content digest.)
+/// Re-blessed for Family 2/6a/7 (the counting / arithmetic-feasibility sub-decider):
+/// `reason/refute/counting.rs` is a new engine source module registered in `SUB_DECIDERS`,
+/// and `reason/dl.rs` now consults it for cardinality / inverse-functional / `owl:hasSelf`
+/// coverage (promoting those families and narrowing their class-definition / refutation-shape
+/// withholds exactly when the sub-decider decides). Both move the native-contract
+/// source-content digest folded into this descriptor. This DOES change reasoning verdicts on
+/// the counting fragment (previously-withheld W3C-divergence cardinality / IFP / hasSelf cases
+/// are now soundly decided), but NOT on this fixed edge-only input, so the fixed-input session
+/// verdict is unchanged.
+/// Re-blessed for Family 1/3/6b (+ entangled Family 4) — the bounded case-split /
+/// complement / union-disjoint / malformed-list sub-decider: `reason/refute/casesplit.rs`
+/// is a new engine source module registered in `SUB_DECIDERS`, and `reason/refute.rs`
+/// (its `mod` + registry entry) and `reason/dl.rs` (the coverage coordination — the
+/// refutation-shape withholds for complement / union / oneOf / malformed list are now
+/// narrowed by `!casesplit::decides`) both change. `reason/refute.rs` and `reason/dl.rs`
+/// are folded into the native contract hash, so the engine-descriptor digest moves. This
+/// DOES change reasoning verdicts on the case-split fragment (previously-withheld
+/// W3C-divergence complement / union-disjoint / disjointUnion / malformed-list cases are
+/// now soundly decided), but NOT on this fixed edge-only input, so the fixed-input session
+/// verdict is unchanged.
+/// Re-blessed for Task 6b — the kernel's decidability surface as first-class content:
+/// `reason/refute.rs` gains the shipped registry API (`RefutationPattern`,
+/// `decided_fragments`, `retained_boundaries`) and a live production consumer
+/// (`production_boundary_findings`), the blanket `#![allow(dead_code)]` is removed, and
+/// `reason/dl.rs` folds a family-scoped kernel withhold into a new
+/// `DlVerdict::boundary_findings`. All fold into the native contract source-content
+/// digest, so the engine descriptor moves. The kernel stays inert on this fixed
+/// edge-only input (its steady state is `NoDeciderEngaged`, which emits nothing), so no
+/// reasoning verdict changes — only the source-content digest.
+/// Re-blessed once more when the coverage-gate determinism/refusal `#[cfg(test)]` tests were
+/// added to `reason/refute.rs`: `native_contract_hash()` `include_str!`s the whole file, so its
+/// byte content moves the engine descriptor; no reasoning verdict changes.
+/// Re-blessed once more for the G12 refutation-kernel helper consolidation: `resource_key`,
+/// `world_key`, `is_rational_tower`, and `parse_rational` moved from
+/// `reason/refute/{casesplit,counting,datatype}.rs` into a single canonical definition in
+/// `reason/refute.rs` (folded via `include_str!` into `native_contract_hash()`), so the raw
+/// source-content digest moves; this is a pure refactor and no reasoning verdict changes.
+/// Re-blessed once more for the DL existential-chase materialization backstop: `reason/dl.rs`
+/// (the `≥n` obligation bound + chase-incomplete withhold) and `physical/chase.rs` (the
+/// budget-bounded `join_atoms`/`head_satisfied` working set) are folded via `include_str!`
+/// into `native_contract_hash()`, so the raw source-content digest moves; the change only
+/// turns a previously-OOM super-polynomial materialization into a sound INCOMPLETE withhold
+/// and no reasoning verdict on any decided input changes.
+/// Re-blessed once more for the RDF 1.2 quoted-triple goal-argument grammar: `query_ir.rs`
+/// gains a `<<( s p o )>>` term and `QTerm::Triple`, and the flat/generic lowering, plan
+/// hash, reference oracle, probabilistic, and counterfactual surfaces gain the exhaustive
+/// arm — all folded via `include_str!` into `backward_source_hash()`, so the raw
+/// source-content digest moves. The fixed edge-only input carries no triple term, so the new
+/// arm never fires and no reasoning verdict changes.
+/// Re-blessed once more for the reasoner-derived `math:` dimensional-homogeneity gate:
+/// `EvalRule` gains `constraint_tag` (`rule_ir.rs`), `QBuiltin` gains `DimEqual`/
+/// `DimProduct` (`query_ir.rs`), `physical/plan.rs`'s `hash_builtin`/`canonical_rule_hash`
+/// gain the new discriminators, `physical/seminaive.rs`'s `apply_builtins` gains the
+/// constraint-tagged violation-emitting Filter inversion, `physical/builtin_eval.rs` gains
+/// the dimension-resolving `CellResolver::dimension` probe, and `relational_core.rs` gains
+/// the `logic:Constraint` → violation-`EvalRule` lowering — all folded via `include_str!`
+/// into BOTH `native_contract_hash()` (`forward_contract_hash`) and `backward_source_hash`
+/// (`rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/`physical/seminaive.rs`/
+/// `physical/builtin_eval.rs` are members of both source lists), so the raw source-content
+/// digest moves on both axes. The fixed edge-only input authors no `logic:Constraint`, so
+/// no new rule ever fires and no reasoning verdict on this fixed input changes.
+/// Re-blessed once more when `physical/builtin_eval.rs`'s cell loaders were hardened to
+/// require EXACTLY one target for each functional dimension/Gram/vector cell property
+/// (the new `exactly_one_iri_object`) rather than silently taking the first of a
+/// multi-valued cell: `builtin_eval.rs` is folded via `include_str!` into both
+/// `native_contract_hash()` (`forward_contract_hash`) and `backward_source_hash`, so the
+/// raw source-content digest moves on both axes. The change only makes an already-malformed
+/// multi-valued cell decline instead of mis-decoding, so no reasoning verdict on any
+/// well-formed input — including this fixed edge-only input, which authors no dimension
+/// cell — changes.
+/// Re-blessed for the origin/main merge into this branch: this branch's ADDITIVE engine
+/// sources — the W4b browser reasoner `reason::reason_closure_dataset` (wrapping the
+/// unchanged native chase) and the W4 `conjecture_eval` orchestration module — combine with
+/// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
+/// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
+/// changes (all additions are inert on it).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "869cdbf2a93a73d0a2df08836d94f86ff8ec00e961e95379aa0ff128bc5ad8a9";
+    "cbfd938bdd5c449089cbaf373e86e18cd44c748cc65b6b88235a883192d77169";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
 /// contract, or annotation framing changes — the full seven-axis fold).
+/// Re-blessed for the fragment-certified refutation kernel component registration (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded axes, so
+/// the fixed-input session identity moves with it even though the reasoning verdict is unchanged.
+/// Re-blessed again for Family 5 (the datatype value-space sub-decider) for the same reason: the
+/// native contract hash is one of the seven folded axes and moves with the new engine source, while
+/// the fixed datatype-free input's reasoning verdict is unchanged. (Post-`cargo fmt` value,
+/// tracking the engine-descriptor golden above.)
+/// Re-blessed again for Family 2/6a/7 (the counting / arithmetic-feasibility sub-decider) for the
+/// same reason: the native contract hash is one of the seven folded axes and moves with the new
+/// engine source module, while the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for Family 1/3/6b (+ entangled Family 4) — the case-split / complement /
+/// union-disjoint / malformed-list sub-decider — for the same reason: the native contract hash
+/// (folding the changed `reason/refute.rs` + `reason/dl.rs`) is one of the seven folded axes and
+/// moves with the new engine source, while the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed for Task 6b for the same reason as the engine-descriptor golden above:
+/// the native contract hash is one of the seven folded identity axes and moves with the
+/// changed `reason/refute.rs` + `reason/dl.rs` engine source, while the fixed edge-only
+/// input's reasoning verdict is unchanged.
+/// Re-blessed once more when the coverage-gate determinism/refusal `#[cfg(test)]` tests were
+/// added to `reason/refute.rs`: `native_contract_hash()` `include_str!`s the whole file, so its
+/// byte content (folded into the session identity axis) moves; the fixed edge-only input's
+/// reasoning verdict is unchanged and the engine descriptor hash is untouched.
+/// Re-blessed once more for the G12 refutation-kernel helper consolidation (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and moves with the changed `reason/refute.rs` engine source, while the
+/// fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the DL existential-chase materialization backstop (see the
+/// engine-descriptor golden above): the native contract hash folds the changed
+/// `reason/dl.rs` + `physical/chase.rs` source, so the session identity moves with it, while
+/// the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the RDF 1.2 quoted-triple goal-argument grammar (see the
+/// engine-descriptor golden above): the backward-source digest is one of the seven folded
+/// axes and moves with the changed `query_ir`/`physical` source, while the fixed edge-only
+/// input's reasoning verdict is unchanged.
+/// Re-blessed once more for the reasoner-derived `math:` dimensional-homogeneity gate (see
+/// the engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and moves with the changed `rule_ir.rs`/`query_ir.rs`/`physical/plan.rs`/
+/// `physical/seminaive.rs`/`relational_core.rs` engine source, while the fixed edge-only
+/// input (authoring no `logic:Constraint`) has an unchanged reasoning verdict.
+/// Re-blessed once more when `physical/builtin_eval.rs`'s cell loaders were hardened to
+/// require exactly one target per functional cell property (see the engine-descriptor
+/// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
+/// session identity moves with it, while the fixed edge-only input's reasoning verdict is
+/// unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "f6ff18cf42c6b7db0dc0755c984cd112d75bd3fde829b1d5c37e383c1d61772c";
+    "2cf35a8bfa43ca5d2a2b6830e464bd2252c9715c9099b2cdb95f5e2fe93a4e1a";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

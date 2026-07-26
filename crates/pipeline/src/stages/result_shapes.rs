@@ -779,7 +779,8 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
     /// generator's real output, so a missing/incorrect A-Box annotation on a
     /// minted `GenResultRowShape_*` individual reds HERE — a fast `cargo
     /// nextest -p gmeow-pipeline` — rather than only surfacing at the next
-    /// expensive `make validate-gts` (mirrors
+    /// expensive whole-bundle SHACL validation (`make validate` / the
+    /// pipeline stage-validate) (mirrors
     /// `provenance_graph::tests::minted_individuals_satisfy_the_assertional_abox_contract`).
     #[test]
     fn minted_shapes_satisfy_the_assertional_abox_contract() {

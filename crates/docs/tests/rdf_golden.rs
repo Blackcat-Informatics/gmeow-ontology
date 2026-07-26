@@ -32,6 +32,7 @@ fn small_model() -> DocsModel {
             creators: Vec::new(),
             consumers: Vec::new(),
             artifacts: Vec::new(),
+            documents: Vec::new(),
             profiles: Vec::new(),
             depends_on: Vec::new(),
             has_thesis_sentence: false,
@@ -133,6 +134,7 @@ fn small_model() -> DocsModel {
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         constraint_rules: Vec::new(),
+        advice_entries: Vec::new(),
         four_boxes: None,
         concept_doi: None,
         // A minimal pipeline so every term projects a `provenance`

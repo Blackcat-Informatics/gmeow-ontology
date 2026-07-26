@@ -12,6 +12,10 @@ use std::collections::BTreeSet;
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef};
 
+use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri;
+use gmeow_logic_compile::projections::sssom::{EquivalenceCell, equivalence_cells};
+
 use crate::graph::{self, all_iris, all_lits, g, id, instances_of};
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
@@ -86,16 +90,17 @@ pub(crate) fn is_validated_grounding_correspondence(ds: &RdfDataset, cell_iri: &
         return false;
     }
 
-    let term_frontend = has_type(ds, cell, &g("TermEquivalence"));
-    let projection_frontend = has_type(ds, cell, &g("ProjectionMapping"));
-    if term_frontend == projection_frontend {
+    // Grounding correspondences reach this validator only through the `gmeow:ProjectionMapping`
+    // frontend now; the former hand-authored term-equivalence cell form was deleted and native
+    // skos:*Match alignment cells are validated by `is_native_validated_grounding_term_cell`.
+    if !has_type(ds, cell, &g("ProjectionMapping")) {
         return false;
     }
 
     let Some(_justification) = exactly_one_iri(ds, cell, &g("justification")) else {
         return false;
     };
-    let Some(source) = exactly_one_iri(ds, cell, &format!("{LOGIC}sourceEndpoint")) else {
+    let Some(_source) = exactly_one_iri(ds, cell, &format!("{LOGIC}sourceEndpoint")) else {
         return false;
     };
     let Some(target) = exactly_one_iri(ds, cell, &format!("{LOGIC}targetEndpoint")) else {
@@ -122,25 +127,6 @@ pub(crate) fn is_validated_grounding_correspondence(ds: &RdfDataset, cell_iri: &
         return false;
     }
 
-    if term_frontend {
-        let Some(aligned_source) = exactly_one_iri(ds, cell, &g("alignSubject")) else {
-            return false;
-        };
-        let Some(predicate) = exactly_one_iri(ds, cell, &g("alignPredicate")) else {
-            return false;
-        };
-        let Some(aligned_target) = exactly_one_iri(ds, cell, &g("alignObject")) else {
-            return false;
-        };
-        if exactly_one_lit(ds, cell, &g("sssomFile")).is_none()
-            || source != aligned_source
-            || target != aligned_target
-        {
-            return false;
-        }
-        return !(bridge && IDENTITY_PREDICATES.contains(&predicate.as_str()));
-    }
-
     let bindings = objects(ds, cell, &g("hasBinding"));
     if bindings.len() != 1 || objects(ds, cell, &g("hasMappingPattern")).len() != 1 {
         return false;
@@ -161,12 +147,76 @@ pub(crate) fn is_validated_grounding_correspondence(ds: &RdfDataset, cell_iri: &
     targets.len() == 1 && targets[0] == target && !(bridge && relation == "=")
 }
 
-/// Every valid grounding frontend cell in deterministic IRI order.
+/// Strip the `logic:` namespace off an authored enum IRI and confirm the local name is one of
+/// `allowed`, returning the local name (the native twin of `exactly_one_logic_value`).
+fn logic_local<'a>(value: Option<&'a str>, allowed: &[&str]) -> Option<&'a str> {
+    let local = value?.strip_prefix(LOGIC)?;
+    allowed.contains(&local).then_some(local)
+}
+
+/// The native twin of the TERM branch of [`is_validated_grounding_correspondence`]: whether a
+/// native alignment cell (a reified `S P O {| … |}` statement) carries the complete, internally
+/// consistent grounding envelope the correspondence compiler accepts. The grounding annotations
+/// live on the cell's reifier (a side table), so they are read off the `EquivalenceCell` the
+/// canonical reader resolves rather than off flat graph triples.
+pub(crate) fn is_native_validated_grounding_term_cell(cell: &EquivalenceCell) -> bool {
+    if !cell.grounding || cell.justification.is_none() {
+        return false;
+    }
+    if cell.source_endpoint.as_deref() != Some(cell.subject.as_str())
+        || cell.target_endpoint.as_deref() != Some(cell.obj.as_str())
+    {
+        return false;
+    }
+    let Some(morphism_class) = logic_local(cell.morphism_class.as_deref(), MORPHISM_CLASSES) else {
+        return false;
+    };
+    if logic_local(
+        cell.morphism_kind.as_deref(),
+        &["InstitutionMorphism", "CommitmentShiftingBridge"],
+    )
+    .is_none()
+        || logic_local(cell.preservation.as_deref(), PRESERVATION_KINDS).is_none()
+    {
+        return false;
+    }
+    let bridge = morphism_class == "BridgeView";
+    let commitment_shift =
+        cell.morphism_kind.as_deref() == Some(&format!("{LOGIC}CommitmentShiftingBridge"));
+    if bridge != commitment_shift {
+        return false;
+    }
+    // sssom_file is the reader's discriminator, so it is always present on a native cell.
+    !(bridge && IDENTITY_PREDICATES.contains(&cell.predicate.as_str()))
+}
+
+/// Read every native alignment cell (via the canonical `equivalence_cells` reader), so grounding
+/// scoring reads the SAME cells the correspondence derivation does — no second, drifting reader.
+pub(crate) fn native_alignment_cells(ds: &RdfDataset) -> Vec<EquivalenceCell> {
+    // Fail closed: a malformed native alignment cell is a hard error, never a silent empty
+    // read. Swallowing the reader error would let the grounding axes (linkage / identity /
+    // dc) report a vacuous 1.0 pass on a corrupt slice — the exact opposite of the carrier
+    // fail-closed discipline the rest of this surface enforces.
+    equivalence_cells(&DslView::new(ds))
+        .expect("native alignment cell extraction must not fail during slice-quality scoring")
+}
+
+/// Every valid grounding frontend cell, keyed by identity, in deterministic order. Native
+/// term-equivalence cells are keyed by their content-addressed correspondence identity (they
+/// carry no bespoke cell IRI); the projection-mapping grounding cells remain authored graph
+/// nodes (that frontend was not migrated) and are validated node-side.
 pub(crate) fn validated_grounding_cells(ds: &RdfDataset) -> BTreeSet<String> {
-    instances_of(ds, &format!("{LOGIC}GroundingCorrespondence"))
-        .into_iter()
-        .filter(|iri| is_validated_grounding_correspondence(ds, iri))
-        .collect()
+    let mut cells: BTreeSet<String> = native_alignment_cells(ds)
+        .iter()
+        .filter(|c| is_native_validated_grounding_term_cell(c))
+        .map(|c| alignment_provenance_iri(&c.subject, &c.predicate, &c.obj))
+        .collect();
+    cells.extend(
+        instances_of(ds, &format!("{LOGIC}GroundingCorrespondence"))
+            .into_iter()
+            .filter(|iri| is_validated_grounding_correspondence(ds, iri)),
+    );
+    cells
 }
 
 /// The valid grounding `ProjectionMapping` whose sole binding is `binding`, if any.

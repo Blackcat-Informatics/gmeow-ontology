@@ -276,6 +276,7 @@ mod tests {
             rule_iri: format!("{WF}ruleWin"),
             distinct_pairs: Vec::new(),
             builtins: Vec::new(),
+            constraint_tag: None,
         }]
     }
 

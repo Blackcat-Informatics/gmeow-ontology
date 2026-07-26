@@ -99,6 +99,8 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
+    check_rdf_stack_is_purrdf_only(root, &mut report);
+    check_purrdf_and_zstd_pins(root, &mut report);
     report
 }
 
@@ -1593,6 +1595,260 @@ fn scan_result_string_error_type(
     }
 }
 
+/// Manifest-dependency ban list for competing RDF / SHACL / OWL / Turtle / SPARQL stacks. purrdf
+/// is gmeow's SOLE RDF-1.2 + SHACL + SPARQL + GTS engine (SUBSUME / EXTEND / ENHANCE): a
+/// first-party crate that declares one of these as a Cargo dependency would be pulling in a
+/// second, competing, weaker engine alongside purrdf. A transitive occurrence pulled in BY
+/// purrdf is fine; a first-party manifest entry is not. (`oxiri`/`oxigraph`-family and
+/// `spargebra`/`sparesults` are the crates purrdf's S-series natively replaced.) This list, and
+/// the gate below that walks it, govern Cargo.toml dependency declarations ONLY — they read no
+/// source code and therefore cannot see, and make no claim to catch, a hand-rolled
+/// reimplementation of RDF/Turtle/SHACL parsing written directly in first-party source instead
+/// of calling purrdf.
+const BANNED_RDF_STACK_CRATES: &[&str] = &[
+    "oxrdf",
+    "oxttl",
+    "oxrdfio",
+    "oxrdfxml",
+    "oxigraph",
+    "oxsdatatypes",
+    "oxiri",
+    "spargebra",
+    "sparesults",
+    "sophia",
+    "sophia_api",
+    "rio_api",
+    "rio_turtle",
+    "rio_xml",
+    "rdftk_core",
+    "rdftk_iri",
+    "horned-owl",
+    "hornedowl",
+    "shacl",
+    "shacl_ast",
+    "shacl_validation",
+];
+
+/// Delegation-purity invariant (manifest-only): no `crates/*/Cargo.toml` may declare a competing
+/// RDF / SHACL stack as a dependency (see [`BANNED_RDF_STACK_CRATES`]). purrdf is the single
+/// RDF-1.2 / SHACL / SPARQL engine gmeow ships, so a first-party crate that imports one of the
+/// banned crates would be pulling in a second, rival engine. Uses the same toml key-lookup as
+/// the error-crate ban, so `oxrdf.workspace = true`, `oxrdf = "0.2"`, and `oxrdf = { … }` are
+/// all caught identically — a dependency-table key lookup, not a source or comment scan.
+///
+/// Mechanism, precisely: this gate ONLY inspects the `[dependencies]` / `[dev-dependencies]` /
+/// `[build-dependencies]` tables of each first-party `Cargo.toml`. It does not read crate
+/// source, so it cannot detect — and makes no claim to prevent — a hand-rolled reimplementation
+/// of RDF/Turtle/SHACL parse, validate, serialize, or subclass-closure logic written directly in
+/// first-party Rust instead of calling purrdf. Catching that class of violation is a code-review
+/// responsibility, not this gate's.
+fn check_rdf_stack_is_purrdf_only(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut crate_dirs: Vec<PathBuf> = match fs::read_dir(&crates_dir) {
+        Ok(entries) => entries
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect(),
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read directory: {err}",
+                crates_dir.display()
+            ));
+            return;
+        }
+    };
+    crate_dirs.sort();
+
+    for crate_dir in crate_dirs {
+        let manifest_path = crate_dir.join("Cargo.toml");
+        if !manifest_path.is_file() {
+            continue;
+        }
+        let rel = slash_path(manifest_path.strip_prefix(root).unwrap_or(&manifest_path));
+        let text = match fs::read_to_string(&manifest_path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read Cargo.toml: {err}"));
+                continue;
+            }
+        };
+        let manifest = match text.parse::<toml::Value>() {
+            Ok(manifest) => manifest,
+            Err(err) => {
+                report.error(format!("{rel}: cannot parse Cargo.toml: {err}"));
+                continue;
+            }
+        };
+        let crate_name = manifest
+            .get("package")
+            .and_then(toml::Value::as_table)
+            .and_then(|package| package.get("name"))
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<unnamed>")
+            .to_owned();
+        for table in dependency_tables_static(&manifest) {
+            for banned in BANNED_RDF_STACK_CRATES {
+                if table.contains_key(*banned) {
+                    report.error(format!(
+                        "{rel}: first-party crate {crate_name:?} declares a `{banned}` \
+                         dependency — purrdf is gmeow's sole RDF-1.2 / SHACL / SPARQL engine; \
+                         delegate to it instead of importing a competing RDF stack"
+                    ));
+                }
+            }
+        }
+    }
+}
+
+/// The purrdf-source and structured-zstd-floor invariants:
+///
+/// 1. The standalone `fuzz/` workspace MUST pin the SAME purrdf source (git + tag / rev /
+///    version) as the root `[workspace.dependencies]`. `fuzz/Cargo.lock` is git-ignored
+///    (cargo-fuzz convention), so a manifest drift here would silently fuzz a DIFFERENT parser
+///    than production — the tracked manifests are the enforceable surface.
+/// 2. `structured-zstd` MUST resolve to >= 0.0.49 in `Cargo.lock`. Earlier releases' huff0
+///    encoder panics compressing the gmeow.gts bundle (the reason a since-removed vendor patch
+///    once existed), so a downgrade would reintroduce a hard bundle-write crash.
+///
+/// Absent inputs (minimal fixtures) are skipped: the invariant binds only where the files
+/// exist, which on the live repo is always.
+fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
+    let root_manifest = root.join("Cargo.toml");
+    let fuzz_manifest = root.join("fuzz").join("Cargo.toml");
+    if root_manifest.is_file() && fuzz_manifest.is_file() {
+        let root_dep = purrdf_source_key(&root_manifest, true, report);
+        let fuzz_dep = purrdf_source_key(&fuzz_manifest, false, report);
+        if let (Some(root_key), Some(fuzz_key)) = (root_dep, fuzz_dep)
+            && root_key != fuzz_key
+        {
+            report.error(format!(
+                "fuzz/Cargo.toml pins purrdf as [{fuzz_key}] but the root \
+                 [workspace.dependencies] pins [{root_key}] — the standalone fuzz workspace \
+                 must exercise the SAME purrdf source as production (fuzz/Cargo.lock is \
+                 git-ignored, so the tracked manifests are the enforceable surface)"
+            ));
+        }
+    }
+
+    let lock_path = root.join("Cargo.lock");
+    if lock_path.is_file()
+        && let Some(version) = locked_package_version(&lock_path, "structured-zstd", report)
+    {
+        const FLOOR: (u64, u64, u64) = (0, 0, 49);
+        match parse_version_triple(&version) {
+            Some(triple) if triple >= FLOOR => {}
+            Some(_) => report.error(format!(
+                "Cargo.lock resolves structured-zstd {version}, below the 0.0.49 floor — \
+                 earlier huff0 encoders panic compressing the gmeow.gts bundle; do not downgrade"
+            )),
+            None => report.error(format!(
+                "Cargo.lock structured-zstd version {version:?} is unparsable"
+            )),
+        }
+    }
+}
+
+/// A stable, order-independent key for a `purrdf` dependency declaration, so the root and fuzz
+/// manifests compare equal iff they name the same source. Returns `None` (with a parse error
+/// recorded) only when the manifest itself is unreadable/unparsable; a missing `purrdf` key
+/// yields a distinct `absent` key so a drift to "no purrdf" is still caught.
+fn purrdf_source_key(
+    manifest_path: &Path,
+    workspace: bool,
+    report: &mut RepoStaticReport,
+) -> Option<String> {
+    let text = match fs::read_to_string(manifest_path) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!("{}: cannot read: {err}", manifest_path.display()));
+            return None;
+        }
+    };
+    let manifest = match text.parse::<toml::Value>() {
+        Ok(manifest) => manifest,
+        Err(err) => {
+            report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
+            return None;
+        }
+    };
+    let deps = if workspace {
+        manifest
+            .get("workspace")
+            .and_then(toml::Value::as_table)
+            .and_then(|ws| ws.get("dependencies"))
+    } else {
+        manifest.get("dependencies")
+    };
+    let dep = deps
+        .and_then(toml::Value::as_table)
+        .and_then(|t| t.get("purrdf"));
+    Some(match dep {
+        None => "absent".to_owned(),
+        Some(toml::Value::String(version)) => format!("registry;version={version}"),
+        Some(toml::Value::Table(table)) => {
+            let field = |key: &str| {
+                table
+                    .get(key)
+                    .and_then(toml::Value::as_str)
+                    .unwrap_or("")
+                    .to_owned()
+            };
+            format!(
+                "git={};tag={};rev={};branch={};version={}",
+                field("git"),
+                field("tag"),
+                field("rev"),
+                field("branch"),
+                field("version"),
+            )
+        }
+        Some(other) => format!("other={other}"),
+    })
+}
+
+/// The resolved version of `name` in a parsed `Cargo.lock`, if present.
+fn locked_package_version(
+    lock_path: &Path,
+    name: &str,
+    report: &mut RepoStaticReport,
+) -> Option<String> {
+    let text = match fs::read_to_string(lock_path) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!("{}: cannot read: {err}", lock_path.display()));
+            return None;
+        }
+    };
+    let lock = match text.parse::<toml::Value>() {
+        Ok(lock) => lock,
+        Err(err) => {
+            report.error(format!("{}: cannot parse: {err}", lock_path.display()));
+            return None;
+        }
+    };
+    lock.get("package")
+        .and_then(toml::Value::as_array)?
+        .iter()
+        .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        .and_then(|pkg| pkg.get("version").and_then(toml::Value::as_str))
+        .map(str::to_owned)
+}
+
+/// Parse a `major.minor.patch` version prefix (ignoring any `-pre`/`+build` suffix) into a
+/// comparable tuple.
+fn parse_version_triple(version: &str) -> Option<(u64, u64, u64)> {
+    let core = version.split(['-', '+']).next().unwrap_or(version);
+    let mut parts = core.split('.');
+    let major = parts.next()?.parse().ok()?;
+    let minor = parts.next()?.parse().ok()?;
+    let patch = parts.next()?.parse().ok()?;
+    Some((major, minor, patch))
+}
+
 /// Honest invariant #2 (Phase-6 Diag-substrate epic): no first-party Rust source may use a
 /// two-argument `Result<T, String>` / `std::result::Result<T, String>` where `String` is the
 /// error type — in return-type position (`-> Result<_, String>`) or anywhere else the
@@ -2736,6 +2992,154 @@ mod tests {
             "{:?}",
             report.errors
         );
+    }
+
+    // ── delegation-purity: purrdf is the sole RDF/SHACL stack ────────────
+
+    #[test]
+    fn rdf_stack_ban_flags_a_competing_rdf_dep() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(root, "gmeow-foo", "[dependencies]\noxrdf = \"0.2\"\n");
+        let mut report = RepoStaticReport::default();
+        check_rdf_stack_is_purrdf_only(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-foo") && e.contains("oxrdf")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn rdf_stack_ban_flags_a_workspace_form_shacl_dep() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(
+            root,
+            "gmeow-bar",
+            "[dev-dependencies]\nsophia = { workspace = true }\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_rdf_stack_is_purrdf_only(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-bar") && e.contains("sophia")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn rdf_stack_ban_allows_the_purrdf_umbrella() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(
+            root,
+            "gmeow-foo",
+            "[dependencies]\npurrdf = { workspace = true }\nserde = \"1\"\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_rdf_stack_is_purrdf_only(root, &mut report);
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    // ── purrdf-source parity + structured-zstd floor ─────────────────────
+
+    fn pin_gate_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_purrdf_and_zstd_pins(root, &mut report);
+        report.errors
+    }
+
+    const PURRDF_GIT_TAG_8: &str =
+        "purrdf = { git = \"https://example.invalid/purrdf.git\", tag = \"rust-v0.8.0\" }";
+
+    fn write_root_and_fuzz_purrdf(root: &Path, root_dep: &str, fuzz_dep: &str) {
+        write(
+            &root.join("Cargo.toml"),
+            &format!("[workspace.dependencies]\n{root_dep}\n"),
+        );
+        write(
+            &root.join("fuzz/Cargo.toml"),
+            &format!(
+                "[package]\nname = \"gmeow-fuzz\"\nversion = \"0.0.0\"\nedition = \"2021\"\n\n[dependencies]\n{fuzz_dep}\n"
+            ),
+        );
+    }
+
+    fn write_lock_with_structured_zstd(root: &Path, version: &str) {
+        write(
+            &root.join("Cargo.lock"),
+            &format!(
+                "version = 4\n\n[[package]]\nname = \"structured-zstd\"\nversion = \"{version}\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\n"
+            ),
+        );
+    }
+
+    #[test]
+    fn pin_gate_passes_matching_source_and_zstd_floor() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, PURRDF_GIT_TAG_8);
+        write_lock_with_structured_zstd(root, "0.0.49");
+        assert!(
+            pin_gate_errors(root).is_empty(),
+            "{:?}",
+            pin_gate_errors(root)
+        );
+    }
+
+    #[test]
+    fn pin_gate_flags_fuzz_purrdf_source_drift() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        // fuzz drifts to the crates.io string form while root stays git+tag.
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, "purrdf = \"0.7\"");
+        let errs = pin_gate_errors(root);
+        assert!(
+            errs.iter()
+                .any(|e| e.contains("fuzz/Cargo.toml") && e.contains("purrdf")),
+            "{errs:?}"
+        );
+    }
+
+    #[test]
+    fn pin_gate_flags_fuzz_purrdf_tag_drift() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let fuzz_old =
+            "purrdf = { git = \"https://example.invalid/purrdf.git\", tag = \"rust-v0.7.0\" }";
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, fuzz_old);
+        let errs = pin_gate_errors(root);
+        assert!(
+            errs.iter().any(|e| e.contains("fuzz/Cargo.toml")),
+            "{errs:?}"
+        );
+    }
+
+    #[test]
+    fn pin_gate_flags_structured_zstd_below_floor() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_root_and_fuzz_purrdf(root, PURRDF_GIT_TAG_8, PURRDF_GIT_TAG_8);
+        write_lock_with_structured_zstd(root, "0.0.40");
+        let errs = pin_gate_errors(root);
+        assert!(
+            errs.iter()
+                .any(|e| e.contains("structured-zstd") && e.contains("0.0.49")),
+            "{errs:?}"
+        );
+    }
+
+    #[test]
+    fn pin_gate_skips_absent_inputs() {
+        let temp = tempfile::tempdir().unwrap();
+        assert!(pin_gate_errors(temp.path()).is_empty());
     }
 
     // ── honest-invariant #2: String is never a Result error type ─────────

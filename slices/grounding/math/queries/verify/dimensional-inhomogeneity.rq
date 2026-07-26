@@ -1,0 +1,30 @@
+# Negative test: math:DimensionalInhomogeneity is a reasoner-materialized marker — the
+# native forward chase derives it from math:dimensionalHomogeneityLaw and
+# math:integralDimensionCompositionLaw (the two logic:Constraints authored in this
+# module) over the reasoned graph, deciding the laws' dimEqual / dimProduct conclusions
+# by exact ℚ⁷ arithmetic. This query does NOT recompute the violation itself — it holds
+# no FILTER NOT EXISTS structural check of its own — it only selects the already-derived
+# marker and projects its witnesses (the offending operands / integral parts and their
+# dimensions) so the surfaced finding names what went wrong. Any returned row is a
+# violation.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?subject ?operand ?operandDimension ?integrand ?integrandDimension
+       ?measure ?measureDimension ?resultDimension
+WHERE {
+    ?subject a math:DimensionalInhomogeneity .
+    OPTIONAL {
+        ?subject math:homogeneousOperand ?operand .
+        OPTIONAL { ?operand math:hasDimension ?operandDimension }
+    }
+    OPTIONAL {
+        ?subject math:integrand ?integrand .
+        OPTIONAL { ?integrand math:hasDimension ?integrandDimension }
+    }
+    OPTIONAL {
+        ?subject math:withRespectTo ?measure .
+        OPTIONAL { ?measure math:hasDimension ?measureDimension }
+    }
+    OPTIONAL { ?subject math:hasDimension ?resultDimension }
+}
+ORDER BY ?subject ?operand ?integrand ?measure

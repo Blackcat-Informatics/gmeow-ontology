@@ -40,8 +40,9 @@ The external vocabulary is never the source from which GMEOW derives its
 meaning. Inverse ingestion is the correspondence's `put` direction; it does not
 reverse semantic ownership.
 
-Each authored row is both an ergonomic `gmeow:TermEquivalence` frontend cell and
-an explicit `logic:GroundingCorrespondence`. A grounding row must state all
+Each authored row is a native alignment cell — a reified RDF-1.2 match statement
+(`skos:*Match` / `owl:equivalent*`) carrying `gmeow:sssomFile` — whose reifier is
+also an explicit `logic:GroundingCorrespondence`. A grounding row must state all
 three judgments:
 
 - `logic:morphismClass` — its position on the law spine;
@@ -174,8 +175,8 @@ The retired `gmeow-foundational.sssom.tsv` is an orphan and must not return.
 
 ```bash
 make validate
-make sync
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make regen
+make check-sync
 cargo nextest run -p gmeow-validate --test conformance_foundational_bridging
 cargo nextest run -p gmeow-pipeline --test correspondence_laws_bundle
 ```

@@ -1,0 +1,140 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The GMN-1 HELD-OUT emission-task corpus (issue #1377, EPIC #1371 scenario 7).
+#
+# Teachability is defined verbatim as "a fresh model given ONLY the generated
+# ~500-token primer achieves a GATED AST-validity rate on HELD-OUT emission
+# tasks." These are those held-out tasks: each is an NL prompt (`rdfs:comment`)
+# paired with the CONFORMANT GMN-1 document a model should emit (`skos:example`).
+#
+# They are HELD OUT — distinct from the primer's own worked examples. The primer
+# (crates/docs/src/gmn1_primer.rs) ships the record-sigil table, the operator glyph
+# table, and the repair-loop cards; it embeds NO full GMN document. Every task
+# below is a whole document (header + record) that COMBINES those constructs in a
+# form the primer never shows verbatim, so the teachability gate
+# (crates/docs/tests/gmn1_primer_teachability.rs) is not circular:
+#
+#   * PRIMER-COMPLETENESS — every record sigil / operator glyph / repair record a
+#     task exercises is TAUGHT by the primer (its glyph + fixity + alias, or its
+#     repair card, is present). Drop a needed row from the primer and the gate reds.
+#   * AST-VALIDITY — every task document re-parses through `gmn1_read` against the
+#     shipped dictionary at the gated rate (1.0). Perturb a document and it reds.
+#
+# The task subjects/predicates are example-namespace data; every triple is
+# IRI/simple-literal so the whole file round-trips byte-exact through the GMN-1
+# codec (the grounding round-trip gate, tests/gmn1_roundtrip.rs, reads this file).
+# The GMN documents themselves ride as opaque `skos:example` literals — the codec
+# round-trips them by reference, never parsing their inner GMN surface here.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/gmn-heldout/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# ── Record-kind sigils (the ten gmeow:GmnSigilRole individuals) ──────────────────
+
+ex:heldout-claim
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a claim record"@x-gmeow-english ;
+    rdfs:comment "Emit the claim that valve B has the open-valve-B state."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@c{s: gmeow__valveB, p: gmeow__hasState, o: gmeow__openValveB}"@x-gmeow-english .
+
+ex:heldout-evidence
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: an evidence record"@x-gmeow-english ;
+    rdfs:comment "Emit that span X is an evidence span."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@e{s: gmeow__spanX, p: rdf__type, o: gmeow__EvidenceSpan}"@x-gmeow-english .
+
+ex:heldout-standpoint
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a standpoint record"@x-gmeow-english ;
+    rdfs:comment "Emit that crew X is a standpoint."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@s{s: gmeow__crewX, p: rdf__type, o: gmeow__Standpoint}"@x-gmeow-english .
+
+ex:heldout-process
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a process record"@x-gmeow-english ;
+    rdfs:comment "Emit the process that cycle X cycles door X."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@p{s: gmeow__cycleX, p: gmeow__cycling, o: gmeow__doorX}"@x-gmeow-english .
+
+ex:heldout-proof
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a proof record"@x-gmeow-english ;
+    rdfs:comment "Emit that pf X is a proof."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@π{s: math__pfX, p: rdf__type, o: math__Proof}"@x-gmeow-english .
+
+ex:heldout-defeater
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a defeater record"@x-gmeow-english ;
+    rdfs:comment "Emit that df X is a defeater."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@d{s: gmeow__dfX, p: rdf__type, o: gmeow__Defeater}"@x-gmeow-english .
+
+ex:heldout-modal
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a modal record"@x-gmeow-english ;
+    rdfs:comment "Emit that the necessary modal force is a modal force."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@m{s: nec, p: rdf__type, o: gmeow__ModalForce}"@x-gmeow-english .
+
+ex:heldout-lang-ast
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a lang-AST record"@x-gmeow-english ;
+    rdfs:comment "Emit the lang-AST fragment that token X precedes token Y."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@λ{s: lang__tokX, p: lang__precedes, o: lang__tokY}"@x-gmeow-english .
+
+# ── Operator glyphs (the graph-derived glyph table, in @ℒ / @μ record scope) ─────
+
+ex:heldout-subsumes
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a logic record with the ⊑ operator"@x-gmeow-english ;
+    rdfs:comment "Emit the logic record that the cat class is a subclass of the animal class."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__catClass, p: ⊑, o: logic__animalClass}"@x-gmeow-english .
+
+ex:heldout-negation
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a logic record with the ¬ operator"@x-gmeow-english ;
+    rdfs:comment "Emit the logic record relating the p class and the q class through negation."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@ℒ{s: logic__pClass, p: ¬, o: logic__qClass}"@x-gmeow-english .
+
+ex:heldout-multiplication
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a math record with the × operator"@x-gmeow-english ;
+    rdfs:comment "Emit the math record relating factor X and product X through multiplication."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__factorX, p: ×, o: math__productX}"@x-gmeow-english .
+
+ex:heldout-addition
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a math record with the + operator"@x-gmeow-english ;
+    rdfs:comment "Emit the math record relating addend A and sum A through addition."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__addendA, p: +, o: math__sumA}"@x-gmeow-english .
+
+ex:heldout-morphism
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a math record with the → operator"@x-gmeow-english ;
+    rdfs:comment "Emit the math record of a morphism from object A to object B."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__objA, p: →, o: math__objB}"@x-gmeow-english .
+
+ex:heldout-exponentiation
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a math record with the ^ operator"@x-gmeow-english ;
+    rdfs:comment "Emit the math record relating base X and power X through exponentiation."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@μ{s: math__baseX, p: ^, o: math__powX}"@x-gmeow-english .
+
+# ── The repair loop (@err / @patch / @retract → GmnErr / GmnPatch / GmnRetract) ──
+
+ex:heldout-err
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: an @err repair record"@x-gmeow-english ;
+    rdfs:comment "Reject record h01 with a malformed-number failure by emitting an @err record."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@err{id: h01, class: lang__GmnMalformedNumber}"@x-gmeow-english .
+
+ex:heldout-patch
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a @patch repair record"@x-gmeow-english ;
+    rdfs:comment "Correct record h01 to confidence 0.80 by emitting a @patch record."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@patch{id: h01, q: 0.80}"@x-gmeow-english .
+
+ex:heldout-retract
+    a ex:GmnHeldoutEmissionTask ;
+    rdfs:label "held-out: a @retract repair record"@x-gmeow-english ;
+    rdfs:comment "Withdraw record h02 by emitting a @retract record."@x-gmeow-english ;
+    skos:example "@gmn{v: 1, aliases: dict-v3, glyphs: 2}\n@retract{id: h02}"@x-gmeow-english .
