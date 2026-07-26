@@ -556,8 +556,11 @@ gmeow:cascadeFirstLinkFunctionality
     logic:characterizes gmeow:cascadeFirstLink ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:cascadeFirstLink ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:cascadeFirstLink names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:cascadeFirstLink, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:cascadeFirstLinkFunctionality logic:characterizes gmeow:cascadeFirstLink ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:causalModalityFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -567,8 +570,11 @@ gmeow:causalModalityFunctionality
     logic:characterizes gmeow:causalModality ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:causalModality ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:causalModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:causalModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:causalModalityFunctionality logic:characterizes gmeow:causalModality ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:hazardBearerFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -578,8 +584,11 @@ gmeow:hazardBearerFunctionality
     logic:characterizes gmeow:hazardBearer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:hazardBearer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hazardBearer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hazardBearer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:hazardBearerFunctionality logic:characterizes gmeow:hazardBearer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:linkAntecedentFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -589,8 +598,11 @@ gmeow:linkAntecedentFunctionality
     logic:characterizes gmeow:linkAntecedent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:linkAntecedent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:linkAntecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkAntecedent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:linkAntecedentFunctionality logic:characterizes gmeow:linkAntecedent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:linkConsequentFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -600,8 +612,11 @@ gmeow:linkConsequentFunctionality
     logic:characterizes gmeow:linkConsequent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:linkConsequent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:linkConsequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkConsequent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:linkConsequentFunctionality logic:characterizes gmeow:linkConsequent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:linkNextAcyclicity
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -611,8 +626,11 @@ gmeow:linkNextAcyclicity
     logic:characterizes gmeow:linkNext ;
     logic:characteristicSort logic:acyclicProperty ;
     logic:formalizes gmeow:linkNext ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:linkNext admits no cycle; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a cycle is a legitimate shape — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkNext, logic:characteristicSort logic:acyclicProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:linkNextAcyclicity logic:characterizes gmeow:linkNext ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:causalLinkDistinctness
     a owl:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
@@ -622,4 +640,8 @@ gmeow:causalLinkDistinctness
     logic:distinctnessTarget gmeow:CausalLink ;
     logic:distinctnessRole gmeow:linkAntecedent , gmeow:linkConsequent ;
     logic:formalizes gmeow:linkAntecedent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:CausalLink; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:CausalLink no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:CausalLink and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:example "gmeow:causalLinkDistinctness logic:characterizes gmeow:CausalLink ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

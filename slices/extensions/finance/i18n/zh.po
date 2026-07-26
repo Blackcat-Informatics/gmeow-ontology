@@ -132,3 +132,243 @@ msgstr "walletScheme 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets."
 msgstr "在规范载体上断言 gmeow:walletScheme 是函数性的:一个加密钱包恰好运行在一种区块链方案上——单一的 WalletScheme(比特币、以太坊、Solana、门罗币等等),支持多方案的容器应建模为多个钱包。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:accountType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:accountType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:accountType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:accountType, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:accountTypeFunctionality logic:characterizes gmeow:accountType ."
+msgstr "gmeow:accountTypeFunctionality logic:characterizes gmeow:accountType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:assetType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:assetType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assetType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:assetType, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:assetTypeFunctionality logic:characterizes gmeow:assetType ."
+msgstr "gmeow:assetTypeFunctionality logic:characterizes gmeow:assetType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:holdingAgent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:holdingAgent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingAgentFunctionality logic:characterizes gmeow:holdingAgent ."
+msgstr "gmeow:holdingAgentFunctionality logic:characterizes gmeow:holdingAgent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingAsset names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:holdingAsset 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingAsset, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:holdingAsset, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingAssetFunctionality logic:characterizes gmeow:holdingAsset ."
+msgstr "gmeow:holdingAssetFunctionality logic:characterizes gmeow:holdingAsset ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingCostBasis names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:holdingCostBasis 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingCostBasis, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:holdingCostBasis, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingCostBasisFunctionality logic:characterizes gmeow:holdingCostBasis ."
+msgstr "gmeow:holdingCostBasisFunctionality logic:characterizes gmeow:holdingCostBasis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:holdingQuantity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:holdingQuantity 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:holdingQuantity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:holdingQuantity, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:holdingQuantityFunctionality logic:characterizes gmeow:holdingQuantity ."
+msgstr "gmeow:holdingQuantityFunctionality logic:characterizes gmeow:holdingQuantity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:invoiceAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:invoiceAmount 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:invoiceAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:invoiceAmount, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:invoiceAmountFunctionality logic:characterizes gmeow:invoiceAmount ."
+msgstr "gmeow:invoiceAmountFunctionality logic:characterizes gmeow:invoiceAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:ledgerAccountType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:ledgerAccountType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ledgerAccountType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:ledgerAccountType, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ledgerAccountTypeFunctionality logic:characterizes gmeow:ledgerAccountType ."
+msgstr "gmeow:ledgerAccountTypeFunctionality logic:characterizes gmeow:ledgerAccountType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:orderAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:orderAmount 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:orderAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:orderAmount, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:orderAmountFunctionality logic:characterizes gmeow:orderAmount ."
+msgstr "gmeow:orderAmountFunctionality logic:characterizes gmeow:orderAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingAccount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:postingAccount 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingAccount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:postingAccount, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingAccountFunctionality logic:characterizes gmeow:postingAccount ."
+msgstr "gmeow:postingAccountFunctionality logic:characterizes gmeow:postingAccount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:postingAmount 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:postingAmount, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingAmountFunctionality logic:characterizes gmeow:postingAmount ."
+msgstr "gmeow:postingAmountFunctionality logic:characterizes gmeow:postingAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingDirection names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:postingDirection 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingDirection, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:postingDirection, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingDirectionFunctionality logic:characterizes gmeow:postingDirection ."
+msgstr "gmeow:postingDirectionFunctionality logic:characterizes gmeow:postingDirection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:postingJournalEntry names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:postingJournalEntry 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postingJournalEntry, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:postingJournalEntry, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:postingJournalEntryFunctionality logic:characterizes gmeow:postingJournalEntry ."
+msgstr "gmeow:postingJournalEntryFunctionality logic:characterizes gmeow:postingJournalEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:transactionAmount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:transactionAmount 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transactionAmount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:transactionAmount, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transactionAmountFunctionality logic:characterizes gmeow:transactionAmount ."
+msgstr "gmeow:transactionAmountFunctionality logic:characterizes gmeow:transactionAmount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:walletScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:walletScheme 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:walletScheme, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:walletScheme, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:walletSchemeFunctionality logic:characterizes gmeow:walletScheme ."
+msgstr "gmeow:walletSchemeFunctionality logic:characterizes gmeow:walletScheme ."

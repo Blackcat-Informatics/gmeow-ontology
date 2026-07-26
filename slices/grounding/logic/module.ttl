@@ -5039,7 +5039,11 @@ logic:actionResourceFunctionality
     skos:definition "Asserts on the canonical carrier that logic:actionResource is functional: an action schema declares exactly one consumable-or-required resource — the single supply that resource-competing goal conflict (logic:competesForResource) draws against — so the resource facet names one resource per schema, not a set."@x-gmeow-english ;
     logic:characterizes logic:actionResource ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:actionResource .
+    logic:formalizes logic:actionResource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:actionResource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:actionResource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:actionResourceFunctionality logic:characterizes logic:actionResource ."@x-gmeow-english .
 
 logic:antecedentFunctionality
     a owl:NamedIndividual ,
@@ -5049,7 +5053,11 @@ logic:antecedentFunctionality
     skos:definition "Asserts on the canonical carrier that logic:antecedent is functional: a material-implication formula has exactly one antecedent — a single hypothesis formula — so the ordered, non-commutative implication reading is well-defined and never depends on serialization order."@x-gmeow-english ;
     logic:characterizes logic:antecedent ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:antecedent .
+    logic:formalizes logic:antecedent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:antecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:antecedent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:antecedentFunctionality logic:characterizes logic:antecedent ."@x-gmeow-english .
 
 logic:candidateCategoryFunctionality
     a owl:NamedIndividual ,
@@ -5059,7 +5067,11 @@ logic:candidateCategoryFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateCategory is functional: a candidate's prose carried exactly one kind of force, so it resolves to a single logic:FormalizationCategory from the closed set — a candidate with none is a hard governance error, never silently bucketed."@x-gmeow-english ;
     logic:characterizes logic:candidateCategory ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateCategory .
+    logic:formalizes logic:candidateCategory ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateCategory names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateCategory, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateCategoryFunctionality logic:characterizes logic:candidateCategory ."@x-gmeow-english .
 
 logic:candidateContractFunctionality
     a owl:NamedIndividual ,
@@ -5069,7 +5081,11 @@ logic:candidateContractFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateContract is functional: a candidate's proposed axiom is interpreted under exactly one logic:ReasoningContract — the single reasoning semantics that make the word 'sound' meaningful for it — so its soundness is judged against one contract, not several."@x-gmeow-english ;
     logic:characterizes logic:candidateContract ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateContract .
+    logic:formalizes logic:candidateContract ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateContract names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateContract, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateContractFunctionality logic:characterizes logic:candidateContract ."@x-gmeow-english .
 
 logic:candidateExtractionProvenanceFunctionality
     a owl:NamedIndividual ,
@@ -5079,7 +5095,11 @@ logic:candidateExtractionProvenanceFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateExtractionProvenance is functional: a candidate was produced by exactly one extraction event, so it records a single provenance string naming what produced it — the one extractor, run, or model invocation whose automated origin keeps it at logic:CandidateProposed with no canonical force until reviewed."@x-gmeow-english ;
     logic:characterizes logic:candidateExtractionProvenance ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateExtractionProvenance .
+    logic:formalizes logic:candidateExtractionProvenance ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateExtractionProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateExtractionProvenanceFunctionality logic:characterizes logic:candidateExtractionProvenance ."@x-gmeow-english .
 
 logic:candidateFormalizesFunctionality
     a owl:NamedIndividual ,
@@ -5089,7 +5109,11 @@ logic:candidateFormalizesFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateFormalizes is functional: a harvested candidate keeps exactly one prose-bearing term coherent, so its harvest back-link names a single formalized term — present exactly when the source IS a term's annotation field, and paired with the single logic:candidateSourceField that pins which field."@x-gmeow-english ;
     logic:characterizes logic:candidateFormalizes ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateFormalizes .
+    logic:formalizes logic:candidateFormalizes ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateFormalizes names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateFormalizes, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateFormalizesFunctionality logic:characterizes logic:candidateFormalizes ."@x-gmeow-english .
 
 logic:candidateLifecycleFunctionality
     a owl:NamedIndividual ,
@@ -5099,7 +5123,11 @@ logic:candidateLifecycleFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateLifecycle is functional: a candidate occupies exactly one governance lifecycle state at a time, so it carries a single logic:CandidateLifecycleState — a candidate cannot be both proposed and accepted, and logic:CandidateAccepted is legitimate only with a recorded logic:reviewedBy decision."@x-gmeow-english ;
     logic:characterizes logic:candidateLifecycle ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateLifecycle .
+    logic:formalizes logic:candidateLifecycle ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateLifecycle names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateLifecycle, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateLifecycleFunctionality logic:characterizes logic:candidateLifecycle ."@x-gmeow-english .
 
 logic:candidateProjectionBehaviorFunctionality
     a owl:NamedIndividual ,
@@ -5109,7 +5137,11 @@ logic:candidateProjectionBehaviorFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateProjectionBehavior is functional: a candidate's axiom survives down-projection to OWL/Datalog/SHACL with exactly one preservation polarity, so it carries a single logic:PreservationKind reused from the loss ledger rather than a set of conflicting notes."@x-gmeow-english ;
     logic:characterizes logic:candidateProjectionBehavior ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateProjectionBehavior .
+    logic:formalizes logic:candidateProjectionBehavior ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateProjectionBehavior, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:candidateProjectionBehavior ."@x-gmeow-english .
 
 logic:candidateScopeFunctionality
     a owl:NamedIndividual ,
@@ -5119,7 +5151,11 @@ logic:candidateScopeFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateScope is functional: a candidate's proposed axiom has one intended scope — the single terms, slice, or context it is meant to constrain — so its reach is stated once, read together with the single logic:candidateContract it is interpreted under."@x-gmeow-english ;
     logic:characterizes logic:candidateScope ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateScope .
+    logic:formalizes logic:candidateScope ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateScopeFunctionality logic:characterizes logic:candidateScope ."@x-gmeow-english .
 
 logic:candidateSemanticRiskFunctionality
     a owl:NamedIndividual ,
@@ -5129,7 +5165,11 @@ logic:candidateSemanticRiskFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateSemanticRisk is functional: a candidate carries exactly one logic:SemanticRiskClass — how far a wrong formalization would propagate — because that single risk grade sets how strict the reviewer gate must be, and a candidate cannot occupy two risk grades at once."@x-gmeow-english ;
     logic:characterizes logic:candidateSemanticRisk ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateSemanticRisk .
+    logic:formalizes logic:candidateSemanticRisk ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSemanticRisk, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateSemanticRiskFunctionality logic:characterizes logic:candidateSemanticRisk ."@x-gmeow-english .
 
 logic:candidateSourceFieldFunctionality
     a owl:NamedIndividual ,
@@ -5139,7 +5179,11 @@ logic:candidateSourceFieldFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateSourceField is functional: a candidate harvested from exactly one annotation field of its logic:candidateFormalizes term, so it names a single logic:ProseField from the closed set (definition, use-when, or avoid-when) — the one field that, with the formalized term, pins the harvested axiom to its exact source triple."@x-gmeow-english ;
     logic:characterizes logic:candidateSourceField ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateSourceField .
+    logic:formalizes logic:candidateSourceField ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSourceField, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateSourceFieldFunctionality logic:characterizes logic:candidateSourceField ."@x-gmeow-english .
 
 logic:candidateSourceHashFunctionality
     a owl:NamedIndividual ,
@@ -5149,7 +5193,11 @@ logic:candidateSourceHashFunctionality
     skos:definition "Asserts on the canonical carrier that logic:candidateSourceHash is functional: a candidate was extracted from one exact span of source text, so it anchors to a single content hash — the one fingerprint that ties the candidate back to that prose and detects drift the moment the prose changes."@x-gmeow-english ;
     logic:characterizes logic:candidateSourceHash ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateSourceHash .
+    logic:formalizes logic:candidateSourceHash ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceHash names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSourceHash, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:candidateSourceHashFunctionality logic:characterizes logic:candidateSourceHash ."@x-gmeow-english .
 
 logic:conjectureFormulaFunctionality
     a owl:NamedIndividual ,
@@ -5159,7 +5207,11 @@ logic:conjectureFormulaFunctionality
     skos:definition "Asserts on the canonical carrier that logic:conjectureFormula is functional: a conjecture names exactly one formula, so it carries a single alpha-normalized content-key of the full first-order AST — the one canonical identity under which two conjectures naming the same formula up to bound-variable renaming share a key and cannot be double-counted."@x-gmeow-english ;
     logic:characterizes logic:conjectureFormula ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:conjectureFormula .
+    logic:formalizes logic:conjectureFormula ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureFormula names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureFormula, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:conjectureFormulaFunctionality logic:characterizes logic:conjectureFormula ."@x-gmeow-english .
 
 logic:conjectureLifecycleStateFunctionality
     a owl:NamedIndividual ,
@@ -5169,7 +5221,11 @@ logic:conjectureLifecycleStateFunctionality
     skos:definition "Asserts on the canonical carrier that logic:conjectureLifecycleState is functional: a conjecture occupies exactly one epistemic state — open, corroborated, refuted-in-standpoint, or withdrawn — at a time, a single value orthogonal to the governance logic:candidateLifecycle it inherits, so the two axes are never collapsed (Principle 9)."@x-gmeow-english ;
     logic:characterizes logic:conjectureLifecycleState ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:conjectureLifecycleState .
+    logic:formalizes logic:conjectureLifecycleState ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureLifecycleState, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:conjectureLifecycleStateFunctionality logic:characterizes logic:conjectureLifecycleState ."@x-gmeow-english .
 
 logic:conjectureStandpointFunctionality
     a owl:NamedIndividual ,
@@ -5179,7 +5235,11 @@ logic:conjectureStandpointFunctionality
     skos:definition "Asserts on the canonical carrier that logic:conjectureStandpoint is functional: a conjecture's verdict is scoped to exactly one reified standpoint, so it names a single gmeow:Standpoint IRI — the verdict is 'refuted FROM THIS standpoint', never a global-false claim (Principle 9), and a conjecture with no single standpoint has an ill-scoped verdict and is a hard governance error."@x-gmeow-english ;
     logic:characterizes logic:conjectureStandpoint ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:conjectureStandpoint .
+    logic:formalizes logic:conjectureStandpoint ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureStandpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureStandpoint, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:conjectureStandpointFunctionality logic:characterizes logic:conjectureStandpoint ."@x-gmeow-english .
 
 logic:consequentFunctionality
     a owl:NamedIndividual ,
@@ -5189,7 +5249,11 @@ logic:consequentFunctionality
     skos:definition "Asserts on the canonical carrier that logic:consequent is functional: a material-implication formula has exactly one consequent — a single conclusion formula — which, paired with the single logic:antecedent, marks the node an ordered implication distinct from the commutative logic:iff."@x-gmeow-english ;
     logic:characterizes logic:consequent ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:consequent .
+    logic:formalizes logic:consequent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:consequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:consequent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:consequentFunctionality logic:characterizes logic:consequent ."@x-gmeow-english .
 
 logic:effectFunctionality
     a owl:NamedIndividual ,
@@ -5199,7 +5263,11 @@ logic:effectFunctionality
     skos:definition "Asserts on the canonical carrier that logic:effect is functional: an action schema introduces exactly one effect — the single ins/del supersession change executing an occurrence records — with alternative results carried instead by the multi-valued logic:nondeterministicOutcome, so the deterministic change stays one edge while nondeterminism lives on a different facet."@x-gmeow-english ;
     logic:characterizes logic:effect ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:effect .
+    logic:formalizes logic:effect ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:effect names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:effect, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:effectFunctionality logic:characterizes logic:effect ."@x-gmeow-english .
 
 logic:evaluationModeFunctionality
     a owl:NamedIndividual ,
@@ -5209,7 +5277,11 @@ logic:evaluationModeFunctionality
     skos:definition "Asserts on the canonical carrier that logic:evaluationMode is functional: a reasoning program selects exactly one logic:EvaluationMode strategy to resolve its clause set, never a mix — one procedure resolves the same authored clauses, and an unrecognized mode is a hard compile-time fail rather than a silent fallback."@x-gmeow-english ;
     logic:characterizes logic:evaluationMode ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:evaluationMode .
+    logic:formalizes logic:evaluationMode ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:evaluationMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:evaluationMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:evaluationModeFunctionality logic:characterizes logic:evaluationMode ."@x-gmeow-english .
 
 logic:existsFunctionality
     a owl:NamedIndividual ,
@@ -5219,7 +5291,11 @@ logic:existsFunctionality
     skos:definition "Asserts on the canonical carrier that logic:exists is functional: an existential-quantifier formula binds exactly one body formula — the single scope the binder ranges over — while its bound variables ride on logic:quantifiedVariable, so the node pins one binder and one body, not a set of bodies."@x-gmeow-english ;
     logic:characterizes logic:exists ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:exists .
+    logic:formalizes logic:exists ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:exists names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:exists, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:existsFunctionality logic:characterizes logic:exists ."@x-gmeow-english .
 
 logic:feasibilityStatusFunctionality
     a owl:NamedIndividual ,
@@ -5229,7 +5305,11 @@ logic:feasibilityStatusFunctionality
     skos:definition "Asserts on the canonical carrier that logic:feasibilityStatus is functional: a goal evaluation carries exactly one logic:FeasibilityStatus — the feasibility axis of the factored outcome — a single value that varies independently of the satisfaction, lifecycle, and goal-evaluation axes but is itself one-valued per evaluation."@x-gmeow-english ;
     logic:characterizes logic:feasibilityStatus ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:feasibilityStatus .
+    logic:formalizes logic:feasibilityStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:feasibilityStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:feasibilityStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:feasibilityStatusFunctionality logic:characterizes logic:feasibilityStatus ."@x-gmeow-english .
 
 logic:forallFunctionality
     a owl:NamedIndividual ,
@@ -5239,7 +5319,11 @@ logic:forallFunctionality
     skos:definition "Asserts on the canonical carrier that logic:forall is functional: a universal-quantifier formula binds exactly one body formula — the single scope the binder ranges over across individuals in the domain of discourse — while its bound variables ride on logic:quantifiedVariable, so the node pins one binder and one body."@x-gmeow-english ;
     logic:characterizes logic:forall ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:forall .
+    logic:formalizes logic:forall ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:forall names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:forall, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:forallFunctionality logic:characterizes logic:forall ."@x-gmeow-english .
 
 logic:freshnessHorizonFunctionality
     a owl:NamedIndividual ,
@@ -5249,7 +5333,11 @@ logic:freshnessHorizonFunctionality
     skos:definition "Asserts on the canonical carrier that logic:freshnessHorizon is functional: a freshness guard declares exactly one age ceiling — the single xsd:duration bounding how old the guarded precondition datum may be, measured from its logic:datumRecordedAt to the probe's logic:decisionTime — so the one age comparison is well-defined."@x-gmeow-english ;
     logic:characterizes logic:freshnessHorizon ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:freshnessHorizon .
+    logic:formalizes logic:freshnessHorizon ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessHorizon names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessHorizon, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:freshnessHorizonFunctionality logic:characterizes logic:freshnessHorizon ."@x-gmeow-english .
 
 logic:freshnessWindowEndFunctionality
     a owl:NamedIndividual ,
@@ -5259,7 +5347,11 @@ logic:freshnessWindowEndFunctionality
     skos:definition "Asserts on the canonical carrier that logic:freshnessWindowEnd is functional: a freshness guard's explicit valid-time window has exactly one inclusive upper bound, so it carries a single xsd:dateTime end — required exactly once when a window is declared and paired with the single logic:freshnessWindowStart to define the closed interval."@x-gmeow-english ;
     logic:characterizes logic:freshnessWindowEnd ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:freshnessWindowEnd .
+    logic:formalizes logic:freshnessWindowEnd ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessWindowEnd, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:freshnessWindowEndFunctionality logic:characterizes logic:freshnessWindowEnd ."@x-gmeow-english .
 
 logic:freshnessWindowStartFunctionality
     a owl:NamedIndividual ,
@@ -5269,7 +5361,11 @@ logic:freshnessWindowStartFunctionality
     skos:definition "Asserts on the canonical carrier that logic:freshnessWindowStart is functional: a freshness guard's explicit valid-time window has exactly one inclusive lower bound, so it carries a single xsd:dateTime start — required exactly once when a window is declared and paired with the single logic:freshnessWindowEnd to define the closed interval."@x-gmeow-english ;
     logic:characterizes logic:freshnessWindowStart ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:freshnessWindowStart .
+    logic:formalizes logic:freshnessWindowStart ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowStart names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessWindowStart, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:freshnessWindowStartFunctionality logic:characterizes logic:freshnessWindowStart ."@x-gmeow-english .
 
 logic:functionSymbolFunctionality
     a owl:NamedIndividual ,
@@ -5279,7 +5375,11 @@ logic:functionSymbolFunctionality
     skos:definition "Asserts on the canonical carrier that logic:functionSymbol is functional: a function term applies exactly one reified function-symbol (logic:Type) individual over its ordered arguments — mirroring how logic:relation reifies a predication's single relation under the HiLog reflection — so the object level stays first-order and no function variable is admitted."@x-gmeow-english ;
     logic:characterizes logic:functionSymbol ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:functionSymbol .
+    logic:formalizes logic:functionSymbol ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:functionSymbol names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:functionSymbol, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:functionSymbolFunctionality logic:characterizes logic:functionSymbol ."@x-gmeow-english .
 
 logic:goalEvaluationStatusFunctionality
     a owl:NamedIndividual ,
@@ -5289,7 +5389,11 @@ logic:goalEvaluationStatusFunctionality
     skos:definition "Asserts on the canonical carrier that logic:goalEvaluationStatus is functional: a goal evaluation carries exactly one logic:GoalEvaluationStatus — whether it is conclusive — a single conclusiveness value (distinct from the engine-computation logic:resultEvaluation) that with satisfaction status logic:Satisfied and logic:GoalEvaluationCompleted gates a gmeow:satisfiedBy edge."@x-gmeow-english ;
     logic:characterizes logic:goalEvaluationStatus ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:goalEvaluationStatus .
+    logic:formalizes logic:goalEvaluationStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:goalEvaluationStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:goalEvaluationStatusFunctionality logic:characterizes logic:goalEvaluationStatus ."@x-gmeow-english .
 
 logic:guardsPreconditionFunctionality
     a owl:NamedIndividual ,
@@ -5299,7 +5403,11 @@ logic:guardsPreconditionFunctionality
     skos:definition "Asserts on the canonical carrier that logic:guardsPrecondition is functional: a freshness guard guards exactly one precondition situation — the single datum whose currency it checks — so a schema guarding several preconditions carries one logic:FreshnessGuard per precondition (the multi-valued logic:freshnessGuard gathers them), never one guard fanning out over many."@x-gmeow-english ;
     logic:characterizes logic:guardsPrecondition ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:guardsPrecondition .
+    logic:formalizes logic:guardsPrecondition ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:guardsPrecondition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:guardsPrecondition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:guardsPreconditionFunctionality logic:characterizes logic:guardsPrecondition ."@x-gmeow-english .
 
 logic:invariantFunctionality
     a owl:NamedIndividual ,
@@ -5309,7 +5417,11 @@ logic:invariantFunctionality
     skos:definition "Asserts on the canonical carrier that logic:invariant is functional: an action schema names exactly one invariant — the single condition that must hold before, during, and after its execution — distinct from logic:precondition (what must hold to begin) and logic:effect (what changes), so the preserved condition is one facet, not a set."@x-gmeow-english ;
     logic:characterizes logic:invariant ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:invariant .
+    logic:formalizes logic:invariant ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:invariant names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:invariant, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:invariantFunctionality logic:characterizes logic:invariant ."@x-gmeow-english .
 
 logic:lifecycleStatusFunctionality
     a owl:NamedIndividual ,
@@ -5319,7 +5431,11 @@ logic:lifecycleStatusFunctionality
     skos:definition "Asserts on the canonical carrier that logic:lifecycleStatus is functional: a goal evaluation carries exactly one logic:LifecycleStatus — the lifecycle axis of the factored outcome — a single value that varies independently of the satisfaction, feasibility, and goal-evaluation axes yet is itself one-valued per evaluation."@x-gmeow-english ;
     logic:characterizes logic:lifecycleStatus ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:lifecycleStatus .
+    logic:formalizes logic:lifecycleStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:lifecycleStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:lifecycleStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:lifecycleStatusFunctionality logic:characterizes logic:lifecycleStatus ."@x-gmeow-english .
 
 logic:notFunctionality
     a owl:NamedIndividual ,
@@ -5329,7 +5445,11 @@ logic:notFunctionality
     skos:definition "Asserts on the canonical carrier that logic:not is functional: a strong-negation formula negates exactly one sub-formula — explicit classical negation over a single operand — kept distinct from negation-as-failure, which is a body-literal flag (logic:negatedBody) and never a formula-level connective."@x-gmeow-english ;
     logic:characterizes logic:not ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:not .
+    logic:formalizes logic:not ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:not names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:not, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:notFunctionality logic:characterizes logic:not ."@x-gmeow-english .
 
 logic:objectiveValueFunctionality
     a owl:NamedIndividual ,
@@ -5339,7 +5459,11 @@ logic:objectiveValueFunctionality
     skos:definition "Asserts on the canonical carrier that logic:objectiveValue is functional: a goal evaluation carries exactly one objective value — the single measured quantity an optimization goal extremizes, read against the direction and unit-frame on logic:objectiveDirection — never folded together with a truth value or an uncertainty measure."@x-gmeow-english ;
     logic:characterizes logic:objectiveValue ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:objectiveValue .
+    logic:formalizes logic:objectiveValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:objectiveValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:objectiveValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:objectiveValueFunctionality logic:characterizes logic:objectiveValue ."@x-gmeow-english .
 
 logic:obligationForbiddenPredicateFunctionality
     a owl:NamedIndividual ,
@@ -5349,7 +5473,11 @@ logic:obligationForbiddenPredicateFunctionality
     skos:definition "Asserts on the canonical carrier that logic:obligationForbiddenPredicate is functional: a non-entailment obligation forbids exactly one predicate — the single xsd:anyURI the closure must never contain and no rule head may produce — so the discharge check reads one IRI to prove unreachable over the strata or absent from the materialized closure."@x-gmeow-english ;
     logic:characterizes logic:obligationForbiddenPredicate ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:obligationForbiddenPredicate .
+    logic:formalizes logic:obligationForbiddenPredicate ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:obligationForbiddenPredicate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:obligationForbiddenPredicateFunctionality logic:characterizes logic:obligationForbiddenPredicate ."@x-gmeow-english .
 
 logic:observationFunctionality
     a owl:NamedIndividual ,
@@ -5359,7 +5487,11 @@ logic:observationFunctionality
     skos:definition "Asserts on the canonical carrier that logic:observation is functional: an action schema reveals exactly one observation — the single seam to the cognitive layer whose logic:reveals a policy branches on — so the value a later action's branch is conditioned upon is one facet per schema, not a set."@x-gmeow-english ;
     logic:characterizes logic:observation ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:observation .
+    logic:formalizes logic:observation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:observation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:observation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:observationFunctionality logic:characterizes logic:observation ."@x-gmeow-english .
 
 logic:planGoalFunctionality
     a owl:NamedIndividual ,
@@ -5369,7 +5501,11 @@ logic:planGoalFunctionality
     skos:definition "Asserts on the canonical carrier that logic:planGoal is functional: a plan has exactly one success criterion — the single gmeow:Goal its steps, invoking action schemas, are arranged to reach — against which its success over nondeterministic outcomes is quantified by logic:planSuccessMode."@x-gmeow-english ;
     logic:characterizes logic:planGoal ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:planGoal .
+    logic:formalizes logic:planGoal ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planGoal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:planGoal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:planGoalFunctionality logic:characterizes logic:planGoal ."@x-gmeow-english .
 
 logic:planSuccessModeFunctionality
     a owl:NamedIndividual ,
@@ -5379,7 +5515,11 @@ logic:planSuccessModeFunctionality
     skos:definition "Asserts on the canonical carrier that logic:planSuccessMode is functional: a plan declares exactly one logic:PlanSuccessMode quantifying its success over the nondeterministic outcomes of its action schemas — a single choice of whether some, every, or every fair execution must reach the goal, never two quantifications at once."@x-gmeow-english ;
     logic:characterizes logic:planSuccessMode ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:planSuccessMode .
+    logic:formalizes logic:planSuccessMode ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planSuccessMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:planSuccessMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:planSuccessModeFunctionality logic:characterizes logic:planSuccessMode ."@x-gmeow-english .
 
 logic:programQueryFunctionality
     a owl:NamedIndividual ,
@@ -5389,7 +5529,11 @@ logic:programQueryFunctionality
     skos:definition "Asserts on the canonical carrier that logic:programQuery is functional: a reasoning program declares exactly one goal atom it resolves against its clause set — a single query whose logic:termVariable carriers are the answer variables the engine binds — distinct from the multi-valued logic:verdictProbe atoms and required to be present exactly once."@x-gmeow-english ;
     logic:characterizes logic:programQuery ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:programQuery .
+    logic:formalizes logic:programQuery ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:programQuery names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:programQuery, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:programQueryFunctionality logic:characterizes logic:programQuery ."@x-gmeow-english .
 
 logic:recoveryTransformFunctionality
     a owl:NamedIndividual ,
@@ -5399,7 +5543,11 @@ logic:recoveryTransformFunctionality
     skos:definition "Asserts on the canonical carrier that logic:recoveryTransform is functional: a recovery case executes exactly one ordered source-to-view logic:Formula — the single universally-quantified implication whose antecedent is the complete source graph pattern and consequent the projected view pattern — where reversing the one implication would change which information must be recovered."@x-gmeow-english ;
     logic:characterizes logic:recoveryTransform ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:recoveryTransform .
+    logic:formalizes logic:recoveryTransform ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:recoveryTransform names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:recoveryTransform, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:recoveryTransformFunctionality logic:characterizes logic:recoveryTransform ."@x-gmeow-english .
 
 logic:relationFunctionality
     a owl:NamedIndividual ,
@@ -5409,7 +5557,11 @@ logic:relationFunctionality
     skos:definition "Asserts on the canonical carrier that logic:relation is functional: an atomic-predication formula predicates exactly one reified relation (logic:Type) over its ordered arguments — predicating over a single relation individual per the HiLog reflection keeps the object level first-order rather than admitting a predicate variable."@x-gmeow-english ;
     logic:characterizes logic:relation ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:relation .
+    logic:formalizes logic:relation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:relation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:relation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:relationFunctionality logic:characterizes logic:relation ."@x-gmeow-english .
 
 logic:satisfactionDegreeFunctionality
     a owl:NamedIndividual ,
@@ -5419,7 +5571,11 @@ logic:satisfactionDegreeFunctionality
     skos:definition "Asserts on the canonical carrier that logic:satisfactionDegree is functional: a goal evaluation carries exactly one satisfaction degree — the single unit-interval measure of how much of the goal is achieved — distinct from the uncertainty measures, from logic:objectiveValue, and from logic:utility, none of which it substitutes for."@x-gmeow-english ;
     logic:characterizes logic:satisfactionDegree ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:satisfactionDegree .
+    logic:formalizes logic:satisfactionDegree ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:satisfactionDegree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:satisfactionDegreeFunctionality logic:characterizes logic:satisfactionDegree ."@x-gmeow-english .
 
 logic:satisfactionStatusFunctionality
     a owl:NamedIndividual ,
@@ -5429,7 +5585,11 @@ logic:satisfactionStatusFunctionality
     skos:definition "Asserts on the canonical carrier that logic:satisfactionStatus is functional: a goal evaluation carries exactly one logic:SatisfactionStatus — the satisfaction axis of the factored outcome — a single value that varies independently of the feasibility, lifecycle, and goal-evaluation axes yet is itself one-valued per evaluation."@x-gmeow-english ;
     logic:characterizes logic:satisfactionStatus ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:satisfactionStatus .
+    logic:formalizes logic:satisfactionStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:satisfactionStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:satisfactionStatusFunctionality logic:characterizes logic:satisfactionStatus ."@x-gmeow-english .
 
 logic:termApplicationFunctionality
     a owl:NamedIndividual ,
@@ -5439,7 +5599,11 @@ logic:termApplicationFunctionality
     skos:definition "Asserts on the canonical carrier that logic:termApplication is functional: a term-carrier bears exactly one term value, so when that value is a compound function term the carrier points at a single logic:FunctionTerm sub-tree — the fifth of the five mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
     logic:characterizes logic:termApplication ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:termApplication .
+    logic:formalizes logic:termApplication ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termApplication names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termApplication, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:termApplicationFunctionality logic:characterizes logic:termApplication ."@x-gmeow-english .
 
 logic:termIndexFunctionality
     a owl:NamedIndividual ,
@@ -5449,7 +5613,11 @@ logic:termIndexFunctionality
     skos:definition "Asserts on the canonical carrier that logic:termIndex is functional: a term-carrier occupies exactly one position in its ordered list — argument or bound variable — so it fixes a single zero-based ordinal, the explicit position that makes variadic, order-significant lists round-trip independent of RDF statement order."@x-gmeow-english ;
     logic:characterizes logic:termIndex ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:termIndex .
+    logic:formalizes logic:termIndex ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:termIndexFunctionality logic:characterizes logic:termIndex ."@x-gmeow-english .
 
 logic:termIriFunctionality
     a owl:NamedIndividual ,
@@ -5459,7 +5627,11 @@ logic:termIriFunctionality
     skos:definition "Asserts on the canonical carrier that logic:termIri is functional: a term-carrier bears exactly one term value, so an IRI-constant carrier names a single IRI — the one individual, reified relation, or type it stands for — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
     logic:characterizes logic:termIri ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:termIri .
+    logic:formalizes logic:termIri ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIri names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termIri, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:termIriFunctionality logic:characterizes logic:termIri ."@x-gmeow-english .
 
 logic:termLiteralFunctionality
     a owl:NamedIndividual ,
@@ -5469,7 +5641,11 @@ logic:termLiteralFunctionality
     skos:definition "Asserts on the canonical carrier that logic:termLiteral is functional: a term-carrier bears exactly one term value, so a literal carrier holds a single lexical form — its datatype riding on the companion logic:termLiteralDatatype — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
     logic:characterizes logic:termLiteral ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:termLiteral .
+    logic:formalizes logic:termLiteral ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteral names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termLiteral, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:termLiteralFunctionality logic:characterizes logic:termLiteral ."@x-gmeow-english .
 
 logic:termLiteralDatatypeFunctionality
     a owl:NamedIndividual ,
@@ -5479,7 +5655,11 @@ logic:termLiteralDatatypeFunctionality
     skos:definition "Asserts on the canonical carrier that logic:termLiteralDatatype is functional: a literal term-carrier has exactly one datatype, so it carries a single datatype IRI held separately from the lexical form on logic:termLiteral, letting the typed-literal term round-trip losslessly — absent for a plain literal, and one datatype when present."@x-gmeow-english ;
     logic:characterizes logic:termLiteralDatatype ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:termLiteralDatatype .
+    logic:formalizes logic:termLiteralDatatype ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteralDatatype names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termLiteralDatatype, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:termLiteralDatatypeFunctionality logic:characterizes logic:termLiteralDatatype ."@x-gmeow-english .
 
 logic:termSequenceMarkerFunctionality
     a owl:NamedIndividual ,
@@ -5489,7 +5669,11 @@ logic:termSequenceMarkerFunctionality
     skos:definition "Asserts on the canonical carrier that logic:termSequenceMarker is functional: a term-carrier bears exactly one term value, so a sequence-marker carrier holds a single authored marker name — the one logic:SequenceMarker binding a sequence of terms rather than a single one — as one of the mutually exclusive term-value properties."@x-gmeow-english ;
     logic:characterizes logic:termSequenceMarker ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:termSequenceMarker .
+    logic:formalizes logic:termSequenceMarker ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termSequenceMarker names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termSequenceMarker, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:termSequenceMarkerFunctionality logic:characterizes logic:termSequenceMarker ."@x-gmeow-english .
 
 logic:termVariableFunctionality
     a owl:NamedIndividual ,
@@ -5499,7 +5683,11 @@ logic:termVariableFunctionality
     skos:definition "Asserts on the canonical carrier that logic:termVariable is functional: a term-carrier bears exactly one term value, so a variable carrier holds a single authored variable name (without a sigil) — one variable bound by an enclosing quantifier or free — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
     logic:characterizes logic:termVariable ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:termVariable .
+    logic:formalizes logic:termVariable ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termVariable names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termVariable, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:termVariableFunctionality logic:characterizes logic:termVariable ."@x-gmeow-english .
 
 logic:utilityFunctionality
     a owl:NamedIndividual ,
@@ -5509,7 +5697,11 @@ logic:utilityFunctionality
     skos:definition "Asserts on the canonical carrier that logic:utility is functional: a goal evaluation carries exactly one utility — the single desirability quantity, where utility and preference are one concept so no separate preference property is minted — distinct from the uncertainty measures, from logic:satisfactionDegree, and from logic:objectiveValue."@x-gmeow-english ;
     logic:characterizes logic:utility ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:utility .
+    logic:formalizes logic:utility ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:utility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:utility, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:utilityFunctionality logic:characterizes logic:utility ."@x-gmeow-english .
 
 logic:verdictProvenanceFunctionality
     a owl:NamedIndividual ,
@@ -5519,7 +5711,11 @@ logic:verdictProvenanceFunctionality
     skos:definition "Asserts on the canonical carrier that logic:verdictProvenance is functional: a conjecture's positive/negative cases were either engine-produced or reviewer-asserted but not both, so it carries exactly one logic:VerdictProvenanceKind — the one genuinely-new axis the conjecture library adds over the plain candidate spine, single-valued and required."@x-gmeow-english ;
     logic:characterizes logic:verdictProvenance ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:verdictProvenance .
+    logic:formalizes logic:verdictProvenance ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:verdictProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:verdictProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:verdictProvenanceFunctionality logic:characterizes logic:verdictProvenance ."@x-gmeow-english .
 
 logic:witnessIndividualFunctionality
     a owl:NamedIndividual ,
@@ -5529,7 +5725,11 @@ logic:witnessIndividualFunctionality
     skos:definition "Asserts on the canonical carrier that logic:witnessIndividual is functional: a contradiction witness pins exactly one individual — the single entity forced to owl:Nothing under the conjectured formula, identifying precisely where the contradiction bit — so a refutation names one offending individual, not a set."@x-gmeow-english ;
     logic:characterizes logic:witnessIndividual ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:witnessIndividual .
+    logic:formalizes logic:witnessIndividual ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessIndividual names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:witnessIndividual, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:witnessIndividualFunctionality logic:characterizes logic:witnessIndividual ."@x-gmeow-english .
 
 logic:witnessWorldFunctionality
     a owl:NamedIndividual ,
@@ -5539,7 +5739,11 @@ logic:witnessWorldFunctionality
     skos:definition "Asserts on the canonical carrier that logic:witnessWorld is functional: a contradiction witness is realized in exactly one world, so it records a single world IRI — the one modal/context world within the conjecture's standpoint where the contradiction was found — keeping the refutation world-scoped rather than asserted across all worlds."@x-gmeow-english ;
     logic:characterizes logic:witnessWorld ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:witnessWorld .
+    logic:formalizes logic:witnessWorld ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessWorld names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:witnessWorld, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:witnessWorldFunctionality logic:characterizes logic:witnessWorld ."@x-gmeow-english .
 
 logic:demonstratedByCompetencyFunctionality
     a owl:NamedIndividual ,
@@ -5549,7 +5753,11 @@ logic:demonstratedByCompetencyFunctionality
     skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByCompetency is functional: a gmeow:FlagshipScenario is pinned by exactly one competency question — the single gmeow:CompetencyQuestion IRI whose gmeow:cqExpectRow expectation the native flagship cross-check confirms for that scenario."@x-gmeow-english ;
     logic:characterizes gmeow:demonstratedByCompetency ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:demonstratedByCompetency .
+    logic:formalizes gmeow:demonstratedByCompetency ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByCompetency, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:demonstratedByCompetencyFunctionality logic:characterizes gmeow:demonstratedByCompetency ."@x-gmeow-english .
 
 logic:demonstratedByExampleFunctionality
     a owl:NamedIndividual ,
@@ -5559,7 +5767,11 @@ logic:demonstratedByExampleFunctionality
     skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByExample is functional: a gmeow:FlagshipScenario is realized by exactly one worked example — a single slice-relative *.ttl path the discharge harness validates clean, never more than one per scenario."@x-gmeow-english ;
     logic:characterizes gmeow:demonstratedByExample ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:demonstratedByExample .
+    logic:formalizes gmeow:demonstratedByExample ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByExample, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:demonstratedByExampleFunctionality logic:characterizes gmeow:demonstratedByExample ."@x-gmeow-english .
 
 logic:demonstratedByProducerFunctionality
     a owl:NamedIndividual ,
@@ -5569,7 +5781,11 @@ logic:demonstratedByProducerFunctionality
     skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier the execution-discharge harness dispatches, runs, and pins the output of to discharge the acceptance bar."@x-gmeow-english ;
     logic:characterizes gmeow:demonstratedByProducer ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:demonstratedByProducer .
+    logic:formalizes gmeow:demonstratedByProducer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByProducer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:demonstratedByProducerFunctionality logic:characterizes gmeow:demonstratedByProducer ."@x-gmeow-english .
 
 logic:guardedByCounterExampleFunctionality
     a owl:NamedIndividual ,
@@ -5579,8 +5795,11 @@ logic:guardedByCounterExampleFunctionality
     skos:definition "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the discharge harness runs to confirm the gate bites."@x-gmeow-english ;
     logic:characterizes gmeow:guardedByCounterExample ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes gmeow:guardedByCounterExample .
-
+    logic:formalizes gmeow:guardedByCounterExample ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:guardedByCounterExample, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:guardedByCounterExampleFunctionality logic:characterizes gmeow:guardedByCounterExample ."@x-gmeow-english .
 
 # ── Relatum-distinctness assertions (a relator's two roles must bind distinct values) ──
 # The canonical carrier for a mutual-inequality integrity condition on a relator: two
@@ -5646,8 +5865,11 @@ logic:keyProperty
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "key property"@x-gmeow-english ;
     skos:definition "Relates a logic:KeyAssertion to the property whose value keys the class — the single key property whose value uniquely identifies a logic:keyClass instance. Co-present with logic:keyClass: a key assertion carrying one without the other names no enforceable key. A record naming several logic:keyProperty values states a COMPOSITE key (the tuple of values is unique, not each part), which has no single-path uniqueness shape; the seeded keys are single-property. Domain logic:KeyAssertion; single-valued for a single-property key."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over instance; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when instance no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name instance and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:example "logic:keyProperty logic:characterizes instance ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
-
 # ── Conditional-range assertions (a discriminant value fixes a relatum's type) ────────
 # The canonical carrier for a value-conditioned range integrity condition on a relator: on
 # a target class, a discriminant property bound to a NAMED value forces the value bound by a
@@ -6532,7 +6754,11 @@ logic:adviceSourceFieldFunctionality
     skos:definition "Asserts on the canonical carrier that logic:adviceSourceField is functional: a realized advice carrier (an advisory logic:Constraint or a logic:AdviceGuidance) names exactly one logic:ProseField from the closed set (definition, use-when, or avoid-when) — the single field whose prose its logic:message must surface verbatim, so a carrier cannot ambiguously bind to two source fields at once."@x-gmeow-english ;
     logic:characterizes logic:adviceSourceField ;
     logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:adviceSourceField .
+    logic:formalizes logic:adviceSourceField ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:adviceSourceField, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "logic:adviceSourceFieldFunctionality logic:characterizes logic:adviceSourceField ."@x-gmeow-english .
 
 logic:candidateDeliberateNonAssertion
     a owl:DatatypeProperty ;

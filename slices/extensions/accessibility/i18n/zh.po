@@ -36,3 +36,51 @@ msgstr "assertionSubject 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."
 msgstr "在规范载体上断言 gmeow:assertionSubject 是函数性的:一条无障碍断言恰好评估一个主体,即被评估的单一地点或连接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:assertionFacet names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:assertionFacet 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assertionFacet, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:assertionFacet, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:assertionFacetFunctionality logic:characterizes gmeow:assertionFacet ."
+msgstr "gmeow:assertionFacetFunctionality logic:characterizes gmeow:assertionFacet ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:assertionPolarity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:assertionPolarity 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assertionPolarity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:assertionPolarity, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:assertionPolarityFunctionality logic:characterizes gmeow:assertionPolarity ."
+msgstr "gmeow:assertionPolarityFunctionality logic:characterizes gmeow:assertionPolarity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:assertionSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:assertionSubject 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assertionSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:assertionSubject, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:assertionSubjectFunctionality logic:characterizes gmeow:assertionSubject ."
+msgstr "gmeow:assertionSubjectFunctionality logic:characterizes gmeow:assertionSubject ."

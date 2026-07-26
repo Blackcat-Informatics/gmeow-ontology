@@ -28,3 +28,35 @@ msgstr "computationOverCompilation est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:computationOverCompilation is functional: a topology computation runs over exactly one complex compilation, since a federated computation spanning several compilations is several computations under a parent activity."
 msgstr "Affirme sur le porteur canonique que gmeow:computationOverCompilation est fonctionnelle : un calcul de topologie s'exécute sur exactement une compilation complexe, puisqu'un calcul fédéré s'étendant sur plusieurs compilations constitue plusieurs calculs sous une activité parente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:claimResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:claimResult nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:claimResult, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:claimResultFunctionality logic:characterizes gmeow:claimResult ."
+msgstr "gmeow:claimResultFunctionality logic:characterizes gmeow:claimResult ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:computationOverCompilation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:computationOverCompilation nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:computationOverCompilation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:computationOverCompilation, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:computationOverCompilationFunctionality logic:characterizes gmeow:computationOverCompilation ."
+msgstr "gmeow:computationOverCompilationFunctionality logic:characterizes gmeow:computationOverCompilation ."

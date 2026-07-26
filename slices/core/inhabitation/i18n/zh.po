@@ -60,3 +60,99 @@ msgstr "inhabitedHost 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure."
 msgstr "在规范载体上断言 gmeow:inhabitedHost 是函数性的:一个 gmeow:InhabitationTenure 恰好有一个被占用的宿主,因此同一主体占用第二个宿主即构成一个不同的租期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:configurationEmbodiment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:configurationEmbodiment 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationEmbodiment, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:configurationEmbodiment, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."
+msgstr "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:configurationOfTenure names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:configurationOfTenure 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationOfTenure, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:configurationOfTenure, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."
+msgstr "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitationLocusKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:inhabitationLocusKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationLocusKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:inhabitationLocusKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."
+msgstr "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitationSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:inhabitationSubject 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitationSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:inhabitationSubject, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationSubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."
+msgstr "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inhabitedHost names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:inhabitedHost 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inhabitedHost, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:inhabitedHost, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."
+msgstr "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:InhabitationTenure; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:InhabitationTenure 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:InhabitationTenure no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:InhabitationTenure 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:InhabitationTenure and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:InhabitationTenure 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."
+msgstr "gmeow:inhabitationIntervalFrameRequirement logic:characterizes gmeow:InhabitationTenure ."

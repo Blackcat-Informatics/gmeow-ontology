@@ -930,8 +930,11 @@ gmeow:claimResultFunctionality
     logic:characterizes gmeow:claimResult ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:claimResult ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:claimResultFunctionality logic:characterizes gmeow:claimResult ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:computationOverCompilationFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -941,4 +944,8 @@ gmeow:computationOverCompilationFunctionality
     logic:characterizes gmeow:computationOverCompilation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:computationOverCompilation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:computationOverCompilation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:computationOverCompilation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:computationOverCompilationFunctionality logic:characterizes gmeow:computationOverCompilation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

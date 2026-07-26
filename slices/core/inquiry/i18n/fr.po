@@ -28,3 +28,35 @@ msgstr "tenureQuestion est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:tenureQuestion is functional: a gmeow:InquiryTenure records exactly one held-open question — an agent holding five questions open bears five tenures, and sharing happens at a single gmeow:Question individual rather than by multi-valuing this edge."
 msgstr "Affirme sur le porteur canonique que gmeow:tenureQuestion est fonctionnelle: une gmeow:InquiryTenure enregistre exactement une question maintenue ouverte — un agent maintenant cinq questions ouvertes porte cinq tenures, et le partage se fait au niveau d'un seul individu gmeow:Question plutôt qu'en multi-valuant cette relation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureInquirer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:tenureInquirer nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureInquirer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:tenureInquirer, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureInquirerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureInquirerFunctionality logic:characterizes gmeow:tenureInquirer ."
+msgstr "gmeow:tenureInquirerFunctionality logic:characterizes gmeow:tenureInquirer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureQuestion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:tenureQuestion nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureQuestion, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:tenureQuestion, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureQuestionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureQuestionFunctionality logic:characterizes gmeow:tenureQuestion ."
+msgstr "gmeow:tenureQuestionFunctionality logic:characterizes gmeow:tenureQuestion ."

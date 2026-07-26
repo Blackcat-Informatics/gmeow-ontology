@@ -44,3 +44,67 @@ msgstr "partOf 具有传递性"
 msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."
 msgstr "在规范载体上断言 gmeow:partOf 是可传递的：其 skos:definition 命名为可传递且有意宽泛的普遍部分—整体主干。原生一致性门读取此项以闭合该部分关系主干。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:coarserThan composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:coarserThan 沿链复合 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当该关系不应复合时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:coarserThan, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:coarserThan, logic:characteristicSort logic:transitiveProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:coarserThanTransitivity logic:characterizes gmeow:coarserThan ."
+msgstr "gmeow:coarserThanTransitivity logic:characterizes gmeow:coarserThan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:partOf composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:partOf 沿链复合 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当该关系不应复合时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:partOf, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:partOf, logic:characteristicSort logic:transitiveProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:partOfTransitivity logic:characterizes gmeow:partOf ."
+msgstr "gmeow:partOfTransitivity logic:characterizes gmeow:partOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:coarsenTo names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:coarsenTo 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:coarsenTo, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:coarsenTo, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:coarsenToFunctionality logic:characterizes gmeow:coarsenTo ."
+msgstr "gmeow:coarsenToFunctionality logic:characterizes gmeow:coarsenTo ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:levelScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:levelScale 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:levelScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:levelScale, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:levelScaleFunctionality logic:characterizes gmeow:levelScale ."
+msgstr "gmeow:levelScaleFunctionality logic:characterizes gmeow:levelScale ."

@@ -68,3 +68,115 @@ msgstr "linkNext est acyclique"
 msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:linkNext is acyclic: a causal-cascade walk never reaches itself through gmeow:linkNext, as the Cascade prose states. linkNext is deliberately NOT transitive (it names the immediate next link, not every downstream one), so the native coherence gate enforces this with an internal reachability walk that raises a violation on any cycle, never by materialising the closure; the generated SHACL constraint surface is its projection."
 msgstr "Affirme sur le porteur canonique que gmeow:linkNext est acyclique : une marche de cascade causale n'atteint jamais elle-même à travers gmeow:linkNext, comme le stipule la prose de Cascade. linkNext n'est délibérément PAS transitive (elle nomme le lien immédiatement suivant, non chaque lien en aval), de sorte que la barrière de cohérence native l'impose par une marche d'accessibilité interne qui lève une violation sur tout cycle, jamais en matérialisant la clôture ; la surface de contrainte SHACL générée en est la projection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:cascadeFirstLink names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:cascadeFirstLink nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:cascadeFirstLink, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:cascadeFirstLink, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:cascadeFirstLinkFunctionality logic:characterizes gmeow:cascadeFirstLink ."
+msgstr "gmeow:cascadeFirstLinkFunctionality logic:characterizes gmeow:cascadeFirstLink ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:causalModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:causalModality nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:causalModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:causalModality, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:causalModalityFunctionality logic:characterizes gmeow:causalModality ."
+msgstr "gmeow:causalModalityFunctionality logic:characterizes gmeow:causalModality ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:hazardBearer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:hazardBearer nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hazardBearer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:hazardBearer, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hazardBearerFunctionality logic:characterizes gmeow:hazardBearer ."
+msgstr "gmeow:hazardBearerFunctionality logic:characterizes gmeow:hazardBearer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:linkAntecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:linkAntecedent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkAntecedent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:linkAntecedent, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:linkAntecedentFunctionality logic:characterizes gmeow:linkAntecedent ."
+msgstr "gmeow:linkAntecedentFunctionality logic:characterizes gmeow:linkAntecedent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:linkConsequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:linkConsequent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkConsequent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:linkConsequent, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:linkConsequentFunctionality logic:characterizes gmeow:linkConsequent ."
+msgstr "gmeow:linkConsequentFunctionality logic:characterizes gmeow:linkConsequent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:linkNext admits no cycle; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:linkNext n'admet aucun cycle ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a cycle is a legitimate shape — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque un cycle est une forme légitime — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkNext, logic:characteristicSort logic:acyclicProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:linkNext, logic:characteristicSort logic:acyclicProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:linkNextAcyclicity logic:characterizes gmeow:linkNext ."
+msgstr "gmeow:linkNextAcyclicity logic:characterizes gmeow:linkNext ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:CausalLink; the record is the canonical carrier the gate joins."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir la condition d'intégrité de cet enregistrement sur gmeow:CausalLink ; l'enregistrement est le porteur canonique que le portail joint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:CausalLink no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque gmeow:CausalLink ne porte plus la condition — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:CausalLink and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "Lisez ensemble les champs logic: de l'enregistrement : ils nomment gmeow:CausalLink et la condition affirmée à son sujet, et la vue de fondement OWL en projette l'axiome correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:causalLinkDistinctness logic:characterizes gmeow:CausalLink ."
+msgstr "gmeow:causalLinkDistinctness logic:characterizes gmeow:CausalLink ."

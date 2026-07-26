@@ -602,8 +602,11 @@ gmeow:notationSystemOfFunctionality
     logic:characterizes gmeow:notationSystemOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationSystemOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:notationSystemOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationSystemOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:notationSystemOfFunctionality logic:characterizes gmeow:notationSystemOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:notationUsageIntervalFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -613,8 +616,11 @@ gmeow:notationUsageIntervalFunctionality
     logic:characterizes gmeow:notationUsageInterval ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageInterval ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:notationUsageInterval names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageInterval, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:notationUsageIntervalFunctionality logic:characterizes gmeow:notationUsageInterval ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:notationUsageNotationSystemFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -624,8 +630,11 @@ gmeow:notationUsageNotationSystemFunctionality
     logic:characterizes gmeow:notationUsageNotationSystem ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageNotationSystem ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:notationUsageNotationSystem names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageNotationSystem, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:notationUsageNotationSystemFunctionality logic:characterizes gmeow:notationUsageNotationSystem ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:notationUsageRoleFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -635,8 +644,11 @@ gmeow:notationUsageRoleFunctionality
     logic:characterizes gmeow:notationUsageRole ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageRole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:notationUsageRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:notationUsageRoleFunctionality logic:characterizes gmeow:notationUsageRole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:notationUsageTargetFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -646,4 +658,8 @@ gmeow:notationUsageTargetFunctionality
     logic:characterizes gmeow:notationUsageTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:notationUsageTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:notationUsageTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:notationUsageTargetFunctionality logic:characterizes gmeow:notationUsageTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

@@ -196,3 +196,371 @@ msgstr "underSemantics 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/underSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:underSemantics is functional: a gmeow:ArgumentEvaluation is computed under exactly one named acceptability semantics, since the semantics fixes the labelling and the same argument assessed under a second semantics is a distinct evaluation."
 msgstr "在规范载体上断言 gmeow:underSemantics 是函数性的:一个 gmeow:ArgumentEvaluation 恰好在一种指名的可接受性语义下计算,因为该语义决定了标注结果,同一论证在第二种语义下评估将构成一个不同的评估。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:acceptanceStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:acceptanceStatus 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceStatusFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:acceptanceStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:acceptanceStatus, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptanceStatusFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:acceptanceStatusFunctionality logic:characterizes gmeow:acceptanceStatus ."
+msgstr "gmeow:acceptanceStatusFunctionality logic:characterizes gmeow:acceptanceStatus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedRuleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:appliedRule names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:appliedRule 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedRuleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedRuleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:appliedRule, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:appliedRule, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appliedRuleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:appliedRuleFunctionality logic:characterizes gmeow:appliedRule ."
+msgstr "gmeow:appliedRuleFunctionality logic:characterizes gmeow:appliedRule ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentConclusionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:argumentConclusion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:argumentConclusion 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentConclusionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentConclusionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:argumentConclusion, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:argumentConclusion, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentConclusionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:argumentConclusionFunctionality logic:characterizes gmeow:argumentConclusion ."
+msgstr "gmeow:argumentConclusionFunctionality logic:characterizes gmeow:argumentConclusion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentInferenceStepFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:argumentInferenceStep names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:argumentInferenceStep 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentInferenceStepFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentInferenceStepFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:argumentInferenceStep, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:argumentInferenceStep, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/argumentInferenceStepFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:argumentInferenceStepFunctionality logic:characterizes gmeow:argumentInferenceStep ."
+msgstr "gmeow:argumentInferenceStepFunctionality logic:characterizes gmeow:argumentInferenceStep ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:attackKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:attackKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attackKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:attackKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attackKindFunctionality logic:characterizes gmeow:attackKind ."
+msgstr "gmeow:attackKindFunctionality logic:characterizes gmeow:attackKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:attackTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:attackTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attackTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:attackTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attackTargetFunctionality logic:characterizes gmeow:attackTarget ."
+msgstr "gmeow:attackTargetFunctionality logic:characterizes gmeow:attackTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conclusionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:conclusion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:conclusion 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conclusionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conclusionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:conclusion, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:conclusion, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conclusionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:conclusionFunctionality logic:characterizes gmeow:conclusion ."
+msgstr "gmeow:conclusionFunctionality logic:characterizes gmeow:conclusion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:correspondingSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:correspondingSource 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingSourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingSourceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:correspondingSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:correspondingSource, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingSourceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:correspondingSourceFunctionality logic:characterizes gmeow:correspondingSource ."
+msgstr "gmeow:correspondingSourceFunctionality logic:characterizes gmeow:correspondingSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:correspondingTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:correspondingTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:correspondingTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:correspondingTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondingTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:correspondingTargetFunctionality logic:characterizes gmeow:correspondingTarget ."
+msgstr "gmeow:correspondingTargetFunctionality logic:characterizes gmeow:correspondingTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatesArgumentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:evaluatesArgument names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:evaluatesArgument 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatesArgumentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatesArgumentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:evaluatesArgument, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:evaluatesArgument, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatesArgumentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:evaluatesArgumentFunctionality logic:characterizes gmeow:evaluatesArgument ."
+msgstr "gmeow:evaluatesArgumentFunctionality logic:characterizes gmeow:evaluatesArgument ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferenceModeOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:inferenceModeOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:inferenceModeOf 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferenceModeOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferenceModeOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:inferenceModeOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:inferenceModeOf, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferenceModeOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inferenceModeOfFunctionality logic:characterizes gmeow:inferenceModeOf ."
+msgstr "gmeow:inferenceModeOfFunctionality logic:characterizes gmeow:inferenceModeOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/premiseUsedFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:premiseUsed names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:premiseUsed 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/premiseUsedFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/premiseUsedFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:premiseUsed, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:premiseUsed, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/premiseUsedFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:premiseUsedFunctionality logic:characterizes gmeow:premiseUsed ."
+msgstr "gmeow:premiseUsedFunctionality logic:characterizes gmeow:premiseUsed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:supportTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:supportTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:supportTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:supportTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:supportTargetFunctionality logic:characterizes gmeow:supportTarget ."
+msgstr "gmeow:supportTargetFunctionality logic:characterizes gmeow:supportTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:tenureOf 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:tenureOf, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureOfFunctionality logic:characterizes gmeow:tenureOf ."
+msgstr "gmeow:tenureOfFunctionality logic:characterizes gmeow:tenureOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/underSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:underSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:underSemantics 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/underSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/underSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:underSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:underSemantics, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/underSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:underSemanticsFunctionality logic:characterizes gmeow:underSemantics ."
+msgstr "gmeow:underSemanticsFunctionality logic:characterizes gmeow:underSemantics ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/competesWithIrreflexivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:competesWith never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:competesWith 绝不将主体关联到自身 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/competesWithIrreflexivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当自环是有意义的时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/competesWithIrreflexivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:competesWith, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:competesWith, logic:characteristicSort logic:irreflexiveProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/competesWithIrreflexivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:competesWithIrreflexivity logic:characterizes gmeow:competesWith ."
+msgstr "gmeow:competesWithIrreflexivity logic:characterizes gmeow:competesWith ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferencePremiseConclusionDistinctness|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:InferenceCommitment; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:InferenceCommitment 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferencePremiseConclusionDistinctness|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:InferenceCommitment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:InferenceCommitment 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferencePremiseConclusionDistinctness|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:InferenceCommitment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:InferenceCommitment 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferencePremiseConclusionDistinctness|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:inferencePremiseConclusionDistinctness logic:characterizes gmeow:InferenceCommitment ."
+msgstr "gmeow:inferencePremiseConclusionDistinctness logic:characterizes gmeow:InferenceCommitment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackSelfAttackExclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:Attack 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackSelfAttackExclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:Attack 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackSelfAttackExclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:Attack 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackSelfAttackExclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attackSelfAttackExclusion logic:characterizes gmeow:Attack ."
+msgstr "gmeow:attackSelfAttackExclusion logic:characterizes gmeow:Attack ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportSelfSupportExclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Support; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:Support 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportSelfSupportExclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:Support no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:Support 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportSelfSupportExclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:Support and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:Support 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportSelfSupportExclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:supportSelfSupportExclusion logic:characterizes gmeow:Support ."
+msgstr "gmeow:supportSelfSupportExclusion logic:characterizes gmeow:Support ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndermineTargetsPremiseUse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:Attack 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndermineTargetsPremiseUse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:Attack 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndermineTargetsPremiseUse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:Attack 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndermineTargetsPremiseUse|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attackUndermineTargetsPremiseUse logic:characterizes gmeow:Attack ."
+msgstr "gmeow:attackUndermineTargetsPremiseUse logic:characterizes gmeow:Attack ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndercutTargetsInferenceApplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:Attack 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndercutTargetsInferenceApplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:Attack 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndercutTargetsInferenceApplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:Attack 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackUndercutTargetsInferenceApplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attackUndercutTargetsInferenceApplication logic:characterizes gmeow:Attack ."
+msgstr "gmeow:attackUndercutTargetsInferenceApplication logic:characterizes gmeow:Attack ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackRebutTargetsStandpointClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:Attack 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackRebutTargetsStandpointClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:Attack 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackRebutTargetsStandpointClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:Attack 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackRebutTargetsStandpointClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attackRebutTargetsStandpointClaim logic:characterizes gmeow:Attack ."
+msgstr "gmeow:attackRebutTargetsStandpointClaim logic:characterizes gmeow:Attack ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackComponentSelfExclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Attack; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:Attack 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackComponentSelfExclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:Attack no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:Attack 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackComponentSelfExclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:Attack and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:Attack 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attackComponentSelfExclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attackComponentSelfExclusion logic:characterizes gmeow:Attack ."
+msgstr "gmeow:attackComponentSelfExclusion logic:characterizes gmeow:Attack ."

@@ -459,8 +459,11 @@ gmeow:knowledgeProficiencyAgentFunctionality
     logic:characterizes gmeow:knowledgeProficiencyAgent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:knowledgeProficiencyAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:knowledgeProficiencyAgentFunctionality logic:characterizes gmeow:knowledgeProficiencyAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:knowledgeProficiencyLevelFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -470,8 +473,11 @@ gmeow:knowledgeProficiencyLevelFunctionality
     logic:characterizes gmeow:knowledgeProficiencyLevel ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:knowledgeProficiencyLevel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:knowledgeProficiencyLevelFunctionality logic:characterizes gmeow:knowledgeProficiencyLevel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:knowledgeProficiencyScaleFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -481,8 +487,11 @@ gmeow:knowledgeProficiencyScaleFunctionality
     logic:characterizes gmeow:knowledgeProficiencyScale ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:knowledgeProficiencyScale ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:knowledgeProficiencyScaleFunctionality logic:characterizes gmeow:knowledgeProficiencyScale ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:knowledgeProficiencySubjectFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -492,4 +501,8 @@ gmeow:knowledgeProficiencySubjectFunctionality
     logic:characterizes gmeow:knowledgeProficiencySubject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:knowledgeProficiencySubject ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencySubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencySubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:knowledgeProficiencySubjectFunctionality logic:characterizes gmeow:knowledgeProficiencySubject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

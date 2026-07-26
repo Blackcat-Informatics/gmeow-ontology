@@ -20,3 +20,19 @@ msgstr "conceptHoldsFor est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:conceptHoldsFor is functional: one gmeow:ConceptTenure records the intension of exactly one concept, so the tenure binds to a single concept even though a concept may accrue many tenures over time."
 msgstr "Affirme sur le porteur canonique que gmeow:conceptHoldsFor est fonctionnelle : un gmeow:ConceptTenure enregistre l'intension d'exactement un concept, de sorte que la durée se lie à un concept unique, même si un concept peut accumuler de nombreuses durées au fil du temps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:conceptHoldsFor names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:conceptHoldsFor nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:conceptHoldsFor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:conceptHoldsFor, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:conceptHoldsForFunctionality logic:characterizes gmeow:conceptHoldsFor ."
+msgstr "gmeow:conceptHoldsForFunctionality logic:characterizes gmeow:conceptHoldsFor ."

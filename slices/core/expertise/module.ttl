@@ -364,8 +364,11 @@ gmeow:credentialIssuerFunctionality
     logic:characterizes gmeow:credentialIssuer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:credentialIssuer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:credentialIssuer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:credentialIssuer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:credentialIssuerFunctionality logic:characterizes gmeow:credentialIssuer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:skillProficiencyAgentFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -375,8 +378,11 @@ gmeow:skillProficiencyAgentFunctionality
     logic:characterizes gmeow:skillProficiencyAgent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:skillProficiencyAgent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyAgentFunctionality logic:characterizes gmeow:skillProficiencyAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:skillProficiencyLevelFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -386,8 +392,11 @@ gmeow:skillProficiencyLevelFunctionality
     logic:characterizes gmeow:skillProficiencyLevel ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:skillProficiencyLevel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyLevelFunctionality logic:characterizes gmeow:skillProficiencyLevel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:skillProficiencyOfFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -397,8 +406,11 @@ gmeow:skillProficiencyOfFunctionality
     logic:characterizes gmeow:skillProficiencyOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:skillProficiencyOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyOfFunctionality logic:characterizes gmeow:skillProficiencyOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:skillProficiencyScaleFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -408,4 +420,8 @@ gmeow:skillProficiencyScaleFunctionality
     logic:characterizes gmeow:skillProficiencyScale ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:skillProficiencyScale ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:skillProficiencyScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:skillProficiencyScaleFunctionality logic:characterizes gmeow:skillProficiencyScale ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

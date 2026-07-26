@@ -44,3 +44,67 @@ msgstr "partOf est transitif"
 msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."
 msgstr "Affirme sur le porteur canonique que gmeow:partOf est transitif : l'échine universelle partie-à-tout que sa skos:definition nomme comme transitive et intentionnellement large. La barrière de cohérence native lit ceci pour clore l'échine de partie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:coarserThan composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:coarserThan se compose le long des chaînes ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque la relation ne doit pas se composer — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:coarserThan, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:coarserThan, logic:characteristicSort logic:transitiveProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:coarserThanTransitivity logic:characterizes gmeow:coarserThan ."
+msgstr "gmeow:coarserThanTransitivity logic:characterizes gmeow:coarserThan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:partOf composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:partOf se compose le long des chaînes ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque la relation ne doit pas se composer — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:partOf, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:partOf, logic:characteristicSort logic:transitiveProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:partOfTransitivity logic:characterizes gmeow:partOf ."
+msgstr "gmeow:partOfTransitivity logic:characterizes gmeow:partOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:coarsenTo names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:coarsenTo nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:coarsenTo, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:coarsenTo, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:coarsenToFunctionality logic:characterizes gmeow:coarsenTo ."
+msgstr "gmeow:coarsenToFunctionality logic:characterizes gmeow:coarsenTo ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:levelScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:levelScale nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:levelScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:levelScale, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:levelScaleFunctionality logic:characterizes gmeow:levelScale ."
+msgstr "gmeow:levelScaleFunctionality logic:characterizes gmeow:levelScale ."

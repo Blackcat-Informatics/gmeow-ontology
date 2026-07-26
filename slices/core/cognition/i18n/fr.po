@@ -44,3 +44,67 @@ msgstr "knowledgeProficiencySubject est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is."
 msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencySubject est fonctionnelle : une gmeow:KnowledgeProficiency concerne exactement une entité sujet — un sujet, une personne, un lieu ou un événement — constitutive de la compétence dont il s'agit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:knowledgeProficiencyAgent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:knowledgeProficiencyAgent, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencyAgentFunctionality logic:characterizes gmeow:knowledgeProficiencyAgent ."
+msgstr "gmeow:knowledgeProficiencyAgentFunctionality logic:characterizes gmeow:knowledgeProficiencyAgent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:knowledgeProficiencyLevel nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:knowledgeProficiencyLevel, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencyLevelFunctionality logic:characterizes gmeow:knowledgeProficiencyLevel ."
+msgstr "gmeow:knowledgeProficiencyLevelFunctionality logic:characterizes gmeow:knowledgeProficiencyLevel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:knowledgeProficiencyScale nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencyScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:knowledgeProficiencyScale, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencyScaleFunctionality logic:characterizes gmeow:knowledgeProficiencyScale ."
+msgstr "gmeow:knowledgeProficiencyScaleFunctionality logic:characterizes gmeow:knowledgeProficiencyScale ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencySubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:knowledgeProficiencySubject nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:knowledgeProficiencySubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:knowledgeProficiencySubject, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:knowledgeProficiencySubjectFunctionality logic:characterizes gmeow:knowledgeProficiencySubject ."
+msgstr "gmeow:knowledgeProficiencySubjectFunctionality logic:characterizes gmeow:knowledgeProficiencySubject ."

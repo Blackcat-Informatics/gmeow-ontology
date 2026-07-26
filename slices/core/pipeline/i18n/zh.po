@@ -20,3 +20,19 @@ msgstr "stageImpl 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:stageImpl is functional: each gmeow:PipelineStage binds to exactly one Rust Stage implementation in the STAGE_REGISTRY and the loader hard-fails when the key resolves to no implementation, so a stage carries a single registry-key value."
 msgstr "在规范载体上断言 gmeow:stageImpl 是函数性的:每个 gmeow:PipelineStage 恰好绑定到 STAGE_REGISTRY 中的一个 Rust Stage 实现,当该键无法解析出任何实现时加载器将硬性失败,因此一个阶段只携带一个注册表键值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:stageImpl names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:stageImpl 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:stageImpl, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:stageImpl, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:stageImplFunctionality logic:characterizes gmeow:stageImpl ."
+msgstr "gmeow:stageImplFunctionality logic:characterizes gmeow:stageImpl ."

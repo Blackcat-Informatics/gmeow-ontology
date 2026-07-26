@@ -217,4 +217,8 @@ gmeow:existenceEntityFunctionality
     logic:characterizes gmeow:existenceEntity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:existenceEntity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:existenceEntity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:existenceEntity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:existenceEntityFunctionality logic:characterizes gmeow:existenceEntity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

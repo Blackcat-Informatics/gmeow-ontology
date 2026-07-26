@@ -457,8 +457,11 @@ gmeow:versionMemberFunctionality
     logic:characterizes gmeow:versionMember ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:versionMember ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:versionMember names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:versionMember, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:versionMemberFunctionality logic:characterizes gmeow:versionMember ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:versionSetFunctionality
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -468,4 +471,8 @@ gmeow:versionSetFunctionality
     logic:characterizes gmeow:versionSet ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:versionSet ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:versionSet names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:versionSet, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:example "gmeow:versionSetFunctionality logic:characterizes gmeow:versionSet ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

@@ -20,3 +20,19 @@ msgstr "stageImpl est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:stageImpl is functional: each gmeow:PipelineStage binds to exactly one Rust Stage implementation in the STAGE_REGISTRY and the loader hard-fails when the key resolves to no implementation, so a stage carries a single registry-key value."
 msgstr "Affirme sur le porteur canonique que gmeow:stageImpl est fonctionnelle: chaque gmeow:PipelineStage se lie à exactement une implémentation Rust Stage dans le STAGE_REGISTRY, et le chargeur échoue de manière stricte lorsque la clé ne correspond à aucune implémentation, de sorte qu'une étape porte une seule valeur de clé de registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:stageImpl names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:stageImpl nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:stageImpl, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:stageImpl, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:stageImplFunctionality logic:characterizes gmeow:stageImpl ."
+msgstr "gmeow:stageImplFunctionality logic:characterizes gmeow:stageImpl ."
