@@ -187,8 +187,17 @@ use session_common::*;
 /// the native-contract source-content digest folded into this descriptor; the fixed
 /// edge-only input (authoring no `math:` expression graph) has an unchanged reasoning
 /// verdict.
+/// Re-blessed once more (G19) for the REAL, generating `structural_digest`/
+/// `lower_math_expression` α-equivalence property-test module (`physical::lower::tests::
+/// interning`), which replaces a five-string hardcoded-suffix-table example test with a
+/// `proptest` generator driven through the real `MathGraph`/`lower_math_expression`
+/// pipeline (bound-variable renaming, nested shadowing, slot arity/order, injectivity,
+/// and cross-dag determinism): `physical/lower.rs` is a `BACKWARD_SOURCE` member, so this
+/// test-only content moves the native-contract source-content digest folded into this
+/// descriptor; no lowering behavior changes, so the fixed edge-only input (authoring no
+/// `math:` expression graph) has an unchanged reasoning verdict.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "b4175e014525457ba1b543b31b32ff65c1164120b26e79003206711b3538e590";
+    "e807d7cdfe6be7041253bf4eb1418b62e84858f3f729d0bac4dbce8fc668d50b";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -270,8 +279,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `alpha_class_iri_for_digest` moves the native contract hash, one of the seven folded
 /// identity axes, while the fixed edge-only input (authoring no `math:` expression graph)
 /// has an unchanged reasoning verdict.
+/// Re-blessed once more for the G19 real generating α-equivalence property-test module
+/// (see the engine-descriptor golden above for the mechanism): `physical/lower.rs`'s
+/// test-only `physical::lower::tests::interning` addition moves the native contract hash,
+/// one of the seven folded identity axes, while the fixed edge-only input (authoring no
+/// `math:` expression graph) has an unchanged reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "670ed7a9ca0ef25252f2d145730a98bcf752c6031fca02f9d0ad07d8c3af068e";
+    "8d2fc81c7fd282142d29bb6f3aee8d9683d0032fd0b4a456ff2a961ff8b12f68";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
