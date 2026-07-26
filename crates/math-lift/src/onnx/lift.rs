@@ -1469,7 +1469,7 @@ mod tests {
         // Identity is preserved, not refused: the attribute's KIND keys the operator, so
         // two Loops with different bodies cannot collapse onto one math:Operation.
         assert!(
-            ttl.contains("Loop(body=<g (a control-flow subgraph)>)"),
+            ttl.contains("Loop(body=<g (a control-flow subgraph)#"),
             "the undecoded arm still keys the operator:\n{ttl}"
         );
         // …and what does NOT cross is named on the witness.
@@ -1481,28 +1481,55 @@ mod tests {
     }
 
     #[test]
-    fn two_loops_with_different_bodies_do_not_collapse() {
-        // The guarantee the old hard-fail was protecting, kept without the hard-fail.
-        let build = |body: &str| {
+    fn two_nodes_in_one_graph_never_collapse_into_one() {
+        // The previous version of this test compared the two RUN IRIs, which are
+        // content-addressed on the source bytes and so differ for any two distinct files —
+        // it asserted nothing about node identity and passed while a node was being
+        // silently dropped. Two nodes must be built in ONE graph and the emitted nodes
+        // counted, which is the only way the collapse is observable.
+        //
+        // An undecoded attribute renders as a CONSTANT, so two `Loop`s differing only in
+        // their subgraph bodies are the sharpest case: everything in the key except the
+        // node's own outputs is identical.
+        let value_type = {
+            let mut tensor = varint_field(1, 1);
+            tensor.extend(message_field(2, &Vec::new()));
+            message_field(1, &tensor)
+        };
+        let info = |name: &str| {
+            let mut out = Vec::new();
+            out.extend(string_field(1, name));
+            out.extend(message_field(2, &value_type));
+            out
+        };
+        let loop_node = |output: &str, body: &str| {
             let mut attribute = string_field(1, "body");
             attribute.extend(message_field(6, &string_field(2, body)));
             let mut node = Vec::new();
-            node.extend(string_field(2, "Y"));
+            node.extend(string_field(1, "X"));
+            node.extend(string_field(2, output));
             node.extend(string_field(4, "Loop"));
             node.extend(message_field(5, &attribute));
-            let mut graph = Vec::new();
-            graph.extend(message_field(1, &node));
-            let mut model = varint_field(1, 8);
-            model.extend(message_field(7, &graph));
-            model.extend(message_field(8, &varint_field(2, 18)));
-            model
+            node
         };
-        let a = lift(&build("body-one"), BASE).expect("lifts");
-        let b = lift(&build("body-two"), BASE).expect("lifts");
-        assert_ne!(
-            a.run_iri, b.run_iri,
-            "different sources are different runs (content-addressed)"
+        let mut graph = Vec::new();
+        graph.extend(message_field(1, &loop_node("Y1", "bodyA")));
+        graph.extend(message_field(1, &loop_node("Y2", "bodyBBBB")));
+        graph.extend(message_field(11, &info("X")));
+        graph.extend(message_field(12, &info("Y1")));
+        graph.extend(message_field(12, &info("Y2")));
+        let mut model = varint_field(1, 8);
+        model.extend(message_field(7, &graph));
+        model.extend(message_field(8, &varint_field(2, 18)));
+
+        let ttl = lift(&model, BASE).expect("two Loop nodes lift").turtle;
+        assert_eq!(
+            count(&ttl, &format!("<{}>", math("computationNode"))),
+            2,
+            "TWO nodes in, two computation nodes out — a dropped node is data loss the \
+             residue cannot even name:\n{ttl}"
         );
+        assert_eq!(typed(&ttl, "NeuralLayer"), 2, "both layers survive:\n{ttl}");
     }
 
     #[test]

@@ -573,6 +573,10 @@ pub struct AttributeProto {
     pub strings: Vec<String>,
     /// Which arm this subset does not structure, when one was met.
     pub unstructured: Option<&'static str>,
+    /// A digest of that arm's raw bytes, so an undecoded attribute still DISTINGUISHES.
+    /// The arm name alone is a constant; two subgraphs differing in content must not
+    /// render identically or the nodes carrying them intern to one and one is lost.
+    pub unstructured_digest: Option<String>,
 }
 
 impl AttributeProto {
@@ -600,6 +604,9 @@ impl AttributeProto {
         } else if !self.strings.is_empty() {
             format!("[\"{}\"]", self.strings.join("\",\""))
         } else if let Some(kind) = self.unstructured {
+            if let Some(digest) = &self.unstructured_digest {
+                return format!("{}=<{kind}#{digest}>", self.name);
+            }
             // An arm this subset does not decode still contributes its KIND to the
             // operator signature. Without it, an `If` with one `then_branch` and an `If`
             // with a different `then_branch` would render identically and collapse onto
@@ -627,7 +634,10 @@ impl AttributeProto {
                 }
                 6 => {
                     out.unstructured = Some("g (a control-flow subgraph)");
-                    reader.skip_field()?;
+                    // Capture a digest of the subgraph's raw bytes. The ARM is a constant,
+                    // so without this two `If`/`Loop`s differing only in their bodies render
+                    // identically and intern to one node — the second silently vanishing.
+                    out.unstructured_digest = Some(digest_of(reader.read_bytes()?));
                 }
                 7 => read_repeated_f32(reader, tag.wire, &mut out.floats)?,
                 8 => read_repeated_i64(reader, tag.wire, &mut out.ints)?,
@@ -641,7 +651,7 @@ impl AttributeProto {
                 }
                 11 => {
                     out.unstructured = Some("graphs (control-flow subgraphs)");
-                    reader.skip_field()?;
+                    out.unstructured_digest = Some(digest_of(reader.read_bytes()?));
                 }
                 14 => {
                     out.unstructured = Some("tp (a TypeProto attribute)");
@@ -1112,4 +1122,15 @@ mod tests {
         out.extend(wire_float(value));
         out
     }
+}
+
+/// FNV-1a 64-bit hex of a byte slice — a content discriminator for an arm this subset does
+/// not decode. Not a semantic identity: it distinguishes, it does not interpret.
+fn digest_of(bytes: &[u8]) -> String {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in bytes {
+        h ^= u64::from(*b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("{h:016x}")
 }
