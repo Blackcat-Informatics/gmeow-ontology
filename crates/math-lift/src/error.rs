@@ -84,8 +84,12 @@ define_diag_kind! {
 define_diag_kind! {
     /// A TSTP derivation is not syntactically well-formed: a malformed annotated
     /// formula, an unterminated `inference(...)` record, an unquoted atom where a
-    /// term is required, or a construct outside the derivation fragment (`fof`,
-    /// `tff`, `include`).
+    /// term is required, a connective mixed without parentheses where TPTP requires
+    /// them, or a dialect outside the first-order fragment (`tff`, `thf`, `tcf`,
+    /// `include`).
+    ///
+    /// `cnf` AND `fof` both parse — a real prover writes either, and a `fof`
+    /// conclusion is carried as a formula rather than coerced into a clause shape.
     ///
     /// A structurally well-formed derivation whose DEPENDENCIES do not resolve is
     /// [`ProofUnliftable`], not this — there is nothing wrong with the syntax.
@@ -100,11 +104,13 @@ define_diag_kind! {
     /// step, a parent name the derivation never introduces, or a cycle in the
     /// dependency graph.
     ///
-    /// It also covers a derivation that parses but cannot be carried at the declared
-    /// `logic:ExactPreservation` rung — an unstructured `file(...)`/`theory(...)`
-    /// source, or a step whose status is not `status(thm)`. At that rung an
-    /// unrepresentable construct must hard-fail rather than be silently dropped, or
-    /// the section/retraction claim would be false.
+    /// It is NOT raised for a construct the lift can carry at a weaker rung. A
+    /// `file(...)`/`theory(...)`/`introduced(...)` source becomes an external warrant;
+    /// a non-`thm` SZS status, an `unknown` role, and a `<useful_info>` field are
+    /// enumerated as `math:unmappedConstruct` residue and DOWNGRADE that run's
+    /// correspondence off `logic:SectionRetraction`. Refusing them outright would
+    /// have been a scope narrowing dressed as rigour; the rung is decided per run,
+    /// before a triple is written, so the declared law stays true of what shipped.
     pub struct ProofUnliftable { detail: String }
     code = "math.lift.proof.unliftable";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);

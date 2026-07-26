@@ -444,56 +444,49 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
     }
 }
 
-/// Classify a `gmeow_math_lift` failure STRUCTURALLY, off the typed `Diag`.
-///
-/// The class is read with `Diag::is::<T>()` against the concrete diagnostic kinds the lift
-/// crate declares — never by sniffing the rendered message, which is prose and not a
-/// contract. The returned string is the CLI-side diagnostic code the reporter emits, so an
-/// agent consuming `--console jsonl` can branch on the distinction losslessly.
-///
-/// Two classes exist, and they are genuinely different failures:
-///
-/// - **malformed** (`SourceNotUtf8`, `RParse`, `OnnxWire`, `TstpParse`) — the artifact is not
-///   a well-formed instance of its own format. The user's file is broken; no bridge, however
-///   capable, could read it.
-/// - **unliftable** (`RUnliftable`, `OnnxUnliftable`, `ProofUnliftable`, `EmptyCodomain`) —
-///   the artifact IS well-formed, and is still not carryable into the `math:` codomain: an R
-///   script that is only control flow, an ONNX model with no computation node, a derivation
-///   with a dangling parent. Nothing is wrong with the file; it simply states nothing this
-///   bridge can honestly claim to have carried across.
-fn math_lift_diag_code(diag: &gmeow_errors::Diag) -> &'static str {
-    use gmeow_math_lift::error::{
-        EmptyCodomain, OnnxUnliftable, OnnxWire, ProofUnliftable, RParse, RUnliftable,
-        SourceNotUtf8, TstpParse,
-    };
-    if diag.is::<SourceNotUtf8>()
-        || diag.is::<RParse>()
-        || diag.is::<OnnxWire>()
-        || diag.is::<TstpParse>()
-    {
-        "gmeow-cli.math.lift.malformed"
-    } else if diag.is::<RUnliftable>()
-        || diag.is::<OnnxUnliftable>()
-        || diag.is::<ProofUnliftable>()
-        || diag.is::<EmptyCodomain>()
-    {
-        "gmeow-cli.math.lift.unliftable"
-    } else {
-        "gmeow-cli.math.lift.failed"
-    }
-}
-
 /// `gmeow math …` — the native `math:` ingestion bridges (R / ONNX / TSTP proof).
 ///
 /// Product (canonical Turtle) → stdout, or `--out FILE` byte-for-byte; diagnostics → stderr
 /// through the shared reporter. The lift is a pure function of the source bytes and
 /// [`MATH_LIFT_MINT_BASE`], so re-running the same command is byte-identical.
 ///
+/// # Failure surface
+///
+/// A lift failure is emitted as the ENGINE's own typed `Diag`, forwarded verbatim through
+/// [`gmeow_cli_core::emit_and_exit`] — never re-coded, never flattened to a rendered string.
+/// The finding therefore carries the `math-lift` kind's real code (`math.lift.r.parse`,
+/// `math.lift.onnx.wire`, `math.lift.proof.unliftable`, …), its real
+/// [`FindingCategory`](gmeow_errors::FindingCategory), and — because every kind is raised
+/// with `Diag::of_kind` — its `detail`. This handler adds only what the engine cannot know:
+/// the artifact PATH as the finding's source location, and a context frame naming the
+/// invoked bridge.
+///
+/// That is load-bearing, not cosmetic. A finding's identity fingerprint (and so its
+/// `finding_iri`) is `blake3` over `(code, category, source anchor)`. Collapsing eight engine
+/// kinds onto two CLI codes with an empty anchor made a truncated protobuf and an R syntax
+/// error the SAME witness — one fingerprint, indistinguishable to `gmeow explain` and to the
+/// diagnostics substrate. Forwarding the typed diagnostic keeps each kind, and each artifact,
+/// a distinct witness.
+///
+/// The two-class taxonomy the bridges observe is carried by the engine's `category`, which is
+/// where it belongs:
+///
+/// - [`FindingCategory::DataShapeViolation`](gmeow_errors::FindingCategory::DataShapeViolation)
+///   (`SourceNotUtf8`, `RParse`, `OnnxWire`, `TstpParse`) — the artifact is not a well-formed
+///   instance of its own format. The user's file is broken; no bridge, however capable, could
+///   read it.
+/// - [`FindingCategory::ModelingDisciplineViolation`](gmeow_errors::FindingCategory::ModelingDisciplineViolation)
+///   (`RUnliftable`, `OnnxUnliftable`, `ProofUnliftable`, `EmptyCodomain`) — the artifact IS
+///   well-formed, and is still not carryable into the `math:` codomain: an R script that is
+///   only control flow, an ONNX model with no computation node, a derivation with a dangling
+///   parent. Nothing is wrong with the file; it simply states nothing this bridge can
+///   honestly claim to have carried across.
+///
 /// # Exit-code policy
 ///
-/// Both failure classes [`math_lift_diag_code`] distinguishes — a malformed artifact and a
-/// well-formed-but-unliftable one — exit `1`, the handled-failure code. That is deliberate,
-/// not a conflation:
+/// Every lift failure — malformed or unliftable — exits `1`, the handled-failure code
+/// [`gmeow_cli_core::exit_code`] maps an Error-grade report to. That is deliberate, not a
+/// conflation:
 ///
 /// - Exit `2` is reserved by this CLI's console convention for USAGE errors: defects in the
 ///   argument vector, which clap detects before a single byte of the input is read. Both lift
@@ -501,21 +494,26 @@ fn math_lift_diag_code(diag: &gmeow_errors::Diag) -> &'static str {
 ///   so neither is a usage error. (`gmeow music` maps its unsupported-format failures to `2`
 ///   because there the defect genuinely IS an argument value — a `--to` the engine has no
 ///   writer for. Nothing here is argument-shaped.)
-/// - The malformed/unliftable distinction is not lost by sharing an exit code. It travels
-///   losslessly on the diagnostic channel as a structural code — `math.lift.r.parse` versus
-///   `math.lift.r.unliftable` from the engine, plus this handler's own
-///   `gmeow-cli.math.lift.{malformed,unliftable}` — which is what a script sweeping a corpus
-///   should branch on. A process exit status cannot carry an eight-way kind distinction, and
-///   minting a third integer for a lossy copy of information the reporter already emits
-///   exactly would invite callers to branch on the weaker channel.
+/// - No distinction is lost by sharing an exit code, because the exit code is not where the
+///   distinction lives. A corpus sweep branches on the finding's `code` and `category` — the
+///   channel that actually carries all eight kinds — which is exactly what forwarding the
+///   typed diagnostic guarantees. A process exit status cannot carry an eight-way kind
+///   distinction, and minting a third integer for a lossy copy of information the reporter
+///   already emits exactly would invite callers to branch on the weaker channel.
 pub(crate) fn math(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
     // One shared body for the three bridges: they differ only in which `lift` they call,
     // because every bridge has the identical `(&[u8], &str) -> Result<Lifted>` contract.
     type LiftFn = fn(&[u8], &str) -> gmeow_errors::Result<gmeow_math_lift::Lifted>;
-    let (source, out, lift): (&PathBuf, &Option<PathBuf>, LiftFn) = match command {
-        MathCommands::LiftR { source, out } => (source, out, gmeow_math_lift::r::lift),
-        MathCommands::LiftOnnx { source, out } => (source, out, gmeow_math_lift::onnx::lift),
-        MathCommands::LiftProof { source, out } => (source, out, gmeow_math_lift::proof::lift),
+    // `leaf` is the invoked subcommand name, carried onto a failure's context frame so the
+    // finding says which bridge refused without the reader having to infer it from the code.
+    let (source, out, lift, leaf): (&PathBuf, &Option<PathBuf>, LiftFn, &str) = match command {
+        MathCommands::LiftR { source, out } => (source, out, gmeow_math_lift::r::lift, "lift-r"),
+        MathCommands::LiftOnnx { source, out } => {
+            (source, out, gmeow_math_lift::onnx::lift, "lift-onnx")
+        }
+        MathCommands::LiftProof { source, out } => {
+            (source, out, gmeow_math_lift::proof::lift, "lift-proof")
+        }
     };
 
     // Bytes, never a UTF-8 string: an `.onnx` export is binary protobuf. Each text bridge
@@ -548,10 +546,20 @@ pub(crate) fn math(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                 0
             }
         },
-        Err(diag) => fail(
+        // The engine's typed diagnostic, forwarded WHOLE: its own code, category, grade, and
+        // `detail` reach the reporter untouched. Only the two facts the engine cannot know are
+        // added — the artifact path (the finding's source anchor, which also makes two broken
+        // files distinct witnesses) and the invoked bridge (a context frame, projected into the
+        // finding's `detail`). Re-coding or `format!`-ing the diagnostic here would discard
+        // exactly the structure an agent consuming `--console jsonl` branches on.
+        Err(diag) => gmeow_cli_core::emit_and_exit(
             reporter,
-            math_lift_diag_code(&diag),
-            format!("Error: {diag}"),
+            diag.with_location(gmeow_errors::Location {
+                path: Some(source.display().to_string()),
+                ..gmeow_errors::Location::default()
+            })
+            .with_context(format!("gmeow math {leaf}")),
+            "gmeow",
         ),
     }
 }

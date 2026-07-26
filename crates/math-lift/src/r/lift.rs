@@ -37,6 +37,45 @@
 //! the ONLY place this crate emits that edge, and it emits all three together, so the
 //! constraint cannot be violated by construction.
 //!
+//! # The `logic:` lowering itself
+//!
+//! `MATHEMATICS-BRIDGES.md` forbids a "degraded or string-valued placeholder" as its
+//! flagship criterion, so a routed construct lowers into a REAL `logic:` AST — not an
+//! opaque node tagged with the construct's name and labelled with a truncation. The
+//! computation node is the anchor; every operand the parser recovered lives beneath it:
+//!
+//! | R | `logic:` |
+//! |---|---|
+//! | `if (c) t` | `logic:antecedent` = lowered `c`, `logic:consequent` = lowered `t` |
+//! | `if (c) t else e` | `logic:and` of `c → t` and `¬c → e` (`logic:not` over the same condition node) |
+//! | `for (v in s) b` | `logic:forall` binding `v`, body `r-for-in(v, s) → b` |
+//! | `while (c) b` | `c → b` — one iteration's guard implying its body |
+//! | `{ s1; s2 }` | `logic:and` over the lowered statements |
+//! | `x && y` / `x \|\| y` / `!x` | `logic:and` / `logic:or` / `logic:not` |
+//! | `x > y` | an atom on the `r-greater` relation over two term carriers |
+//! | `f(a, b)` | an atom on the `r-call:f` relation over ordered `logic:TermCarrier`s |
+//! | `f(g(x))` | `g(x)` rides as a `logic:FunctionTerm` on `logic:termApplication` |
+//! | `function(p) b` | an atom on `r-function` over the formals and the body |
+//!
+//! Two properties are load-bearing. First, **the relation identity includes the callee**:
+//! `library(stats)` and `set.seed(20260725)` predicate DIFFERENT reified `logic:Type`
+//! individuals, so the predicate says which call it was. Second, **every node selects
+//! exactly one constructor** (`logic:FormulaConstructorConstraint`) and meets the typed-IR
+//! frontend's arity invariants (`crates/logic-compile/src/frontend.rs`): `logic:not` one
+//! child, `logic:and`/`logic:or` two or more DISTINCT operands, an implication both halves,
+//! a quantifier at least one bound variable, an atom at least one argument carrier.
+//!
+//! # The residue is enumerated, not merely declared
+//!
+//! The R rung is [`Rung::lossy_vague_with_witness`], and `math:unmappedConstruct`'s own
+//! definition demands that the witness "let a consumer recover WHAT THE LIFT DID NOT MAP".
+//! So each R semantics the lowering cannot carry — a loop's repetition, a block's
+//! evaluation order, an assignment's store update, `NA`'s three-valued missingness, a
+//! closure's environment, and each callee whose own behaviour is uninterpreted — is
+//! recorded through [`RunFrame::record_unmapped`] and rides on the `math:parseSource`
+//! witness. A script that loses nothing enumerates nothing, so the property is a claim
+//! rather than a constant.
+//!
 //! # Content-addressed interning
 //!
 //! `MATHEMATICS-RUNTIME.md`'s acceptance bar #2 requires that identical normalized
@@ -58,10 +97,10 @@ use purrdf::TermValue;
 
 use crate::error::{RUnliftable, SourceNotUtf8};
 use crate::frame::{BridgeKind, Lifted, RunFrame, Rung};
-use crate::ns::{gmeow, logic, math};
+use crate::ns::{XSD_BOOLEAN, XSD_DECIMAL, XSD_INTEGER, gmeow, logic, math};
 use crate::r::parser::{
-    Arg, BinaryOp, Formula, FormulaTerm, RExpr, RScript, RStmt, RStmtKind, TermKind, UnaryOp,
-    desugar_pipe, parse,
+    Arg, BinaryOp, Formula, FormulaTerm, Param, RExpr, RScript, RStmt, RStmtKind, TermKind,
+    UnaryOp, desugar_pipe, parse,
 };
 use crate::sink::Sink;
 
@@ -113,16 +152,20 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
     })?;
     let script = parse(text)?;
 
-    let frame = RunFrame::mint(BridgeKind::R, mint_base, source);
-    let mut sink = Sink::new();
-    frame.emit(&mut sink, Rung::lossy_vague_with_witness());
+    let mut frame = RunFrame::mint(BridgeKind::R, mint_base, source);
 
+    // The lift runs FIRST, against an immutable borrow of the frame (every codomain IRI is
+    // minted beneath it). Only afterwards is the frame itself written to — the residue the
+    // lowering enumerated rides on the `math:parseSource` witness, and that witness is not
+    // emitted until the walk that discovers the residue has finished. The sink canonicalizes
+    // triple order, so emitting the frame last is byte-identical to emitting it first.
     let mut lift = Lift {
         frame: &frame,
-        sink,
+        sink: Sink::new(),
         arena: TermArena::new(),
         emitted: BTreeSet::new(),
         env: BTreeMap::new(),
+        unmapped: BTreeSet::new(),
         statistical: 0,
         lowerings: 0,
     };
@@ -140,8 +183,18 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
         }));
     }
 
-    let codomain = lift.emitted.len();
-    Lifted::seal(&frame, lift.sink, codomain)
+    let Lift {
+        mut sink,
+        emitted,
+        unmapped,
+        ..
+    } = lift;
+    for construct in unmapped {
+        frame.record_unmapped(construct);
+    }
+    frame.emit(&mut sink, Rung::lossy_vague_with_witness());
+
+    Lifted::seal(&frame, sink, emitted.len())
 }
 
 // ── Lift state ────────────────────────────────────────────────────────────────
@@ -217,6 +270,11 @@ struct Lift<'f> {
     arena: TermArena,
     emitted: BTreeSet<String>,
     env: BTreeMap<String, Binding>,
+    /// R semantics the lowering did NOT carry, collected during the walk and replayed onto
+    /// the frame's `math:parseSource` witness as `math:unmappedConstruct`. A `BTreeSet`
+    /// because the residue is a SET — the same construct met twice is one loss — and
+    /// because a sorted set keeps a re-lift byte-identical.
+    unmapped: BTreeSet<String>,
     statistical: usize,
     lowerings: usize,
 }
@@ -1161,50 +1219,35 @@ impl Lift<'_> {
 
     // -- the logic: seam -----------------------------------------------------
 
+    /// Record R semantics the lowering did not carry.
+    ///
+    /// The residue lands on the `math:parseSource` witness as `math:unmappedConstruct`, so
+    /// the `logic:LossyLens` rung this bridge declares has queryable CONTENT instead of
+    /// being a bare adjective.
+    fn record_unmapped(&mut self, construct: &str) {
+        if !self.unmapped.contains(construct) {
+            self.unmapped.insert(construct.to_owned());
+        }
+    }
+
     /// Route control flow and general computation into `logic:`.
     ///
     /// This is the ONLY emitter of `math:compilesToLogicFormula` in the crate, and it emits
     /// the two co-required declarations in the same breath —
     /// `math:LogicLoweringDeclaredConstraint` fires `math:UndeclaredLogicLowering` on any
     /// subject that carries the edge without them.
+    ///
+    /// The computation node is an ANCHOR, not the content: everything the R parser
+    /// recovered rides in the `logic:` formula tree [`Lift::lower_formula`] builds beneath
+    /// it. The `rdfs:label` is a full rendering for readability and carries no meaning that
+    /// the structure does not already carry.
     fn lower_to_logic(&mut self, expr: &RExpr) {
         let key = expr.structure_key();
         let (iri, fresh) = self.mint("computation", &key);
         if !fresh {
             return;
         }
-        let (formula, _) = self.mint("logic-formula", &key);
-
-        // The lowered formula must be a WELL-FORMED `logic:` AST node, not a bare
-        // `a logic:Formula`. `logic:FormulaConstructorConstraint` requires exactly one
-        // constructor from {and, antecedent, exists, forall, iff, not, or, relation}, and a
-        // node carrying none is as malformed as one carrying two. It lowers as the atomic
-        // constructor: the predication `<construct>(<computation node>)`.
-        //
-        // That is exactly what `logic:SoundUnderApproximation` licenses and no more — the
-        // atom says this computation node denotes a proposition of that construct kind. R's
-        // operational semantics are NOT modelled, and inventing a richer formula would claim
-        // structure the lift never recovered.
-        let construct = logic_construct(expr);
-        let (relation, relation_fresh) = self.mint("logic-relation", construct);
-        if relation_fresh {
-            // `logic:relation`'s range is a reified `logic:Type` individual, per the HiLog
-            // reflection: predicating over a reified relation keeps the object level
-            // first-order rather than admitting a predicate variable.
-            self.sink.typed(&relation, &logic("Type"));
-            self.label(&relation, construct);
-        }
-        // One ordered argument carrier. `logic:TermCarrierIndexConstraint` requires the
-        // index; `logic:TermCarrierValueConstraint` requires exactly one term-value kind, and
-        // an IRI term is the honest one — the argument IS the computation node.
-        let (carrier, _) = self.mint("logic-argument", &key);
-        self.sink.typed(&carrier, &logic("TermCarrier"));
-        self.sink.integer(&carrier, &logic("termIndex"), 0);
-        self.sink.iri(&carrier, &logic("termIri"), &iri);
-
-        self.sink.typed(&formula, &logic("Formula"));
-        self.sink.iri(&formula, &logic("relation"), &relation);
-        self.sink.iri(&formula, &logic("argument"), &carrier);
+        let formula = self.lower_formula(expr);
         self.sink.typed(&iri, &math("MathematicalExpression"));
         self.sink
             .iri(&iri, &math("compilesToLogicFormula"), &formula);
@@ -1218,40 +1261,972 @@ impl Lift<'_> {
         self.label(&iri, &render(expr));
         self.lowerings += 1;
     }
+
+    // -- logic: formulae -----------------------------------------------------
+
+    /// Lower an R expression in PROPOSITION position into a `logic:Formula`, returning its
+    /// IRI.
+    ///
+    /// Every node this produces selects EXACTLY ONE constructor from
+    /// `logic:FormulaConstructorConstraint`'s eight, and honours the typed-IR frontend's
+    /// arity invariants (`crates/logic-compile/src/frontend.rs` — `not` one child, `and`/`or`
+    /// two or more, an implication one antecedent and one consequent, a quantifier at least
+    /// one bound-variable carrier, an atom at least one argument carrier).
+    ///
+    /// The lowering is a `logic:SoundUnderApproximation` in the precise sense that each
+    /// construct's PER-EXECUTION reading survives while its operational envelope does not:
+    /// a loop's repetition, a block's ordering, and an assignment's store update are
+    /// enumerated as `math:unmappedConstruct` residue rather than silently discarded.
+    fn lower_formula(&mut self, expr: &RExpr) -> String {
+        let expr = expr.unparenthesized();
+        let key = expr.structure_key();
+        match expr {
+            RExpr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => self.lower_if(&key, condition, then_branch, else_branch.as_deref()),
+            RExpr::For {
+                variable,
+                sequence,
+                body,
+            } => self.lower_for(&key, variable, sequence, body),
+            RExpr::While { condition, body } => {
+                self.record_unmapped(
+                    "R `while` repetition: the lowered implication states the guard-to-body \
+                     relation of ONE iteration; unbounded re-entry has no logic: formula image",
+                );
+                let guard = self.lower_formula(condition);
+                let consequent = self.lower_formula(body);
+                self.emit_implication(
+                    &format!("while|{key}"),
+                    &guard,
+                    &consequent,
+                    "R `while` loop: one iteration's guard implies its body",
+                )
+            }
+            RExpr::Repeat { body } => {
+                self.record_unmapped(
+                    "R `repeat` repetition: the lowered predication names the body; unbounded \
+                     re-entry has no logic: formula image",
+                );
+                let body_term = self.lower_term(body);
+                self.emit_atom(
+                    &format!("repeat|{key}"),
+                    "r-repeat",
+                    &[body_term],
+                    &render(expr),
+                )
+            }
+            RExpr::Block(statements) => self.lower_block(&key, statements),
+            RExpr::Break | RExpr::Next => {
+                let word = if matches!(expr, RExpr::Break) {
+                    "break"
+                } else {
+                    "next"
+                };
+                self.record_unmapped(&format!(
+                    "R `{word}` non-local control transfer: a logic: formula has no jump \
+                     semantics, so the atom names the transfer without discharging it"
+                ));
+                self.emit_atom(&format!("keyword|{key}"), &format!("r-{word}"), &[], word)
+            }
+            RExpr::Function { params, body } => self.lower_function(&key, params, body, expr),
+            RExpr::Assign { target, value, .. } => self.lower_assignment(target, value),
+            RExpr::Pipe { lhs, rhs, native } => {
+                let desugared = desugar_pipe(lhs, rhs, *native);
+                self.lower_formula(&desugared)
+            }
+            RExpr::Call { callee, args } => self.lower_call_atom(&key, callee, args, expr),
+            RExpr::Unary {
+                op: UnaryOp::Not,
+                operand,
+            } => {
+                let inner = self.lower_formula(operand);
+                self.emit_negation(&format!("not|{key}"), &inner, &render(expr))
+            }
+            RExpr::Binary { op, lhs, rhs } => self.lower_binary_formula(&key, *op, lhs, rhs, expr),
+            RExpr::Special { operator, lhs, rhs } => {
+                let l = self.lower_term(lhs);
+                let r = self.lower_term(rhs);
+                self.emit_atom(
+                    &format!("special|{key}"),
+                    &format!("r-special:{operator}"),
+                    &[l, r],
+                    &render(expr),
+                )
+            }
+            other => self.lower_value_atom(&key, other),
+        }
+    }
+
+    /// `if (c) t` → `c → t`; `if (c) t else e` → `(c → t) ∧ (¬c → e)`.
+    ///
+    /// A real implication over the LOWERED condition, exactly as
+    /// `MATHEMATICS-BRIDGES.md` requires — not an opaque node tagged `r-if`. Both arms are
+    /// lowered, so an `else` branch cannot vanish.
+    fn lower_if(
+        &mut self,
+        key: &str,
+        condition: &RExpr,
+        then_branch: &RExpr,
+        else_branch: Option<&RExpr>,
+    ) -> String {
+        let guard = self.lower_formula(condition);
+        let consequent = self.lower_formula(then_branch);
+        let Some(else_branch) = else_branch else {
+            return self.emit_implication(
+                &format!("if|{key}"),
+                &guard,
+                &consequent,
+                "R `if` without an `else` arm: the condition implies the consequent",
+            );
+        };
+        let alternative = self.lower_formula(else_branch);
+        let negated = self.emit_negation(
+            &format!("if-not|{key}"),
+            &guard,
+            "the negated condition of an R `if`/`else`",
+        );
+        let positive = self.emit_implication(
+            &format!("if-then|{key}"),
+            &guard,
+            &consequent,
+            "R `if` consequent arm",
+        );
+        let negative = self.emit_implication(
+            &format!("if-else|{key}"),
+            &negated,
+            &alternative,
+            "R `if` alternative arm",
+        );
+        self.emit_conjunction(
+            &format!("if|{key}"),
+            &[positive, negative],
+            "R `if`/`else`: both arms, each guarded by its own condition",
+        )
+    }
+
+    /// `for (v in s) b` → `∀v. member(v, s) → b`.
+    ///
+    /// The traversal IS a universal quantification over the sequence's elements, so the loop
+    /// variable becomes a real `logic:quantifiedVariable` and the membership guard a real
+    /// antecedent. What does not survive is the ORDER the elements are visited in, which is
+    /// enumerated as residue.
+    fn lower_for(&mut self, key: &str, variable: &str, sequence: &RExpr, body: &RExpr) -> String {
+        self.record_unmapped(
+            "R `for` iteration order: the lowered universal quantification binds every element \
+             of the sequence, not the order in which they are visited",
+        );
+        let bound = LogicTerm::Variable(variable.to_owned());
+        let sequence_term = self.lower_term(sequence);
+        let guard = self.emit_atom(
+            &format!("for-in|{key}"),
+            "r-for-in",
+            &[bound.clone(), sequence_term],
+            "R `for` loop membership guard",
+        );
+        let consequent = self.lower_formula(body);
+        let implication = self.emit_implication(
+            &format!("for-body|{key}"),
+            &guard,
+            &consequent,
+            "R `for` body, guarded by sequence membership",
+        );
+        let quantifier_key = format!("for|{key}");
+        let (iri, fresh) = self.mint("logic-formula", &quantifier_key);
+        if fresh {
+            self.sink.typed(&iri, &logic("Formula"));
+            self.emit_carrier(&iri, "quantifiedVariable", &quantifier_key, 0, &bound);
+            self.sink.iri(&iri, &logic("forall"), &implication);
+            self.label(&iri, &format!("R `for` loop binding `{variable}`"));
+        }
+        iri
+    }
+
+    /// `{ s1; s2; … }` → the conjunction of its lowered statements.
+    fn lower_block(&mut self, key: &str, statements: &[RStmt]) -> String {
+        match statements {
+            [] => self.emit_atom(&format!("block|{key}"), "r-empty-block", &[], "{ }"),
+            [only] => self.lower_statement_formula(only),
+            many => {
+                self.record_unmapped(
+                    "R `{ }` statement sequencing: conjunction is commutative, so the order the \
+                     block's statements evaluate in does not survive the lowering",
+                );
+                let mut operands = Vec::with_capacity(many.len());
+                for statement in many {
+                    let lowered = self.lower_statement_formula(statement);
+                    operands.push(lowered);
+                }
+                self.emit_conjunction(
+                    &format!("block|{key}"),
+                    &operands,
+                    "R `{ }` block: every statement, conjoined",
+                )
+            }
+        }
+    }
+
+    fn lower_statement_formula(&mut self, statement: &RStmt) -> String {
+        match &statement.kind {
+            RStmtKind::Assign { target, value, .. } => self.lower_assignment(target, value),
+            RStmtKind::Expr(expr) => self.lower_formula(expr),
+        }
+    }
+
+    /// `x <- v` → `r-assign(x, v)`.
+    fn lower_assignment(&mut self, target: &RExpr, value: &RExpr) -> String {
+        self.record_unmapped(
+            "R `<-` assignment as state mutation: the lowered predication relates the target to \
+             the value it was bound to; it does not update a store, so a later rebinding of the \
+             same name is a second predication rather than an overwrite",
+        );
+        let target_term = self.lower_term(target);
+        let value_term = self.lower_term(value);
+        let key = format!(
+            "assign|{}|{}",
+            target.structure_key(),
+            value.structure_key()
+        );
+        let label = format!("{} <- {}", render(target), render(value));
+        self.emit_atom(&key, "r-assign", &[target_term, value_term], &label)
+    }
+
+    /// `function(p…) b` → `r-function(p…, b)`.
+    ///
+    /// A predication naming the formals and the body, not a quantification: a `function`
+    /// literal is a VALUE, and asserting `∀p. body` would claim the body holds for every
+    /// argument — a claim R's definition does not make.
+    fn lower_function(
+        &mut self,
+        key: &str,
+        params: &[Param],
+        body: &RExpr,
+        expr: &RExpr,
+    ) -> String {
+        self.record_unmapped(
+            "R `function` closure: the lowered predication names the formals and the body, \
+             not a first-class function value, its lexical environment, or its lazy-promise \
+             argument evaluation",
+        );
+        let mut args = self.lower_params(params);
+        let body_term = self.lower_term(body);
+        args.push(body_term);
+        self.emit_atom(
+            &format!("function|{key}"),
+            "r-function",
+            &args,
+            &render(expr),
+        )
+    }
+
+    fn lower_params(&mut self, params: &[Param]) -> Vec<LogicTerm> {
+        let mut out = Vec::with_capacity(params.len());
+        for param in params {
+            if param.name == "..." {
+                self.record_unmapped(
+                    "R `...` variadic formals: the marker binds an argument SEQUENCE whose \
+                     length and names the definition does not state",
+                );
+                out.push(LogicTerm::SequenceMarker("...".to_owned()));
+                continue;
+            }
+            let name = LogicTerm::Variable(param.name.clone());
+            match &param.default {
+                None => out.push(name),
+                Some(default) => {
+                    let default_term = self.lower_term(default);
+                    let key = format!("t|default|{}|{}", param.name, default.structure_key());
+                    let term =
+                        self.emit_function_term(&key, "r-parameter-default", &[name, default_term]);
+                    out.push(term);
+                }
+            }
+        }
+        out
+    }
+
+    /// A call in proposition position: ONE reified relation per callee.
+    ///
+    /// `library(stats)` and `set.seed(20260725)` therefore predicate DIFFERENT relations —
+    /// the relation identity includes the function name, so the predicate carries which call
+    /// it was instead of collapsing every call in the script onto one `r-call` node.
+    fn lower_call_atom(&mut self, key: &str, callee: &RExpr, args: &[Arg], expr: &RExpr) -> String {
+        let mut terms = self.lower_arguments(args);
+        let key = format!("call|{key}");
+        match callable_name(callee) {
+            Some(name) => {
+                self.record_uninterpreted_call(&name);
+                self.emit_atom(&key, &format!("r-call:{name}"), &terms, &render(expr))
+            }
+            None => {
+                // A computed callee (`handlers[[i]](x)`): the callee itself becomes the first
+                // argument of a generic application relation, so nothing about it is dropped.
+                self.record_unmapped(
+                    "R computed callee: the applied function is a value the script computes, so \
+                     the lowered relation is a generic application rather than a named one",
+                );
+                let callee_term = self.lower_term(callee);
+                terms.insert(0, callee_term);
+                self.emit_atom(&key, "r-apply", &terms, &render(expr))
+            }
+        }
+    }
+
+    /// Name an R function whose OWN semantics the lift does not interpret.
+    ///
+    /// The call itself is carried — a relation named for the callee, over ordered argument
+    /// carriers. What is not carried is what the function DOES: `library` attaching a
+    /// package, `set.seed` seeding the generator, `message` writing to a connection. This is
+    /// exactly the residue `math:unmappedConstruct`'s own `skos:example` enumerates
+    /// (`"r-call: message(...)"`), and enumerating it per callee is what keeps the
+    /// `logic:LossyLens` rung falsifiable instead of decorative.
+    fn record_uninterpreted_call(&mut self, name: &str) {
+        self.record_unmapped(&format!(
+            "R call `{name}`: lowered as an uninterpreted relation over its arguments, so what \
+             the function itself does is not carried"
+        ));
+    }
+
+    fn lower_binary_formula(
+        &mut self,
+        key: &str,
+        op: BinaryOp,
+        lhs: &RExpr,
+        rhs: &RExpr,
+        expr: &RExpr,
+    ) -> String {
+        match op {
+            BinaryOp::And | BinaryOp::AndAnd => {
+                let l = self.lower_formula(lhs);
+                let r = self.lower_formula(rhs);
+                self.emit_conjunction(&format!("and|{key}"), &[l, r], &render(expr))
+            }
+            BinaryOp::Or | BinaryOp::OrOr => {
+                let l = self.lower_formula(lhs);
+                let r = self.lower_formula(rhs);
+                self.emit_disjunction(&format!("or|{key}"), &[l, r], &render(expr))
+            }
+            BinaryOp::Less
+            | BinaryOp::Greater
+            | BinaryOp::LessEqual
+            | BinaryOp::GreaterEqual
+            | BinaryOp::Equal
+            | BinaryOp::NotEqual => {
+                let l = self.lower_term(lhs);
+                let r = self.lower_term(rhs);
+                self.emit_atom(
+                    &format!("compare|{key}"),
+                    &format!("r-{}", binary_operator_slug(op)),
+                    &[l, r],
+                    &render(expr),
+                )
+            }
+            // Arithmetic and `:` are not propositions. R coerces the value to a condition at
+            // run time; the lowering says only that this expression's VALUE is the statement's
+            // content, and the value's own structure rides in the term.
+            _ => self.lower_value_atom(key, expr),
+        }
+    }
+
+    /// An expression with no propositional reading: `r-value(<term>)`, over its FULL term
+    /// structure.
+    fn lower_value_atom(&mut self, key: &str, expr: &RExpr) -> String {
+        let term = self.lower_term(expr);
+        self.emit_atom(&format!("value|{key}"), "r-value", &[term], &render(expr))
+    }
+
+    // -- logic: terms --------------------------------------------------------
+
+    /// Lower an R expression in TERM position.
+    ///
+    /// Every arm produces exactly one `logic:TermCarrier` value kind. A compound expression
+    /// becomes a `logic:FunctionTerm` reached through `logic:termApplication`, so a nested
+    /// call such as `nrow(cars)` round-trips as a real application rather than a string.
+    fn lower_term(&mut self, expr: &RExpr) -> LogicTerm {
+        let expr = expr.unparenthesized();
+        let key = format!("t|{}", expr.structure_key());
+        match expr {
+            RExpr::Number { text, integer, .. } => number_term(text, *integer),
+            RExpr::Str(text) => LogicTerm::Literal {
+                lexical: text.clone(),
+                datatype: None,
+            },
+            RExpr::Logical(value) => LogicTerm::Literal {
+                lexical: if *value { "true" } else { "false" }.to_owned(),
+                datatype: Some(XSD_BOOLEAN),
+            },
+            // `NaN` and `Inf` ARE `xsd:double` values, so they ride as typed literals with no
+            // loss at all.
+            RExpr::NotANumber => LogicTerm::Literal {
+                lexical: "NaN".to_owned(),
+                datatype: Some(XSD_DOUBLE),
+            },
+            RExpr::Infinity => LogicTerm::Literal {
+                lexical: "INF".to_owned(),
+                datatype: Some(XSD_DOUBLE),
+            },
+            RExpr::Null => {
+                self.record_unmapped(
+                    "R `NULL`: its zero-length-vector semantics have no logic: term image, so \
+                     the constant rides as a named individual rather than as an absent argument",
+                );
+                self.language_constant("NULL")
+            }
+            RExpr::Na => {
+                self.record_unmapped(
+                    "R `NA`: three-valued missingness has no logic: truth value, so the constant \
+                     rides as a named individual and propagation is not modelled",
+                );
+                self.language_constant("NA")
+            }
+            RExpr::Break | RExpr::Next => {
+                let word = if matches!(expr, RExpr::Break) {
+                    "break"
+                } else {
+                    "next"
+                };
+                self.record_unmapped(&format!(
+                    "R `{word}` non-local control transfer: a logic: formula has no jump \
+                     semantics, so the atom names the transfer without discharging it"
+                ));
+                self.language_constant(word)
+            }
+            RExpr::Ident(name) => LogicTerm::Variable(name.clone()),
+            RExpr::Namespace {
+                package,
+                name,
+                internal,
+            } => {
+                let symbol = if *internal {
+                    "r-namespace-internal"
+                } else {
+                    "r-namespace"
+                };
+                let args = [plain_literal(package), plain_literal(name)];
+                self.emit_function_term(&key, symbol, &args)
+            }
+            RExpr::Component { object, name, slot } => {
+                let object_term = self.lower_term(object);
+                let symbol = if *slot { "r-slot" } else { "r-component" };
+                self.emit_function_term(&key, symbol, &[object_term, plain_literal(name)])
+            }
+            RExpr::Index {
+                object,
+                args,
+                double,
+            } => {
+                let mut terms = vec![self.lower_term(object)];
+                terms.extend(self.lower_arguments(args));
+                let symbol = if *double {
+                    "r-subscript-double"
+                } else {
+                    "r-subscript"
+                };
+                self.emit_function_term(&key, symbol, &terms)
+            }
+            RExpr::Call { callee, args } => {
+                let mut terms = self.lower_arguments(args);
+                match callable_name(callee) {
+                    Some(name) => {
+                        self.record_uninterpreted_call(&name);
+                        self.emit_function_term(&key, &format!("r-call:{name}"), &terms)
+                    }
+                    None => {
+                        self.record_unmapped(
+                            "R computed callee: the applied function is a value the script \
+                             computes, so the lowered term is a generic application rather than a \
+                             named one",
+                        );
+                        let callee_term = self.lower_term(callee);
+                        terms.insert(0, callee_term);
+                        self.emit_function_term(&key, "r-apply", &terms)
+                    }
+                }
+            }
+            RExpr::Pipe { lhs, rhs, native } => {
+                let desugared = desugar_pipe(lhs, rhs, *native);
+                self.lower_term(&desugared)
+            }
+            RExpr::Unary { op, operand } => {
+                let operand_term = self.lower_term(operand);
+                self.emit_function_term(&key, unary_operator_symbol(*op), &[operand_term])
+            }
+            RExpr::Binary { op, lhs, rhs } => {
+                let l = self.lower_term(lhs);
+                let r = self.lower_term(rhs);
+                self.emit_function_term(&key, &format!("r-{}", binary_operator_slug(*op)), &[l, r])
+            }
+            RExpr::Special { operator, lhs, rhs } => {
+                let l = self.lower_term(lhs);
+                let r = self.lower_term(rhs);
+                self.emit_function_term(&key, &format!("r-special:{operator}"), &[l, r])
+            }
+            RExpr::Formula(formula) => self.lower_model_formula_term(&key, formula),
+            RExpr::Assign { target, value, .. } => {
+                self.record_unmapped(
+                    "R `<-` assignment as state mutation: the lowered predication relates the \
+                     target to the value it was bound to; it does not update a store, so a later \
+                     rebinding of the same name is a second predication rather than an overwrite",
+                );
+                let target_term = self.lower_term(target);
+                let value_term = self.lower_term(value);
+                self.emit_function_term(&key, "r-assign", &[target_term, value_term])
+            }
+            RExpr::Function { params, body } => {
+                self.record_unmapped(
+                    "R `function` closure: the lowered predication names the formals and the \
+                     body, not a first-class function value, its lexical environment, or its \
+                     lazy-promise argument evaluation",
+                );
+                let mut args = self.lower_params(params);
+                let body_term = self.lower_term(body);
+                args.push(body_term);
+                self.emit_function_term(&key, "r-function", &args)
+            }
+            RExpr::Block(statements) => {
+                if statements.len() > 1 {
+                    self.record_unmapped(
+                        "R `{ }` statement sequencing: conjunction is commutative, so the order \
+                         the block's statements evaluate in does not survive the lowering",
+                    );
+                }
+                let mut terms = Vec::with_capacity(statements.len());
+                for statement in statements {
+                    let term = match &statement.kind {
+                        RStmtKind::Assign { target, value, .. } => {
+                            let target_term = self.lower_term(target);
+                            let value_term = self.lower_term(value);
+                            self.emit_function_term(
+                                &format!(
+                                    "t|assign|{}|{}",
+                                    target.structure_key(),
+                                    value.structure_key()
+                                ),
+                                "r-assign",
+                                &[target_term, value_term],
+                            )
+                        }
+                        RStmtKind::Expr(expr) => self.lower_term(expr),
+                    };
+                    terms.push(term);
+                }
+                if terms.is_empty() {
+                    return LogicTerm::SequenceMarker("r-empty-block".to_owned());
+                }
+                self.emit_function_term(&key, "r-block", &terms)
+            }
+            RExpr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
+                let mut terms = vec![self.lower_term(condition), self.lower_term(then_branch)];
+                if let Some(else_branch) = else_branch {
+                    let alternative = self.lower_term(else_branch);
+                    terms.push(alternative);
+                }
+                self.emit_function_term(&key, "r-if", &terms)
+            }
+            RExpr::For {
+                variable,
+                sequence,
+                body,
+            } => {
+                self.record_unmapped(
+                    "R `for` iteration order: the lowered universal quantification binds every \
+                     element of the sequence, not the order in which they are visited",
+                );
+                let sequence_term = self.lower_term(sequence);
+                let body_term = self.lower_term(body);
+                let terms = [
+                    LogicTerm::Variable(variable.clone()),
+                    sequence_term,
+                    body_term,
+                ];
+                self.emit_function_term(&key, "r-for", &terms)
+            }
+            RExpr::While { condition, body } => {
+                self.record_unmapped(
+                    "R `while` repetition: the lowered implication states the guard-to-body \
+                     relation of ONE iteration; unbounded re-entry has no logic: formula image",
+                );
+                let guard = self.lower_term(condition);
+                let body_term = self.lower_term(body);
+                self.emit_function_term(&key, "r-while", &[guard, body_term])
+            }
+            RExpr::Repeat { body } => {
+                self.record_unmapped(
+                    "R `repeat` repetition: the lowered predication names the body; unbounded \
+                     re-entry has no logic: formula image",
+                );
+                let body_term = self.lower_term(body);
+                self.emit_function_term(&key, "r-repeat", &[body_term])
+            }
+            RExpr::Paren(_) => unreachable!("the expression was unparenthesized above"),
+        }
+    }
+
+    /// Call and subscript arguments, in source order, with the argument NAMES retained.
+    fn lower_arguments(&mut self, args: &[Arg]) -> Vec<LogicTerm> {
+        let mut out = Vec::with_capacity(args.len());
+        for arg in args {
+            let value = match &arg.value {
+                Some(value) => self.lower_term(value),
+                None => {
+                    // R's genuinely EMPTY argument (`x[, 1]`) means "the whole extent of this
+                    // margin": a SEQUENCE of indices, not a missing one.
+                    self.record_unmapped(
+                        "R empty argument (`x[, i]`, `f(a = )`): the margin's extent rides as a \
+                         logic:SequenceMarker because the source does not state its length",
+                    );
+                    LogicTerm::SequenceMarker("r-empty-argument".to_owned())
+                }
+            };
+            match &arg.name {
+                None => out.push(value),
+                Some(name) => {
+                    let key = format!(
+                        "t|named|{name}|{}",
+                        arg.value
+                            .as_ref()
+                            .map_or_else(|| "empty".to_owned(), RExpr::structure_key)
+                    );
+                    let term = self.emit_function_term(
+                        &key,
+                        "r-named-argument",
+                        &[plain_literal(name), value],
+                    );
+                    out.push(term);
+                }
+            }
+        }
+        out
+    }
+
+    /// A model formula reaching the `logic:` seam (`plot(y ~ x)`): a real application over
+    /// its response, its surviving terms, its explicitly removed terms, and its intercept
+    /// flag — never a rendering of the `~`.
+    fn lower_model_formula_term(&mut self, key: &str, formula: &Formula) -> LogicTerm {
+        let mut args = Vec::with_capacity(formula.terms.len() + formula.removed.len() + 2);
+        args.push(match &formula.response {
+            Some(response) => self.lower_term(response),
+            None => LogicTerm::SequenceMarker("r-no-response".to_owned()),
+        });
+        for term in &formula.terms {
+            let lowered = self.lower_formula_factor(term);
+            args.push(lowered);
+        }
+        for removed in &formula.removed {
+            let inner = self.lower_formula_factor(removed);
+            let term = self.emit_function_term(
+                &format!("t|removed|{}", removed.structure_key()),
+                "r-removed",
+                &[inner],
+            );
+            args.push(term);
+        }
+        args.push(LogicTerm::Literal {
+            lexical: formula.intercept.to_string(),
+            datatype: Some(XSD_BOOLEAN),
+        });
+        self.emit_function_term(key, "r-model-formula", &args)
+    }
+
+    fn lower_formula_factor(&mut self, term: &FormulaTerm) -> LogicTerm {
+        if let [only] = term.factors.as_slice() {
+            return self.lower_term(only);
+        }
+        let mut factors = Vec::with_capacity(term.factors.len());
+        for factor in &term.factors {
+            let lowered = self.lower_term(factor);
+            factors.push(lowered);
+        }
+        self.emit_function_term(
+            &format!("t|interaction|{}", term.structure_key()),
+            "r-interaction",
+            &factors,
+        )
+    }
+
+    // -- logic: AST emitters -------------------------------------------------
+
+    /// The reified `logic:Type` individual an atomic predication predicates.
+    ///
+    /// `logic:relation`'s range is a reified `logic:Type` per the HiLog reflection:
+    /// predicating over a reified relation keeps the object level first-order rather than
+    /// admitting a predicate variable. ONE individual per relation NAME, so two calls to the
+    /// same R function share a relation and two calls to different ones never do.
+    fn emit_relation(&mut self, slug: &str) -> String {
+        let (iri, fresh) = self.mint("logic-relation", slug);
+        if fresh {
+            self.sink.typed(&iri, &logic("Type"));
+            self.label(&iri, slug);
+        }
+        iri
+    }
+
+    /// The reified `logic:Type` individual a `logic:FunctionTerm` applies.
+    ///
+    /// Minted under a DIFFERENT role than [`Lift::emit_relation`]: `f` used as a relation and
+    /// `f` used as a function symbol are different things, and giving them one IRI would
+    /// assert that a truth value and a term are the same node.
+    fn emit_symbol(&mut self, slug: &str) -> String {
+        let (iri, fresh) = self.mint("logic-symbol", slug);
+        if fresh {
+            self.sink.typed(&iri, &logic("Type"));
+            self.label(&iri, slug);
+        }
+        iri
+    }
+
+    /// An R language constant (`NULL`, `NA`, `break`, `next`) as a named individual.
+    ///
+    /// A zero-arity symbol is an INDIVIDUAL, not a nullary function term
+    /// (`logic:FunctionTerm`'s own `gmeow:avoidWhen`: "do not use a function term to wrap a
+    /// constant"), so it rides on `logic:termIri`. It is typed `math:MathematicalObject` —
+    /// the crate's existing type for a bare individual in a lifted run's domain — rather
+    /// than left untyped, and what its R semantics actually MEAN is enumerated as residue by
+    /// the caller.
+    fn language_constant(&mut self, name: &str) -> LogicTerm {
+        let (iri, fresh) = self.mint("r-constant", name);
+        if fresh {
+            self.sink.typed(&iri, &math("MathematicalObject"));
+            self.label(&iri, name);
+        }
+        LogicTerm::Iri(iri)
+    }
+
+    /// An atomic predication: one reified relation over ordered argument carriers.
+    fn emit_atom(
+        &mut self,
+        key: &str,
+        relation_slug: &str,
+        args: &[LogicTerm],
+        label: &str,
+    ) -> String {
+        let relation = self.emit_relation(relation_slug);
+        let (iri, fresh) = self.mint("logic-formula", key);
+        if !fresh {
+            return iri;
+        }
+        self.sink.typed(&iri, &logic("Formula"));
+        self.sink.iri(&iri, &logic("relation"), &relation);
+        if args.is_empty() {
+            // An atomic predication carries at least one argument carrier (the typed-IR
+            // frontend rejects a nullary atom), and an empty R argument list IS a sequence —
+            // an empty one — so it rides as a sequence marker rather than as a fabricated
+            // argument.
+            self.emit_carrier(
+                &iri,
+                "argument",
+                key,
+                0,
+                &LogicTerm::SequenceMarker("r-empty-argument-list".to_owned()),
+            );
+        }
+        for (index, arg) in args.iter().enumerate() {
+            self.emit_carrier(&iri, "argument", key, index, arg);
+        }
+        self.label(&iri, label);
+        iri
+    }
+
+    /// A `logic:FunctionTerm`, or — for a zero-arity symbol — the reified symbol itself.
+    fn emit_function_term(
+        &mut self,
+        key: &str,
+        symbol_slug: &str,
+        args: &[LogicTerm],
+    ) -> LogicTerm {
+        let symbol = self.emit_symbol(symbol_slug);
+        if args.is_empty() {
+            // `logic:FunctionTermArityConstraint` forbids a nullary application: a 0-ary
+            // function symbol is a constant and belongs on `logic:termIri`.
+            return LogicTerm::Iri(symbol);
+        }
+        let (iri, fresh) = self.mint("logic-term", key);
+        if !fresh {
+            return LogicTerm::Application(iri);
+        }
+        self.sink.typed(&iri, &logic("FunctionTerm"));
+        self.sink.iri(&iri, &logic("functionSymbol"), &symbol);
+        for (index, arg) in args.iter().enumerate() {
+            self.emit_carrier(&iri, "argument", key, index, arg);
+        }
+        LogicTerm::Application(iri)
+    }
+
+    /// One ordered `logic:TermCarrier`: a zero-based index and EXACTLY one value kind.
+    fn emit_carrier(
+        &mut self,
+        parent: &str,
+        link: &str,
+        key: &str,
+        index: usize,
+        term: &LogicTerm,
+    ) {
+        let (carrier, fresh) = self.mint("logic-argument", &format!("{key}|{link}|{index}"));
+        if fresh {
+            self.sink.typed(&carrier, &logic("TermCarrier"));
+            let position = i64::try_from(index).unwrap_or(i64::MAX);
+            self.sink.integer(&carrier, &logic("termIndex"), position);
+            match term {
+                LogicTerm::Iri(target) => self.sink.iri(&carrier, &logic("termIri"), target),
+                LogicTerm::Variable(name) => {
+                    self.sink.string(&carrier, &logic("termVariable"), name);
+                }
+                LogicTerm::Literal { lexical, datatype } => {
+                    // The lexical form rides on `logic:termLiteral` as a PLAIN literal and the
+                    // datatype on the companion `logic:termLiteralDatatype`, exactly as
+                    // `crates/logic-compile/src/projections/rdf.rs` serializes a typed term.
+                    self.sink.string(&carrier, &logic("termLiteral"), lexical);
+                    if let Some(datatype) = datatype {
+                        self.sink
+                            .iri(&carrier, &logic("termLiteralDatatype"), datatype);
+                    }
+                }
+                LogicTerm::Application(target) => {
+                    self.sink.iri(&carrier, &logic("termApplication"), target);
+                }
+                LogicTerm::SequenceMarker(marker) => {
+                    self.sink
+                        .string(&carrier, &logic("termSequenceMarker"), marker);
+                }
+            }
+        }
+        self.sink.iri(parent, &logic(link), &carrier);
+    }
+
+    fn emit_implication(
+        &mut self,
+        key: &str,
+        antecedent: &str,
+        consequent: &str,
+        label: &str,
+    ) -> String {
+        let (iri, fresh) = self.mint("logic-formula", key);
+        if fresh {
+            self.sink.typed(&iri, &logic("Formula"));
+            self.sink.iri(&iri, &logic("antecedent"), antecedent);
+            self.sink.iri(&iri, &logic("consequent"), consequent);
+            self.label(&iri, label);
+        }
+        iri
+    }
+
+    fn emit_negation(&mut self, key: &str, inner: &str, label: &str) -> String {
+        let (iri, fresh) = self.mint("logic-formula", key);
+        if fresh {
+            self.sink.typed(&iri, &logic("Formula"));
+            self.sink.iri(&iri, &logic("not"), inner);
+            self.label(&iri, label);
+        }
+        iri
+    }
+
+    fn emit_conjunction(&mut self, key: &str, operands: &[String], label: &str) -> String {
+        self.emit_junction(key, "and", operands, label)
+    }
+
+    fn emit_disjunction(&mut self, key: &str, operands: &[String], label: &str) -> String {
+        self.emit_junction(key, "or", operands, label)
+    }
+
+    /// A conjunction or disjunction over DISTINCT operands.
+    ///
+    /// Deduplicating first is not cosmetic: `logic:and` is a set-valued edge, so `{ x; x }`
+    /// would serialize one operand and the typed-IR frontend rejects a junction with fewer
+    /// than two. An idempotent junction IS its single operand, so that is what it returns.
+    fn emit_junction(
+        &mut self,
+        key: &str,
+        connective: &str,
+        operands: &[String],
+        label: &str,
+    ) -> String {
+        let mut distinct: Vec<&String> = Vec::with_capacity(operands.len());
+        for operand in operands {
+            if !distinct.contains(&operand) {
+                distinct.push(operand);
+            }
+        }
+        if let [only] = distinct.as_slice() {
+            return (*only).clone();
+        }
+        let distinct: Vec<String> = distinct.into_iter().cloned().collect();
+        let (iri, fresh) = self.mint("logic-formula", key);
+        if fresh {
+            self.sink.typed(&iri, &logic("Formula"));
+            for operand in &distinct {
+                self.sink.iri(&iri, &logic(connective), operand);
+            }
+            self.label(&iri, label);
+        }
+        iri
+    }
 }
 
-/// The R construct an expression routed to `logic:` is, as the relation name of its atomic
-/// lowering.
+/// One lowered `logic:` term — the single value a [`logic:TermCarrier`] may carry.
 ///
-/// One reified `logic:Type` individual per construct kind, shared across every lowering of
-/// that kind, so a KB can ask "which lifted computations were loops?" without string
-/// matching. The names are R's own, not invented categories.
-fn logic_construct(expr: &RExpr) -> &'static str {
-    match expr {
-        RExpr::If { .. } => "r-if",
-        RExpr::For { .. } => "r-for",
-        RExpr::While { .. } => "r-while",
-        RExpr::Repeat { .. } => "r-repeat",
-        RExpr::Break => "r-break",
-        RExpr::Next => "r-next",
-        RExpr::Function { .. } => "r-function",
-        RExpr::Block(_) => "r-block",
-        RExpr::Assign { .. } => "r-assignment",
-        RExpr::Call { .. } | RExpr::Pipe { .. } => "r-call",
-        RExpr::Index { .. } => "r-subscript",
-        RExpr::Component { .. } => "r-component",
-        RExpr::Namespace { .. } => "r-namespace",
-        RExpr::Unary { .. } | RExpr::Binary { .. } | RExpr::Special { .. } => "r-operator",
-        RExpr::Paren(inner) => logic_construct(inner),
-        RExpr::Formula(_) => "r-formula",
-        RExpr::Number { .. }
-        | RExpr::Str(_)
-        | RExpr::Logical(_)
-        | RExpr::Null
-        | RExpr::Na
-        | RExpr::NotANumber
-        | RExpr::Infinity
-        | RExpr::Ident(_) => "r-value",
+/// `logic:TermCarrierValueConstraint` requires EXACTLY one of the five kinds on every
+/// carrier, so they are an enum here rather than five optional fields: a carrier with two
+/// values is unrepresentable.
+///
+/// [`logic:TermCarrier`]: https://blackcatinformatics.ca/logic/TermCarrier
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum LogicTerm {
+    /// `logic:termIri` — an individual, or a reified relation/type, named by an IRI.
+    Iri(String),
+    /// `logic:termVariable` — an R identifier.
+    Variable(String),
+    /// `logic:termLiteral`, with its datatype on `logic:termLiteralDatatype`.
+    Literal {
+        /// The literal's lexical form.
+        lexical: String,
+        /// Its datatype IRI, absent for a plain literal (an R string).
+        datatype: Option<&'static str>,
+    },
+    /// `logic:termApplication` — a nested `logic:FunctionTerm`.
+    Application(String),
+    /// `logic:termSequenceMarker` — a marker binding a SEQUENCE of terms.
+    SequenceMarker(String),
+}
+
+/// A plain (untyped) literal term — an R string, or a name that is data rather than a
+/// variable (an argument name, a component name, a package name).
+fn plain_literal(text: &str) -> LogicTerm {
+    LogicTerm::Literal {
+        lexical: text.to_owned(),
+        datatype: None,
+    }
+}
+
+/// An R numeric literal as a typed `logic:` term.
+///
+/// R's `1L` is an integer and `1` is a double, and the parser's canonical `text` is always
+/// an exponent-free decimal — so the `L` form drops its `.0` to make a legal `xsd:integer`
+/// lexical form and everything else stays `xsd:decimal`.
+fn number_term(text: &str, integer: bool) -> LogicTerm {
+    if integer && let Some(whole) = text.strip_suffix(".0") {
+        return LogicTerm::Literal {
+            lexical: whole.to_owned(),
+            datatype: Some(XSD_INTEGER),
+        };
+    }
+    LogicTerm::Literal {
+        lexical: text.to_owned(),
+        datatype: Some(XSD_DECIMAL),
+    }
+}
+
+/// The reified function symbol an R prefix operator applies.
+fn unary_operator_symbol(op: UnaryOp) -> &'static str {
+    match op {
+        UnaryOp::Plus => "r-unary-plus",
+        UnaryOp::Negate => "r-negate",
+        UnaryOp::Not => "r-not",
     }
 }
 
@@ -1678,16 +2653,45 @@ fn render(expr: &RExpr) -> String {
                 .collect();
             format!("function({}) {}", rendered.join(", "), render(body))
         }
-        RExpr::Block(stmts) => format!("{{ … {} statement(s) … }}", stmts.len()),
-        RExpr::If { condition, .. } => format!("if ({}) …", render(condition)),
+        RExpr::Block(stmts) => {
+            let rendered: Vec<String> = stmts.iter().map(render_statement).collect();
+            format!("{{ {} }}", rendered.join("; "))
+        }
+        RExpr::If {
+            condition,
+            then_branch,
+            else_branch,
+        } => match else_branch {
+            Some(alternative) => format!(
+                "if ({}) {} else {}",
+                render(condition),
+                render(then_branch),
+                render(alternative)
+            ),
+            None => format!("if ({}) {}", render(condition), render(then_branch)),
+        },
         RExpr::For {
-            variable, sequence, ..
-        } => format!("for ({variable} in {}) …", render(sequence)),
-        RExpr::While { condition, .. } => format!("while ({}) …", render(condition)),
-        RExpr::Repeat { .. } => "repeat …".to_owned(),
+            variable,
+            sequence,
+            body,
+        } => format!("for ({variable} in {}) {}", render(sequence), render(body)),
+        RExpr::While { condition, body } => {
+            format!("while ({}) {}", render(condition), render(body))
+        }
+        RExpr::Repeat { body } => format!("repeat {}", render(body)),
         RExpr::Break => "break".to_owned(),
         RExpr::Next => "next".to_owned(),
         RExpr::Paren(inner) => format!("({})", render(inner)),
+    }
+}
+
+/// Render one statement back to compact R-ish source, for `rdfs:label` only.
+fn render_statement(statement: &RStmt) -> String {
+    match &statement.kind {
+        RStmtKind::Assign { target, value, .. } => {
+            format!("{} <- {}", render(target), render(value))
+        }
+        RStmtKind::Expr(expr) => render(expr),
     }
 }
 
@@ -2096,11 +3100,427 @@ mod tests {
             "{ttl}"
         );
         assert!(ttl.contains(&format!("<{}>", logic("termIndex"))), "{ttl}");
-        assert!(ttl.contains(&format!("<{}>", logic("termIri"))), "{ttl}");
-        // The relation individual is named for R's own construct, not an invented category.
         assert!(
-            ttl.contains("r-for"),
-            "the atom names the construct:\n{ttl}"
+            ttl.contains(&format!("<{}>", logic("termVariable"))),
+            "the loop variable is a real logic: variable term:\n{ttl}"
+        );
+        // The relation individuals are named for R's own constructs, not invented
+        // categories: the loop's membership guard, and the call it makes.
+        assert!(
+            ttl.contains("r-for-in"),
+            "the loop guard names R's own `in`:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("r-call:print"),
+            "the call's relation names the callee:\n{ttl}"
+        );
+    }
+
+    /// Every `logic:Formula` subject reachable in `ttl` that carries `constructor`.
+    fn formulas_with_constructor(ttl: &str, constructor: &str) -> BTreeSet<String> {
+        subjects_with(ttl, &logic(constructor))
+    }
+
+    /// The objects of `<subject> <predicate> ?o`, as raw Turtle terms.
+    fn objects_of(ttl: &str, subject: &str, predicate: &str) -> Vec<String> {
+        let marker = format!(" <{predicate}> ");
+        ttl.lines()
+            .filter(|line| line.starts_with(subject) && line.contains(&marker))
+            .filter_map(|line| line.split(' ').nth(2))
+            .map(str::to_owned)
+            .collect()
+    }
+
+    /// Every `logic:TermCarrier` value the atom `formula` predicates over, as raw terms.
+    fn atom_arguments(ttl: &str, formula: &str) -> Vec<String> {
+        let mut values = Vec::new();
+        for carrier in objects_of(ttl, formula, &logic("argument")) {
+            let carrier = carrier.trim_matches(['<', '>']);
+            for kind in [
+                "termIri",
+                "termVariable",
+                "termLiteral",
+                "termApplication",
+                "termSequenceMarker",
+            ] {
+                values.extend(objects_of(ttl, &format!("<{carrier}>"), &logic(kind)));
+            }
+        }
+        values
+    }
+
+    #[test]
+    fn an_if_lowers_to_a_real_implication_over_the_lowered_condition() {
+        // The flagship: `if (c) t else e` is `(c → t) ∧ (¬c → e)`, not an opaque node
+        // tagged `r-if` whose only content is a truncated label.
+        let ttl = turtle(
+            "z <- log(wt)\nif (nrow(cars) > 10) {\n  message(\"plenty\")\n} else {\n  \
+             warning(\"sparse\")\n}\n",
+        );
+        let implications = formulas_with_constructor(&ttl, "antecedent");
+        assert_eq!(implications.len(), 2, "one implication per arm:\n{ttl}");
+        assert_eq!(
+            formulas_with_constructor(&ttl, "consequent").len(),
+            2,
+            "an implication carries both halves"
+        );
+        assert_eq!(
+            formulas_with_constructor(&ttl, "not").len(),
+            1,
+            "the else arm is guarded by the NEGATED condition"
+        );
+        assert_eq!(
+            formulas_with_constructor(&ttl, "and").len(),
+            1,
+            "the two arms are conjoined"
+        );
+
+        // The condition itself is present as a real comparison over a real nested call —
+        // `nrow(cars) > 10`, not a string.
+        assert!(ttl.contains("\"r-greater\""), "{ttl}");
+        assert!(ttl.contains("\"r-call:nrow\""), "{ttl}");
+        assert!(
+            ttl.contains(&format!("<{}>", logic("termApplication"))),
+            "the nested `nrow(cars)` rides as a compound function term:\n{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("<{}> .", logic("FunctionTerm"))),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains("\"cars\""),
+            "the condition's operand survives:\n{ttl}"
+        );
+        assert!(ttl.contains("\"10.0\""), "the threshold survives:\n{ttl}");
+    }
+
+    #[test]
+    fn both_branches_of_the_mtcars_conditional_survive_the_lowering() {
+        // The finding this test closes: `grep -c "enough observations" lifted-r.ttl` was 0,
+        // and so was `grep -c "message\|warning"`. The whole else arm had vanished.
+        let ttl = turtle(MTCARS);
+        assert!(
+            ttl.contains("enough observations for the interaction term"),
+            "the `message(…)` argument must survive:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("the interaction term is underpowered"),
+            "the ELSE arm's `warning(…)` argument must survive"
+        );
+        assert!(ttl.contains("\"r-call:message\""));
+        assert!(ttl.contains("\"r-call:warning\""));
+    }
+
+    #[test]
+    fn no_lowered_label_truncates_the_construct_it_names() {
+        // A `…` in a label was the old lowering's only carrier of meaning. Labels remain
+        // for readability, but nothing is elided out of one any more.
+        let ttl = turtle(MTCARS);
+        assert!(
+            !ttl.contains('…'),
+            "an ellipsis is a truncation, not a lowering:\n{ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "if (nrow(cars) > 10) { message(\\\"enough observations for the \
+                          interaction term\\\") } else"
+            ),
+            "the computation node's label renders the WHOLE construct:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn distinct_callees_never_share_one_relation() {
+        // `library(stats)` and `set.seed(20260725)` both used to predicate ONE `r-call`
+        // relation, so the formula's predicate said nothing about which call it was.
+        let ttl = turtle("z <- log(wt)\nlibrary(stats)\nset.seed(20260725)\n");
+        let library = subjects_with(&ttl, &logic("relation"))
+            .into_iter()
+            .filter_map(|f| {
+                let relation = objects_of(&ttl, &f, &logic("relation")).pop()?;
+                Some((f, relation))
+            })
+            .collect::<BTreeMap<_, _>>();
+        let relations: BTreeSet<&String> = library.values().collect();
+        assert_eq!(
+            relations.len(),
+            2,
+            "two calls, two relations — not one shared `r-call`:\n{ttl}"
+        );
+        assert!(ttl.contains("\"r-call:library\""), "{ttl}");
+        assert!(ttl.contains("\"r-call:set.seed\""), "{ttl}");
+        // …and each atom carries its own argument, in order.
+        for (formula, _) in library {
+            assert_eq!(
+                atom_arguments(&ttl, &formula).len(),
+                1,
+                "each call predicates over its own single argument"
+            );
+        }
+        assert!(ttl.contains("\"stats\""), "{ttl}");
+        assert!(ttl.contains("\"20260725.0\""), "{ttl}");
+    }
+
+    #[test]
+    fn a_nested_call_argument_is_a_real_term_application() {
+        let ttl = turtle("z <- log(wt)\nprint(paste0(toupper(label), \"!\"))\n");
+        assert!(ttl.contains("\"r-call:print\""));
+        assert!(ttl.contains("\"r-call:paste0\""));
+        assert!(ttl.contains("\"r-call:toupper\""));
+        assert_eq!(
+            ttl.matches(&format!("<{}>", logic("FunctionTerm"))).count(),
+            2,
+            "paste0(…) and toupper(…) are function terms; print(…) is the atom:\n{ttl}"
+        );
+        assert!(ttl.contains(&format!("<{}>", logic("functionSymbol"))));
+        assert!(
+            ttl.contains("\"label\""),
+            "the innermost variable survives three levels of nesting"
+        );
+    }
+
+    #[test]
+    fn a_for_loop_lowers_to_a_guarded_universal_quantification() {
+        let ttl = turtle("z <- log(wt)\nfor (predictor in c(\"disp\", \"wt\")) cat(predictor)\n");
+        assert_eq!(
+            formulas_with_constructor(&ttl, "forall").len(),
+            1,
+            "the traversal IS a universal quantification:\n{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("<{}>", logic("quantifiedVariable"))),
+            "the loop variable is bound, not free:\n{ttl}"
+        );
+        assert_eq!(
+            formulas_with_constructor(&ttl, "antecedent").len(),
+            1,
+            "the body is guarded by sequence membership"
+        );
+        assert!(ttl.contains("\"r-for-in\""));
+        assert!(ttl.contains("\"disp\"") && ttl.contains("\"wt\""), "{ttl}");
+    }
+
+    #[test]
+    fn a_while_loop_lowers_to_an_implication_over_its_guard() {
+        let ttl = turtle("z <- log(wt)\nwhile (remaining > 0) remaining <- remaining - 1\n");
+        assert_eq!(formulas_with_constructor(&ttl, "antecedent").len(), 1);
+        assert!(ttl.contains("\"r-greater\""), "the guard survives:\n{ttl}");
+        assert!(
+            ttl.contains("\"r-assign\""),
+            "the body's assignment survives:\n{ttl}"
+        );
+        assert!(ttl.contains("\"remaining\""));
+    }
+
+    #[test]
+    fn a_function_literal_lowers_over_its_formals_and_its_body() {
+        let ttl = turtle("z <- log(wt)\nbanner <- function(text, width = 8) strrep(text, width)\n");
+        assert!(ttl.contains("\"r-function\""), "{ttl}");
+        assert!(
+            ttl.contains("\"r-parameter-default\""),
+            "a formal's default is structure, not a dropped token:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("\"r-call:strrep\""),
+            "the body survives:\n{ttl}"
+        );
+        assert!(ttl.contains("\"text\"") && ttl.contains("\"width\""));
+        assert!(
+            ttl.contains("\"8.0\""),
+            "the default value survives:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn logical_connectives_lower_to_the_logic_connectives() {
+        let ttl = turtle("z <- log(wt)\nif (a > 1 && !(b < 2)) print(a)\n");
+        assert_eq!(formulas_with_constructor(&ttl, "and").len(), 1, "{ttl}");
+        assert_eq!(formulas_with_constructor(&ttl, "not").len(), 1, "{ttl}");
+        assert!(ttl.contains("\"r-greater\"") && ttl.contains("\"r-less\""));
+    }
+
+    #[test]
+    fn every_lowered_term_carrier_selects_exactly_one_value_kind() {
+        // logic:TermCarrierValueConstraint: exactly one of termIri / termVariable /
+        // termLiteral / termSequenceMarker / termApplication per carrier.
+        const KINDS: [&str; 5] = [
+            "termIri",
+            "termVariable",
+            "termLiteral",
+            "termSequenceMarker",
+            "termApplication",
+        ];
+        for src in [
+            MTCARS,
+            "z <- log(wt)\nf <- function(a, ...) a[[1]]\n",
+            "z <- log(wt)\nx <- d[, 1]\nplot(y ~ x)\n",
+            "z <- log(wt)\nif (is.null(v)) v <- NA else repeat break\n",
+        ] {
+            let ttl = turtle(src);
+            let carriers = subjects_with(&ttl, &logic("termIndex"));
+            assert!(!carriers.is_empty(), "`{src}` produced no carrier");
+            for carrier in &carriers {
+                let selected: Vec<&str> = KINDS
+                    .iter()
+                    .copied()
+                    .filter(|kind| {
+                        ttl.lines().any(|l| {
+                            l.starts_with(carrier.as_str())
+                                && l.contains(&format!("<{}>", logic(kind)))
+                        })
+                    })
+                    .collect();
+                assert_eq!(
+                    selected.len(),
+                    1,
+                    "<{carrier}> selected {selected:?}; exactly one value kind is required\n{ttl}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn every_lowered_connective_meets_the_typed_ir_arity_invariant() {
+        // crates/logic-compile/src/frontend.rs: `not` exactly one child, `and`/`or` at least
+        // two, an implication exactly one antecedent AND one consequent, a quantifier at
+        // least one bound variable, an atom at least one argument.
+        for src in [
+            MTCARS,
+            "z <- log(wt)\nif (a) b else c\n",
+            "z <- log(wt)\nwhile (a && b) { p(); q() }\n",
+            "z <- log(wt)\nif (a || b) next\n",
+        ] {
+            let ttl = turtle(src);
+            for formula in subjects_with(&ttl, &logic("Formula")) {
+                for (link, minimum) in [("and", 2), ("or", 2)] {
+                    let operands = objects_of(&ttl, &formula, &logic(link)).len();
+                    assert!(
+                        operands == 0 || operands >= minimum,
+                        "<{formula}> logic:{link} has {operands} operand(s)\n{ttl}"
+                    );
+                }
+                for link in ["not", "antecedent", "consequent", "forall", "exists"] {
+                    let operands = objects_of(&ttl, &formula, &logic(link)).len();
+                    assert!(operands <= 1, "<{formula}> logic:{link} × {operands}");
+                }
+                let antecedents = objects_of(&ttl, &formula, &logic("antecedent")).len();
+                let consequents = objects_of(&ttl, &formula, &logic("consequent")).len();
+                assert_eq!(
+                    antecedents, consequents,
+                    "<{formula}> is half an implication\n{ttl}"
+                );
+                if !objects_of(&ttl, &formula, &logic("relation")).is_empty() {
+                    assert!(
+                        !objects_of(&ttl, &formula, &logic("argument")).is_empty(),
+                        "<{formula}> is a nullary atomic predication\n{ttl}"
+                    );
+                }
+                if !objects_of(&ttl, &formula, &logic("forall")).is_empty() {
+                    assert!(
+                        !objects_of(&ttl, &formula, &logic("quantifiedVariable")).is_empty(),
+                        "<{formula}> is a vacuous binder\n{ttl}"
+                    );
+                }
+            }
+            // Every argument carrier family is zero-based and contiguous.
+            for parent in subjects_with(&ttl, &logic("argument")) {
+                let mut indexes: Vec<i64> = objects_of(&ttl, &parent, &logic("argument"))
+                    .into_iter()
+                    .filter_map(|carrier| {
+                        let carrier = carrier.trim_matches(['<', '>']);
+                        objects_of(&ttl, &format!("<{carrier}>"), &logic("termIndex"))
+                            .pop()?
+                            .trim_matches('"')
+                            .parse()
+                            .ok()
+                    })
+                    .collect();
+                indexes.sort_unstable();
+                let expected: Vec<i64> = (0..i64::try_from(indexes.len()).unwrap_or(0)).collect();
+                assert_eq!(indexes, expected, "<{parent}> argument indexes\n{ttl}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_declared_loss_is_enumerated_on_the_source_witness() {
+        // Rung::lossy_vague_with_witness() declares a LossyLens. math:unmappedConstruct is
+        // what makes that declaration have content: "a lift that declares a rung weaker than
+        // logic:ExactPreservation and enumerates nothing is asserting a loss it cannot name".
+        let ttl = turtle(MTCARS);
+        let witness = subjects_with(&ttl, &math("unmappedConstruct"));
+        assert_eq!(witness.len(), 1, "the residue rides on ONE witness:\n{ttl}");
+        assert!(
+            witness.iter().all(|s| s.contains("r-src-")),
+            "…and that witness is math:parseSource's"
+        );
+        let residue = count(&ttl, &math("unmappedConstruct"));
+        assert!(
+            residue >= 6,
+            "only {residue} construct(s) enumerated:\n{ttl}"
+        );
+        for expected in [
+            "R `for` iteration order",
+            // math:unmappedConstruct's own skos:example names exactly these two.
+            "R call `message`",
+            "R call `warning`",
+            "R call `library`",
+            "R call `set.seed`",
+            "R call `cat`",
+        ] {
+            assert!(ttl.contains(expected), "residue is missing `{expected}`");
+        }
+        // …and the rung it qualifies is unchanged.
+        assert!(ttl.contains("LossyLens") && ttl.contains("Vague"));
+    }
+
+    #[test]
+    fn a_multi_statement_block_names_the_ordering_it_loses() {
+        let ttl = turtle("z <- log(wt)\nif (a) {\n  p(1)\n  q(2)\n}\n");
+        assert_eq!(
+            formulas_with_constructor(&ttl, "and").len(),
+            1,
+            "the block's statements are conjoined:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("R `{ }` statement sequencing"),
+            "and the ordering it loses is named:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn a_script_with_nothing_to_lose_enumerates_no_residue() {
+        // An exact-for-this-script lift emits no math:unmappedConstruct, which is itself the
+        // claim that nothing was lost — so the property is not a constant.
+        let ttl = turtle("fit <- lm(mpg ~ wt, data = mtcars)\n");
+        assert_eq!(count(&ttl, &math("unmappedConstruct")), 0, "{ttl}");
+    }
+
+    #[test]
+    fn an_r_language_constant_rides_as_a_named_individual_with_its_loss_named() {
+        let ttl = turtle("z <- log(wt)\nhandle <- ifelse(is.na(x), NULL, x)\n");
+        assert!(
+            ttl.contains("\"NULL\"") && ttl.contains("\"r-call:is.na\""),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("<{}>", logic("termIri"))),
+            "a 0-ary constant is an individual, not a nullary function term:\n{ttl}"
+        );
+        assert!(ttl.contains("zero-length-vector semantics"), "{ttl}");
+    }
+
+    #[test]
+    fn an_empty_subscript_argument_is_a_sequence_marker_rather_than_a_dropped_slot() {
+        let ttl = turtle("z <- log(wt)\ncolumn <- frame[, 2]\n");
+        assert!(
+            ttl.contains(&format!("<{}>", logic("termSequenceMarker"))),
+            "{ttl}"
+        );
+        assert!(ttl.contains("\"r-subscript\""), "{ttl}");
+        assert!(
+            ttl.contains("R empty argument"),
+            "the loss is named:\n{ttl}"
         );
     }
 

@@ -3,42 +3,63 @@
 
 //! The TSTP parse tier: derivation bytes → a typed [`Derivation`], no RDF.
 //!
-//! The grammar is the TSTP *solution* (derivation) fragment of TPTP:
+//! The grammar is the TSTP *solution* (derivation) fragment of TPTP, as a real prover
+//! writes it — E, Vampire, SPASS and Z3 all emit within it:
 //!
 //! ```text
 //! derivation      ::= annotated*
-//! annotated       ::= 'cnf' '(' name ',' role ',' clause [ ',' source ] ')' '.'
-//! clause          ::= [ '(' ] literal { '|' literal } [ ')' ]
-//! literal         ::= [ '~' ] term
+//! annotated       ::= dialect '(' name ',' role ',' body [ ',' source [ ',' useful-info ] ] ')' '.'
+//! dialect         ::= 'cnf' | 'fof'
+//! body(cnf)       ::= [ '(' ] literal { '|' literal } [ ')' ]
+//! body(fof)       ::= the full first-order formula grammar (see [`Formula`])
+//! literal         ::= [ '~' ] term [ ( '=' | '!=' ) term ]
 //! term            ::= UPPER_WORD | functor [ '(' term { ',' term } ')' ]
-//! source          ::= 'inference' '(' rule ',' status-list ',' parent-list ')'
+//! source          ::= inference-record | 'file' '(' … ')' | 'theory' '(' … ')'
+//!                   | 'introduced' '(' … ')' | 'creator' '(' … ')' | 'unknown' | name
+//! useful-info     ::= '[' general-term { ',' general-term } ']'
 //! ```
 //!
 //! A functor is a lower word, a `$`-word, an integer, or a **single-quoted atom** — which
 //! is how a full IRI rides through TPTP without being lossily shortened, and is exactly
 //! what our own reasoner emits (`'https://…/tptp#a'('https://…/reserved#witness-…')`).
 //!
-//! # Everything is read, or the parse fails
+//! # A conclusion is a clause OR a formula, never a coerced clause
 //!
-//! The proof bridge is the only one claiming
-//! [`Rung::section_retraction`](crate::frame::Rung::section_retraction), whose preservation
-//! polarity is `logic:ExactPreservation`. A lift may only claim that if the source
-//! genuinely recovers from the lift, so a construct this reader does not STRUCTURE cannot
-//! be skipped, annotated, or "carried as prose" — it must hard-fail. The refusals below are
-//! that rule applied, not a narrow parser:
+//! [`Conclusion`] is a sum, not a clause with a flag. A `cnf` step concludes a
+//! [`Clause`] — a flat disjunction of literals under an implicit universal closure — and a
+//! `fof` step concludes a [`Formula`], which may quantify, imply, and equate. Reading
+//! `! [X] : (p(X) => q(X))` as a clause would say the step concluded a disjunction of two
+//! literals, which is not what it concluded, so the two shapes stay apart all the way into
+//! the lift (a clause becomes a flat AST; a quantifier becomes a real binder).
 //!
-//! | construct | outcome | why not carried |
+//! # Roles are carried, never flattened
+//!
+//! All fifteen TPTP formula roles parse ([`Role`]). The role is EPISTEMIC — `axiom`,
+//! `negated_conjecture` and `plain` say different things about how the derivation holds
+//! its formula — so the reader keeps the raw word and the lift maps it onto the `math:`
+//! statement-role layer. Nothing is collapsed onto "axiom".
+//!
+//! # A source may point outside the derivation
+//!
+//! [`Source`] distinguishes the four provenance shapes TSTP actually uses: no source at
+//! all, an `inference(…)` record, an EXTERNAL reference (`file(…)`, `theory(…)`,
+//! `introduced(…)`, `creator(…)`, `unknown`), and a bare `<name>` DAG parent. An external
+//! reference names a premise imported from outside this document; the lift carries the
+//! reference itself rather than pretending the premise was derived here.
+//!
+//! # What still hard-fails
+//!
+//! | construct | outcome | why |
 //! |---|---|---|
-//! | `fof`/`tff`/`thf`/`tcf`/`include` | [`ProofUnliftable`] | a derivation step's conclusion is a clause; a general FOF formula is not one, and reading it as a clause would misstate it |
-//! | a role other than `axiom` / `plain` | [`ProofUnliftable`] | `negated_conjecture`, `lemma`, `conjecture`, … carry an epistemic status the `math:Axiom` range of `math:dependsOnAxiom` does not, and flattening them to "axiom" would assert the negated conjecture as a law |
-//! | `file(…)` / `theory(…)` / a bare-name source | [`ProofUnliftable`] | it names provenance OUTSIDE this document; the lift cannot ground it, and minting a node for an unresolvable reference is fabrication |
-//! | a `<useful_info>` 5th field | [`ProofUnliftable`] | dropping it silently is exactly the loss an `ExactPreservation` rung denies |
+//! | `tff`/`thf`/`tcf` | [`ProofUnliftable`] | a typed or higher-order body is not a first-order formula, and reading it as one would misstate the step's conclusion and its sorts |
+//! | `include` | [`ProofUnliftable`] | the included document is not here; a missing dependency is a hard fail, never a licence to lift a partial proof |
+//! | a `<sources>` LIST | [`ProofUnliftable`] | it declares several independent provenances for one formula, and picking one would drop the others |
 //! | a nested `inference(…)` in a parent list | [`ProofUnliftable`] | an inline parent derivation is a second, anonymous step identity this AST does not mint |
-//! | a derived step whose status list omits `status(thm)` | [`ProofUnliftable`] | the QED claim the lift emits rests on the declared thm-status of every step; without it there is no verdict to hold |
+//! | an unrecognised source functor | [`ProofUnliftable`] | a source form the TPTP grammar does not define is not provenance this reader may guess at |
 //!
 //! Malformed *syntax* — an unterminated quoted atom or block comment, a missing `.`, an
-//! unexpected token, a stray character, a duplicate formula name — is [`TstpParse`], always
-//! with a line and column.
+//! unexpected token, a stray character, a duplicate formula name, `&` mixed with `|` at
+//! one level — is [`TstpParse`], always with a line and column.
 //!
 //! # Well-foundedness is a parse-tier obligation
 //!
@@ -91,23 +112,33 @@ impl Term {
     }
 }
 
-/// One literal of a clause: an atom, optionally negated.
+/// One literal of a clause: a predicate atom or an equation, optionally negated.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Literal {
-    /// Whether the atom is under a `~`.
+    /// Whether the literal's polarity is negative.
     pub negated: bool,
-    /// The literal's atom.
+    /// The literal's atom — the predicate application, or an equation's LEFT term.
     pub atom: Term,
+    /// The right-hand term when the literal is an equation, `None` for a predicate atom.
+    ///
+    /// CNF equality is a first-class literal shape in TPTP (`f(X) = X`, `a != b`), not a
+    /// predicate named `=`, so it is held apart: a lift that read `=` as an ordinary
+    /// functor would put an equality symbol in argument position and lose the equation.
+    pub equated: Option<Term>,
 }
 
 impl Literal {
     /// The canonical TSTP surface of this literal.
+    ///
+    /// A negated equation renders in TPTP's infix `!=` form rather than as `~(l = r)`; the
+    /// two parse to the same literal, and rendering one of them keeps the surface canonical.
     #[must_use]
     pub fn render(&self) -> String {
-        if self.negated {
-            format!("~{}", self.atom.render())
-        } else {
-            self.atom.render()
+        match (&self.equated, self.negated) {
+            (Some(right), false) => format!("{} = {}", self.atom.render(), right.render()),
+            (Some(right), true) => format!("{} != {}", self.atom.render(), right.render()),
+            (None, false) => self.atom.render(),
+            (None, true) => format!("~{}", self.atom.render()),
         }
     }
 }
@@ -128,17 +159,273 @@ impl Clause {
     }
 }
 
-/// The formula role of a derivation step — the two this bridge reads.
-///
-/// Every other TPTP role is refused by name (see the module doc): a role carries epistemic
-/// status, and there is no non-lossy image for `negated_conjecture`, `lemma`, `conjecture`,
-/// or the finite-interpretation roles in the `math:` proof layer this bridge targets.
+/// A first-order quantifier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Quantifier {
+    /// `!` — universal.
+    ForAll,
+    /// `?` — existential.
+    Exists,
+}
+
+impl Quantifier {
+    /// The quantifier's TPTP surface token.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::ForAll => "!",
+            Self::Exists => "?",
+        }
+    }
+
+    /// A stable, word-shaped slug used to key the lift's operator identities.
+    #[must_use]
+    pub fn slug(self) -> &'static str {
+        match self {
+            Self::ForAll => "forall",
+            Self::Exists => "exists",
+        }
+    }
+
+    /// A human-readable name for the binder this quantifier introduces.
+    #[must_use]
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::ForAll => "universal quantification (!)",
+            Self::Exists => "existential quantification (?)",
+        }
+    }
+}
+
+/// A binary first-order connective.
+///
+/// Every TPTP binary connective is here: the two associative ones (`&`, `|`) and the six
+/// non-associative ones (`=>`, `<=`, `<=>`, `<~>`, `~|`, `~&`). None is rewritten into
+/// another — `A <~> B` is exclusive disjunction, not `~(A <=> B)` — because a derivation
+/// step that concluded one of them concluded THAT one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Connective {
+    /// `&` — conjunction.
+    And,
+    /// `|` — disjunction.
+    Or,
+    /// `=>` — material implication.
+    Imply,
+    /// `<=` — converse implication.
+    RevImply,
+    /// `<=>` — equivalence.
+    Iff,
+    /// `<~>` — exclusive disjunction.
+    Xor,
+    /// `~|` — joint denial (NOR).
+    Nor,
+    /// `~&` — alternative denial (NAND).
+    Nand,
+}
+
+impl Connective {
+    /// The connective's TPTP surface token.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::And => "&",
+            Self::Or => "|",
+            Self::Imply => "=>",
+            Self::RevImply => "<=",
+            Self::Iff => "<=>",
+            Self::Xor => "<~>",
+            Self::Nor => "~|",
+            Self::Nand => "~&",
+        }
+    }
+
+    /// A stable, word-shaped slug used to key the lift's operator identities.
+    #[must_use]
+    pub fn slug(self) -> &'static str {
+        match self {
+            Self::And => "and",
+            Self::Or => "or",
+            Self::Imply => "imply",
+            Self::RevImply => "rev-imply",
+            Self::Iff => "iff",
+            Self::Xor => "xor",
+            Self::Nor => "nor",
+            Self::Nand => "nand",
+        }
+    }
+
+    /// A human-readable name for the operation this connective applies.
+    #[must_use]
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::And => "logical conjunction (&)",
+            Self::Or => "logical disjunction (|)",
+            Self::Imply => "material implication (=>)",
+            Self::RevImply => "converse implication (<=)",
+            Self::Iff => "logical equivalence (<=>)",
+            Self::Xor => "exclusive disjunction (<~>)",
+            Self::Nor => "joint denial (~|)",
+            Self::Nand => "alternative denial (~&)",
+        }
+    }
+}
+
+/// A general first-order formula — the body of a `fof` annotated formula.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Formula {
+    /// A predicate application or a defined atom (`$true`, `$false`).
+    Atom(Term),
+    /// An equation `s = t`, or a disequation `s != t` when `negated`.
+    Equation {
+        /// Whether the source wrote `!=` rather than `=`.
+        negated: bool,
+        /// The left-hand term.
+        left: Term,
+        /// The right-hand term.
+        right: Term,
+    },
+    /// `~F`.
+    Not(Box<Formula>),
+    /// A binary connective applied to two formulas.
+    Binary {
+        /// The connective.
+        connective: Connective,
+        /// The left operand.
+        left: Box<Formula>,
+        /// The right operand.
+        right: Box<Formula>,
+    },
+    /// A quantifier binding a non-empty variable list over a body.
+    Quantified {
+        /// The quantifier.
+        quantifier: Quantifier,
+        /// The bound variable names, in source order. Never empty.
+        variables: Vec<String>,
+        /// The quantifier's body.
+        body: Box<Formula>,
+    },
+}
+
+impl Formula {
+    /// The canonical TSTP surface of this formula.
+    ///
+    /// Every binary node is parenthesized, so the surface re-parses to an equal AST
+    /// without depending on precedence or on TPTP's ban on mixing `&` with `|`. That
+    /// fidelity is what lets the lift carry the rendered conclusion as the fact a
+    /// reconstruction reads back.
+    #[must_use]
+    pub fn render(&self) -> String {
+        match self {
+            Self::Atom(term) => term.render(),
+            Self::Equation {
+                negated,
+                left,
+                right,
+            } => format!(
+                "{} {} {}",
+                left.render(),
+                if *negated { "!=" } else { "=" },
+                right.render()
+            ),
+            Self::Not(inner) => format!("~{}", inner.render()),
+            Self::Binary {
+                connective,
+                left,
+                right,
+            } => format!(
+                "({} {} {})",
+                left.render(),
+                connective.as_str(),
+                right.render()
+            ),
+            Self::Quantified {
+                quantifier,
+                variables,
+                body,
+            } => format!(
+                "{} [{}] : {}",
+                quantifier.as_str(),
+                variables.join(", "),
+                body.render()
+            ),
+        }
+    }
+}
+
+/// What a derivation step concludes.
+///
+/// A sum rather than one coerced shape: a `cnf` step concludes a flat disjunction of
+/// literals whose universal closure is implicit, and a `fof` step concludes a formula that
+/// may carry its own binders and connectives. Which of the two it is also fixes the
+/// dialect keyword the step renders under.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Conclusion {
+    /// A CNF clause, from a `cnf(…)` annotated formula.
+    Clause(Clause),
+    /// A general first-order formula, from a `fof(…)` annotated formula.
+    Formula(Formula),
+}
+
+impl Conclusion {
+    /// The canonical TSTP surface of the conclusion.
+    #[must_use]
+    pub fn render(&self) -> String {
+        match self {
+            Self::Clause(clause) => clause.render(),
+            Self::Formula(formula) => formula.render(),
+        }
+    }
+
+    /// The TPTP dialect keyword an annotated formula with this conclusion is written under.
+    #[must_use]
+    pub fn dialect(&self) -> &'static str {
+        match self {
+            Self::Clause(_) => "cnf",
+            Self::Formula(_) => "fof",
+        }
+    }
+}
+
+/// The formula role of a derivation step — the full TPTP set.
+///
+/// A role is EPISTEMIC: it says how the derivation holds the formula, not what the formula
+/// says. All fifteen are read and kept as themselves; the lift maps each onto the `math:`
+/// statement-role layer and carries the raw word alongside, because several TPTP roles
+/// share one `math:StatementRole` value and flattening them would lose the distinction the
+/// prover drew.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Role {
-    /// `axiom` — an asserted leaf of the derivation.
+    /// `axiom` — a stated law of the problem's theory.
     Axiom,
-    /// `plain` — a derived step, justified by an `inference(…)` record.
+    /// `hypothesis` — a problem-specific assertion taken as given.
+    Hypothesis,
+    /// `definition` — a stipulation introducing a symbol.
+    Definition,
+    /// `assumption` — an assertion taken for the derivation, to be discharged.
+    Assumption,
+    /// `lemma` — an auxiliary result proved en route.
+    Lemma,
+    /// `theorem` — a proved consequence of the axioms.
+    Theorem,
+    /// `corollary` — a result following readily from a theorem.
+    Corollary,
+    /// `conjecture` — the goal, held under test.
+    Conjecture,
+    /// `negated_conjecture` — the goal's negation, asserted so that deriving a
+    /// contradiction from it refutes it and thereby establishes the conjecture.
+    NegatedConjecture,
+    /// `plain` — a formula with no declared user semantics; a prover's working step.
     Plain,
+    /// `type` — a symbol's type declaration.
+    Type,
+    /// `fi_domain` — a finite-interpretation formula fixing the model's domain.
+    FiDomain,
+    /// `fi_functors` — a finite-interpretation formula fixing the model's functions.
+    FiFunctors,
+    /// `fi_predicates` — a finite-interpretation formula fixing the model's predicates.
+    FiPredicates,
+    /// `unknown` — the source declares no role.
+    Unknown,
 }
 
 impl Role {
@@ -147,9 +434,91 @@ impl Role {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Axiom => "axiom",
+            Self::Hypothesis => "hypothesis",
+            Self::Definition => "definition",
+            Self::Assumption => "assumption",
+            Self::Lemma => "lemma",
+            Self::Theorem => "theorem",
+            Self::Corollary => "corollary",
+            Self::Conjecture => "conjecture",
+            Self::NegatedConjecture => "negated_conjecture",
             Self::Plain => "plain",
+            Self::Type => "type",
+            Self::FiDomain => "fi_domain",
+            Self::FiFunctors => "fi_functors",
+            Self::FiPredicates => "fi_predicates",
+            Self::Unknown => "unknown",
         }
     }
+
+    /// The role named by a TPTP word, or `None` when the word is not a TPTP role.
+    #[must_use]
+    pub fn from_word(word: &str) -> Option<Self> {
+        Some(match word {
+            "axiom" => Self::Axiom,
+            "hypothesis" => Self::Hypothesis,
+            "definition" => Self::Definition,
+            "assumption" => Self::Assumption,
+            "lemma" => Self::Lemma,
+            "theorem" => Self::Theorem,
+            "corollary" => Self::Corollary,
+            "conjecture" => Self::Conjecture,
+            "negated_conjecture" => Self::NegatedConjecture,
+            "plain" => Self::Plain,
+            "type" => Self::Type,
+            "fi_domain" => Self::FiDomain,
+            "fi_functors" => Self::FiFunctors,
+            "fi_predicates" => Self::FiPredicates,
+            "unknown" => Self::Unknown,
+            _ => return None,
+        })
+    }
+
+    /// Whether the role holds its formula as a FOUNDATION of the theory — a law the
+    /// derivation rests on rather than a claim it is testing or a step it derived.
+    ///
+    /// Only these three become a `math:Axiom` in the lift. `negated_conjecture` in
+    /// particular is deliberately excluded: it is asserted so that refuting it establishes
+    /// the conjecture, and typing it as a law would state the opposite of what the
+    /// derivation claims.
+    #[must_use]
+    pub fn is_foundational(self) -> bool {
+        matches!(self, Self::Axiom | Self::Hypothesis | Self::Assumption)
+    }
+}
+
+/// An external provenance form: the source names a premise from OUTSIDE the derivation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExternalSource {
+    /// The source functor — `file`, `theory`, `introduced`, `creator`, or `unknown`.
+    pub functor: String,
+    /// The source's exact rendered TSTP surface, e.g. `file('SET001-1.p', ax7)`.
+    ///
+    /// The reference is carried VERBATIM rather than decomposed: `file`, `theory`,
+    /// `introduced` and `creator` each take their own argument shapes, and a lift that
+    /// reduced them to one normalized pair would be inventing a common structure the
+    /// grammar does not have.
+    pub rendered: String,
+}
+
+/// How a step's `<source>` field justifies it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Source {
+    /// No `<source>` field at all: the formula is asserted with no stated provenance.
+    Asserted,
+    /// An `inference(rule, [status…], [parent…])` record.
+    Inference {
+        /// The inference rule's unquoted name.
+        rule: String,
+        /// The rendered status terms, in source order — e.g. `["status(thm)"]`.
+        status: Vec<String>,
+    },
+    /// An external reference: `file(…)`, `theory(…)`, `introduced(…)`, `creator(…)`, or
+    /// the bare word `unknown`.
+    External(ExternalSource),
+    /// A bare `<name>` DAG source: the formula comes from the named formula with no
+    /// declared rule (a rename, a copy, or a re-statement).
+    Parent,
 }
 
 /// One annotated formula of a derivation.
@@ -159,47 +528,101 @@ pub struct Step {
     pub name: String,
     /// The step's role.
     pub role: Role,
-    /// The clause the step concludes.
-    pub conclusion: Clause,
-    /// The inference rule that justifies the step, or `None` for an asserted leaf.
+    /// What the step concludes.
+    pub conclusion: Conclusion,
+    /// How the step is justified.
+    pub source: Source,
+    /// The parent step names the source cites, in source order.
     ///
-    /// `Some` exactly when [`Step::role`] is [`Role::Plain`]: an unjustified `plain` step
-    /// claims derivedness with no warrant, and an `axiom` carrying an `inference(…)` claims
-    /// to be both asserted and derived. Both are refused by [`parse`].
-    pub rule: Option<String>,
-    /// The parent step names cited by the step's `inference(…)`, in source order. Empty for
-    /// an asserted leaf.
+    /// Non-empty only for [`Source::Inference`] (its parent list) and [`Source::Parent`]
+    /// (the single named formula). Held as a field rather than inside [`Source`] because
+    /// the well-foundedness checks and the dependency walk read it uniformly.
     pub parents: Vec<String>,
-    /// The rendered status terms of the step's `inference(…)`, in source order — e.g.
-    /// `["status(thm)"]`. Empty for an asserted leaf.
-    pub status: Vec<String>,
+    /// The rendered terms of the `<useful_info>` 5th field, in source order. Empty when
+    /// the field is absent.
+    pub useful_info: Vec<String>,
 }
 
 impl Step {
-    /// Whether this step is justified by an inference rather than asserted.
+    /// Whether this step is justified by something INSIDE the derivation.
+    ///
+    /// True for an `inference(…)` record and for a bare `<name>` DAG source. An asserted
+    /// formula and one whose source points outside the document are both leaves: nothing
+    /// in this derivation derived them.
     #[must_use]
     pub fn is_derived(&self) -> bool {
-        self.rule.is_some()
+        matches!(self.source, Source::Inference { .. } | Source::Parent)
+    }
+
+    /// The inference rule that licenses the step, or `None` when it declares none.
+    ///
+    /// A bare `<name>` DAG source is derived but names no rule, and so is `None` here: the
+    /// source states a parent, not a calculus step, and inventing a rule name for it would
+    /// put a token in the graph the derivation never wrote.
+    #[must_use]
+    pub fn rule(&self) -> Option<&str> {
+        match &self.source {
+            Source::Inference { rule, .. } => Some(rule),
+            _ => None,
+        }
+    }
+
+    /// The rendered status terms of the step's `inference(…)`, or an empty slice.
+    #[must_use]
+    pub fn status(&self) -> &[String] {
+        match &self.source {
+            Source::Inference { status, .. } => status,
+            _ => &[],
+        }
+    }
+
+    /// Whether the step's inference declares the SZS theorem status.
+    ///
+    /// The whole-derivation verification claim rests on this: a step declaring `esa`
+    /// (equisatisfiable) or `cth` (counter-theorem) has not been asserted to preserve
+    /// theoremhood, so a checker may not report the derivation as accepted on its account.
+    #[must_use]
+    pub fn declares_thm_status(&self) -> bool {
+        self.status().iter().any(|s| s == "status(thm)")
     }
 
     /// The step's canonical TSTP surface, one full annotated formula.
     #[must_use]
     pub fn render(&self) -> String {
-        let name = render_atom(&self.name);
-        let conclusion = self.conclusion.render();
-        match &self.rule {
-            None => format!("cnf({name}, {}, {conclusion}).", self.role.as_str()),
-            Some(rule) => {
+        let mut out = format!(
+            "{}({}, {}, {}",
+            self.conclusion.dialect(),
+            render_atom(&self.name),
+            self.role.as_str(),
+            self.conclusion.render()
+        );
+        match &self.source {
+            Source::Asserted => {}
+            Source::Inference { rule, status } => {
                 let parents: Vec<String> = self.parents.iter().map(|p| render_atom(p)).collect();
-                format!(
-                    "cnf({name}, {}, {conclusion}, inference({}, [{}], [{}])).",
-                    self.role.as_str(),
+                out.push_str(&format!(
+                    ", inference({}, [{}], [{}])",
                     render_atom(rule),
-                    self.status.join(", "),
+                    status.join(", "),
                     parents.join(", ")
-                )
+                ));
+            }
+            Source::External(external) => {
+                out.push_str(&format!(", {}", external.rendered));
+            }
+            Source::Parent => {
+                let parent = self
+                    .parents
+                    .first()
+                    .map_or(String::new(), |p| render_atom(p));
+                out.push_str(&format!(", {parent}"));
             }
         }
+        if !self.useful_info.is_empty() {
+            out.push_str(&format!(", [{}]", self.useful_info.join(", ")));
+        }
+        out.push_str(").");
+        out
     }
 }
 
@@ -365,9 +788,9 @@ fn seal(steps: Vec<Step>) -> gmeow_errors::Result<Derivation> {
 
     if !steps.iter().any(Step::is_derived) {
         return Err(unliftable(
-            "the derivation contains no derived step: every formula is an asserted leaf, so \
-             there is no inference to lift into the math: proof layer and no proof to hold a \
-             math:FormalVerificationResult about"
+            "the derivation contains no derived step: every formula is a leaf the document \
+             asserts or imports, so there is no inference to lift into the math: proof layer \
+             and no proof to hold a math:FormalVerificationResult about"
                 .to_owned(),
         ));
     }
@@ -512,8 +935,20 @@ enum Tok {
     RBracket,
     Comma,
     Dot,
+    Colon,
     Tilde,
     Pipe,
+    Amp,
+    Bang,
+    Query,
+    Eq,
+    NotEq,
+    Arrow,
+    RevArrow,
+    Iff,
+    Xor,
+    Nor,
+    Nand,
     /// A lower word or a `$`-word.
     Lower(String),
     /// A single-quoted atom, unescaped.
@@ -524,30 +959,58 @@ enum Tok {
     Number(String),
     /// Any other character.
     ///
-    /// Lexing is TOTAL so that an out-of-fragment dialect body (a `tff` type's `$i > $o`,
-    /// an `fof`'s `=>`) survives to the dialect keyword the parser refuses BY NAME. A
-    /// lexer that stopped at the first `:` would report a stray character where the real
-    /// answer is "this bridge reads `cnf` derivation steps".
+    /// Lexing is TOTAL so that an out-of-fragment dialect body (a `tff` type's `$i > $o`)
+    /// survives to the dialect keyword the parser refuses BY NAME. A lexer that stopped at
+    /// the first `>` would report a stray character where the real answer is "this bridge
+    /// reads `cnf` and `fof` derivation steps".
     Other(char),
 }
 
 impl Tok {
     /// How the token reads back in a diagnostic.
     fn describe(&self) -> String {
-        match self {
-            Self::LParen => "`(`".to_owned(),
-            Self::RParen => "`)`".to_owned(),
-            Self::LBracket => "`[`".to_owned(),
-            Self::RBracket => "`]`".to_owned(),
-            Self::Comma => "`,`".to_owned(),
-            Self::Dot => "`.`".to_owned(),
-            Self::Tilde => "`~`".to_owned(),
-            Self::Pipe => "`|`".to_owned(),
-            Self::Lower(w) | Self::Number(w) => format!("`{w}`"),
-            Self::Quoted(w) => format!("the quoted atom `{w}`"),
-            Self::Upper(w) => format!("the variable `{w}`"),
-            Self::Other(c) => format!("`{c}`"),
-        }
+        let punct = match self {
+            Self::LParen => "(",
+            Self::RParen => ")",
+            Self::LBracket => "[",
+            Self::RBracket => "]",
+            Self::Comma => ",",
+            Self::Dot => ".",
+            Self::Colon => ":",
+            Self::Tilde => "~",
+            Self::Pipe => "|",
+            Self::Amp => "&",
+            Self::Bang => "!",
+            Self::Query => "?",
+            Self::Eq => "=",
+            Self::NotEq => "!=",
+            Self::Arrow => "=>",
+            Self::RevArrow => "<=",
+            Self::Iff => "<=>",
+            Self::Xor => "<~>",
+            Self::Nor => "~|",
+            Self::Nand => "~&",
+            Self::Lower(w) | Self::Number(w) => return format!("`{w}`"),
+            Self::Quoted(w) => return format!("the quoted atom `{w}`"),
+            Self::Upper(w) => return format!("the variable `{w}`"),
+            Self::Other(c) => return format!("`{c}`"),
+        };
+        format!("`{punct}`")
+    }
+
+    /// The binary connective this token spells, if it spells one.
+    fn connective(&self) -> Option<Connective> {
+        Some(match self {
+            Self::Amp => Connective::And,
+            Self::Pipe => Connective::Or,
+            Self::Arrow => Connective::Imply,
+            Self::RevArrow => Connective::RevImply,
+            Self::Iff => Connective::Iff,
+            Self::Xor => Connective::Xor,
+            Self::Nor => Connective::Nor,
+            Self::Nand => Connective::Nand,
+            _ => return None,
+        })
     }
 }
 
@@ -639,19 +1102,45 @@ fn lex(src: &str) -> gmeow_errors::Result<Vec<Token>> {
         }
 
         let (start_line, start_col) = (line, col);
-        let punct = match c {
-            '(' => Some(Tok::LParen),
-            ')' => Some(Tok::RParen),
-            '[' => Some(Tok::LBracket),
-            ']' => Some(Tok::RBracket),
-            ',' => Some(Tok::Comma),
-            '.' => Some(Tok::Dot),
-            '~' => Some(Tok::Tilde),
-            '|' => Some(Tok::Pipe),
+        let next = |offset: usize| chars.get(i + offset).copied();
+
+        // Multi-character operators first: `<=>` must not lex as `<` then `=>`.
+        let operator: Option<(Tok, usize)> = match c {
+            '(' => Some((Tok::LParen, 1)),
+            ')' => Some((Tok::RParen, 1)),
+            '[' => Some((Tok::LBracket, 1)),
+            ']' => Some((Tok::RBracket, 1)),
+            ',' => Some((Tok::Comma, 1)),
+            '.' => Some((Tok::Dot, 1)),
+            ':' => Some((Tok::Colon, 1)),
+            '&' => Some((Tok::Amp, 1)),
+            '?' => Some((Tok::Query, 1)),
+            '|' => Some((Tok::Pipe, 1)),
+            '~' => match next(1) {
+                Some('|') => Some((Tok::Nor, 2)),
+                Some('&') => Some((Tok::Nand, 2)),
+                _ => Some((Tok::Tilde, 1)),
+            },
+            '!' => match next(1) {
+                Some('=') => Some((Tok::NotEq, 2)),
+                _ => Some((Tok::Bang, 1)),
+            },
+            '=' => match next(1) {
+                Some('>') => Some((Tok::Arrow, 2)),
+                _ => Some((Tok::Eq, 1)),
+            },
+            '<' => match (next(1), next(2)) {
+                (Some('='), Some('>')) => Some((Tok::Iff, 3)),
+                (Some('~'), Some('>')) => Some((Tok::Xor, 3)),
+                (Some('='), _) => Some((Tok::RevArrow, 2)),
+                _ => None,
+            },
             _ => None,
         };
-        if let Some(tok) = punct {
-            step!();
+        if let Some((tok, width)) = operator {
+            for _ in 0..width {
+                step!();
+            }
             out.push(Token {
                 tok,
                 line: start_line,
@@ -854,7 +1343,8 @@ impl Parser<'_> {
         }
     }
 
-    /// `cnf(name, role, clause[, source]).`
+    /// `cnf(name, role, clause[, source[, useful-info]]).`
+    /// `fof(name, role, formula[, source[, useful-info]]).`
     fn annotated_formula(&mut self) -> gmeow_errors::Result<Step> {
         let (keyword, line, col) = {
             let token = self.bump()?;
@@ -865,20 +1355,22 @@ impl Parser<'_> {
                         token.line,
                         token.col,
                         &format!(
-                            "expected a `cnf(…)` annotated formula, found {}",
+                            "expected a `cnf(…)` or `fof(…)` annotated formula, found {}",
                             other.describe()
                         ),
                     ));
                 }
             }
         };
-        match keyword.as_str() {
-            "cnf" => {}
-            "fof" | "tff" | "thf" | "tcf" => {
+        let first_order = match keyword.as_str() {
+            "cnf" => false,
+            "fof" => true,
+            "tff" | "thf" | "tcf" => {
                 return Err(unliftable(format!(
-                    "line {line}, column {col}: the derivation uses the TPTP dialect `{keyword}`; \
-                     a derivation step's conclusion is a CNF clause, and reading a general \
-                     `{keyword}` formula as one would misstate what the step concludes"
+                    "line {line}, column {col}: the derivation uses the TYPED TPTP dialect \
+                     `{keyword}`; its body carries sorts and, for `thf`, higher-order terms that \
+                     the untyped first-order AST this bridge builds cannot hold, and reading it \
+                     as an untyped formula would drop the typing the step depends on"
                 )));
             }
             "include" => {
@@ -892,66 +1384,56 @@ impl Parser<'_> {
                 return Err(syntax(
                     line,
                     col,
-                    &format!("expected `cnf`, found `{other}`"),
+                    &format!("expected `cnf` or `fof`, found `{other}`"),
                 ));
             }
-        }
+        };
 
         self.expect(&Tok::LParen)?;
         let name = self.atomic_word("a formula name")?;
         self.expect(&Tok::Comma)?;
         let role = self.role()?;
         self.expect(&Tok::Comma)?;
-        let conclusion = self.clause()?;
+        let conclusion = if first_order {
+            Conclusion::Formula(self.formula()?)
+        } else {
+            Conclusion::Clause(self.clause()?)
+        };
 
-        let mut rule = None;
+        let mut source = Source::Asserted;
         let mut parents = Vec::new();
-        let mut status = Vec::new();
+        let mut useful_info = Vec::new();
         if matches!(self.peek(), Some(Tok::Comma)) {
             self.bump()?;
             let (source_line, source_col) = self.here();
-            let source = self.annotation()?;
-            let (r, s, p) = recognize_inference(source, source_line, source_col)?;
-            rule = Some(r);
-            status = s;
+            let annotation = self.annotation()?;
+            let (s, p) = recognize_source(annotation, source_line, source_col)?;
+            source = s;
             parents = p;
             if matches!(self.peek(), Some(Tok::Comma)) {
-                let (line, col) = self.here();
-                return Err(unliftable(format!(
-                    "line {line}, column {col}: step `{name}` carries a <useful_info> 5th field; \
-                     this bridge structures the derivation itself, and silently dropping a field \
-                     the source states is exactly the loss its logic:ExactPreservation rung denies"
-                )));
+                self.bump()?;
+                let (info_line, info_col) = self.here();
+                let info = self.annotation()?;
+                let Annotation::List(items) = info else {
+                    return Err(syntax(
+                        info_line,
+                        info_col,
+                        "a <useful_info> 5th field is a bracketed general list",
+                    ));
+                };
+                useful_info = items.iter().map(Annotation::render).collect();
             }
         }
         self.expect(&Tok::RParen)?;
         self.expect(&Tok::Dot)?;
 
-        match (role, &rule) {
-            (Role::Plain, Some(_)) | (Role::Axiom, None) => {}
-            (Role::Plain, None) => {
-                return Err(unliftable(format!(
-                    "line {line}, column {col}: step `{name}` has the derived role `plain` but no \
-                     `inference(…)` record; a step claiming derivedness with no warrant is not a \
-                     proof step, and asserting it as an axiom would turn an inference into a law"
-                )));
-            }
-            (Role::Axiom, Some(_)) => {
-                return Err(unliftable(format!(
-                    "line {line}, column {col}: step `{name}` has the asserted role `axiom` but \
-                     carries an `inference(…)` record; a formula cannot be both an asserted leaf \
-                     and a derived step, and this bridge will not pick one of the two readings"
-                )));
-            }
-        }
-
         Ok(Step {
             name,
             role,
             conclusion,
-            rule,
+            source,
             parents,
-            status,
+            useful_info,
         })
     }
 
@@ -965,24 +1447,11 @@ impl Parser<'_> {
                 &format!("expected a formula role, found {}", token.tok.describe()),
             ));
         };
-        match word.as_str() {
-            "axiom" => Ok(Role::Axiom),
-            "plain" => Ok(Role::Plain),
-            "hypothesis" | "definition" | "assumption" | "lemma" | "theorem" | "corollary"
-            | "conjecture" | "negated_conjecture" | "type" | "fi_domain" | "fi_functors"
-            | "fi_predicates" | "unknown" => Err(unliftable(format!(
-                "line {line}, column {col}: the formula role `{word}` carries an epistemic status \
-                 the math: proof layer does not flatten: this bridge reads asserted leaves \
-                 (`axiom`) and derived steps (`plain`), and lifting a `{word}` as either would \
-                 state something the derivation never claimed"
-            ))),
-            other => Err(syntax(
-                line,
-                col,
-                &format!("`{other}` is not a TPTP formula role"),
-            )),
-        }
+        Role::from_word(word)
+            .ok_or_else(|| syntax(line, col, &format!("`{word}` is not a TPTP formula role")))
     }
+
+    // -- the CNF body ---------------------------------------------------------
 
     /// `[ '(' ] literal { '|' literal } [ ')' ]`
     fn clause(&mut self) -> gmeow_errors::Result<Clause> {
@@ -1002,15 +1471,166 @@ impl Parser<'_> {
     }
 
     fn literal(&mut self) -> gmeow_errors::Result<Literal> {
-        let negated = matches!(self.peek(), Some(Tok::Tilde));
+        let mut negated = matches!(self.peek(), Some(Tok::Tilde));
         if negated {
             self.bump()?;
         }
+        let atom = self.term()?;
+        let equated = match self.peek() {
+            Some(Tok::Eq) => {
+                self.bump()?;
+                Some(self.term()?)
+            }
+            Some(Tok::NotEq) => {
+                self.bump()?;
+                negated = true;
+                Some(self.term()?)
+            }
+            _ => None,
+        };
         Ok(Literal {
             negated,
-            atom: self.term()?,
+            atom,
+            equated,
         })
     }
+
+    // -- the FOF body ---------------------------------------------------------
+
+    /// A full first-order formula.
+    ///
+    /// `&` and `|` chain left-associatively; the six non-associative connectives take
+    /// exactly two unitary operands. Mixing `&` with `|` at one level without parentheses
+    /// is a SYNTAX error, exactly as the TPTP grammar says — silently choosing a precedence
+    /// would make this reader accept a document whose meaning it invented.
+    fn formula(&mut self) -> gmeow_errors::Result<Formula> {
+        let mut left = self.unitary_formula()?;
+        let Some(connective) = self.peek().and_then(Tok::connective) else {
+            return Ok(left);
+        };
+        if matches!(connective, Connective::And | Connective::Or) {
+            let token = if connective == Connective::And {
+                Tok::Amp
+            } else {
+                Tok::Pipe
+            };
+            while matches!(self.peek(), Some(t) if *t == token) {
+                self.bump()?;
+                let right = self.unitary_formula()?;
+                left = Formula::Binary {
+                    connective,
+                    left: Box::new(left),
+                    right: Box::new(right),
+                };
+            }
+            if let Some(next) = self.peek().and_then(Tok::connective) {
+                let (line, col) = self.here();
+                return Err(syntax(
+                    line,
+                    col,
+                    &format!(
+                        "`{}` may not follow a `{}` chain without parentheses; TPTP's associative \
+                         connectives do not mix, and choosing a precedence here would invent a \
+                         reading the source did not write",
+                        next.as_str(),
+                        connective.as_str()
+                    ),
+                ));
+            }
+            return Ok(left);
+        }
+        self.bump()?;
+        let right = self.unitary_formula()?;
+        if let Some(next) = self.peek().and_then(Tok::connective) {
+            let (line, col) = self.here();
+            return Err(syntax(
+                line,
+                col,
+                &format!(
+                    "the non-associative connective `{}` takes exactly two unitary operands, so \
+                     the trailing `{}` needs parentheses",
+                    connective.as_str(),
+                    next.as_str()
+                ),
+            ));
+        }
+        Ok(Formula::Binary {
+            connective,
+            left: Box::new(left),
+            right: Box::new(right),
+        })
+    }
+
+    /// A unitary formula: a quantification, a negation, a parenthesized formula, or an atom.
+    fn unitary_formula(&mut self) -> gmeow_errors::Result<Formula> {
+        match self.peek() {
+            Some(Tok::LParen) => {
+                self.bump()?;
+                let inner = self.formula()?;
+                self.expect(&Tok::RParen)?;
+                Ok(inner)
+            }
+            Some(Tok::Bang) => self.quantified(Quantifier::ForAll),
+            Some(Tok::Query) => self.quantified(Quantifier::Exists),
+            Some(Tok::Tilde) => {
+                self.bump()?;
+                Ok(Formula::Not(Box::new(self.unitary_formula()?)))
+            }
+            _ => self.atomic_formula(),
+        }
+    }
+
+    /// `('!' | '?') '[' variable { ',' variable } ']' ':' unitary-formula`
+    fn quantified(&mut self, quantifier: Quantifier) -> gmeow_errors::Result<Formula> {
+        self.bump()?;
+        self.expect(&Tok::LBracket)?;
+        let mut variables = vec![self.variable_name()?];
+        while matches!(self.peek(), Some(Tok::Comma)) {
+            self.bump()?;
+            variables.push(self.variable_name()?);
+        }
+        self.expect(&Tok::RBracket)?;
+        self.expect(&Tok::Colon)?;
+        Ok(Formula::Quantified {
+            quantifier,
+            variables,
+            body: Box::new(self.unitary_formula()?),
+        })
+    }
+
+    fn variable_name(&mut self) -> gmeow_errors::Result<String> {
+        let token = self.bump()?;
+        match &token.tok {
+            Tok::Upper(name) => Ok(name.clone()),
+            other => Err(syntax(
+                token.line,
+                token.col,
+                &format!(
+                    "expected a quantified variable (`[A-Z]…`), found {}",
+                    other.describe()
+                ),
+            )),
+        }
+    }
+
+    /// A predicate application, a defined atom, or an (in)equation.
+    fn atomic_formula(&mut self) -> gmeow_errors::Result<Formula> {
+        let left = self.term()?;
+        let negated = match self.peek() {
+            Some(Tok::Eq) => false,
+            Some(Tok::NotEq) => true,
+            _ => return Ok(Formula::Atom(left)),
+        };
+        self.bump()?;
+        let right = self.term()?;
+        Ok(Formula::Equation {
+            negated,
+            left,
+            right,
+        })
+    }
+
+    // -- terms and annotations ------------------------------------------------
 
     fn term(&mut self) -> gmeow_errors::Result<Term> {
         let token = self.bump()?;
@@ -1084,34 +1704,72 @@ impl Parser<'_> {
     }
 }
 
-/// Recognize a `<source>` annotation as the one form this bridge structures.
-fn recognize_inference(
+/// The TPTP `<source>` functors this reader recognises as an EXTERNAL reference.
+///
+/// `file`/`theory`/`creator` are the `<external_source>` forms and `introduced` is the
+/// `<internal_source>` form; all four name a premise the derivation did not derive, so the
+/// lift carries the reference itself and never mints a fictitious inference for it.
+const EXTERNAL_SOURCE_FUNCTORS: &[&str] = &["file", "theory", "introduced", "creator"];
+
+/// Recognize a `<source>` annotation as one of the four shapes TSTP actually writes.
+fn recognize_source(
     source: Annotation,
     line: u32,
     col: u32,
-) -> gmeow_errors::Result<(String, Vec<String>, Vec<String>)> {
-    let Annotation::Func(functor, args) = source else {
-        return Err(unliftable(format!(
-            "line {line}, column {col}: the step's source is not an `inference(…)` record; a \
-                 bare name or a list names provenance outside this document, which the lift \
-                 cannot ground and will not invent a node for"
-        )));
-    };
-    if functor != "inference" {
-        return Err(unliftable(format!(
-            "line {line}, column {col}: the step's source is `{functor}(…)`; this bridge \
-                 structures the derivation's own `inference(…)` edges, and a source pointing \
-                 outside the document (a file, a background theory, an introduced definition) \
-                 names a premise the lift has no node for"
-        )));
+) -> gmeow_errors::Result<(Source, Vec<String>)> {
+    match source {
+        // `<source> ::= unknown` — the document declares that it does not know. That is a
+        // stated absence, not a parent name, so it never becomes a dangling citation.
+        Annotation::Name(name) if name == "unknown" => Ok((
+            Source::External(ExternalSource {
+                functor: "unknown".to_owned(),
+                rendered: "unknown".to_owned(),
+            }),
+            Vec::new(),
+        )),
+        // `<dag_source> ::= <name>` — the formula comes from the named formula.
+        Annotation::Name(name) => Ok((Source::Parent, vec![name])),
+        Annotation::List(items) => Err(unliftable(format!(
+            "line {line}, column {col}: the step's source is a <sources> LIST of {} entries; it \
+             declares several independent provenances for one formula, and this bridge will \
+             neither pick one (dropping the rest) nor mint a step identity for each",
+            items.len()
+        ))),
+        Annotation::Func(functor, args) => {
+            if functor == "inference" {
+                return recognize_inference(&functor, args, line, col);
+            }
+            if EXTERNAL_SOURCE_FUNCTORS.contains(&functor.as_str()) {
+                let rendered = Annotation::Func(functor.clone(), args).render();
+                return Ok((
+                    Source::External(ExternalSource { functor, rendered }),
+                    Vec::new(),
+                ));
+            }
+            Err(unliftable(format!(
+                "line {line}, column {col}: `{functor}(…)` is not a TPTP <source> form; this \
+                 reader structures `inference`, `file`, `theory`, `introduced`, `creator`, \
+                 `unknown`, and a bare parent name, and it will not guess at the shape of a \
+                 provenance record the grammar does not define"
+            )))
+        }
     }
+}
+
+/// Recognize an `inference(rule, status-list, parent-list)` record.
+fn recognize_inference(
+    functor: &str,
+    args: Vec<Annotation>,
+    line: u32,
+    col: u32,
+) -> gmeow_errors::Result<(Source, Vec<String>)> {
     let [rule, status, parents] = <[Annotation; 3]>::try_from(args).map_err(|a| {
         syntax(
             line,
             col,
             &format!(
-                "inference(…) takes exactly (rule, status-list, parent-list); found {} \
-                     argument(s)",
+                "{functor}(…) takes exactly (rule, status-list, parent-list); found {} \
+                 argument(s)",
                 a.len()
             ),
         )
@@ -1139,31 +1797,21 @@ fn recognize_inference(
     };
 
     let status: Vec<String> = status.iter().map(Annotation::render).collect();
-    if !status.iter().any(|s| s == "status(thm)") {
-        return Err(unliftable(format!(
-            "line {line}, column {col}: the inference declares the status list [{}], which \
-                 does not contain `status(thm)`; the math:FormalVerificationResult this bridge \
-                 emits is grounded in every step's declared thm-status, so a step that declares \
-                 none supports no verdict to hold",
-            status.join(", ")
-        )));
-    }
-
     let mut parents = Vec::with_capacity(parent_terms.len());
     for parent in parent_terms {
         match parent {
             Annotation::Name(name) => parents.push(name),
             other => {
                 return Err(unliftable(format!(
-                    "line {line}, column {col}: the inference cites the nested parent \
-                         `{}`; an inline parent derivation is a second, anonymous step identity \
-                         this bridge does not mint, and flattening it would drop the sub-proof",
+                    "line {line}, column {col}: the inference cites the nested parent `{}`; an \
+                     inline parent derivation is a second, anonymous step identity this bridge \
+                     does not mint, and flattening it would drop the sub-proof",
                     other.render()
                 )));
             }
         }
     }
-    Ok((rule, status, parents))
+    Ok((Source::Inference { rule, status }, parents))
 }
 
 #[cfg(test)]
@@ -1171,6 +1819,9 @@ mod tests {
     use super::*;
 
     const FIXTURE: &str = include_str!("../../fixtures/theorem-subclass.tstp");
+    const EPROVER_FOF: &str = include_str!("../../fixtures/eprover-fof.tstp");
+    const VAMPIRE_CNF: &str = include_str!("../../fixtures/vampire-cnf-refutation.tstp");
+    const EPROVER_CLAUSIFY: &str = include_str!("../../fixtures/eprover-clausify-status.tstp");
 
     fn one(src: &str) -> Derivation {
         parse(src.as_bytes()).unwrap_or_else(|e| panic!("must parse: {e}"))
@@ -1209,14 +1860,20 @@ mod tests {
             derivation.steps()[1].parents,
             vec!["d_7acf4e9d9037faca7a00b6151eb4528f6f41840d".to_owned()]
         );
-        assert_eq!(derivation.steps()[1].status, vec!["status(thm)".to_owned()]);
+        assert_eq!(
+            derivation.steps()[1].status(),
+            &["status(thm)".to_owned()][..]
+        );
     }
 
     #[test]
     fn a_quoted_atom_carries_its_full_iri_unshortened() {
         let derivation = one(FIXTURE);
         let step = &derivation.steps()[0];
-        let Term::Apply { functor, args } = &step.conclusion.literals[0].atom else {
+        let Conclusion::Clause(clause) = &step.conclusion else {
+            panic!("the reasoner fixture is CNF");
+        };
+        let Term::Apply { functor, args } = &clause.literals[0].atom else {
             panic!("the leaf concludes an application");
         };
         assert_eq!(functor, "https://blackcatinformatics.ca/gmeow/tptp#a");
@@ -1229,13 +1886,13 @@ mod tests {
                 args: Vec::new(),
             }]
         );
-        assert!(!step.conclusion.literals[0].negated);
+        assert!(!clause.literals[0].negated);
     }
 
     #[test]
     fn the_inference_rule_is_the_content_addressed_firing_iri() {
         let derivation = one(FIXTURE);
-        let rule = derivation.steps()[2].rule.as_deref().expect("a rule");
+        let rule = derivation.steps()[2].rule().expect("a rule");
         assert_eq!(
             rule,
             "https://blackcatinformatics.ca/logic/dag/firing/\
@@ -1262,11 +1919,27 @@ mod tests {
 
     // -- the term / clause grammar --------------------------------------------
 
+    fn clause_of<'d>(derivation: &'d Derivation, name: &str) -> &'d Clause {
+        let Conclusion::Clause(clause) = &derivation.step(name).expect("the step").conclusion
+        else {
+            panic!("`{name}` concludes a clause");
+        };
+        clause
+    }
+
+    fn formula_of<'d>(derivation: &'d Derivation, name: &str) -> &'d Formula {
+        let Conclusion::Formula(formula) = &derivation.step(name).expect("the step").conclusion
+        else {
+            panic!("`{name}` concludes a formula");
+        };
+        formula
+    }
+
     #[test]
     fn a_nested_term_structure_survives_to_the_ast() {
         let derivation = one("cnf(a0, axiom, p(f(g(a), X), b)).\n\
              cnf(d1, plain, q(a), inference(r, [status(thm)], [a0])).\n");
-        let clause = &derivation.steps()[0].conclusion;
+        let clause = clause_of(&derivation, "a0");
         assert_eq!(clause.literals.len(), 1);
         assert_eq!(clause.render(), "p(f(g(a), X), b)");
         let Term::Apply { args, .. } = &clause.literals[0].atom else {
@@ -1283,12 +1956,36 @@ mod tests {
     fn a_disjunctive_clause_keeps_every_literal_and_its_polarity() {
         let derivation = one("cnf(a0, axiom, ( ~p(X) | q(X) | ~r )).\n\
              cnf(d1, plain, q(a), inference(r, [status(thm)], [a0])).\n");
-        let clause = &derivation.steps()[0].conclusion;
+        let clause = clause_of(&derivation, "a0");
         assert_eq!(clause.literals.len(), 3);
         assert!(clause.literals[0].negated);
         assert!(!clause.literals[1].negated);
         assert!(clause.literals[2].negated);
         assert_eq!(clause.render(), "~p(X) | q(X) | ~r");
+    }
+
+    #[test]
+    fn a_cnf_equality_literal_is_an_equation_not_a_predicate_named_equals() {
+        let derivation = one("cnf(a0, axiom, ( f(X) = X | a != b )).\n\
+             cnf(d1, plain, $false, inference(r, [status(thm)], [a0])).\n");
+        let clause = clause_of(&derivation, "a0");
+        assert_eq!(clause.literals.len(), 2);
+        assert!(!clause.literals[0].negated);
+        assert_eq!(
+            clause.literals[0].equated.as_ref().map(Term::render),
+            Some("X".to_owned())
+        );
+        assert!(clause.literals[1].negated, "`!=` is a negative equation");
+        assert_eq!(clause.render(), "f(X) = X | a != b");
+        assert_eq!(one(&derivation.render()), derivation);
+    }
+
+    #[test]
+    fn a_tilde_negated_equation_canonicalizes_to_the_infix_disequality() {
+        let derivation = one("cnf(a0, axiom, ~ f(a) = b).\n\
+             cnf(d1, plain, $false, inference(r, [status(thm)], [a0])).\n");
+        assert_eq!(clause_of(&derivation, "a0").render(), "f(a) != b");
+        assert_eq!(one(&derivation.render()), derivation);
     }
 
     #[test]
@@ -1317,8 +2014,8 @@ mod tests {
             vec!["a0".to_owned(), "a1".to_owned()]
         );
         assert_eq!(
-            derivation.conclusion().status,
-            vec!["status(thm)".to_owned(), "foo".to_owned()]
+            derivation.conclusion().status(),
+            &["status(thm)".to_owned(), "foo".to_owned()][..]
         );
     }
 
@@ -1359,15 +2056,324 @@ mod tests {
         }
     }
 
+    // -- the FOF grammar -------------------------------------------------------
+
+    /// Wrap a `fof` body in a minimal well-founded derivation.
+    fn fof(body: &str) -> Derivation {
+        one(&format!(
+            "fof(a0, axiom, {body}).\n\
+             cnf(d1, plain, $false, inference(r, [status(thm)], [a0])).\n"
+        ))
+    }
+
+    #[test]
+    fn a_quantified_implication_parses_into_a_binder_over_a_connective() {
+        let derivation = fof("! [X] : (p(X) => q(X))");
+        let Formula::Quantified {
+            quantifier,
+            variables,
+            body,
+        } = formula_of(&derivation, "a0")
+        else {
+            panic!("a quantified formula");
+        };
+        assert_eq!(*quantifier, Quantifier::ForAll);
+        assert_eq!(variables, &["X".to_owned()]);
+        let Formula::Binary { connective, .. } = body.as_ref() else {
+            panic!("an implication body");
+        };
+        assert_eq!(*connective, Connective::Imply);
+    }
+
+    #[test]
+    fn every_tptp_binary_connective_parses_and_renders_back() {
+        for (surface, connective) in [
+            ("(p & q)", Connective::And),
+            ("(p | q)", Connective::Or),
+            ("(p => q)", Connective::Imply),
+            ("(p <= q)", Connective::RevImply),
+            ("(p <=> q)", Connective::Iff),
+            ("(p <~> q)", Connective::Xor),
+            ("(p ~| q)", Connective::Nor),
+            ("(p ~& q)", Connective::Nand),
+        ] {
+            let derivation = fof(surface);
+            let formula = formula_of(&derivation, "a0");
+            let Formula::Binary { connective: c, .. } = formula else {
+                panic!("{surface} is a binary formula");
+            };
+            assert_eq!(*c, connective, "{surface}");
+            assert_eq!(formula.render(), surface, "the surface round-trips");
+        }
+    }
+
+    #[test]
+    fn a_quantifier_list_binds_every_variable_in_source_order() {
+        let derivation = fof("? [X, Y, Z] : p(X, Y, Z)");
+        let Formula::Quantified {
+            quantifier,
+            variables,
+            ..
+        } = formula_of(&derivation, "a0")
+        else {
+            panic!("a quantified formula");
+        };
+        assert_eq!(*quantifier, Quantifier::Exists);
+        assert_eq!(variables, &["X".to_owned(), "Y".to_owned(), "Z".to_owned()]);
+    }
+
+    #[test]
+    fn equality_and_disequality_are_structured_not_read_as_predicates() {
+        let derivation = fof("! [X] : (f(X) = g(X))");
+        let Formula::Quantified { body, .. } = formula_of(&derivation, "a0") else {
+            panic!("quantified");
+        };
+        let Formula::Equation {
+            negated,
+            left,
+            right,
+        } = body.as_ref()
+        else {
+            panic!("an equation");
+        };
+        assert!(!negated);
+        assert_eq!(left.render(), "f(X)");
+        assert_eq!(right.render(), "g(X)");
+
+        let derivation = fof("a != b");
+        let Formula::Equation { negated, .. } = formula_of(&derivation, "a0") else {
+            panic!("a disequation");
+        };
+        assert!(negated, "`!=` is a disequation, not a predicate named `!=`");
+        assert_eq!(formula_of(&derivation, "a0").render(), "a != b");
+    }
+
+    #[test]
+    fn a_negated_quantified_formula_nests_rather_than_flattening() {
+        let derivation = fof("~! [X] : p(X)");
+        let Formula::Not(inner) = formula_of(&derivation, "a0") else {
+            panic!("a negation");
+        };
+        assert!(matches!(inner.as_ref(), Formula::Quantified { .. }));
+    }
+
+    #[test]
+    fn an_associative_chain_is_left_nested_and_re_renders_identically() {
+        let derivation = fof("((p & q) & r)");
+        let formula = formula_of(&derivation, "a0");
+        let Formula::Binary { left, .. } = formula else {
+            panic!("a conjunction");
+        };
+        assert!(matches!(left.as_ref(), Formula::Binary { .. }));
+        assert_eq!(formula.render(), "((p & q) & r)");
+    }
+
+    #[test]
+    fn mixing_the_associative_connectives_without_parentheses_is_a_syntax_error() {
+        let text = err("fof(a0, axiom, p & q | r).\n");
+        assert!(text.contains("without parentheses"), "{text}");
+        assert!(text.contains("line "), "{text}");
+    }
+
+    #[test]
+    fn a_chained_non_associative_connective_is_a_syntax_error() {
+        let text = err("fof(a0, axiom, p => q => r).\n");
+        assert!(text.contains("exactly two unitary operands"), "{text}");
+    }
+
+    #[test]
+    fn a_fof_step_renders_under_the_fof_keyword_and_a_cnf_step_under_cnf() {
+        let derivation = fof("! [X] : p(X)");
+        assert!(
+            derivation
+                .step("a0")
+                .expect("a0")
+                .render()
+                .starts_with("fof(")
+        );
+        assert!(
+            derivation
+                .step("d1")
+                .expect("d1")
+                .render()
+                .starts_with("cnf(")
+        );
+    }
+
+    // -- the full role set -----------------------------------------------------
+
+    #[test]
+    fn every_tptp_formula_role_parses_as_itself() {
+        for word in [
+            "axiom",
+            "hypothesis",
+            "definition",
+            "assumption",
+            "lemma",
+            "theorem",
+            "corollary",
+            "conjecture",
+            "negated_conjecture",
+            "plain",
+            "type",
+            "fi_domain",
+            "fi_functors",
+            "fi_predicates",
+            "unknown",
+        ] {
+            let derivation = one(&format!(
+                "cnf(a0, {word}, p(a)).\n\
+                 cnf(d1, plain, $false, inference(r, [status(thm)], [a0])).\n"
+            ));
+            let role = derivation.step("a0").expect("a0").role;
+            assert_eq!(role.as_str(), word, "the raw role word survives the parse");
+            assert_eq!(Role::from_word(word), Some(role));
+        }
+    }
+
+    #[test]
+    fn only_the_three_foundation_roles_are_foundational() {
+        for word in ["axiom", "hypothesis", "assumption"] {
+            assert!(
+                Role::from_word(word).expect("a role").is_foundational(),
+                "{word}"
+            );
+        }
+        for word in [
+            "negated_conjecture",
+            "conjecture",
+            "plain",
+            "lemma",
+            "theorem",
+            "definition",
+            "unknown",
+        ] {
+            assert!(
+                !Role::from_word(word).expect("a role").is_foundational(),
+                "`{word}` must never be lifted as a law"
+            );
+        }
+    }
+
+    #[test]
+    fn a_role_no_longer_dictates_whether_a_step_is_derived() {
+        // A real prover writes `cnf(c, negated_conjecture, …, inference(…))` and
+        // `cnf(c, plain, …, file(…))`; coupling the role to the source would refuse both.
+        let derivation = one(
+            "cnf(a0, negated_conjecture, ~p(a), file('problem.p', goal)).\n\
+             cnf(d1, negated_conjecture, q(a), inference(r, [status(thm)], [a0])).\n",
+        );
+        assert!(!derivation.step("a0").expect("a0").is_derived());
+        assert!(derivation.step("d1").expect("d1").is_derived());
+    }
+
+    // -- the source forms ------------------------------------------------------
+
+    #[test]
+    fn a_file_source_is_an_external_reference_carried_verbatim() {
+        let derivation = one("cnf(a0, axiom, p(a), file('SET001-1.p', ax7)).\n\
+             cnf(d1, plain, q(a), inference(r, [status(thm)], [a0])).\n");
+        let Source::External(external) = &derivation.step("a0").expect("a0").source else {
+            panic!("a file(…) source is external");
+        };
+        assert_eq!(external.functor, "file");
+        assert_eq!(external.rendered, "file('SET001-1.p', ax7)");
+        assert!(
+            derivation.step("a0").expect("a0").parents.is_empty(),
+            "an external reference cites no parent inside this document"
+        );
+    }
+
+    #[test]
+    fn theory_introduced_creator_and_unknown_are_all_external_references() {
+        for (surface, functor) in [
+            ("theory(equality)", "theory"),
+            (
+                "introduced(definition, [new_symbols(definition, [esk1_0])])",
+                "introduced",
+            ),
+            ("creator(eprover, [version('3.0')])", "creator"),
+            ("unknown", "unknown"),
+        ] {
+            let derivation = one(&format!(
+                "cnf(a0, axiom, p(a), {surface}).\n\
+                 cnf(d1, plain, q(a), inference(r, [status(thm)], [a0])).\n"
+            ));
+            let Source::External(external) = &derivation.step("a0").expect("a0").source else {
+                panic!("`{surface}` must be an external reference");
+            };
+            assert_eq!(external.functor, functor, "{surface}");
+            assert_eq!(external.rendered, surface, "{surface} rides verbatim");
+        }
+    }
+
+    #[test]
+    fn a_bare_name_source_is_a_derived_step_citing_that_parent_with_no_rule() {
+        let derivation = one("cnf(a0, axiom, p(a)).\n\
+             cnf(d1, plain, p(a), a0).\n");
+        let step = derivation.step("d1").expect("d1");
+        assert_eq!(step.source, Source::Parent);
+        assert!(step.is_derived(), "a DAG source is a derivation edge");
+        assert_eq!(step.parents, vec!["a0".to_owned()]);
+        assert_eq!(
+            step.rule(),
+            None,
+            "a bare DAG source names a parent, not a calculus rule"
+        );
+    }
+
+    #[test]
+    fn a_useful_info_field_is_read_rather_than_refused() {
+        let derivation = one("cnf(a0, axiom, p(a)).\n\
+             cnf(d1, plain, q(a), inference(r, [status(thm)], [a0]), [iquote('0:Res:1,2')]).\n");
+        assert_eq!(
+            derivation.step("d1").expect("d1").useful_info,
+            vec!["iquote('0:Res:1,2')".to_owned()]
+        );
+    }
+
+    #[test]
+    fn a_non_thm_status_is_carried_rather_than_refused() {
+        for token in ["cth", "esa", "sab", "ceq"] {
+            let derivation = one(&format!(
+                "cnf(a0, axiom, p(a)).\n\
+                 cnf(d1, plain, q(a), inference(r, [status({token})], [a0])).\n"
+            ));
+            let step = derivation.step("d1").expect("d1");
+            assert_eq!(step.status(), &[format!("status({token})")][..]);
+            assert!(!step.declares_thm_status());
+        }
+    }
+
+    #[test]
+    fn an_empty_status_list_is_a_stated_absence_not_a_refusal() {
+        let derivation = one("fof(f1, axiom, p(a)).\n\
+             cnf(f2, plain, p(a), inference(cnf_transformation, [], [f1])).\n");
+        assert!(derivation.step("f2").expect("f2").status().is_empty());
+        assert!(!derivation.step("f2").expect("f2").declares_thm_status());
+    }
+
     // -- rendering round-trips -------------------------------------------------
 
     #[test]
     fn a_rendered_derivation_re_parses_to_the_same_ast() {
-        for source in [FIXTURE, MINIMAL] {
+        for source in [FIXTURE, MINIMAL, EPROVER_FOF, VAMPIRE_CNF, EPROVER_CLAUSIFY] {
             let first = one(source);
             let second = one(&first.render());
             assert_eq!(first, second, "rendering must be a faithful TSTP surface");
         }
+    }
+
+    #[test]
+    fn every_source_form_round_trips_through_the_rendered_surface() {
+        let source = "fof(a0, axiom, ! [X] : (p(X) => q(X)), file('problem.p', ax1)).\n\
+                      cnf(a1, negated_conjecture, ~q(sk1), theory(equality)).\n\
+                      cnf(a2, axiom, p(sk1), introduced(definition)).\n\
+                      cnf(a3, plain, p(sk1), a2).\n\
+                      cnf(d1, plain, $false, \
+                          inference(sr, [status(thm)], [a0, a1, a3]), [iquote('x')]).\n";
+        let first = one(source);
+        assert_eq!(one(&first.render()), first);
     }
 
     #[test]
@@ -1385,11 +2391,64 @@ mod tests {
     fn a_quoted_atom_with_escapes_round_trips_through_the_lexer() {
         let derivation = one("cnf(a0, axiom, 'it\\'s'(a)).\n\
              cnf(d1, plain, q(a), inference(r, [status(thm)], [a0])).\n");
-        let Term::Apply { functor, .. } = &derivation.steps()[0].conclusion.literals[0].atom else {
+        let Term::Apply { functor, .. } = &clause_of(&derivation, "a0").literals[0].atom else {
             panic!("an application");
         };
         assert_eq!(functor, "it's");
         assert_eq!(one(&derivation.render()), derivation);
+    }
+
+    // -- the prover fixtures ---------------------------------------------------
+
+    #[test]
+    fn the_eprover_fof_fixture_lifts_its_quantifiers_roles_and_file_sources() {
+        let derivation = one(EPROVER_FOF);
+        let roles: BTreeSet<&str> = derivation.steps().iter().map(|s| s.role.as_str()).collect();
+        assert!(roles.contains("axiom"), "{roles:?}");
+        assert!(roles.contains("negated_conjecture"), "{roles:?}");
+        assert!(roles.contains("plain"), "{roles:?}");
+        assert!(
+            derivation
+                .steps()
+                .iter()
+                .any(|s| matches!(&s.source, Source::External(e) if e.functor == "file")),
+            "the fixture carries file(…) sources"
+        );
+        assert!(
+            derivation.steps().iter().any(|s| matches!(
+                &s.conclusion,
+                Conclusion::Formula(Formula::Quantified { .. })
+            )),
+            "the fixture carries a quantified fof conclusion"
+        );
+        assert_eq!(derivation.conclusion().conclusion.render(), "$false");
+    }
+
+    #[test]
+    fn the_vampire_fixture_declares_empty_status_lists_and_still_parses() {
+        let derivation = one(VAMPIRE_CNF);
+        assert!(
+            derivation
+                .steps()
+                .iter()
+                .filter(|s| s.is_derived())
+                .any(|s| s.status().is_empty()),
+            "Vampire writes `inference(rule,[],[parent])`"
+        );
+        assert_eq!(derivation.conclusion().conclusion.render(), "$false");
+    }
+
+    #[test]
+    fn the_eprover_clausification_fixture_declares_cth_and_esa_statuses() {
+        let derivation = one(EPROVER_CLAUSIFY);
+        let statuses: BTreeSet<&str> = derivation
+            .steps()
+            .iter()
+            .flat_map(|s| s.status().iter().map(String::as_str))
+            .collect();
+        assert!(statuses.contains("status(cth)"), "{statuses:?}");
+        assert!(statuses.contains("status(esa)"), "{statuses:?}");
+        assert!(statuses.contains("status(thm)"), "{statuses:?}");
     }
 
     // -- syntax hard failures --------------------------------------------------
@@ -1405,8 +2464,10 @@ mod tests {
             ("cnf(a0, axiom, p(a)).\n@\n", "annotated formula, found `@`"),
             ("cnf(a0, axiom, p(_x)).\n", "starting with `_`"),
             ("cnf(a0, bogus_role, p(a)).\n", "not a TPTP formula role"),
-            ("fmt(a0, axiom, p(a)).\n", "expected `cnf`"),
+            ("fmt(a0, axiom, p(a)).\n", "expected `cnf` or `fof`"),
             ("cnf(a0, axiom, ''(a)).\n", "empty single-quoted atom"),
+            ("fof(a0, axiom, ! [x] : p(x)).\n", "quantified variable"),
+            ("fof(a0, axiom, ! [X] p(X)).\n", "expected `:`"),
         ] {
             let text = err(source);
             assert!(text.contains("line "), "{source:?} → {text}");
@@ -1440,6 +2501,13 @@ mod tests {
         );
     }
 
+    #[test]
+    fn a_useful_info_field_that_is_not_a_list_is_a_parse_failure() {
+        let text = err("cnf(a0, axiom, p(a)).\n\
+             cnf(d1, plain, q(a), inference(r, [status(thm)], [a0]), iquote('x')).\n");
+        assert!(text.contains("bracketed general list"), "{text}");
+    }
+
     // -- unliftable hard failures ---------------------------------------------
 
     #[test]
@@ -1452,12 +2520,26 @@ mod tests {
     }
 
     #[test]
+    fn a_dangling_bare_name_source_is_unliftable_too() {
+        let text = err("cnf(a0, axiom, p(a)).\n\
+             cnf(d1, plain, q(a), ghost).\n");
+        assert!(text.contains("`ghost`"), "{text}");
+        assert!(text.contains("never introduces"), "{text}");
+    }
+
+    #[test]
     fn a_cycle_is_unliftable_and_the_diagnostic_names_it() {
         let text = err("cnf(d1, plain, p(a), inference(r, [status(thm)], [d2])).\n\
              cnf(d2, plain, q(a), inference(r, [status(thm)], [d1])).\n");
         assert!(text.contains("cycle"), "{text}");
         assert!(text.contains("d1"), "{text}");
         assert!(text.contains("d2"), "{text}");
+    }
+
+    #[test]
+    fn a_cycle_through_bare_name_sources_is_caught_the_same_way() {
+        let text = err("cnf(d1, plain, p(a), d2).\ncnf(d2, plain, p(a), d1).\n");
+        assert!(text.contains("cycle"), "{text}");
     }
 
     #[test]
@@ -1470,6 +2552,12 @@ mod tests {
     #[test]
     fn a_document_with_no_derived_step_is_unliftable() {
         let text = err("cnf(a0, axiom, p(a)).\n");
+        assert!(text.contains("no derived step"), "{text}");
+    }
+
+    #[test]
+    fn a_document_of_external_leaves_only_is_still_unliftable() {
+        let text = err("cnf(a0, axiom, p(a), file('problem.p', ax)).\n");
         assert!(text.contains("no derived step"), "{text}");
     }
 
@@ -1492,69 +2580,29 @@ mod tests {
     }
 
     #[test]
-    fn an_unjustified_plain_step_is_unliftable() {
-        let text = err("cnf(d1, plain, q(a)).\n");
-        assert!(text.contains("no `inference(…)` record"), "{text}");
-    }
-
-    #[test]
     fn every_out_of_fragment_construct_is_refused_by_name() {
         for (source, needle) in [
-            ("fof(a0, axiom, p(a)).\n", "TPTP dialect `fof`"),
-            ("tff(a0, type, a: $i).\n", "TPTP dialect `tff`"),
-            ("thf(a0, axiom, p).\n", "TPTP dialect `thf`"),
+            ("tff(a0, type, a: $i).\n", "TYPED TPTP dialect `tff`"),
+            ("thf(a0, axiom, p).\n", "TYPED TPTP dialect `thf`"),
+            ("tcf(a0, axiom, p).\n", "TYPED TPTP dialect `tcf`"),
             ("include('Axioms/SET001-0.ax').\n", "`include` directive"),
             (
-                "cnf(a0, negated_conjecture, p(a)).\n",
-                "role `negated_conjecture`",
-            ),
-            ("cnf(a0, lemma, p(a)).\n", "role `lemma`"),
-            (
-                "cnf(a0, axiom, p(a)).\ncnf(d1, plain, q(a), file('problem.p', a0)).\n",
-                "`file(…)`",
+                "cnf(a0, axiom, p(a)).\ncnf(d1, plain, q(a), mystery(x)).\n",
+                "is not a TPTP <source> form",
             ),
             (
-                "cnf(a0, axiom, p(a)).\ncnf(d1, plain, q(a), theory(equality)).\n",
-                "`theory(…)`",
-            ),
-            (
-                "cnf(a0, axiom, p(a)).\ncnf(d1, plain, q(a), a0).\n",
-                "not an `inference(…)` record",
-            ),
-            (
-                "cnf(a0, axiom, p(a)).\n\
-                 cnf(d1, plain, q(a), inference(r, [status(thm)], [a0]), [iquote('x')]).\n",
-                "<useful_info>",
+                "cnf(a0, axiom, p(a)).\ncnf(d1, plain, q(a), [file('p', a), theory(equality)]).\n",
+                "<sources> LIST",
             ),
             (
                 "cnf(a0, axiom, p(a)).\n\
                  cnf(d1, plain, q(a), inference(r, [status(thm)], [inference(s, [], [a0])])).\n",
                 "nested parent",
             ),
-            (
-                "cnf(a0, axiom, p(a)).\n\
-                 cnf(d1, plain, q(a), inference(r, [status(cth)], [a0])).\n",
-                "does not contain `status(thm)`",
-            ),
-            (
-                "cnf(a0, axiom, p(a)).\n\
-                 cnf(d1, plain, q(a), inference(r, [], [a0])).\n",
-                "does not contain `status(thm)`",
-            ),
         ] {
             let text = err(source);
             assert!(text.contains(needle), "{source:?} → {text}");
         }
-    }
-
-    #[test]
-    fn an_axiom_carrying_an_inference_will_not_be_read_as_either() {
-        let text = err("cnf(a0, axiom, p(a)).\n\
-             cnf(a1, axiom, q(a), inference(r, [status(thm)], [a0])).\n");
-        assert!(
-            text.contains("both an asserted leaf and a derived step"),
-            "{text}"
-        );
     }
 
     #[test]

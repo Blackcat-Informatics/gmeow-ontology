@@ -234,7 +234,7 @@ fn executable_lifts_pin_their_codomain_sizes() {
     // `logic:Type` relation plus an indexed `logic:TermCarrier`) instead of a bare
     // `a logic:Formula`, which selected no constructor and violated
     // `logic:FormulaConstructorConstraint`.
-    assert_eq!(r.codomain_nodes, 103);
+    assert_eq!(r.codomain_nodes, 131);
     assert!(r.ingest_run.starts_with(PRODUCER_NS));
 
     let onnx = onnx_lift();

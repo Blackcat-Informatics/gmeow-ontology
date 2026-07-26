@@ -15,7 +15,8 @@
 //! | case | claim |
 //! |---|---|
 //! | the three success cases | a real artifact of each kind lifts, exit `0`, and the Turtle carries that bridge's run class plus genuinely bridge-specific codomain classes |
-//! | the two failure cases | a malformed and an unliftable artifact BOTH hard-fail with a typed `Error:` on stderr and no product on stdout |
+//! | the two failure cases | a malformed and an unliftable artifact BOTH hard-fail carrying the ENGINE's own `math.lift.*` code on stderr and no product on stdout |
+//! | the fingerprint case | two different engine kinds mint two different `finding_iri`s, so `gmeow explain` and the diagnostics substrate can tell them apart |
 //! | `--out` | the file receives byte-for-byte what stdout emits — one product, two sinks |
 //! | stdin (`-`) | the source is a stream, not a path, so the bridges compose in a pipeline |
 //! | idempotence | a re-lift of the same bytes is byte-identical, the property the fixed mint base exists to guarantee |
@@ -237,9 +238,11 @@ fn an_unliftable_r_script_hard_fails_and_emits_no_product() {
         .arg(lift_fixture("unliftable.R"))
         .assert()
         .failure()
+        // The ENGINE's own code, not a CLI re-coding of it: `math.lift.r.unliftable` names
+        // exactly which of the eight kinds refused.
         .stderr(
-            predicate::str::contains("Error:")
-                .and(predicate::str::contains("gmeow-cli.math.lift.unliftable")),
+            predicate::str::contains("math.lift.r.unliftable")
+                .and(predicate::str::contains("no statistical content")),
         );
     assert!(
         assertion.get_output().stdout.is_empty(),
@@ -257,8 +260,8 @@ fn a_truncated_onnx_stream_hard_fails_and_emits_no_product() {
         .assert()
         .failure()
         .stderr(
-            predicate::str::contains("Error:")
-                .and(predicate::str::contains("gmeow-cli.math.lift.malformed")),
+            predicate::str::contains("math.lift.onnx.wire")
+                .and(predicate::str::contains("byte offset")),
         );
     assert!(
         assertion.get_output().stdout.is_empty(),
@@ -266,32 +269,94 @@ fn a_truncated_onnx_stream_hard_fails_and_emits_no_product() {
     );
 }
 
+/// Drive one failing lift with `--console jsonl` and return its single parsed `finding`
+/// object — the machine channel an agent sweeping a corpus actually consumes.
+fn failing_lift_finding(leaf: &str, source: &Path) -> serde_json::Value {
+    let assertion = gmeow()
+        .args(["--console", "jsonl", "math", leaf])
+        .arg(source)
+        .assert()
+        .code(1);
+    let stdout = String::from_utf8(assertion.get_output().stdout.clone()).expect("utf-8 stdout");
+    let line = stdout
+        .lines()
+        .find(|line| line.contains("\"event\":\"finding\""))
+        .unwrap_or_else(|| panic!("`gmeow math {leaf}` emitted no NDJSON finding:\n{stdout}"));
+    let event: serde_json::Value = serde_json::from_str(line).expect("the finding line is JSON");
+    event["finding"].clone()
+}
+
+/// A scratch R script that is a SYNTAX error (an unclosed call) — the malformed twin of the
+/// committed, well-formed-but-unliftable `unliftable.R`.
+fn malformed_r_script() -> PathBuf {
+    let dir = scratch("malformed-r");
+    let path = dir.join("unclosed-call.R");
+    std::fs::write(&path, "x <- lm(mpg ~ wt\n").expect("write the malformed R fixture");
+    path
+}
+
 #[test]
 fn the_two_failure_classes_are_distinguished_structurally_not_by_exit_code() {
     // Both classes exit 1 (a handled failure of a correctly-spelled invocation over a
     // file that was found and read); exit 2 stays reserved for clap usage errors. The
-    // distinction travels on the DIAGNOSTIC channel as a structural code, read off the
-    // typed `Diag` — that is the channel a corpus sweep should branch on.
-    let malformed = gmeow()
-        .args(["math", "lift-onnx"])
-        .arg(lift_fixture("truncated.onnx"))
-        .assert()
-        .code(1);
-    let unliftable = gmeow()
-        .args(["math", "lift-r"])
-        .arg(lift_fixture("unliftable.R"))
-        .assert()
-        .code(1);
+    // distinction travels on the DIAGNOSTIC channel as the ENGINE's own code and category —
+    // that is the channel a corpus sweep should branch on.
+    let malformed = failing_lift_finding("lift-onnx", &lift_fixture("truncated.onnx"));
+    let unliftable = failing_lift_finding("lift-r", &lift_fixture("unliftable.R"));
 
-    let malformed = String::from_utf8(malformed.get_output().stderr.clone()).expect("utf-8 stderr");
-    let unliftable =
-        String::from_utf8(unliftable.get_output().stderr.clone()).expect("utf-8 stderr");
-    assert!(malformed.contains("gmeow-cli.math.lift.malformed"));
-    assert!(unliftable.contains("gmeow-cli.math.lift.unliftable"));
+    assert_eq!(malformed["code"], "math.lift.onnx.wire");
+    assert_eq!(unliftable["code"], "math.lift.r.unliftable");
+    // A truncated byte stream is a DATA-SHAPE violation; a well-formed script with nothing
+    // to carry is a MODELING-DISCIPLINE violation. The grading is the engine's, not a CLI
+    // approximation of it.
+    assert_eq!(malformed["category"], "data-shape-violation");
+    assert_eq!(unliftable["category"], "modeling-discipline-violation");
+}
+
+#[test]
+fn distinct_lift_failures_mint_distinct_finding_fingerprints() {
+    // The regression this pins: the handler used to re-wrap the engine's typed `Diag` with a
+    // rendered `format!("Error: {diag}")` under one of two CLI codes, discarding the code,
+    // the category, and the detail. A truncated protobuf and an R SYNTAX error then shared a
+    // single `finding_iri`, so the diagnostics substrate could not tell them apart and
+    // `gmeow explain` conflated them.
+    let wire = failing_lift_finding("lift-onnx", &lift_fixture("truncated.onnx"));
+    let r_parse = failing_lift_finding("lift-r", &malformed_r_script());
+    let r_unliftable = failing_lift_finding("lift-r", &lift_fixture("unliftable.R"));
+
+    assert_eq!(wire["code"], "math.lift.onnx.wire");
+    assert_eq!(r_parse["code"], "math.lift.r.parse");
+    assert_eq!(r_unliftable["code"], "math.lift.r.unliftable");
+
+    let iris: Vec<&str> = [&wire, &r_parse, &r_unliftable]
+        .iter()
+        .map(|f| {
+            f["finding_iri"]
+                .as_str()
+                .expect("every lift failure is a ledger-borne witness with a finding_iri")
+        })
+        .collect();
     assert_ne!(
-        malformed, unliftable,
-        "the two classes must be tellable apart on the diagnostic channel"
+        iris[0], iris[1],
+        "an ONNX wire failure and an R parse failure must be different witnesses"
     );
+    assert_ne!(
+        iris[1], iris[2],
+        "an R parse failure and an R unliftable refusal must be different witnesses"
+    );
+    assert_ne!(iris[0], iris[2]);
+
+    // And each finding carries the engine's `detail`, plus the source anchor naming which
+    // artifact refused — the two things the collapsed path dropped.
+    for (finding, leaf) in [(&wire, "lift-onnx"), (&r_parse, "lift-r")] {
+        assert!(
+            finding["detail"]
+                .as_str()
+                .is_some_and(|d| d.contains(&format!("gmeow math {leaf}"))),
+            "the finding lost its context detail: {finding}"
+        );
+        assert_eq!(finding["anchor_non_trivial"], true);
+    }
 }
 
 #[test]

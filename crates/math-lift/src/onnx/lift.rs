@@ -13,7 +13,11 @@
 //! | the parameter block | one `math:ParameterSpace` — a `math:VectorSpace`, with the obligations that entails |
 //! | `opset_import` | `math:MathematicalTheory` scoping a `math:MathematicalSymbol` per operator |
 //! | graph `input`/`output`/`value_info` | typed tensor slots: expression leaves carrying a `math:ExpressionType` |
-//! | `metadata_props`, `producer_name` | provenance on the retained `math:parseSource` witness |
+//! | a `TypeProto.Tensor`'s `elem_type` | a `math:TensorElementType` term, shared by every tensor of that format |
+//! | a `TensorShapeProto`/`TensorProto.dims` | a `math:TensorShape` with its `math:tensorRank` and one indexed `math:TensorAxis` per axis |
+//! | a `TensorShapeProto.Dimension.dim_param` | a `math:FreeVariableDeclaration` named through `math:symbolicExtent` |
+//! | `metadata_props`, `ir_version`, `domain` | reified `math:SourceAnnotation` pairs on the retained `math:parseSource` witness |
+//! | `producer_name` | a `gmeow:SoftwareAgent` the witness is `gmeow:wasAttributedTo` |
 //!
 //! # The OWL restrictions that make this a hard-fail bridge
 //!
@@ -45,9 +49,15 @@
 //!
 //! A `math:WeightTensor` here is a NAME, a SHAPE, and a FRAME. The parse tier cannot even
 //! represent a payload byte ([`super::model::TensorProto`] has no field for one), so the
-//! doctrine is discharged structurally rather than by the lift remembering to skip. What
-//! *does* cross is the element count, as the `math:spaceDimension` of the parameter space —
-//! a shape fact, not a value.
+//! doctrine is discharged structurally rather than by the lift remembering to skip.
+//!
+//! What *does* cross is metadata: the element count as the `math:spaceDimension` of the
+//! parameter space, the per-axis extents as a `math:TensorShape`, and the element format as
+//! a `math:TensorElementType`. Every one of those is a fact the model STATES ABOUT a tensor,
+//! and none of them is a fact IN one — that distinction is the whole doctrine, and it is why
+//! the shape can be carried in full while the values are held by reference. The
+//! `no_tensor_payload_byte_reaches_the_graph` test pins the boundary: not one `xsd:decimal`
+//! literal is emitted by this lift under any rendering.
 //!
 //! # Content-addressed interning
 //!
@@ -63,7 +73,9 @@
 //!   carries min-1 `math:domain` and min-1 `math:codomain` qualified on `math:Set`
 //!   (`module.ttl:10251`, `math:UnframedFunction`). An ONNX graph states a tensor's *shape*,
 //!   not the mathematical *set* the activation maps between, so claiming the class would mean
-//!   minting two sets the model never declares.
+//!   minting two sets the model never declares. The shape it *does* state is carried in full
+//!   as a `math:TensorShape`; refusing the class is a refusal to invent, not a refusal to
+//!   read.
 //! - A `TypeProto` that is not a tensor type (a sequence, map, optional, or sparse tensor)
 //!   and an `AttributeProto` carrying a control-flow subgraph are [`OnnxUnliftable`] by name.
 //!   Lifting a node whose configuration this crate did not read would misstate the operator's
@@ -90,9 +102,6 @@ use crate::sink::Sink;
 /// exposes no language-tagged constructor, because lifted graphs leave through the shipped
 /// CLI where no `x-gmeow-*` private-use tag may appear.
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-/// `rdfs:comment` — the carrier for ONNX metadata that has no `math:`/`gmeow:` image.
-/// See [`Lift::provenance`] for why these do not become structured nodes.
-const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 
 /// ONNX operators that ARE a `math:` operator the slice already declares as an individual.
 ///
@@ -145,7 +154,11 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
         ));
     }
 
-    let frame = RunFrame::mint(BridgeKind::Onnx, mint_base, source);
+    let mut frame = RunFrame::mint(BridgeKind::Onnx, mint_base, source);
+    for construct in unmapped_constructs(&model, graph) {
+        frame.record_unmapped(construct);
+    }
+    let frame = frame;
     let mut sink = Sink::new();
     frame.emit(&mut sink, Rung::lossy_crisp_with_witness());
 
@@ -337,30 +350,32 @@ impl Lift<'_> {
     /// attribution lands on the enduring artifact, association on the activity, and the
     /// activity here is GMEOW's own lift, not the exporter's run.
     ///
-    /// # Why `metadata_props` stays an annotation
+    /// # `metadata_props` is a REIFIED PAIR, not prose
     ///
-    /// `ir_version`, `model_version`, `domain`, and each `metadata_props` entry ride as
-    /// `rdfs:comment` strings rather than as structured nodes, because no `math:` or
-    /// `gmeow:` term faithfully carries them.
+    /// `ir_version`, `model_version`, `domain`, and each `metadata_props` entry become one
+    /// `math:SourceAnnotation` each, carrying `math:annotationKey` and `math:annotationValue`
+    /// verbatim plus an `rdfs:label` holding the `key=value` rendering a reader recognizes.
+    /// Reification is what keeps several annotations from being cross-paired: flat key and
+    /// value properties on the witness would produce a cross product the moment a second
+    /// entry appeared.
     ///
-    /// `gmeow:Identifier` is the tempting fit and the wrong one: its own definition scopes
-    /// it to "a reified EXTERNAL-IDENTIFIER record — an ORCID, a geni profile id, a Nostr
-    /// nip05, a LEI, a ROR ID, a NAICS code", and its `gmeow:avoidWhen` polices that
-    /// boundary explicitly ("a name borne by an entity is a `gmeow:Appellation`, not an
-    /// Identifier"). An ONNX `metadata_props` entry is a producer's free-form annotation —
-    /// `author`, `license`, `converted_from` — which identifies nothing and resolves
-    /// nowhere. Typing it `gmeow:Identifier` would assert an external-identity claim the
-    /// source never made.
+    /// Two near-fit terms were considered for the pair and rejected, which is why
+    /// `math:SourceAnnotation` exists at all:
     ///
-    /// `logic:ProjectionLoss` is the other near-fit and is also wrong here: `logic:lossCode`
-    /// binds its values to the conversion loss ledger's own vocabulary
-    /// (reifier-layer-dropped / annotation-layer-dropped / standpoint-scope-dropped), so
-    /// minting an ONNX-specific code would fabricate a ledger entry.
+    /// - `gmeow:Identifier` scopes itself to "a reified EXTERNAL-IDENTIFIER record — an
+    ///   ORCID, a geni profile id, a Nostr nip05, a LEI, a ROR ID, a NAICS code", and its
+    ///   `gmeow:avoidWhen` polices that boundary explicitly. An ONNX `metadata_props` entry
+    ///   is a producer's free-form note — `author`, `license`, `converted_from` — which
+    ///   identifies nothing and resolves nowhere; typing it `gmeow:Identifier` would assert
+    ///   an external-identity claim the source never made.
+    /// - `gmeow:ExifTag` is the only other open-keyed pair in the ontology and is the shape
+    ///   `math:SourceAnnotation` is modelled on, but both its properties and its single
+    ///   attachment path (`gmeow:hasExifTag`) are domain-locked to a `gmeow:MediaObject`'s
+    ///   EXIF block.
     ///
-    /// Nothing is lost by the annotation route: an ONNX metadata prop IS a string pair in
-    /// the source, so carrying it as a string flattens no structure. This is not the
-    /// forbidden case — the ingestion rule bars degrading a structured EXPRESSION to a
-    /// string, and there is no expression here to degrade.
+    /// The annotations land on the retained `math:parseSource` witness, never on a lifted
+    /// `math:` object: an annotation stamped onto the codomain would be the amnesic
+    /// string-placeholder pattern the ingestion rules forbid.
     fn provenance(&mut self, model: &ModelProto) {
         let witness = self.frame.source_witness_iri.clone();
 
@@ -397,11 +412,19 @@ impl Lift<'_> {
             entries.push((prop.key.clone(), prop.value.clone()));
         }
 
-        // One comment per entry, each self-contained as `key=value`, so several entries can
-        // never be cross-paired by a projection the way flat scheme/value properties would.
-        for (scheme, value) in entries {
-            self.sink
-                .string(&witness, RDFS_COMMENT, &format!("{scheme}={value}"));
+        // One math:SourceAnnotation per entry, content-addressed on the pair so a model that
+        // repeats a key/value pair names one node twice rather than minting two.
+        for (key, value) in entries {
+            let (iri, fresh) = self.mint("annotation", &format!("{key}\u{0}{value}"));
+            if fresh {
+                self.sink.typed(&iri, &math("SourceAnnotation"));
+                self.sink.string(&iri, &math("annotationKey"), &key);
+                // Verbatim, empty string included: an annotation present with an empty value
+                // is a different fact from an annotation that is absent.
+                self.sink.string(&iri, &math("annotationValue"), &value);
+                self.label(&iri, &format!("{key}={value}"));
+            }
+            self.sink.iri(&witness, &math("sourceAnnotation"), &iri);
         }
     }
 
@@ -506,16 +529,15 @@ impl Lift<'_> {
                 tensor.elem_type
             )));
         };
-        let rendered = match &tensor.shape {
-            Some(dims) => {
-                let axes: Vec<String> = dims.iter().map(Dim::render).collect();
-                format!("tensor({element})[{}]", axes.join(","))
-            }
-            // ONNX's own reading: no TensorShapeProto means the rank is unknown, which is a
-            // weaker claim than rank 0 and is spelled as such rather than as "[]".
-            None => format!("tensor({element}) of unknown rank"),
-        };
-        self.attach_rendered_type(expr_iri, &rendered);
+        // ONNX's own reading: no TensorShapeProto means the rank is UNKNOWN, which is a
+        // weaker claim than rank 0. It is therefore spelled as the ABSENCE of a
+        // math:tensorShape (math:TensorShape's own definition demands exactly that), never
+        // as a shape node carrying no axis — which would assert rank 0, a scalar.
+        let axes: Option<Vec<AxisSpec>> = tensor
+            .shape
+            .as_ref()
+            .map(|dims| dims.iter().map(AxisSpec::of_dim).collect());
+        self.attach_tensor_type(expr_iri, element, axes.as_deref());
         Ok(())
     }
 
@@ -537,23 +559,106 @@ impl Lift<'_> {
                 tensor.name, tensor.data_type
             )));
         };
-        let axes: Vec<String> = tensor.dims.iter().map(i64::to_string).collect();
-        let rendered = format!("tensor({element})[{}]", axes.join(","));
-        self.attach_rendered_type(expr_iri, &rendered);
+        // Reject a negative extent (and an overflowing element count) HERE, before any axis
+        // reaches the sink: math:axisExtent's own scope note says a negative extent is not a
+        // shape at all but a hard failure at ingest. The message is the one
+        // `TensorProto::element_count` already words.
+        tensor.element_count()?;
+        let axes: Vec<AxisSpec> = tensor.dims.iter().copied().map(AxisSpec::Extent).collect();
+        self.attach_tensor_type(expr_iri, element, Some(&axes));
         Ok(())
     }
 
-    /// Intern a rendered type and hang it off an expression.
+    /// Attach the whole of what an ONNX tensor type states: the element format and, when the
+    /// source declares one, the per-axis shape.
     ///
-    /// Content-addressed on the rendering, so two values of the same tensor type share ONE
-    /// `math:ExpressionType` individual rather than minting a copy per mention.
-    fn attach_rendered_type(&mut self, expr_iri: &str, rendered: &str) {
-        let (iri, fresh) = self.mint("type", rendered);
+    /// The `math:ExpressionType` individual is content-addressed on the rendered type, so two
+    /// values of the same tensor type share ONE type individual rather than minting a copy per
+    /// mention — and the structured element type and shape hang off that shared node, emitted
+    /// exactly once.
+    fn attach_tensor_type(&mut self, expr_iri: &str, element: &str, axes: Option<&[AxisSpec]>) {
+        let rendered = render_tensor_type(element, axes);
+        let (iri, fresh) = self.mint("type", &rendered);
         if fresh {
             self.sink.typed(&iri, &math("ExpressionType"));
-            self.label(&iri, rendered);
+            // The human label stays: it is how a reader recognizes the type at a glance. What
+            // changes is that it is no longer the ONLY place the shape lives.
+            self.label(&iri, &rendered);
+            let element_iri = self.emit_element_type(element);
+            self.sink
+                .iri(&iri, &math("tensorElementType"), &element_iri);
+            if let Some(axes) = axes {
+                let shape_iri = self.emit_shape(axes);
+                self.sink.iri(&iri, &math("tensorShape"), &shape_iri);
+            }
         }
         self.sink.iri(expr_iri, &math("expressionType"), &iri);
+    }
+
+    /// The `math:TensorElementType` term for one ONNX element format.
+    ///
+    /// Content-addressed on the format's spelling, so every `float` tensor in the run names
+    /// ONE node — which is the point of the class: "every float16 tensor in this model" is a
+    /// graph query rather than a substring match over rendered labels.
+    fn emit_element_type(&mut self, element: &str) -> String {
+        let (iri, fresh) = self.mint("element-type", element);
+        if fresh {
+            self.sink.typed(&iri, &math("TensorElementType"));
+            self.label(&iri, element);
+        }
+        iri
+    }
+
+    /// The `math:TensorShape` for one axis list: its rank, and one indexed `math:TensorAxis`
+    /// per axis.
+    ///
+    /// Content-addressed on the axes, so the `math:ExpressionType` typing an initializer's
+    /// leaf and the `math:WeightTensor` filling it name the SAME shape object rather than two
+    /// coincidentally equal ones.
+    fn emit_shape(&mut self, axes: &[AxisSpec]) -> String {
+        let key = shape_key(axes);
+        let (iri, fresh) = self.mint("shape", &key);
+        if !fresh {
+            return iri;
+        }
+        self.sink.typed(&iri, &math("TensorShape"));
+        self.label(&iri, &render_axes(axes));
+        // Explicit, never left to be counted: rank 0 (a scalar) has to be positively
+        // assertable, and the native constraint fragment cannot express a count.
+        let rank = i64::try_from(axes.len()).unwrap_or(i64::MAX);
+        self.sink.integer(&iri, &math("tensorRank"), rank);
+
+        for (index, axis) in axes.iter().enumerate() {
+            let (axis_iri, _) = self.mint("axis", &format!("{key}#{index}"));
+            self.sink.typed(&axis_iri, &math("TensorAxis"));
+            let position = i64::try_from(index).unwrap_or(i64::MAX);
+            self.sink.integer(&axis_iri, &math("axisIndex"), position);
+            self.label(&axis_iri, &axis.render());
+            match axis {
+                AxisSpec::Extent(extent) => {
+                    self.sink.integer(&axis_iri, &math("axisExtent"), *extent);
+                }
+                AxisSpec::Symbolic(name) => {
+                    // A DECLARATION, not a string: two axes spelled `batch` denote the same
+                    // unknown length, and sharing one math:FreeVariableDeclaration is what
+                    // makes that co-identity a graph fact rather than a string coincidence.
+                    let (declaration, declaration_fresh) = self.mint("extent-symbol", name);
+                    if declaration_fresh {
+                        self.sink
+                            .typed(&declaration, &math("FreeVariableDeclaration"));
+                        self.label(&declaration, name);
+                    }
+                    self.sink
+                        .iri(&axis_iri, &math("symbolicExtent"), &declaration);
+                }
+                // ONNX's `oneof` left unset: the rank counts this axis and the source states
+                // nothing about its length. Both extent properties stay off — math:axisExtent
+                // forbids a placeholder 0 or -1 standing in for "unknown".
+                AxisSpec::Unstated => {}
+            }
+            self.sink.iri(&iri, &math("shapeAxis"), &axis_iri);
+        }
+        iri
     }
 
     // -- nodes ---------------------------------------------------------------
@@ -866,10 +971,24 @@ impl Lift<'_> {
         self.sink.typed(&iri, &math("WeightTensor"));
         // Exactly one, always: the max-1 qualified restriction on math:ParameterSpace.
         self.sink.iri(&iri, &math("inParameterSpace"), space);
-        let axes: Vec<String> = tensor.dims.iter().map(i64::to_string).collect();
+
+        // The weight's own shape and element format, as the SAME terms its leaf's
+        // math:ExpressionType names — both are content-addressed, so "the slot and the tensor
+        // filling it have the same shape" is node identity rather than label equality.
+        let axes: Vec<AxisSpec> = tensor.dims.iter().copied().map(AxisSpec::Extent).collect();
+        let element_iri = self.emit_element_type(element);
+        self.sink
+            .iri(&iri, &math("tensorElementType"), &element_iri);
+        let shape_iri = self.emit_shape(&axes);
+        self.sink.iri(&iri, &math("tensorShape"), &shape_iri);
+
         self.label(
             &iri,
-            &format!("{} : tensor({element})[{}]", tensor.name, axes.join(",")),
+            &format!(
+                "{} : {}",
+                tensor.name,
+                render_tensor_type(element, Some(&axes))
+            ),
         );
         if let Some(layer) = self.weight_layer.get(&tensor.name).cloned() {
             self.sink.iri(&iri, &math("weightOf"), &layer);
@@ -877,6 +996,133 @@ impl Lift<'_> {
         self.tensor_structures += 1;
         Ok(())
     }
+}
+
+// ── Tensor shape ──────────────────────────────────────────────────────────────
+
+/// One axis of a shape the lift is about to structure.
+///
+/// The lift's own reading of an ONNX axis, unifying the two places an extent comes from: a
+/// `TensorShapeProto.Dimension` (which may be concrete, symbolic, or unset) and a
+/// `TensorProto.dims` entry (always concrete). Keeping them one type is what lets an
+/// initializer's `math:ExpressionType` and its `math:WeightTensor` reach the SAME
+/// content-addressed `math:TensorShape`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum AxisSpec {
+    /// A concrete extent.
+    Extent(i64),
+    /// A symbolic extent the model leaves open — ONNX's `dim_param`.
+    Symbolic(String),
+    /// An axis whose `oneof` arm the producer left unset: the rank counts it, the extent is
+    /// unstated. Distinct from an extent of 0, which is a stated, empty axis.
+    Unstated,
+}
+
+impl AxisSpec {
+    fn of_dim(dim: &Dim) -> Self {
+        match dim {
+            Dim::Value(extent) => Self::Extent(*extent),
+            Dim::Param(name) => Self::Symbolic(name.clone()),
+            Dim::Unknown => Self::Unstated,
+        }
+    }
+
+    /// The axis as a reader sees it in a bracketed shape.
+    fn render(&self) -> String {
+        match self {
+            Self::Extent(extent) => extent.to_string(),
+            Self::Symbolic(name) => name.clone(),
+            Self::Unstated => "?".to_owned(),
+        }
+    }
+
+    /// The axis as a mint key sees it.
+    ///
+    /// Arm-tagged, unlike [`AxisSpec::render`]: a symbolic axis literally named `3` and a
+    /// concrete extent of 3 render identically but are different claims, and a shape node is
+    /// content-addressed on this key.
+    fn key(&self) -> String {
+        match self {
+            Self::Extent(extent) => format!("#{extent}"),
+            Self::Symbolic(name) => format!("${name}"),
+            Self::Unstated => "?".to_owned(),
+        }
+    }
+}
+
+/// The content-addressing key of a whole axis list.
+fn shape_key(axes: &[AxisSpec]) -> String {
+    let parts: Vec<String> = axes.iter().map(AxisSpec::key).collect();
+    format!("[{}]", parts.join(","))
+}
+
+/// An axis list as a reader sees it: `[4,3]`, `[1,batch,?]`, `[]` for a scalar.
+fn render_axes(axes: &[AxisSpec]) -> String {
+    let parts: Vec<String> = axes.iter().map(AxisSpec::render).collect();
+    format!("[{}]", parts.join(","))
+}
+
+/// A whole tensor type as a reader sees it — the `rdfs:label` of its `math:ExpressionType`.
+///
+/// `None` axes is ONNX's "no TensorShapeProto", i.e. the rank is unknown; it is spelled out
+/// in words rather than as `[]`, because `[]` is rank 0, a scalar, and a strictly stronger
+/// claim.
+fn render_tensor_type(element: &str, axes: Option<&[AxisSpec]>) -> String {
+    match axes {
+        Some(axes) => format!("tensor({element}){}", render_axes(axes)),
+        None => format!("tensor({element}) of unknown rank"),
+    }
+}
+
+// ── Residue ───────────────────────────────────────────────────────────────────
+
+/// What this lift READ in the decoded model and still did not carry into `math:`.
+///
+/// `math:unmappedConstruct`'s own `gmeow:useWhen` requires this of any lift whose rung is
+/// weaker than `logic:ExactPreservation`: "so the declared loss is accompanied by its actual
+/// content". The ONNX rung is a `logic:LossyLens`, so declaring the rung and enumerating
+/// nothing would be asserting a loss the run cannot name.
+///
+/// Every entry is CONDITIONAL on the construct actually appearing in this model. A fixed list
+/// would claim a loss for constructs the file never carried, which is the mirror-image lie.
+fn unmapped_constructs(model: &ModelProto, graph: &GraphProto) -> Vec<String> {
+    let mut out = Vec::new();
+
+    // The one loss that makes this a lens rather than an isomorphism. It is not "skipped by
+    // oversight": `TensorProto` has no field that could hold a payload byte, so the doctrine
+    // is structural — but structural or not, the values ARE in the source and are NOT in the
+    // codomain, which is exactly what this enumeration is for.
+    if !graph.initializer.is_empty() {
+        out.push(
+            "onnx.TensorProto payload (float_data / int32_data / int64_data / double_data / \
+             uint64_data / raw_data / external_data): initializer VALUES are held by \
+             reference; the shape and element type cross, the bytes do not"
+                .to_owned(),
+        );
+    }
+    if graph
+        .node
+        .iter()
+        .any(|node| node.attribute.iter().any(|attribute| attribute.t.is_some()))
+    {
+        out.push(
+            "onnx.AttributeProto `t` payload: a tensor-valued operator attribute contributes \
+             its header to the operator's identity, and its values are held by reference like \
+             any other tensor's"
+                .to_owned(),
+        );
+    }
+    // An entry ONNX permits and this lift cannot pair: math:annotationKey is the name under
+    // which the source filed the annotation, and an unnamed annotation is an unattributable
+    // string rather than a pair.
+    if model.metadata_props.iter().any(|prop| prop.key.is_empty()) {
+        out.push(
+            "onnx.StringStringEntryProto with an empty `key`: a math:SourceAnnotation is a \
+             KEY/value pair, and an entry filed under no key cannot be one"
+                .to_owned(),
+        );
+    }
+    out
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -970,6 +1216,32 @@ mod tests {
             .filter(|line| line.contains(&marker))
             .filter_map(|line| line.split(' ').next())
             .map(str::to_owned)
+            .collect()
+    }
+
+    /// The subjects carrying `predicate` with exactly the plain literal `value`.
+    fn subjects_with_literal(ttl: &str, predicate: &str, value: &str) -> BTreeSet<String> {
+        let marker = format!(" <{predicate}> \"{value}\" .");
+        ttl.lines()
+            .filter(|line| line.ends_with(&marker))
+            .filter_map(|line| line.split(' ').next())
+            .map(str::to_owned)
+            .collect()
+    }
+
+    /// Every `xsd:integer` object of `predicate`, in the graph's canonical order.
+    ///
+    /// Predicate-scoped on purpose: a bare `"0"^^` substring count cannot tell a
+    /// `math:slotIndex` from a `math:axisIndex`, a `math:axisExtent`, or a
+    /// `math:tensorRank`, and this lift now emits all four.
+    fn integers_of(ttl: &str, predicate: &str) -> Vec<i64> {
+        let marker = format!(" <{predicate}> \"");
+        ttl.lines()
+            .filter_map(|line| {
+                let rest = line.split_once(&marker)?.1;
+                let (value, _) = rest.split_once('"')?;
+                value.parse::<i64>().ok()
+            })
             .collect()
     }
 
@@ -1324,9 +1596,18 @@ mod tests {
         let ttl = turtle(MLP);
         // MatMul(X, W) and Add(XW, B) have two operands each; Relu(XB) has one.
         assert_eq!(typed(&ttl, "ArgumentSlot"), 5);
-        assert_eq!(count(&ttl, &format!("<{}>", math("slotIndex"))), 5);
-        assert_eq!(count(&ttl, r#""0"^^"#), 3, "three slots at index 0");
-        assert_eq!(count(&ttl, r#""1"^^"#), 2, "two slots at index 1");
+        let indexes = integers_of(&ttl, &math("slotIndex"));
+        assert_eq!(indexes.len(), 5);
+        assert_eq!(
+            indexes.iter().filter(|i| **i == 0).count(),
+            3,
+            "three slots at index 0"
+        );
+        assert_eq!(
+            indexes.iter().filter(|i| **i == 1).count(),
+            2,
+            "two slots at index 1"
+        );
     }
 
     #[test]
@@ -1395,6 +1676,359 @@ mod tests {
         );
     }
 
+    /// Every triple whose subject is `subject` (given in `<iri>` form).
+    fn about(ttl: &str, subject: &str) -> String {
+        ttl.lines()
+            .filter(|line| line.starts_with(subject))
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    /// The single IRI object of `subject predicate ?o`, in `<iri>` form.
+    fn object_of(ttl: &str, subject: &str, predicate: &str) -> Option<String> {
+        let edge = format!("{subject} <{predicate}> ");
+        ttl.lines()
+            .find_map(|line| line.strip_prefix(&edge))
+            .map(|rest| rest.trim_end_matches(" .").to_owned())
+    }
+
+    /// A node's `rdfs:label`.
+    fn label_of(ttl: &str, subject: &str) -> Option<String> {
+        let edge = format!("{subject} <{RDFS_LABEL}> \"");
+        ttl.lines()
+            .find_map(|line| line.split_once(&edge))
+            .and_then(|(_, rest)| rest.split_once('"'))
+            .map(|(label, _)| label.to_owned())
+    }
+
+    /// The `math:TensorShape` a subject names, in `<iri>` form.
+    fn shape_of(ttl: &str, subject: &str) -> String {
+        object_of(ttl, subject, &math("tensorShape"))
+            .unwrap_or_else(|| panic!("{subject} must name a math:TensorShape:\n{ttl}"))
+    }
+
+    /// The axes of a shape, in `math:axisIndex` order, as `(index, extent-or-symbol)`.
+    ///
+    /// Reads the graph the way a consumer would — shape node → `math:shapeAxis` → axis →
+    /// extent — so the test proves the STRUCTURE is traversable, not merely that some
+    /// integers appear somewhere in the Turtle.
+    fn axes_of(ttl: &str, shape_iri: &str) -> Vec<(i64, String)> {
+        let edge = format!("{shape_iri} <{}> ", math("shapeAxis"));
+        let mut axes: Vec<(i64, String)> = ttl
+            .lines()
+            .filter_map(|line| line.strip_prefix(&edge))
+            .map(|rest| rest.trim_end_matches(" .").to_owned())
+            .map(|axis| {
+                let own = about(ttl, &axis);
+                let index = *integers_of(&own, &math("axisIndex"))
+                    .first()
+                    .unwrap_or_else(|| panic!("axis {axis} must carry a math:axisIndex"));
+                let extent = integers_of(&own, &math("axisExtent"))
+                    .first()
+                    .map(i64::to_string)
+                    // A symbolic extent resolves THROUGH the free-variable declaration it
+                    // names; the label on that node is the symbol.
+                    .or_else(|| {
+                        object_of(&own, &axis, &math("symbolicExtent"))
+                            .and_then(|declaration| label_of(ttl, &declaration))
+                    })
+                    .unwrap_or_else(|| "?".to_owned());
+                (index, extent)
+            })
+            .collect();
+        axes.sort_by_key(|(index, _)| *index);
+        axes
+    }
+
+    #[test]
+    fn every_tensor_extent_is_a_per_axis_node_carrying_its_own_index() {
+        let ttl = turtle(MLP);
+        // [1,4] (X), [1,3] (Y and XW share it), [4,3] (W), [3] (B) — four distinct shapes,
+        // each minted once however many tensors have it.
+        assert_eq!(typed(&ttl, "TensorShape"), 4, "{ttl}");
+        assert_eq!(typed(&ttl, "TensorAxis"), 2 + 2 + 2 + 1, "{ttl}");
+
+        // The W initializer is the finding's own example: `tensor(float)[4,3]` used to be a
+        // label and nothing else. Read it back through the graph, per axis, in order.
+        let w_type = subjects_with_literal(&ttl, RDFS_LABEL, "tensor(float)[4,3]");
+        assert_eq!(w_type.len(), 1, "one math:ExpressionType for [4,3]");
+        let w_type = w_type.iter().next().expect("the type node");
+        assert_eq!(
+            axes_of(&ttl, &shape_of(&ttl, w_type)),
+            vec![(0, "4".to_owned()), (1, "3".to_owned())],
+            "axis 0 has extent 4 and axis 1 extent 3 — ORDER IS THE SHAPE:\n{ttl}"
+        );
+
+        // …and the input's [1,4] is genuinely a different shape, not a set of the same two
+        // numbers: reading it back gives the extents in the other order.
+        let x_type = subjects_with_literal(&ttl, RDFS_LABEL, "tensor(float)[1,4]");
+        let x_type = x_type.iter().next().expect("the type node");
+        assert_eq!(
+            axes_of(&ttl, &shape_of(&ttl, x_type)),
+            vec![(0, "1".to_owned()), (1, "4".to_owned())],
+        );
+    }
+
+    #[test]
+    fn every_shape_states_its_rank_including_the_scalar_case() {
+        let ttl = turtle(MLP);
+        let ranks = integers_of(&ttl, &math("tensorRank"));
+        assert_eq!(ranks.len(), 4, "one rank per shape:\n{ttl}");
+        // [1,4], [1,3], [4,3] are rank 2; [3] is rank 1.
+        assert_eq!(ranks.iter().filter(|r| **r == 2).count(), 3);
+        assert_eq!(ranks.iter().filter(|r| **r == 1).count(), 1);
+        // Every rank agrees with the axis family it labels.
+        for shape in subjects_with(&ttl, &math("tensorRank")) {
+            let declared = *integers_of(&about(&ttl, &shape), &math("tensorRank"))
+                .first()
+                .expect("a rank");
+            let axes = axes_of(&ttl, &shape);
+            assert_eq!(
+                i64::try_from(axes.len()).expect("a small rank"),
+                declared,
+                "math:tensorRank must equal the math:shapeAxis count for {shape}:\n{ttl}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_rank_zero_scalar_initializer_is_a_shape_with_no_axis_and_rank_zero() {
+        // A scalar initializer: no `dims` at all. ONNX reads that as rank 0 (one element),
+        // which must be POSITIVELY assertable and never confused with an unknown rank.
+        let mut init = Vec::new();
+        init.extend(varint_field(2, 1));
+        init.extend(string_field(8, "S"));
+        init.extend(bytes_field(9, &[0, 0, 0, 0]));
+        let mut node = Vec::new();
+        node.extend(string_field(1, "S"));
+        node.extend(string_field(2, "Y"));
+        node.extend(string_field(4, "Relu"));
+        let mut graph = Vec::new();
+        graph.extend(message_field(1, &node));
+        graph.extend(string_field(2, "scalar"));
+        graph.extend(message_field(5, &init));
+        let mut model = varint_field(1, 8);
+        model.extend(message_field(7, &graph));
+        model.extend(message_field(8, &varint_field(2, 18)));
+
+        let ttl = turtle(&model);
+        assert_eq!(typed(&ttl, "TensorShape"), 1, "{ttl}");
+        assert_eq!(typed(&ttl, "TensorAxis"), 0, "rank 0 has no axis:\n{ttl}");
+        assert_eq!(
+            integers_of(&ttl, &math("tensorRank")),
+            vec![0],
+            "rank 0 is asserted, not left to be inferred from an absence:\n{ttl}"
+        );
+        assert!(ttl.contains("tensor(float)[]"), "{ttl}");
+    }
+
+    #[test]
+    fn an_unknown_rank_names_no_shape_at_all_rather_than_an_empty_one() {
+        // A TypeProto.Tensor with elem_type but NO TensorShapeProto: ONNX's "rank unknown".
+        let value_type = message_field(1, &varint_field(1, 1));
+        let mut info = Vec::new();
+        info.extend(string_field(1, "Y"));
+        info.extend(message_field(2, &value_type));
+        let mut node = Vec::new();
+        node.extend(string_field(2, "Y"));
+        node.extend(string_field(4, "Relu"));
+        let mut graph = Vec::new();
+        graph.extend(message_field(1, &node));
+        graph.extend(string_field(2, "rankless"));
+        graph.extend(message_field(12, &info));
+        let mut model = varint_field(1, 8);
+        model.extend(message_field(7, &graph));
+        model.extend(message_field(8, &varint_field(2, 18)));
+
+        let ttl = turtle(&model);
+        assert_eq!(
+            typed(&ttl, "TensorShape"),
+            0,
+            "an unknown rank is the ABSENCE of a shape, not a shape with no axis (which is \
+             rank 0, a strictly stronger claim):\n{ttl}"
+        );
+        assert_eq!(count(&ttl, &format!("<{}>", math("tensorShape"))), 0);
+        assert!(ttl.contains("of unknown rank"), "{ttl}");
+        // The element type is still stated, and still crosses.
+        assert_eq!(typed(&ttl, "TensorElementType"), 1, "{ttl}");
+    }
+
+    #[test]
+    fn a_symbolic_extent_is_one_shared_declaration_rather_than_two_equal_strings() {
+        // Two tensors whose leading axis is the same `dim_param "batch"`. The co-identity of
+        // the two unknown lengths is the information a string on each axis would lose.
+        let batched = |trailing: i64| {
+            let mut shape = Vec::new();
+            shape.extend(message_field(1, &string_field(2, "batch")));
+            shape.extend(message_field(1, &varint_field(1, trailing)));
+            let mut tensor = varint_field(1, 1);
+            tensor.extend(message_field(2, &shape));
+            message_field(1, &tensor)
+        };
+        let info = |name: &str, trailing: i64| {
+            let mut out = Vec::new();
+            out.extend(string_field(1, name));
+            out.extend(message_field(2, &batched(trailing)));
+            out
+        };
+        let mut node = Vec::new();
+        node.extend(string_field(1, "X"));
+        node.extend(string_field(2, "Y"));
+        node.extend(string_field(4, "Relu"));
+        let mut graph = Vec::new();
+        graph.extend(message_field(1, &node));
+        graph.extend(string_field(2, "batched"));
+        graph.extend(message_field(11, &info("X", 4)));
+        graph.extend(message_field(12, &info("Y", 3)));
+        let mut model = varint_field(1, 8);
+        model.extend(message_field(7, &graph));
+        model.extend(message_field(8, &varint_field(2, 18)));
+
+        let ttl = turtle(&model);
+        assert_eq!(typed(&ttl, "TensorShape"), 2, "[batch,4] and [batch,3]");
+        assert_eq!(
+            count(&ttl, &format!("<{}>", math("symbolicExtent"))),
+            2,
+            "one per symbolic axis:\n{ttl}"
+        );
+        let declarations: BTreeSet<String> = ttl
+            .lines()
+            .filter_map(|line| {
+                line.split_once(&format!(" <{}> ", math("symbolicExtent")))
+                    .map(|(_, object)| object.trim_end_matches(" .").to_owned())
+            })
+            .collect();
+        assert_eq!(
+            declarations.len(),
+            1,
+            "both `batch` axes must resolve to ONE math:FreeVariableDeclaration — that shared \
+             identity is exactly what a per-axis string would discard:\n{ttl}"
+        );
+        let x_type = subjects_with_literal(&ttl, RDFS_LABEL, "tensor(float)[batch,4]");
+        let x_type = x_type.iter().next().expect("the type node");
+        assert_eq!(
+            axes_of(&ttl, &shape_of(&ttl, x_type)),
+            vec![(0, "batch".to_owned()), (1, "4".to_owned())],
+        );
+    }
+
+    #[test]
+    fn an_axis_the_producer_left_unset_counts_toward_the_rank_and_claims_no_extent() {
+        // A `TensorShapeProto.Dimension` with NEITHER arm set: the rank knows the axis, the
+        // extent is unstated. Distinct from an extent of 0, which is a stated empty axis.
+        let mut shape = Vec::new();
+        shape.extend(message_field(1, &varint_field(1, 2)));
+        shape.extend(message_field(1, &Vec::new()));
+        let mut tensor = varint_field(1, 1);
+        tensor.extend(message_field(2, &shape));
+        let value_type = message_field(1, &tensor);
+        let mut info = Vec::new();
+        info.extend(string_field(1, "Y"));
+        info.extend(message_field(2, &value_type));
+        let mut node = Vec::new();
+        node.extend(string_field(2, "Y"));
+        node.extend(string_field(4, "Relu"));
+        let mut graph = Vec::new();
+        graph.extend(message_field(1, &node));
+        graph.extend(string_field(2, "partial"));
+        graph.extend(message_field(12, &info));
+        let mut model = varint_field(1, 8);
+        model.extend(message_field(7, &graph));
+        model.extend(message_field(8, &varint_field(2, 18)));
+
+        let ttl = turtle(&model);
+        assert_eq!(integers_of(&ttl, &math("tensorRank")), vec![2], "{ttl}");
+        assert_eq!(typed(&ttl, "TensorAxis"), 2, "{ttl}");
+        assert_eq!(
+            integers_of(&ttl, &math("axisExtent")),
+            vec![2],
+            "only the stated axis has an extent; no placeholder 0 or -1 stands in for the \
+             unstated one:\n{ttl}"
+        );
+        assert_eq!(count(&ttl, &format!("<{}>", math("symbolicExtent"))), 0);
+        assert!(ttl.contains("tensor(float)[2,?]"), "{ttl}");
+    }
+
+    #[test]
+    fn the_element_datatype_is_a_shared_term_not_a_fragment_of_a_label() {
+        let ttl = turtle(MLP);
+        assert_eq!(
+            typed(&ttl, "TensorElementType"),
+            1,
+            "every tensor in the MLP is float, so ONE element-type term is shared:\n{ttl}"
+        );
+        let terms = subjects_with_literal(&ttl, RDFS_LABEL, "float");
+        assert_eq!(terms.len(), 1);
+        // Four expression types plus two weight tensors all name it.
+        assert_eq!(
+            count(&ttl, &format!("<{}>", math("tensorElementType"))),
+            4 + 2,
+            "{ttl}"
+        );
+    }
+
+    #[test]
+    fn two_element_formats_are_two_terms() {
+        let typed_info = |name: &str, elem: i64| {
+            let mut tensor = varint_field(1, elem);
+            tensor.extend(message_field(2, &message_field(1, &varint_field(1, 4))));
+            let mut out = Vec::new();
+            out.extend(string_field(1, name));
+            out.extend(message_field(2, &message_field(1, &tensor)));
+            out
+        };
+        let mut node = Vec::new();
+        node.extend(string_field(1, "X"));
+        node.extend(string_field(2, "Y"));
+        node.extend(string_field(4, "Cast"));
+        let mut graph = Vec::new();
+        graph.extend(message_field(1, &node));
+        graph.extend(string_field(2, "cast"));
+        graph.extend(message_field(11, &typed_info("X", 1)));
+        graph.extend(message_field(12, &typed_info("Y", 11)));
+        let mut model = varint_field(1, 8);
+        model.extend(message_field(7, &graph));
+        model.extend(message_field(8, &varint_field(2, 18)));
+
+        let ttl = turtle(&model);
+        assert_eq!(
+            typed(&ttl, "TensorElementType"),
+            2,
+            "float and double:\n{ttl}"
+        );
+        assert_eq!(subjects_with_literal(&ttl, RDFS_LABEL, "float").len(), 1);
+        assert_eq!(subjects_with_literal(&ttl, RDFS_LABEL, "double").len(), 1);
+        // …but the SHAPE is the same [4] for both, so exactly one shape node is minted.
+        assert_eq!(
+            typed(&ttl, "TensorShape"),
+            1,
+            "same extents, one shape object:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn a_weight_tensor_and_its_slot_name_the_same_shape_object() {
+        let ttl = turtle(MLP);
+        let weights = subjects_with(&ttl, &math("weightOf"));
+        assert_eq!(weights.len(), 2, "W and B");
+        let w_type = subjects_with_literal(&ttl, RDFS_LABEL, "tensor(float)[4,3]");
+        let slot_shape = shape_of(&ttl, w_type.iter().next().expect("the type node"));
+        let weight_shapes: BTreeSet<String> = weights
+            .iter()
+            .map(|weight| shape_of(&ttl, weight))
+            .collect();
+        assert!(
+            weight_shapes.contains(&slot_shape),
+            "the math:WeightTensor and the math:ExpressionType typing its leaf must name the \
+             SAME math:TensorShape, so sameness of shape is node identity:\n{ttl}"
+        );
+        assert_eq!(
+            count(&ttl, &format!("<{}>", math("tensorShape"))),
+            4 + 2,
+            "four typed slots plus two weight tensors"
+        );
+    }
+
     #[test]
     fn the_provenance_lands_on_the_retained_source_witness() {
         let ttl = turtle(MLP);
@@ -1404,9 +2038,10 @@ mod tests {
             ttl.contains("gmeow-math-lift 1"),
             "the producer label:\n{ttl}"
         );
-        // ONNX metadata is a producer's free-form annotation, so it rides as rdfs:comment
-        // on the retained witness — never as gmeow:Identifier, whose own definition scopes
-        // it to an EXTERNAL identifier (ORCID, LEI, ROR) that resolves somewhere.
+        // ONNX metadata is a producer's free-form annotation, so it rides as a reified
+        // math:SourceAnnotation on the retained witness — never as gmeow:Identifier, whose
+        // own definition scopes it to an EXTERNAL identifier (ORCID, LEI, ROR) that resolves
+        // somewhere.
         assert_eq!(
             typed_gmeow(&ttl, "Identifier"),
             0,
@@ -1414,15 +2049,51 @@ mod tests {
              external-identity claim the source never made:\n{ttl}"
         );
         assert_eq!(count(&ttl, &format!("<{}>", gmeow("hasIdentifier"))), 0);
-        assert!(ttl.contains("model_license=AGPL-3.0-only"), "{ttl}");
         let witness = format!("<{}>", frame_witness());
         // ir_version plus model_version plus the one metadata_props entry.
+        assert_eq!(typed(&ttl, "SourceAnnotation"), 3);
         assert_eq!(
             ttl.lines()
-                .filter(|l| l.starts_with(&witness) && l.contains(&format!("<{RDFS_COMMENT}>")))
+                .filter(|l| l.starts_with(&witness)
+                    && l.contains(&format!("<{}>", math("sourceAnnotation"))))
                 .count(),
             3,
-            "every metadata annotation hangs off the math:parseSource witness"
+            "every metadata annotation hangs off the math:parseSource witness:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn onnx_metadata_is_a_reified_key_value_pair_rather_than_prose() {
+        let ttl = turtle(MLP);
+        // The key and the value are SEPARATE, queryable literals, not one `key=value` string
+        // a consumer has to re-split on the first `=`.
+        assert_eq!(count(&ttl, &format!("<{}>", math("annotationKey"))), 3);
+        assert_eq!(count(&ttl, &format!("<{}>", math("annotationValue"))), 3);
+        for (key, value) in [
+            ("model_license", "AGPL-3.0-only"),
+            ("onnx.ir_version", "8"),
+            ("onnx.model_version", "1"),
+        ] {
+            let subjects = subjects_with_literal(&ttl, &math("annotationKey"), key);
+            assert_eq!(subjects.len(), 1, "exactly one annotation keyed `{key}`");
+            let subject = subjects.iter().next().expect("a subject");
+            assert!(
+                ttl.lines().any(|line| {
+                    line.starts_with(subject)
+                        && line.contains(&format!("<{}>", math("annotationValue")))
+                        && line.contains(&format!("\"{value}\""))
+                }),
+                "`{key}` must carry the value `{value}` on the SAME node:\n{ttl}"
+            );
+            // The human rendering survives beside the structure, never instead of it.
+            assert!(ttl.contains(&format!("{key}={value}")), "{ttl}");
+        }
+        // Nothing rides as an rdfs:comment any more: the prose carrier is gone, not doubled.
+        assert_eq!(
+            count(&ttl, "2000/01/rdf-schema#comment"),
+            0,
+            "metadata is structured now; the rdfs:comment carrier was replaced, not kept \
+             alongside:\n{ttl}"
         );
     }
 
@@ -1465,6 +2136,76 @@ mod tests {
         assert!(
             !ttl.contains(&hex),
             "raw payload bytes leaked as hex:\n{ttl}"
+        );
+        // And the structured shape did not become a back door: every integer the lift emits
+        // belongs to one of the five shape/index predicates, none of which is a tensor value.
+        let integer_lines = ttl
+            .lines()
+            .filter(|line| line.contains("XMLSchema#integer"))
+            .count();
+        let accounted: usize = [
+            math("slotIndex"),
+            math("axisIndex"),
+            math("axisExtent"),
+            math("tensorRank"),
+            math("spaceDimension"),
+        ]
+        .iter()
+        .map(|predicate| integers_of(&ttl, predicate).len())
+        .sum();
+        assert_eq!(
+            integer_lines, accounted,
+            "every integer this lift emits is a shape fact or an index — never an element \
+             read out of a payload:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn the_declared_lossy_rung_enumerates_the_loss_it_declares() {
+        let ttl = turtle(MLP);
+        // The rung is a logic:LossyLens, and math:unmappedConstruct's own useWhen requires a
+        // lift declaring anything weaker than ExactPreservation to name what it lost.
+        let residue: Vec<&str> = ttl
+            .lines()
+            .filter(|line| line.contains(&format!("<{}>", math("unmappedConstruct"))))
+            .collect();
+        assert_eq!(
+            residue.len(),
+            1,
+            "the MLP has initializers, so their payload is the one named loss:\n{ttl}"
+        );
+        assert!(residue[0].contains("raw_data"), "{}", residue[0]);
+        assert!(residue[0].contains("held by reference"), "{}", residue[0]);
+        // The residue rides on the math:parseSource witness, nowhere else.
+        assert!(residue[0].starts_with(&format!("<{}>", frame_witness())));
+    }
+
+    #[test]
+    fn a_model_with_no_initializer_claims_no_payload_loss() {
+        // Residue is conditional on the construct actually being present: a graph with no
+        // initializer lost no weight bytes, and claiming otherwise would be the mirror-image
+        // of failing to enumerate.
+        let ttl = turtle(&duplicated_subgraph_model());
+        assert_eq!(count(&ttl, &format!("<{}>", math("unmappedConstruct"))), 0);
+    }
+
+    #[test]
+    fn a_metadata_entry_with_no_key_is_enumerated_as_residue_rather_than_dropped() {
+        let mut metadata = Vec::new();
+        metadata.extend(string_field(2, "orphaned"));
+        let mut model = mlp();
+        model.extend(message_field(14, &metadata));
+        let ttl = turtle(&model);
+        assert!(
+            ttl.contains("empty `key`"),
+            "an entry the lift read and could not pair must be named, not silently \
+             skipped:\n{ttl}"
+        );
+        // …and it did NOT become a math:SourceAnnotation with an empty key.
+        assert_eq!(typed(&ttl, "SourceAnnotation"), 3, "{ttl}");
+        assert_eq!(
+            subjects_with_literal(&ttl, &math("annotationKey"), "").len(),
+            0
         );
     }
 
@@ -1651,9 +2392,11 @@ mod tests {
 
         let ttl = turtle(&model);
         assert_eq!(typed(&ttl, "ArgumentSlot"), 2, "X and M, not three:\n{ttl}");
-        assert_eq!(count(&ttl, r#""0"^^"#), 1);
-        assert_eq!(count(&ttl, r#""1"^^"#), 1);
-        assert_eq!(count(&ttl, r#""2"^^"#), 0, "no gap, no phantom slot");
+        assert_eq!(
+            integers_of(&ttl, &math("slotIndex")),
+            vec![0, 1],
+            "no gap, no phantom slot:\n{ttl}"
+        );
     }
 
     #[test]

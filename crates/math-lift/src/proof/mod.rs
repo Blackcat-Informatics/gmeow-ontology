@@ -34,23 +34,38 @@
 //! `the_committed_tstp_fixture_is_exactly_what_our_reasoner_produces`, and read back here.
 //! Both crates `include_str!` the one file, so a drift on either side is caught.
 //!
+//! # What this bridge reads
+//!
+//! The TSTP a REAL prover writes, not only what our own reasoner emits: `cnf` and `fof`
+//! annotated formulas, the full fifteen-value TPTP role set, equality literals, the
+//! quantifiers and every binary connective, `inference(…)` records with any SZS status,
+//! `file(…)`/`theory(…)`/`introduced(…)`/`creator(…)`/`unknown` external sources, bare
+//! `<name>` DAG sources, and the `<useful_info>` 5th field. The refusals that remain are
+//! the ones no reading could honour — a typed (`tff`/`thf`/`tcf`) body, an `include` whose
+//! document is absent, a `<sources>` list, an inline nested parent derivation.
+//!
 //! # The rung this bridge claims
 //!
 //! [`Rung::section_retraction`](crate::frame::Rung::section_retraction) — the only bridge
 //! that claims it, and the one `math:ProofDependencyGraph`'s own definition names ("the DAG
 //! recovers from the lift and witness"). The claim is EARNED by
 //! `lift`'s `the_lift_is_a_section_the_derivation_reconstructs_from_the_graph_alone`,
-//! which rebuilds every step name, inference rule, parent set, and rendered conclusion from
-//! the emitted Turtle and nothing else.
+//! which rebuilds every step name, formula ROLE, inference rule, parent set, and rendered
+//! conclusion from the emitted Turtle and nothing else.
 //!
-//! That rung is also what makes the reader's refusals mandatory rather than fussy: at
-//! `logic:ExactPreservation` **everything the source states must cross**, so any TSTP
-//! construct this bridge does not structure — a `file(…)`/`theory(…)` source, a
-//! `<useful_info>` field, a role other than `axiom`/`plain`, a `fof` formula — is a typed
-//! hard failure instead of a silently dropped field. See [`tstp`] for the full list.
+//! It is claimed **per run**, not per bridge. At `logic:ExactPreservation` everything the
+//! source states must cross, and three constructs a real prover writes have no `math:`
+//! codomain to cross into: an SZS inference status other than `status(thm)`, the role
+//! `unknown`, and a `<useful_info>` field. A derivation carrying any of them enumerates it
+//! through `RunFrame::record_unmapped` and travels at `logic:LossyLens` instead — the
+//! honest alternative to either refusing real prover output or silently keeping the strong
+//! rung over a dropped fact. See [`mod@lift`] for the full residue rule.
 
 pub mod lift;
 pub mod tstp;
 
 pub use lift::lift;
-pub use tstp::{Clause, Derivation, Literal, Role, Step, Term, parse};
+pub use tstp::{
+    Clause, Conclusion, Connective, Derivation, ExternalSource, Formula, Literal, Quantifier, Role,
+    Source, Step, Term, parse,
+};

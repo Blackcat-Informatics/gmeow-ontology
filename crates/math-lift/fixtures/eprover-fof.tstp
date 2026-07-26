@@ -1,0 +1,40 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: CC-BY-4.0
+%
+% Dialect: E prover (`eprover --proof-object`) TSTP output over a FOF problem.
+%
+% This is the shape a real first-order prover writes and the shape our own
+% reasoner never writes: `fof` conclusions with explicit quantifiers, connectives
+% and equality; `file(Problem, Name)` sources for the formulas read from the
+% problem file; the standard TPTP role set including `negated_conjecture`; and
+% E's `c_0_<n>` step names with its own rule vocabulary (`fof_nnf`,
+% `split_conjunct`, `rw`, `spm`, `sr`).
+%
+% Source problem (as it would be stated in TPTP FOF syntax):
+%   fof(ax_pq,  axiom,              ! [X] : (p(X) => q(X))).
+%   fof(ax_id,  axiom,              ! [X] : (f(X) = X)).
+%   fof(goal,   conjecture,         ! [X] : (p(f(X)) => q(X))).
+% and, in the problem file itself, the pre-negated goal the prover echoes back as
+% a `negated_conjecture` leaf sourced from `file(...)`.
+%
+% Every inference declares `status(thm)`, so the whole derivation is a
+% theorem-preserving refutation: the empty clause `$false` is reached from the
+% negated conjecture, which refutes it and thereby establishes the conjecture.
+%
+% Reading the surface:
+%   * `c_0_0`..`c_0_2` are LEAVES whose provenance is OUTSIDE this document — the
+%     problem file. They carry no inference; the lift carries the reference.
+%   * `c_0_3`..`c_0_11` are derived steps, each with an E rule name.
+%   * `esk1_0` is E's Skolem constant for the existential the negation produced.
+fof(c_0_0, axiom, ! [X1] : (p(X1) => q(X1)), file('SYN075+1.p', ax_pq)).
+fof(c_0_1, axiom, ! [X1] : (f(X1) = X1), file('SYN075+1.p', ax_id)).
+fof(c_0_2, negated_conjecture, ~ (! [X1] : (p(f(X1)) => q(X1))), file('SYN075+1.p', goal)).
+fof(c_0_3, plain, ! [X1] : (~p(X1) | q(X1)), inference(fof_nnf, [status(thm)], [c_0_0])).
+fof(c_0_4, plain, ? [X1] : (p(f(X1)) & ~q(X1)), inference(fof_nnf, [status(thm)], [c_0_2])).
+cnf(c_0_5, plain, ~p(X1) | q(X1), inference(split_conjunct, [status(thm)], [c_0_3])).
+cnf(c_0_6, plain, f(X1) = X1, inference(split_conjunct, [status(thm)], [c_0_1])).
+cnf(c_0_7, plain, p(f(esk1_0)), inference(split_conjunct, [status(thm)], [c_0_4])).
+cnf(c_0_8, plain, ~q(esk1_0), inference(split_conjunct, [status(thm)], [c_0_4])).
+cnf(c_0_9, plain, p(esk1_0), inference(rw, [status(thm)], [c_0_7, c_0_6])).
+cnf(c_0_10, plain, q(esk1_0), inference(spm, [status(thm)], [c_0_5, c_0_9])).
+cnf(c_0_11, plain, $false, inference(sr, [status(thm)], [c_0_10, c_0_8])).
