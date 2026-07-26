@@ -18,40 +18,40 @@ msgid "deploymentArtifact is functional"
 msgstr "deploymentArtifact est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/deploymentArtifactFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:deploymentArtifact is functional: a model deployment realizes exactly one served model artifact, the single WHAT at which the execution → deployment → artifact de-conflation join bottoms out."
-msgstr "Affirme sur le porteur canonique que gmeow:deploymentArtifact est fonctionnelle : un déploiement de modèle réalise exactement un artefact de modèle servi, le seul QUOI où aboutit la jointure de désambiguïsation exécution → déploiement → artefact."
+msgid "Asserts on the canonical carrier that gmeow:deploymentArtifact is functional: a model deployment realizes exactly one served model artifact, the single WHAT at which the execution → deployment → artifact de-conflation join bottoms out. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:deploymentArtifact est fonctionnelle : un déploiement de modèle réalise exactement un artefact de modèle servi, le seul QUOI où aboutit la jointure de désambiguïsation exécution → déploiement → artefact. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/deploymentHostFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "deploymentHost is functional"
 msgstr "deploymentHost est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/deploymentHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:deploymentHost is functional: a model deployment serves on exactly one host or runtime entity, the single placement facet — a region, a cluster, or a device — that the deployment binds."
-msgstr "Affirme sur le porteur canonique que gmeow:deploymentHost est fonctionnelle : un déploiement de modèle sert sur exactement une entité hôte ou d'exécution, l'unique facette de placement — une région, un cluster ou un dispositif — que le déploiement lie."
+msgid "Asserts on the canonical carrier that gmeow:deploymentHost is functional: a model deployment serves on exactly one host or runtime entity, the single placement facet — a region, a cluster, or a device — that the deployment binds. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:deploymentHost est fonctionnelle : un déploiement de modèle sert sur exactement une entité hôte ou d'exécution, l'unique facette de placement — une région, un cluster ou un dispositif — que le déploiement lie. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/deploymentServiceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "deploymentService is functional"
 msgstr "deploymentService est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/deploymentServiceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:deploymentService is functional: a model deployment presents exactly one acting service agent, the single gmeow:SoftwareAgent identity that acts and bears the serving-mode awareness tenure."
-msgstr "Affirme sur le porteur canonique que gmeow:deploymentService est fonctionnelle : un déploiement de modèle présente exactement un agent de service agissant, l'unique identité gmeow:SoftwareAgent qui agit et porte la durée de conscience du mode de service."
+msgid "Asserts on the canonical carrier that gmeow:deploymentService is functional: a model deployment presents exactly one acting service agent, the single gmeow:SoftwareAgent identity that acts and bears the serving-mode awareness tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:deploymentService est fonctionnelle : un déploiement de modèle présente exactement un agent de service agissant, l'unique identité gmeow:SoftwareAgent qui agit et porte la durée de conscience du mode de service. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionConfigurationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "sessionConfiguration is functional"
 msgstr "sessionConfiguration est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionConfigurationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:sessionConfiguration is functional: an agent session runs under exactly one active configuration, the single session → configuration hop an output traces through to resolve the configuration it was generated under."
-msgstr "Affirme sur le porteur canonique que gmeow:sessionConfiguration est fonctionnelle: une session d'agent s'exécute sous exactement une configuration active, le seul saut session → configuration qu'une sortie retrace pour résoudre la configuration sous laquelle elle a été générée."
+msgid "Asserts on the canonical carrier that gmeow:sessionConfiguration is functional: an agent session runs under exactly one active configuration, the single session → configuration hop an output traces through to resolve the configuration it was generated under. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:sessionConfiguration est fonctionnelle: une session d'agent s'exécute sous exactement une configuration active, le seul saut session → configuration qu'une sortie retrace pour résoudre la configuration sous laquelle elle a été générée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSubjectStageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "sessionSubjectStage is functional"
 msgstr "sessionSubjectStage est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSubjectStageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:sessionSubjectStage is functional: an agent session acts on behalf of exactly one subject stage, the single session → subject hop that lets an output resolve to its durable subject."
-msgstr "Affirme sur le porteur canonique que gmeow:sessionSubjectStage est fonctionnelle: une session d'agent agit pour le compte d'exactement une étape de sujet, le seul saut session → sujet qui permet à une sortie de se résoudre vers son sujet durable."
+msgid "Asserts on the canonical carrier that gmeow:sessionSubjectStage is functional: an agent session acts on behalf of exactly one subject stage, the single session → subject hop that lets an output resolve to its durable subject. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:sessionSubjectStage est fonctionnelle: une session d'agent agit pour le compte d'exactement une étape de sujet, le seul saut session → sujet qui permet à une sortie de se résoudre vers son sujet durable. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/deploymentArtifactFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:deploymentArtifact names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

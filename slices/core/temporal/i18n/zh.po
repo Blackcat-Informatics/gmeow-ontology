@@ -58,8 +58,8 @@ msgid "frameTimeScale is functional"
 msgstr "frameTimeScale 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:frameTimeScale is functional: a gmeow:TemporalFrame runs on exactly one gmeow:TimeScale, since the mandatory 'which clock' component is singular and a frame ticking on both TAI and UT1 would be two frames."
-msgstr "在规范载体上断言 gmeow:frameTimeScale 是函数性的：一个 gmeow:TemporalFrame 恰好运行在一个 gmeow:TimeScale 上，因为必需的「哪一种时钟」这一成分是单一的，若一个参照系同时以 TAI 与 UT1 计时，那将是两个参照系。"
+msgid "Asserts on the canonical carrier that gmeow:frameTimeScale is functional: a gmeow:TemporalFrame runs on exactly one gmeow:TimeScale, since the mandatory 'which clock' component is singular and a frame ticking on both TAI and UT1 would be two frames. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:frameTimeScale 是函数性的：一个 gmeow:TemporalFrame 恰好运行在一个 gmeow:TimeScale 上，因为必需的「哪一种时钟」这一成分是单一的，若一个参照系同时以 TAI 与 UT1 计时，那将是两个参照系。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hasEndInstant is functional"
@@ -90,8 +90,8 @@ msgid "measuredAge is functional"
 msgstr "measuredAge 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:measuredAge is functional: a single gmeow:TemporalMeasurement yields one numeric age in its declared unit, since one dating act under one vantage produces one result and a second age figure is a distinct standpoint-indexed measurement."
-msgstr "在规范载体上断言 gmeow:measuredAge 是函数式的:单个 gmeow:TemporalMeasurement 以其声明的单位得出一个数值年龄,因为在单一视角下的一次测年行为只产生一个结果,而第二个年龄数值将是以不同立场为索引的另一次测量。"
+msgid "Asserts on the canonical carrier that gmeow:measuredAge is functional: a single gmeow:TemporalMeasurement yields one numeric age in its declared unit, since one dating act under one vantage produces one result and a second age figure is a distinct standpoint-indexed measurement. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:measuredAge 是函数式的:单个 gmeow:TemporalMeasurement 以其声明的单位得出一个数值年龄,因为在单一视角下的一次测年行为只产生一个结果,而第二个年龄数值将是以不同立场为索引的另一次测量。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "measuredDate is functional"
@@ -106,8 +106,8 @@ msgid "measurementMethod is functional"
 msgstr "measurementMethod 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:measurementMethod is functional: a gmeow:TemporalMeasurement is produced by exactly one gmeow:DatingMethod, since the technique behind an age is singular and a result obtained by a different method is a different measurement."
-msgstr "在规范载体上断言 gmeow:measurementMethod 是函数式的:一个 gmeow:TemporalMeasurement 恰好由一种 gmeow:DatingMethod 产生,因为得出某个年龄背后的技术是单一的,由不同方法得出的结果即为不同的测量。"
+msgid "Asserts on the canonical carrier that gmeow:measurementMethod is functional: a gmeow:TemporalMeasurement is produced by exactly one gmeow:DatingMethod, since the technique behind an age is singular and a result obtained by a different method is a different measurement. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:measurementMethod 是函数式的:一个 gmeow:TemporalMeasurement 恰好由一种 gmeow:DatingMethod 产生,因为得出某个年龄背后的技术是单一的,由不同方法得出的结果即为不同的测量。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "measurementUncertainty is functional"
@@ -130,8 +130,8 @@ msgid "startedAtTime is functional"
 msgstr "startedAtTime 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued."
-msgstr "在规范载体上断言 gmeow:startedAtTime 是函数性的:一个 gmeow:TimeInterval 恰好在单一确定的 dateTime 处开始,因为具有两个起始时间戳的区间实际上是两个区间,这使得内联的起始边界只能取单一值。"
+msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:startedAtTime 是函数性的:一个 gmeow:TimeInterval 恰好在单一确定的 dateTime 处开始,因为具有两个起始时间戳的区间实际上是两个区间,这使得内联的起始边界只能取单一值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:duringInterval names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

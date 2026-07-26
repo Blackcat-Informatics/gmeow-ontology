@@ -26,8 +26,8 @@ msgid "versionSet is functional"
 msgstr "versionSet 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:versionSet is functional: each gmeow:VersionMembership places its member into exactly one lineage, so a membership belongs to a single gmeow:VersionSet."
-msgstr "在规范载体上断言 gmeow:versionSet 是函数性的:每个 gmeow:VersionMembership 恰好将其成员归入一个谱系,因此一个成员关系只属于一个 gmeow:VersionSet。"
+msgid "Asserts on the canonical carrier that gmeow:versionSet is functional: each gmeow:VersionMembership places its member into exactly one lineage, so a membership belongs to a single gmeow:VersionSet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:versionSet 是函数性的:每个 gmeow:VersionMembership 恰好将其成员归入一个谱系,因此一个成员关系只属于一个 gmeow:VersionSet。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionMemberFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:versionMember names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

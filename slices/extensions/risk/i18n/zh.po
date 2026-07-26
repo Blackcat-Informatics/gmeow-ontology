@@ -18,24 +18,24 @@ msgid "cascadeFirstLink is functional"
 msgstr "cascadeFirstLink 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins."
-msgstr "在规范载体上断言 gmeow:cascadeFirstLink 是函数式的：一个级联恰好有一个入口链接，即该命名故障链的遍历开始所在的唯一因果链接。"
+msgid "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:cascadeFirstLink 是函数式的：一个级联恰好有一个入口链接，即该命名故障链的遍历开始所在的唯一因果链接。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a causal link's antecedent and consequent are distinct"
 msgstr "因果联系的前件与后件各不相同"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide."
-msgstr "断言一个 gmeow:CausalLink 的 gmeow:linkAntecedent 与 gmeow:linkConsequent 必须相异:没有任何东西在类型层面导致自身。当二者重合时,原生一致性门会抛出一项违背。"
+msgid "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "断言一个 gmeow:CausalLink 的 gmeow:linkAntecedent 与 gmeow:linkConsequent 必须相异:没有任何东西在类型层面导致自身。当二者重合时,原生一致性门会抛出一项违背。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "causalModality is functional"
 msgstr "causalModality 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified."
-msgstr "在规范载体上断言 gmeow:causalModality 是函数式的：一个因果链接恰好宣称一种作用力——必然导致、促进、使能或阻止——这唯一的模态正是该链接被具体化的根本原因。"
+msgid "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:causalModality 是函数式的：一个因果链接恰好宣称一种作用力——必然导致、促进、使能或阻止——这唯一的模态正是该链接被具体化的根本原因。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hazardBearer is functional"
@@ -58,8 +58,8 @@ msgid "linkConsequent is functional"
 msgstr "linkConsequent 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about."
-msgstr "在规范载体上断言 gmeow:linkConsequent 是函数式的:一个因果链接恰好有一个被致因的种类,即前因种类所导致的唯一后果事件类型。"
+msgid "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:linkConsequent 是函数式的:一个因果链接恰好有一个被致因的种类,即前因种类所导致的唯一后果事件类型。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "linkNext is acyclic"

@@ -98,8 +98,8 @@ msgid "spanOfChunk is functional"
 msgstr "spanOfChunk 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/spanOfChunkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:spanOfChunk is functional: an evidence span pins into exactly one retrieved chunk, so the seam joining the evidence layer to the retrieval substrate carries a single chunk per span and the exact evidentiary bytes stay recoverable through one span-to-chunk anchor."
-msgstr "在规范载体上断言 gmeow:spanOfChunk 是函数性的:一个证据跨度恰好锚定在一个被检索到的分块上,因此连接证据层与检索基底的接缝对每个跨度只承载一个分块,确切的证据字节得以通过唯一一个跨度到分块的锚点保持可还原。"
+msgid "Asserts on the canonical carrier that gmeow:spanOfChunk is functional: an evidence span pins into exactly one retrieved chunk, so the seam joining the evidence layer to the retrieval substrate carries a single chunk per span and the exact evidentiary bytes stay recoverable through one span-to-chunk anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:spanOfChunk 是函数性的:一个证据跨度恰好锚定在一个被检索到的分块上,因此连接证据层与检索基底的接缝对每个跨度只承载一个分块,确切的证据字节得以通过唯一一个跨度到分块的锚点保持可还原。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supportPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "supportPolarity is functional"

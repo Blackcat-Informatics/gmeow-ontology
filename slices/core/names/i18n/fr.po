@@ -42,80 +42,80 @@ msgid "partOrder is functional"
 msgstr "partOrder est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/partOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:partOrder is functional: a gmeow:NamePart occupies exactly one 0-based position in its appellation's surface order — a component has a single place as actually written in its culture."
-msgstr "Affirme sur le porteur canonique que gmeow:partOrder est fonctionnelle : un gmeow:NamePart occupe exactement une position, indexée à partir de 0, dans l'ordre de surface de son appellation — un composant a une place unique telle qu'elle est effectivement écrite dans sa culture."
+msgid "Asserts on the canonical carrier that gmeow:partOrder is functional: a gmeow:NamePart occupies exactly one 0-based position in its appellation's surface order — a component has a single place as actually written in its culture. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:partOrder est fonctionnelle : un gmeow:NamePart occupe exactement une position, indexée à partir de 0, dans l'ordre de surface de son appellation — un composant a une place unique telle qu'elle est effectivement écrite dans sa culture. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounObject is functional"
 msgstr "pronounObject est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounObject is functional: a gmeow:PronounSet has exactly one object (accusative) form — the single word that fills that one grammatical slot."
-msgstr "Affirme sur le porteur canonique que gmeow:pronounObject est fonctionnelle : un gmeow:PronounSet possède exactement une forme d'objet (accusatif) — le seul mot qui remplit cette unique case grammaticale."
+msgid "Asserts on the canonical carrier that gmeow:pronounObject is functional: a gmeow:PronounSet has exactly one object (accusative) form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounObject est fonctionnelle : un gmeow:PronounSet possède exactement une forme d'objet (accusatif) — le seul mot qui remplit cette unique case grammaticale. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveDeterminerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounPossessiveDeterminer is functional"
 msgstr "pronounPossessiveDeterminer est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveDeterminerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounPossessiveDeterminer is functional: a gmeow:PronounSet has exactly one possessive determiner form — the single word that fills that one grammatical slot."
-msgstr "Affirme sur le porteur canonique que gmeow:pronounPossessiveDeterminer est fonctionnelle : un gmeow:PronounSet possède exactement une forme de déterminant possessif — le seul mot qui remplit cette unique case grammaticale."
+msgid "Asserts on the canonical carrier that gmeow:pronounPossessiveDeterminer is functional: a gmeow:PronounSet has exactly one possessive determiner form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounPossessiveDeterminer est fonctionnelle : un gmeow:PronounSet possède exactement une forme de déterminant possessif — le seul mot qui remplit cette unique case grammaticale. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounPossessive is functional"
 msgstr "pronounPossessive est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounPossessive is functional: a gmeow:PronounSet has exactly one possessive pronoun form — the single word that fills that one grammatical slot."
-msgstr "Affirme sur le porteur canonique que gmeow:pronounPossessive est fonctionnelle : un gmeow:PronounSet possède exactement une forme de pronom possessif — le seul mot qui remplit cette unique case grammaticale."
+msgid "Asserts on the canonical carrier that gmeow:pronounPossessive is functional: a gmeow:PronounSet has exactly one possessive pronoun form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounPossessive est fonctionnelle : un gmeow:PronounSet possède exactement une forme de pronom possessif — le seul mot qui remplit cette unique case grammaticale. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounReflexiveFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounReflexive is functional"
 msgstr "pronounReflexive est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounReflexiveFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounReflexive is functional: a gmeow:PronounSet has exactly one reflexive form — the single word that fills that one grammatical slot."
-msgstr "Affirme sur le porteur canonique que gmeow:pronounReflexive est fonctionnelle : un gmeow:PronounSet possède exactement une forme réfléchie — le seul mot qui remplit cette unique case grammaticale."
+msgid "Asserts on the canonical carrier that gmeow:pronounReflexive is functional: a gmeow:PronounSet has exactly one reflexive form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounReflexive est fonctionnelle : un gmeow:PronounSet possède exactement une forme réfléchie — le seul mot qui remplit cette unique case grammaticale. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounSubject is functional"
 msgstr "pronounSubject est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounSubject is functional: a gmeow:PronounSet has exactly one subject (nominative) form — the single word that fills that one grammatical slot."
-msgstr "Affirme sur le porteur canonique que gmeow:pronounSubject est fonctionnelle : un gmeow:PronounSet possède exactement une forme de sujet (nominatif) — le seul mot qui remplit cette unique case grammaticale."
+msgid "Asserts on the canonical carrier that gmeow:pronounSubject is functional: a gmeow:PronounSet has exactly one subject (nominative) form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:pronounSubject est fonctionnelle : un gmeow:PronounSet possède exactement une forme de sujet (nominatif) — le seul mot qui remplit cette unique case grammaticale. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageAppellationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageAppellation is functional"
 msgstr "usageAppellation est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageAppellationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageAppellation is functional: a gmeow:NameUsage relator binds exactly one appellation — the single name by which its subject is called in that reified use, so a different appellation is a different usage."
-msgstr "Affirme sur le porteur canonique que gmeow:usageAppellation est fonctionnelle : un relateur gmeow:NameUsage lie exactement une appellation — le nom unique par lequel son sujet est appelé dans cet usage réifié, de sorte qu'une appellation différente constitue un usage différent."
+msgid "Asserts on the canonical carrier that gmeow:usageAppellation is functional: a gmeow:NameUsage relator binds exactly one appellation — the single name by which its subject is called in that reified use, so a different appellation is a different usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:usageAppellation est fonctionnelle : un relateur gmeow:NameUsage lie exactement une appellation — le nom unique par lequel son sujet est appelé dans cet usage réifié, de sorte qu'une appellation différente constitue un usage différent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageNamedFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageNamed is functional"
 msgstr "usageNamed est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageNamedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageNamed is functional: a gmeow:NameUsage relator names exactly one entity — the single subject called by its appellation in that reified use, so a different named entity is a different usage."
-msgstr "Affirme sur le porteur canonique que gmeow:usageNamed est fonctionnelle : un relateur gmeow:NameUsage nomme exactement une entité — le sujet unique appelé par son appellation dans cet usage réifié, de sorte qu'une entité nommée différente constitue un usage différent."
+msgid "Asserts on the canonical carrier that gmeow:usageNamed is functional: a gmeow:NameUsage relator names exactly one entity — the single subject called by its appellation in that reified use, so a different named entity is a different usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:usageNamed est fonctionnelle : un relateur gmeow:NameUsage nomme exactement une entité — le sujet unique appelé par son appellation dans cet usage réifié, de sorte qu'une entité nommée différente constitue un usage différent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRegisterFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageRegister is functional"
 msgstr "usageRegister est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRegisterFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageRegister is functional: a gmeow:NameUsage carries exactly one social register — the single formal, intimate, professional, or casual posture of that one reified use of a name."
-msgstr "Affirme sur le porteur canonique que gmeow:usageRegister est fonctionnelle : un gmeow:NameUsage porte exactement un registre social — la posture unique, formelle, intime, professionnelle ou décontractée, de cet unique usage réifié d'un nom."
+msgid "Asserts on the canonical carrier that gmeow:usageRegister is functional: a gmeow:NameUsage carries exactly one social register — the single formal, intimate, professional, or casual posture of that one reified use of a name. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:usageRegister est fonctionnelle : un gmeow:NameUsage porte exactement un registre social — la posture unique, formelle, intime, professionnelle ou décontractée, de cet unique usage réifié d'un nom. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRelationshipScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageRelationshipScope is functional"
 msgstr "usageRelationshipScope est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRelationshipScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience."
-msgstr "Affirme sur le porteur canonique que gmeow:usageRelationshipScope est fonctionnelle : un gmeow:NameUsage est circonscrit par exactement une relation interpersonnelle durable — le lien unique, comme la relation tante-nièce dans laquelle « Tante Genny » est utilisé, ceci étant le cas précis à une seule relation de gmeow:usageAudience."
+msgid "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:usageRelationshipScope est fonctionnelle : un gmeow:NameUsage est circonscrit par exactement une relation interpersonnelle durable — le lien unique, comme la relation tante-nièce dans laquelle « Tante Genny » est utilisé, ceci étant le cas précis à une seule relation de gmeow:usageAudience. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/honorificPositionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:honorificPosition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

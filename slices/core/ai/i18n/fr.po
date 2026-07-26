@@ -98,8 +98,8 @@ msgid "spanOfChunk is functional"
 msgstr "spanOfChunk est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/spanOfChunkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:spanOfChunk is functional: an evidence span pins into exactly one retrieved chunk, so the seam joining the evidence layer to the retrieval substrate carries a single chunk per span and the exact evidentiary bytes stay recoverable through one span-to-chunk anchor."
-msgstr "Affirme sur le porteur canonique que gmeow:spanOfChunk est fonctionnelle: une plage de preuve s'ancre dans exactement un fragment récupéré, de sorte que la jonction entre la couche de preuve et le substrat de récupération porte un seul fragment par plage, et que les octets probants exacts restent récupérables via une seule ancre plage-vers-fragment."
+msgid "Asserts on the canonical carrier that gmeow:spanOfChunk is functional: an evidence span pins into exactly one retrieved chunk, so the seam joining the evidence layer to the retrieval substrate carries a single chunk per span and the exact evidentiary bytes stay recoverable through one span-to-chunk anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:spanOfChunk est fonctionnelle: une plage de preuve s'ancre dans exactement un fragment récupéré, de sorte que la jonction entre la couche de preuve et le substrat de récupération porte un seul fragment par plage, et que les octets probants exacts restent récupérables via une seule ancre plage-vers-fragment. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/supportPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "supportPolarity is functional"

@@ -26,40 +26,40 @@ msgid "environmentAtLocation is functional"
 msgstr "environmentAtLocation est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/environmentAtLocationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place."
-msgstr "Affirme sur le porteur canonique que gmeow:environmentAtLocation est fonctionnelle : un environnement sensoriel concerne exactement un lieu, ce qui est constitutif de son identité en tant que conditions ambiantes de ce lieu."
+msgid "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:environmentAtLocation est fonctionnelle : un environnement sensoriel concerne exactement un lieu, ce qui est constitutif de son identité en tant que conditions ambiantes de ce lieu. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixShapeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "matrixShape is functional"
 msgstr "matrixShape est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixShapeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against."
-msgstr "Affirme sur le porteur canonique que gmeow:matrixShape est fonctionnelle : une matrice de coordonnées porte exactement un descripteur de forme, la chaîne de dimensions unique (telle que '4×1' ou '640×480×3') par rapport à laquelle la couche de résolution analyse sa valeur sérialisée."
+msgid "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:matrixShape est fonctionnelle : une matrice de coordonnées porte exactement un descripteur de forme, la chaîne de dimensions unique (telle que '4×1' ou '640×480×3') par rapport à laquelle la couche de résolution analyse sa valeur sérialisée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "matrixValue is functional"
 msgstr "matrixValue est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape."
-msgstr "Affirme sur le porteur canonique que gmeow:matrixValue est fonctionnelle : une matrice de coordonnées porte exactement une charge utile numérique sérialisée, le littéral vecteur, matrice ou tenseur unique que la couche de résolution interprète selon le repère et la forme déclarés de la matrice."
+msgid "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:matrixValue est fonctionnelle : une matrice de coordonnées porte exactement une charge utile numérique sérialisée, le littéral vecteur, matrice ou tenseur unique que la couche de résolution interprète selon le repère et la forme déclarés de la matrice. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionEnvironmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "perceptionEnvironment is functional"
 msgstr "perceptionEnvironment est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionEnvironmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest."
-msgstr "Affirme sur le porteur canonique que gmeow:perceptionEnvironment est fonctionnelle : une perception sensorielle porte sur exactement un environnement sensoriel, sa seule entité d'intérêt observée."
+msgid "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:perceptionEnvironment est fonctionnelle : une perception sensorielle porte sur exactement un environnement sensoriel, sa seule entité d'intérêt observée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "perceptionModality is functional"
 msgstr "perceptionModality est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered."
-msgstr "Affirme sur le porteur canonique que gmeow:perceptionModality est fonctionnelle : une perception sensorielle s'effectue par exactement un canal sensoriel, l'unique modalité sur laquelle cette valeur perçue est enregistrée."
+msgid "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:perceptionModality est fonctionnelle : une perception sensorielle s'effectue par exactement un canal sensoriel, l'unique modalité sur laquelle cette valeur perçue est enregistrée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coordinateMatrixFrameFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:coordinateMatrixFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

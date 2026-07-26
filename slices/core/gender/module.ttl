@@ -508,7 +508,7 @@ gmeow:expressionValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "expressionValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:expressionValue is functional: a gmeow:GenderExpression facet asserts exactly one expression-style value — varying presentations are modelled as several facets, and this object edge is deliberately the sole path to the value."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:expressionValue is functional: a gmeow:GenderExpression facet asserts exactly one expression-style value — varying presentations are modelled as several facets, and this object edge is deliberately the sole path to the value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:expressionValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:expressionValue ;

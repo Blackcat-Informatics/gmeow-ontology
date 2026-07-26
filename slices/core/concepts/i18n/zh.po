@@ -18,8 +18,8 @@ msgid "conceptHoldsFor is functional"
 msgstr "conceptHoldsFor 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:conceptHoldsFor is functional: one gmeow:ConceptTenure records the intension of exactly one concept, so the tenure binds to a single concept even though a concept may accrue many tenures over time."
-msgstr "在规范载体上断言 gmeow:conceptHoldsFor 是函数式的：一个 gmeow:ConceptTenure 恰好记录一个概念的内涵，因此该存续期绑定于唯一一个概念，尽管一个概念随时间可能积累许多个存续期。"
+msgid "Asserts on the canonical carrier that gmeow:conceptHoldsFor is functional: one gmeow:ConceptTenure records the intension of exactly one concept, so the tenure binds to a single concept even though a concept may accrue many tenures over time. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:conceptHoldsFor 是函数式的：一个 gmeow:ConceptTenure 恰好记录一个概念的内涵，因此该存续期绑定于唯一一个概念，尽管一个概念随时间可能积累许多个存续期。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conceptHoldsForFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:conceptHoldsFor names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

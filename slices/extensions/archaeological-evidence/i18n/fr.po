@@ -26,8 +26,8 @@ msgid "findContextTarget is functional"
 msgstr "findContextTarget est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findContextTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:findContextTarget is functional: an archaeological find context describes exactly one physical carrier, the single object whose stratigraphy, find-spot, dating, and documentation event the relator binds together."
-msgstr "Affirme sur le porteur canonique que gmeow:findContextTarget est fonctionnelle : un contexte de découverte archéologique décrit exactement un porteur physique, l'objet unique dont le relateur relie ensemble la stratigraphie, le lieu de découverte, la datation et l'événement de documentation."
+msgid "Asserts on the canonical carrier that gmeow:findContextTarget is functional: an archaeological find context describes exactly one physical carrier, the single object whose stratigraphy, find-spot, dating, and documentation event the relator binds together. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:findContextTarget est fonctionnelle : un contexte de découverte archéologique décrit exactement un porteur physique, l'objet unique dont le relateur relie ensemble la stratigraphie, le lieu de découverte, la datation et l'événement de documentation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inscriptionCarrierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "inscriptionCarrier is functional"
@@ -42,24 +42,24 @@ msgid "readingOf is functional"
 msgstr "readingOf est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/readingOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:readingOf is functional: an inscription reading observes exactly one source inscription, the single sign-bearing feature the reading interprets (rival readings of that inscription are separate InscriptionReading relators)."
-msgstr "Affirme sur le porteur canonique que gmeow:readingOf est fonctionnelle : une lecture d'inscription observe exactement une inscription source, l'unique caractéristique porteuse de signes que la lecture interprète (des lectures rivales de cette inscription sont des relateurs InscriptionReading distincts)."
+msgid "Asserts on the canonical carrier that gmeow:readingOf is functional: an inscription reading observes exactly one source inscription, the single sign-bearing feature the reading interprets (rival readings of that inscription are separate InscriptionReading relators). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:readingOf est fonctionnelle : une lecture d'inscription observe exactement une inscription source, l'unique caractéristique porteuse de signes que la lecture interprète (des lectures rivales de cette inscription sont des relateurs InscriptionReading distincts). Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/translationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "translationOf is functional"
 msgstr "translationOf est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/translationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:translationOf is functional: an inscription translation renders exactly one source inscription into another language, the single text the translation is of."
-msgstr "Affirme sur le porteur canonique que gmeow:translationOf est fonctionnelle : une traduction d'inscription rend exactement une inscription source dans une autre langue, l'unique texte dont la traduction procède."
+msgid "Asserts on the canonical carrier that gmeow:translationOf is functional: an inscription translation renders exactly one source inscription into another language, the single text the translation is of. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:translationOf est fonctionnelle : une traduction d'inscription rend exactement une inscription source dans une autre langue, l'unique texte dont la traduction procède. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transliterationOf is functional"
 msgstr "transliterationOf est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes."
-msgstr "Affirme sur le porteur canonique que gmeow:transliterationOf est fonctionnelle : une translittération d'inscription transpose exactement une inscription source dans une autre écriture, l'unique texte dont elle recode les séquences de signes."
+msgid "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:transliterationOf est fonctionnelle : une translittération d'inscription transpose exactement une inscription source dans une autre écriture, l'unique texte dont elle recode les séquences de signes. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/attributionTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:attributionTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

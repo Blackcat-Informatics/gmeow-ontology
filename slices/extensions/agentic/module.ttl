@@ -146,7 +146,7 @@ gmeow:toolArgumentsFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "toolArguments is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:toolArguments ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toolArguments ;
@@ -161,7 +161,7 @@ gmeow:toolResultFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "toolResult is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:toolResult ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toolResult ;
@@ -176,7 +176,7 @@ gmeow:usedToolFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "usedTool is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:usedTool ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:usedTool ;

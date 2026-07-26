@@ -2036,7 +2036,7 @@ gmeow:anchorRangeMaxFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchorRangeMax is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:anchorRangeMax is functional: an anchored score range has exactly one upper bound, and a second maximum would leave the interval's ceiling ill-defined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorRangeMax is functional: an anchored score range has exactly one upper bound, and a second maximum would leave the interval's ceiling ill-defined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:anchorRangeMax ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:anchorRangeMax ;
@@ -2111,7 +2111,7 @@ gmeow:conditionTextFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "conditionText is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:conditionText is functional: a condition has exactly one canonical prose statement — the single authoritative form every machine formalization must approximate — so a second prose body would install a rival canon within one condition."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conditionText is functional: a condition has exactly one canonical prose statement — the single authoritative form every machine formalization must approximate — so a second prose body would install a rival canon within one condition. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:conditionText ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:conditionText ;
@@ -2186,7 +2186,7 @@ gmeow:expressionLanguageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expressionLanguage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:expressionLanguage is functional: a condition expression is written in exactly one named language, so its verbatim source sits in a single dialect and a formalization in another language is a separate expression."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:expressionLanguage is functional: a condition expression is written in exactly one named language, so its verbatim source sits in a single dialect and a formalization in another language is a separate expression. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:expressionLanguage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:expressionLanguage ;
@@ -2201,7 +2201,7 @@ gmeow:expressionTextFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expressionText is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:expressionText is functional: a condition expression carries exactly one verbatim source body — one expression, one string of source in its declared language."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:expressionText is functional: a condition expression carries exactly one verbatim source body — one expression, one string of source in its declared language. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:expressionText ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:expressionText ;
@@ -2246,7 +2246,7 @@ gmeow:parameterNameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameterName is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:parameterName is functional: a condition parameter has exactly one name — the single key by which the condition text or its expressions reference the binding."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parameterName is functional: a condition parameter has exactly one name — the single key by which the condition text or its expressions reference the binding. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:parameterName ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:parameterName ;
@@ -2276,7 +2276,7 @@ gmeow:penaltyPoleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penaltyPole is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:penaltyPole is functional: a criterion has exactly one penalty pole — the single named low end it penalizes — which must further be a different pole from the one it rewards."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:penaltyPole is functional: a criterion has exactly one penalty pole — the single named low end it penalizes — which must further be a different pole from the one it rewards. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:penaltyPole ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:penaltyPole ;
@@ -2291,7 +2291,7 @@ gmeow:personaBearerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "personaBearer is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:personaBearer is functional: a persona is the reified expression policy of exactly one agent — an agent may bear many co-equal personas, but each persona traces to a single bearer."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:personaBearer is functional: a persona is the reified expression policy of exactly one agent — an agent may bear many co-equal personas, but each persona traces to a single bearer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:personaBearer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:personaBearer ;
@@ -2306,7 +2306,7 @@ gmeow:precedenceHigherFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedenceHigher is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:precedenceHigher is functional: a precedence tenure names exactly one prevailing norm — the single norm that took priority over the interval it records."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceHigher is functional: a precedence tenure names exactly one prevailing norm — the single norm that took priority over the interval it records. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:precedenceHigher ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:precedenceHigher ;
@@ -2321,7 +2321,7 @@ gmeow:precedenceLowerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedenceLower is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:precedenceLower is functional: a precedence tenure names exactly one yielding norm — the single norm that gave way over the interval — which must further be a different norm from the one that prevailed."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceLower is functional: a precedence tenure names exactly one yielding norm — the single norm that gave way over the interval — which must further be a different norm from the one that prevailed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:precedenceLower ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:precedenceLower ;
@@ -2351,7 +2351,7 @@ gmeow:rewardPoleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "rewardPole is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:rewardPole is functional: a criterion has exactly one reward pole — the single named high end it rewards — which must further be a different pole from the one it penalizes."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:rewardPole is functional: a criterion has exactly one reward pole — the single named high end it rewards — which must further be a different pole from the one it penalizes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:rewardPole ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:rewardPole ;
@@ -2366,7 +2366,7 @@ gmeow:scaleMaxFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scaleMax is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:scaleMax is functional: a score scale has exactly one upper bound — a single maximum that must exceed the minimum — and a second maximum would leave the scale's ceiling undefined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleMax is functional: a score scale has exactly one upper bound — a single maximum that must exceed the minimum — and a second maximum would leave the scale's ceiling undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:scaleMax ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:scaleMax ;
@@ -2381,7 +2381,7 @@ gmeow:scaleMinFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scaleMin is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:scaleMin is functional: a score scale has exactly one lower bound — a single minimum that must sit below the maximum — and a second minimum would leave the scale's floor undefined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleMin is functional: a score scale has exactly one lower bound — a single minimum that must sit below the maximum — and a second minimum would leave the scale's floor undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:scaleMin ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:scaleMin ;
@@ -2396,7 +2396,7 @@ gmeow:scaleStepFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scaleStep is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:scaleStep is functional: a score scale has at most one granularity step — a single discrete increment when present, whose absence marks the scale as continuous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleStep is functional: a score scale has at most one granularity step — a single discrete increment when present, whose absence marks the scale as continuous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:scaleStep ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:scaleStep ;
@@ -2456,7 +2456,7 @@ gmeow:criterionPoleDistinctness
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "a criterion's reward and penalty poles are distinct"@x-gmeow-english ;
-    skos:definition "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:distinctnessTarget gmeow:Criterion ;
     logic:distinctnessRole gmeow:rewardPole , gmeow:penaltyPole ;
     logic:formalizes gmeow:rewardPole ;

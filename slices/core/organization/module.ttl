@@ -997,7 +997,7 @@ gmeow:closesAtFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "closesAt is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:closesAt is functional: a gmeow:OpeningHoursSpecification window has exactly one closing time, a single xsd:time that bounds where the window ends."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:closesAt is functional: a gmeow:OpeningHoursSpecification window has exactly one closing time, a single xsd:time that bounds where the window ends. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:closesAt ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:closesAt ;
@@ -1027,7 +1027,7 @@ gmeow:identifierUrlFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifierUrl is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:identifierUrl is functional: a gmeow:Identifier record resolves at exactly one authority URL, the resolvable counterpart of its single scheme-local value, so a second landing page would denote a different identifier record."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierUrl is functional: a gmeow:Identifier record resolves at exactly one authority URL, the resolvable counterpart of its single scheme-local value, so a second landing page would denote a different identifier record. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:identifierUrl ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:identifierUrl ;
@@ -1042,7 +1042,7 @@ gmeow:identifierValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifierValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:identifierValue is functional: a gmeow:Identifier node carries exactly one literal value within its scheme, and a different value is a different identifier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierValue is functional: a gmeow:Identifier node carries exactly one literal value within its scheme, and a different value is a different identifier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:identifierValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:identifierValue ;
@@ -1057,7 +1057,7 @@ gmeow:membershipMemberFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "membershipMember is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:membershipMember is functional: a gmeow:Membership relator reifies the membership of exactly one member agent, filling a single member-role slot, while the flat gmeow:memberOf shortcut carries the many-to-many agent-to-organization relation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipMember is functional: a gmeow:Membership relator reifies the membership of exactly one member agent, filling a single member-role slot, while the flat gmeow:memberOf shortcut carries the many-to-many agent-to-organization relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:membershipMember ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:membershipMember ;
@@ -1072,7 +1072,7 @@ gmeow:membershipOrganizationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "membershipOrganization is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:membershipOrganization is functional: a gmeow:Membership relator is in exactly one organization (which may be a department that is a sub-organization of a larger org), so joining a second organization is a second membership."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipOrganization is functional: a gmeow:Membership relator is in exactly one organization (which may be a department that is a sub-organization of a larger org), so joining a second organization is a second membership. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:membershipOrganization ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:membershipOrganization ;
@@ -1087,7 +1087,7 @@ gmeow:opensAtFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "opensAt is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:opensAt is functional: a gmeow:OpeningHoursSpecification window has exactly one opening time, a single xsd:time that bounds where the window starts."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:opensAt is functional: a gmeow:OpeningHoursSpecification window has exactly one opening time, a single xsd:time that bounds where the window starts. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:opensAt ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:opensAt ;
@@ -1102,7 +1102,7 @@ gmeow:postInFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "postIn is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:postIn ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:postIn ;

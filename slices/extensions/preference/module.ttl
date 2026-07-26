@@ -431,7 +431,7 @@ gmeow:incomparabilityIrreflexivity
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "incomparableWith is irreflexive"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:incomparableWith is irreflexive: a candidate is always comparable with itself, so incomparability relates two DISTINCT candidates. The native coherence gate reads this to reject a reflexive incomparability edge."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:incomparableWith is irreflexive: a candidate is always comparable with itself, so incomparability relates two DISTINCT candidates. The native coherence gate reads this to reject a reflexive incomparability edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:incomparableWith ;
     logic:characteristicSort logic:irreflexiveProperty ;
     logic:formalizes gmeow:incomparableWith ;
@@ -2955,7 +2955,7 @@ gmeow:gateVerdictFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "gateVerdict is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:gateVerdict ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:gateVerdict ;
@@ -2970,7 +2970,7 @@ gmeow:hardConstraintClassFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "hardConstraintClass is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:hardConstraintClass ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:hardConstraintClass ;
@@ -3000,7 +3000,7 @@ gmeow:projectionKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "projectionKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:projectionKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:projectionKind ;
@@ -3015,7 +3015,7 @@ gmeow:receiptKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "receiptKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:receiptKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:receiptKind ;
@@ -3030,7 +3030,7 @@ gmeow:verifierOutcomeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "verifierOutcome is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:verifierOutcome ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:verifierOutcome ;

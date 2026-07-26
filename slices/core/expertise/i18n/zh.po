@@ -18,40 +18,40 @@ msgid "credentialIssuer is functional"
 msgstr "credentialIssuer 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:credentialIssuer is functional: one issuing organization is constitutive of a gmeow:Credential's identity, so a different issuer yields a different credential even for the same subject matter."
-msgstr "在规范载体上断言 gmeow:credentialIssuer 是函数性的：唯一的颁发机构构成 gmeow:Credential 身份的组成部分，因此即便针对同一主题，不同的颁发机构也会产生不同的凭证。"
+msgid "Asserts on the canonical carrier that gmeow:credentialIssuer is functional: one issuing organization is constitutive of a gmeow:Credential's identity, so a different issuer yields a different credential even for the same subject matter. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:credentialIssuer 是函数性的：唯一的颁发机构构成 gmeow:Credential 身份的组成部分，因此即便针对同一主题，不同的颁发机构也会产生不同的凭证。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "skillProficiencyAgent is functional"
 msgstr "skillProficiencyAgent 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:skillProficiencyAgent is functional: a gmeow:SkillProficiency expresses the proficiency of exactly one agent, whose identity is constitutive of the reified proficiency."
-msgstr "在规范载体上断言 gmeow:skillProficiencyAgent 是函数性的:一个 gmeow:SkillProficiency 恰好表达一个主体的技能水平,该主体的身份是这个具化技能水平记录的构成性要素。"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyAgent is functional: a gmeow:SkillProficiency expresses the proficiency of exactly one agent, whose identity is constitutive of the reified proficiency. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyAgent 是函数性的:一个 gmeow:SkillProficiency 恰好表达一个主体的技能水平,该主体的身份是这个具化技能水平记录的构成性要素。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "skillProficiencyLevel is functional"
 msgstr "skillProficiencyLevel 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:skillProficiencyLevel is functional: a gmeow:SkillProficiency records exactly one attained level (a single gmeow:ProficiencyLevel such as dreyfusExpert or assessedCompetent), and a second level would be a separate assessment."
-msgstr "在规范载体上断言 gmeow:skillProficiencyLevel 是函数性的:一个 gmeow:SkillProficiency 恰好记录一个已达到的等级(单一的 gmeow:ProficiencyLevel,例如 dreyfusExpert 或 assessedCompetent),第二个等级将构成一次独立的评估。"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyLevel is functional: a gmeow:SkillProficiency records exactly one attained level (a single gmeow:ProficiencyLevel such as dreyfusExpert or assessedCompetent), and a second level would be a separate assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyLevel 是函数性的:一个 gmeow:SkillProficiency 恰好记录一个已达到的等级(单一的 gmeow:ProficiencyLevel,例如 dreyfusExpert 或 assessedCompetent),第二个等级将构成一次独立的评估。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "skillProficiencyOf is functional"
 msgstr "skillProficiencyOf 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:skillProficiencyOf is functional: a gmeow:SkillProficiency concerns exactly one skill, constitutive of which proficiency it is."
-msgstr "在规范载体上断言 gmeow:skillProficiencyOf 是函数性的:一个 gmeow:SkillProficiency 恰好涉及一项技能,这正是它所记录之技能水平身份的构成性要素。"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyOf is functional: a gmeow:SkillProficiency concerns exactly one skill, constitutive of which proficiency it is. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyOf 是函数性的:一个 gmeow:SkillProficiency 恰好涉及一项技能,这正是它所记录之技能水平身份的构成性要素。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "skillProficiencyScale is functional"
 msgstr "skillProficiencyScale 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record."
-msgstr "在规范载体上断言 gmeow:skillProficiencyScale 是函数性的:一个 gmeow:SkillProficiency 的等级恰好按一种量表(Dreyfus、NIH、经评估或自我报告)来衡量,因此同一成就若按另一种量表解读,便构成一条不同的技能水平记录。"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyScale 是函数性的:一个 gmeow:SkillProficiency 的等级恰好按一种量表(Dreyfus、NIH、经评估或自我报告)来衡量,因此同一成就若按另一种量表解读,便构成一条不同的技能水平记录。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:credentialIssuer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

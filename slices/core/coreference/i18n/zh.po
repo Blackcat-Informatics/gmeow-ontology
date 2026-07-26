@@ -26,16 +26,16 @@ msgid "editionOf is functional"
 msgstr "editionOf 为函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/editionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states."
-msgstr "在规范载体上断言 gmeow:editionOf 是函数性的：一个版本恰好版化一部作品，正如其 skos:definition 所述。"
+msgid "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:editionOf 是函数性的：一个版本恰好版化一部作品，正如其 skos:definition 所述。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "versionOf is functional"
 msgstr "「versionOf」具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states."
-msgstr "在规范载体上断言 gmeow:versionOf 是函数式的：一个版本恰好属于一条谱系，正如其 skos:definition 所述。"
+msgid "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:versionOf 是函数式的：一个版本恰好属于一条谱系，正如其 skos:definition 所述。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/counterpartOfSymmetry|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:counterpartOf holds in both directions; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

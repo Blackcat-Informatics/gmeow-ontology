@@ -26,16 +26,16 @@ msgid "editionOf is functional"
 msgstr "editionOf est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/editionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states."
-msgstr "Affirme sur le porteur canonique que gmeow:editionOf est fonctionnelle : une édition éditionne exactement une œuvre, comme l'énonce sa skos:definition."
+msgid "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:editionOf est fonctionnelle : une édition éditionne exactement une œuvre, comme l'énonce sa skos:definition. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "versionOf is functional"
 msgstr "« versionOf » est fonctionnel"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states."
-msgstr "Affirme sur le porteur canonique que gmeow:versionOf est fonctionnelle : une version appartient à exactement une lignée, comme l'indique sa skos:definition."
+msgid "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:versionOf est fonctionnelle : une version appartient à exactement une lignée, comme l'indique sa skos:definition. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/counterpartOfSymmetry|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:counterpartOf holds in both directions; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

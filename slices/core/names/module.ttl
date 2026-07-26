@@ -1787,7 +1787,7 @@ gmeow:partOrderFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "partOrder is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:partOrder is functional: a gmeow:NamePart occupies exactly one 0-based position in its appellation's surface order — a component has a single place as actually written in its culture."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:partOrder is functional: a gmeow:NamePart occupies exactly one 0-based position in its appellation's surface order — a component has a single place as actually written in its culture. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:partOrder ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:partOrder ;
@@ -1802,7 +1802,7 @@ gmeow:pronounObjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounObject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pronounObject is functional: a gmeow:PronounSet has exactly one object (accusative) form — the single word that fills that one grammatical slot."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pronounObject is functional: a gmeow:PronounSet has exactly one object (accusative) form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pronounObject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pronounObject ;
@@ -1817,7 +1817,7 @@ gmeow:pronounPossessiveFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounPossessive is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pronounPossessive is functional: a gmeow:PronounSet has exactly one possessive pronoun form — the single word that fills that one grammatical slot."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pronounPossessive is functional: a gmeow:PronounSet has exactly one possessive pronoun form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pronounPossessive ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pronounPossessive ;
@@ -1832,7 +1832,7 @@ gmeow:pronounPossessiveDeterminerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounPossessiveDeterminer is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pronounPossessiveDeterminer is functional: a gmeow:PronounSet has exactly one possessive determiner form — the single word that fills that one grammatical slot."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pronounPossessiveDeterminer is functional: a gmeow:PronounSet has exactly one possessive determiner form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pronounPossessiveDeterminer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pronounPossessiveDeterminer ;
@@ -1847,7 +1847,7 @@ gmeow:pronounReflexiveFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounReflexive is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pronounReflexive is functional: a gmeow:PronounSet has exactly one reflexive form — the single word that fills that one grammatical slot."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pronounReflexive is functional: a gmeow:PronounSet has exactly one reflexive form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pronounReflexive ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pronounReflexive ;
@@ -1862,7 +1862,7 @@ gmeow:pronounSubjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounSubject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pronounSubject is functional: a gmeow:PronounSet has exactly one subject (nominative) form — the single word that fills that one grammatical slot."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pronounSubject is functional: a gmeow:PronounSet has exactly one subject (nominative) form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pronounSubject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pronounSubject ;
@@ -1877,7 +1877,7 @@ gmeow:usageAppellationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageAppellation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:usageAppellation is functional: a gmeow:NameUsage relator binds exactly one appellation — the single name by which its subject is called in that reified use, so a different appellation is a different usage."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usageAppellation is functional: a gmeow:NameUsage relator binds exactly one appellation — the single name by which its subject is called in that reified use, so a different appellation is a different usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:usageAppellation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:usageAppellation ;
@@ -1892,7 +1892,7 @@ gmeow:usageNamedFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageNamed is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:usageNamed is functional: a gmeow:NameUsage relator names exactly one entity — the single subject called by its appellation in that reified use, so a different named entity is a different usage."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usageNamed is functional: a gmeow:NameUsage relator names exactly one entity — the single subject called by its appellation in that reified use, so a different named entity is a different usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:usageNamed ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:usageNamed ;
@@ -1907,7 +1907,7 @@ gmeow:usageRegisterFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageRegister is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:usageRegister is functional: a gmeow:NameUsage carries exactly one social register — the single formal, intimate, professional, or casual posture of that one reified use of a name."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usageRegister is functional: a gmeow:NameUsage carries exactly one social register — the single formal, intimate, professional, or casual posture of that one reified use of a name. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:usageRegister ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:usageRegister ;
@@ -1922,7 +1922,7 @@ gmeow:usageRelationshipScopeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageRelationshipScope is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:usageRelationshipScope ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:usageRelationshipScope ;

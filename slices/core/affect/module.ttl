@@ -3223,7 +3223,7 @@ gmeow:appraisalScaleProfileFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisalScaleProfile is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:appraisalScaleProfile is functional: a dimensional appraisal reading is expressed against exactly one declared reference frame — a single range, midpoint, polarity, and transform — because the same bare magnitude read against two frames would carry two incompatible meanings."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:appraisalScaleProfile is functional: a dimensional appraisal reading is expressed against exactly one declared reference frame — a single range, midpoint, polarity, and transform — because the same bare magnitude read against two frames would carry two incompatible meanings. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:appraisalScaleProfile ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:appraisalScaleProfile ;
@@ -3238,7 +3238,7 @@ gmeow:coreAxisIndexFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "coreAxisIndex is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:coreAxisIndex is functional: each core-affect dimension occupies exactly one fixed zero-based row/column position in the metric Gram matrix, so a second index would break the deterministic correspondence between an axis and its single coordinate in the exact-rational metric."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:coreAxisIndex is functional: each core-affect dimension occupies exactly one fixed zero-based row/column position in the metric Gram matrix, so a second index would break the deterministic correspondence between an axis and its single coordinate in the exact-rational metric. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:coreAxisIndex ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:coreAxisIndex ;
@@ -3328,7 +3328,7 @@ gmeow:labelSetDecisionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "labelSetDecision is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:labelSetDecision ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:labelSetDecision ;
@@ -3358,7 +3358,7 @@ gmeow:metricProfileFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metricProfile is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:metricProfile is functional: a derived intensity is computed under exactly one declared scale-normalization profile for the whole vector, so a second metric profile would leave the normalization of that one intensity ambiguous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:metricProfile is functional: a derived intensity is computed under exactly one declared scale-normalization profile for the whole vector, so a second metric profile would leave the normalization of that one intensity ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:metricProfile ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:metricProfile ;
@@ -3403,7 +3403,7 @@ gmeow:normFunctionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "normFunction is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:normFunction is functional: a derived intensity is computed under exactly one declared math:Norm — a single Gram-induced ‖x‖=√(xᵀGx) — so two norms on one intensity would yield two incompatible magnitudes for the same reading."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:normFunction is functional: a derived intensity is computed under exactly one declared math:Norm — a single Gram-induced ‖x‖=√(xᵀGx) — so two norms on one intensity would yield two incompatible magnitudes for the same reading. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:normFunction ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:normFunction ;
@@ -3463,7 +3463,7 @@ gmeow:profileRangeMaxFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profileRangeMax is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:profileRangeMax is functional: an affect scale has exactly one upper bound to its range, so a second maximum would leave the interval the scale spans ill-defined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileRangeMax is functional: an affect scale has exactly one upper bound to its range, so a second maximum would leave the interval the scale spans ill-defined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:profileRangeMax ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:profileRangeMax ;
@@ -3478,7 +3478,7 @@ gmeow:profileRangeMinFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profileRangeMin is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:profileRangeMin is functional: an affect scale has exactly one lower bound to its range, so a second minimum would leave the interval the scale spans ill-defined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileRangeMin is functional: an affect scale has exactly one lower bound to its range, so a second minimum would leave the interval the scale spans ill-defined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:profileRangeMin ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:profileRangeMin ;
@@ -3538,7 +3538,7 @@ gmeow:vectorProfileFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "vectorProfile is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vectorProfile is functional: a vector observation is read against exactly one declared basis/frame for the whole vector — the single metric all its per-axis cells share — so a second basis would make the reading's coordinates ambiguous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vectorProfile is functional: a vector observation is read against exactly one declared basis/frame for the whole vector — the single metric all its per-axis cells share — so a second basis would make the reading's coordinates ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:vectorProfile ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:vectorProfile ;
@@ -3553,7 +3553,7 @@ gmeow:weightingPolicyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "weightingPolicy is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:weightingPolicy is functional: a derived intensity combines its axes under exactly one declared weighting policy — the single set of diagonal/off-diagonal Gram weights — so two policies would specify two different metrics for one intensity."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:weightingPolicy is functional: a derived intensity combines its axes under exactly one declared weighting policy — the single set of diagonal/off-diagonal Gram weights — so two policies would specify two different metrics for one intensity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:weightingPolicy ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:weightingPolicy ;

@@ -18,8 +18,8 @@ msgid "experiencer is functional"
 msgstr "experiencer est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/experiencerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:experiencer is functional: a mental occurrent inheres in exactly one agent, so a gmeow:MentalProcess has a single experiencer — two agents reasoning about the same subject are two distinct processes."
-msgstr "Affirme sur le porteur canonique que gmeow:experiencer est fonctionnelle : un occurrent mental est inhérent à exactement un agent, de sorte qu'un gmeow:MentalProcess n'a qu'un seul sujet d'expérience — deux agents raisonnant sur le même sujet constituent deux processus distincts."
+msgid "Asserts on the canonical carrier that gmeow:experiencer is functional: a mental occurrent inheres in exactly one agent, so a gmeow:MentalProcess has a single experiencer — two agents reasoning about the same subject are two distinct processes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:experiencer est fonctionnelle : un occurrent mental est inhérent à exactement un agent, de sorte qu'un gmeow:MentalProcess n'a qu'un seul sujet d'expérience — deux agents raisonnant sur le même sujet constituent deux processus distincts. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/experiencerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:experiencer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

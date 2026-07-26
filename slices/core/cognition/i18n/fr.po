@@ -18,32 +18,32 @@ msgid "knowledgeProficiencyAgent is functional"
 msgstr "knowledgeProficiencyAgent est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyAgent is functional: a gmeow:KnowledgeProficiency expresses the knowledge depth of exactly one agent, whose identity is constitutive of the reified proficiency."
-msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyAgent est fonctionnelle : une gmeow:KnowledgeProficiency exprime la profondeur de connaissance d'exactement un agent, dont l'identité est constitutive de la compétence réifiée."
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyAgent is functional: a gmeow:KnowledgeProficiency expresses the knowledge depth of exactly one agent, whose identity is constitutive of the reified proficiency. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyAgent est fonctionnelle : une gmeow:KnowledgeProficiency exprime la profondeur de connaissance d'exactement un agent, dont l'identité est constitutive de la compétence réifiée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "knowledgeProficiencyLevel is functional"
 msgstr "knowledgeProficiencyLevel est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyLevel is functional: a gmeow:KnowledgeProficiency records exactly one attained ordinal depth on the knowledgeAware to knowledgeMastered ladder."
-msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyLevel est fonctionnelle : une gmeow:KnowledgeProficiency enregistre exactement un niveau ordinal atteint sur l'échelle allant de knowledgeAware à knowledgeMastered."
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyLevel is functional: a gmeow:KnowledgeProficiency records exactly one attained ordinal depth on the knowledgeAware to knowledgeMastered ladder. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyLevel est fonctionnelle : une gmeow:KnowledgeProficiency enregistre exactement un niveau ordinal atteint sur l'échelle allant de knowledgeAware à knowledgeMastered. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "knowledgeProficiencyScale is functional"
 msgstr "knowledgeProficiencyScale est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyScale is functional: a gmeow:KnowledgeProficiency's level is read against exactly one scale, the native gmeow:KnowledgeLevel or a Bloom's / SOLO / Dreyfus alternate."
-msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyScale est fonctionnelle : le niveau d'une gmeow:KnowledgeProficiency se lit par rapport à exactement une échelle, le gmeow:KnowledgeLevel natif ou une alternative de Bloom, SOLO ou Dreyfus."
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencyScale is functional: a gmeow:KnowledgeProficiency's level is read against exactly one scale, the native gmeow:KnowledgeLevel or a Bloom's / SOLO / Dreyfus alternate. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencyScale est fonctionnelle : le niveau d'une gmeow:KnowledgeProficiency se lit par rapport à exactement une échelle, le gmeow:KnowledgeLevel natif ou une alternative de Bloom, SOLO ou Dreyfus. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "knowledgeProficiencySubject is functional"
 msgstr "knowledgeProficiencySubject est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is."
-msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencySubject est fonctionnelle : une gmeow:KnowledgeProficiency concerne exactement une entité sujet — un sujet, une personne, un lieu ou un événement — constitutive de la compétence dont il s'agit."
+msgid "Asserts on the canonical carrier that gmeow:knowledgeProficiencySubject is functional: a gmeow:KnowledgeProficiency concerns exactly one subject entity — a topic, person, place, or event — constitutive of which proficiency it is. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:knowledgeProficiencySubject est fonctionnelle : une gmeow:KnowledgeProficiency concerne exactement une entité sujet — un sujet, une personne, un lieu ou un événement — constitutive de la compétence dont il s'agit. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:knowledgeProficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

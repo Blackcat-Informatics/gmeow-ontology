@@ -18,8 +18,8 @@ msgid "feedPostingKind is functional"
 msgstr "feedPostingKind est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:feedPostingKind is functional: a feed posting has exactly one kind drawn from the open gmeow:FeedPostingKind vocabulary, and that single flavour deterministically drives the schema projection — a social posting to schema:SocialMediaPosting, a blog posting to schema:BlogPosting — which two competing flavours on one posting would leave ambiguous."
-msgstr "Affirme sur le porteur canonique que gmeow:feedPostingKind est fonctionnelle : une publication de flux possède exactement un type tiré du vocabulaire ouvert gmeow:FeedPostingKind, et cette unique variété détermine de façon déterministe la projection de schéma — une publication sociale vers schema:SocialMediaPosting, une publication de blog vers schema:BlogPosting — ce que deux variétés concurrentes sur une même publication laisseraient ambigu."
+msgid "Asserts on the canonical carrier that gmeow:feedPostingKind is functional: a feed posting has exactly one kind drawn from the open gmeow:FeedPostingKind vocabulary, and that single flavour deterministically drives the schema projection — a social posting to schema:SocialMediaPosting, a blog posting to schema:BlogPosting — which two competing flavours on one posting would leave ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:feedPostingKind est fonctionnelle : une publication de flux possède exactement un type tiré du vocabulaire ouvert gmeow:FeedPostingKind, et cette unique variété détermine de façon déterministe la projection de schéma — une publication sociale vers schema:SocialMediaPosting, une publication de blog vers schema:BlogPosting — ce que deux variétés concurrentes sur une même publication laisseraient ambigu. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "imageOrientation is functional"
@@ -42,8 +42,8 @@ msgid "pagePrincipalSubject is functional"
 msgstr "pagePrincipalSubject est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pagePrincipalSubject is functional: a web page is primarily about exactly one entity — the single principal subject it represents — even though it may mention many others through the broader gmeow:isAbout it specialises."
-msgstr "Affirme sur le porteur canonique que gmeow:pagePrincipalSubject est fonctionnelle : une page web porte principalement sur exactement une entité — l'unique sujet principal qu'elle représente — même si elle peut en mentionner beaucoup d'autres via le gmeow:isAbout plus large qu'elle spécialise."
+msgid "Asserts on the canonical carrier that gmeow:pagePrincipalSubject is functional: a web page is primarily about exactly one entity — the single principal subject it represents — even though it may mention many others through the broader gmeow:isAbout it specialises. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:pagePrincipalSubject est fonctionnelle : une page web porte principalement sur exactement une entité — l'unique sujet principal qu'elle représente — même si elle peut en mentionner beaucoup d'autres via le gmeow:isAbout plus large qu'elle spécialise. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pixelHeight is functional"

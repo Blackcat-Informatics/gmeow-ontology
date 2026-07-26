@@ -1055,7 +1055,7 @@ gmeow:bearerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "bearer is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:bearer is functional: a persistent gmeow:Quality inheres in exactly one bearer — the single entity whose quality it is, the patient whose blood pressure or the road whose width, inherence being a one-owner relation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:bearer is functional: a persistent gmeow:Quality inheres in exactly one bearer — the single entity whose quality it is, the patient whose blood pressure or the road whose width, inherence being a one-owner relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:bearer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:bearer ;
@@ -1070,7 +1070,7 @@ gmeow:currencyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "currency is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:currency is functional: a gmeow:MonetaryAmount is expressed in exactly one currency reference frame — a single amount is denominated in one currency, the same value in another currency being a distinct amount."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:currency is functional: a gmeow:MonetaryAmount is expressed in exactly one currency reference frame — a single amount is denominated in one currency, the same value in another currency being a distinct amount. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:currency ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:currency ;
@@ -1085,7 +1085,7 @@ gmeow:dimensionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "dimension is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:dimension is functional: a gmeow:Magnitude is a magnitude of exactly one generic quality — a single frame-independent quality kind such as pressure, length, or mass."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dimension is functional: a gmeow:Magnitude is a magnitude of exactly one generic quality — a single frame-independent quality kind such as pressure, length, or mass. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:dimension ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:dimension ;
@@ -1100,7 +1100,7 @@ gmeow:monetaryValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "monetaryValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:monetaryValue is functional: a gmeow:MonetaryAmount has exactly one numeric value — a single xsd:decimal amount."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:monetaryValue is functional: a gmeow:MonetaryAmount has exactly one numeric value — a single xsd:decimal amount. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:monetaryValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:monetaryValue ;
@@ -1130,7 +1130,7 @@ gmeow:observedAtFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observedAt is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:observedAt is functional: a dated gmeow:Observation has exactly one time index — a single reading of its quality is taken at one moment, which is what orders a quality's observations into a value-history."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:observedAt is functional: a dated gmeow:Observation has exactly one time index — a single reading of its quality is taken at one moment, which is what orders a quality's observations into a value-history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:observedAt ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:observedAt ;
@@ -1145,7 +1145,7 @@ gmeow:observedFeatureFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observedFeature is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:observedFeature is functional: a gmeow:Observation concerns exactly one feature of interest — the single individual whose property or state that observation records, even though the feature's type is left open."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:observedFeature is functional: a gmeow:Observation concerns exactly one feature of interest — the single individual whose property or state that observation records, even though the feature's type is left open. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:observedFeature ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:observedFeature ;
@@ -1160,7 +1160,7 @@ gmeow:quantityUncertaintyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "quantityUncertainty is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:quantityUncertainty is functional: a math:Quantity carries exactly one epistemic uncertainty — a single figure (for example ±1σ) expressed in the same unit as its value."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:quantityUncertainty is functional: a math:Quantity carries exactly one epistemic uncertainty — a single figure (for example ±1σ) expressed in the same unit as its value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:quantityUncertainty ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:quantityUncertainty ;
@@ -1175,7 +1175,7 @@ gmeow:streamIntervalFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "streamInterval is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:streamInterval is functional: a gmeow:Stream was produced over exactly one time interval — the interval is constitutive of the stream's identity, so a different interval is a different stream."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:streamInterval is functional: a gmeow:Stream was produced over exactly one time interval — the interval is constitutive of the stream's identity, so a different interval is a different stream. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:streamInterval ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:streamInterval ;
@@ -1190,7 +1190,7 @@ gmeow:streamOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "streamOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:streamOf is functional: a gmeow:Stream contains the observations of exactly one entity — a single moving feature, device, or tracked thing."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:streamOf is functional: a gmeow:Stream contains the observations of exactly one entity — a single moving feature, device, or tracked thing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:streamOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:streamOf ;
@@ -1205,7 +1205,7 @@ gmeow:trueQuantityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "trueQuantity is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:trueQuantity is functional: a framed math:Quantity is a reading of exactly one frame-independent gmeow:Magnitude — a single true magnitude underlies it, and that one magnitude is shared across readings taken in different units."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trueQuantity is functional: a framed math:Quantity is a reading of exactly one frame-independent gmeow:Magnitude — a single true magnitude underlies it, and that one magnitude is shared across readings taken in different units. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:trueQuantity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:trueQuantity ;
@@ -1235,7 +1235,7 @@ gmeow:assessmentCriterionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessmentCriterion is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assessmentCriterion is functional: each assessment applies exactly one criterion — a twenty-one-axis scoring pass fans out into twenty-one assessments, one per axis — so a single assessment record names a single criterion."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assessmentCriterion is functional: each assessment applies exactly one criterion — a twenty-one-axis scoring pass fans out into twenty-one assessments, one per axis — so a single assessment record names a single criterion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assessmentCriterion ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assessmentCriterion ;
@@ -1250,7 +1250,7 @@ gmeow:assessmentRubricFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessmentRubric is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assessmentRubric is functional: an assessment is version-pinned to exactly one rubric, the single evaluation framework under which its score was produced."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assessmentRubric is functional: an assessment is version-pinned to exactly one rubric, the single evaluation framework under which its score was produced. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assessmentRubric ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assessmentRubric ;
@@ -1280,7 +1280,7 @@ gmeow:assessmentTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessmentTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assessmentTarget is functional: an assessment scores exactly one target — the single feature of interest whose granularity sets the scoring-density expectation — so a second target is a separate assessment."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assessmentTarget is functional: an assessment scores exactly one target — the single feature of interest whose granularity sets the scoring-density expectation — so a second target is a separate assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assessmentTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assessmentTarget ;

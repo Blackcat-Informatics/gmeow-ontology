@@ -1061,7 +1061,7 @@ gmeow:sharpensTransitivity
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "sharpens is transitive"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:sharpens ;
     logic:characteristicSort logic:transitiveProperty ;
     logic:formalizes gmeow:sharpens ;
@@ -1196,7 +1196,7 @@ gmeow:standpointClaimFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpointClaim is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:standpointClaim ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:standpointClaim ;

@@ -18,24 +18,24 @@ msgid "proficiencyAgent is functional"
 msgstr "proficiencyAgent 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:proficiencyAgent is functional: a language-proficiency relator expresses the proficiency of exactly one agent, the identity-constituting party whose command of the language the reified proficiency is about."
-msgstr "在规范载体上断言 gmeow:proficiencyAgent 是函数性的:一个语言能力关系元恰好表达一个主体的能力——该被具体化的能力所关乎的、构成其身份的对语言掌握程度的那一方。"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyAgent is functional: a language-proficiency relator expresses the proficiency of exactly one agent, the identity-constituting party whose command of the language the reified proficiency is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:proficiencyAgent 是函数性的:一个语言能力关系元恰好表达一个主体的能力——该被具体化的能力所关乎的、构成其身份的对语言掌握程度的那一方。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "proficiencyLanguage is functional"
 msgstr "proficiencyLanguage 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:proficiencyLanguage is functional: a language-proficiency relator concerns exactly one language, the constitutive subject the reified proficiency is a proficiency in."
-msgstr "在规范载体上断言 gmeow:proficiencyLanguage 是函数性的:一个语言能力关系元恰好关乎一种语言——该被具体化的能力所属的构成性主题。"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyLanguage is functional: a language-proficiency relator concerns exactly one language, the constitutive subject the reified proficiency is a proficiency in. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:proficiencyLanguage 是函数性的:一个语言能力关系元恰好关乎一种语言——该被具体化的能力所属的构成性主题。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "proficiencyLevel is functional"
 msgstr "proficiencyLevel 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:proficiencyLevel is functional: a language-proficiency relator records exactly one attained level, the single gmeow:ProficiencyLevel value (such as cefrB2 or levelNative) it has reached."
-msgstr "在规范载体上断言 gmeow:proficiencyLevel 是函数性的:一个语言能力关系元恰好记录一个已达到的等级——其所达到的唯一 gmeow:ProficiencyLevel 值(如 cefrB2 或 levelNative)。"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyLevel is functional: a language-proficiency relator records exactly one attained level, the single gmeow:ProficiencyLevel value (such as cefrB2 or levelNative) it has reached. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:proficiencyLevel 是函数性的:一个语言能力关系元恰好记录一个已达到的等级——其所达到的唯一 gmeow:ProficiencyLevel 值(如 cefrB2 或 levelNative)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "proficiencyModality is functional"
@@ -50,16 +50,16 @@ msgid "proficiencyScale is functional"
 msgstr "proficiencyScale 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:proficiencyScale is functional: a language-proficiency relator measures its level on exactly one framework, the single gmeow:ProficiencyScale (CEFR, ILR, ACTFL, or self-reported) against which the attained level is read."
-msgstr "在规范载体上断言 gmeow:proficiencyScale 是函数性的:一个语言能力关系元恰好依据一个框架衡量其等级——据以解读所达到等级的唯一 gmeow:ProficiencyScale(CEFR、ILR、ACTFL 或自我报告)。"
+msgid "Asserts on the canonical carrier that gmeow:proficiencyScale is functional: a language-proficiency relator measures its level on exactly one framework, the single gmeow:ProficiencyScale (CEFR, ILR, ACTFL, or self-reported) against which the attained level is read. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:proficiencyScale 是函数性的:一个语言能力关系元恰好依据一个框架衡量其等级——据以解读所达到等级的唯一 gmeow:ProficiencyScale(CEFR、ILR、ACTFL 或自我报告)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/stateLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "stateLanguage is functional"
 msgstr "stateLanguage 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/stateLanguageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about."
-msgstr "在规范载体上断言 gmeow:stateLanguage 是函数性的:一个 LanguageState 关系体恰好描述一种主体语言、变体或版本的状态——即该具化断言所关乎其状态的那唯一一种语言。"
+msgid "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:stateLanguage 是函数性的:一个 LanguageState 关系体恰好描述一种主体语言、变体或版本的状态——即该具化断言所关乎其状态的那唯一一种语言。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/proficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:proficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

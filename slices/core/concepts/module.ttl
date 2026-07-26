@@ -207,7 +207,7 @@ gmeow:conceptHoldsForFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
     rdfs:label "conceptHoldsFor is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:conceptHoldsFor is functional: one gmeow:ConceptTenure records the intension of exactly one concept, so the tenure binds to a single concept even though a concept may accrue many tenures over time."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conceptHoldsFor is functional: one gmeow:ConceptTenure records the intension of exactly one concept, so the tenure binds to a single concept even though a concept may accrue many tenures over time. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:conceptHoldsFor ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:conceptHoldsFor ;

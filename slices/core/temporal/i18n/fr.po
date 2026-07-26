@@ -58,8 +58,8 @@ msgid "frameTimeScale is functional"
 msgstr "frameTimeScale est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/frameTimeScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:frameTimeScale is functional: a gmeow:TemporalFrame runs on exactly one gmeow:TimeScale, since the mandatory 'which clock' component is singular and a frame ticking on both TAI and UT1 would be two frames."
-msgstr "Affirme sur le porteur canonique que gmeow:frameTimeScale est fonctionnelle : un gmeow:TemporalFrame fonctionne sur exactement un gmeow:TimeScale, car la composante obligatoire « quelle horloge » est singulière, et un cadre battant à la fois sur TAI et UT1 constituerait deux cadres."
+msgid "Asserts on the canonical carrier that gmeow:frameTimeScale is functional: a gmeow:TemporalFrame runs on exactly one gmeow:TimeScale, since the mandatory 'which clock' component is singular and a frame ticking on both TAI and UT1 would be two frames. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:frameTimeScale est fonctionnelle : un gmeow:TemporalFrame fonctionne sur exactement un gmeow:TimeScale, car la composante obligatoire « quelle horloge » est singulière, et un cadre battant à la fois sur TAI et UT1 constituerait deux cadres. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasEndInstantFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hasEndInstant is functional"
@@ -90,8 +90,8 @@ msgid "measuredAge is functional"
 msgstr "measuredAge est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measuredAgeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:measuredAge is functional: a single gmeow:TemporalMeasurement yields one numeric age in its declared unit, since one dating act under one vantage produces one result and a second age figure is a distinct standpoint-indexed measurement."
-msgstr "Affirme sur le porteur canonique que gmeow:measuredAge est fonctionnelle : une seule gmeow:TemporalMeasurement produit un âge numérique unique dans son unité déclarée, puisqu'un acte de datation effectué sous un seul point de vue produit un seul résultat, et qu'un second chiffre d'âge constituerait une mesure distincte indexée sur un autre point de vue."
+msgid "Asserts on the canonical carrier that gmeow:measuredAge is functional: a single gmeow:TemporalMeasurement yields one numeric age in its declared unit, since one dating act under one vantage produces one result and a second age figure is a distinct standpoint-indexed measurement. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:measuredAge est fonctionnelle : une seule gmeow:TemporalMeasurement produit un âge numérique unique dans son unité déclarée, puisqu'un acte de datation effectué sous un seul point de vue produit un seul résultat, et qu'un second chiffre d'âge constituerait une mesure distincte indexée sur un autre point de vue. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measuredDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "measuredDate is functional"
@@ -106,8 +106,8 @@ msgid "measurementMethod is functional"
 msgstr "measurementMethod est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measurementMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:measurementMethod is functional: a gmeow:TemporalMeasurement is produced by exactly one gmeow:DatingMethod, since the technique behind an age is singular and a result obtained by a different method is a different measurement."
-msgstr "Affirme sur le porteur canonique que gmeow:measurementMethod est fonctionnelle : une gmeow:TemporalMeasurement est produite par exactement une gmeow:DatingMethod, puisque la technique derrière un âge est singulière et qu'un résultat obtenu par une méthode différente constitue une mesure différente."
+msgid "Asserts on the canonical carrier that gmeow:measurementMethod is functional: a gmeow:TemporalMeasurement is produced by exactly one gmeow:DatingMethod, since the technique behind an age is singular and a result obtained by a different method is a different measurement. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:measurementMethod est fonctionnelle : une gmeow:TemporalMeasurement est produite par exactement une gmeow:DatingMethod, puisque la technique derrière un âge est singulière et qu'un résultat obtenu par une méthode différente constitue une mesure différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measurementUncertaintyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "measurementUncertainty is functional"
@@ -130,8 +130,8 @@ msgid "startedAtTime is functional"
 msgstr "startedAtTime est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:startedAtTime est fonctionnelle: un gmeow:TimeInterval s'ouvre à une seule dateTime précise, puisqu'un intervalle avec deux horodatages de début serait en réalité deux intervalles, ce qui rend la borne de début en ligne à valeur unique."
+msgid "Asserts on the canonical carrier that gmeow:startedAtTime is functional: a gmeow:TimeInterval opens at a single crisp dateTime, since an interval with two start timestamps would be two intervals, making the inline start bound single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:startedAtTime est fonctionnelle: un gmeow:TimeInterval s'ouvre à une seule dateTime précise, puisqu'un intervalle avec deux horodatages de début serait en réalité deux intervalles, ce qui rend la borne de début en ligne à valeur unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/duringIntervalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:duringInterval names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

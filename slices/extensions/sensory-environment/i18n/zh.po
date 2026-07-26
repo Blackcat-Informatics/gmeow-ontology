@@ -26,40 +26,40 @@ msgid "environmentAtLocation is functional"
 msgstr "environmentAtLocation 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/environmentAtLocationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place."
-msgstr "在规范载体上断言 gmeow:environmentAtLocation 是函数性的：一个感官环境恰好关涉一个地点，而这正构成了其作为该地点周遭条件的身份要素。"
+msgid "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:environmentAtLocation 是函数性的：一个感官环境恰好关涉一个地点，而这正构成了其作为该地点周遭条件的身份要素。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixShapeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "matrixShape is functional"
 msgstr "matrixShape 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixShapeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against."
-msgstr "在规范载体上断言 gmeow:matrixShape 是函数式的:一个坐标矩阵恰好携带一个形状描述符,即求解层据以解析其序列化值的单一维度字符串(例如 '4×1' 或 '640×480×3')。"
+msgid "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:matrixShape 是函数式的:一个坐标矩阵恰好携带一个形状描述符,即求解层据以解析其序列化值的单一维度字符串(例如 '4×1' 或 '640×480×3')。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "matrixValue is functional"
 msgstr "matrixValue 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/matrixValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape."
-msgstr "在规范载体上断言 gmeow:matrixValue 是函数式的:一个坐标矩阵恰好携带一个序列化的数值负载,即求解层依据该矩阵所声明的参照系和形状来解释的单一向量、矩阵或张量字面量。"
+msgid "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:matrixValue 是函数式的:一个坐标矩阵恰好携带一个序列化的数值负载,即求解层依据该矩阵所声明的参照系和形状来解释的单一向量、矩阵或张量字面量。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionEnvironmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "perceptionEnvironment is functional"
 msgstr "perceptionEnvironment 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionEnvironmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest."
-msgstr "在规范载体上断言 gmeow:perceptionEnvironment 是函数性的:一次感官知觉恰好关于一个感官环境,即其唯一被观察的关注特征。"
+msgid "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:perceptionEnvironment 是函数性的:一次感官知觉恰好关于一个感官环境,即其唯一被观察的关注特征。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "perceptionModality is functional"
 msgstr "perceptionModality 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/perceptionModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered."
-msgstr "在规范载体上断言 gmeow:perceptionModality 是函数性的:一次感官知觉恰好通过一个感官通道进行,即记录该感知值的唯一模态。"
+msgid "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:perceptionModality 是函数性的:一次感官知觉恰好通过一个感官通道进行,即记录该感知值的唯一模态。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coordinateMatrixFrameFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:coordinateMatrixFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

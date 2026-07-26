@@ -988,7 +988,7 @@ gmeow:adequacyUnderStandardFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "adequacyUnderStandard is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:adequacyUnderStandard is functional: a single reified gmeow:AdequacyAssessment judges its support against exactly one named gmeow:EpistemicStandard, so the assessment fixes one standard as the bar it measures against."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:adequacyUnderStandard is functional: a single reified gmeow:AdequacyAssessment judges its support against exactly one named gmeow:EpistemicStandard, so the assessment fixes one standard as the bar it measures against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:adequacyUnderStandard ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:adequacyUnderStandard ;
@@ -1018,7 +1018,7 @@ gmeow:attributedPropositionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attributedProposition is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:attributedProposition is functional: one gmeow:KnowledgeAttribution is about exactly one proposition attributed as known, so a single non-factive 'takes themselves to know' attribution names one propositional target and entails no truth of it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attributedProposition is functional: one gmeow:KnowledgeAttribution is about exactly one proposition attributed as known, so a single non-factive 'takes themselves to know' attribution names one propositional target and entails no truth of it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:attributedProposition ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:attributedProposition ;
@@ -1048,7 +1048,7 @@ gmeow:claimOfBeliefFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "claimOfBelief is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:claimOfBelief is functional: one gmeow:DoxasticStandpointClaim reports exactly one held gmeow:DoxasticState — the single believing mode the claim is the vantage-indexed report of, so the reporting claim binds to one underlying belief."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimOfBelief is functional: one gmeow:DoxasticStandpointClaim reports exactly one held gmeow:DoxasticState — the single believing mode the claim is the vantage-indexed report of, so the reporting claim binds to one underlying belief. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:claimOfBelief ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:claimOfBelief ;
@@ -1063,7 +1063,7 @@ gmeow:doxasticClaimFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxasticClaim is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:doxasticClaim is functional: one gmeow:DoxasticState carries its qualitative belief value through exactly one gmeow:StandpointClaim — the single bridge whose claimModality supplies the state's modality without domain-clashing claimModality onto DoxasticState."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:doxasticClaim is functional: one gmeow:DoxasticState carries its qualitative belief value through exactly one gmeow:StandpointClaim — the single bridge whose claimModality supplies the state's modality without domain-clashing claimModality onto DoxasticState. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:doxasticClaim ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:doxasticClaim ;
@@ -1078,7 +1078,7 @@ gmeow:doxasticContentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxasticContent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:doxasticContent is functional: one gmeow:DoxasticState is constitutively directed at exactly one gmeow:Proposition — the single truth-apt content the believing mode is about, so a state directed at two propositions would be two distinct believings."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:doxasticContent is functional: one gmeow:DoxasticState is constitutively directed at exactly one gmeow:Proposition — the single truth-apt content the believing mode is about, so a state directed at two propositions would be two distinct believings. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:doxasticContent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:doxasticContent ;
@@ -1108,7 +1108,7 @@ gmeow:evaluatesFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "evaluates is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:evaluates is functional: one gmeow:ClaimEvaluation assesses exactly one target gmeow:ClaimToken — the single assertion act it judges under its context — even though that one token may in turn be assessed by many coexisting evaluations."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluates is functional: one gmeow:ClaimEvaluation assesses exactly one target gmeow:ClaimToken — the single assertion act it judges under its context — even though that one token may in turn be assessed by many coexisting evaluations. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:evaluates ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:evaluates ;
@@ -1138,7 +1138,7 @@ gmeow:knownInWorldFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knownInWorld is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:knownInWorld is functional: one gmeow:KnowledgeClaim is locally factive in exactly one gmeow:EpistemicContext — the single belief-world its known proposition holds in, since factivity is world-relative and a second world would be a second knowing claim."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knownInWorld is functional: one gmeow:KnowledgeClaim is locally factive in exactly one gmeow:EpistemicContext — the single belief-world its known proposition holds in, since factivity is world-relative and a second world would be a second knowing claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:knownInWorld ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:knownInWorld ;
@@ -1153,7 +1153,7 @@ gmeow:knownPropositionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knownProposition is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:knownProposition is functional: one reified gmeow:KnowledgeClaim is about exactly one known gmeow:Proposition — the single propositional content the knowing relation ranges over, so one claim reifies knowing one proposition in its world under its standard."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:knownProposition is functional: one reified gmeow:KnowledgeClaim is about exactly one known gmeow:Proposition — the single propositional content the knowing relation ranges over, so one claim reifies knowing one proposition in its world under its standard. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:knownProposition ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:knownProposition ;
@@ -1183,7 +1183,7 @@ gmeow:supportGroundFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supportGround is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:supportGround is functional: one gmeow:SupportAssessment weighs exactly one gmeow:JustificationGround — the single ground whose warranting strength it measures under one standard, so a second ground would be a separate support assessment."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:supportGround is functional: one gmeow:SupportAssessment weighs exactly one gmeow:JustificationGround — the single ground whose warranting strength it measures under one standard, so a second ground would be a separate support assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:supportGround ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:supportGround ;
@@ -1198,7 +1198,7 @@ gmeow:supportUnderStandardFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supportUnderStandard is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:supportUnderStandard is functional: one gmeow:SupportAssessment measures support relative to exactly one named gmeow:EpistemicStandard — the single bar its strength is indexed to, so assessing the same ground under a second standard is a distinct assessment."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:supportUnderStandard is functional: one gmeow:SupportAssessment measures support relative to exactly one named gmeow:EpistemicStandard — the single bar its strength is indexed to, so assessing the same ground under a second standard is a distinct assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:supportUnderStandard ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:supportUnderStandard ;
@@ -1228,7 +1228,7 @@ gmeow:underStandardFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "underStandard is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:underStandard is functional: one reified gmeow:KnowledgeClaim is held to exactly one gmeow:EpistemicStandard — the single ordinary, scientific, or legal bar under which the knowing counts — so the same knowing under a different standard is a separate claim."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:underStandard is functional: one reified gmeow:KnowledgeClaim is held to exactly one gmeow:EpistemicStandard — the single ordinary, scientific, or legal bar under which the knowing counts — so the same knowing under a different standard is a separate claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:underStandard ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:underStandard ;

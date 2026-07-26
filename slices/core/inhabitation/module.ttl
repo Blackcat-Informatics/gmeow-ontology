@@ -933,7 +933,7 @@ gmeow:configurationEmbodimentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configurationEmbodiment is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:configurationEmbodiment ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:configurationEmbodiment ;
@@ -948,7 +948,7 @@ gmeow:configurationOfTenureFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configurationOfTenure is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:configurationOfTenure ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:configurationOfTenure ;
@@ -993,7 +993,7 @@ gmeow:inhabitedHostFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitedHost is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:inhabitedHost ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:inhabitedHost ;
@@ -1008,7 +1008,7 @@ gmeow:inhabitationIntervalFrameRequirement
         logic:MediatedPropertyRequirementAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "an inhabitation tenure's interval carries its temporal frame"@x-gmeow-english ;
-    skos:definition "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame."@x-gmeow-english ;
+    skos:definition "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:mediatedRequirementTarget gmeow:InhabitationTenure ;
     logic:mediatedRequirementVia gmeow:duringInterval ;
     logic:mediatedRequirementProperty gmeow:hasTemporalFrame ;

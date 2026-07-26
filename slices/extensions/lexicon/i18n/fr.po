@@ -18,8 +18,8 @@ msgid "attestationInterval is functional"
 msgstr "attestationInterval est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/attestationIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen."
-msgstr "Affirme sur le porteur canonique que gmeow:attestationInterval est fonctionnelle : une attestation d'usage porte exactement un intervalle d'observation, l'unique étendue de corpus, période d'inscription, ou ère d'usage durant laquelle l'usage attesté est affirmé avoir été observé."
+msgid "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:attestationInterval est fonctionnelle : une attestation d'usage porte exactement un intervalle d'observation, l'unique étendue de corpus, période d'inscription, ou ère d'usage durant laquelle l'usage attesté est affirmé avoir été observé. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/attestedFormFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "attestedForm is functional"
@@ -34,8 +34,8 @@ msgid "derivationTarget is functional"
 msgstr "derivationTarget est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/derivationTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon."
-msgstr "Affirme sur le porteur canonique que gmeow:derivationTarget est fonctionnelle : une dérivation étymologique nomme exactement un item ou une forme lexicale descendante, l'unique cible dérivée de l'étymon."
+msgid "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:derivationTarget est fonctionnelle : une dérivation étymologique nomme exactement un item ou une forme lexicale descendante, l'unique cible dérivée de l'étymon. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/etymonSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "etymonSource is functional"
@@ -50,8 +50,8 @@ msgid "formRepresentation is functional"
 msgstr "formRepresentation est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/formRepresentationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form."
-msgstr "Affirme sur le porteur canonique que gmeow:formRepresentation est fonctionnelle : une forme lexicale porte exactement une chaîne ou une valeur de surface, car une représentation différente constitue par définition une forme différente."
+msgid "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:formRepresentation est fonctionnelle : une forme lexicale porte exactement une chaîne ou une valeur de surface, car une représentation différente constitue par définition une forme différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "lexicalItemLanguage is functional"

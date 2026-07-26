@@ -34,24 +34,24 @@ msgid "routeEnd is functional"
 msgstr "routeEnd 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path."
-msgstr "在规范载体上断言 gmeow:routeEnd 是函数性的:一条路线恰好终止于一个终点节点——即封闭该路径的唯一目的地。"
+msgid "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:routeEnd 是函数性的:一条路线恰好终止于一个终点节点——即封闭该路径的唯一目的地。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "routeKind is functional"
 msgstr "routeKind 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed."
-msgstr "在规范载体上断言 gmeow:routeKind 是函数性的:一条路线恰好由一个 RouteKind 值分类——即其路径所遍历的唯一领域(交通、航班、引用、依赖等等)。"
+msgid "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:routeKind 是函数性的:一条路线恰好由一个 RouteKind 值分类——即其路径所遍历的唯一领域(交通、航班、引用、依赖等等)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "routeStart is functional"
 msgstr "routeStart 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs."
-msgstr "在规范载体上断言 gmeow:routeStart 是函数性的:一条路线恰好起始于一个起点节点——即该路径出发的唯一起点。"
+msgid "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:routeStart 是函数性的:一条路线恰好起始于一个起点节点——即该路径出发的唯一起点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:connectionSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

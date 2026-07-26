@@ -18,24 +18,24 @@ msgid "assertionFacet is functional"
 msgstr "assertionFacet 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about."
-msgstr "在规范载体上断言 gmeow:assertionFacet 是函数性的:一条无障碍断言恰好断定一个方面,即该关系元所涉及的单一无障碍维度(轮椅通行、无台阶、视觉等)。"
+msgid "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:assertionFacet 是函数性的:一条无障碍断言恰好断定一个方面,即该关系元所涉及的单一无障碍维度(轮椅通行、无台阶、视觉等)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "assertionPolarity is functional"
 msgstr "assertionPolarity 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet."
-msgstr "在规范载体上断言 gmeow:assertionPolarity 是函数性的:一条无障碍断言恰好携带一种极性——有利、障碍或受限——即该关系元在其所涉方面上所持的唯一立场。"
+msgid "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:assertionPolarity 是函数性的:一条无障碍断言恰好携带一种极性——有利、障碍或受限——即该关系元在其所涉方面上所持的唯一立场。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "assertionSubject is functional"
 msgstr "assertionSubject 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."
-msgstr "在规范载体上断言 gmeow:assertionSubject 是函数性的:一条无障碍断言恰好评估一个主体,即被评估的单一地点或连接。"
+msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:assertionSubject 是函数性的:一条无障碍断言恰好评估一个主体,即被评估的单一地点或连接。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:assertionFacet names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

@@ -50,16 +50,16 @@ msgid "mythFrame is functional"
 msgstr "mythFrame 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mythFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against."
-msgstr "在规范载体上断言 gmeow:mythFrame 是函数式的:一个 Myth 恰好在一个叙事参照系下将其神话内部的断言视为真,该神话中每一个由 accordingTo 界定范围的断言都依据这一唯一立场来衡量。"
+msgid "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:mythFrame 是函数式的:一个 Myth 恰好在一个叙事参照系下将其神话内部的断言视为真,该神话中每一个由 accordingTo 界定范围的断言都依据这一唯一立场来衡量。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrationSegment is functional"
 msgstr "narrationSegment 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records."
-msgstr "在规范载体上断言 gmeow:narrationSegment 是函数式的:一个 NarrationUsage 恰好具体化一个(片段,主体)接合点,因此它恰好携带一个内容片段——即该关系体所记录其叙述行为的那一段承载文本。"
+msgid "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:narrationSegment 是函数式的:一个 NarrationUsage 恰好具体化一个(片段,主体)接合点,因此它恰好携带一个内容片段——即该关系体所记录其叙述行为的那一段承载文本。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrationSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrationSubject is functional"
@@ -82,16 +82,16 @@ msgid "narrativeFrameLinkSource is functional"
 msgstr "narrativeFrameLinkSource 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources."
-msgstr "在规范载体上断言 gmeow:narrativeFrameLinkSource 是函数式的:一个 NarrativeFrameLink 绑定单一的有向参照系到参照系关系,因此它恰好有一个源参照系——如果一个链接允许多个源,被具体化的关系体就会失去其方向性。"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:narrativeFrameLinkSource 是函数式的:一个 NarrativeFrameLink 绑定单一的有向参照系到参照系关系,因此它恰好有一个源参照系——如果一个链接允许多个源,被具体化的关系体就会失去其方向性。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrativeFrameLinkTarget is functional"
 msgstr "narrativeFrameLinkTarget 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target."
-msgstr "在规范载体上断言 gmeow:narrativeFrameLinkTarget 是函数式的:一个 NarrativeFrameLink 绑定单一的有向参照系到参照系关系,因此它恰好有一个目标参照系——一个源参照系关联多个目标即对应多个链接,每个链接各自固定自己的目标。"
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:narrativeFrameLinkTarget 是函数式的:一个 NarrativeFrameLink 绑定单一的有向参照系到参照系关系,因此它恰好有一个目标参照系——一个源参照系关联多个目标即对应多个链接,每个链接各自固定自己的目标。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrativeRoleBearer is functional"
@@ -130,8 +130,8 @@ msgid "positionFrame is functional"
 msgstr "positionFrame 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/positionFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid."
-msgstr "在规范载体上断言 gmeow:positionFrame 是函数性的:一个 NarrativePosition 恰好在一个叙事时间框架中表达——赋予其序数和标签意义的唯一坐标系统——因为没有其唯一框架的位置正是该类存在的目的所要禁止的裸整数反模式。"
+msgid "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:positionFrame 是函数性的:一个 NarrativePosition 恰好在一个叙事时间框架中表达——赋予其序数和标签意义的唯一坐标系统——因为没有其唯一框架的位置正是该类存在的目的所要禁止的裸整数反模式。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/positionOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "positionOrdinal is functional"

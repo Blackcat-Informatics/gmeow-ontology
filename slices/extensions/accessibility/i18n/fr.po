@@ -18,24 +18,24 @@ msgid "assertionFacet is functional"
 msgstr "assertionFacet est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about."
-msgstr "Affirme sur le porteur canonique que gmeow:assertionFacet est fonctionnelle : une assertion d'accessibilité affirme exactement une facette, l'unique dimension d'accessibilité (fauteuil roulant, sans marche, visuelle, etc.) dont traite le relateur."
+msgid "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:assertionFacet est fonctionnelle : une assertion d'accessibilité affirme exactement une facette, l'unique dimension d'accessibilité (fauteuil roulant, sans marche, visuelle, etc.) dont traite le relateur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "assertionPolarity is functional"
 msgstr "assertionPolarity est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionPolarityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet."
-msgstr "Affirme sur le porteur canonique que gmeow:assertionPolarity est fonctionnelle : une assertion d'accessibilité porte exactement une polarité — atout, obstacle, ou limité — l'unique position que le relateur adopte sur sa facette."
+msgid "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:assertionPolarity est fonctionnelle : une assertion d'accessibilité porte exactement une polarité — atout, obstacle, ou limité — l'unique position que le relateur adopte sur sa facette. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "assertionSubject is functional"
 msgstr "assertionSubject est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."
-msgstr "Affirme sur le porteur canonique que gmeow:assertionSubject est fonctionnelle : une assertion d'accessibilité évalue exactement un sujet, l'unique lieu ou connexion faisant l'objet de l'évaluation."
+msgid "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:assertionSubject est fonctionnelle : une assertion d'accessibilité évalue exactement un sujet, l'unique lieu ou connexion faisant l'objet de l'évaluation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assertionFacetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:assertionFacet names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

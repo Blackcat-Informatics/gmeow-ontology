@@ -26,8 +26,8 @@ msgid "committedAgent is functional"
 msgstr "committedAgent est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:committedAgent is functional: a gmeow:Commitment binds exactly one committed agent, mutual promises being modelled as two directed Commitments so that withdrawal, breach, and tenure stay independent per direction."
-msgstr "Affirme sur le porteur canonique que gmeow:committedAgent est fonctionnelle : un gmeow:Commitment lie exactement un agent engagé, les promesses mutuelles étant modélisées comme deux Commitments dirigés de sorte que le retrait, la rupture et la durée restent indépendants selon chaque direction."
+msgid "Asserts on the canonical carrier that gmeow:committedAgent is functional: a gmeow:Commitment binds exactly one committed agent, mutual promises being modelled as two directed Commitments so that withdrawal, breach, and tenure stay independent per direction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:committedAgent est fonctionnelle : un gmeow:Commitment lie exactement un agent engagé, les promesses mutuelles étant modélisées comme deux Commitments dirigés de sorte que le retrait, la rupture et la durée restent indépendants selon chaque direction. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "counterGoal is irreflexive"
@@ -42,16 +42,16 @@ msgid "counterGoal is symmetric"
 msgstr "counterGoal est symétrique"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition."
-msgstr "Affirme sur le porteur canonique que gmeow:counterGoal est symétrique : chaque pôle d'une opposition constitutive constitue l'autre, comme l'énonce sa skos:definition. La barrière de cohérence native lit ceci pour refléter l'opposition."
+msgid "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:counterGoal est symétrique : chaque pôle d'une opposition constitutive constitue l'autre, comme l'énonce sa skos:definition. La barrière de cohérence native lit ceci pour refléter l'opposition. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "intentBearer is functional"
 msgstr "intentBearer est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:intentBearer is functional: an intentional mode is an intrinsic moment that inheres in exactly one bearer, so two agents wanting the same outcome are two modes sharing a single gmeow:intentionGoal."
-msgstr "Affirme sur le porteur canonique que gmeow:intentBearer est fonctionnelle : un mode intentionnel est un moment intrinsèque qui inhère à exactement un porteur, de sorte que deux agents voulant le même résultat constituent deux modes partageant un unique gmeow:intentionGoal."
+msgid "Asserts on the canonical carrier that gmeow:intentBearer is functional: an intentional mode is an intrinsic moment that inheres in exactly one bearer, so two agents wanting the same outcome are two modes sharing a single gmeow:intentionGoal. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:intentBearer est fonctionnelle : un mode intentionnel est un moment intrinsèque qui inhère à exactement un porteur, de sorte que deux agents voulant le même résultat constituent deux modes partageant un unique gmeow:intentionGoal. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "intentionGoal is functional"
@@ -66,16 +66,16 @@ msgid "tenureAgent is functional"
 msgstr "tenureAgent est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:tenureAgent is functional: a gmeow:IntentionTenure records the intentional mode of exactly one agent."
-msgstr "Affirme sur le porteur canonique que gmeow:tenureAgent est fonctionnelle: une gmeow:IntentionTenure enregistre le mode intentionnel d'exactement un agent."
+msgid "Asserts on the canonical carrier that gmeow:tenureAgent is functional: a gmeow:IntentionTenure records the intentional mode of exactly one agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureAgent est fonctionnelle: une gmeow:IntentionTenure enregistre le mode intentionnel d'exactement un agent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "tenureIntention is functional"
 msgstr "tenureIntention est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure."
-msgstr "Affirme sur le porteur canonique que gmeow:tenureIntention est fonctionnelle: une gmeow:IntentionTenure enregistre exactement un désir ou une intention intrinsèque sur son intervalle, de sorte que l'adoption d'un autre mode ouvre une tenure distincte."
+msgid "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureIntention est fonctionnelle: une gmeow:IntentionTenure enregistre exactement un désir ou une intention intrinsèque sur son intervalle, de sorte que l'adoption d'un autre mode ouvre une tenure distincte. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:counterGoal holds in both directions; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

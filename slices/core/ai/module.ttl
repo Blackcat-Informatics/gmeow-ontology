@@ -986,7 +986,7 @@ gmeow:spanOfChunkFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "spanOfChunk is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:spanOfChunk is functional: an evidence span pins into exactly one retrieved chunk, so the seam joining the evidence layer to the retrieval substrate carries a single chunk per span and the exact evidentiary bytes stay recoverable through one span-to-chunk anchor."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spanOfChunk is functional: an evidence span pins into exactly one retrieved chunk, so the seam joining the evidence layer to the retrieval substrate carries a single chunk per span and the exact evidentiary bytes stay recoverable through one span-to-chunk anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:spanOfChunk ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:spanOfChunk ;

@@ -34,24 +34,24 @@ msgid "routeEnd is functional"
 msgstr "routeEnd est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path."
-msgstr "Affirme sur le porteur canonique que gmeow:routeEnd est fonctionnelle : un itinéraire se termine en exactement un nœud final, l'unique destination qui clôt le chemin."
+msgid "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:routeEnd est fonctionnelle : un itinéraire se termine en exactement un nœud final, l'unique destination qui clôt le chemin. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "routeKind is functional"
 msgstr "routeKind est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed."
-msgstr "Affirme sur le porteur canonique que gmeow:routeKind est fonctionnelle : un itinéraire est classé selon exactement une valeur RouteKind, l'unique domaine (transit, vol, citation, dépendance, etc.) dans lequel son chemin est parcouru."
+msgid "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:routeKind est fonctionnelle : un itinéraire est classé selon exactement une valeur RouteKind, l'unique domaine (transit, vol, citation, dépendance, etc.) dans lequel son chemin est parcouru. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "routeStart is functional"
 msgstr "routeStart est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs."
-msgstr "Affirme sur le porteur canonique que gmeow:routeStart est fonctionnelle : un itinéraire prend son origine en exactement un nœud de départ, l'unique point d'où le chemin part."
+msgid "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:routeStart est fonctionnelle : un itinéraire prend son origine en exactement un nœud de départ, l'unique point d'où le chemin part. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:connectionSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

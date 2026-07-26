@@ -18,8 +18,8 @@ msgid "relationshipChild is functional"
 msgstr "relationshipChild est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipChildFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relationshipChild is functional: a reified parent-child relationship names exactly one child, the single younger party of the dyadic relator."
-msgstr "Affirme sur le porteur canonique que gmeow:relationshipChild est fonctionnelle : une relation parent-enfant réifiée désigne exactement un enfant, l'unique partie cadette du relateur dyadique."
+msgid "Asserts on the canonical carrier that gmeow:relationshipChild is functional: a reified parent-child relationship names exactly one child, the single younger party of the dyadic relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relationshipChild est fonctionnelle : une relation parent-enfant réifiée désigne exactement un enfant, l'unique partie cadette du relateur dyadique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipParentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relationshipParent is functional"

@@ -519,7 +519,7 @@ gmeow:certifiedKeyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certifiedKey is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:certifiedKey is functional: a gmeow:Certification vouches for exactly one gmeow:CryptographicKey, since the key half of the attested binding is singular and a different key is a different attestation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:certifiedKey is functional: a gmeow:Certification vouches for exactly one gmeow:CryptographicKey, since the key half of the attested binding is singular and a different key is a different attestation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:certifiedKey ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:certifiedKey ;
@@ -549,7 +549,7 @@ gmeow:introducerAmountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducerAmount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:introducerAmount is functional: a gmeow:TrustAssertion carries exactly one introducer amount, since one trustor assigns one trust-signature weight to its trustee and a different weight is a different assertion."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:introducerAmount is functional: a gmeow:TrustAssertion carries exactly one introducer amount, since one trustor assigns one trust-signature weight to its trustee and a different weight is a different assertion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:introducerAmount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:introducerAmount ;
@@ -579,7 +579,7 @@ gmeow:keySchemeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "keyScheme is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:keyScheme is functional: a gmeow:CryptographicKey has exactly one scheme — OpenPGP, X.509, SSH, or Nostr — since a key of a different format is a different key."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:keyScheme is functional: a gmeow:CryptographicKey has exactly one scheme — OpenPGP, X.509, SSH, or Nostr — since a key of a different format is a different key. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:keyScheme ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:keyScheme ;
@@ -594,7 +594,7 @@ gmeow:signatureAlgorithmFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signatureAlgorithm is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:signatureAlgorithm is functional: a gmeow:CryptographicSignature was produced with exactly one algorithm, since one signing act uses one algorithm and a signature made with a different algorithm is a different signature."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:signatureAlgorithm is functional: a gmeow:CryptographicSignature was produced with exactly one algorithm, since one signing act uses one algorithm and a signature made with a different algorithm is a different signature. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:signatureAlgorithm ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:signatureAlgorithm ;
@@ -609,7 +609,7 @@ gmeow:signingDomainFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signingDomain is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:signingDomain is functional: a gmeow:CryptographicSignature asserts exactly one signing domain, since a single signature carries one claimed signing authority such as one DKIM d= tag."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:signingDomain is functional: a gmeow:CryptographicSignature asserts exactly one signing domain, since a single signature carries one claimed signing authority such as one DKIM d= tag. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:signingDomain ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:signingDomain ;
@@ -624,7 +624,7 @@ gmeow:signingKeyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signingKey is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:signingKey is functional: a gmeow:CryptographicSignature is produced by exactly one gmeow:CryptographicKey, since one signing act uses the one specific key whose binding to the signer a certification vouches for."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:signingKey is functional: a gmeow:CryptographicSignature is produced by exactly one gmeow:CryptographicKey, since one signing act uses the one specific key whose binding to the signer a certification vouches for. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:signingKey ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:signingKey ;
@@ -639,7 +639,7 @@ gmeow:trusteeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustee is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:trustee is functional: a gmeow:TrustAssertion names exactly one trustee, since a single assertion expresses one trustor's stance toward one trusted agent and trust in another agent is a separate assertion."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trustee is functional: a gmeow:TrustAssertion names exactly one trustee, since a single assertion expresses one trustor's stance toward one trusted agent and trust in another agent is a separate assertion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:trustee ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:trustee ;
@@ -669,7 +669,7 @@ gmeow:trustorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustor is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:trustor is functional: a gmeow:TrustAssertion is held from exactly one trustor's standpoint, being the single perspective holder whose subjective trust it expresses, since another agent's trust is a separate assertion (Principle 9)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trustor is functional: a gmeow:TrustAssertion is held from exactly one trustor's standpoint, being the single perspective holder whose subjective trust it expresses, since another agent's trust is a separate assertion (Principle 9). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:trustor ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:trustor ;

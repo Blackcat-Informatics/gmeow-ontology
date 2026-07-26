@@ -520,7 +520,7 @@ gmeow:attestationIntervalFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attestationInterval is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:attestationInterval ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:attestationInterval ;
@@ -550,7 +550,7 @@ gmeow:derivationTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "derivationTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:derivationTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:derivationTarget ;
@@ -580,7 +580,7 @@ gmeow:formRepresentationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "formRepresentation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:formRepresentation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:formRepresentation ;

@@ -34,8 +34,8 @@ msgid "certifiedKey is functional"
 msgstr "certifiedKey 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/certifiedKeyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:certifiedKey is functional: a gmeow:Certification vouches for exactly one gmeow:CryptographicKey, since the key half of the attested binding is singular and a different key is a different attestation."
-msgstr "在规范载体上断言 gmeow:certifiedKey 是函数式的：一个 gmeow:Certification 恰好为一个 gmeow:CryptographicKey 作担保，因为所证明绑定中「密钥」的那一半是单一的，不同的密钥意味着不同的证明。"
+msgid "Asserts on the canonical carrier that gmeow:certifiedKey is functional: a gmeow:Certification vouches for exactly one gmeow:CryptographicKey, since the key half of the attested binding is singular and a different key is a different attestation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:certifiedKey 是函数式的：一个 gmeow:Certification 恰好为一个 gmeow:CryptographicKey 作担保，因为所证明绑定中「密钥」的那一半是单一的，不同的密钥意味着不同的证明。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/certifierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "certifier is functional"
@@ -50,8 +50,8 @@ msgid "introducerAmount is functional"
 msgstr "introducerAmount 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:introducerAmount is functional: a gmeow:TrustAssertion carries exactly one introducer amount, since one trustor assigns one trust-signature weight to its trustee and a different weight is a different assertion."
-msgstr "在规范载体上断言 gmeow:introducerAmount 是函数性的:一个 gmeow:TrustAssertion 恰好携带一个介绍人权重,因为一个信任方对其受信方赋予一个信任签名权重,不同的权重即是不同的断言。"
+msgid "Asserts on the canonical carrier that gmeow:introducerAmount is functional: a gmeow:TrustAssertion carries exactly one introducer amount, since one trustor assigns one trust-signature weight to its trustee and a different weight is a different assertion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:introducerAmount 是函数性的:一个 gmeow:TrustAssertion 恰好携带一个介绍人权重,因为一个信任方对其受信方赋予一个信任签名权重,不同的权重即是不同的断言。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/introducerDepthFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "introducerDepth is functional"
@@ -66,32 +66,32 @@ msgid "keyScheme is functional"
 msgstr "keyScheme 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/keySchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:keyScheme is functional: a gmeow:CryptographicKey has exactly one scheme — OpenPGP, X.509, SSH, or Nostr — since a key of a different format is a different key."
-msgstr "在规范载体上断言 gmeow:keyScheme 是函数性的:一个 gmeow:CryptographicKey 恰好具有一种方案——OpenPGP、X.509、SSH 或 Nostr——因为格式不同的密钥即是不同的密钥。"
+msgid "Asserts on the canonical carrier that gmeow:keyScheme is functional: a gmeow:CryptographicKey has exactly one scheme — OpenPGP, X.509, SSH, or Nostr — since a key of a different format is a different key. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:keyScheme 是函数性的:一个 gmeow:CryptographicKey 恰好具有一种方案——OpenPGP、X.509、SSH 或 Nostr——因为格式不同的密钥即是不同的密钥。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signatureAlgorithmFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "signatureAlgorithm is functional"
 msgstr "signatureAlgorithm 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signatureAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:signatureAlgorithm is functional: a gmeow:CryptographicSignature was produced with exactly one algorithm, since one signing act uses one algorithm and a signature made with a different algorithm is a different signature."
-msgstr "在规范载体上断言 gmeow:signatureAlgorithm 是函数性的:一个 gmeow:CryptographicSignature 恰好是用一种算法生成的,因为一次签名行为只使用一种算法,用不同算法生成的签名是另一份不同的签名。"
+msgid "Asserts on the canonical carrier that gmeow:signatureAlgorithm is functional: a gmeow:CryptographicSignature was produced with exactly one algorithm, since one signing act uses one algorithm and a signature made with a different algorithm is a different signature. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:signatureAlgorithm 是函数性的:一个 gmeow:CryptographicSignature 恰好是用一种算法生成的,因为一次签名行为只使用一种算法,用不同算法生成的签名是另一份不同的签名。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingDomainFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "signingDomain is functional"
 msgstr "signingDomain 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingDomainFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:signingDomain is functional: a gmeow:CryptographicSignature asserts exactly one signing domain, since a single signature carries one claimed signing authority such as one DKIM d= tag."
-msgstr "在规范载体上断言 gmeow:signingDomain 是函数性的:一个 gmeow:CryptographicSignature 恰好声明一个签名域,因为单一签名只承载一个所声称的签名机构,例如一个 DKIM d= 标签。"
+msgid "Asserts on the canonical carrier that gmeow:signingDomain is functional: a gmeow:CryptographicSignature asserts exactly one signing domain, since a single signature carries one claimed signing authority such as one DKIM d= tag. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:signingDomain 是函数性的:一个 gmeow:CryptographicSignature 恰好声明一个签名域,因为单一签名只承载一个所声称的签名机构,例如一个 DKIM d= 标签。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingKeyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "signingKey is functional"
 msgstr "signingKey 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingKeyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:signingKey is functional: a gmeow:CryptographicSignature is produced by exactly one gmeow:CryptographicKey, since one signing act uses the one specific key whose binding to the signer a certification vouches for."
-msgstr "在规范载体上断言 gmeow:signingKey 是函数性的:一个 gmeow:CryptographicSignature 恰好由一个 gmeow:CryptographicKey 生成,因为一次签名行为使用的是那唯一一把特定密钥,其与签名者之间的绑定由某项认证担保。"
+msgid "Asserts on the canonical carrier that gmeow:signingKey is functional: a gmeow:CryptographicSignature is produced by exactly one gmeow:CryptographicKey, since one signing act uses the one specific key whose binding to the signer a certification vouches for. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:signingKey 是函数性的:一个 gmeow:CryptographicSignature 恰好由一个 gmeow:CryptographicKey 生成,因为一次签名行为使用的是那唯一一把特定密钥,其与签名者之间的绑定由某项认证担保。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trustLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "trustLevel is functional"
@@ -106,16 +106,16 @@ msgid "trustee is functional"
 msgstr "trustee 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trusteeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:trustee is functional: a gmeow:TrustAssertion names exactly one trustee, since a single assertion expresses one trustor's stance toward one trusted agent and trust in another agent is a separate assertion."
-msgstr "在规范载体上断言 gmeow:trustee 是函数性的:一个 gmeow:TrustAssertion 恰好指定一个受信方,因为单一断言只表达一个信任方对一个受信代理的立场,对另一代理的信任则是另一独立断言。"
+msgid "Asserts on the canonical carrier that gmeow:trustee is functional: a gmeow:TrustAssertion names exactly one trustee, since a single assertion expresses one trustor's stance toward one trusted agent and trust in another agent is a separate assertion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:trustee 是函数性的:一个 gmeow:TrustAssertion 恰好指定一个受信方,因为单一断言只表达一个信任方对一个受信代理的立场,对另一代理的信任则是另一独立断言。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trustorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "trustor is functional"
 msgstr "trustor 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trustorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:trustor is functional: a gmeow:TrustAssertion is held from exactly one trustor's standpoint, being the single perspective holder whose subjective trust it expresses, since another agent's trust is a separate assertion (Principle 9)."
-msgstr "在规范载体上断言 gmeow:trustor 是函数性的:一个 gmeow:TrustAssertion 恰好持自一个信任方的立场,是其所表达主观信任的唯一视角持有者,因为另一代理的信任是另一独立断言(原则 9)。"
+msgid "Asserts on the canonical carrier that gmeow:trustor is functional: a gmeow:TrustAssertion is held from exactly one trustor's standpoint, being the single perspective holder whose subjective trust it expresses, since another agent's trust is a separate assertion (Principle 9). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:trustor 是函数性的:一个 gmeow:TrustAssertion 恰好持自一个信任方的立场,是其所表达主观信任的唯一视角持有者,因为另一代理的信任是另一独立断言(原则 9)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verificationStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "verificationStatus is functional"

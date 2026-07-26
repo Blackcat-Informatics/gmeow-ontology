@@ -26,24 +26,24 @@ msgid "toolArguments is functional"
 msgstr "toolArguments 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool."
-msgstr "在规范载体上断言 gmeow:toolArguments 是函数性的:一次工具调用恰好携带一个逐字参数负载,即呈现给该工具的内容的唯一字节级精确记录(或其内容摘要)。"
+msgid "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:toolArguments 是函数性的:一次工具调用恰好携带一个逐字参数负载,即呈现给该工具的内容的唯一字节级精确记录(或其内容摘要)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "toolResult is functional"
 msgstr "toolResult 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned."
-msgstr "在规范载体上断言 gmeow:toolResult 是函数性的:一次工具调用恰好返回一个逐字结果负载,即该工具所返回内容的唯一字节级精确记录(或其内容摘要)。"
+msgid "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:toolResult 是函数性的:一次工具调用恰好返回一个逐字结果负载,即该工具所返回内容的唯一字节级精确记录(或其内容摘要)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usedTool is functional"
 msgstr "usedTool 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls."
-msgstr "在规范载体上断言 gmeow:usedTool 是函数性的:一次工具调用恰好调用一个工具,因为「工具性」是代理在这一次调用事件中所扮演的角色,一个涉及多个工具的回合应记录为多个 ToolCall。"
+msgid "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:usedTool 是函数性的:一次工具调用恰好调用一个工具,因为「工具性」是代理在这一次调用事件中所扮演的角色,一个涉及多个工具的回合应记录为多个 ToolCall。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/calledByInvocationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:calledByInvocation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

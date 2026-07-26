@@ -18,24 +18,24 @@ msgid "cascadeFirstLink is functional"
 msgstr "cascadeFirstLink est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins."
-msgstr "Affirme sur le porteur canonique que gmeow:cascadeFirstLink est fonctionnelle : une cascade possède exactement un lien d'entrée, l'unique lien causal à partir duquel commence le parcours de la chaîne de défaillance nommée."
+msgid "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:cascadeFirstLink est fonctionnelle : une cascade possède exactement un lien d'entrée, l'unique lien causal à partir duquel commence le parcours de la chaîne de défaillance nommée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a causal link's antecedent and consequent are distinct"
 msgstr "l'antécédent et le conséquent d'un lien causal sont distincts"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide."
-msgstr "Affirme que le gmeow:linkAntecedent et le gmeow:linkConsequent d'un gmeow:CausalLink doivent être distincts : rien ne se cause soi-même au niveau des types. Le portail de cohérence natif lève une violation lorsqu'ils coïncident."
+msgid "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme que le gmeow:linkAntecedent et le gmeow:linkConsequent d'un gmeow:CausalLink doivent être distincts : rien ne se cause soi-même au niveau des types. Le portail de cohérence natif lève une violation lorsqu'ils coïncident. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "causalModality is functional"
 msgstr "causalModality est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified."
-msgstr "Affirme sur le porteur canonique que gmeow:causalModality est fonctionnelle : un lien causal revendique exactement une force — nécessite, favorise, permet ou empêche — l'unique modalité qui est la raison même pour laquelle le lien a été réifié."
+msgid "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:causalModality est fonctionnelle : un lien causal revendique exactement une force — nécessite, favorise, permet ou empêche — l'unique modalité qui est la raison même pour laquelle le lien a été réifié. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hazardBearer is functional"
@@ -58,8 +58,8 @@ msgid "linkConsequent is functional"
 msgstr "linkConsequent est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about."
-msgstr "Affirme sur le porteur canonique que gmeow:linkConsequent est fonctionnelle : un lien causal possède exactement un type causé, le type d'événement conséquent unique que le type antécédent produit."
+msgid "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:linkConsequent est fonctionnelle : un lien causal possède exactement un type causé, le type d'événement conséquent unique que le type antécédent produit. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "linkNext is acyclic"

@@ -2880,7 +2880,7 @@ gmeow:axisContextScopeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axisContextScope is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:axisContextScope is functional: each gmeow:QualityAxis is granted exactly one read-breadth coeffect — slice-local, dependency-closure, or merged-closure — so a second scope would leave the scope gate unable to decide how much graph the axis's primitive may read."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:axisContextScope is functional: each gmeow:QualityAxis is granted exactly one read-breadth coeffect — slice-local, dependency-closure, or merged-closure — so a second scope would leave the scope gate unable to decide how much graph the axis's primitive may read. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:axisContextScope ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:axisContextScope ;
@@ -2910,7 +2910,7 @@ gmeow:ceilingCountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceilingCount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ceilingCount is functional: each per-(slice,vocabulary) gmeow:ProjectionCeilingCommitment pins exactly one committed maximum residue count, so a second count would make the lower-only regression ceiling the gate enforces ambiguous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ceilingCount is functional: each per-(slice,vocabulary) gmeow:ProjectionCeilingCommitment pins exactly one committed maximum residue count, so a second count would make the lower-only regression ceiling the gate enforces ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ceilingCount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ceilingCount ;
@@ -2925,7 +2925,7 @@ gmeow:ceilingSliceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceilingSlice is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ceilingSlice is functional: each gmeow:ProjectionCeilingCommitment names exactly one subject slice whose measured residue the ceiling guards, so a second slice would make the ratchet cell pin an ambiguous target."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ceilingSlice is functional: each gmeow:ProjectionCeilingCommitment names exactly one subject slice whose measured residue the ceiling guards, so a second slice would make the ratchet cell pin an ambiguous target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ceilingSlice ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ceilingSlice ;
@@ -2940,7 +2940,7 @@ gmeow:ceilingVocabularyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceilingVocabulary is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ceilingVocabulary is functional: each gmeow:ProjectionCeilingCommitment caps exactly one guarded gmeow:ProjectionVocabulary, so a second vocabulary would leave the ceiling applying to no single guarded surface."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ceilingVocabulary is functional: each gmeow:ProjectionCeilingCommitment caps exactly one guarded gmeow:ProjectionVocabulary, so a second vocabulary would leave the ceiling applying to no single guarded surface. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ceilingVocabulary ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ceilingVocabulary ;
@@ -2955,7 +2955,7 @@ gmeow:exemptionDateFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemptionDate is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:exemptionDate is functional: each gmeow:AxisExemption was minted on exactly one date, so a second date would make the exemption's audit age — by which long-standing gaps are surfaced — ambiguous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exemptionDate is functional: each gmeow:AxisExemption was minted on exactly one date, so a second date would make the exemption's audit age — by which long-standing gaps are surfaced — ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:exemptionDate ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:exemptionDate ;
@@ -2970,7 +2970,7 @@ gmeow:floorAxisFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorAxis is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:floorAxis is functional: each gmeow:AxisFloorCommitment guards exactly one measured gmeow:QualityAxis, so a second axis would make the per-axis regression floor apply to no single measured dimension."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorAxis is functional: each gmeow:AxisFloorCommitment guards exactly one measured gmeow:QualityAxis, so a second axis would make the per-axis regression floor apply to no single measured dimension. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:floorAxis ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:floorAxis ;
@@ -2985,7 +2985,7 @@ gmeow:floorSliceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorSlice is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:floorSlice is functional: each gmeow:AxisFloorCommitment or gmeow:SliceTierFloor is committed against exactly one subject slice, so a second slice would make the ratchet cell guard an ambiguous target."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorSlice is functional: each gmeow:AxisFloorCommitment or gmeow:SliceTierFloor is committed against exactly one subject slice, so a second slice would make the ratchet cell guard an ambiguous target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:floorSlice ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:floorSlice ;
@@ -3000,7 +3000,7 @@ gmeow:floorTierFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorTier is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:floorTier is functional: each gmeow:SliceTierFloor pins exactly one minimum roll-up rung over the lattice order, so a second tier would make the raise-only tier-regression bar ambiguous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorTier is functional: each gmeow:SliceTierFloor pins exactly one minimum roll-up rung over the lattice order, so a second tier would make the raise-only tier-regression bar ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:floorTier ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:floorTier ;
@@ -3015,7 +3015,7 @@ gmeow:floorValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:floorValue is functional: each gmeow:AxisFloorCommitment pins exactly one committed minimum decimal score, so a second value would make the raise-only regression floor the gate enforces ambiguous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorValue is functional: each gmeow:AxisFloorCommitment pins exactly one committed minimum decimal score, so a second value would make the raise-only regression floor the gate enforces ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:floorValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:floorValue ;
@@ -3030,7 +3030,7 @@ gmeow:thresholdFloorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "thresholdFloor is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:thresholdFloor is functional: each gmeow:AxisThreshold pairing pins exactly one normalized score floor for its tier, so a second floor would leave the scorer without a single bar to compare the measured axis score against."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:thresholdFloor is functional: each gmeow:AxisThreshold pairing pins exactly one normalized score floor for its tier, so a second floor would leave the scorer without a single bar to compare the measured axis score against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:thresholdFloor ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:thresholdFloor ;
@@ -3045,7 +3045,7 @@ gmeow:thresholdTierFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "thresholdTier is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:thresholdTier is functional: each gmeow:AxisThreshold pairing gates exactly one tier rung, so a second tier would dissolve the reified (tier, floor) cell into an ambiguous mapping."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:thresholdTier is functional: each gmeow:AxisThreshold pairing gates exactly one tier rung, so a second tier would dissolve the reified (tier, floor) cell into an ambiguous mapping. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:thresholdTier ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:thresholdTier ;
@@ -3060,7 +3060,7 @@ gmeow:tierRankFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "tierRank is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:tierRank is functional: each gmeow:QualityTier occupies exactly one position in the ladder's total order, so a tier bearing two ranks would make that order ill-defined and break the lattice meet (least rank) the roll-up depends on."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tierRank is functional: each gmeow:QualityTier occupies exactly one position in the ladder's total order, so a tier bearing two ranks would make that order ill-defined and break the lattice meet (least rank) the roll-up depends on. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:tierRank ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:tierRank ;
@@ -3075,7 +3075,7 @@ gmeow:vocabularyCountKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyCountKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyCountKind is functional: each gmeow:ProjectionVocabulary selects exactly one of the three closed construct-recognition strategies, so a second kind would leave the shared counter's Rust dispatch without a single enumeration path to resolve."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyCountKind is functional: each gmeow:ProjectionVocabulary selects exactly one of the three closed construct-recognition strategies, so a second kind would leave the shared counter's Rust dispatch without a single enumeration path to resolve. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:vocabularyCountKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:vocabularyCountKind ;
@@ -3090,7 +3090,7 @@ gmeow:vocabularyDefaultCeilingFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyDefaultCeiling is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:vocabularyDefaultCeiling ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:vocabularyDefaultCeiling ;
@@ -3105,7 +3105,7 @@ gmeow:vocabularyOwnerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyOwner is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:vocabularyOwner ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:vocabularyOwner ;
@@ -3120,7 +3120,7 @@ gmeow:vocabularyPrefixFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyPrefix is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyPrefix is functional: each gmeow:ProjectionVocabulary has exactly one short CURIE prefix serving as the join key ceiling commitments resolve against, so a second prefix would break the unique-key binding between a ceiling commitment and its vocabulary."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyPrefix is functional: each gmeow:ProjectionVocabulary has exactly one short CURIE prefix serving as the join key ceiling commitments resolve against, so a second prefix would break the unique-key binding between a ceiling commitment and its vocabulary. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:vocabularyPrefix ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:vocabularyPrefix ;
@@ -3135,7 +3135,7 @@ gmeow:vocabularyPreservationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyPreservation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyPreservation is functional: each gmeow:ProjectionVocabulary's lowering from logic: carries exactly one loss-ledger preservation polarity, so a second judgment would make the guarantee the projection advertises to the shared loss-ledger ambiguous."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyPreservation is functional: each gmeow:ProjectionVocabulary's lowering from logic: carries exactly one loss-ledger preservation polarity, so a second judgment would make the guarantee the projection advertises to the shared loss-ledger ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:vocabularyPreservation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:vocabularyPreservation ;
@@ -3150,7 +3150,7 @@ gmeow:vocabularySubsumedByFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularySubsumedBy is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:vocabularySubsumedBy ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:vocabularySubsumedBy ;

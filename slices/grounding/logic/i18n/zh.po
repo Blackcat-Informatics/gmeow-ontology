@@ -6055,12 +6055,12 @@ msgid "The certified-complete fragment reference backing a logic:CompleteForFrag
 msgstr "支撑某 logic:ReasoningResult 上 logic:CompleteForFragment 主张的经认证完备片段引用。单值。定义域 logic:ReasoningResult(以散文表述)。"
 
 msgctxt "https://blackcatinformatics.ca/logic/characteristicSort|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."
-msgstr "将一个 logic:PropertyCharacteristicAssertion 关联到它所断言的特征分类标记——为 logic:transitiveProperty、logic:symmetricProperty、logic:irreflexiveProperty、logic:asymmetricProperty 或 logic:functionalProperty 之一。它与 logic:characterizes 共同呈现:一条只携带其一而缺另一的特征断言,并不指称任何可强制的特征。定义域 logic:PropertyCharacteristicAssertion;单值。"
+msgid "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:PropertyCharacteristicAssertion 关联到它所断言的特征分类标记——为 logic:transitiveProperty、logic:symmetricProperty、logic:irreflexiveProperty、logic:asymmetricProperty 或 logic:functionalProperty 之一。它与 logic:characterizes 共同呈现:一条只携带其一而缺另一的特征断言,并不指称任何可强制的特征。定义域 logic:PropertyCharacteristicAssertion;单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/characterizes|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."
-msgstr "将一个 logic:PropertyCharacteristicAssertion 关联到它所刻画的属性(一个 gmeow: 或 logic: 属性,以散文形式给出)。与 logic:characteristicSort 一并阅读时,它告诉原生一致性门哪个属性承载哪种特征。定义域为 logic:PropertyCharacteristicAssertion;单值。"
+msgid "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:PropertyCharacteristicAssertion 关联到它所刻画的属性(一个 gmeow: 或 logic: 属性,以散文形式给出)。与 logic:characteristicSort 一并阅读时,它告诉原生一致性门哪个属性承载哪种特征。定义域为 logic:PropertyCharacteristicAssertion;单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ChaseAcceptanceWitness|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The acceptance record that an existential-rule chase materialization terminated under a weak-acyclicity certificate, executed natively by gmeow_logic::materialize::materialize_existential_rules, which surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding. It carries, through logic:carriesTerminationCertificate, the certificate evidence. The flagship producer runs the native chase and pins that the surfaced Finding is non-empty and that the derivation carries an explain trace passing gmeow_logic::explain::assert_faithful; this witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates."
@@ -6231,12 +6231,12 @@ msgid "Relates a logic:RoleCompositionExclusionAssertion to the role whose bound
 msgstr "将一个 logic:RoleCompositionExclusionAssertion 关联到某个角色,其绑定值不得是整体角色取值的一个组件。定义域为 logic:RoleCompositionExclusionAssertion;单值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/compositionExclusionTarget|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:RoleCompositionExclusionAssertion to the class whose focus nodes it constrains. Domain logic:RoleCompositionExclusionAssertion; single-valued."
-msgstr "将一个 logic:RoleCompositionExclusionAssertion 关联到它约束其焦点节点的类。定义域为 logic:RoleCompositionExclusionAssertion;单值。"
+msgid "Relates a logic:RoleCompositionExclusionAssertion to the class whose focus nodes it constrains. Domain logic:RoleCompositionExclusionAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:RoleCompositionExclusionAssertion 关联到它约束其焦点节点的类。定义域为 logic:RoleCompositionExclusionAssertion;单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/compositionExclusionVia|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:RoleCompositionExclusionAssertion to a composition property linking the whole role's value to a component. Each asserted value is one step the exclusion ranges over; the native coherence gate raises a violation when the part role coincides with a component reached through any of them. Domain logic:RoleCompositionExclusionAssertion; multi-valued."
-msgstr "将一个 logic:RoleCompositionExclusionAssertion 关联到一个把整体角色取值连到某组件的组合属性。每个被断言的取值是排斥所遍历的一步;当部分角色与经由其中任一步所抵达的组件重合时,原生一致性门抛出一个违规。定义域为 logic:RoleCompositionExclusionAssertion;多值。"
+msgid "Relates a logic:RoleCompositionExclusionAssertion to a composition property linking the whole role's value to a component. Each asserted value is one step the exclusion ranges over; the native coherence gate raises a violation when the part role coincides with a component reached through any of them. Domain logic:RoleCompositionExclusionAssertion; multi-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:RoleCompositionExclusionAssertion 关联到一个把整体角色取值连到某组件的组合属性。每个被断言的取值是排斥所遍历的一步;当部分角色与经由其中任一步所抵达的组件重合时,原生一致性门抛出一个违规。定义域为 logic:RoleCompositionExclusionAssertion;多值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/compositionExclusionWhole|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:RoleCompositionExclusionAssertion to the role binding the WHOLE whose components the part role must not coincide with. Domain logic:RoleCompositionExclusionAssertion; single-valued."
@@ -6279,24 +6279,24 @@ msgid "A central record asserting that, on a target class, a focus node whose gm
 msgstr "一条中心记录,它断言在某个目标类上,凡其 gmeow:-选择器属性携带一个具名值的焦点节点,必须——通过第二个取值属性——绑定一个所需类型的实例。它以 logic:conditionalRangeTarget 命名该类,以 logic:conditionalRangeSelector 命名判别属性、以 logic:conditionalRangeSelectorValue 命名其触发值,以 logic:conditionalRangeValue 命名受约束属性,以 logic:conditionalRangeRequiredType 命名所要求的类型;原生一致性门将它们联接,以在选择器匹配但取值不属于所需类型时抛出一个违规。它携带一个 logic:formalizes 反向引用,指向它所编码其散文的定义域属性。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conditionalRangeRequiredType|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:ConditionalRangeAssertion to the class the constrained value must instantiate when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."
-msgstr "将一个 logic:ConditionalRangeAssertion 关联到当选择器匹配时受约束取值必须实例化的类。定义域为 logic:ConditionalRangeAssertion;单值。"
+msgid "Relates a logic:ConditionalRangeAssertion to the class the constrained value must instantiate when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:ConditionalRangeAssertion 关联到当选择器匹配时受约束取值必须实例化的类。定义域为 logic:ConditionalRangeAssertion;单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conditionalRangeSelector|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:ConditionalRangeAssertion to the discriminant property whose value triggers the condition. Read together with logic:conditionalRangeSelectorValue. Domain logic:ConditionalRangeAssertion; single-valued."
-msgstr "将一个 logic:ConditionalRangeAssertion 关联到其取值触发该条件的判别属性。与 logic:conditionalRangeSelectorValue 一并阅读。定义域为 logic:ConditionalRangeAssertion;单值。"
+msgid "Relates a logic:ConditionalRangeAssertion to the discriminant property whose value triggers the condition. Read together with logic:conditionalRangeSelectorValue. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:ConditionalRangeAssertion 关联到其取值触发该条件的判别属性。与 logic:conditionalRangeSelectorValue 一并阅读。定义域为 logic:ConditionalRangeAssertion;单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conditionalRangeSelectorValue|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:ConditionalRangeAssertion to the named value of the discriminant property that triggers the required-type condition. Domain logic:ConditionalRangeAssertion; single-valued."
-msgstr "将一个 logic:ConditionalRangeAssertion 关联到判别属性那个触发所需类型条件的具名值。定义域为 logic:ConditionalRangeAssertion;单值。"
+msgid "Relates a logic:ConditionalRangeAssertion to the named value of the discriminant property that triggers the required-type condition. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:ConditionalRangeAssertion 关联到判别属性那个触发所需类型条件的具名值。定义域为 logic:ConditionalRangeAssertion;单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conditionalRangeTarget|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:ConditionalRangeAssertion to the class whose focus nodes it constrains. Domain logic:ConditionalRangeAssertion; single-valued."
-msgstr "将 logic:ConditionalRangeAssertion 关联到其约束焦点节点的那个类。定义域 logic:ConditionalRangeAssertion；单值。"
+msgid "Relates a logic:ConditionalRangeAssertion to the class whose focus nodes it constrains. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将 logic:ConditionalRangeAssertion 关联到其约束焦点节点的那个类。定义域 logic:ConditionalRangeAssertion；单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conditionalRangeValue|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:ConditionalRangeAssertion to the property whose bound value must satisfy the required type when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."
-msgstr "将 logic:ConditionalRangeAssertion 关联到某属性，当选择器匹配时该属性的绑定值必须满足所要求的类型。定义域 logic:ConditionalRangeAssertion；单值。"
+msgid "Relates a logic:ConditionalRangeAssertion to the property whose bound value must satisfy the required type when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将 logic:ConditionalRangeAssertion 关联到某属性，当选择器匹配时该属性的绑定值必须满足所要求的类型。定义域 logic:ConditionalRangeAssertion；单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ConfConsistent|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The conformance-verdict value when a model exists and the conjecture is NOT entailed: the reduction premises ∧ ¬conclusion is satisfiable, so the axiom set is consistent and the entailment fails. The decided-negative outcome the coarse three-bucket view assigns to the TPTP SZS logic:SzsSatisfiable and logic:SzsCounterSatisfiable statuses and to the W3C mf:NegativeEntailment test kind. One of the two informative meet-elements of the logic:ConformanceVerdict lattice (with logic:ConfInconsistent), below the least-informative join logic:ConfIncomplete; the RDF image of the native runner verdict `consistent`."
@@ -7035,12 +7035,12 @@ msgid "Relates a logic:Rule to an inequality body guard: a reified node carrying
 msgstr "将一个 logic:Rule 关联到一个不等式体守卫:一个携带 rdf:subject 与 rdf:object(两个规则变量,且——不同于 logic:body——没有 rdf:predicate)的具体化节点,它们必须绑定到不同的取值,规则方可触发,投影为 Datalog 不等式约束 ?A != ?B。作为一种加性的规则结构表面,与 logic:negatedBody 平行:它使一条规则能够检测“至少两个不同取值”(例如一个携带多于一个刻板印象的类,或一个中介两个不同 relata 的关系子),这是集合语义的 Datalog 否则无法表达的。一个不等式守卫不引入任何负依赖边,因此它使一条规则的分层类保持不变。"
 
 msgctxt "https://blackcatinformatics.ca/logic/distinctnessRole|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:RelatumDistinctnessAssertion to one of the two roles that must bind distinct values on a focus node. Exactly two are asserted per record; the native coherence gate raises a violation when both roles bind the same value on one focus node. Domain logic:RelatumDistinctnessAssertion; two-valued."
-msgstr "将一个 logic:RelatumDistinctnessAssertion 关联到必须在一个焦点节点上绑定不同取值的两个角色之一。每条记录恰好断言两个;当两个角色在一个焦点节点上绑定相同取值时,原生一致性门闸引发一项违反。定义域 logic:RelatumDistinctnessAssertion;二值。"
+msgid "Relates a logic:RelatumDistinctnessAssertion to one of the two roles that must bind distinct values on a focus node. Exactly two are asserted per record; the native coherence gate raises a violation when both roles bind the same value on one focus node. Domain logic:RelatumDistinctnessAssertion; two-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:RelatumDistinctnessAssertion 关联到必须在一个焦点节点上绑定不同取值的两个角色之一。每条记录恰好断言两个;当两个角色在一个焦点节点上绑定相同取值时,原生一致性门闸引发一项违反。定义域 logic:RelatumDistinctnessAssertion;二值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/distinctnessTarget|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:RelatumDistinctnessAssertion to the class whose focus nodes it constrains (the relator class). Read together with logic:distinctnessRole, it tells the native coherence gate which class bears the mutual-inequality condition. Domain logic:RelatumDistinctnessAssertion; single-valued."
-msgstr "将 logic:RelatumDistinctnessAssertion 关联到其约束焦点节点的类（关系者类）。与 logic:distinctnessRole 一同解读时，它告知原生一致性门哪个类承载相互不等条件。定义域为 logic:RelatumDistinctnessAssertion；单值。"
+msgid "Relates a logic:RelatumDistinctnessAssertion to the class whose focus nodes it constrains (the relator class). Read together with logic:distinctnessRole, it tells the native coherence gate which class bears the mutual-inequality condition. Domain logic:RelatumDistinctnessAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将 logic:RelatumDistinctnessAssertion 关联到其约束焦点节点的类（关系者类）。与 logic:distinctnessRole 一同解读时，它告知原生一致性门哪个类承载相互不等条件。定义域为 logic:RelatumDistinctnessAssertion；单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/domain|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:memberOf logic:domain ex:Agent ."
@@ -8495,20 +8495,20 @@ msgid "The frame-completeness axiom as a quality constraint: a value expressed i
 msgstr "作为质量约束的参照系完整性公理：以单位表达的值不得在缺少其被读取所在的参照系的情况下被断言——携带 logic:unit 但没有 logic:referenceFrame 的测量是格式错误的。裸量值与参照系无关（一个 logic:trueQuantity），但一旦给出某个值，它便是以单位和参照系表达的；缺少其参照系而被断言的值是无意义的，而不仅仅是欠规定（原则 11：将与参照系无关的结构同相对于参照系的值分离，且切勿在没有参照系的情况下断言该值）。由于基础追踪全部为 IRI，该规则以 logic:unit 为键——即证明存在框定值的 IRI 值证据——而非以它所限定的字面量 logic:measuredValue 为键。携带单位却缺失参照系的测量即为 logic:violation，由基础下降蕴含得出，而非手工断言。"
 
 msgctxt "https://blackcatinformatics.ca/logic/MediatedPropertyRequirementAssertion|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A central record asserting that, on a target class, every value a focus node reaches through a mediating property must itself declare at least one value of a required property — the interval that scopes a situation must carry its temporal frame (Principle 11). It names the class with logic:mediatedRequirementTarget, the mediating property with logic:mediatedRequirementVia, and the demanded property with logic:mediatedRequirementProperty; the native coherence gate joins them to raise a violation when a mediated value lacks the required property. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."
-msgstr "一条中心记录，断言在某个目标类上，焦点节点通过中介属性所到达的每个值本身都必须声明某个必需属性的至少一个值——为情形界定范围的区间必须携带其时间参照系（原则 11）。它用 logic:mediatedRequirementTarget 命名该类，用 logic:mediatedRequirementVia 命名中介属性，用 logic:mediatedRequirementProperty 命名所要求的属性；原生一致性门将它们连接起来，以便在某个被中介的值缺少必需属性时引发违规。它携带一个 logic:formalizes 回引用，指向其所编码散文的域属性。"
+msgid "A central record asserting that, on a target class, every value a focus node reaches through a mediating property must itself declare at least one value of a required property — the interval that scopes a situation must carry its temporal frame (Principle 11). It names the class with logic:mediatedRequirementTarget, the mediating property with logic:mediatedRequirementVia, and the demanded property with logic:mediatedRequirementProperty; the native coherence gate joins them to raise a violation when a mediated value lacks the required property. Carries a logic:formalizes back-reference to the domain property whose prose it encodes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "一条中心记录，断言在某个目标类上，焦点节点通过中介属性所到达的每个值本身都必须声明某个必需属性的至少一个值——为情形界定范围的区间必须携带其时间参照系（原则 11）。它用 logic:mediatedRequirementTarget 命名该类，用 logic:mediatedRequirementVia 命名中介属性，用 logic:mediatedRequirementProperty 命名所要求的属性；原生一致性门将它们连接起来，以便在某个被中介的值缺少必需属性时引发违规。它携带一个 logic:formalizes 回引用，指向其所编码散文的域属性。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/mediatedRequirementProperty|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:MediatedPropertyRequirementAssertion to the property each mediated value must declare at least once. Domain logic:MediatedPropertyRequirementAssertion; single-valued."
-msgstr "将 logic:MediatedPropertyRequirementAssertion 关联到每个被中介的值都至少必须声明一次的属性。定义域 logic:MediatedPropertyRequirementAssertion；单值。"
+msgid "Relates a logic:MediatedPropertyRequirementAssertion to the property each mediated value must declare at least once. Domain logic:MediatedPropertyRequirementAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将 logic:MediatedPropertyRequirementAssertion 关联到每个被中介的值都至少必须声明一次的属性。定义域 logic:MediatedPropertyRequirementAssertion；单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/mediatedRequirementTarget|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:MediatedPropertyRequirementAssertion to the class whose focus nodes it constrains. Domain logic:MediatedPropertyRequirementAssertion; single-valued."
-msgstr "将 logic:MediatedPropertyRequirementAssertion 关联到其所约束焦点节点的类。定义域 logic:MediatedPropertyRequirementAssertion；单值。"
+msgid "Relates a logic:MediatedPropertyRequirementAssertion to the class whose focus nodes it constrains. Domain logic:MediatedPropertyRequirementAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将 logic:MediatedPropertyRequirementAssertion 关联到其所约束焦点节点的类。定义域 logic:MediatedPropertyRequirementAssertion；单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/mediatedRequirementVia|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:MediatedPropertyRequirementAssertion to the mediating property whose values must carry the required property. Domain logic:MediatedPropertyRequirementAssertion; single-valued."
-msgstr "将 logic:MediatedPropertyRequirementAssertion 关联到其值必须携带必需属性的中介属性。定义域 logic:MediatedPropertyRequirementAssertion；单值。"
+msgid "Relates a logic:MediatedPropertyRequirementAssertion to the mediating property whose values must carry the required property. Domain logic:MediatedPropertyRequirementAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将 logic:MediatedPropertyRequirementAssertion 关联到其值必须携带必需属性的中介属性。定义域 logic:MediatedPropertyRequirementAssertion；单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/mediates|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a Relator to a mediation role — the relationship between an objectified relation and each of its relata, on which the Relator existentially depends. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp), reached either through two distinct roles or through a single non-functional role; the material relation the Relator grounds holds in virtue of these mediation links."
@@ -9155,8 +9155,8 @@ msgid "STRICT parthood: relates an entity to a whole it is part of but NOT ident
 msgstr "严格部分关系：将一个实体关联到它是其部分但与之不同一的整体。传递、反对称且反自反——一个真正的严格偏序（真部分关系、祖先）。这一确切组合在 OWL 2 DL 中非法，后者全局禁止一个属性同时为传递与反对称（批评 7，LOGIC-FOUNDATION.md §OWL 2 批评）；logic: 不施加此类全局限制并对其完全推理，通过投影而非阉割正典来恢复可判定性。它是那个刻意的 OWL-2-批评示范者。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here."
-msgstr "一条中心记录，断言某个具名属性承载一种特征种类——logic:transitiveProperty、logic:symmetricProperty、logic:irreflexiveProperty、logic:asymmetricProperty 或 logic:functionalProperty 之一。它以 logic:characterizes 命名该属性，以 logic:characteristicSort 命名该种类，二者构成原生一致性闸为强制该特征而连接的配对，并携带一个 logic:formalizes 回指，指向其散文被它编码的那个领域属性。这是属性特征的规范 logic: 载体：领域切片保留面向 OWL 的声明，而推理权威在此命名并强制它。"
+msgid "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "一条中心记录，断言某个具名属性承载一种特征种类——logic:transitiveProperty、logic:symmetricProperty、logic:irreflexiveProperty、logic:asymmetricProperty 或 logic:functionalProperty 之一。它以 logic:characterizes 命名该属性，以 logic:characteristicSort 命名该种类，二者构成原生一致性闸为强制该特征而连接的配对，并携带一个 logic:formalizes 回指，指向其散文被它编码的那个领域属性。这是属性特征的规范 logic: 载体：领域切片保留面向 OWL 的声明，而推理权威在此命名并强制它。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PropertyPathProjection|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The projection-target value requesting that a logic:PathShape (or a rule's path-structured body) be rendered to a SPARQL property-path surface — extended by GMEOW past SPARQL 1.1 §9 with bounded depth {n,m} and a predicate wildcard. One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold. A consumer restricted to standard SPARQL §9 receives the unrolled or approximated form, and that loss is declared in the loss ledger rather than hidden."
@@ -9407,8 +9407,8 @@ msgid "A truthmaker of a material relation: an objectified relationship — a ma
 msgstr "一个物质关系的真值制造者：一个被对象化的关系——一场婚姻、一份雇佣、一次注册——它中介两个或更多的关系项，并在存在上依赖于其中每一个。一个关系体必须中介至少两个相异的实体（关系体中介纪律，RelComp）；它所奠基的关系凭借该关系体的存在而成立。"
 
 msgctxt "https://blackcatinformatics.ca/logic/RelatumDistinctnessAssertion|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A central record asserting that, on a target class, two named roles must bind DISTINCT values on any one focus node — the mutual-inequality integrity condition of a relator whose relata must differ (a Commitment's committed agent and beneficiary, a Criterion's reward and penalty poles). It names the class with logic:distinctnessTarget and the two roles with logic:distinctnessRole, the triple the native coherence gate joins to raise a violation when the roles coincide, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. The reasoning authority names and enforces it here; the domain slice keeps the OWL-facing role declarations."
-msgstr "一条中心记录，断言在某个目标类上，两个具名角色在任一焦点节点上必须绑定相异的值——即一个其关系项必须不同的关系体的相互不等完整性条件（一个承诺的受托主体与受益者，一个准则的奖励极与惩罚极）。它以 logic:distinctnessTarget 命名该类，以 logic:distinctnessRole 命名这两个角色——原生一致性门在这个三元组上进行连接，以便在两角色重合时抛出违规——并携带一个 logic:formalizes 反向引用，指向它所编码其散文的领域属性。推理权威在此处命名并强制执行它；领域切片保留面向 OWL 的角色声明。"
+msgid "A central record asserting that, on a target class, two named roles must bind DISTINCT values on any one focus node — the mutual-inequality integrity condition of a relator whose relata must differ (a Commitment's committed agent and beneficiary, a Criterion's reward and penalty poles). It names the class with logic:distinctnessTarget and the two roles with logic:distinctnessRole, the triple the native coherence gate joins to raise a violation when the roles coincide, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. The reasoning authority names and enforces it here; the domain slice keeps the OWL-facing role declarations. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "一条中心记录，断言在某个目标类上，两个具名角色在任一焦点节点上必须绑定相异的值——即一个其关系项必须不同的关系体的相互不等完整性条件（一个承诺的受托主体与受益者，一个准则的奖励极与惩罚极）。它以 logic:distinctnessTarget 命名该类，以 logic:distinctnessRole 命名这两个角色——原生一致性门在这个三元组上进行连接，以便在两角色重合时抛出违规——并携带一个 logic:formalizes 反向引用，指向它所编码其散文的领域属性。推理权威在此处命名并强制执行它；领域切片保留面向 OWL 的角色声明。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/RelComp|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The OntoUML RelComp anti-pattern: a concrete Relator must mediate at least two distinct entities. Mediation is read by entity count — a relator reaches two entities either through two distinct mediation roles, or through a single non-functional role (which connects two or more entities on its own). A concrete Relator (one with no logic: subclass to defer its mediations to) that reaches fewer than two entities — a single functional role, or none — violates it. The native foundation lowering enforces it over the whole ontology; the gUFO downcast is a lossy projection of it."
@@ -10987,12 +10987,12 @@ msgid "Asserts on the canonical carrier that logic:candidateContract is function
 msgstr "在规范载体上断言 logic:candidateContract 是函数式的：候选者提出的公理仅在恰好一个 logic:ReasoningContract 下被解释——这是使 'sound' 一词对其有意义的唯一推理语义——因此其可靠性是针对一个契约而非多个契约来判定的。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:candidateExtractionProvenance is functional: a candidate was produced by exactly one extraction event, so it records a single provenance string naming what produced it — the one extractor, run, or model invocation whose automated origin keeps it at logic:CandidateProposed with no canonical force until reviewed."
-msgstr "在规范载体上断言 logic:candidateExtractionProvenance 是函数式的：一个候选者仅由恰好一个抽取事件产生，因此它记录了唯一一条来源字符串，用以指明是什么产生了它——即那唯一的抽取器、运行或模型调用，其自动化来源使其在被审核之前始终停留在 logic:CandidateProposed，不具有规范效力。"
+msgid "Asserts on the canonical carrier that logic:candidateExtractionProvenance is functional: a candidate was produced by exactly one extraction event, so it records a single provenance string naming what produced it — the one extractor, run, or model invocation whose automated origin keeps it at logic:CandidateProposed with no canonical force until reviewed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:candidateExtractionProvenance 是函数式的：一个候选者仅由恰好一个抽取事件产生，因此它记录了唯一一条来源字符串，用以指明是什么产生了它——即那唯一的抽取器、运行或模型调用，其自动化来源使其在被审核之前始终停留在 logic:CandidateProposed，不具有规范效力。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:candidateFormalizes is functional: a harvested candidate keeps exactly one prose-bearing term coherent, so its harvest back-link names a single formalized term — present exactly when the source IS a term's annotation field, and paired with the single logic:candidateSourceField that pins which field."
-msgstr "在规范载体上断言 logic:candidateFormalizes 是函数式的：一个被采集的候选者使恰好一个承载散文的术语保持一致，因此其采集回链指向唯一一个被形式化的术语——仅当来源正是某术语的注释字段时才存在，并与固定具体字段的唯一 logic:candidateSourceField 配对。"
+msgid "Asserts on the canonical carrier that logic:candidateFormalizes is functional: a harvested candidate keeps exactly one prose-bearing term coherent, so its harvest back-link names a single formalized term — present exactly when the source IS a term's annotation field, and paired with the single logic:candidateSourceField that pins which field. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:candidateFormalizes 是函数式的：一个被采集的候选者使恰好一个承载散文的术语保持一致，因此其采集回链指向唯一一个被形式化的术语——仅当来源正是某术语的注释字段时才存在，并与固定具体字段的唯一 logic:candidateSourceField 配对。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateLifecycleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:candidateLifecycle is functional: a candidate occupies exactly one governance lifecycle state at a time, so it carries a single logic:CandidateLifecycleState — a candidate cannot be both proposed and accepted, and logic:CandidateAccepted is legitimate only with a recorded logic:reviewedBy decision."
@@ -11003,20 +11003,20 @@ msgid "Asserts on the canonical carrier that logic:candidateProjectionBehavior i
 msgstr "在规范载体上断言 logic:candidateProjectionBehavior 是函数式的：候选者的公理以恰好一种保留极性经受向 OWL/Datalog/SHACL 的下投影，因此它携带从损失账本中复用的唯一一个 logic:PreservationKind，而非一组相互冲突的注记。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:candidateScope is functional: a candidate's proposed axiom has one intended scope — the single terms, slice, or context it is meant to constrain — so its reach is stated once, read together with the single logic:candidateContract it is interpreted under."
-msgstr "在规范载体上断言 logic:candidateScope 是函数式的：候选者提出的公理只有一个预期范围——它意在约束的唯一术语、切片或上下文——因此其覆盖范围仅陈述一次，需与其被解释所依据的唯一 logic:candidateContract 一并解读。"
+msgid "Asserts on the canonical carrier that logic:candidateScope is functional: a candidate's proposed axiom has one intended scope — the single terms, slice, or context it is meant to constrain — so its reach is stated once, read together with the single logic:candidateContract it is interpreted under. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:candidateScope 是函数式的：候选者提出的公理只有一个预期范围——它意在约束的唯一术语、切片或上下文——因此其覆盖范围仅陈述一次，需与其被解释所依据的唯一 logic:candidateContract 一并解读。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:candidateSemanticRisk is functional: a candidate carries exactly one logic:SemanticRiskClass — how far a wrong formalization would propagate — because that single risk grade sets how strict the reviewer gate must be, and a candidate cannot occupy two risk grades at once."
 msgstr "在规范载体上断言 logic:candidateSemanticRisk 是函数式的：一个候选者携带恰好一个 logic:SemanticRiskClass——即错误的形式化会传播多远——因为正是这唯一的风险等级决定了审核关卡必须有多严格，而一个候选者不能同时处于两个风险等级。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceFieldFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:candidateSourceField is functional: a candidate harvested from exactly one annotation field of its logic:candidateFormalizes term, so it names a single logic:ProseField from the closed set (definition, use-when, or avoid-when) — the one field that, with the formalized term, pins the harvested axiom to its exact source triple."
-msgstr "在规范载体上断言 logic:candidateSourceField 是函数式的：候选者仅从其 logic:candidateFormalizes 术语的恰好一个注释字段中采集，因此它从封闭集合（`definition`、`use-when` 或 `avoid-when`）中指定唯一一个 logic:ProseField——正是这一个字段与被形式化的术语一起，将采集到的公理固定到其确切的来源三元组上。"
+msgid "Asserts on the canonical carrier that logic:candidateSourceField is functional: a candidate harvested from exactly one annotation field of its logic:candidateFormalizes term, so it names a single logic:ProseField from the closed set (definition, use-when, or avoid-when) — the one field that, with the formalized term, pins the harvested axiom to its exact source triple. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:candidateSourceField 是函数式的：候选者仅从其 logic:candidateFormalizes 术语的恰好一个注释字段中采集，因此它从封闭集合（`definition`、`use-when` 或 `avoid-when`）中指定唯一一个 logic:ProseField——正是这一个字段与被形式化的术语一起，将采集到的公理固定到其确切的来源三元组上。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceHashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:candidateSourceHash is functional: a candidate was extracted from one exact span of source text, so it anchors to a single content hash — the one fingerprint that ties the candidate back to that prose and detects drift the moment the prose changes."
-msgstr "在规范载体上断言 logic:candidateSourceHash 是函数式的：候选者是从源文本的一个确切片段中抽取出来的，因此它锚定于唯一一个内容哈希——正是这一个指纹将候选者与该散文关联起来，并在散文发生变化的那一刻检测到漂移。"
+msgid "Asserts on the canonical carrier that logic:candidateSourceHash is functional: a candidate was extracted from one exact span of source text, so it anchors to a single content hash — the one fingerprint that ties the candidate back to that prose and detects drift the moment the prose changes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:candidateSourceHash 是函数式的：候选者是从源文本的一个确切片段中抽取出来的，因此它锚定于唯一一个内容哈希——正是这一个指纹将候选者与该散文关联起来，并在散文发生变化的那一刻检测到漂移。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureFormulaFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:conjectureFormula is functional: a conjecture names exactly one formula, so it carries a single alpha-normalized content-key of the full first-order AST — the one canonical identity under which two conjectures naming the same formula up to bound-variable renaming share a key and cannot be double-counted."
@@ -11035,20 +11035,20 @@ msgid "Asserts on the canonical carrier that logic:consequent is functional: a m
 msgstr "在规范载体上断言 logic:consequent 是函数式的：一个实质蕴涵公式恰好有一个后件——唯一一个结论公式——它与唯一的 logic:antecedent 配对，将该节点标记为一个有序蕴涵，不同于可交换的 logic:iff。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByCompetencyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:demonstratedByCompetency is functional: a gmeow:FlagshipScenario is pinned by exactly one competency question — the single gmeow:CompetencyQuestion IRI whose gmeow:cqExpectRow expectation the native flagship cross-check confirms for that scenario."
-msgstr "在规范载体上断言 gmeow:demonstratedByCompetency 是函数性的：一个 gmeow:FlagshipScenario 恰好由一个能力问题固定——即原生旗舰交叉核查为该场景确认其 gmeow:cqExpectRow 预期的唯一 gmeow:CompetencyQuestion IRI。"
+msgid "Asserts on the canonical carrier that gmeow:demonstratedByCompetency is functional: a gmeow:FlagshipScenario is pinned by exactly one competency question — the single gmeow:CompetencyQuestion IRI whose gmeow:cqExpectRow expectation the native flagship cross-check confirms for that scenario. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:demonstratedByCompetency 是函数性的：一个 gmeow:FlagshipScenario 恰好由一个能力问题固定——即原生旗舰交叉核查为该场景确认其 gmeow:cqExpectRow 预期的唯一 gmeow:CompetencyQuestion IRI。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByExampleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:demonstratedByExample is functional: a gmeow:FlagshipScenario is realized by exactly one worked example — a single slice-relative *.ttl path the discharge harness validates clean, never more than one per scenario."
 msgstr "在规范载体上断言 gmeow:demonstratedByExample 是函数性的：一个 gmeow:FlagshipScenario 恰好由一个已完成示例来实现——即由履行测试框架验证为干净无误的单一 slice 相对 *.ttl 路径，每个场景绝不超过一个。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByProducerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier the execution-discharge harness dispatches, runs, and pins the output of to discharge the acceptance bar."
-msgstr "在规范载体上断言 gmeow:demonstratedByProducer 是函数性的：一个 gmeow:FlagshipScenario 恰好指明一个原生生产者入口点——即执行履行测试框架所调度、运行并固定其输出以满足验收门槛的唯一路径式标识符。"
+msgid "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier the execution-discharge harness dispatches, runs, and pins the output of to discharge the acceptance bar. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:demonstratedByProducer 是函数性的：一个 gmeow:FlagshipScenario 恰好指明一个原生生产者入口点——即执行履行测试框架所调度、运行并固定其输出以满足验收门槛的唯一路径式标识符。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/effectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:effect is functional: an action schema introduces exactly one effect — the single ins/del supersession change executing an occurrence records — with alternative results carried instead by the multi-valued logic:nondeterministicOutcome, so the deterministic change stays one edge while nondeterminism lives on a different facet."
-msgstr "在规范载体上断言 logic:effect 是函数性的：一个动作模式恰好引入一个效果——即执行一次发生所记录的唯一 ins/del 替换变化——而其他可能结果则由多值的 logic:nondeterministicOutcome 承载，因此确定性变化始终是单一条边，非确定性则存在于另一个方面。"
+msgid "Asserts on the canonical carrier that logic:effect is functional: an action schema introduces exactly one effect — the single ins/del supersession change executing an occurrence records — with alternative results carried instead by the multi-valued logic:nondeterministicOutcome, so the deterministic change stays one edge while nondeterminism lives on a different facet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:effect 是函数性的：一个动作模式恰好引入一个效果——即执行一次发生所记录的唯一 ins/del 替换变化——而其他可能结果则由多值的 logic:nondeterministicOutcome 承载，因此确定性变化始终是单一条边，非确定性则存在于另一个方面。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/evaluationModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:evaluationMode is functional: a reasoning program selects exactly one logic:EvaluationMode strategy to resolve its clause set, never a mix — one procedure resolves the same authored clauses, and an unrecognized mode is a hard compile-time fail rather than a silent fallback."
@@ -11059,36 +11059,36 @@ msgid "Asserts on the canonical carrier that logic:exists is functional: an exis
 msgstr "在规范载体上断言 logic:exists 是函数性的：一个存在量词公式恰好绑定一个主体公式——即该约束算子作用范围的唯一辖域——其约束变量则搭载于 logic:quantifiedVariable，因此该节点固定了一个约束算子和一个主体，而非一组主体。"
 
 msgctxt "https://blackcatinformatics.ca/logic/feasibilityStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:feasibilityStatus is functional: a goal evaluation carries exactly one logic:FeasibilityStatus — the feasibility axis of the factored outcome — a single value that varies independently of the satisfaction, lifecycle, and goal-evaluation axes but is itself one-valued per evaluation."
-msgstr "在规范载体上断言 logic:feasibilityStatus 是函数性的：一次目标评估恰好携带一个 logic:FeasibilityStatus——即分解结果中的可行性维度——这是一个独立于满足度、生命周期与目标评估维度而变化的单一值，但就每次评估而言其自身仍是单值的。"
+msgid "Asserts on the canonical carrier that logic:feasibilityStatus is functional: a goal evaluation carries exactly one logic:FeasibilityStatus — the feasibility axis of the factored outcome — a single value that varies independently of the satisfaction, lifecycle, and goal-evaluation axes but is itself one-valued per evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:feasibilityStatus 是函数性的：一次目标评估恰好携带一个 logic:FeasibilityStatus——即分解结果中的可行性维度——这是一个独立于满足度、生命周期与目标评估维度而变化的单一值，但就每次评估而言其自身仍是单值的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/forallFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:forall is functional: a universal-quantifier formula binds exactly one body formula — the single scope the binder ranges over across individuals in the domain of discourse — while its bound variables ride on logic:quantifiedVariable, so the node pins one binder and one body."
-msgstr "在规范载体上断言 logic:forall 是函数性的：一个全称量词公式恰好绑定一个主体公式——即该约束算子在话语域个体上作用范围的唯一辖域——其约束变量则搭载于 logic:quantifiedVariable，因此该节点固定了一个约束算子和一个主体。"
+msgid "Asserts on the canonical carrier that logic:forall is functional: a universal-quantifier formula binds exactly one body formula — the single scope the binder ranges over across individuals in the domain of discourse — while its bound variables ride on logic:quantifiedVariable, so the node pins one binder and one body. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:forall 是函数性的：一个全称量词公式恰好绑定一个主体公式——即该约束算子在话语域个体上作用范围的唯一辖域——其约束变量则搭载于 logic:quantifiedVariable，因此该节点固定了一个约束算子和一个主体。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessHorizonFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:freshnessHorizon is functional: a freshness guard declares exactly one age ceiling — the single xsd:duration bounding how old the guarded precondition datum may be, measured from its logic:datumRecordedAt to the probe's logic:decisionTime — so the one age comparison is well-defined."
-msgstr "在规范载体上断言 logic:freshnessHorizon 是函数性的：一个新鲜度守卫恰好声明一个年龄上限——即用于界定被守护前提数据可容许陈旧程度的唯一 xsd:duration，从其 logic:datumRecordedAt 量至探针的 logic:decisionTime——从而使这一年龄比较有明确定义。"
+msgid "Asserts on the canonical carrier that logic:freshnessHorizon is functional: a freshness guard declares exactly one age ceiling — the single xsd:duration bounding how old the guarded precondition datum may be, measured from its logic:datumRecordedAt to the probe's logic:decisionTime — so the one age comparison is well-defined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:freshnessHorizon 是函数性的：一个新鲜度守卫恰好声明一个年龄上限——即用于界定被守护前提数据可容许陈旧程度的唯一 xsd:duration，从其 logic:datumRecordedAt 量至探针的 logic:decisionTime——从而使这一年龄比较有明确定义。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:freshnessWindowEnd is functional: a freshness guard's explicit valid-time window has exactly one inclusive upper bound, so it carries a single xsd:dateTime end — required exactly once when a window is declared and paired with the single logic:freshnessWindowStart to define the closed interval."
-msgstr "在规范载体上断言 logic:freshnessWindowEnd 是函数性的：一个新鲜度守卫显式的有效时间窗恰好具有一个闭合的上界，因此它携带唯一一个 xsd:dateTime 终点——在声明窗口时恰好要求出现一次，并与唯一的 logic:freshnessWindowStart 配对以界定该闭区间。"
+msgid "Asserts on the canonical carrier that logic:freshnessWindowEnd is functional: a freshness guard's explicit valid-time window has exactly one inclusive upper bound, so it carries a single xsd:dateTime end — required exactly once when a window is declared and paired with the single logic:freshnessWindowStart to define the closed interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:freshnessWindowEnd 是函数性的：一个新鲜度守卫显式的有效时间窗恰好具有一个闭合的上界，因此它携带唯一一个 xsd:dateTime 终点——在声明窗口时恰好要求出现一次，并与唯一的 logic:freshnessWindowStart 配对以界定该闭区间。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowStartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:freshnessWindowStart is functional: a freshness guard's explicit valid-time window has exactly one inclusive lower bound, so it carries a single xsd:dateTime start — required exactly once when a window is declared and paired with the single logic:freshnessWindowEnd to define the closed interval."
-msgstr "在规范载体上断言 logic:freshnessWindowStart 是函数性的：一个新鲜度守卫显式的有效时间窗恰好具有一个闭合的下界，因此它携带唯一一个 xsd:dateTime 起点——在声明窗口时恰好要求出现一次，并与唯一的 logic:freshnessWindowEnd 配对以界定该闭区间。"
+msgid "Asserts on the canonical carrier that logic:freshnessWindowStart is functional: a freshness guard's explicit valid-time window has exactly one inclusive lower bound, so it carries a single xsd:dateTime start — required exactly once when a window is declared and paired with the single logic:freshnessWindowEnd to define the closed interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:freshnessWindowStart 是函数性的：一个新鲜度守卫显式的有效时间窗恰好具有一个闭合的下界，因此它携带唯一一个 xsd:dateTime 起点——在声明窗口时恰好要求出现一次，并与唯一的 logic:freshnessWindowEnd 配对以界定该闭区间。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/functionSymbolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:functionSymbol is functional: a function term applies exactly one reified function-symbol (logic:Type) individual over its ordered arguments — mirroring how logic:relation reifies a predication's single relation under the HiLog reflection — so the object level stays first-order and no function variable is admitted."
-msgstr "在规范载体上断言 logic:functionSymbol 是函数性的：一个函数项恰好在其有序参数之上应用一个被具化的函数符号（logic:Type）个体——这与 logic:relation 在 HiLog 反射下将一个谓词的单一关系加以具化的方式相呼应——从而使对象层保持一阶，且不允许任何函数变量。"
+msgid "Asserts on the canonical carrier that logic:functionSymbol is functional: a function term applies exactly one reified function-symbol (logic:Type) individual over its ordered arguments — mirroring how logic:relation reifies a predication's single relation under the HiLog reflection — so the object level stays first-order and no function variable is admitted. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:functionSymbol 是函数性的：一个函数项恰好在其有序参数之上应用一个被具化的函数符号（logic:Type）个体——这与 logic:relation 在 HiLog 反射下将一个谓词的单一关系加以具化的方式相呼应——从而使对象层保持一阶，且不允许任何函数变量。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/goalEvaluationStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:goalEvaluationStatus is functional: a goal evaluation carries exactly one logic:GoalEvaluationStatus — whether it is conclusive — a single conclusiveness value (distinct from the engine-computation logic:resultEvaluation) that with satisfaction status logic:Satisfied and logic:GoalEvaluationCompleted gates a gmeow:satisfiedBy edge."
 msgstr "在规范载体上断言 logic:goalEvaluationStatus 是函数性的:一次目标评估恰好携带一个 logic:GoalEvaluationStatus——即它是否具有结论性——一个单一的结论性取值(不同于引擎计算的 logic:resultEvaluation),该取值与满足状态 logic:Satisfied 及 logic:GoalEvaluationCompleted 一起决定是否放行一条 gmeow:satisfiedBy 边。"
 
 msgctxt "https://blackcatinformatics.ca/logic/guardedByCounterExampleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the discharge harness runs to confirm the gate bites."
-msgstr "在规范载体上断言 gmeow:guardedByCounterExample 是函数性的:一个 gmeow:FlagshipScenario 恰好由一个反例来把守——即触发该场景 gmeow:enforcesFailureClass 的、与切片相关的单一负向固件,验证工具运行它以确认关卡确实生效。"
+msgid "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the discharge harness runs to confirm the gate bites. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:guardedByCounterExample 是函数性的:一个 gmeow:FlagshipScenario 恰好由一个反例来把守——即触发该场景 gmeow:enforcesFailureClass 的、与切片相关的单一负向固件,验证工具运行它以确认关卡确实生效。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/guardsPreconditionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:guardsPrecondition is functional: a freshness guard guards exactly one precondition situation — the single datum whose currency it checks — so a schema guarding several preconditions carries one logic:FreshnessGuard per precondition (the multi-valued logic:freshnessGuard gathers them), never one guard fanning out over many."
@@ -11103,8 +11103,8 @@ msgid "key class"
 msgstr "键类"
 
 msgctxt "https://blackcatinformatics.ca/logic/keyClass|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:KeyAssertion to the class its key identifies — the class whose instances the key value uniquely picks out. Read together with logic:keyProperty, it tells the native DL consistency gate which class bears the key: two instances of this class agreeing on every key value are the same individual. Domain logic:KeyAssertion; single-valued."
-msgstr "将一个 logic:KeyAssertion 关联到其键所标识的类——即键值唯一挑出其实例的那个类。与 logic:keyProperty 一并阅读时,它告诉原生 DL 一致性关卡哪个类承载该键:该类的两个实例若在每个键值上都一致,则为同一个体。定义域 logic:KeyAssertion;单值。"
+msgid "Relates a logic:KeyAssertion to the class its key identifies — the class whose instances the key value uniquely picks out. Read together with logic:keyProperty, it tells the native DL consistency gate which class bears the key: two instances of this class agreeing on every key value are the same individual. Domain logic:KeyAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "将一个 logic:KeyAssertion 关联到其键所标识的类——即键值唯一挑出其实例的那个类。与 logic:keyProperty 一并阅读时,它告诉原生 DL 一致性关卡哪个类承载该键:该类的两个实例若在每个键值上都一致,则为同一个体。定义域 logic:KeyAssertion;单值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/keyProperty|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "key property"
@@ -11115,8 +11115,8 @@ msgid "Relates a logic:KeyAssertion to the property whose value keys the class �
 msgstr "将一个 logic:KeyAssertion 关联到其取值为该类提供键的属性——即其取值唯一标识一个 logic:keyClass 实例的那个单一键属性。与 logic:keyClass 共同出现:一个键断言若只携带其中之一而无另一个,则未命名任何可强制执行的键。一条记录若命名多个 logic:keyProperty 取值,则表述的是一个复合键(取值元组是唯一的,而非每个部分各自唯一),这种键没有单路径唯一性形状;预置的键均为单属性键。定义域 logic:KeyAssertion;对单属性键而言为单值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lifecycleStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:lifecycleStatus is functional: a goal evaluation carries exactly one logic:LifecycleStatus — the lifecycle axis of the factored outcome — a single value that varies independently of the satisfaction, feasibility, and goal-evaluation axes yet is itself one-valued per evaluation."
-msgstr "在规范载体上断言 logic:lifecycleStatus 是函数式的:一次目标评估恰好携带一个 logic:LifecycleStatus——即已分解结果中的生命周期轴——它是一个独立于满足度、可行性和目标评估各轴而变化的单一值,但就每次评估而言本身仍是单值的。"
+msgid "Asserts on the canonical carrier that logic:lifecycleStatus is functional: a goal evaluation carries exactly one logic:LifecycleStatus — the lifecycle axis of the factored outcome — a single value that varies independently of the satisfaction, feasibility, and goal-evaluation axes yet is itself one-valued per evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:lifecycleStatus 是函数式的:一次目标评估恰好携带一个 logic:LifecycleStatus——即已分解结果中的生命周期轴——它是一个独立于满足度、可行性和目标评估各轴而变化的单一值,但就每次评估而言本身仍是单值的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/notFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:not is functional: a strong-negation formula negates exactly one sub-formula — explicit classical negation over a single operand — kept distinct from negation-as-failure, which is a body-literal flag (logic:negatedBody) and never a formula-level connective."
@@ -11135,8 +11135,8 @@ msgid "Asserts on the canonical carrier that logic:observation is functional: an
 msgstr "在规范载体上断言 logic:observation 是函数性的:一个动作模式恰好揭示一个观察——即通向认知层的单一接缝,策略据其 logic:reveals 进行分支——因此后续动作分支所依据的值,每个模式只有一个方面,而非一个集合。"
 
 msgctxt "https://blackcatinformatics.ca/logic/planGoalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:planGoal is functional: a plan has exactly one success criterion — the single gmeow:Goal its steps, invoking action schemas, are arranged to reach — against which its success over nondeterministic outcomes is quantified by logic:planSuccessMode."
-msgstr "在规范载体上断言 logic:planGoal 是函数性的:一个计划恰好有一个成功准则——其调用动作模式的各步骤被安排以达成的唯一 gmeow:Goal——计划在非确定性结果上的成功程度依据 logic:planSuccessMode 相对该目标进行量化。"
+msgid "Asserts on the canonical carrier that logic:planGoal is functional: a plan has exactly one success criterion — the single gmeow:Goal its steps, invoking action schemas, are arranged to reach — against which its success over nondeterministic outcomes is quantified by logic:planSuccessMode. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:planGoal 是函数性的:一个计划恰好有一个成功准则——其调用动作模式的各步骤被安排以达成的唯一 gmeow:Goal——计划在非确定性结果上的成功程度依据 logic:planSuccessMode 相对该目标进行量化。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/planSuccessModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:planSuccessMode is functional: a plan declares exactly one logic:PlanSuccessMode quantifying its success over the nondeterministic outcomes of its action schemas — a single choice of whether some, every, or every fair execution must reach the goal, never two quantifications at once."
@@ -11147,8 +11147,8 @@ msgid "Asserts on the canonical carrier that logic:programQuery is functional: a
 msgstr "在规范载体上断言 logic:programQuery 是函数性的:一个推理程序恰好声明一个目标原子,该程序针对其子句集对其求解——这是一个单一查询,其 logic:termVariable 载体即引擎所绑定的答案变量——它不同于可多值的 logic:verdictProbe 原子,且要求恰好出现一次。"
 
 msgctxt "https://blackcatinformatics.ca/logic/recoveryTransformFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:recoveryTransform is functional: a recovery case executes exactly one ordered source-to-view logic:Formula — the single universally-quantified implication whose antecedent is the complete source graph pattern and consequent the projected view pattern — where reversing the one implication would change which information must be recovered."
-msgstr "在规范载体上断言 logic:recoveryTransform 是函数性的:一个恢复案例恰好执行一个有序的「源到视图」logic:Formula——这是唯一一个全称量化蕴含式,其前件是完整的源图模式,后件是投影视图模式——若反转这一蕴含式,就会改变必须恢复的信息内容。"
+msgid "Asserts on the canonical carrier that logic:recoveryTransform is functional: a recovery case executes exactly one ordered source-to-view logic:Formula — the single universally-quantified implication whose antecedent is the complete source graph pattern and consequent the projected view pattern — where reversing the one implication would change which information must be recovered. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:recoveryTransform 是函数性的:一个恢复案例恰好执行一个有序的「源到视图」logic:Formula——这是唯一一个全称量化蕴含式,其前件是完整的源图模式,后件是投影视图模式——若反转这一蕴含式,就会改变必须恢复的信息内容。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/relationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:relation is functional: an atomic-predication formula predicates exactly one reified relation (logic:Type) over its ordered arguments — predicating over a single relation individual per the HiLog reflection keeps the object level first-order rather than admitting a predicate variable."
@@ -11159,36 +11159,36 @@ msgid "Asserts on the canonical carrier that logic:satisfactionDegree is functio
 msgstr "在规范载体上断言 logic:satisfactionDegree 是函数性的:一次目标评估恰好携带一个满足度——即目标达成程度在单位区间上的唯一度量——它不同于不确定性度量、logic:objectiveValue 以及 logic:utility,也不能替代其中任何一个。"
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionStatusFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:satisfactionStatus is functional: a goal evaluation carries exactly one logic:SatisfactionStatus — the satisfaction axis of the factored outcome — a single value that varies independently of the feasibility, lifecycle, and goal-evaluation axes yet is itself one-valued per evaluation."
-msgstr "在规范载体上断言 logic:satisfactionStatus 是函数性的:一次目标评估恰好携带一个 logic:SatisfactionStatus——即分解结果中的满足轴——这是一个独立于可行性、生命周期与目标评估各轴变化的单一值,但就每次评估而言其本身是单值的。"
+msgid "Asserts on the canonical carrier that logic:satisfactionStatus is functional: a goal evaluation carries exactly one logic:SatisfactionStatus — the satisfaction axis of the factored outcome — a single value that varies independently of the feasibility, lifecycle, and goal-evaluation axes yet is itself one-valued per evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:satisfactionStatus 是函数性的:一次目标评估恰好携带一个 logic:SatisfactionStatus——即分解结果中的满足轴——这是一个独立于可行性、生命周期与目标评估各轴变化的单一值,但就每次评估而言其本身是单值的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termApplicationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:termApplication is functional: a term-carrier bears exactly one term value, so when that value is a compound function term the carrier points at a single logic:FunctionTerm sub-tree — the fifth of the five mutually exclusive term-value properties, exactly one of which is present on each carrier."
-msgstr "在规范载体上断言 logic:termApplication 是函数性的:一个术语载体恰好携带一个术语值,因此当该值是一个复合函数项时,该载体指向单一的 logic:FunctionTerm 子树——这是五个互斥的术语值属性中的第五个,每个载体上恰好存在其中一个。"
+msgid "Asserts on the canonical carrier that logic:termApplication is functional: a term-carrier bears exactly one term value, so when that value is a compound function term the carrier points at a single logic:FunctionTerm sub-tree — the fifth of the five mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:termApplication 是函数性的:一个术语载体恰好携带一个术语值,因此当该值是一个复合函数项时,该载体指向单一的 logic:FunctionTerm 子树——这是五个互斥的术语值属性中的第五个,每个载体上恰好存在其中一个。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:termIndex is functional: a term-carrier occupies exactly one position in its ordered list — argument or bound variable — so it fixes a single zero-based ordinal, the explicit position that makes variadic, order-significant lists round-trip independent of RDF statement order."
-msgstr "在规范载体上断言 logic:termIndex 是函数性的:一个术语载体在其有序列表(实参或约束变量)中恰好占据一个位置,因此它确定了唯一一个从零开始计数的序数,这个显式位置使得可变元且顺序敏感的列表能够独立于 RDF 语句顺序而完整往返。"
+msgid "Asserts on the canonical carrier that logic:termIndex is functional: a term-carrier occupies exactly one position in its ordered list — argument or bound variable — so it fixes a single zero-based ordinal, the explicit position that makes variadic, order-significant lists round-trip independent of RDF statement order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:termIndex 是函数性的:一个术语载体在其有序列表(实参或约束变量)中恰好占据一个位置,因此它确定了唯一一个从零开始计数的序数,这个显式位置使得可变元且顺序敏感的列表能够独立于 RDF 语句顺序而完整往返。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termIriFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:termIri is functional: a term-carrier bears exactly one term value, so an IRI-constant carrier names a single IRI — the one individual, reified relation, or type it stands for — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."
-msgstr "在规范载体上断言 logic:termIri 是函数性的:一个术语载体恰好携带一个术语值,因此一个 IRI 常量载体只指明一个 IRI——即它所代表的那唯一一个个体、具化关系或类型——这是彼此互斥的术语值属性之一,每个载体上恰好存在其中一个。"
+msgid "Asserts on the canonical carrier that logic:termIri is functional: a term-carrier bears exactly one term value, so an IRI-constant carrier names a single IRI — the one individual, reified relation, or type it stands for — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:termIri 是函数性的:一个术语载体恰好携带一个术语值,因此一个 IRI 常量载体只指明一个 IRI——即它所代表的那唯一一个个体、具化关系或类型——这是彼此互斥的术语值属性之一,每个载体上恰好存在其中一个。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralDatatypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:termLiteralDatatype is functional: a literal term-carrier has exactly one datatype, so it carries a single datatype IRI held separately from the lexical form on logic:termLiteral, letting the typed-literal term round-trip losslessly — absent for a plain literal, and one datatype when present."
-msgstr "在规范载体上断言 logic:termLiteralDatatype 是函数性的:一个字面量术语载体恰好有一种数据类型,因此它携带的是与 logic:termLiteral 上的词法形式分开保存的单一数据类型 IRI,使带类型的字面量项能够无损地完整往返——对于普通字面量则不存在,存在时只有一种数据类型。"
+msgid "Asserts on the canonical carrier that logic:termLiteralDatatype is functional: a literal term-carrier has exactly one datatype, so it carries a single datatype IRI held separately from the lexical form on logic:termLiteral, letting the typed-literal term round-trip losslessly — absent for a plain literal, and one datatype when present. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:termLiteralDatatype 是函数性的:一个字面量术语载体恰好有一种数据类型,因此它携带的是与 logic:termLiteral 上的词法形式分开保存的单一数据类型 IRI,使带类型的字面量项能够无损地完整往返——对于普通字面量则不存在,存在时只有一种数据类型。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:termLiteral is functional: a term-carrier bears exactly one term value, so a literal carrier holds a single lexical form — its datatype riding on the companion logic:termLiteralDatatype — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."
-msgstr "在规范载体上断言 logic:termLiteral 是函数性的:一个术语载体恰好携带一个术语值,因此一个字面量载体持有单一的词法形式——其数据类型由伴随属性 logic:termLiteralDatatype 承载——这是彼此互斥的术语值属性之一,每个载体上恰好存在其中一个。"
+msgid "Asserts on the canonical carrier that logic:termLiteral is functional: a term-carrier bears exactly one term value, so a literal carrier holds a single lexical form — its datatype riding on the companion logic:termLiteralDatatype — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:termLiteral 是函数性的:一个术语载体恰好携带一个术语值,因此一个字面量载体持有单一的词法形式——其数据类型由伴随属性 logic:termLiteralDatatype 承载——这是彼此互斥的术语值属性之一,每个载体上恰好存在其中一个。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termSequenceMarkerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:termSequenceMarker is functional: a term-carrier bears exactly one term value, so a sequence-marker carrier holds a single authored marker name — the one logic:SequenceMarker binding a sequence of terms rather than a single one — as one of the mutually exclusive term-value properties."
 msgstr "在规范载体上断言 logic:termSequenceMarker 是函数性的:一个术语载体恰好携带一个术语值,因此一个序列标记载体持有一个撰写好的单一标记名称——即绑定一串术语而非单个术语的那唯一的 logic:SequenceMarker——这是彼此互斥的术语值属性之一。"
 
 msgctxt "https://blackcatinformatics.ca/logic/termVariableFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:termVariable is functional: a term-carrier bears exactly one term value, so a variable carrier holds a single authored variable name (without a sigil) — one variable bound by an enclosing quantifier or free — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."
-msgstr "在规范载体上断言 logic:termVariable 是函数性的:一个术语载体恰好携带一个术语值,因此一个变量载体持有一个撰写好的单一变量名(不带符号前缀)——一个被外层量词约束的变量,或是自由变量——这是彼此互斥的术语值属性之一,每个载体上恰好存在其中一个。"
+msgid "Asserts on the canonical carrier that logic:termVariable is functional: a term-carrier bears exactly one term value, so a variable carrier holds a single authored variable name (without a sigil) — one variable bound by an enclosing quantifier or free — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 logic:termVariable 是函数性的:一个术语载体恰好携带一个术语值,因此一个变量载体持有一个撰写好的单一变量名(不带符号前缀)——一个被外层量词约束的变量,或是自由变量——这是彼此互斥的术语值属性之一,每个载体上恰好存在其中一个。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/utilityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:utility is functional: a goal evaluation carries exactly one utility — the single desirability quantity, where utility and preference are one concept so no separate preference property is minted — distinct from the uncertainty measures, from logic:satisfactionDegree, and from logic:objectiveValue."

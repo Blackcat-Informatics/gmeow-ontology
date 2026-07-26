@@ -50,16 +50,16 @@ msgid "mythFrame is functional"
 msgstr "mythFrame est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mythFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against."
-msgstr "Affirme sur le porteur canonique que gmeow:mythFrame est fonctionnelle : un Myth tient ses affirmations internes pour vraies sous exactement un repère de référence narratif, le point de vue unique auquel est mesurée chaque affirmation de ce mythe délimitée par accordingTo."
+msgid "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:mythFrame est fonctionnelle : un Myth tient ses affirmations internes pour vraies sous exactement un repère de référence narratif, le point de vue unique auquel est mesurée chaque affirmation de ce mythe délimitée par accordingTo. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrationSegment is functional"
 msgstr "narrationSegment est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrationSegmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records."
-msgstr "Affirme sur le porteur canonique que gmeow:narrationSegment est fonctionnelle : une NarrationUsage réifie une seule couture (segment, sujet), de sorte qu'elle porte exactement un segment de contenu — l'unique fragment de texte porteur dont le relateur enregistre la narration."
+msgid "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:narrationSegment est fonctionnelle : une NarrationUsage réifie une seule couture (segment, sujet), de sorte qu'elle porte exactement un segment de contenu — l'unique fragment de texte porteur dont le relateur enregistre la narration. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrationSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrationSubject is functional"
@@ -82,16 +82,16 @@ msgid "narrativeFrameLinkSource is functional"
 msgstr "narrativeFrameLinkSource est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources."
-msgstr "Affirme sur le porteur canonique que gmeow:narrativeFrameLinkSource est fonctionnelle : un NarrativeFrameLink lie une seule relation dirigée de repère à repère, de sorte qu'il possède exactement un repère source — le relateur réifié perdrait sa directionnalité si un même lien admettait plusieurs sources."
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeFrameLinkSource est fonctionnelle : un NarrativeFrameLink lie une seule relation dirigée de repère à repère, de sorte qu'il possède exactement un repère source — le relateur réifié perdrait sa directionnalité si un même lien admettait plusieurs sources. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrativeFrameLinkTarget is functional"
 msgstr "narrativeFrameLinkTarget est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeFrameLinkTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target."
-msgstr "Affirme sur le porteur canonique que gmeow:narrativeFrameLinkTarget est fonctionnelle : un NarrativeFrameLink lie une seule relation dirigée de repère à repère, de sorte qu'il possède exactement un repère cible — un repère source en relation avec plusieurs cibles correspond à plusieurs liens, chacun fixant sa propre cible."
+msgid "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:narrativeFrameLinkTarget est fonctionnelle : un NarrativeFrameLink lie une seule relation dirigée de repère à repère, de sorte qu'il possède exactement un repère cible — un repère source en relation avec plusieurs cibles correspond à plusieurs liens, chacun fixant sa propre cible. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/narrativeRoleBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "narrativeRoleBearer is functional"
@@ -130,8 +130,8 @@ msgid "positionFrame is functional"
 msgstr "positionFrame est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/positionFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid."
-msgstr "Affirme sur le porteur canonique que gmeow:positionFrame est fonctionnelle : une NarrativePosition est exprimée dans exactement un cadre temporel narratif — l'unique système de coordonnées qui donne un sens à son ordinal et à son étiquette — puisqu'une position sans son cadre unique constitue l'anti-patron de l'entier nu que cette classe existe pour interdire."
+msgid "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:positionFrame est fonctionnelle : une NarrativePosition est exprimée dans exactement un cadre temporel narratif — l'unique système de coordonnées qui donne un sens à son ordinal et à son étiquette — puisqu'une position sans son cadre unique constitue l'anti-patron de l'entier nu que cette classe existe pour interdire. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/positionOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "positionOrdinal is functional"

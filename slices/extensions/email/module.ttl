@@ -1522,7 +1522,7 @@ gmeow:authMethodFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authMethod is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:authMethod is functional: an AuthenticationResult reifies a single RFC 8601 authentication check, and each such check tests exactly one method — dkim, spf, dmarc, arc, iprev, or auth — so the reified result names that one method."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authMethod is functional: an AuthenticationResult reifies a single RFC 8601 authentication check, and each such check tests exactly one method — dkim, spf, dmarc, arc, iprev, or auth — so the reified result names that one method. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:authMethod ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:authMethod ;
@@ -1537,7 +1537,7 @@ gmeow:authResultFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authResult is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:authResult is functional: the single method an AuthenticationResult evaluates yields exactly one verdict — pass, fail, none, softfail, neutral, temperror, or permerror — so the reified check carries one result."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authResult is functional: the single method an AuthenticationResult evaluates yields exactly one verdict — pass, fail, none, softfail, neutral, temperror, or permerror — so the reified check carries one result. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:authResult ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:authResult ;
@@ -1552,7 +1552,7 @@ gmeow:authServerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authServer is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:authServer is functional: each AuthenticationResult records its check as stamped by a single authserv-id — the one authentication-serv-id that performed it — so the verifying server is one value."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authServer is functional: each AuthenticationResult records its check as stamped by a single authserv-id — the one authentication-serv-id that performed it — so the verifying server is one value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:authServer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:authServer ;
@@ -1567,7 +1567,7 @@ gmeow:bodyStructureFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "bodyStructure is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:bodyStructure is functional: the serialized JMAP EmailBodyStructure object is a single raw round-trip projection of a message's one MIME tree, so each message preserves exactly one such structure literal."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:bodyStructure is functional: the serialized JMAP EmailBodyStructure object is a single raw round-trip projection of a message's one MIME tree, so each message preserves exactly one such structure literal. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:bodyStructure ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:bodyStructure ;
@@ -1582,7 +1582,7 @@ gmeow:filenameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "filename is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:filename is functional: an Attachment is a single non-inline body part whose Content-Disposition names one file, so it bears exactly one filename."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:filename is functional: an Attachment is a single non-inline body part whose Content-Disposition names one file, so it bears exactly one filename. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:filename ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:filename ;
@@ -1612,7 +1612,7 @@ gmeow:hasContentTransferEncodingFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hasContentTransferEncoding is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:hasContentTransferEncoding is functional: a MIME body part is encoded for transport by exactly one mechanism — base64, quoted-printable, 7bit, 8bit, or binary — so it points to a single ContentTransferEncoding value."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasContentTransferEncoding is functional: a MIME body part is encoded for transport by exactly one mechanism — base64, quoted-printable, 7bit, 8bit, or binary — so it points to a single ContentTransferEncoding value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:hasContentTransferEncoding ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:hasContentTransferEncoding ;
@@ -1627,7 +1627,7 @@ gmeow:hasMultipartTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hasMultipartType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:hasMultipartType is functional: a MultipartBodyPart's Content-Type declares exactly one multipart subtype (alternative, mixed, related, signed, encrypted, …), so the container points to a single MultipartType value."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasMultipartType is functional: a MultipartBodyPart's Content-Type declares exactly one multipart subtype (alternative, mixed, related, signed, encrypted, …), so the container points to a single MultipartType value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:hasMultipartType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:hasMultipartType ;
@@ -1642,7 +1642,7 @@ gmeow:headerNameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "headerName is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:headerName is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field name, so the header's name is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:headerName is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field name, so the header's name is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:headerName ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:headerName ;
@@ -1657,7 +1657,7 @@ gmeow:headerValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "headerValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:headerValue is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field value, so the header's value is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:headerValue is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field value, so the header's value is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:headerValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:headerValue ;
@@ -1672,7 +1672,7 @@ gmeow:hopOrdinalFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hopOrdinal is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:hopOrdinal is functional: a RelayHop occupies one position within a message's delivery path (1 = closest to the origin), so its ordinal is a single integer."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hopOrdinal is functional: a RelayHop occupies one position within a message's delivery path (1 = closest to the origin), so its ordinal is a single integer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:hopOrdinal ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:hopOrdinal ;
@@ -1687,7 +1687,7 @@ gmeow:mailboxOfAccountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailboxOfAccount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:mailboxOfAccount is functional: a mailbox is a container held within exactly one online account, so the account that holds it is a single value."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mailboxOfAccount is functional: a mailbox is a container held within exactly one online account, so the account that holds it is a single value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:mailboxOfAccount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:mailboxOfAccount ;
@@ -1702,7 +1702,7 @@ gmeow:mailboxRoleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailboxRole is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:mailboxRole is functional: JMAP assigns a mailbox at most one special-use role (inbox, archive, drafts, sent, trash, junk, templates), so the role is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mailboxRole is functional: JMAP assigns a mailbox at most one special-use role (inbox, archive, drafts, sent, trash, junk, templates), so the role is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:mailboxRole ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:mailboxRole ;
@@ -1717,7 +1717,7 @@ gmeow:participantAddressFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantAddress is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participantAddress is functional: a MessageParticipant reifies a single occurrence of one address in a header or envelope context, so the normalized address that appears in that occurrence is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantAddress is functional: a MessageParticipant reifies a single occurrence of one address in a header or envelope context, so the normalized address that appears in that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participantAddress ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participantAddress ;
@@ -1732,7 +1732,7 @@ gmeow:participantHeaderFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantHeader is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participantHeader is functional: a MessageParticipant reifies one address occurrence parsed from a single RFC 5322 header field, so the source header of that occurrence is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantHeader is functional: a MessageParticipant reifies one address occurrence parsed from a single RFC 5322 header field, so the source header of that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participantHeader ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participantHeader ;
@@ -1747,7 +1747,7 @@ gmeow:participantMessageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantMessage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participantMessage is functional: a MessageParticipant reifies an address occurrence that belongs to exactly one message, so the message the occurrence belongs to is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantMessage is functional: a MessageParticipant reifies an address occurrence that belongs to exactly one message, so the message the occurrence belongs to is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participantMessage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participantMessage ;
@@ -1762,7 +1762,7 @@ gmeow:participantOrdinalFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantOrdinal is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participantOrdinal is functional: a MessageParticipant occupies one zero-based position among the address occurrences of its header, so its ordinal is a single value."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantOrdinal is functional: a MessageParticipant occupies one zero-based position among the address occurrences of its header, so its ordinal is a single value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participantOrdinal ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participantOrdinal ;
@@ -1777,7 +1777,7 @@ gmeow:participantRoleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantRole is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participantRole is functional: a MessageParticipant reifies one address occurrence that plays exactly one header or envelope role, so the role of that occurrence is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantRole is functional: a MessageParticipant reifies one address occurrence that plays exactly one header or envelope role, so the role of that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participantRole ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participantRole ;
@@ -1792,7 +1792,7 @@ gmeow:relayAtFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayAt is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:relayAt is functional: a RelayHop is recorded by one Received header carrying a single server timestamp, so the time recorded for the hop is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayAt is functional: a RelayHop is recorded by one Received header carrying a single server timestamp, so the time recorded for the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:relayAt ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:relayAt ;
@@ -1807,7 +1807,7 @@ gmeow:relayByFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayBy is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:relayBy is functional: a RelayHop is the delivery action of a single relaying server, so the server that performed the hop is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayBy is functional: a RelayHop is the delivery action of a single relaying server, so the server that performed the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:relayBy ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:relayBy ;
@@ -1822,7 +1822,7 @@ gmeow:relayFromFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayFrom is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:relayFrom is functional: a RelayHop received the message from exactly one host, so the from-host it records is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayFrom is functional: a RelayHop received the message from exactly one host, so the from-host it records is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:relayFrom ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:relayFrom ;
@@ -1837,7 +1837,7 @@ gmeow:relayProtocolFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayProtocol is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:relayProtocol is functional: a RelayHop transported the message over one protocol (e.g. ESMTP, ESMTPS), so the protocol used for the hop is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayProtocol is functional: a RelayHop transported the message over one protocol (e.g. ESMTP, ESMTPS), so the protocol used for the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:relayProtocol ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:relayProtocol ;
@@ -1852,7 +1852,7 @@ gmeow:residenceMailboxFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "residenceMailbox is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:residenceMailbox is functional: a MailboxResidence reifies the time-scoped membership of a message in exactly one mailbox, so the mailbox the residence concerns is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:residenceMailbox is functional: a MailboxResidence reifies the time-scoped membership of a message in exactly one mailbox, so the mailbox the residence concerns is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:residenceMailbox ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:residenceMailbox ;
@@ -1867,7 +1867,7 @@ gmeow:residentMessageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "residentMessage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:residentMessage is functional: a MailboxResidence reifies the time-scoped residence of exactly one message, so the message the residence concerns is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:residentMessage is functional: a MailboxResidence reifies the time-scoped residence of exactly one message, so the message the residence concerns is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:residentMessage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:residentMessage ;
@@ -1882,7 +1882,7 @@ gmeow:rfcMessageIdFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "rfcMessageId is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:rfcMessageId is functional: a message bears exactly one canonical RFC 5322 Message-ID (generated by gmeow when the original lacks one), so its Message-ID is single-valued even where distinct bodies collide on the same identifier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:rfcMessageId is functional: a message bears exactly one canonical RFC 5322 Message-ID (generated by gmeow when the original lacks one), so its Message-ID is single-valued even where distinct bodies collide on the same identifier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:rfcMessageId ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:rfcMessageId ;

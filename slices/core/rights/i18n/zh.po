@@ -854,16 +854,16 @@ msgid "conflictStrategy is functional"
 msgstr "conflictStrategy 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined."
-msgstr "在规范载体上断言 gmeow:conflictStrategy 是函数式的：权利声明通过恰好一条解决规则来裁定针对同一行为的许可与禁止之间的冲突——许可胜出、禁止胜出，或该策略无效——因为两条相互竞争的策略本身会就如何裁定冲突产生冲突，从而使该策略的结果不确定。"
+msgid "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:conflictStrategy 是函数式的：权利声明通过恰好一条解决规则来裁定针对同一行为的许可与禁止之间的冲突——许可胜出、禁止胜出，或该策略无效——因为两条相互竞争的策略本身会就如何裁定冲突产生冲突，从而使该策略的结果不确定。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "constraintLogic is functional"
 msgstr "constraintLogic 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogicFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint."
-msgstr "在规范载体上断言 gmeow:constraintLogic 是函数式的：一个逻辑约束在恰好一个布尔运算符下组合其成员——AND、OR、XONE 或有序 AND 序列——因为同一个成员集合若在两个不同运算符下折叠，会为同一约束产生两组不相容的真值条件。"
+msgid "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:constraintLogic 是函数式的：一个逻辑约束在恰好一个布尔运算符下组合其成员——AND、OR、XONE 或有序 AND 序列——因为同一个成员集合若在两个不同运算符下折叠，会为同一约束产生两组不相容的真值条件。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperatorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "constraintOperator is functional"
@@ -878,8 +878,8 @@ msgid "copyrightNotice is functional"
 msgstr "copyrightNotice 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNoticeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims."
-msgstr "在规范载体上断言 gmeow:copyrightNotice 是函数性的：一个版权关系体携带一条可直接显示的规范 © 声明字符串，因为针对某一作品、某一权利人和某一年份的单个 Copyright 只有一条格式化的可读声明；同一关系体上两条不同的声明行会呈现相互矛盾的版权主张。"
+msgid "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:copyrightNotice 是函数性的：一个版权关系体携带一条可直接显示的规范 © 声明字符串，因为针对某一作品、某一权利人和某一年份的单个 Copyright 只有一条格式化的可读声明；同一关系体上两条不同的声明行会呈现相互矛盾的版权主张。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "copyrightStatus is functional"
@@ -942,8 +942,8 @@ msgid "registrationNumber is functional"
 msgstr "registrationNumber 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator."
-msgstr "在规范载体上断言 gmeow:registrationNumber 是函数性的:一项商标权恰好携带其签发登记机构所分配的唯一注册号,因此一个 gmeow:Trademark 关系项恰好携带一个;在另一个登记机构(CIPO、USPTO、WIPO)单独注册的商标是一项不同的商标权,拥有自己的编号和自己的关系项。"
+msgid "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:registrationNumber 是函数性的:一项商标权恰好携带其签发登记机构所分配的唯一注册号,因此一个 gmeow:Trademark 关系项恰好携带一个;在另一个登记机构(CIPO、USPTO、WIPO)单独注册的商标是一项不同的商标权,拥有自己的编号和自己的关系项。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "rightOperand is functional"

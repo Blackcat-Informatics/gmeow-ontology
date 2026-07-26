@@ -26,8 +26,8 @@ msgid "findContextTarget is functional"
 msgstr "findContextTarget 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findContextTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:findContextTarget is functional: an archaeological find context describes exactly one physical carrier, the single object whose stratigraphy, find-spot, dating, and documentation event the relator binds together."
-msgstr "在规范载体上断言 gmeow:findContextTarget 是函数性的：一个考古发现语境恰好描述一个物理载体，即该关系体将其地层学、发现地点、断代与记录事件绑定在一起的唯一对象。"
+msgid "Asserts on the canonical carrier that gmeow:findContextTarget is functional: an archaeological find context describes exactly one physical carrier, the single object whose stratigraphy, find-spot, dating, and documentation event the relator binds together. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:findContextTarget 是函数性的：一个考古发现语境恰好描述一个物理载体，即该关系体将其地层学、发现地点、断代与记录事件绑定在一起的唯一对象。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inscriptionCarrierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "inscriptionCarrier is functional"
@@ -42,24 +42,24 @@ msgid "readingOf is functional"
 msgstr "readingOf 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/readingOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:readingOf is functional: an inscription reading observes exactly one source inscription, the single sign-bearing feature the reading interprets (rival readings of that inscription are separate InscriptionReading relators)."
-msgstr "在规范载体上断言 gmeow:readingOf 是函数性的:一次铭文释读恰好观察一个源铭文,即该释读所解读的唯一承载符号的特征(对同一铭文的不同释读是各自独立的 InscriptionReading 关系项)。"
+msgid "Asserts on the canonical carrier that gmeow:readingOf is functional: an inscription reading observes exactly one source inscription, the single sign-bearing feature the reading interprets (rival readings of that inscription are separate InscriptionReading relators). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:readingOf 是函数性的:一次铭文释读恰好观察一个源铭文,即该释读所解读的唯一承载符号的特征(对同一铭文的不同释读是各自独立的 InscriptionReading 关系项)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/translationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "translationOf is functional"
 msgstr "translationOf 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/translationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:translationOf is functional: an inscription translation renders exactly one source inscription into another language, the single text the translation is of."
-msgstr "在规范载体上断言 gmeow:translationOf 是函数性的:一次铭文翻译恰好将一篇源铭文转换为另一种语言,即该翻译所对应的唯一文本。"
+msgid "Asserts on the canonical carrier that gmeow:translationOf is functional: an inscription translation renders exactly one source inscription into another language, the single text the translation is of. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:translationOf 是函数性的:一次铭文翻译恰好将一篇源铭文转换为另一种语言,即该翻译所对应的唯一文本。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transliterationOf is functional"
 msgstr "transliterationOf 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transliterationOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes."
-msgstr "在规范载体上断言 gmeow:transliterationOf 是函数性的:一次铭文转写恰好将一篇源铭文映射到另一种文字体系,即其重新编码符号序列所对应的唯一文本。"
+msgid "Asserts on the canonical carrier that gmeow:transliterationOf is functional: an inscription transliteration maps exactly one source inscription into another script, the single text whose sign sequences it re-encodes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:transliterationOf 是函数性的:一次铭文转写恰好将一篇源铭文映射到另一种文字体系,即其重新编码符号序列所对应的唯一文本。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/attributionTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:attributionTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

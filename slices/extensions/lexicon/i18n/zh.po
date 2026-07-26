@@ -18,8 +18,8 @@ msgid "attestationInterval is functional"
 msgstr "attestationInterval 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/attestationIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen."
-msgstr "在规范载体上断言 gmeow:attestationInterval 是函数性的:一条使用证明恰好携带一个观察区间,即被断言观察到该用法的单一语料跨度、铭刻时期或使用年代。"
+msgid "Asserts on the canonical carrier that gmeow:attestationInterval is functional: a usage attestation carries exactly one observation interval, the single corpus span, inscription period, or usage era over which the attested usage is asserted to have been seen. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:attestationInterval 是函数性的:一条使用证明恰好携带一个观察区间,即被断言观察到该用法的单一语料跨度、铭刻时期或使用年代。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/attestedFormFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "attestedForm is functional"
@@ -34,8 +34,8 @@ msgid "derivationTarget is functional"
 msgstr "derivationTarget 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/derivationTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon."
-msgstr "在规范载体上断言 gmeow:derivationTarget 是函数性的：一个词源派生恰好指明一个后代词项或词形——即从该词源派生出的唯一目标。"
+msgid "Asserts on the canonical carrier that gmeow:derivationTarget is functional: an etymological derivation names exactly one descendant lexical item or form, the single target derived from the etymon. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:derivationTarget 是函数性的：一个词源派生恰好指明一个后代词项或词形——即从该词源派生出的唯一目标。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/etymonSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "etymonSource is functional"
@@ -50,8 +50,8 @@ msgid "formRepresentation is functional"
 msgstr "formRepresentation 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/formRepresentationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form."
-msgstr "在规范载体上断言 gmeow:formRepresentation 是函数性的：一个词汇形式恰好携带一个表层字符串或值，因为按定义，不同的表征即是不同的形式。"
+msgid "Asserts on the canonical carrier that gmeow:formRepresentation is functional: a lexical form carries exactly one surface string or value, since a different representation is by definition a different form. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:formRepresentation 是函数性的：一个词汇形式恰好携带一个表层字符串或值，因为按定义，不同的表征即是不同的形式。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/lexicalItemLanguageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "lexicalItemLanguage is functional"

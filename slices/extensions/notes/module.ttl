@@ -395,7 +395,7 @@ gmeow:annotationBodyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "annotationBody is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:annotationBody is functional: an annotation attaches exactly one note as its body, the single piece of content being attached — a highlight or bookmark simply has none."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:annotationBody is functional: an annotation attaches exactly one note as its body, the single piece of content being attached — a highlight or bookmark simply has none. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:annotationBody ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:annotationBody ;
@@ -410,7 +410,7 @@ gmeow:annotationMotivationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "annotationMotivation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:annotationMotivation is functional: an annotation carries exactly one motivation, the single purpose for which its body is attached to its target."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:annotationMotivation is functional: an annotation carries exactly one motivation, the single purpose for which its body is attached to its target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:annotationMotivation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:annotationMotivation ;
@@ -425,7 +425,7 @@ gmeow:annotationTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "annotationTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:annotationTarget is functional: an annotation binds exactly one target, the single entity being annotated."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:annotationTarget is functional: an annotation binds exactly one target, the single entity being annotated. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:annotationTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:annotationTarget ;

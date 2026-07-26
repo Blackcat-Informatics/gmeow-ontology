@@ -1109,7 +1109,7 @@ gmeow:buildConfigUriFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "buildConfigUri is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:buildConfigUri ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:buildConfigUri ;
@@ -1169,7 +1169,7 @@ gmeow:commitTreeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commitTree is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:commitTree ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:commitTree ;
@@ -1184,7 +1184,7 @@ gmeow:diffFromFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diffFrom is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:diffFrom ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:diffFrom ;
@@ -1199,7 +1199,7 @@ gmeow:diffToFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diffTo is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:diffTo ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:diffTo ;
@@ -1214,7 +1214,7 @@ gmeow:materializationDepthFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "materializationDepth is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:materializationDepth ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:materializationDepth ;
@@ -1229,7 +1229,7 @@ gmeow:mergeTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "mergeTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:mergeTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:mergeTarget ;
@@ -1244,7 +1244,7 @@ gmeow:projectHomepageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "projectHomepage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:projectHomepage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:projectHomepage ;
@@ -1259,7 +1259,7 @@ gmeow:releaseOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "releaseOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:releaseOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:releaseOf ;
@@ -1289,7 +1289,7 @@ gmeow:treeEntryModeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryMode is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:treeEntryMode ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:treeEntryMode ;
@@ -1304,7 +1304,7 @@ gmeow:treeEntryNameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryName is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:treeEntryName ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:treeEntryName ;
@@ -1319,7 +1319,7 @@ gmeow:treeEntryObjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryObject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:treeEntryObject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:treeEntryObject ;

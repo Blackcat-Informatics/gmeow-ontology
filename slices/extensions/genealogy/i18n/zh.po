@@ -18,8 +18,8 @@ msgid "relationshipChild is functional"
 msgstr "relationshipChild 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipChildFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relationshipChild is functional: a reified parent-child relationship names exactly one child, the single younger party of the dyadic relator."
-msgstr "在规范载体上断言 gmeow:relationshipChild 是函数性的:一个具体化的亲子关系恰好指向一个子女——该二元关系项中唯一的年轻一方。"
+msgid "Asserts on the canonical carrier that gmeow:relationshipChild is functional: a reified parent-child relationship names exactly one child, the single younger party of the dyadic relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relationshipChild 是函数性的:一个具体化的亲子关系恰好指向一个子女——该二元关系项中唯一的年轻一方。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipParentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relationshipParent is functional"

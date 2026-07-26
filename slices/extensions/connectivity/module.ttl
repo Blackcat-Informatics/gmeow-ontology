@@ -237,7 +237,7 @@ gmeow:routeEndFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "routeEnd is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:routeEnd ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:routeEnd ;
@@ -252,7 +252,7 @@ gmeow:routeKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "routeKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:routeKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:routeKind ;
@@ -267,7 +267,7 @@ gmeow:routeStartFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "routeStart is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:routeStart ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:routeStart ;

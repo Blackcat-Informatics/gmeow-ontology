@@ -552,7 +552,7 @@ gmeow:cascadeFirstLinkFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "cascadeFirstLink is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:cascadeFirstLink ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:cascadeFirstLink ;
@@ -567,7 +567,7 @@ gmeow:causalModalityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "causalModality is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:causalModality ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:causalModality ;
@@ -612,7 +612,7 @@ gmeow:linkConsequentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "linkConsequent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:linkConsequent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:linkConsequent ;
@@ -642,7 +642,7 @@ gmeow:causalLinkDistinctness
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "a causal link's antecedent and consequent are distinct"@x-gmeow-english ;
-    skos:definition "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:distinctnessTarget gmeow:CausalLink ;
     logic:distinctnessRole gmeow:linkAntecedent , gmeow:linkConsequent ;
     logic:formalizes gmeow:linkAntecedent ;

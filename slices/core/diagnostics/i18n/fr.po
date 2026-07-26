@@ -18,16 +18,16 @@ msgid "existentialOrdinal is functional"
 msgstr "existentialOrdinal est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:existentialOrdinal is functional: a chase-invented gmeow:InventedWitness discharges exactly one existential head-variable of its firing rule, so it carries a single 0-based ordinal that is one of the three components of its content-addressed identity."
-msgstr "Affirme sur le porteur canonique que gmeow:existentialOrdinal est fonctionnelle : un gmeow:InventedWitness inventé par la procédure de chase décharge exactement une variable de tête existentielle de sa règle de déclenchement, de sorte qu'il porte un unique ordinal à base zéro, l'une des trois composantes de son identité adressée par contenu."
+msgid "Asserts on the canonical carrier that gmeow:existentialOrdinal is functional: a chase-invented gmeow:InventedWitness discharges exactly one existential head-variable of its firing rule, so it carries a single 0-based ordinal that is one of the three components of its content-addressed identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:existentialOrdinal est fonctionnelle : un gmeow:InventedWitness inventé par la procédure de chase décharge exactement une variable de tête existentielle de sa règle de déclenchement, de sorte qu'il porte un unique ordinal à base zéro, l'une des trois composantes de son identité adressée par contenu. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "findingCode is functional"
 msgstr "findingCode est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:findingCode is functional: a gmeow:Finding carries exactly one stable rule identifier, serving as its SARIF ruleId and the single key by which findings are grouped and suppressed."
-msgstr "Affirme sur le porteur canonique que gmeow:findingCode est fonctionnelle : un gmeow:Finding porte exactement un identifiant de règle stable, servant de ruleId SARIF et de clé unique permettant de regrouper et de supprimer les constats."
+msgid "Asserts on the canonical carrier that gmeow:findingCode is functional: a gmeow:Finding carries exactly one stable rule identifier, serving as its SARIF ruleId and the single key by which findings are grouped and suppressed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:findingCode est fonctionnelle : un gmeow:Finding porte exactement un identifiant de règle stable, servant de ruleId SARIF et de clé unique permettant de regrouper et de supprimer les constats. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "findingMessage is functional"
@@ -42,8 +42,8 @@ msgid "findingSeverity is functional"
 msgstr "findingSeverity est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result."
-msgstr "Affirme sur le porteur canonique que gmeow:findingSeverity est fonctionnelle : un gmeow:Finding possède exactement un degré de verdict, un unique gmeow:DiagnosticSeverity qui constitue le résultat de son observation."
+msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:findingSeverity est fonctionnelle : un gmeow:Finding possède exactement un degré de verdict, un unique gmeow:DiagnosticSeverity qui constitue le résultat de son observation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:existentialOrdinal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

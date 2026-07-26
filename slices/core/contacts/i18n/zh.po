@@ -34,24 +34,24 @@ msgid "domainPart is functional"
 msgstr "domainPart 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/domainPartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:domainPart is functional: an email address parses to a single domain part after the @, so the component that reveals the provider and underlies the personal-domain role is one value derived deterministically from the address's addr-spec."
-msgstr "在规范载体上断言 gmeow:domainPart 是函数性的：一个电子邮件地址在 @ 之后恰好解析出一个域名部分，因此揭示服务提供方并支撑个人域名角色的这一组成部分，是从地址的 addr-spec 中确定性推导出的单一值。"
+msgid "Asserts on the canonical carrier that gmeow:domainPart is functional: an email address parses to a single domain part after the @, so the component that reveals the provider and underlies the personal-domain role is one value derived deterministically from the address's addr-spec. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:domainPart 是函数性的：一个电子邮件地址在 @ 之后恰好解析出一个域名部分，因此揭示服务提供方并支撑个人域名角色的这一组成部分，是从地址的 addr-spec 中确定性推导出的单一值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/localPartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "localPart is functional"
 msgstr "localPart 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/localPartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:localPart is functional: an email address parses to a single local part before the @, so the person-identifying component queried separately from the whole is one value derived deterministically from the address's addr-spec."
-msgstr "在规范载体上断言 gmeow:localPart 是函数式的:一个电子邮件地址在 @ 符号之前只解析出一个本地部分,因此这个可与整体分开查询的、用于识别人的组成部分,是从该地址的 addr-spec 确定性地推导出的单一值。"
+msgid "Asserts on the canonical carrier that gmeow:localPart is functional: an email address parses to a single local part before the @, so the person-identifying component queried separately from the whole is one value derived deterministically from the address's addr-spec. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:localPart 是函数式的:一个电子邮件地址在 @ 符号之前只解析出一个本地部分,因此这个可与整体分开查询的、用于识别人的组成部分,是从该地址的 addr-spec 确定性地推导出的单一值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postalAddressFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "postalAddressFrame is functional"
 msgstr "postalAddressFrame 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postalAddressFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:postalAddressFrame is functional: a postal address is expressed in exactly one postal/administrative reference frame against which its coordinate components are read, so the frame is single-valued — a value asserted without its one frame is ill-formed under CONSTITUTION P11."
-msgstr "在规范载体上断言 gmeow:postalAddressFrame 是函数性的:一个邮政地址恰好在一个邮政/行政参照系中表达,其坐标分量据此参照系解读,因此该参照系是单值的——在 CONSTITUTION P11 之下,断言一个值而不带其唯一参照系是不良形式的。"
+msgid "Asserts on the canonical carrier that gmeow:postalAddressFrame is functional: a postal address is expressed in exactly one postal/administrative reference frame against which its coordinate components are read, so the frame is single-valued — a value asserted without its one frame is ill-formed under CONSTITUTION P11. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:postalAddressFrame 是函数性的:一个邮政地址恰好在一个邮政/行政参照系中表达,其坐标分量据此参照系解读,因此该参照系是单值的——在 CONSTITUTION P11 之下,断言一个值而不带其唯一参照系是不良形式的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "tenuredContactPoint is functional"

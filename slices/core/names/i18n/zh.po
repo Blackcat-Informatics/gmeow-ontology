@@ -42,80 +42,80 @@ msgid "partOrder is functional"
 msgstr "partOrder 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/partOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:partOrder is functional: a gmeow:NamePart occupies exactly one 0-based position in its appellation's surface order — a component has a single place as actually written in its culture."
-msgstr "在规范载体上断言 gmeow:partOrder 是函数性的:一个 gmeow:NamePart 在其称谓的表层顺序中恰好占据一个从0开始的位置——一个组成部分在其文化中实际书写时只有一个位置。"
+msgid "Asserts on the canonical carrier that gmeow:partOrder is functional: a gmeow:NamePart occupies exactly one 0-based position in its appellation's surface order — a component has a single place as actually written in its culture. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:partOrder 是函数性的:一个 gmeow:NamePart 在其称谓的表层顺序中恰好占据一个从0开始的位置——一个组成部分在其文化中实际书写时只有一个位置。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounObject is functional"
 msgstr "pronounObject 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounObject is functional: a gmeow:PronounSet has exactly one object (accusative) form — the single word that fills that one grammatical slot."
-msgstr "在规范载体上断言 gmeow:pronounObject 是函数性的:一个 gmeow:PronounSet 恰好拥有一个宾格(直接宾语)形式——填入该唯一语法槽位的那一个词。"
+msgid "Asserts on the canonical carrier that gmeow:pronounObject is functional: a gmeow:PronounSet has exactly one object (accusative) form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:pronounObject 是函数性的:一个 gmeow:PronounSet 恰好拥有一个宾格(直接宾语)形式——填入该唯一语法槽位的那一个词。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveDeterminerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounPossessiveDeterminer is functional"
 msgstr "pronounPossessiveDeterminer 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveDeterminerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounPossessiveDeterminer is functional: a gmeow:PronounSet has exactly one possessive determiner form — the single word that fills that one grammatical slot."
-msgstr "在规范载体上断言 gmeow:pronounPossessiveDeterminer 是函数性的:一个 gmeow:PronounSet 恰好拥有一个物主限定词形式——填入该唯一语法槽位的那一个词。"
+msgid "Asserts on the canonical carrier that gmeow:pronounPossessiveDeterminer is functional: a gmeow:PronounSet has exactly one possessive determiner form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:pronounPossessiveDeterminer 是函数性的:一个 gmeow:PronounSet 恰好拥有一个物主限定词形式——填入该唯一语法槽位的那一个词。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounPossessive is functional"
 msgstr "pronounPossessive 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounPossessiveFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounPossessive is functional: a gmeow:PronounSet has exactly one possessive pronoun form — the single word that fills that one grammatical slot."
-msgstr "在规范载体上断言 gmeow:pronounPossessive 是函数性的:一个 gmeow:PronounSet 恰好拥有一个物主代词形式——填入该唯一语法槽位的那一个词。"
+msgid "Asserts on the canonical carrier that gmeow:pronounPossessive is functional: a gmeow:PronounSet has exactly one possessive pronoun form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:pronounPossessive 是函数性的:一个 gmeow:PronounSet 恰好拥有一个物主代词形式——填入该唯一语法槽位的那一个词。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounReflexiveFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounReflexive is functional"
 msgstr "pronounReflexive 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounReflexiveFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounReflexive is functional: a gmeow:PronounSet has exactly one reflexive form — the single word that fills that one grammatical slot."
-msgstr "在规范载体上断言 gmeow:pronounReflexive 是函数性的:一个 gmeow:PronounSet 恰好拥有一个反身形式——填入该唯一语法槽位的那一个词。"
+msgid "Asserts on the canonical carrier that gmeow:pronounReflexive is functional: a gmeow:PronounSet has exactly one reflexive form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:pronounReflexive 是函数性的:一个 gmeow:PronounSet 恰好拥有一个反身形式——填入该唯一语法槽位的那一个词。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pronounSubject is functional"
 msgstr "pronounSubject 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pronounSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pronounSubject is functional: a gmeow:PronounSet has exactly one subject (nominative) form — the single word that fills that one grammatical slot."
-msgstr "在规范载体上断言 gmeow:pronounSubject 是函数性的:一个 gmeow:PronounSet 恰好拥有一个主格形式——填入该唯一语法槽位的那一个词。"
+msgid "Asserts on the canonical carrier that gmeow:pronounSubject is functional: a gmeow:PronounSet has exactly one subject (nominative) form — the single word that fills that one grammatical slot. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:pronounSubject 是函数性的:一个 gmeow:PronounSet 恰好拥有一个主格形式——填入该唯一语法槽位的那一个词。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageAppellationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageAppellation is functional"
 msgstr "usageAppellation 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageAppellationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageAppellation is functional: a gmeow:NameUsage relator binds exactly one appellation — the single name by which its subject is called in that reified use, so a different appellation is a different usage."
-msgstr "在规范载体上断言 gmeow:usageAppellation 是函数性的:一个 gmeow:NameUsage 关系元恰好绑定一个称谓——即在该具象化用法中其主体被称呼的唯一名称,因此不同的称谓即构成不同的用法。"
+msgid "Asserts on the canonical carrier that gmeow:usageAppellation is functional: a gmeow:NameUsage relator binds exactly one appellation — the single name by which its subject is called in that reified use, so a different appellation is a different usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:usageAppellation 是函数性的:一个 gmeow:NameUsage 关系元恰好绑定一个称谓——即在该具象化用法中其主体被称呼的唯一名称,因此不同的称谓即构成不同的用法。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageNamedFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageNamed is functional"
 msgstr "usageNamed 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageNamedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageNamed is functional: a gmeow:NameUsage relator names exactly one entity — the single subject called by its appellation in that reified use, so a different named entity is a different usage."
-msgstr "在规范载体上断言 gmeow:usageNamed 是函数性的:一个 gmeow:NameUsage 关系元恰好命名一个实体——即在该具象化用法中被其称谓所称呼的唯一主体,因此不同的被命名实体即构成不同的用法。"
+msgid "Asserts on the canonical carrier that gmeow:usageNamed is functional: a gmeow:NameUsage relator names exactly one entity — the single subject called by its appellation in that reified use, so a different named entity is a different usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:usageNamed 是函数性的:一个 gmeow:NameUsage 关系元恰好命名一个实体——即在该具象化用法中被其称谓所称呼的唯一主体,因此不同的被命名实体即构成不同的用法。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRegisterFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageRegister is functional"
 msgstr "usageRegister 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRegisterFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageRegister is functional: a gmeow:NameUsage carries exactly one social register — the single formal, intimate, professional, or casual posture of that one reified use of a name."
-msgstr "在规范载体上断言 gmeow:usageRegister 是函数性的:一个 gmeow:NameUsage 恰好携带一种社会语域——即该次具象化姓名用法所独有的正式、亲密、专业或随意姿态。"
+msgid "Asserts on the canonical carrier that gmeow:usageRegister is functional: a gmeow:NameUsage carries exactly one social register — the single formal, intimate, professional, or casual posture of that one reified use of a name. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:usageRegister 是函数性的:一个 gmeow:NameUsage 恰好携带一种社会语域——即该次具象化姓名用法所独有的正式、亲密、专业或随意姿态。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRelationshipScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usageRelationshipScope is functional"
 msgstr "usageRelationshipScope 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usageRelationshipScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience."
-msgstr "在规范载体上断言 gmeow:usageRelationshipScope 是函数性的:一个 gmeow:NameUsage 恰好受限于一种持久的人际关系——例如「阿姨-侄女」这一唯一纽带,在其中使用「Genny 姨」,这正是 gmeow:usageAudience 中明确的单一关系情形。"
+msgid "Asserts on the canonical carrier that gmeow:usageRelationshipScope is functional: a gmeow:NameUsage is scoped by exactly one standing interpersonal relationship — the single tie, such as the aunt-niece bond within which 'Aunt Genny' is used, this being the sharp one-relationship case of gmeow:usageAudience. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:usageRelationshipScope 是函数性的:一个 gmeow:NameUsage 恰好受限于一种持久的人际关系——例如「阿姨-侄女」这一唯一纽带,在其中使用「Genny 姨」,这正是 gmeow:usageAudience 中明确的单一关系情形。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/honorificPositionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:honorificPosition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

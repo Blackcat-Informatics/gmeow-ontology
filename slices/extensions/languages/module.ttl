@@ -1008,7 +1008,7 @@ gmeow:proficiencyAgentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyAgent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyAgent is functional: a language-proficiency relator expresses the proficiency of exactly one agent, the identity-constituting party whose command of the language the reified proficiency is about."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyAgent is functional: a language-proficiency relator expresses the proficiency of exactly one agent, the identity-constituting party whose command of the language the reified proficiency is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:proficiencyAgent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:proficiencyAgent ;
@@ -1023,7 +1023,7 @@ gmeow:proficiencyLanguageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyLanguage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyLanguage is functional: a language-proficiency relator concerns exactly one language, the constitutive subject the reified proficiency is a proficiency in."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyLanguage is functional: a language-proficiency relator concerns exactly one language, the constitutive subject the reified proficiency is a proficiency in. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:proficiencyLanguage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:proficiencyLanguage ;
@@ -1038,7 +1038,7 @@ gmeow:proficiencyLevelFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyLevel is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyLevel is functional: a language-proficiency relator records exactly one attained level, the single gmeow:ProficiencyLevel value (such as cefrB2 or levelNative) it has reached."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyLevel is functional: a language-proficiency relator records exactly one attained level, the single gmeow:ProficiencyLevel value (such as cefrB2 or levelNative) it has reached. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:proficiencyLevel ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:proficiencyLevel ;
@@ -1068,7 +1068,7 @@ gmeow:proficiencyScaleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyScale is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyScale is functional: a language-proficiency relator measures its level on exactly one framework, the single gmeow:ProficiencyScale (CEFR, ILR, ACTFL, or self-reported) against which the attained level is read."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:proficiencyScale is functional: a language-proficiency relator measures its level on exactly one framework, the single gmeow:ProficiencyScale (CEFR, ILR, ACTFL, or self-reported) against which the attained level is read. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:proficiencyScale ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:proficiencyScale ;
@@ -1083,7 +1083,7 @@ gmeow:stateLanguageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "stateLanguage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:stateLanguage is functional: a LanguageState relator describes the state of exactly one subject language, variety, or version — the single language whose status the reified claim is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:stateLanguage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:stateLanguage ;

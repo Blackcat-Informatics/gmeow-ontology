@@ -18,8 +18,8 @@ msgid "feedPostingKind is functional"
 msgstr "feedPostingKind 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:feedPostingKind is functional: a feed posting has exactly one kind drawn from the open gmeow:FeedPostingKind vocabulary, and that single flavour deterministically drives the schema projection — a social posting to schema:SocialMediaPosting, a blog posting to schema:BlogPosting — which two competing flavours on one posting would leave ambiguous."
-msgstr "在规范载体上断言 gmeow:feedPostingKind 是函数性的：一条动态发布恰好具有一种取自开放词表 gmeow:FeedPostingKind 的类型，该唯一类型以确定的方式驱动模式投影——社交类发布投影到 schema:SocialMediaPosting，博客类发布投影到 schema:BlogPosting——若一条发布上存在两种相互竞争的类型，该投影就会变得含糊不清。"
+msgid "Asserts on the canonical carrier that gmeow:feedPostingKind is functional: a feed posting has exactly one kind drawn from the open gmeow:FeedPostingKind vocabulary, and that single flavour deterministically drives the schema projection — a social posting to schema:SocialMediaPosting, a blog posting to schema:BlogPosting — which two competing flavours on one posting would leave ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:feedPostingKind 是函数性的：一条动态发布恰好具有一种取自开放词表 gmeow:FeedPostingKind 的类型，该唯一类型以确定的方式驱动模式投影——社交类发布投影到 schema:SocialMediaPosting，博客类发布投影到 schema:BlogPosting——若一条发布上存在两种相互竞争的类型，该投影就会变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "imageOrientation is functional"
@@ -42,8 +42,8 @@ msgid "pagePrincipalSubject is functional"
 msgstr "pagePrincipalSubject 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:pagePrincipalSubject is functional: a web page is primarily about exactly one entity — the single principal subject it represents — even though it may mention many others through the broader gmeow:isAbout it specialises."
-msgstr "在规范载体上断言 gmeow:pagePrincipalSubject 是函数性的:一个网页恰好主要关于一个实体——它所代表的唯一主要主题——即便它通过其所特化的更广泛的 gmeow:isAbout 可能提及许多其他实体。"
+msgid "Asserts on the canonical carrier that gmeow:pagePrincipalSubject is functional: a web page is primarily about exactly one entity — the single principal subject it represents — even though it may mention many others through the broader gmeow:isAbout it specialises. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:pagePrincipalSubject 是函数性的:一个网页恰好主要关于一个实体——它所代表的唯一主要主题——即便它通过其所特化的更广泛的 gmeow:isAbout 可能提及许多其他实体。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pixelHeight is functional"

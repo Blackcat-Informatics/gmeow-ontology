@@ -577,7 +577,7 @@ gmeow:gtsHeadIdFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gtsHeadId is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:gtsHeadId ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:gtsHeadId ;
@@ -607,7 +607,7 @@ gmeow:gtsSegmentIndexFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gtsSegmentIndex is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:gtsSegmentIndex ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:gtsSegmentIndex ;
@@ -637,7 +637,7 @@ gmeow:opacityReasonFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opacityReason is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:opacityReason ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:opacityReason ;
@@ -652,7 +652,7 @@ gmeow:opaqueFrameInFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opaqueFrameIn is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:opaqueFrameIn ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:opaqueFrameIn ;

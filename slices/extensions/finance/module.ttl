@@ -1207,7 +1207,7 @@ gmeow:accountTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "accountType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:accountType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:accountType ;
@@ -1222,7 +1222,7 @@ gmeow:assetTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "assetType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assetType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assetType ;
@@ -1237,7 +1237,7 @@ gmeow:holdingAgentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingAgent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:holdingAgent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:holdingAgent ;
@@ -1252,7 +1252,7 @@ gmeow:holdingAssetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingAsset is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:holdingAsset ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:holdingAsset ;
@@ -1282,7 +1282,7 @@ gmeow:holdingQuantityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingQuantity is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:holdingQuantity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:holdingQuantity ;
@@ -1297,7 +1297,7 @@ gmeow:invoiceAmountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoiceAmount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:invoiceAmount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:invoiceAmount ;
@@ -1312,7 +1312,7 @@ gmeow:ledgerAccountTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledgerAccountType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ledgerAccountType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ledgerAccountType ;
@@ -1327,7 +1327,7 @@ gmeow:orderAmountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "orderAmount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:orderAmount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:orderAmount ;
@@ -1342,7 +1342,7 @@ gmeow:postingAccountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "postingAccount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:postingAccount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:postingAccount ;
@@ -1357,7 +1357,7 @@ gmeow:postingAmountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "postingAmount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:postingAmount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:postingAmount ;
@@ -1387,7 +1387,7 @@ gmeow:postingJournalEntryFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "postingJournalEntry is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:postingJournalEntry ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:postingJournalEntry ;
@@ -1417,7 +1417,7 @@ gmeow:walletSchemeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "walletScheme is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:walletScheme ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:walletScheme ;

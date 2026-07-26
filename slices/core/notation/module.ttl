@@ -598,7 +598,7 @@ gmeow:notationSystemOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notationSystemOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:notationSystemOf is functional: a gmeow:NotationProjectionProfile describes exactly one notation system."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationSystemOf is functional: a gmeow:NotationProjectionProfile describes exactly one notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:notationSystemOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationSystemOf ;
@@ -613,7 +613,7 @@ gmeow:notationUsageIntervalFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notationUsageInterval is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageInterval is functional: a gmeow:NotationSystemUsage relator holds over exactly one time interval, and a different interval is a distinct usage episode."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageInterval is functional: a gmeow:NotationSystemUsage relator holds over exactly one time interval, and a different interval is a distinct usage episode. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:notationUsageInterval ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageInterval ;
@@ -628,7 +628,7 @@ gmeow:notationUsageNotationSystemFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notationUsageNotationSystem is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageNotationSystem is functional: a gmeow:NotationSystemUsage records the use of exactly one notation system."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageNotationSystem is functional: a gmeow:NotationSystemUsage records the use of exactly one notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:notationUsageNotationSystem ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageNotationSystem ;
@@ -643,7 +643,7 @@ gmeow:notationUsageRoleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notationUsageRole is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageRole is functional: a gmeow:NotationSystemUsage plays exactly one role (transcription, encoding, representation, communication, expression, shorthand, or cipher), and a different role is a distinct usage."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageRole is functional: a gmeow:NotationSystemUsage plays exactly one role (transcription, encoding, representation, communication, expression, shorthand, or cipher), and a different role is a distinct usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:notationUsageRole ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageRole ;
@@ -658,7 +658,7 @@ gmeow:notationUsageTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "notationUsageTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:notationUsageTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:notationUsageTarget ;

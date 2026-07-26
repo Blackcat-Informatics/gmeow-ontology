@@ -18,24 +18,24 @@ msgid "configurationEmbodiment is functional"
 msgstr "configurationEmbodiment 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval."
-msgstr "在规范载体上断言 gmeow:configurationEmbodiment 是函数式的：一个 gmeow:InhabitationConfiguration 恰好有一个活跃的核心体现，即在该配置子区间内保持恒定的唯一 gmeow:EmbodimentAssignment。"
+msgid "Asserts on the canonical carrier that gmeow:configurationEmbodiment is functional: a gmeow:InhabitationConfiguration has exactly one active core embodiment, the single gmeow:EmbodimentAssignment that holds constant across the configuration sub-interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:configurationEmbodiment 是函数式的：一个 gmeow:InhabitationConfiguration 恰好有一个活跃的核心体现，即在该配置子区间内保持恒定的唯一 gmeow:EmbodimentAssignment。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "configurationOfTenure is functional"
 msgstr "configurationOfTenure 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/configurationOfTenureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions."
-msgstr "在规范载体上断言 gmeow:configurationOfTenure 是函数式的：每个 gmeow:InhabitationConfiguration 都是恰好一个 gmeow:InhabitationTenure 的恒定配置子区间，并对其进行划分。"
+msgid "Asserts on the canonical carrier that gmeow:configurationOfTenure is functional: each gmeow:InhabitationConfiguration is a constant-configuration sub-interval of exactly one gmeow:InhabitationTenure that it partitions. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:configurationOfTenure 是函数式的：每个 gmeow:InhabitationConfiguration 都是恰好一个 gmeow:InhabitationTenure 的恒定配置子区间，并对其进行划分。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "an inhabitation tenure's interval carries its temporal frame"
 msgstr "居留任期的区间承载其时间框架"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationIntervalFrameRequirement|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame."
-msgstr "断言某 gmeow:InhabitationTenure 经由 gmeow:duringInterval 所界定的每个 gmeow:TimeInterval 都必须声明至少一个 gmeow:hasTemporalFrame——不带其框架而被断言的区间是不良构的（原则 11：区间承载其框架）。当某界定区间缺少框架时，原生融贯闸门引发一项违规。"
+msgid "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "断言某 gmeow:InhabitationTenure 经由 gmeow:duringInterval 所界定的每个 gmeow:TimeInterval 都必须声明至少一个 gmeow:hasTemporalFrame——不带其框架而被断言的区间是不良构的（原则 11：区间承载其框架）。当某界定区间缺少框架时，原生融贯闸门引发一项违规。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitationLocusKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "inhabitationLocusKind is functional"
@@ -58,8 +58,8 @@ msgid "inhabitedHost is functional"
 msgstr "inhabitedHost 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inhabitedHostFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure."
-msgstr "在规范载体上断言 gmeow:inhabitedHost 是函数性的:一个 gmeow:InhabitationTenure 恰好有一个被占用的宿主,因此同一主体占用第二个宿主即构成一个不同的租期。"
+msgid "Asserts on the canonical carrier that gmeow:inhabitedHost is functional: a gmeow:InhabitationTenure has exactly one inhabited host, so the same subject inhabiting a second host is a distinct tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:inhabitedHost 是函数性的:一个 gmeow:InhabitationTenure 恰好有一个被占用的宿主,因此同一主体占用第二个宿主即构成一个不同的租期。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/configurationEmbodimentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:configurationEmbodiment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

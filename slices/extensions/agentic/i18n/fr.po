@@ -26,24 +26,24 @@ msgid "toolArguments is functional"
 msgstr "toolArguments est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool."
-msgstr "Affirme sur le porteur canonique que gmeow:toolArguments est fonctionnelle : un appel d'outil porte exactement une charge utile d'arguments textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce qui a été présenté à l'outil."
+msgid "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:toolArguments est fonctionnelle : un appel d'outil porte exactement une charge utile d'arguments textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce qui a été présenté à l'outil. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "toolResult is functional"
 msgstr "toolResult est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned."
-msgstr "Affirme sur le porteur canonique que gmeow:toolResult est fonctionnelle : un appel d'outil renvoie exactement une charge utile de résultat textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce que l'outil a renvoyé."
+msgid "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:toolResult est fonctionnelle : un appel d'outil renvoie exactement une charge utile de résultat textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce que l'outil a renvoyé. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usedTool is functional"
 msgstr "usedTool est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls."
-msgstr "Affirme sur le porteur canonique que gmeow:usedTool est fonctionnelle : un appel d'outil invoque exactement un outil, puisque l'outillité est le rôle que joue un agent dans cet unique événement d'appel, et un tour multi-outils est enregistré comme plusieurs ToolCalls."
+msgid "Asserts on the canonical carrier that gmeow:usedTool is functional: a tool call invokes exactly one tool, since tool-ness is the role an agent plays in this one call event and a multi-tool turn is recorded as several ToolCalls. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:usedTool est fonctionnelle : un appel d'outil invoque exactement un outil, puisque l'outillité est le rôle que joue un agent dans cet unique événement d'appel, et un tour multi-outils est enregistré comme plusieurs ToolCalls. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/calledByInvocationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:calledByInvocation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

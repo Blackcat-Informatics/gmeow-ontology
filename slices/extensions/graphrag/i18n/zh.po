@@ -18,32 +18,32 @@ msgid "indexAlgorithm is functional"
 msgstr "indexAlgorithm 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched."
-msgstr "在规范载体上断言 gmeow:indexAlgorithm 是函数性的:一个向量索引恰好以一种近似最近邻结构构建,这是构建时确定的单一承诺,决定了该索引的检索方式。"
+msgid "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:indexAlgorithm 是函数性的:一个向量索引恰好以一种近似最近邻结构构建,这是构建时确定的单一承诺,决定了该索引的检索方式。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relationshipSource is functional"
 msgstr "relationshipSource 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge."
-msgstr "在规范载体上断言 gmeow:relationshipSource 是函数性的:一个抽取出的关系在其尾部恰好有一个实体描述——即该有向边唯一的源端点。"
+msgid "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relationshipSource 是函数性的:一个抽取出的关系在其尾部恰好有一个实体描述——即该有向边唯一的源端点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relationshipTarget is functional"
 msgstr "relationshipTarget 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge."
-msgstr "在规范载体上断言 gmeow:relationshipTarget 是函数性的:一个抽取出的关系在其头部恰好有一个实体描述——即该有向边唯一的目标端点。"
+msgid "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relationshipTarget 是函数性的:一个抽取出的关系在其头部恰好有一个实体描述——即该有向边唯一的目标端点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "summarizesCommunity is functional"
 msgstr "summarizesCommunity 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from."
-msgstr "在规范载体上断言 gmeow:summarizesCommunity 是函数性的:一份社区摘要恰好浓缩自一个社区,即该摘要据以生成的那唯一一个簇的成员与分块。"
+msgid "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:summarizesCommunity 是函数性的:一份社区摘要恰好浓缩自一个社区,即该摘要据以生成的那唯一一个簇的成员与分块。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithmFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:indexAlgorithm names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

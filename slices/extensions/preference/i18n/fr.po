@@ -18,16 +18,16 @@ msgid "gateVerdict is functional"
 msgstr "gateVerdict est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gateVerdictFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation."
-msgstr "Affirme sur le porteur canonique que gmeow:gateVerdict est fonctionnelle : un gmeow:ConsumerImprovementGate porte exactement une valeur de verdict, car c'est ce seul verdict de type retenu-ou-non qui décide si la porte autorise l'activation."
+msgid "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:gateVerdict est fonctionnelle : un gmeow:ConsumerImprovementGate porte exactement une valeur de verdict, car c'est ce seul verdict de type retenu-ou-non qui décide si la porte autorise l'activation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hardConstraintClassFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hardConstraintClass is functional"
 msgstr "hardConstraintClass est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hardConstraintClassFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility."
-msgstr "Affirme sur le porteur canonique que gmeow:hardConstraintClass est fonctionnelle : un gmeow:VerifierVerdict possède exactement un gmeow:ConstraintHardness — dur ou souple — l'axe unique que les portes d'orthogonalité lisent pour décider de l'éligibilité au titre de vainqueur."
+msgid "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:hardConstraintClass est fonctionnelle : un gmeow:VerifierVerdict possède exactement un gmeow:ConstraintHardness — dur ou souple — l'axe unique que les portes d'orthogonalité lisent pour décider de l'éligibilité au titre de vainqueur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/projectionDeterminismFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "projectionDeterminism is functional"
@@ -42,24 +42,24 @@ msgid "projectionKind is functional"
 msgstr "projectionKind est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/projectionKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite."
-msgstr "Affirme sur le porteur canonique que gmeow:projectionKind est fonctionnelle : un gmeow:ProjectionReceipt est exactement une forme de projection — l'unique type qui se replie dans le condensé de contenu du reçu et qui détermine quelles portes de divulgation s'appliquent."
+msgid "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:projectionKind est fonctionnelle : un gmeow:ProjectionReceipt est exactement une forme de projection — l'unique type qui se replie dans le condensé de contenu du reçu et qui détermine quelles portes de divulgation s'appliquent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/receiptKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "receiptKind is functional"
 msgstr "receiptKind est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/receiptKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind."
-msgstr "Affirme sur le porteur canonique que gmeow:receiptKind est fonctionnelle : un gmeow:LifecycleReceipt enregistre exactement un type de décision."
+msgid "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:receiptKind est fonctionnelle : un gmeow:LifecycleReceipt enregistre exactement un type de décision. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierOutcomeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "verifierOutcome is functional"
 msgstr "verifierOutcome est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierOutcomeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on."
-msgstr "Affirme sur le porteur canonique que gmeow:verifierOutcome est fonctionnelle : un gmeow:VerifierVerdict possède exactement une valeur de résultat — le résultat unique tenu / non tenu / indéterminé sur lequel se fonde le portail d'échec bloquant."
+msgid "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:verifierOutcome est fonctionnelle : un gmeow:VerifierVerdict possède exactement une valeur de résultat — le résultat unique tenu / non tenu / indéterminé sur lequel se fonde le portail d'échec bloquant. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/strictlyOverIrreflexivity|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:strictlyOver never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

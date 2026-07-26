@@ -254,7 +254,7 @@ gmeow:assertionFacetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertionFacet is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assertionFacet is functional: an accessibility assertion asserts exactly one facet, the single dimension of accessibility (wheelchair, step-free, visual, and so on) the relator is about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assertionFacet ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assertionFacet ;
@@ -269,7 +269,7 @@ gmeow:assertionPolarityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertionPolarity is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assertionPolarity is functional: an accessibility assertion carries exactly one polarity — feature, barrier, or limited — the single stance the relator takes on its facet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assertionPolarity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assertionPolarity ;
@@ -284,7 +284,7 @@ gmeow:assertionSubjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertionSubject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assertionSubject is functional: an accessibility assertion assesses exactly one subject, the single location or connection being evaluated. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assertionSubject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assertionSubject ;

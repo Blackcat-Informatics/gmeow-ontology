@@ -2417,7 +2417,7 @@ gmeow:conflictStrategyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "conflictStrategy is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:conflictStrategy ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:conflictStrategy ;
@@ -2432,7 +2432,7 @@ gmeow:constraintLogicFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "constraintLogic is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:constraintLogic ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:constraintLogic ;
@@ -2462,7 +2462,7 @@ gmeow:copyrightNoticeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyrightNotice is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:copyrightNotice ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:copyrightNotice ;
@@ -2582,7 +2582,7 @@ gmeow:registrationNumberFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "registrationNumber is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:registrationNumber ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:registrationNumber ;

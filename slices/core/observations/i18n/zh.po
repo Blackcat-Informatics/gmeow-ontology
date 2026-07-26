@@ -18,16 +18,16 @@ msgid "assessmentCriterion is functional"
 msgstr "assessmentCriterion 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentCriterionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assessmentCriterion is functional: each assessment applies exactly one criterion — a twenty-one-axis scoring pass fans out into twenty-one assessments, one per axis — so a single assessment record names a single criterion."
-msgstr "在规范载体上断言 gmeow:assessmentCriterion 是函数性的:每次评估恰好应用一个标准——一次二十一轴打分会展开为二十一次评估,每个轴一次——因此单条评估记录只命名一个标准。"
+msgid "Asserts on the canonical carrier that gmeow:assessmentCriterion is functional: each assessment applies exactly one criterion — a twenty-one-axis scoring pass fans out into twenty-one assessments, one per axis — so a single assessment record names a single criterion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:assessmentCriterion 是函数性的:每次评估恰好应用一个标准——一次二十一轴打分会展开为二十一次评估,每个轴一次——因此单条评估记录只命名一个标准。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentRubricFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "assessmentRubric is functional"
 msgstr "assessmentRubric 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentRubricFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assessmentRubric is functional: an assessment is version-pinned to exactly one rubric, the single evaluation framework under which its score was produced."
-msgstr "在规范载体上断言 gmeow:assessmentRubric 是函数性的:一次评估被版本锁定到恰好一份评分细则,即产生其分数所依据的单一评价框架。"
+msgid "Asserts on the canonical carrier that gmeow:assessmentRubric is functional: an assessment is version-pinned to exactly one rubric, the single evaluation framework under which its score was produced. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:assessmentRubric 是函数性的:一次评估被版本锁定到恰好一份评分细则,即产生其分数所依据的单一评价框架。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentScoreValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "assessmentScoreValue is functional"
@@ -42,40 +42,40 @@ msgid "assessmentTarget is functional"
 msgstr "assessmentTarget 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assessmentTarget is functional: an assessment scores exactly one target — the single feature of interest whose granularity sets the scoring-density expectation — so a second target is a separate assessment."
-msgstr "在规范载体上断言 gmeow:assessmentTarget 是函数性的:一次评估恰好为一个目标打分——即其粒度决定打分密度预期的单一关注特征——因此第二个目标构成一次独立的评估。"
+msgid "Asserts on the canonical carrier that gmeow:assessmentTarget is functional: an assessment scores exactly one target — the single feature of interest whose granularity sets the scoring-density expectation — so a second target is a separate assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:assessmentTarget 是函数性的:一次评估恰好为一个目标打分——即其粒度决定打分密度预期的单一关注特征——因此第二个目标构成一次独立的评估。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/bearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "bearer is functional"
 msgstr "bearer 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/bearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:bearer is functional: a persistent gmeow:Quality inheres in exactly one bearer — the single entity whose quality it is, the patient whose blood pressure or the road whose width, inherence being a one-owner relation."
-msgstr "在规范载体上断言 gmeow:bearer 是函数性的:一个持久性的 gmeow:Quality 恰好内在于一个承载者——即该性质所属的唯一实体,可能是血压所属的病患,也可能是宽度所属的道路,内在性是一种单一所有者的关系。"
+msgid "Asserts on the canonical carrier that gmeow:bearer is functional: a persistent gmeow:Quality inheres in exactly one bearer — the single entity whose quality it is, the patient whose blood pressure or the road whose width, inherence being a one-owner relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:bearer 是函数性的:一个持久性的 gmeow:Quality 恰好内在于一个承载者——即该性质所属的唯一实体,可能是血压所属的病患,也可能是宽度所属的道路,内在性是一种单一所有者的关系。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/currencyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "currency is functional"
 msgstr "currency 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/currencyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:currency is functional: a gmeow:MonetaryAmount is expressed in exactly one currency reference frame — a single amount is denominated in one currency, the same value in another currency being a distinct amount."
-msgstr "在规范载体上断言 gmeow:currency 是函数性的：一个 gmeow:MonetaryAmount 恰好以一个货币参照系表达——单一金额以一种货币计价，同一数值以另一种货币表示则构成不同的金额。"
+msgid "Asserts on the canonical carrier that gmeow:currency is functional: a gmeow:MonetaryAmount is expressed in exactly one currency reference frame — a single amount is denominated in one currency, the same value in another currency being a distinct amount. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:currency 是函数性的：一个 gmeow:MonetaryAmount 恰好以一个货币参照系表达——单一金额以一种货币计价，同一数值以另一种货币表示则构成不同的金额。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/dimensionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "dimension is functional"
 msgstr "dimension 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/dimensionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:dimension is functional: a gmeow:Magnitude is a magnitude of exactly one generic quality — a single frame-independent quality kind such as pressure, length, or mass."
-msgstr "在规范载体上断言 gmeow:dimension 是函数性的：一个 gmeow:Magnitude 恰好是某一种通用性质的量值——即诸如压力、长度或质量之类的独立于参照系的唯一性质种类。"
+msgid "Asserts on the canonical carrier that gmeow:dimension is functional: a gmeow:Magnitude is a magnitude of exactly one generic quality — a single frame-independent quality kind such as pressure, length, or mass. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:dimension 是函数性的：一个 gmeow:Magnitude 恰好是某一种通用性质的量值——即诸如压力、长度或质量之类的独立于参照系的唯一性质种类。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "monetaryValue is functional"
 msgstr "monetaryValue 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/monetaryValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:monetaryValue is functional: a gmeow:MonetaryAmount has exactly one numeric value — a single xsd:decimal amount."
-msgstr "在规范载体上断言 gmeow:monetaryValue 是函数式的:一个 gmeow:MonetaryAmount 恰好拥有一个数值——单一的 xsd:decimal 金额。"
+msgid "Asserts on the canonical carrier that gmeow:monetaryValue is functional: a gmeow:MonetaryAmount has exactly one numeric value — a single xsd:decimal amount. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:monetaryValue 是函数式的:一个 gmeow:MonetaryAmount 恰好拥有一个数值——单一的 xsd:decimal 金额。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/observationMethodFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "observationMethod is functional"
@@ -90,48 +90,48 @@ msgid "observedAt is functional"
 msgstr "observedAt 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/observedAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:observedAt is functional: a dated gmeow:Observation has exactly one time index — a single reading of its quality is taken at one moment, which is what orders a quality's observations into a value-history."
-msgstr "在规范载体上断言 gmeow:observedAt 是函数性的:一个带日期的 gmeow:Observation 恰好有一个时间索引——其质量的单次读数是在某一时刻获取的,正是这一点将某一质量的诸观察排列成一个数值历史。"
+msgid "Asserts on the canonical carrier that gmeow:observedAt is functional: a dated gmeow:Observation has exactly one time index — a single reading of its quality is taken at one moment, which is what orders a quality's observations into a value-history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:observedAt 是函数性的:一个带日期的 gmeow:Observation 恰好有一个时间索引——其质量的单次读数是在某一时刻获取的,正是这一点将某一质量的诸观察排列成一个数值历史。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/observedFeatureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "observedFeature is functional"
 msgstr "observedFeature 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/observedFeatureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:observedFeature is functional: a gmeow:Observation concerns exactly one feature of interest — the single individual whose property or state that observation records, even though the feature's type is left open."
-msgstr "在规范载体上断言 gmeow:observedFeature 是函数性的:一个 gmeow:Observation 恰好涉及一个关注特征——该观察所记录其属性或状态的唯一个体,即便该特征的类型仍未限定。"
+msgid "Asserts on the canonical carrier that gmeow:observedFeature is functional: a gmeow:Observation concerns exactly one feature of interest — the single individual whose property or state that observation records, even though the feature's type is left open. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:observedFeature 是函数性的:一个 gmeow:Observation 恰好涉及一个关注特征——该观察所记录其属性或状态的唯一个体,即便该特征的类型仍未限定。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/quantityUncertaintyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "quantityUncertainty is functional"
 msgstr "quantityUncertainty 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/quantityUncertaintyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:quantityUncertainty is functional: a math:Quantity carries exactly one epistemic uncertainty — a single figure (for example ±1σ) expressed in the same unit as its value."
-msgstr "在规范载体上断言 gmeow:quantityUncertainty 是函数性的:一个 math:Quantity 恰好携带一个认知不确定度——一个以与其数值相同单位表示的单一数字(例如 ±1σ)。"
+msgid "Asserts on the canonical carrier that gmeow:quantityUncertainty is functional: a math:Quantity carries exactly one epistemic uncertainty — a single figure (for example ±1σ) expressed in the same unit as its value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:quantityUncertainty 是函数性的:一个 math:Quantity 恰好携带一个认知不确定度——一个以与其数值相同单位表示的单一数字(例如 ±1σ)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/streamIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "streamInterval is functional"
 msgstr "streamInterval 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/streamIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:streamInterval is functional: a gmeow:Stream was produced over exactly one time interval — the interval is constitutive of the stream's identity, so a different interval is a different stream."
-msgstr "在规范载体上断言 gmeow:streamInterval 是函数性的:一个 gmeow:Stream 恰好是在一个时间区间内产生的——该区间是该数据流身份的构成性要素,因此不同的区间即是不同的数据流。"
+msgid "Asserts on the canonical carrier that gmeow:streamInterval is functional: a gmeow:Stream was produced over exactly one time interval — the interval is constitutive of the stream's identity, so a different interval is a different stream. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:streamInterval 是函数性的:一个 gmeow:Stream 恰好是在一个时间区间内产生的——该区间是该数据流身份的构成性要素,因此不同的区间即是不同的数据流。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/streamOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "streamOf is functional"
 msgstr "streamOf 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/streamOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:streamOf is functional: a gmeow:Stream contains the observations of exactly one entity — a single moving feature, device, or tracked thing."
-msgstr "在规范载体上断言 gmeow:streamOf 是函数性的:一个 gmeow:Stream 恰好包含一个实体的观测数据——即单一的移动特征、设备或被跟踪对象。"
+msgid "Asserts on the canonical carrier that gmeow:streamOf is functional: a gmeow:Stream contains the observations of exactly one entity — a single moving feature, device, or tracked thing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:streamOf 是函数性的:一个 gmeow:Stream 恰好包含一个实体的观测数据——即单一的移动特征、设备或被跟踪对象。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trueQuantityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "trueQuantity is functional"
 msgstr "trueQuantity 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trueQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:trueQuantity is functional: a framed math:Quantity is a reading of exactly one frame-independent gmeow:Magnitude — a single true magnitude underlies it, and that one magnitude is shared across readings taken in different units."
-msgstr "在规范载体上断言 gmeow:trueQuantity 是函数性的:一个带参照系的 math:Quantity 恰好是对一个与参照系无关的 gmeow:Magnitude 的读数——其背后只有一个真实的量,且这一个量在以不同单位所取的各读数间是共享的。"
+msgid "Asserts on the canonical carrier that gmeow:trueQuantity is functional: a framed math:Quantity is a reading of exactly one frame-independent gmeow:Magnitude — a single true magnitude underlies it, and that one magnitude is shared across readings taken in different units. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:trueQuantity 是函数性的:一个带参照系的 math:Quantity 恰好是对一个与参照系无关的 gmeow:Magnitude 的读数——其背后只有一个真实的量,且这一个量在以不同单位所取的各读数间是共享的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/unitFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "unit is functional"

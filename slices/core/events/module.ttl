@@ -1655,7 +1655,7 @@ gmeow:subEventOfTransitivity
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "subEventOf is transitive"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:subEventOf ;
     logic:characteristicSort logic:transitiveProperty ;
     logic:formalizes gmeow:subEventOf ;
@@ -1670,7 +1670,7 @@ gmeow:durationValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "durationValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:durationValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:durationValue ;
@@ -1685,7 +1685,7 @@ gmeow:eventTemporalFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "eventTemporalFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:eventTemporalFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:eventTemporalFrame ;
@@ -1700,7 +1700,7 @@ gmeow:participationEventFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "participationEvent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participationEvent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participationEvent ;
@@ -1715,7 +1715,7 @@ gmeow:recurrenceRuleTextFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "recurrenceRuleText is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:recurrenceRuleText ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:recurrenceRuleText ;

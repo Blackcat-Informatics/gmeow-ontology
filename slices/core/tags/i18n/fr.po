@@ -18,8 +18,8 @@ msgid "taggingScheme is functional"
 msgstr "taggingScheme est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:taggingScheme is functional: a gmeow:Tagging act is performed within exactly one scheme — even though the applied tag may itself be cross-listed in several schemes via gmeow:tagInScheme, the act names a single scheme context."
-msgstr "Affirme sur le porteur canonique que gmeow:taggingScheme est fonctionnelle: un acte gmeow:Tagging est effectué dans exactement un schéma — même si l'étiquette appliquée peut elle-même être répertoriée dans plusieurs schémas via gmeow:tagInScheme, l'acte nomme un seul contexte de schéma."
+msgid "Asserts on the canonical carrier that gmeow:taggingScheme is functional: a gmeow:Tagging act is performed within exactly one scheme — even though the applied tag may itself be cross-listed in several schemes via gmeow:tagInScheme, the act names a single scheme context. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:taggingScheme est fonctionnelle: un acte gmeow:Tagging est effectué dans exactement un schéma — même si l'étiquette appliquée peut elle-même être répertoriée dans plusieurs schémas via gmeow:tagInScheme, l'acte nomme un seul contexte de schéma. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingTagFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "taggingTag is functional"
@@ -34,8 +34,8 @@ msgid "taggingTagged is functional"
 msgstr "taggingTagged est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingTaggedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act."
-msgstr "Affirme sur le porteur canonique que gmeow:taggingTagged est fonctionnelle: chaque relateur gmeow:Tagging s'applique à exactement une entité étiquetée, un nouveau relateur étant frappé pour chaque acte d'étiquetage distinct."
+msgid "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:taggingTagged est fonctionnelle: chaque relateur gmeow:Tagging s'applique à exactement une entité étiquetée, un nouveau relateur étant frappé pour chaque acte d'étiquetage distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingSchemeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:taggingScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

@@ -26,16 +26,16 @@ msgid "citedEntity is functional"
 msgstr "citedEntity 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at."
-msgstr "在规范载体上断言 gmeow:citedEntity 是函数式的：每个 gmeow:CitationAct 关系体恰好指向一个被引用的创作作品——即该引用所指向的唯一 WEMI 层级目标。"
+msgid "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:citedEntity 是函数式的：每个 gmeow:CitationAct 关系体恰好指向一个被引用的创作作品——即该引用所指向的唯一 WEMI 层级目标。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "citingEntity is functional"
 msgstr "citingEntity 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing."
-msgstr "在规范载体上断言 gmeow:citingEntity 是函数式的：每个 gmeow:CitationAct 关系体恰好有一个施引方——即执行引用行为的唯一主张、作品、模块或数据集。"
+msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:citingEntity 是函数式的：每个 gmeow:CitationAct 关系体恰好有一个施引方——即执行引用行为的唯一主张、作品、模块或数据集。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:citationIntent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

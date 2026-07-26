@@ -991,7 +991,7 @@ gmeow:coarserThanTransitivity
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "coarserThan is transitive"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:coarserThan ;
     logic:characteristicSort logic:transitiveProperty ;
     logic:formalizes gmeow:coarserThan ;
@@ -1006,7 +1006,7 @@ gmeow:partOfTransitivity
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "partOf is transitive"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:partOf ;
     logic:characteristicSort logic:transitiveProperty ;
     logic:formalizes gmeow:partOf ;
@@ -1021,7 +1021,7 @@ gmeow:coarsenToFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "coarsenTo is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:coarsenTo is functional: a coarsening mark points at exactly one gmeow:GranularityLevel, the single coarsest level a value may be disclosed at, so multiple possibly-conflicting floors would be ill-formed."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:coarsenTo is functional: a coarsening mark points at exactly one gmeow:GranularityLevel, the single coarsest level a value may be disclosed at, so multiple possibly-conflicting floors would be ill-formed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:coarsenTo ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:coarsenTo ;

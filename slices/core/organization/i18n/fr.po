@@ -18,8 +18,8 @@ msgid "closesAt is functional"
 msgstr "closesAt est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/closesAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:closesAt is functional: a gmeow:OpeningHoursSpecification window has exactly one closing time, a single xsd:time that bounds where the window ends."
-msgstr "Affirme sur le porteur canonique que gmeow:closesAt est fonctionnelle : une fenêtre gmeow:OpeningHoursSpecification possède exactement une heure de fermeture, un unique xsd:time qui borne la fin de la fenêtre."
+msgid "Asserts on the canonical carrier that gmeow:closesAt is functional: a gmeow:OpeningHoursSpecification window has exactly one closing time, a single xsd:time that bounds where the window ends. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:closesAt est fonctionnelle : une fenêtre gmeow:OpeningHoursSpecification possède exactement une heure de fermeture, un unique xsd:time qui borne la fin de la fenêtre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/identifierSchemeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "identifierScheme is functional"
@@ -34,48 +34,48 @@ msgid "identifierUrl is functional"
 msgstr "identifierUrl est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/identifierUrlFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:identifierUrl is functional: a gmeow:Identifier record resolves at exactly one authority URL, the resolvable counterpart of its single scheme-local value, so a second landing page would denote a different identifier record."
-msgstr "Affirme sur le porteur canonique que gmeow:identifierUrl est fonctionnelle : un enregistrement gmeow:Identifier se résout en exactement une URL d'autorité, la contrepartie résoluble de sa valeur locale au schéma unique, de sorte qu'une seconde page d'atterrissage désignerait un enregistrement d'identifiant différent."
+msgid "Asserts on the canonical carrier that gmeow:identifierUrl is functional: a gmeow:Identifier record resolves at exactly one authority URL, the resolvable counterpart of its single scheme-local value, so a second landing page would denote a different identifier record. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:identifierUrl est fonctionnelle : un enregistrement gmeow:Identifier se résout en exactement une URL d'autorité, la contrepartie résoluble de sa valeur locale au schéma unique, de sorte qu'une seconde page d'atterrissage désignerait un enregistrement d'identifiant différent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/identifierValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "identifierValue is functional"
 msgstr "identifierValue est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/identifierValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:identifierValue is functional: a gmeow:Identifier node carries exactly one literal value within its scheme, and a different value is a different identifier."
-msgstr "Affirme sur le porteur canonique que gmeow:identifierValue est fonctionnelle : un nœud gmeow:Identifier porte exactement une valeur littérale au sein de son schéma, et une valeur différente constitue un identifiant différent."
+msgid "Asserts on the canonical carrier that gmeow:identifierValue is functional: a gmeow:Identifier node carries exactly one literal value within its scheme, and a different value is a different identifier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:identifierValue est fonctionnelle : un nœud gmeow:Identifier porte exactement une valeur littérale au sein de son schéma, et une valeur différente constitue un identifiant différent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/membershipMemberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "membershipMember is functional"
 msgstr "membershipMember est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/membershipMemberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:membershipMember is functional: a gmeow:Membership relator reifies the membership of exactly one member agent, filling a single member-role slot, while the flat gmeow:memberOf shortcut carries the many-to-many agent-to-organization relation."
-msgstr "Affirme sur le porteur canonique que gmeow:membershipMember est fonctionnelle : un relateur gmeow:Membership réifie l'adhésion d'exactement un agent membre, remplissant un unique emplacement de rôle de membre, tandis que le raccourci plat gmeow:memberOf porte la relation plusieurs-à-plusieurs entre agents et organisations."
+msgid "Asserts on the canonical carrier that gmeow:membershipMember is functional: a gmeow:Membership relator reifies the membership of exactly one member agent, filling a single member-role slot, while the flat gmeow:memberOf shortcut carries the many-to-many agent-to-organization relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:membershipMember est fonctionnelle : un relateur gmeow:Membership réifie l'adhésion d'exactement un agent membre, remplissant un unique emplacement de rôle de membre, tandis que le raccourci plat gmeow:memberOf porte la relation plusieurs-à-plusieurs entre agents et organisations. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/membershipOrganizationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "membershipOrganization is functional"
 msgstr "membershipOrganization est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/membershipOrganizationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:membershipOrganization is functional: a gmeow:Membership relator is in exactly one organization (which may be a department that is a sub-organization of a larger org), so joining a second organization is a second membership."
-msgstr "Affirme sur le porteur canonique que gmeow:membershipOrganization est fonctionnelle : un relateur gmeow:Membership se rattache à exactement une organisation (qui peut être un département, lui-même sous-organisation d'une organisation plus vaste), de sorte que rejoindre une seconde organisation constitue une seconde adhésion."
+msgid "Asserts on the canonical carrier that gmeow:membershipOrganization is functional: a gmeow:Membership relator is in exactly one organization (which may be a department that is a sub-organization of a larger org), so joining a second organization is a second membership. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:membershipOrganization est fonctionnelle : un relateur gmeow:Membership se rattache à exactement une organisation (qui peut être un département, lui-même sous-organisation d'une organisation plus vaste), de sorte que rejoindre une seconde organisation constitue une seconde adhésion. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opensAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "opensAt is functional"
 msgstr "opensAt est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opensAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:opensAt is functional: a gmeow:OpeningHoursSpecification window has exactly one opening time, a single xsd:time that bounds where the window starts."
-msgstr "Affirme sur le porteur canonique que gmeow:opensAt est fonctionnelle : une fenêtre gmeow:OpeningHoursSpecification a exactement une heure d'ouverture, un seul xsd:time qui borne le début de la fenêtre."
+msgid "Asserts on the canonical carrier that gmeow:opensAt is functional: a gmeow:OpeningHoursSpecification window has exactly one opening time, a single xsd:time that bounds where the window starts. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:opensAt est fonctionnelle : une fenêtre gmeow:OpeningHoursSpecification a exactement une heure d'ouverture, un seul xsd:time qui borne le début de la fenêtre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postInFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "postIn is functional"
 msgstr "postIn est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post."
-msgstr "Affirme sur le porteur canonique que gmeow:postIn est fonctionnelle : un gmeow:Post appartient à exactement une organisation, et le même poste dans une autre organisation constituerait un poste distinct."
+msgid "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:postIn est fonctionnelle : un gmeow:Post appartient à exactement une organisation, et le même poste dans une autre organisation constituerait un poste distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/closesAtFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:closesAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

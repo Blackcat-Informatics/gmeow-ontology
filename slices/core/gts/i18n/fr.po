@@ -26,8 +26,8 @@ msgid "gtsHeadId is functional"
 msgstr "gtsHeadId est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history."
-msgstr "Affirme sur le porteur canonique que gmeow:gtsHeadId est fonctionnelle : un gmeow:GTSSegment possède exactement une tête de chaîne — l'identifiant de contenu unique de sa dernière trame, noté 'blake3:<hex>', qui engage de manière transitive tout l'historique des trames du segment."
+msgid "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:gtsHeadId est fonctionnelle : un gmeow:GTSSegment possède exactement une tête de chaîne — l'identifiant de contenu unique de sa dernière trame, noté 'blake3:<hex>', qui engage de manière transitive tout l'historique des trames du segment. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "gtsProfile is functional"
@@ -50,8 +50,8 @@ msgid "gtsSegmentIndex is functional"
 msgstr "gtsSegmentIndex est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity."
-msgstr "Affirme sur le porteur canonique que gmeow:gtsSegmentIndex est fonctionnelle : un gmeow:GTSSegment occupe exactement une position, indexée à partir de zéro, dans l'ordre des fichiers de son document — un index unique, dont la liste ordonnée forme l'identité composite du document."
+msgid "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:gtsSegmentIndex est fonctionnelle : un gmeow:GTSSegment occupe exactement une position, indexée à partir de zéro, dans l'ordre des fichiers de son document — un index unique, dont la liste ordonnée forme l'identité composite du document. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "gtsSegmentOf is functional"
@@ -66,16 +66,16 @@ msgid "opacityReason is functional"
 msgstr "opacityReason est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss."
-msgstr "Affirme sur le porteur canonique que gmeow:opacityReason est fonctionnelle : un gmeow:OpaqueFrame a exactement une raison à son opacité — une cause unique, un codec de classe chiffrement sans clé, un codec dont le lecteur ne dispose pas, ou un dommage, puisqu'une opacité sans raison énoncée serait indiscernable d'une perte de données."
+msgid "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:opacityReason est fonctionnelle : un gmeow:OpaqueFrame a exactement une raison à son opacité — une cause unique, un codec de classe chiffrement sans clé, un codec dont le lecteur ne dispose pas, ou un dommage, puisqu'une opacité sans raison énoncée serait indiscernable d'une perte de données. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "opaqueFrameIn is functional"
 msgstr "opaqueFrameIn est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain."
-msgstr "Affirme sur le porteur canonique que gmeow:opaqueFrameIn est fonctionnelle : un gmeow:OpaqueFrame appartient à exactement un segment — une trame occupe une position unique dans la chaîne d'un seul segment."
+msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:opaqueFrameIn est fonctionnelle : un gmeow:OpaqueFrame appartient à exactement un segment — une trame occupe une position unique dans la chaîne d'un seul segment. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:codecClass names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

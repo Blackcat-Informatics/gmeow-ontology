@@ -332,7 +332,7 @@ gmeow:deploymentArtifactFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deploymentArtifact is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:deploymentArtifact is functional: a model deployment realizes exactly one served model artifact, the single WHAT at which the execution → deployment → artifact de-conflation join bottoms out."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:deploymentArtifact is functional: a model deployment realizes exactly one served model artifact, the single WHAT at which the execution → deployment → artifact de-conflation join bottoms out. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:deploymentArtifact ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:deploymentArtifact ;
@@ -347,7 +347,7 @@ gmeow:deploymentHostFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deploymentHost is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:deploymentHost is functional: a model deployment serves on exactly one host or runtime entity, the single placement facet — a region, a cluster, or a device — that the deployment binds."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:deploymentHost is functional: a model deployment serves on exactly one host or runtime entity, the single placement facet — a region, a cluster, or a device — that the deployment binds. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:deploymentHost ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:deploymentHost ;
@@ -362,7 +362,7 @@ gmeow:deploymentServiceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deploymentService is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:deploymentService is functional: a model deployment presents exactly one acting service agent, the single gmeow:SoftwareAgent identity that acts and bears the serving-mode awareness tenure."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:deploymentService is functional: a model deployment presents exactly one acting service agent, the single gmeow:SoftwareAgent identity that acts and bears the serving-mode awareness tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:deploymentService ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:deploymentService ;
@@ -377,7 +377,7 @@ gmeow:sessionConfigurationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "sessionConfiguration is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:sessionConfiguration is functional: an agent session runs under exactly one active configuration, the single session → configuration hop an output traces through to resolve the configuration it was generated under."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sessionConfiguration is functional: an agent session runs under exactly one active configuration, the single session → configuration hop an output traces through to resolve the configuration it was generated under. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:sessionConfiguration ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:sessionConfiguration ;
@@ -392,7 +392,7 @@ gmeow:sessionSubjectStageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "sessionSubjectStage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:sessionSubjectStage is functional: an agent session acts on behalf of exactly one subject stage, the single session → subject hop that lets an output resolve to its durable subject."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sessionSubjectStage is functional: an agent session acts on behalf of exactly one subject stage, the single session → subject hop that lets an output resolve to its durable subject. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:sessionSubjectStage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:sessionSubjectStage ;

@@ -34,8 +34,8 @@ msgid "blockHash is functional"
 msgstr "blockHash est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number."
-msgstr "Affirme sur le porteur canonique que gmeow:blockHash est fonctionnelle : un bloc de registre possède une unique identité cryptographique adressée par contenu, de sorte que son hachage de bloc constitue une valeur unique qui ancre le bloc indépendamment de son numéro séquentiel."
+msgid "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:blockHash est fonctionnelle : un bloc de registre possède une unique identité cryptographique adressée par contenu, de sorte que son hachage de bloc constitue une valeur unique qui ancre le bloc indépendamment de son numéro séquentiel. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "blockNumber is functional"
@@ -50,16 +50,16 @@ msgid "chainId is functional"
 msgstr "chainId est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network."
-msgstr "Affirme sur le porteur canonique que gmeow:chainId est fonctionnelle : un réseau de blockchain est désigné par un unique identifiant de chaîne CAIP-2, de sorte que la chaîne de caractères qui le distingue de toute autre chaîne est à valeur unique, et les hachages et adresses on-chain se résolvent contre exactement un réseau."
+msgid "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:chainId est fonctionnelle : un réseau de blockchain est désigné par un unique identifiant de chaîne CAIP-2, de sorte que la chaîne de caractères qui le distingue de toute autre chaîne est à valeur unique, et les hachages et adresses on-chain se résolvent contre exactement un réseau. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "contractAddress is functional"
 msgstr "contractAddress est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id."
-msgstr "Affirme sur le porteur canonique que gmeow:contractAddress est fonctionnelle : un contrat intelligent réside à un unique emplacement de déploiement sur sa chaîne, de sorte que l'adresse on-chain à laquelle son programme est invoqué est une valeur unique, non ambiguë seulement conjointement à son identifiant de chaîne."
+msgid "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:contractAddress est fonctionnelle : un contrat intelligent réside à un unique emplacement de déploiement sur sa chaîne, de sorte que l'adresse on-chain à laquelle son programme est invoqué est une valeur unique, non ambiguë seulement conjointement à son identifiant de chaîne. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "issuedAt is functional"
@@ -82,8 +82,8 @@ msgid "logIndex is functional"
 msgstr "logIndex est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely."
-msgstr "Affirme sur le porteur canonique que gmeow:logIndex est fonctionnelle : un événement du grand livre se situe à un seul décalage au sein du bloc ou de la transaction qui le contient, de sorte que la position intra-bloc qui distingue un journal émis d'un autre est mono-valuée et, combinée au hachage de transaction et au bloc, adresse l'événement de manière unique."
+msgid "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:logIndex est fonctionnelle : un événement du grand livre se situe à un seul décalage au sein du bloc ou de la transaction qui le contient, de sorte que la position intra-bloc qui distingue un journal émis d'un autre est mono-valuée et, combinée au hachage de transaction et au bloc, adresse l'événement de manière unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transactionHash is functional"

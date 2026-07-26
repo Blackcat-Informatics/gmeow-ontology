@@ -7627,7 +7627,7 @@ gmeow:analysisFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "analysisFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:analysisFrame is functional: a single music-analysis claim expresses its result within exactly one music-theory reference frame, so an analysis stated against two frames is two distinct claims."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisFrame is functional: a single music-analysis claim expresses its result within exactly one music-theory reference frame, so an analysis stated against two frames is two distinct claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:analysisFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:analysisFrame ;
@@ -7642,7 +7642,7 @@ gmeow:analysisPropertyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "analysisProperty is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:analysisProperty is functional: each music-analysis claim asserts exactly one analytical dimension (key, harmony, meter, form function, motif identity, mode, tuning, groove, or schema), so a claim ranging over two dimensions is two claims."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisProperty is functional: each music-analysis claim asserts exactly one analytical dimension (key, harmony, meter, form function, motif identity, mode, tuning, groove, or schema), so a claim ranging over two dimensions is two claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:analysisProperty ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:analysisProperty ;
@@ -7657,7 +7657,7 @@ gmeow:analysisResultFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "analysisResult is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:analysisResult is functional: a music-analysis claim carries exactly one result value for its asserted dimension, so a second result value is a second claim."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisResult is functional: a music-analysis claim carries exactly one result value for its asserted dimension, so a second result value is a second claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:analysisResult ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:analysisResult ;
@@ -7672,7 +7672,7 @@ gmeow:analysisTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "analysisTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:analysisTarget is functional: a music-analysis claim is directed at exactly one musical target — one analysis, one target — so analysing a second entity is a separate claim."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisTarget is functional: a music-analysis claim is directed at exactly one musical target — one analysis, one target — so analysing a second entity is a separate claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:analysisTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:analysisTarget ;
@@ -7687,7 +7687,7 @@ gmeow:anchorDegreeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "anchorDegree is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:anchorDegree is functional: a PitchAnchor binds exactly one tuning-system degree to its frequency, so the degree it pins is single-valued per anchor."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorDegree is functional: a PitchAnchor binds exactly one tuning-system degree to its frequency, so the degree it pins is single-valued per anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:anchorDegree ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:anchorDegree ;
@@ -7717,7 +7717,7 @@ gmeow:assignedMeterFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "assignedMeter is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assignedMeter is functional: a MeterAssignment relator ties its carrier to exactly one MetricStructure over its span, so the assigned meter is single-valued per assignment."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assignedMeter is functional: a MeterAssignment relator ties its carrier to exactly one MetricStructure over its span, so the assigned meter is single-valued per assignment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assignedMeter ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assignedMeter ;
@@ -7732,7 +7732,7 @@ gmeow:assignmentSpanFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "assignmentSpan is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:assignmentSpan is functional: a MeterAssignment holds over exactly one MusicalTimeSpan, so a meter applying across two disjoint spans is two assignments."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assignmentSpan is functional: a MeterAssignment holds over exactly one MusicalTimeSpan, so a meter applying across two disjoint spans is two assignments. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:assignmentSpan ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:assignmentSpan ;
@@ -7747,7 +7747,7 @@ gmeow:centsFromOriginFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "centsFromOrigin is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:centsFromOrigin is functional: a PitchExpression has exactly one cents value, generated by fnRatioToCents from its single canonical ratio, so the derived cents measure is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:centsFromOrigin is functional: a PitchExpression has exactly one cents value, generated by fnRatioToCents from its single canonical ratio, so the derived cents measure is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:centsFromOrigin ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:centsFromOrigin ;
@@ -7777,7 +7777,7 @@ gmeow:collectionPartOrderFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "collectionPartOrder is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:collectionPartOrder is functional: a pitch collection occupies exactly one zero-based position within its primary parent collection, so its part order is single-valued, and reuse under other parents at different orders uses per-parent part individuals."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:collectionPartOrder is functional: a pitch collection occupies exactly one zero-based position within its primary parent collection, so its part order is single-valued, and reuse under other parents at different orders uses per-parent part individuals. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:collectionPartOrder ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:collectionPartOrder ;
@@ -7792,7 +7792,7 @@ gmeow:configurationInstrumentTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "configurationInstrumentType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:configurationInstrumentType is functional: an InstrumentConfiguration relator applies to exactly one kind of instrument, so the instrument type it targets is single-valued per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationInstrumentType is functional: an InstrumentConfiguration relator applies to exactly one kind of instrument, so the instrument type it targets is single-valued per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:configurationInstrumentType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:configurationInstrumentType ;
@@ -7807,7 +7807,7 @@ gmeow:configurationIntervalFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "configurationInterval is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:configurationInterval is functional: an InstrumentConfiguration is described by at most one characterising interval, so the interval it names is single-valued per relator (optional, since some modifications alter timbre without a named interval)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationInterval is functional: an InstrumentConfiguration is described by at most one characterising interval, so the interval it names is single-valued per relator (optional, since some modifications alter timbre without a named interval). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:configurationInterval ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:configurationInterval ;
@@ -7822,7 +7822,7 @@ gmeow:configurationOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "configurationOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:configurationOf is functional: an InstrumentConfiguration relator applies to exactly one specific instrument item, so the item it configures is single-valued per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationOf is functional: an InstrumentConfiguration relator applies to exactly one specific instrument item, so the item it configures is single-valued per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:configurationOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:configurationOf ;
@@ -7837,7 +7837,7 @@ gmeow:configurationTuningFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "configurationTuningFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:configurationTuningFrame is functional: an InstrumentConfiguration is expressed relative to exactly one tuning frame, so its reference frame is single-valued per relator (Principle 11)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationTuningFrame is functional: an InstrumentConfiguration is expressed relative to exactly one tuning frame, so its reference frame is single-valued per relator (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:configurationTuningFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:configurationTuningFrame ;
@@ -7852,7 +7852,7 @@ gmeow:constraintAppliesToFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "constraintAppliesTo is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:constraintAppliesTo is functional: a TraversalConstraint applies to exactly one work, expression, or performance, so the entity it constrains is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:constraintAppliesTo is functional: a TraversalConstraint applies to exactly one work, expression, or performance, so the entity it constrains is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:constraintAppliesTo ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:constraintAppliesTo ;
@@ -7867,7 +7867,7 @@ gmeow:controlPointOfTrajectoryFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "controlPointOfTrajectory is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:controlPointOfTrajectory is functional: a PitchTrajectoryControlPoint belongs to exactly one PitchTrajectory, so its owning trajectory is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointOfTrajectory is functional: a PitchTrajectoryControlPoint belongs to exactly one PitchTrajectory, so its owning trajectory is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:controlPointOfTrajectory ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:controlPointOfTrajectory ;
@@ -7882,7 +7882,7 @@ gmeow:controlPointOrderFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "controlPointOrder is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:controlPointOrder is functional: a control point occupies exactly one zero-based ordinal position within its PitchTrajectory, so its order index is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointOrder is functional: a control point occupies exactly one zero-based ordinal position within its PitchTrajectory, so its order index is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:controlPointOrder ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:controlPointOrder ;
@@ -7897,7 +7897,7 @@ gmeow:controlPointPitchFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "controlPointPitch is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:controlPointPitch is functional: a control point carries exactly one frame-relative PitchValue, so the pitch it fixes is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointPitch is functional: a control point carries exactly one frame-relative PitchValue, so the pitch it fixes is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:controlPointPitch ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:controlPointPitch ;
@@ -7912,7 +7912,7 @@ gmeow:controlPointTimeFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "controlPointTimeFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimeFrame is functional: a control point's time position is expressed in exactly one MusicalTimeFrame, so the time frame it is read against is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimeFrame is functional: a control point's time position is expressed in exactly one MusicalTimeFrame, so the time frame it is read against is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:controlPointTimeFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:controlPointTimeFrame ;
@@ -7927,7 +7927,7 @@ gmeow:controlPointTimePositionDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "controlPointTimePositionDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimePositionDenominator is functional: the rational time position of a control point has exactly one denominator, so this component of its position is single-valued per control point."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimePositionDenominator is functional: the rational time position of a control point has exactly one denominator, so this component of its position is single-valued per control point. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:controlPointTimePositionDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:controlPointTimePositionDenominator ;
@@ -7942,7 +7942,7 @@ gmeow:controlPointTimePositionNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "controlPointTimePositionNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimePositionNumerator is functional: the rational time position of a control point has exactly one numerator, so this component of its position is single-valued per control point."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimePositionNumerator is functional: the rational time position of a control point has exactly one numerator, so this component of its position is single-valued per control point. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:controlPointTimePositionNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:controlPointTimePositionNumerator ;
@@ -7957,7 +7957,7 @@ gmeow:decisionConstraintFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "decisionConstraint is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:decisionConstraint is functional: a PerformanceDecision satisfies the rules of exactly one TraversalConstraint, so the constraint it answers is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:decisionConstraint is functional: a PerformanceDecision satisfies the rules of exactly one TraversalConstraint, so the constraint it answers is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:decisionConstraint ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:decisionConstraint ;
@@ -7972,7 +7972,7 @@ gmeow:decisionPerformanceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "decisionPerformance is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:decisionPerformance is functional: a PerformanceDecision is made within exactly one performance event, so the performance in which it occurred is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:decisionPerformance is functional: a PerformanceDecision is made within exactly one performance event, so the performance in which it occurred is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:decisionPerformance ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:decisionPerformance ;
@@ -7987,7 +7987,7 @@ gmeow:decisionSequenceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "decisionSequence is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:decisionSequence is functional: a PerformanceDecision records exactly one chosen fragment-traversal order for one performance, so its sequence record is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:decisionSequence is functional: a PerformanceDecision records exactly one chosen fragment-traversal order for one performance, so its sequence record is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:decisionSequence ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:decisionSequence ;
@@ -8002,7 +8002,7 @@ gmeow:degreeCountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "degreeCount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:degreeCount is functional: a TuningSystem has exactly one count of pitch degrees available per period, so its degree count is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:degreeCount is functional: a TuningSystem has exactly one count of pitch degrees available per period, so its degree count is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:degreeCount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:degreeCount ;
@@ -8017,7 +8017,7 @@ gmeow:dividedIntervalDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "dividedIntervalDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:dividedIntervalDenominator is functional: the interval that an equal-division tuning divides has exactly one denominator, so this component of the divided interval is single-valued per tuning system."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dividedIntervalDenominator is functional: the interval that an equal-division tuning divides has exactly one denominator, so this component of the divided interval is single-valued per tuning system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:dividedIntervalDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:dividedIntervalDenominator ;
@@ -8032,7 +8032,7 @@ gmeow:dividedIntervalNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "dividedIntervalNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:dividedIntervalNumerator is functional: the interval that an equal-division tuning divides has exactly one numerator, so this component of the divided interval is single-valued per tuning system."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dividedIntervalNumerator is functional: the interval that an equal-division tuning divides has exactly one numerator, so this component of the divided interval is single-valued per tuning system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:dividedIntervalNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:dividedIntervalNumerator ;
@@ -8047,7 +8047,7 @@ gmeow:divisionCountFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "divisionCount is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:divisionCount is functional: an equal-division tuning makes exactly one count of equal divisions of its period, so its division count is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:divisionCount is functional: an equal-division tuning makes exactly one count of equal divisions of its period, so its division count is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:divisionCount ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:divisionCount ;
@@ -8062,7 +8062,7 @@ gmeow:dofExpressionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "dofExpression is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:dofExpression is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Expression, so the expression it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofExpression is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Expression, so the expression it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:dofExpression ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:dofExpression ;
@@ -8077,7 +8077,7 @@ gmeow:dofParameterFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "dofParameter is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:dofParameter is functional: a DegreeOfFreedom declares the determination status of exactly one musical parameter (pitch, duration, order, tempo, dynamics, timbre, etc.), so the parameter it scopes is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofParameter is functional: a DegreeOfFreedom declares the determination status of exactly one musical parameter (pitch, duration, order, tempo, dynamics, timbre, etc.), so the parameter it scopes is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:dofParameter ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:dofParameter ;
@@ -8092,7 +8092,7 @@ gmeow:dofStatusFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "dofStatus is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:dofStatus is functional: a DegreeOfFreedom relator carries exactly one determination status for its parameter, so its status is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofStatus is functional: a DegreeOfFreedom relator carries exactly one determination status for its parameter, so its status is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:dofStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:dofStatus ;
@@ -8107,7 +8107,7 @@ gmeow:dofWorkFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "dofWork is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:dofWork is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Work, so the work it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator, Principle 4)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofWork is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Work, so the work it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator, Principle 4). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:dofWork ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:dofWork ;
@@ -8122,7 +8122,7 @@ gmeow:grooveGridUnitFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "grooveGridUnit is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:grooveGridUnit is functional: a GrooveProfile applies to exactly one metric grid unit, so the grid unit it targets is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:grooveGridUnit is functional: a GrooveProfile applies to exactly one metric grid unit, so the grid unit it targets is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:grooveGridUnit ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:grooveGridUnit ;
@@ -8137,7 +8137,7 @@ gmeow:grooveKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "grooveKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:grooveKind is functional: a GrooveProfile is of exactly one kind (swing ratio, position offsets, or measured), so its groove kind is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:grooveKind is functional: a GrooveProfile is of exactly one kind (swing ratio, position offsets, or measured), so its groove kind is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:grooveKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:grooveKind ;
@@ -8152,7 +8152,7 @@ gmeow:groupLengthDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "groupLengthDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:groupLengthDenominator is functional: the rational length of a MetricGroup has exactly one denominator, so this component of its length is single-valued per group."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:groupLengthDenominator is functional: the rational length of a MetricGroup has exactly one denominator, so this component of its length is single-valued per group. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:groupLengthDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:groupLengthDenominator ;
@@ -8167,7 +8167,7 @@ gmeow:groupLengthNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "groupLengthNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:groupLengthNumerator is functional: the rational length of a MetricGroup has exactly one numerator, so this component of its length is single-valued per group."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:groupLengthNumerator is functional: the rational length of a MetricGroup has exactly one numerator, so this component of its length is single-valued per group. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:groupLengthNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:groupLengthNumerator ;
@@ -8197,7 +8197,7 @@ gmeow:interpolationKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "interpolationKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:interpolationKind is functional: a PitchTrajectory uses exactly one interpolation mode between its control points (linearCents, exponential, or stochasticByReference), so its interpolation kind is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:interpolationKind is functional: a PitchTrajectory uses exactly one interpolation mode between its control points (linearCents, exponential, or stochasticByReference), so its interpolation kind is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:interpolationKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:interpolationKind ;
@@ -8212,7 +8212,7 @@ gmeow:mapRatioDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "mapRatioDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:mapRatioDenominator is functional: the rational ratio carried by a TimeMapping has exactly one denominator, so this component of the ratio is single-valued per mapping."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mapRatioDenominator is functional: the rational ratio carried by a TimeMapping has exactly one denominator, so this component of the ratio is single-valued per mapping. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:mapRatioDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:mapRatioDenominator ;
@@ -8227,7 +8227,7 @@ gmeow:mapRatioNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "mapRatioNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:mapRatioNumerator is functional: the rational ratio carried by a TimeMapping has exactly one numerator, so this component of the ratio is single-valued per mapping."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mapRatioNumerator is functional: the rational ratio carried by a TimeMapping has exactly one numerator, so this component of the ratio is single-valued per mapping. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:mapRatioNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:mapRatioNumerator ;
@@ -8242,7 +8242,7 @@ gmeow:membershipCollectionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "membershipCollection is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:membershipCollection is functional: a PitchCollectionMembership relator belongs to exactly one PitchCollection — one collection per membership — so the collection it joins is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipCollection is functional: a PitchCollectionMembership relator belongs to exactly one PitchCollection — one collection per membership — so the collection it joins is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:membershipCollection ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:membershipCollection ;
@@ -8257,7 +8257,7 @@ gmeow:membershipDegreeIndexFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "membershipDegreeIndex is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:membershipDegreeIndex is functional: a membership pins its member pitch to at most one zero-based degree index within the collection, so the degree index is single-valued (optional, present only when the collection has a conventional ordering)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipDegreeIndex is functional: a membership pins its member pitch to at most one zero-based degree index within the collection, so the degree index is single-valued (optional, present only when the collection has a conventional ordering). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:membershipDegreeIndex ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:membershipDegreeIndex ;
@@ -8272,7 +8272,7 @@ gmeow:membershipPitchFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "membershipPitch is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:membershipPitch is functional: a PitchCollectionMembership carries exactly one member pitch — one pitch per membership — so the pitch it admits is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipPitch is functional: a PitchCollectionMembership carries exactly one member pitch — one pitch per membership — so the pitch it admits is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:membershipPitch ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:membershipPitch ;
@@ -8287,7 +8287,7 @@ gmeow:membershipRoleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "membershipRole is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:membershipRole is functional: a PitchCollectionMembership assigns exactly one role to its pitch (tonic/finalis, vadi, samvadi, ghammaz, ascent-only, descent-only, ornamental, or generic member) — one role per membership — so the role is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipRole is functional: a PitchCollectionMembership assigns exactly one role to its pitch (tonic/finalis, vadi, samvadi, ghammaz, ascent-only, descent-only, ornamental, or generic member) — one role per membership — so the role is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:membershipRole ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:membershipRole ;
@@ -8302,7 +8302,7 @@ gmeow:meterCarrierFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "meterCarrier is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:meterCarrier is functional: a MeterAssignment names exactly one carrying entity (voice, performer, or part) for its meter, so the carrier is single-valued per assignment."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:meterCarrier is functional: a MeterAssignment names exactly one carrying entity (voice, performer, or part) for its meter, so the carrier is single-valued per assignment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:meterCarrier ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:meterCarrier ;
@@ -8317,7 +8317,7 @@ gmeow:metricGroupOrderFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "metricGroupOrder is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:metricGroupOrder is functional: a MetricGroup occupies exactly one zero-based position within its MetricStructure, so its order index is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:metricGroupOrder is functional: a MetricGroup occupies exactly one zero-based position within its MetricStructure, so its order index is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:metricGroupOrder ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:metricGroupOrder ;
@@ -8332,7 +8332,7 @@ gmeow:metricStructureOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "metricStructureOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:metricStructureOf is functional: a MetricStructure defines the metric cycle of exactly one entity (a work, section, or voice), so the entity it structures is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:metricStructureOf is functional: a MetricStructure defines the metric cycle of exactly one entity (a work, section, or voice), so the entity it structures is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:metricStructureOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:metricStructureOf ;
@@ -8347,7 +8347,7 @@ gmeow:modulationFromFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "modulationFromFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:modulationFromFrame is functional: a MetricModulation pivots away from exactly one source MusicalTimeFrame, so its origin frame is uniquely determined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:modulationFromFrame is functional: a MetricModulation pivots away from exactly one source MusicalTimeFrame, so its origin frame is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:modulationFromFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:modulationFromFrame ;
@@ -8362,7 +8362,7 @@ gmeow:modulationToFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "modulationToFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:modulationToFrame is functional: a MetricModulation resolves into exactly one target MusicalTimeFrame, so its destination frame is uniquely determined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:modulationToFrame is functional: a MetricModulation resolves into exactly one target MusicalTimeFrame, so its destination frame is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:modulationToFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:modulationToFrame ;
@@ -8377,7 +8377,7 @@ gmeow:ornamentProfileKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "ornamentProfileKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ornamentProfileKind is functional: an OrnamentProfile is classified under exactly one ornament-profile kind, so a single kind fixes its gestural family (gamaka, baroque agrément, and the like)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ornamentProfileKind is functional: an OrnamentProfile is classified under exactly one ornament-profile kind, so a single kind fixes its gestural family (gamaka, baroque agrément, and the like). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ornamentProfileKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ornamentProfileKind ;
@@ -8392,7 +8392,7 @@ gmeow:ornamentReferenceFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "ornamentReferenceFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ornamentReferenceFrame is functional: an OrnamentProfile's pitch gestures are expressed relative to exactly one TuningSystem reference frame, so a single frame anchors them (Principle 11)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ornamentReferenceFrame is functional: an OrnamentProfile's pitch gestures are expressed relative to exactly one TuningSystem reference frame, so a single frame anchors them (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ornamentReferenceFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ornamentReferenceFrame ;
@@ -8407,7 +8407,7 @@ gmeow:participationConfigurationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "participationConfiguration is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participationConfiguration is functional: a single PerformanceParticipation relator records exactly one InstrumentConfiguration, so the configuration used is uniquely determined per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationConfiguration is functional: a single PerformanceParticipation relator records exactly one InstrumentConfiguration, so the configuration used is uniquely determined per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participationConfiguration ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participationConfiguration ;
@@ -8422,7 +8422,7 @@ gmeow:participationInstrumentItemFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "participationInstrumentItem is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participationInstrumentItem is functional: each PerformanceParticipation relator names exactly one specific instrument item — the particular instrument, plugin, or kit played — so the item is uniquely fixed per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationInstrumentItem is functional: each PerformanceParticipation relator names exactly one specific instrument item — the particular instrument, plugin, or kit played — so the item is uniquely fixed per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participationInstrumentItem ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participationInstrumentItem ;
@@ -8437,7 +8437,7 @@ gmeow:participationPartFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "participationPart is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participationPart is functional: a PerformanceParticipation relator captures exactly one part or role the participant performed, so the part is uniquely fixed per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationPart is functional: a PerformanceParticipation relator captures exactly one part or role the participant performed, so the part is uniquely fixed per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participationPart ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participationPart ;
@@ -8452,7 +8452,7 @@ gmeow:participationTechniqueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "participationTechnique is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:participationTechnique is functional: a PerformanceParticipation relator records exactly one PlayingTechnique, so the technique used is uniquely fixed per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationTechnique is functional: a PerformanceParticipation relator records exactly one PlayingTechnique, so the technique used is uniquely fixed per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:participationTechnique ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:participationTechnique ;
@@ -8467,7 +8467,7 @@ gmeow:pitchAnchorOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "pitchAnchorOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pitchAnchorOf is functional: a PitchAnchor is defined for exactly one TuningSystem, so its owning system is uniquely determined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pitchAnchorOf is functional: a PitchAnchor is defined for exactly one TuningSystem, so its owning system is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pitchAnchorOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pitchAnchorOf ;
@@ -8482,7 +8482,7 @@ gmeow:pitchDegreeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "pitchDegree is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pitchDegree is functional: a PitchValue carries at most one tuning-system degree index, so its degree is a single integer (degree 0 origin, degree 7 the fifth in 12-EDO)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pitchDegree is functional: a PitchValue carries at most one tuning-system degree index, so its degree is a single integer (degree 0 origin, degree 7 the fifth in 12-EDO). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pitchDegree ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pitchDegree ;
@@ -8497,7 +8497,7 @@ gmeow:pivotSourceValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "pivotSourceValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pivotSourceValue is functional: a MetricModulation's pivot equivalence has exactly one source-side rational value, so its source string is single."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pivotSourceValue is functional: a MetricModulation's pivot equivalence has exactly one source-side rational value, so its source string is single. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pivotSourceValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pivotSourceValue ;
@@ -8512,7 +8512,7 @@ gmeow:pivotTargetValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "pivotTargetValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:pivotTargetValue is functional: a MetricModulation's pivot equivalence has exactly one target-side rational value, so its target string is single."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pivotTargetValue is functional: a MetricModulation's pivot equivalence has exactly one target-side rational value, so its target string is single. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:pivotTargetValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:pivotTargetValue ;
@@ -8527,7 +8527,7 @@ gmeow:primeLimitFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "primeLimit is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:primeLimit is functional: a just-intonation TuningSystem admits exactly one largest prime factor bounding its interval ratios, so its prime limit is a single integer."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:primeLimit is functional: a just-intonation TuningSystem admits exactly one largest prime factor bounding its interval ratios, so its prime limit is a single integer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:primeLimit ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:primeLimit ;
@@ -8542,7 +8542,7 @@ gmeow:processKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "processKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:processKind is functional: a GenerativeProcess is of exactly one process kind, so a single kind classifies it as phasing, stochastic, verbal-score, rule-based, or algorithmic."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:processKind is functional: a GenerativeProcess is of exactly one process kind, so a single kind classifies it as phasing, stochastic, verbal-score, rule-based, or algorithmic. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:processKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:processKind ;
@@ -8557,7 +8557,7 @@ gmeow:ratioDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "ratioDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ratioDenominator is functional: an exact pitch or interval ratio has exactly one denominator, so a single positive integer fixes it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ratioDenominator is functional: an exact pitch or interval ratio has exactly one denominator, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ratioDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ratioDenominator ;
@@ -8572,7 +8572,7 @@ gmeow:ratioNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "ratioNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:ratioNumerator is functional: an exact pitch or interval ratio has exactly one numerator, so a single integer fixes it in the canonical rational form paired with ratioDenominator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ratioNumerator is functional: an exact pitch or interval ratio has exactly one numerator, so a single integer fixes it in the canonical rational form paired with ratioDenominator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:ratioNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:ratioNumerator ;
@@ -8602,7 +8602,7 @@ gmeow:segmentMapRatioDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "segmentMapRatioDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:segmentMapRatioDenominator is functional: a TempoMapSegment's constant mapping ratio has exactly one denominator, so a single positive integer fixes it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentMapRatioDenominator is functional: a TempoMapSegment's constant mapping ratio has exactly one denominator, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:segmentMapRatioDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:segmentMapRatioDenominator ;
@@ -8617,7 +8617,7 @@ gmeow:segmentMapRatioNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "segmentMapRatioNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:segmentMapRatioNumerator is functional: a TempoMapSegment's constant mapping ratio has exactly one numerator of musical units per clock unit, so a single integer fixes it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentMapRatioNumerator is functional: a TempoMapSegment's constant mapping ratio has exactly one numerator of musical units per clock unit, so a single integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:segmentMapRatioNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:segmentMapRatioNumerator ;
@@ -8632,7 +8632,7 @@ gmeow:segmentSpanFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "segmentSpan is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:segmentSpan is functional: a segment applies over exactly one MusicalTimeSpan, so the span it covers is uniquely determined whether the subject is a TempoMapSegment or a MusicalSegment."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentSpan is functional: a segment applies over exactly one MusicalTimeSpan, so the span it covers is uniquely determined whether the subject is a TempoMapSegment or a MusicalSegment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:segmentSpan ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:segmentSpan ;
@@ -8647,7 +8647,7 @@ gmeow:segmentTempoMapKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "segmentTempoMapKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:segmentTempoMapKind is functional: a TempoMapSegment follows exactly one curve kind, so a single kind fixes its tempo shape as constant, linear ramp, curve, or measured."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentTempoMapKind is functional: a TempoMapSegment follows exactly one curve kind, so a single kind fixes its tempo shape as constant, linear ramp, curve, or measured. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:segmentTempoMapKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:segmentTempoMapKind ;
@@ -8662,7 +8662,7 @@ gmeow:spelledNameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "spelledName is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:spelledName is functional: a PitchSpelling produces exactly one note-name string, so its spelled name is single per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spelledName is functional: a PitchSpelling produces exactly one note-name string, so its spelled name is single per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:spelledName ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:spelledName ;
@@ -8677,7 +8677,7 @@ gmeow:spellingPitchFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "spellingPitch is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:spellingPitch is functional: a PitchSpelling names exactly one frame-relative pitch value, so its pitch is single per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spellingPitch is functional: a PitchSpelling names exactly one frame-relative pitch value, so its pitch is single per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:spellingPitch ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:spellingPitch ;
@@ -8692,7 +8692,7 @@ gmeow:spellingSystemFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "spellingSystem is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:spellingSystem is functional: a PitchSpelling expresses its name in exactly one spelling system (CMN staff, sargam, Johnston), so its system is single per relator."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spellingSystem is functional: a PitchSpelling expresses its name in exactly one spelling system (CMN staff, sargam, Johnston), so its system is single per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:spellingSystem ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:spellingSystem ;
@@ -8707,7 +8707,7 @@ gmeow:tempoMapSegmentOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "tempoMapSegmentOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:tempoMapSegmentOf is functional: a TempoMapSegment belongs to exactly one parent TempoMap, so its owning map is uniquely determined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tempoMapSegmentOf is functional: a TempoMapSegment belongs to exactly one parent TempoMap, so its owning map is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:tempoMapSegmentOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:tempoMapSegmentOf ;
@@ -8737,7 +8737,7 @@ gmeow:timbreObservationResultFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "timbreObservationResult is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:timbreObservationResult is functional: a single Observation assigns exactly one timbre descriptor to the ToneEvent it observes, so its result is uniquely determined per observation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timbreObservationResult is functional: a single Observation assigns exactly one timbre descriptor to the ToneEvent it observes, so its result is uniquely determined per observation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:timbreObservationResult ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:timbreObservationResult ;
@@ -8752,7 +8752,7 @@ gmeow:timeDurationDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "timeDurationDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:timeDurationDenominator is functional: a MusicalTimeSpan's rational duration has exactly one denominator in its frame, so a single positive integer fixes it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeDurationDenominator is functional: a MusicalTimeSpan's rational duration has exactly one denominator in its frame, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:timeDurationDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:timeDurationDenominator ;
@@ -8767,7 +8767,7 @@ gmeow:timeDurationNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "timeDurationNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:timeDurationNumerator is functional: a MusicalTimeSpan's rational duration has exactly one numerator in its frame, so a single integer fixes it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeDurationNumerator is functional: a MusicalTimeSpan's rational duration has exactly one numerator in its frame, so a single integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:timeDurationNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:timeDurationNumerator ;
@@ -8782,7 +8782,7 @@ gmeow:timeMappingKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "timeMappingKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:timeMappingKind is functional: a TimeMapping is of exactly one kind (tuplet, tempo canon, metric modulation, groove), so a single kind classifies it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeMappingKind is functional: a TimeMapping is of exactly one kind (tuplet, tempo canon, metric modulation, groove), so a single kind classifies it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:timeMappingKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:timeMappingKind ;
@@ -8797,7 +8797,7 @@ gmeow:timeStartDenominatorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "timeStartDenominator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:timeStartDenominator is functional: a MusicalTimeSpan's rational start position has exactly one denominator in its frame, so a single positive integer fixes it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeStartDenominator is functional: a MusicalTimeSpan's rational start position has exactly one denominator in its frame, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:timeStartDenominator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:timeStartDenominator ;
@@ -8812,7 +8812,7 @@ gmeow:timeStartNumeratorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "timeStartNumerator is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:timeStartNumerator is functional: a MusicalTimeSpan's rational start position has exactly one numerator in its frame, so a single integer fixes it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeStartNumerator is functional: a MusicalTimeSpan's rational start position has exactly one numerator in its frame, so a single integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:timeStartNumerator ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:timeStartNumerator ;
@@ -8827,7 +8827,7 @@ gmeow:toneEventArticulationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "toneEventArticulation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toneEventArticulation is functional: a ToneEvent carries exactly one articulation or attack quality, so its articulation is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventArticulation is functional: a ToneEvent carries exactly one articulation or attack quality, so its articulation is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:toneEventArticulation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toneEventArticulation ;
@@ -8842,7 +8842,7 @@ gmeow:toneEventDynamicsFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "toneEventDynamics is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toneEventDynamics is functional: a ToneEvent has exactly one symbolic dynamic level from ppp to fff, so its dynamics marking is single-valued while measured decibels go to the observation layer."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventDynamics is functional: a ToneEvent has exactly one symbolic dynamic level from ppp to fff, so its dynamics marking is single-valued while measured decibels go to the observation layer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:toneEventDynamics ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toneEventDynamics ;
@@ -8872,7 +8872,7 @@ gmeow:toneEventPitchTrajectoryFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "toneEventPitchTrajectory is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toneEventPitchTrajectory is functional: a ToneEvent sounds at most one continuous pitch trajectory, exclusive of a discrete pitch value or the unpitched flag, so its trajectory is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventPitchTrajectory is functional: a ToneEvent sounds at most one continuous pitch trajectory, exclusive of a discrete pitch value or the unpitched flag, so its trajectory is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:toneEventPitchTrajectory ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toneEventPitchTrajectory ;
@@ -8887,7 +8887,7 @@ gmeow:toneEventPitchValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "toneEventPitchValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toneEventPitchValue is functional: a ToneEvent sounds at most one frame-relative pitch value, exclusive of a trajectory or the unpitched flag under the single pitch-content mode, so its pitch value is single-valued."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventPitchValue is functional: a ToneEvent sounds at most one frame-relative pitch value, exclusive of a trajectory or the unpitched flag under the single pitch-content mode, so its pitch value is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:toneEventPitchValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toneEventPitchValue ;
@@ -8917,7 +8917,7 @@ gmeow:transformationParameterFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "transformationParameter is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:transformationParameter is functional: a SegmentTransformation carries at most one qualifying parameter — a PitchInterval, a MetricStructure, or another entity — so its parameter is single-valued and type-dependently interpreted."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationParameter is functional: a SegmentTransformation carries at most one qualifying parameter — a PitchInterval, a MetricStructure, or another entity — so its parameter is single-valued and type-dependently interpreted. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:transformationParameter ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:transformationParameter ;
@@ -8932,7 +8932,7 @@ gmeow:transformationSourceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "transformationSource is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:transformationSource is functional: a SegmentTransformation has exactly one source MusicalSegment, so its input segment is uniquely determined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationSource is functional: a SegmentTransformation has exactly one source MusicalSegment, so its input segment is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:transformationSource ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:transformationSource ;
@@ -8947,7 +8947,7 @@ gmeow:transformationTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "transformationTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:transformationTarget is functional: a SegmentTransformation produces exactly one target MusicalSegment, so its output segment is uniquely determined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationTarget is functional: a SegmentTransformation produces exactly one target MusicalSegment, so its output segment is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:transformationTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:transformationTarget ;
@@ -8962,7 +8962,7 @@ gmeow:transformationTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "transformationType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:transformationType is functional: a SegmentTransformation is of exactly one type relating its source and target (transposition, inversion, retrograde), so a single type classifies it."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationType is functional: a SegmentTransformation is of exactly one type relating its source and target (transposition, inversion, retrograde), so a single type classifies it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:transformationType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:transformationType ;
@@ -8992,7 +8992,7 @@ gmeow:voiceMetricStructureFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "voiceMetricStructure is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:voiceMetricStructure is functional: a Voice hosts exactly one MetricStructure under its closed-world shape, with coexisting meters deferred to statement-layer claims."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:voiceMetricStructure is functional: a Voice hosts exactly one MetricStructure under its closed-world shape, with coexisting meters deferred to statement-layer claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:voiceMetricStructure ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:voiceMetricStructure ;
@@ -9007,7 +9007,7 @@ gmeow:voiceTimeFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "voiceTimeFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:voiceTimeFrame is functional: a Voice hosts exactly one MusicalTimeFrame under its closed-world shape, with coexisting frames deferred to statement-layer claims (Principle 11)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:voiceTimeFrame is functional: a Voice hosts exactly one MusicalTimeFrame under its closed-world shape, with coexisting frames deferred to statement-layer claims (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:voiceTimeFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:voiceTimeFrame ;
@@ -9022,7 +9022,7 @@ gmeow:voiceTuningFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "voiceTuningFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:voiceTuningFrame is functional: a Voice hosts exactly one TuningSystem under its closed-world shape, with coexisting tunings deferred to statement-layer claims (Principle 11)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:voiceTuningFrame is functional: a Voice hosts exactly one TuningSystem under its closed-world shape, with coexisting tunings deferred to statement-layer claims (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:voiceTuningFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:voiceTuningFrame ;

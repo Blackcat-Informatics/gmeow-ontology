@@ -357,7 +357,7 @@ gmeow:counterGoalSymmetry
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "counterGoal is symmetric"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:counterGoal ;
     logic:characteristicSort logic:symmetricProperty ;
     logic:formalizes gmeow:counterGoal ;
@@ -387,7 +387,7 @@ gmeow:committedAgentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "committedAgent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:committedAgent is functional: a gmeow:Commitment binds exactly one committed agent, mutual promises being modelled as two directed Commitments so that withdrawal, breach, and tenure stay independent per direction."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:committedAgent is functional: a gmeow:Commitment binds exactly one committed agent, mutual promises being modelled as two directed Commitments so that withdrawal, breach, and tenure stay independent per direction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:committedAgent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:committedAgent ;
@@ -402,7 +402,7 @@ gmeow:intentBearerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intentBearer is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:intentBearer is functional: an intentional mode is an intrinsic moment that inheres in exactly one bearer, so two agents wanting the same outcome are two modes sharing a single gmeow:intentionGoal."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:intentBearer is functional: an intentional mode is an intrinsic moment that inheres in exactly one bearer, so two agents wanting the same outcome are two modes sharing a single gmeow:intentionGoal. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:intentBearer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:intentBearer ;
@@ -432,7 +432,7 @@ gmeow:tenureAgentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenureAgent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:tenureAgent is functional: a gmeow:IntentionTenure records the intentional mode of exactly one agent."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureAgent is functional: a gmeow:IntentionTenure records the intentional mode of exactly one agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:tenureAgent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:tenureAgent ;
@@ -447,7 +447,7 @@ gmeow:tenureIntentionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenureIntention is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:tenureIntention ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:tenureIntention ;

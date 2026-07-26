@@ -922,7 +922,7 @@ gmeow:acceptanceStatusFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "acceptanceStatus is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:acceptanceStatus is functional: a gmeow:ArgumentEvaluation assigns its argument exactly one Dung label (in, out, or undecided), since one evaluation under one semantics settles on a single status and credulous multiplicity is carried by separate evaluations."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:acceptanceStatus is functional: a gmeow:ArgumentEvaluation assigns its argument exactly one Dung label (in, out, or undecided), since one evaluation under one semantics settles on a single status and credulous multiplicity is carried by separate evaluations. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:acceptanceStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:acceptanceStatus ;
@@ -952,7 +952,7 @@ gmeow:argumentConclusionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argumentConclusion is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:argumentConclusion is functional: a gmeow:Argument establishes exactly one conclusion, since an argument concluding two claims is two arguments and the whole premise-to-conclusion structure is indexed to a single established claim."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:argumentConclusion is functional: a gmeow:Argument establishes exactly one conclusion, since an argument concluding two claims is two arguments and the whole premise-to-conclusion structure is indexed to a single established claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:argumentConclusion ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:argumentConclusion ;
@@ -967,7 +967,7 @@ gmeow:argumentInferenceStepFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argumentInferenceStep is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:argumentInferenceStep is functional: a gmeow:Argument wraps at most one Toulmin gmeow:InferenceCommitment, since a multi-step chain is modelled as several Arguments linked by gmeow:Support and each Argument therefore owns a single step."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:argumentInferenceStep is functional: a gmeow:Argument wraps at most one Toulmin gmeow:InferenceCommitment, since a multi-step chain is modelled as several Arguments linked by gmeow:Support and each Argument therefore owns a single step. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:argumentInferenceStep ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:argumentInferenceStep ;
@@ -997,7 +997,7 @@ gmeow:attackTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attackTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:attackTarget is functional: a typed gmeow:Attack names exactly one target — a premise-use, an inference-application, or a conclusion — matching its single kind, so an attack on two things is two attacks."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:attackTarget is functional: a typed gmeow:Attack names exactly one target — a premise-use, an inference-application, or a conclusion — matching its single kind, so an attack on two things is two attacks. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:attackTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:attackTarget ;
@@ -1012,7 +1012,7 @@ gmeow:conclusionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "conclusion is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:conclusion is functional: a gmeow:InferenceCommitment establishes one gmeow:StandpointClaim as its conclusion, since a commitment with two conclusions is two commitments and SHACL derived from this record enforces exactly one."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conclusion is functional: a gmeow:InferenceCommitment establishes one gmeow:StandpointClaim as its conclusion, since a commitment with two conclusions is two commitments and SHACL derived from this record enforces exactly one. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:conclusion ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:conclusion ;
@@ -1027,7 +1027,7 @@ gmeow:correspondingSourceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "correspondingSource is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:correspondingSource is functional: a gmeow:Correspondence maps exactly one source-domain element, since the source half of a mapped pair is singular and a second source element constitutes a distinct correspondence."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:correspondingSource is functional: a gmeow:Correspondence maps exactly one source-domain element, since the source half of a mapped pair is singular and a second source element constitutes a distinct correspondence. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:correspondingSource ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:correspondingSource ;
@@ -1042,7 +1042,7 @@ gmeow:correspondingTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "correspondingTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:correspondingTarget is functional: a gmeow:Correspondence maps to exactly one target-domain element, since the target half of a mapped pair is singular just as its source is, and a second target constitutes a distinct correspondence."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:correspondingTarget is functional: a gmeow:Correspondence maps to exactly one target-domain element, since the target half of a mapped pair is singular just as its source is, and a second target constitutes a distinct correspondence. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:correspondingTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:correspondingTarget ;
@@ -1057,7 +1057,7 @@ gmeow:evaluatesArgumentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "evaluatesArgument is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:evaluatesArgument is functional: a gmeow:ArgumentEvaluation assesses exactly one gmeow:Argument under one semantics, since evaluating a second argument, or the same argument in another extension, is a separate evaluation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluatesArgument is functional: a gmeow:ArgumentEvaluation assesses exactly one gmeow:Argument under one semantics, since evaluating a second argument, or the same argument in another extension, is a separate evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:evaluatesArgument ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:evaluatesArgument ;
@@ -1072,7 +1072,7 @@ gmeow:inferenceModeOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "inferenceModeOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:inferenceModeOf is functional: a gmeow:InferenceCommitment has exactly one Peircean mode, since a step that were both inductive and abductive is two commitments and the single mode scopes which SHACL shapes apply."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:inferenceModeOf is functional: a gmeow:InferenceCommitment has exactly one Peircean mode, since a step that were both inductive and abductive is two commitments and the single mode scopes which SHACL shapes apply. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:inferenceModeOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:inferenceModeOf ;
@@ -1087,7 +1087,7 @@ gmeow:premiseUsedFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "premiseUsed is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:premiseUsed is functional: a gmeow:PremiseUse rests on exactly one premise, since the basing relation ties one use to the single fact it actually leans on and drawing on a second premise is a second premise-use."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:premiseUsed is functional: a gmeow:PremiseUse rests on exactly one premise, since the basing relation ties one use to the single fact it actually leans on and drawing on a second premise is a second premise-use. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:premiseUsed ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:premiseUsed ;
@@ -1102,7 +1102,7 @@ gmeow:supportTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "supportTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:supportTarget is functional: a gmeow:Support instance backs exactly one gmeow:Argument, since keeping support singular lets independent supports for the same argument accrue as separate Support instances (Principle 9)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:supportTarget is functional: a gmeow:Support instance backs exactly one gmeow:Argument, since keeping support singular lets independent supports for the same argument accrue as separate Support instances (Principle 9). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:supportTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:supportTarget ;
@@ -1117,7 +1117,7 @@ gmeow:tenureOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "tenureOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:tenureOf is functional: a gmeow:InferenceTenure time-scopes exactly one gmeow:InferenceCommitment, since one tenure opens and later closes the acceptance of a single commitment's conclusion and a second commitment gets its own tenure."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tenureOf is functional: a gmeow:InferenceTenure time-scopes exactly one gmeow:InferenceCommitment, since one tenure opens and later closes the acceptance of a single commitment's conclusion and a second commitment gets its own tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:tenureOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:tenureOf ;
@@ -1132,7 +1132,7 @@ gmeow:underSemanticsFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "underSemantics is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:underSemantics is functional: a gmeow:ArgumentEvaluation is computed under exactly one named acceptability semantics, since the semantics fixes the labelling and the same argument assessed under a second semantics is a distinct evaluation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:underSemantics is functional: a gmeow:ArgumentEvaluation is computed under exactly one named acceptability semantics, since the semantics fixes the labelling and the same argument assessed under a second semantics is a distinct evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:underSemantics ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:underSemantics ;
@@ -1177,7 +1177,7 @@ gmeow:attackSelfAttackExclusion
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "a typed attack's source and target are distinct"@x-gmeow-english ;
-    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource and gmeow:attackTarget must be distinct: conflict is irreflexive — nothing attacks itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource and gmeow:attackTarget must be distinct: conflict is irreflexive — nothing attacks itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:distinctnessTarget gmeow:Attack ;
     logic:distinctnessRole gmeow:attackSource , gmeow:attackTarget ;
     logic:formalizes gmeow:attackSource ;

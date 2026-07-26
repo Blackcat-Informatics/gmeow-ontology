@@ -18,40 +18,40 @@ msgid "authMethod is functional"
 msgstr "authMethod est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authMethodFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:authMethod is functional: an AuthenticationResult reifies a single RFC 8601 authentication check, and each such check tests exactly one method — dkim, spf, dmarc, arc, iprev, or auth — so the reified result names that one method."
-msgstr "Affirme sur le porteur canonique que gmeow:authMethod est fonctionnelle : un AuthenticationResult réifie une unique vérification d'authentification RFC 8601, et chacune de ces vérifications teste exactement une méthode — dkim, spf, dmarc, arc, iprev, ou auth — de sorte que le résultat réifié nomme cette unique méthode."
+msgid "Asserts on the canonical carrier that gmeow:authMethod is functional: an AuthenticationResult reifies a single RFC 8601 authentication check, and each such check tests exactly one method — dkim, spf, dmarc, arc, iprev, or auth — so the reified result names that one method. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:authMethod est fonctionnelle : un AuthenticationResult réifie une unique vérification d'authentification RFC 8601, et chacune de ces vérifications teste exactement une méthode — dkim, spf, dmarc, arc, iprev, ou auth — de sorte que le résultat réifié nomme cette unique méthode. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "authResult is functional"
 msgstr "authResult est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:authResult is functional: the single method an AuthenticationResult evaluates yields exactly one verdict — pass, fail, none, softfail, neutral, temperror, or permerror — so the reified check carries one result."
-msgstr "Affirme sur le porteur canonique que gmeow:authResult est fonctionnelle : l'unique méthode qu'un AuthenticationResult évalue produit exactement un verdict — pass, fail, none, softfail, neutral, temperror, ou permerror — de sorte que la vérification réifiée porte un seul résultat."
+msgid "Asserts on the canonical carrier that gmeow:authResult is functional: the single method an AuthenticationResult evaluates yields exactly one verdict — pass, fail, none, softfail, neutral, temperror, or permerror — so the reified check carries one result. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:authResult est fonctionnelle : l'unique méthode qu'un AuthenticationResult évalue produit exactement un verdict — pass, fail, none, softfail, neutral, temperror, ou permerror — de sorte que la vérification réifiée porte un seul résultat. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authServerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "authServer is functional"
 msgstr "authServer est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authServerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:authServer is functional: each AuthenticationResult records its check as stamped by a single authserv-id — the one authentication-serv-id that performed it — so the verifying server is one value."
-msgstr "Affirme sur le porteur canonique que gmeow:authServer est fonctionnelle : chaque AuthenticationResult enregistre sa vérification comme estampillée par un unique authserv-id — l'unique identifiant de serveur d'authentification l'ayant effectuée — de sorte que le serveur vérificateur constitue une seule valeur."
+msgid "Asserts on the canonical carrier that gmeow:authServer is functional: each AuthenticationResult records its check as stamped by a single authserv-id — the one authentication-serv-id that performed it — so the verifying server is one value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:authServer est fonctionnelle : chaque AuthenticationResult enregistre sa vérification comme estampillée par un unique authserv-id — l'unique identifiant de serveur d'authentification l'ayant effectuée — de sorte que le serveur vérificateur constitue une seule valeur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/bodyStructureFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "bodyStructure is functional"
 msgstr "bodyStructure est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/bodyStructureFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:bodyStructure is functional: the serialized JMAP EmailBodyStructure object is a single raw round-trip projection of a message's one MIME tree, so each message preserves exactly one such structure literal."
-msgstr "Affirme sur le porteur canonique que gmeow:bodyStructure est fonctionnelle : l'objet JMAP EmailBodyStructure sérialisé constitue une unique projection brute à aller-retour de l'arbre MIME unique d'un message, de sorte que chaque message conserve exactement un tel littéral de structure."
+msgid "Asserts on the canonical carrier that gmeow:bodyStructure is functional: the serialized JMAP EmailBodyStructure object is a single raw round-trip projection of a message's one MIME tree, so each message preserves exactly one such structure literal. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:bodyStructure est fonctionnelle : l'objet JMAP EmailBodyStructure sérialisé constitue une unique projection brute à aller-retour de l'arbre MIME unique d'un message, de sorte que chaque message conserve exactement un tel littéral de structure. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/filenameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "filename is functional"
 msgstr "filename est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/filenameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:filename is functional: an Attachment is a single non-inline body part whose Content-Disposition names one file, so it bears exactly one filename."
-msgstr "Affirme sur le porteur canonique que gmeow:filename est fonctionnelle : une pièce jointe est une seule partie de corps non intégrée dont le Content-Disposition nomme un fichier, de sorte qu'elle porte exactement un nom de fichier."
+msgid "Asserts on the canonical carrier that gmeow:filename is functional: an Attachment is a single non-inline body part whose Content-Disposition names one file, so it bears exactly one filename. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:filename est fonctionnelle : une pièce jointe est une seule partie de corps non intégrée dont le Content-Disposition nomme un fichier, de sorte qu'elle porte exactement un nom de fichier. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasContentDispositionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hasContentDisposition is functional"
@@ -66,152 +66,152 @@ msgid "hasContentTransferEncoding is functional"
 msgstr "hasContentTransferEncoding est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasContentTransferEncodingFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:hasContentTransferEncoding is functional: a MIME body part is encoded for transport by exactly one mechanism — base64, quoted-printable, 7bit, 8bit, or binary — so it points to a single ContentTransferEncoding value."
-msgstr "Affirme sur le porteur canonique que gmeow:hasContentTransferEncoding est fonctionnelle : une partie de corps MIME est encodée pour le transport par exactement un mécanisme — base64, quoted-printable, 7bit, 8bit ou binary — de sorte qu'elle pointe vers une unique valeur ContentTransferEncoding."
+msgid "Asserts on the canonical carrier that gmeow:hasContentTransferEncoding is functional: a MIME body part is encoded for transport by exactly one mechanism — base64, quoted-printable, 7bit, 8bit, or binary — so it points to a single ContentTransferEncoding value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:hasContentTransferEncoding est fonctionnelle : une partie de corps MIME est encodée pour le transport par exactement un mécanisme — base64, quoted-printable, 7bit, 8bit ou binary — de sorte qu'elle pointe vers une unique valeur ContentTransferEncoding. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasMultipartTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hasMultipartType is functional"
 msgstr "hasMultipartType est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasMultipartTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:hasMultipartType is functional: a MultipartBodyPart's Content-Type declares exactly one multipart subtype (alternative, mixed, related, signed, encrypted, …), so the container points to a single MultipartType value."
-msgstr "Affirme sur le porteur canonique que gmeow:hasMultipartType est fonctionnelle : le Content-Type d'un MultipartBodyPart déclare exactement un sous-type multipart (alternative, mixed, related, signed, encrypted, …), de sorte que le conteneur pointe vers une unique valeur MultipartType."
+msgid "Asserts on the canonical carrier that gmeow:hasMultipartType is functional: a MultipartBodyPart's Content-Type declares exactly one multipart subtype (alternative, mixed, related, signed, encrypted, …), so the container points to a single MultipartType value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:hasMultipartType est fonctionnelle : le Content-Type d'un MultipartBodyPart déclare exactement un sous-type multipart (alternative, mixed, related, signed, encrypted, …), de sorte que le conteneur pointe vers une unique valeur MultipartType. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/headerNameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "headerName is functional"
 msgstr "headerName est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/headerNameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:headerName is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field name, so the header's name is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:headerName est fonctionnelle : un MessageHeader réifié modélise un unique champ d'en-tête RFC 5322, et un champ possède exactement un nom de champ, de sorte que le nom de l'en-tête est à valeur unique."
+msgid "Asserts on the canonical carrier that gmeow:headerName is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field name, so the header's name is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:headerName est fonctionnelle : un MessageHeader réifié modélise un unique champ d'en-tête RFC 5322, et un champ possède exactement un nom de champ, de sorte que le nom de l'en-tête est à valeur unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/headerValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "headerValue is functional"
 msgstr "headerValue est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/headerValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:headerValue is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field value, so the header's value is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:headerValue est fonctionnelle : un MessageHeader réifié modélise un unique champ d'en-tête RFC 5322, et un champ possède exactement une valeur de champ, de sorte que la valeur de l'en-tête est à valeur unique."
+msgid "Asserts on the canonical carrier that gmeow:headerValue is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field value, so the header's value is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:headerValue est fonctionnelle : un MessageHeader réifié modélise un unique champ d'en-tête RFC 5322, et un champ possède exactement une valeur de champ, de sorte que la valeur de l'en-tête est à valeur unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hopOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hopOrdinal is functional"
 msgstr "hopOrdinal est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hopOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:hopOrdinal is functional: a RelayHop occupies one position within a message's delivery path (1 = closest to the origin), so its ordinal is a single integer."
-msgstr "Affirme sur le porteur canonique que gmeow:hopOrdinal est fonctionnelle : un RelayHop occupe une position au sein du chemin de livraison d'un message (1 = le plus proche de l'origine), de sorte que son ordinal est un entier unique."
+msgid "Asserts on the canonical carrier that gmeow:hopOrdinal is functional: a RelayHop occupies one position within a message's delivery path (1 = closest to the origin), so its ordinal is a single integer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:hopOrdinal est fonctionnelle : un RelayHop occupe une position au sein du chemin de livraison d'un message (1 = le plus proche de l'origine), de sorte que son ordinal est un entier unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mailboxOfAccountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "mailboxOfAccount is functional"
 msgstr "mailboxOfAccount est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mailboxOfAccountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:mailboxOfAccount is functional: a mailbox is a container held within exactly one online account, so the account that holds it is a single value."
-msgstr "Affirme sur le porteur canonique que gmeow:mailboxOfAccount est fonctionnelle : une boîte aux lettres est un conteneur détenu au sein d'exactement un compte en ligne, de sorte que le compte qui la détient est une valeur unique."
+msgid "Asserts on the canonical carrier that gmeow:mailboxOfAccount is functional: a mailbox is a container held within exactly one online account, so the account that holds it is a single value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:mailboxOfAccount est fonctionnelle : une boîte aux lettres est un conteneur détenu au sein d'exactement un compte en ligne, de sorte que le compte qui la détient est une valeur unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mailboxRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "mailboxRole is functional"
 msgstr "mailboxRole est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mailboxRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:mailboxRole is functional: JMAP assigns a mailbox at most one special-use role (inbox, archive, drafts, sent, trash, junk, templates), so the role is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:mailboxRole est fonctionnelle : JMAP attribue à une boîte aux lettres au plus un rôle à usage spécial (boîte de réception, archives, brouillons, envoyés, corbeille, indésirables, modèles), de sorte que le rôle est mono-valué."
+msgid "Asserts on the canonical carrier that gmeow:mailboxRole is functional: JMAP assigns a mailbox at most one special-use role (inbox, archive, drafts, sent, trash, junk, templates), so the role is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:mailboxRole est fonctionnelle : JMAP attribue à une boîte aux lettres au plus un rôle à usage spécial (boîte de réception, archives, brouillons, envoyés, corbeille, indésirables, modèles), de sorte que le rôle est mono-valué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantAddressFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "participantAddress is functional"
 msgstr "participantAddress est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantAddressFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:participantAddress is functional: a MessageParticipant reifies a single occurrence of one address in a header or envelope context, so the normalized address that appears in that occurrence is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:participantAddress est fonctionnelle : un MessageParticipant réifie une occurrence unique d'une adresse dans un contexte d'en-tête ou d'enveloppe, de sorte que l'adresse normalisée apparaissant dans cette occurrence est monovaluée."
+msgid "Asserts on the canonical carrier that gmeow:participantAddress is functional: a MessageParticipant reifies a single occurrence of one address in a header or envelope context, so the normalized address that appears in that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:participantAddress est fonctionnelle : un MessageParticipant réifie une occurrence unique d'une adresse dans un contexte d'en-tête ou d'enveloppe, de sorte que l'adresse normalisée apparaissant dans cette occurrence est monovaluée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantHeaderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "participantHeader is functional"
 msgstr "participantHeader est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantHeaderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:participantHeader is functional: a MessageParticipant reifies one address occurrence parsed from a single RFC 5322 header field, so the source header of that occurrence is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:participantHeader est fonctionnelle : un MessageParticipant réifie une occurrence d'adresse analysée à partir d'un seul champ d'en-tête RFC 5322, de sorte que l'en-tête source de cette occurrence est monovalué."
+msgid "Asserts on the canonical carrier that gmeow:participantHeader is functional: a MessageParticipant reifies one address occurrence parsed from a single RFC 5322 header field, so the source header of that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:participantHeader est fonctionnelle : un MessageParticipant réifie une occurrence d'adresse analysée à partir d'un seul champ d'en-tête RFC 5322, de sorte que l'en-tête source de cette occurrence est monovalué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "participantMessage is functional"
 msgstr "participantMessage est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:participantMessage is functional: a MessageParticipant reifies an address occurrence that belongs to exactly one message, so the message the occurrence belongs to is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:participantMessage est fonctionnelle : un MessageParticipant réifie une occurrence d'adresse qui appartient à exactement un message, de sorte que le message auquel appartient cette occurrence est monovalué."
+msgid "Asserts on the canonical carrier that gmeow:participantMessage is functional: a MessageParticipant reifies an address occurrence that belongs to exactly one message, so the message the occurrence belongs to is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:participantMessage est fonctionnelle : un MessageParticipant réifie une occurrence d'adresse qui appartient à exactement un message, de sorte que le message auquel appartient cette occurrence est monovalué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "participantOrdinal is functional"
 msgstr "participantOrdinal est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:participantOrdinal is functional: a MessageParticipant occupies one zero-based position among the address occurrences of its header, so its ordinal is a single value."
-msgstr "Affirme sur le porteur canonique que gmeow:participantOrdinal est fonctionnelle : un MessageParticipant occupe une position, indexée à partir de zéro, parmi les occurrences d'adresses de son en-tête, de sorte que son ordinal est une valeur unique."
+msgid "Asserts on the canonical carrier that gmeow:participantOrdinal is functional: a MessageParticipant occupies one zero-based position among the address occurrences of its header, so its ordinal is a single value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:participantOrdinal est fonctionnelle : un MessageParticipant occupe une position, indexée à partir de zéro, parmi les occurrences d'adresses de son en-tête, de sorte que son ordinal est une valeur unique. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "participantRole is functional"
 msgstr "participantRole est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participantRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:participantRole is functional: a MessageParticipant reifies one address occurrence that plays exactly one header or envelope role, so the role of that occurrence is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:participantRole est fonctionnelle : un MessageParticipant réifie une occurrence d'adresse qui joue exactement un rôle d'en-tête ou d'enveloppe, de sorte que le rôle de cette occurrence est monovalué."
+msgid "Asserts on the canonical carrier that gmeow:participantRole is functional: a MessageParticipant reifies one address occurrence that plays exactly one header or envelope role, so the role of that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:participantRole est fonctionnelle : un MessageParticipant réifie une occurrence d'adresse qui joue exactement un rôle d'en-tête ou d'enveloppe, de sorte que le rôle de cette occurrence est monovalué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relayAt is functional"
 msgstr "relayAt est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relayAt is functional: a RelayHop is recorded by one Received header carrying a single server timestamp, so the time recorded for the hop is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:relayAt est fonctionnelle : un RelayHop est enregistré par un seul en-tête Received portant un unique horodatage serveur, de sorte que l'heure enregistrée pour ce saut est monovaluée."
+msgid "Asserts on the canonical carrier that gmeow:relayAt is functional: a RelayHop is recorded by one Received header carrying a single server timestamp, so the time recorded for the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relayAt est fonctionnelle : un RelayHop est enregistré par un seul en-tête Received portant un unique horodatage serveur, de sorte que l'heure enregistrée pour ce saut est monovaluée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relayBy is functional"
 msgstr "relayBy est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relayBy is functional: a RelayHop is the delivery action of a single relaying server, so the server that performed the hop is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:relayBy est fonctionnelle : un RelayHop est l'action de livraison d'un seul serveur relais, de sorte que le serveur ayant effectué le saut est monovalué."
+msgid "Asserts on the canonical carrier that gmeow:relayBy is functional: a RelayHop is the delivery action of a single relaying server, so the server that performed the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relayBy est fonctionnelle : un RelayHop est l'action de livraison d'un seul serveur relais, de sorte que le serveur ayant effectué le saut est monovalué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayFromFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relayFrom is functional"
 msgstr "relayFrom est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayFromFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relayFrom is functional: a RelayHop received the message from exactly one host, so the from-host it records is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:relayFrom est fonctionnelle : un RelayHop a reçu le message d'exactement un hôte, de sorte que l'hôte d'origine qu'il enregistre est monovalué."
+msgid "Asserts on the canonical carrier that gmeow:relayFrom is functional: a RelayHop received the message from exactly one host, so the from-host it records is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relayFrom est fonctionnelle : un RelayHop a reçu le message d'exactement un hôte, de sorte que l'hôte d'origine qu'il enregistre est monovalué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayProtocolFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relayProtocol is functional"
 msgstr "relayProtocol est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relayProtocolFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:relayProtocol is functional: a RelayHop transported the message over one protocol (e.g. ESMTP, ESMTPS), so the protocol used for the hop is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:relayProtocol est fonctionnelle : un RelayHop a transporté le message sur un seul protocole (par exemple ESMTP, ESMTPS), de sorte que le protocole utilisé pour ce saut est monovalué."
+msgid "Asserts on the canonical carrier that gmeow:relayProtocol is functional: a RelayHop transported the message over one protocol (e.g. ESMTP, ESMTPS), so the protocol used for the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:relayProtocol est fonctionnelle : un RelayHop a transporté le message sur un seul protocole (par exemple ESMTP, ESMTPS), de sorte que le protocole utilisé pour ce saut est monovalué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/residenceMailboxFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "residenceMailbox is functional"
 msgstr "residenceMailbox est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/residenceMailboxFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:residenceMailbox is functional: a MailboxResidence reifies the time-scoped membership of a message in exactly one mailbox, so the mailbox the residence concerns is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:residenceMailbox est fonctionnelle : une MailboxResidence réifie l'appartenance, bornée dans le temps, d'un message à exactement une boîte aux lettres, de sorte que la boîte aux lettres concernée par la résidence est monovaluée."
+msgid "Asserts on the canonical carrier that gmeow:residenceMailbox is functional: a MailboxResidence reifies the time-scoped membership of a message in exactly one mailbox, so the mailbox the residence concerns is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:residenceMailbox est fonctionnelle : une MailboxResidence réifie l'appartenance, bornée dans le temps, d'un message à exactement une boîte aux lettres, de sorte que la boîte aux lettres concernée par la résidence est monovaluée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/residentMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "residentMessage is functional"
 msgstr "residentMessage est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/residentMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:residentMessage is functional: a MailboxResidence reifies the time-scoped residence of exactly one message, so the message the residence concerns is single-valued."
-msgstr "Affirme sur le porteur canonique que gmeow:residentMessage est fonctionnelle : une MailboxResidence réifie la résidence, bornée dans le temps, d'exactement un message, de sorte que le message concerné par la résidence est monovalué."
+msgid "Asserts on the canonical carrier that gmeow:residentMessage is functional: a MailboxResidence reifies the time-scoped residence of exactly one message, so the message the residence concerns is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:residentMessage est fonctionnelle : une MailboxResidence réifie la résidence, bornée dans le temps, d'exactement un message, de sorte que le message concerné par la résidence est monovalué. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/rfcMessageIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "rfcMessageId is functional"
 msgstr "rfcMessageId est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/rfcMessageIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:rfcMessageId is functional: a message bears exactly one canonical RFC 5322 Message-ID (generated by gmeow when the original lacks one), so its Message-ID is single-valued even where distinct bodies collide on the same identifier."
-msgstr "Affirme sur le porteur canonique que gmeow:rfcMessageId est fonctionnelle : un message porte exactement un Message-ID canonique RFC 5322 (généré par gmeow lorsque l'original n'en possède pas), de sorte que son Message-ID est monovalué même lorsque des corps distincts entrent en collision sur le même identifiant."
+msgid "Asserts on the canonical carrier that gmeow:rfcMessageId is functional: a message bears exactly one canonical RFC 5322 Message-ID (generated by gmeow when the original lacks one), so its Message-ID is single-valued even where distinct bodies collide on the same identifier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:rfcMessageId est fonctionnelle : un message porte exactement un Message-ID canonique RFC 5322 (généré par gmeow lorsque l'original n'en possède pas), de sorte que son Message-ID est monovalué même lorsque des corps distincts entrent en collision sur le même identifiant. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authMethodFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:authMethod names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

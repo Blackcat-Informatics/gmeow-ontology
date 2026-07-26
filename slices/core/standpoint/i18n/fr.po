@@ -82,16 +82,16 @@ msgid "sharpens is transitive"
 msgstr "« affine » est transitif"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order."
-msgstr "Affirme sur le porteur canonique que gmeow:sharpens est transitif : l'ordre de raffinement de point de vue que sa skos:definition nomme (la relation de couverture de la Logique des points de vue). Le portail de cohérence natif lit ceci pour clore l'ordre de raffinement."
+msgid "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:sharpens est transitif : l'ordre de raffinement de point de vue que sa skos:definition nomme (la relation de couverture de la Logique des points de vue). Le portail de cohérence natif lit ceci pour clore l'ordre de raffinement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "standpointClaim is functional"
 msgstr "standpointClaim est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead."
-msgstr "Affirme sur le porteur canonique que gmeow:standpointClaim est fonctionnelle: une tenure de point de vue engendre exactement une observation StandpointClaim de son fait délimité dans le temps, de sorte que le pont entre la situation de tenure et son observation porte une seule affirmation, et une affirmation autonome sans tenure est plutôt frappée comme une simple observation."
+msgid "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:standpointClaim est fonctionnelle: une tenure de point de vue engendre exactement une observation StandpointClaim de son fait délimité dans le temps, de sorte que le pont entre la situation de tenure et son observation porte une seule affirmation, et une affirmation autonome sans tenure est plutôt frappée comme une simple observation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "tenureStandpoint is functional"

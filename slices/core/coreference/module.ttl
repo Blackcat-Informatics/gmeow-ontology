@@ -163,7 +163,7 @@ gmeow:versionOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
     rdfs:label "versionOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:versionOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:versionOf ;
@@ -178,7 +178,7 @@ gmeow:editionOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
     rdfs:label "editionOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:editionOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:editionOf ;

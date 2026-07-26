@@ -94,8 +94,8 @@ msgid "existenceEntity is functional"
 msgstr "existenceEntity 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:existenceEntity is functional: a gmeow:EntityExistence concerns exactly one entity, a binding that is constitutive of the situation's own identity, so a separate EntityExistence is minted per entity."
-msgstr "在规范载体上断言 gmeow:existenceEntity 是函数性的：一个 gmeow:EntityExistence 恰好涉及一个实体，这一绑定构成了该情境自身身份的组成部分，因此每个实体都会铸造一个独立的 EntityExistence。"
+msgid "Asserts on the canonical carrier that gmeow:existenceEntity is functional: a gmeow:EntityExistence concerns exactly one entity, a binding that is constitutive of the situation's own identity, so a separate EntityExistence is minted per entity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:existenceEntity 是函数性的：一个 gmeow:EntityExistence 恰好涉及一个实体，这一绑定构成了该情境自身身份的组成部分，因此每个实体都会铸造一个独立的 EntityExistence。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:existenceEntity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

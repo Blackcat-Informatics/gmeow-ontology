@@ -18,48 +18,48 @@ msgid "availabilitySlot is functional"
 msgstr "availabilitySlot 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:availabilitySlot is functional: an availability statement holds over exactly one time interval — the single bounded free-busy slot across which its status applies uniformly."
-msgstr "在规范载体上断言 gmeow:availabilitySlot 是函数性的:一条可用性声明恰好在一个时间区间内成立——即其状态统一适用的单一有界忙闲时段。"
+msgid "Asserts on the canonical carrier that gmeow:availabilitySlot is functional: an availability statement holds over exactly one time interval — the single bounded free-busy slot across which its status applies uniformly. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:availabilitySlot 是函数性的:一条可用性声明恰好在一个时间区间内成立——即其状态统一适用的单一有界忙闲时段。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "calendarTimeZone is functional"
 msgstr "calendarTimeZone 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:calendarTimeZone is functional: a calendar collection has exactly one default time zone — the single fallback IANA offset its members are reckoned in when an individual event states no zone of its own."
-msgstr "在规范载体上断言 gmeow:calendarTimeZone 是函数性的:一个日历集合恰好具有一个默认时区——即当某个具体事件未声明自身时区时,其成员据以计算的单一后备 IANA 偏移。"
+msgid "Asserts on the canonical carrier that gmeow:calendarTimeZone is functional: a calendar collection has exactly one default time zone — the single fallback IANA offset its members are reckoned in when an individual event states no zone of its own. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:calendarTimeZone 是函数性的:一个日历集合恰好具有一个默认时区——即当某个具体事件未声明自身时区时,其成员据以计算的单一后备 IANA 偏移。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "eventTimeZone is functional"
 msgstr "eventTimeZone 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:eventTimeZone is functional: an event's temporal placement is expressed in exactly one time zone — the single civil offset its wall-clock time is read in, overriding the calendar default."
-msgstr "在规范载体上断言 gmeow:eventTimeZone 是函数性的：一个事件的时间定位恰好以一个时区表达——即其挂钟时间据以读取的唯一民用偏移量，覆盖日历的默认值。"
+msgid "Asserts on the canonical carrier that gmeow:eventTimeZone is functional: an event's temporal placement is expressed in exactly one time zone — the single civil offset its wall-clock time is read in, overriding the calendar default. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:eventTimeZone 是函数性的：一个事件的时间定位恰好以一个时区表达——即其挂钟时间据以读取的唯一民用偏移量，覆盖日历的默认值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "exceptionOriginalDate is functional"
 msgstr "exceptionOriginalDate 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:exceptionOriginalDate is functional: a schedule exception overrides exactly one generated occurrence, pinned by the single original date/time the recurrence rule would have produced — its RFC 5545 RECURRENCE-ID anchor."
-msgstr "在规范载体上断言 gmeow:exceptionOriginalDate 是函数性的：一个日程例外恰好覆盖一个生成的发生实例，由该重复规则本应生成的唯一原始日期/时间锚定——即其 RFC 5545 RECURRENCE-ID 锚点。"
+msgid "Asserts on the canonical carrier that gmeow:exceptionOriginalDate is functional: a schedule exception overrides exactly one generated occurrence, pinned by the single original date/time the recurrence rule would have produced — its RFC 5545 RECURRENCE-ID anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:exceptionOriginalDate 是函数性的：一个日程例外恰好覆盖一个生成的发生实例，由该重复规则本应生成的唯一原始日期/时间锚定——即其 RFC 5545 RECURRENCE-ID 锚点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "exceptionReplacementEvent is functional"
 msgstr "exceptionReplacementEvent 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:exceptionReplacementEvent is functional: a rescheduled occurrence moves to exactly one replacement event — the single new placement standing in for the one at the original date (absent entirely for a pure cancellation)."
-msgstr "在规范载体上断言 gmeow:exceptionReplacementEvent 是函数性的：一个被改期的发生实例恰好迁移到一个替代事件——即替代原日期那一次发生的唯一新安排（在纯粹取消的情况下则完全缺失）。"
+msgid "Asserts on the canonical carrier that gmeow:exceptionReplacementEvent is functional: a rescheduled occurrence moves to exactly one replacement event — the single new placement standing in for the one at the original date (absent entirely for a pure cancellation). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:exceptionReplacementEvent 是函数性的：一个被改期的发生实例恰好迁移到一个替代事件——即替代原日期那一次发生的唯一新安排（在纯粹取消的情况下则完全缺失）。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "exceptionSchedule is functional"
 msgstr "exceptionSchedule 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:exceptionSchedule is functional: a schedule exception applies to exactly one event schedule — the single recurring series whose one occurrence it overrides."
-msgstr "在规范载体上断言 gmeow:exceptionSchedule 是函数性的：一个日程例外恰好适用于一个事件日程——即它所覆盖的那一次发生所属的唯一重复系列。"
+msgid "Asserts on the canonical carrier that gmeow:exceptionSchedule is functional: a schedule exception applies to exactly one event schedule — the single recurring series whose one occurrence it overrides. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:exceptionSchedule 是函数性的：一个日程例外恰好适用于一个事件日程——即它所覆盖的那一次发生所属的唯一重复系列。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "exceptionType is functional"
@@ -82,48 +82,48 @@ msgid "reminderAction is functional"
 msgstr "reminderAction 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:reminderAction is functional: a reminder fires exactly one action — a single iCalendar ACTION (display, email, or audio) when it triggers."
-msgstr "在规范载体上断言 gmeow:reminderAction 是函数性的:一个提醒触发时恰好执行一个动作——一个单一的 iCalendar ACTION(显示、电子邮件或音频)。"
+msgid "Asserts on the canonical carrier that gmeow:reminderAction is functional: a reminder fires exactly one action — a single iCalendar ACTION (display, email, or audio) when it triggers. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:reminderAction 是函数性的:一个提醒触发时恰好执行一个动作——一个单一的 iCalendar ACTION(显示、电子邮件或音频)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reminderTarget is functional"
 msgstr "reminderTarget 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:reminderTarget is functional: a reminder is attached to exactly one event — the single concrete occurrence whose start an offset trigger is measured from."
-msgstr "在规范载体上断言 gmeow:reminderTarget 是函数性的:一个提醒恰好附着于一个事件——即偏移触发器据以计算的那个唯一具体发生实例的起始时间。"
+msgid "Asserts on the canonical carrier that gmeow:reminderTarget is functional: a reminder is attached to exactly one event — the single concrete occurrence whose start an offset trigger is measured from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:reminderTarget 是函数性的:一个提醒恰好附着于一个事件——即偏移触发器据以计算的那个唯一具体发生实例的起始时间。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "scheduleTemplateEvent is functional"
 msgstr "scheduleTemplateEvent 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:scheduleTemplateEvent is functional: a schedule clones exactly one template event — the single anchor carrying the title, location, participants, and duration every generated occurrence inherits."
-msgstr "在规范载体上断言 gmeow:scheduleTemplateEvent 是函数性的:一个日程恰好克隆一个模板事件——即每个生成的发生实例都继承其标题、地点、参与者和时长的唯一锚点。"
+msgid "Asserts on the canonical carrier that gmeow:scheduleTemplateEvent is functional: a schedule clones exactly one template event — the single anchor carrying the title, location, participants, and duration every generated occurrence inherits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:scheduleTemplateEvent 是函数性的:一个日程恰好克隆一个模板事件——即每个生成的发生实例都继承其标题、地点、参与者和时长的唯一锚点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "scheduleTimeZone is functional"
 msgstr "scheduleTimeZone 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:scheduleTimeZone is functional: a schedule expands its recurrence in exactly one time zone — the single IANA offset the occurrence engine reads when turning the rule into dated occurrences across DST boundaries."
-msgstr "在规范载体上断言 gmeow:scheduleTimeZone 是函数性的:一个日程恰好在一个时区中展开其重复规则——即发生实例引擎在将规则转换为跨越夏令时边界的带日期发生实例时所读取的唯一 IANA 偏移量。"
+msgid "Asserts on the canonical carrier that gmeow:scheduleTimeZone is functional: a schedule expands its recurrence in exactly one time zone — the single IANA offset the occurrence engine reads when turning the rule into dated occurrences across DST boundaries. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:scheduleTimeZone 是函数性的:一个日程恰好在一个时区中展开其重复规则——即发生实例引擎在将规则转换为跨越夏令时边界的带日期发生实例时所读取的唯一 IANA 偏移量。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "taskDueDate is functional"
 msgstr "taskDueDate 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:taskDueDate is functional: a task has exactly one due date — the single xsd:dateTime deadline, the iCalendar VTODO DUE moment, by which it should be completed."
-msgstr "在规范载体上断言 gmeow:taskDueDate 是函数性的:一项任务恰好有一个到期日——即唯一的 xsd:dateTime 截止时刻,亦即 iCalendar VTODO 的 DUE 时刻,任务应在此之前完成。"
+msgid "Asserts on the canonical carrier that gmeow:taskDueDate is functional: a task has exactly one due date — the single xsd:dateTime deadline, the iCalendar VTODO DUE moment, by which it should be completed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:taskDueDate 是函数性的:一项任务恰好有一个到期日——即唯一的 xsd:dateTime 截止时刻,亦即 iCalendar VTODO 的 DUE 时刻,任务应在此之前完成。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "taskPriority is functional"
 msgstr "taskPriority 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:taskPriority is functional: a task carries exactly one priority — a single value on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest)."
-msgstr "在规范载体上断言 gmeow:taskPriority 是函数性的:一项任务恰好携带一个优先级——即 iCalendar PRIORITY 量表上的单一数值(0 表示未定义,1 为最高,9 为最低)。"
+msgid "Asserts on the canonical carrier that gmeow:taskPriority is functional: a task carries exactly one priority — a single value on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:taskPriority 是函数性的:一项任务恰好携带一个优先级——即 iCalendar PRIORITY 量表上的单一数值(0 表示未定义,1 为最高,9 为最低)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "taskRecurrenceUntilDone is functional"
@@ -138,8 +138,8 @@ msgid "timeZoneIanaId is functional"
 msgstr "timeZoneIanaId 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset."
-msgstr "在规范载体上断言 gmeow:timeZoneIanaId 是函数性的:一个时区仅由恰好一个 IANA tzid 命名——即各类库据以解析出其完整夏令时规则集的唯一标识符(例如 America/Toronto)。"
+msgid "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:timeZoneIanaId 是函数性的:一个时区仅由恰好一个 IANA tzid 命名——即各类库据以解析出其完整夏令时规则集的唯一标识符(例如 America/Toronto)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:availabilitySlot names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

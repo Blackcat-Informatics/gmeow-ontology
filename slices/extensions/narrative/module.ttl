@@ -1211,7 +1211,7 @@ gmeow:mythFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "mythFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mythFrame is functional: a Myth holds its in-myth claims true under exactly one narrative reference frame, the single standpoint every accordingTo-scoped claim of that myth is measured against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:mythFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:mythFrame ;
@@ -1226,7 +1226,7 @@ gmeow:narrationSegmentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrationSegment is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:narrationSegment is functional: a NarrationUsage reifies a single (segment, subject) seam, so it carries exactly one content segment — the one piece of carrying text whose narration the relator records. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:narrationSegment ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:narrationSegment ;
@@ -1271,7 +1271,7 @@ gmeow:narrativeFrameLinkSourceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrativeFrameLinkSource is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:narrativeFrameLinkSource is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one source frame — the reified relator would lose its directionality if one link admitted several sources. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:narrativeFrameLinkSource ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:narrativeFrameLinkSource ;
@@ -1286,7 +1286,7 @@ gmeow:narrativeFrameLinkTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "narrativeFrameLinkTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:narrativeFrameLinkTarget is functional: a NarrativeFrameLink binds a single directed frame-to-frame relation, so it has exactly one target frame — a source frame relating to several targets is several links, each pinning its own target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:narrativeFrameLinkTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:narrativeFrameLinkTarget ;
@@ -1361,7 +1361,7 @@ gmeow:positionFrameFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "positionFrame is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:positionFrame is functional: a NarrativePosition is expressed in exactly one narrative time frame — the single coordinate system that gives its ordinal and label meaning — since a position without its one frame is the bare-integer anti-pattern the class exists to forbid. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:positionFrame ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:positionFrame ;

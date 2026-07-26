@@ -82,16 +82,16 @@ msgid "sharpens is transitive"
 msgstr "「锐化」具有传递性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sharpensTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order."
-msgstr "在规范载体上断言 gmeow:sharpens 是传递的：其 skos:definition 所命名的立场精化序（立场逻辑的覆盖关系）。原生一致性门读取此断言以闭合该精化序。"
+msgid "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:sharpens 是传递的：其 skos:definition 所命名的立场精化序（立场逻辑的覆盖关系）。原生一致性门读取此断言以闭合该精化序。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "standpointClaim is functional"
 msgstr "standpointClaim 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/standpointClaimFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead."
-msgstr "在规范载体上断言 gmeow:standpointClaim 是函数性的:一个立场保有恰好生成一个针对其限定时间之事实的 StandpointClaim 观测,因此从保有情境到其观测之间的桥梁只承载一个断言,没有保有的独立断言则改为铸造成一个纯粹的观测。"
+msgid "Asserts on the canonical carrier that gmeow:standpointClaim is functional: a standpoint-tenure generates exactly one StandpointClaim observation of its time-scoped fact, so the bridge from the tenure situation to its observation carries a single claim and a free-standing claim with no tenure is minted as a bare observation instead. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:standpointClaim 是函数性的:一个立场保有恰好生成一个针对其限定时间之事实的 StandpointClaim 观测,因此从保有情境到其观测之间的桥梁只承载一个断言,没有保有的独立断言则改为铸造成一个纯粹的观测。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/tenureStandpointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "tenureStandpoint is functional"

@@ -70,7 +70,7 @@ gmeow:VersionSet
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Set"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A first-class information object representing a version family or release lineage — the set of all concrete artifacts that are versions of a common stable entity. A VersionSet is an InformationObject (a kind of Entity) so it can carry identifiers, provenance, and authority links. Examples: the lineage of a software project, the edition chain of a book, the variant family of an email thread, the DOI concept record."@x-gmeow-english ;
+    skos:definition "A first-class information object representing a version family or release lineage — the set of all concrete artifacts that are versions of a common stable entity. A VersionSet is an InformationObject (a kind of Entity) so it can carry identifiers, provenance, and authority links. Examples: the lineage of a software project, the edition chain of a book, the variant family of an email thread, the DOI concept record. It is not itself a version of anything, and never the concrete artifact — its members are."@x-gmeow-english ;
     skos:example "ex:gmeowLineage a gmeow:VersionSet ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a single concrete artifact (that is the gmeow:versionMember entity) and avoid collapsing the lineage into one of its versions; the set is the concept, the members are the versions (concept-vs-version distinction)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -83,7 +83,7 @@ gmeow:membershipAuthority
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "membership authority"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    skos:definition "The agent or standpoint that asserts this version membership and its role — a project maintainer, a package registry, a publisher, a curator, or a self-asserting individual. NON-FUNCTIONAL: competing authority claims coexist without privilege (Principle 9). When the claim is promoted from a flat statement annotation, gmeow:accordingTo becomes the membershipAuthority of the relator."@x-gmeow-english ;
+    skos:definition "The agent or standpoint that asserts this version membership and its role — a project maintainer, a package registry, a publisher, a curator, or a self-asserting individual. NON-FUNCTIONAL: competing authority claims coexist without privilege (Principle 9). When the claim is promoted from a flat statement annotation, gmeow:accordingTo becomes the membershipAuthority of the relator. It is not the member, nor the set — it is who says the membership holds."@x-gmeow-english ;
     skos:example "ex:m1 gmeow:membershipAuthority ex:pypi ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid privileging one authority's claim over another (Principle 9); model each authority's view as its own membership rather than overwriting, and keep this property non-functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -227,7 +227,7 @@ gmeow:versionLabel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version label"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@x-gmeow-english ;
+    skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional. It is not a comparable version structure: never parse it into components or order by it."@x-gmeow-english ;
     gmeow:useWhen "Use to record an entity's version designation as it is actually written."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid parsing it into components or ordering by it — it is a label, not a comparable version structure."@x-gmeow-english ;
     gmeow:howToUse "A plain literal on any gmeow:Entity: a release, a book edition, a dataset, a language variant."@x-gmeow-english ;
@@ -240,7 +240,7 @@ gmeow:versionMember
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version member"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    skos:definition "The concrete entity that participates in a version set via this membership — a software release, a book edition, an email variant, a dataset snapshot. Functional per relator: one member per VersionMembership."@x-gmeow-english ;
+    skos:definition "The concrete entity that participates in a version set via this membership — a software release, a book edition, an email variant, a dataset snapshot. Functional per relator: one member per VersionMembership. It is not the version set, nor the membership relator that carries it."@x-gmeow-english ;
     skos:example "ex:m1 gmeow:versionMember ex:gmeow_1_0_1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at the lineage concept (that is gmeow:versionSet) and avoid asserting more than one member per relator; it is functional, so a second member collapses the two."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -266,7 +266,7 @@ gmeow:versionScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version scale"@x-gmeow-english ;
     rdfs:range gmeow:VersionScale ;
-    skos:definition "The scale classification of this membership — trivial, minor, major. NON-FUNCTIONAL: different authorities or schemes may classify the same change differently; those claims coexist."@x-gmeow-english ;
+    skos:definition "The scale classification of this membership — trivial, minor, major. NON-FUNCTIONAL: different authorities or schemes may classify the same change differently; those claims coexist. It is not an ordering: a scale value never implies precedence between two members."@x-gmeow-english ;
     skos:example "ex:m1 gmeow:versionScale gmeow:scaleMajor ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as the role of the version (that is gmeow:versionRole) and avoid forcing one scale per change; rival scheme classifications coexist, so keep it non-functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -279,7 +279,7 @@ gmeow:versionSet
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version set"@x-gmeow-english ;
     rdfs:range gmeow:VersionSet ;
-    skos:definition "The version set / lineage to which this membership belongs. Functional per relator: one set per VersionMembership."@x-gmeow-english ;
+    skos:definition "The version set / lineage to which this membership belongs. Functional per relator: one set per VersionMembership. It is not the member, and never a second membership for the same artifact."@x-gmeow-english ;
     skos:example "ex:m1 gmeow:versionSet ex:gmeowLineage ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at the concrete artifact (that is gmeow:versionMember) and avoid more than one set per relator; it is functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -472,7 +472,7 @@ gmeow:versionSetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "versionSet is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:versionSet is functional: each gmeow:VersionMembership places its member into exactly one lineage, so a membership belongs to a single gmeow:VersionSet."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:versionSet is functional: each gmeow:VersionMembership places its member into exactly one lineage, so a membership belongs to a single gmeow:VersionSet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:versionSet ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:versionSet ;

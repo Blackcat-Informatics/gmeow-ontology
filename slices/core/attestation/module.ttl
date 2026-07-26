@@ -1029,7 +1029,7 @@ gmeow:blockHashFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "blockHash is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:blockHash ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:blockHash ;
@@ -1059,7 +1059,7 @@ gmeow:chainIdFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "chainId is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:chainId ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:chainId ;
@@ -1074,7 +1074,7 @@ gmeow:contractAddressFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "contractAddress is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:contractAddress ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:contractAddress ;
@@ -1119,7 +1119,7 @@ gmeow:logIndexFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "logIndex is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:logIndex ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:logIndex ;

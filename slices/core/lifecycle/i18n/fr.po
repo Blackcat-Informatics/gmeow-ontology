@@ -94,8 +94,8 @@ msgid "existenceEntity is functional"
 msgstr "existenceEntity est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:existenceEntity is functional: a gmeow:EntityExistence concerns exactly one entity, a binding that is constitutive of the situation's own identity, so a separate EntityExistence is minted per entity."
-msgstr "Affirme sur le porteur canonique que gmeow:existenceEntity est fonctionnelle : un gmeow:EntityExistence concerne exactement une entité, un lien qui est constitutif de l'identité propre de la situation, de sorte qu'un EntityExistence distinct est créé pour chaque entité."
+msgid "Asserts on the canonical carrier that gmeow:existenceEntity is functional: a gmeow:EntityExistence concerns exactly one entity, a binding that is constitutive of the situation's own identity, so a separate EntityExistence is minted per entity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:existenceEntity est fonctionnelle : un gmeow:EntityExistence concerne exactement une entité, un lien qui est constitutif de l'identité propre de la situation, de sorte qu'un EntityExistence distinct est créé pour chaque entité. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:existenceEntity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

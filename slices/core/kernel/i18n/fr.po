@@ -18,16 +18,16 @@ msgid "coarsenTo is functional"
 msgstr "coarsenTo est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:coarsenTo is functional: a coarsening mark points at exactly one gmeow:GranularityLevel, the single coarsest level a value may be disclosed at, so multiple possibly-conflicting floors would be ill-formed."
-msgstr "Affirme sur le porteur canonique que gmeow:coarsenTo est fonctionnelle : une marque de dégrossissement pointe vers exactement un gmeow:GranularityLevel, l'unique niveau le plus grossier auquel une valeur peut être divulguée, de sorte que plusieurs planchers potentiellement contradictoires seraient mal formés."
+msgid "Asserts on the canonical carrier that gmeow:coarsenTo is functional: a coarsening mark points at exactly one gmeow:GranularityLevel, the single coarsest level a value may be disclosed at, so multiple possibly-conflicting floors would be ill-formed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:coarsenTo est fonctionnelle : une marque de dégrossissement pointe vers exactement un gmeow:GranularityLevel, l'unique niveau le plus grossier auquel une valeur peut être divulguée, de sorte que plusieurs planchers potentiellement contradictoires seraient mal formés. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "coarserThan is transitive"
 msgstr "coarserThan est transitive"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order."
-msgstr "Affirme sur le porteur canonique que gmeow:coarserThan est transitive : l'ordre partiel sur les niveaux de granularité que nomme sa skos:definition, ce qui rend bien défini « au niveau cible ou au-dessus ». La porte de cohérence native lit ceci pour clore l'ordre de granularité."
+msgid "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:coarserThan est transitive : l'ordre partiel sur les niveaux de granularité que nomme sa skos:definition, ce qui rend bien défini « au niveau cible ou au-dessus ». La porte de cohérence native lit ceci pour clore l'ordre de granularité. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "levelScale is functional"
@@ -42,8 +42,8 @@ msgid "partOf is transitive"
 msgstr "partOf est transitif"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."
-msgstr "Affirme sur le porteur canonique que gmeow:partOf est transitif : l'échine universelle partie-à-tout que sa skos:definition nomme comme transitive et intentionnellement large. La barrière de cohérence native lit ceci pour clore l'échine de partie."
+msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:partOf est transitif : l'échine universelle partie-à-tout que sa skos:definition nomme comme transitive et intentionnellement large. La barrière de cohérence native lit ceci pour clore l'échine de partie. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:coarserThan composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

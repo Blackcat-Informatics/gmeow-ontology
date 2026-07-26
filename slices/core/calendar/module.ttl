@@ -880,7 +880,7 @@ gmeow:availabilitySlotFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "availabilitySlot is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:availabilitySlot is functional: an availability statement holds over exactly one time interval — the single bounded free-busy slot across which its status applies uniformly."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:availabilitySlot is functional: an availability statement holds over exactly one time interval — the single bounded free-busy slot across which its status applies uniformly. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:availabilitySlot ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:availabilitySlot ;
@@ -895,7 +895,7 @@ gmeow:calendarTimeZoneFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "calendarTimeZone is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:calendarTimeZone is functional: a calendar collection has exactly one default time zone — the single fallback IANA offset its members are reckoned in when an individual event states no zone of its own."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:calendarTimeZone is functional: a calendar collection has exactly one default time zone — the single fallback IANA offset its members are reckoned in when an individual event states no zone of its own. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:calendarTimeZone ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:calendarTimeZone ;
@@ -910,7 +910,7 @@ gmeow:eventTimeZoneFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "eventTimeZone is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:eventTimeZone is functional: an event's temporal placement is expressed in exactly one time zone — the single civil offset its wall-clock time is read in, overriding the calendar default."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:eventTimeZone is functional: an event's temporal placement is expressed in exactly one time zone — the single civil offset its wall-clock time is read in, overriding the calendar default. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:eventTimeZone ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:eventTimeZone ;
@@ -925,7 +925,7 @@ gmeow:exceptionOriginalDateFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exceptionOriginalDate is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:exceptionOriginalDate is functional: a schedule exception overrides exactly one generated occurrence, pinned by the single original date/time the recurrence rule would have produced — its RFC 5545 RECURRENCE-ID anchor."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exceptionOriginalDate is functional: a schedule exception overrides exactly one generated occurrence, pinned by the single original date/time the recurrence rule would have produced — its RFC 5545 RECURRENCE-ID anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:exceptionOriginalDate ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:exceptionOriginalDate ;
@@ -940,7 +940,7 @@ gmeow:exceptionReplacementEventFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exceptionReplacementEvent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:exceptionReplacementEvent is functional: a rescheduled occurrence moves to exactly one replacement event — the single new placement standing in for the one at the original date (absent entirely for a pure cancellation)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exceptionReplacementEvent is functional: a rescheduled occurrence moves to exactly one replacement event — the single new placement standing in for the one at the original date (absent entirely for a pure cancellation). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:exceptionReplacementEvent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:exceptionReplacementEvent ;
@@ -955,7 +955,7 @@ gmeow:exceptionScheduleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exceptionSchedule is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:exceptionSchedule is functional: a schedule exception applies to exactly one event schedule — the single recurring series whose one occurrence it overrides."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exceptionSchedule is functional: a schedule exception applies to exactly one event schedule — the single recurring series whose one occurrence it overrides. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:exceptionSchedule ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:exceptionSchedule ;
@@ -1000,7 +1000,7 @@ gmeow:reminderActionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminderAction is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:reminderAction is functional: a reminder fires exactly one action — a single iCalendar ACTION (display, email, or audio) when it triggers."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reminderAction is functional: a reminder fires exactly one action — a single iCalendar ACTION (display, email, or audio) when it triggers. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:reminderAction ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:reminderAction ;
@@ -1015,7 +1015,7 @@ gmeow:reminderTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminderTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:reminderTarget is functional: a reminder is attached to exactly one event — the single concrete occurrence whose start an offset trigger is measured from."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reminderTarget is functional: a reminder is attached to exactly one event — the single concrete occurrence whose start an offset trigger is measured from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:reminderTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:reminderTarget ;
@@ -1030,7 +1030,7 @@ gmeow:scheduleTemplateEventFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "scheduleTemplateEvent is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:scheduleTemplateEvent is functional: a schedule clones exactly one template event — the single anchor carrying the title, location, participants, and duration every generated occurrence inherits."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scheduleTemplateEvent is functional: a schedule clones exactly one template event — the single anchor carrying the title, location, participants, and duration every generated occurrence inherits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:scheduleTemplateEvent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:scheduleTemplateEvent ;
@@ -1045,7 +1045,7 @@ gmeow:scheduleTimeZoneFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "scheduleTimeZone is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:scheduleTimeZone is functional: a schedule expands its recurrence in exactly one time zone — the single IANA offset the occurrence engine reads when turning the rule into dated occurrences across DST boundaries."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scheduleTimeZone is functional: a schedule expands its recurrence in exactly one time zone — the single IANA offset the occurrence engine reads when turning the rule into dated occurrences across DST boundaries. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:scheduleTimeZone ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:scheduleTimeZone ;
@@ -1060,7 +1060,7 @@ gmeow:taskDueDateFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "taskDueDate is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:taskDueDate is functional: a task has exactly one due date — the single xsd:dateTime deadline, the iCalendar VTODO DUE moment, by which it should be completed."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taskDueDate is functional: a task has exactly one due date — the single xsd:dateTime deadline, the iCalendar VTODO DUE moment, by which it should be completed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:taskDueDate ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:taskDueDate ;
@@ -1075,7 +1075,7 @@ gmeow:taskPriorityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "taskPriority is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:taskPriority is functional: a task carries exactly one priority — a single value on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest)."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taskPriority is functional: a task carries exactly one priority — a single value on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:taskPriority ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:taskPriority ;
@@ -1105,7 +1105,7 @@ gmeow:timeZoneIanaIdFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "timeZoneIanaId is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:timeZoneIanaId ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:timeZoneIanaId ;

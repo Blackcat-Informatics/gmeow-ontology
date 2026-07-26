@@ -18,16 +18,16 @@ msgid "claimResult is functional"
 msgstr "claimResult 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:claimResult is functional: a topology claim wraps exactly one computed topology result, the single TopologyResult it makes a standpoint-relative claim about."
-msgstr "在规范载体上断言 gmeow:claimResult 是函数式的：一个拓扑主张恰好包裹一个已计算的拓扑结果，即该主张就其做出相对于立场之陈述所针对的唯一 TopologyResult。"
+msgid "Asserts on the canonical carrier that gmeow:claimResult is functional: a topology claim wraps exactly one computed topology result, the single TopologyResult it makes a standpoint-relative claim about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:claimResult 是函数式的：一个拓扑主张恰好包裹一个已计算的拓扑结果，即该主张就其做出相对于立场之陈述所针对的唯一 TopologyResult。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "computationOverCompilation is functional"
 msgstr "computationOverCompilation 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/computationOverCompilationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:computationOverCompilation is functional: a topology computation runs over exactly one complex compilation, since a federated computation spanning several compilations is several computations under a parent activity."
-msgstr "在规范载体上断言 gmeow:computationOverCompilation 是函数式的：一次拓扑计算恰好在一个复合编译上运行，因为跨越多个编译的联合计算是在一个父活动之下的多次计算。"
+msgid "Asserts on the canonical carrier that gmeow:computationOverCompilation is functional: a topology computation runs over exactly one complex compilation, since a federated computation spanning several compilations is several computations under a parent activity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:computationOverCompilation 是函数式的：一次拓扑计算恰好在一个复合编译上运行，因为跨越多个编译的联合计算是在一个父活动之下的多次计算。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/claimResultFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:claimResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

@@ -18,40 +18,40 @@ msgid "notationSystemOf is functional"
 msgstr "notationSystemOf est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:notationSystemOf is functional: a gmeow:NotationProjectionProfile describes exactly one notation system."
-msgstr "Affirme sur le porteur canonique que gmeow:notationSystemOf est fonctionnelle : un gmeow:NotationProjectionProfile décrit exactement un système de notation."
+msgid "Asserts on the canonical carrier that gmeow:notationSystemOf is functional: a gmeow:NotationProjectionProfile describes exactly one notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationSystemOf est fonctionnelle : un gmeow:NotationProjectionProfile décrit exactement un système de notation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "notationUsageInterval is functional"
 msgstr "notationUsageInterval est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageIntervalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:notationUsageInterval is functional: a gmeow:NotationSystemUsage relator holds over exactly one time interval, and a different interval is a distinct usage episode."
-msgstr "Affirme sur le porteur canonique que gmeow:notationUsageInterval est fonctionnelle : un relateur gmeow:NotationSystemUsage vaut sur exactement un intervalle de temps, et un intervalle différent constitue un épisode d'usage distinct."
+msgid "Asserts on the canonical carrier that gmeow:notationUsageInterval is functional: a gmeow:NotationSystemUsage relator holds over exactly one time interval, and a different interval is a distinct usage episode. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageInterval est fonctionnelle : un relateur gmeow:NotationSystemUsage vaut sur exactement un intervalle de temps, et un intervalle différent constitue un épisode d'usage distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "notationUsageNotationSystem is functional"
 msgstr "notationUsageNotationSystem est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageNotationSystemFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:notationUsageNotationSystem is functional: a gmeow:NotationSystemUsage records the use of exactly one notation system."
-msgstr "Affirme sur le porteur canonique que gmeow:notationUsageNotationSystem est fonctionnelle : un gmeow:NotationSystemUsage enregistre l'usage d'exactement un système de notation."
+msgid "Asserts on the canonical carrier that gmeow:notationUsageNotationSystem is functional: a gmeow:NotationSystemUsage records the use of exactly one notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageNotationSystem est fonctionnelle : un gmeow:NotationSystemUsage enregistre l'usage d'exactement un système de notation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "notationUsageRole is functional"
 msgstr "notationUsageRole est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:notationUsageRole is functional: a gmeow:NotationSystemUsage plays exactly one role (transcription, encoding, representation, communication, expression, shorthand, or cipher), and a different role is a distinct usage."
-msgstr "Affirme sur le porteur canonique que gmeow:notationUsageRole est fonctionnelle : un gmeow:NotationSystemUsage joue exactement un rôle (transcription, encodage, représentation, communication, expression, sténographie, ou chiffrement), et un rôle différent constitue un usage distinct."
+msgid "Asserts on the canonical carrier that gmeow:notationUsageRole is functional: a gmeow:NotationSystemUsage plays exactly one role (transcription, encoding, representation, communication, expression, shorthand, or cipher), and a different role is a distinct usage. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageRole est fonctionnelle : un gmeow:NotationSystemUsage joue exactement un rôle (transcription, encodage, représentation, communication, expression, sténographie, ou chiffrement), et un rôle différent constitue un usage distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "notationUsageTarget is functional"
 msgstr "notationUsageTarget est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system."
-msgstr "Affirme sur le porteur canonique que gmeow:notationUsageTarget est fonctionnelle : un gmeow:NotationSystemUsage a exactement une entité cible qui utilise le système de notation."
+msgid "Asserts on the canonical carrier that gmeow:notationUsageTarget is functional: a gmeow:NotationSystemUsage has exactly one target entity that uses the notation system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:notationUsageTarget est fonctionnelle : un gmeow:NotationSystemUsage a exactement une entité cible qui utilise le système de notation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/notationSystemOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:notationSystemOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

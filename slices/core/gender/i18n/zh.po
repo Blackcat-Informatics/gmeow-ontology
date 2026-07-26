@@ -18,8 +18,8 @@ msgid "expressionValue is functional"
 msgstr "expressionValue 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expressionValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:expressionValue is functional: a gmeow:GenderExpression facet asserts exactly one expression-style value — varying presentations are modelled as several facets, and this object edge is deliberately the sole path to the value."
-msgstr "在规范载体上断言 gmeow:expressionValue 是函数性的：一个 gmeow:GenderExpression 侧面恰好断言一个表达风格值——各种不同的呈现方式被建模为多个侧面，而该对象边被刻意设计为通往该值的唯一路径。"
+msgid "Asserts on the canonical carrier that gmeow:expressionValue is functional: a gmeow:GenderExpression facet asserts exactly one expression-style value — varying presentations are modelled as several facets, and this object edge is deliberately the sole path to the value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:expressionValue 是函数性的：一个 gmeow:GenderExpression 侧面恰好断言一个表达风格值——各种不同的呈现方式被建模为多个侧面，而该对象边被刻意设计为通往该值的唯一路径。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/genderValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "genderValue is functional"

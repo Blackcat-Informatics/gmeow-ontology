@@ -18,16 +18,16 @@ msgid "coarsenTo is functional"
 msgstr "coarsenTo 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarsenToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:coarsenTo is functional: a coarsening mark points at exactly one gmeow:GranularityLevel, the single coarsest level a value may be disclosed at, so multiple possibly-conflicting floors would be ill-formed."
-msgstr "在规范载体上断言 gmeow:coarsenTo 是函数式的：一个粗化标记恰好指向一个 gmeow:GranularityLevel，即一个值可被披露的唯一最粗粒度层级，因此多个可能相互冲突的下限将是形式不良的。"
+msgid "Asserts on the canonical carrier that gmeow:coarsenTo is functional: a coarsening mark points at exactly one gmeow:GranularityLevel, the single coarsest level a value may be disclosed at, so multiple possibly-conflicting floors would be ill-formed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:coarsenTo 是函数式的：一个粗化标记恰好指向一个 gmeow:GranularityLevel，即一个值可被披露的唯一最粗粒度层级，因此多个可能相互冲突的下限将是形式不良的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "coarserThan is transitive"
 msgstr "coarserThan 具有传递性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order."
-msgstr "在规范载体上断言 gmeow:coarserThan 是传递的:即其 skos:definition 所命名的粒度层级上的偏序,这使得「处于或高于某目标层级」得以良定义。原生一致性门读取此项以闭合粒度序。"
+msgid "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:coarserThan 是传递的:即其 skos:definition 所命名的粒度层级上的偏序,这使得「处于或高于某目标层级」得以良定义。原生一致性门读取此项以闭合粒度序。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/levelScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "levelScale is functional"
@@ -42,8 +42,8 @@ msgid "partOf is transitive"
 msgstr "partOf 具有传递性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/partOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."
-msgstr "在规范载体上断言 gmeow:partOf 是可传递的：其 skos:definition 命名为可传递且有意宽泛的普遍部分—整体主干。原生一致性门读取此项以闭合该部分关系主干。"
+msgid "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:partOf 是可传递的：其 skos:definition 命名为可传递且有意宽泛的普遍部分—整体主干。原生一致性门读取此项以闭合该部分关系主干。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/coarserThanTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:coarserThan composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

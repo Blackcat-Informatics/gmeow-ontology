@@ -5001,7 +5001,7 @@ logic:PropertyCharacteristicAssertion
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "property characteristic assertion"@x-gmeow-english ;
-    skos:definition "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here."@x-gmeow-english ;
+    skos:definition "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:characterizes
@@ -5009,7 +5009,7 @@ logic:characterizes
     rdfs:domain logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "characterizes"@x-gmeow-english ;
-    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:characteristicSort
@@ -5017,7 +5017,7 @@ logic:characteristicSort
     rdfs:domain logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "characteristic sort"@x-gmeow-english ;
-    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Functional-property characteristic assertions (owl:FunctionalProperty → logic: carrier deprecation) ──
@@ -5096,7 +5096,7 @@ logic:candidateExtractionProvenanceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidateExtractionProvenance is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:candidateExtractionProvenance is functional: a candidate was produced by exactly one extraction event, so it records a single provenance string naming what produced it — the one extractor, run, or model invocation whose automated origin keeps it at logic:CandidateProposed with no canonical force until reviewed."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:candidateExtractionProvenance is functional: a candidate was produced by exactly one extraction event, so it records a single provenance string naming what produced it — the one extractor, run, or model invocation whose automated origin keeps it at logic:CandidateProposed with no canonical force until reviewed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:candidateExtractionProvenance ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateExtractionProvenance ;
@@ -5111,7 +5111,7 @@ logic:candidateFormalizesFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidateFormalizes is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:candidateFormalizes is functional: a harvested candidate keeps exactly one prose-bearing term coherent, so its harvest back-link names a single formalized term — present exactly when the source IS a term's annotation field, and paired with the single logic:candidateSourceField that pins which field."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:candidateFormalizes is functional: a harvested candidate keeps exactly one prose-bearing term coherent, so its harvest back-link names a single formalized term — present exactly when the source IS a term's annotation field, and paired with the single logic:candidateSourceField that pins which field. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:candidateFormalizes ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateFormalizes ;
@@ -5156,7 +5156,7 @@ logic:candidateScopeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidateScope is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:candidateScope is functional: a candidate's proposed axiom has one intended scope — the single terms, slice, or context it is meant to constrain — so its reach is stated once, read together with the single logic:candidateContract it is interpreted under."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:candidateScope is functional: a candidate's proposed axiom has one intended scope — the single terms, slice, or context it is meant to constrain — so its reach is stated once, read together with the single logic:candidateContract it is interpreted under. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:candidateScope ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateScope ;
@@ -5186,7 +5186,7 @@ logic:candidateSourceFieldFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidateSourceField is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:candidateSourceField is functional: a candidate harvested from exactly one annotation field of its logic:candidateFormalizes term, so it names a single logic:ProseField from the closed set (definition, use-when, or avoid-when) — the one field that, with the formalized term, pins the harvested axiom to its exact source triple."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:candidateSourceField is functional: a candidate harvested from exactly one annotation field of its logic:candidateFormalizes term, so it names a single logic:ProseField from the closed set (definition, use-when, or avoid-when) — the one field that, with the formalized term, pins the harvested axiom to its exact source triple. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:candidateSourceField ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSourceField ;
@@ -5201,7 +5201,7 @@ logic:candidateSourceHashFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidateSourceHash is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:candidateSourceHash is functional: a candidate was extracted from one exact span of source text, so it anchors to a single content hash — the one fingerprint that ties the candidate back to that prose and detects drift the moment the prose changes."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:candidateSourceHash is functional: a candidate was extracted from one exact span of source text, so it anchors to a single content hash — the one fingerprint that ties the candidate back to that prose and detects drift the moment the prose changes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:candidateSourceHash ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSourceHash ;
@@ -5276,7 +5276,7 @@ logic:effectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "effect is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:effect is functional: an action schema introduces exactly one effect — the single ins/del supersession change executing an occurrence records — with alternative results carried instead by the multi-valued logic:nondeterministicOutcome, so the deterministic change stays one edge while nondeterminism lives on a different facet."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:effect is functional: an action schema introduces exactly one effect — the single ins/del supersession change executing an occurrence records — with alternative results carried instead by the multi-valued logic:nondeterministicOutcome, so the deterministic change stays one edge while nondeterminism lives on a different facet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:effect ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:effect ;
@@ -5321,7 +5321,7 @@ logic:feasibilityStatusFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "feasibilityStatus is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:feasibilityStatus is functional: a goal evaluation carries exactly one logic:FeasibilityStatus — the feasibility axis of the factored outcome — a single value that varies independently of the satisfaction, lifecycle, and goal-evaluation axes but is itself one-valued per evaluation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:feasibilityStatus is functional: a goal evaluation carries exactly one logic:FeasibilityStatus — the feasibility axis of the factored outcome — a single value that varies independently of the satisfaction, lifecycle, and goal-evaluation axes but is itself one-valued per evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:feasibilityStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:feasibilityStatus ;
@@ -5336,7 +5336,7 @@ logic:forallFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "forall is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:forall is functional: a universal-quantifier formula binds exactly one body formula — the single scope the binder ranges over across individuals in the domain of discourse — while its bound variables ride on logic:quantifiedVariable, so the node pins one binder and one body."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:forall is functional: a universal-quantifier formula binds exactly one body formula — the single scope the binder ranges over across individuals in the domain of discourse — while its bound variables ride on logic:quantifiedVariable, so the node pins one binder and one body. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:forall ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:forall ;
@@ -5351,7 +5351,7 @@ logic:freshnessHorizonFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "freshnessHorizon is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:freshnessHorizon is functional: a freshness guard declares exactly one age ceiling — the single xsd:duration bounding how old the guarded precondition datum may be, measured from its logic:datumRecordedAt to the probe's logic:decisionTime — so the one age comparison is well-defined."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:freshnessHorizon is functional: a freshness guard declares exactly one age ceiling — the single xsd:duration bounding how old the guarded precondition datum may be, measured from its logic:datumRecordedAt to the probe's logic:decisionTime — so the one age comparison is well-defined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:freshnessHorizon ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessHorizon ;
@@ -5366,7 +5366,7 @@ logic:freshnessWindowEndFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "freshnessWindowEnd is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:freshnessWindowEnd is functional: a freshness guard's explicit valid-time window has exactly one inclusive upper bound, so it carries a single xsd:dateTime end — required exactly once when a window is declared and paired with the single logic:freshnessWindowStart to define the closed interval."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:freshnessWindowEnd is functional: a freshness guard's explicit valid-time window has exactly one inclusive upper bound, so it carries a single xsd:dateTime end — required exactly once when a window is declared and paired with the single logic:freshnessWindowStart to define the closed interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:freshnessWindowEnd ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessWindowEnd ;
@@ -5381,7 +5381,7 @@ logic:freshnessWindowStartFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "freshnessWindowStart is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:freshnessWindowStart is functional: a freshness guard's explicit valid-time window has exactly one inclusive lower bound, so it carries a single xsd:dateTime start — required exactly once when a window is declared and paired with the single logic:freshnessWindowEnd to define the closed interval."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:freshnessWindowStart is functional: a freshness guard's explicit valid-time window has exactly one inclusive lower bound, so it carries a single xsd:dateTime start — required exactly once when a window is declared and paired with the single logic:freshnessWindowEnd to define the closed interval. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:freshnessWindowStart ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessWindowStart ;
@@ -5396,7 +5396,7 @@ logic:functionSymbolFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "functionSymbol is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:functionSymbol is functional: a function term applies exactly one reified function-symbol (logic:Type) individual over its ordered arguments — mirroring how logic:relation reifies a predication's single relation under the HiLog reflection — so the object level stays first-order and no function variable is admitted."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:functionSymbol is functional: a function term applies exactly one reified function-symbol (logic:Type) individual over its ordered arguments — mirroring how logic:relation reifies a predication's single relation under the HiLog reflection — so the object level stays first-order and no function variable is admitted. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:functionSymbol ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:functionSymbol ;
@@ -5456,7 +5456,7 @@ logic:lifecycleStatusFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "lifecycleStatus is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:lifecycleStatus is functional: a goal evaluation carries exactly one logic:LifecycleStatus — the lifecycle axis of the factored outcome — a single value that varies independently of the satisfaction, feasibility, and goal-evaluation axes yet is itself one-valued per evaluation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:lifecycleStatus is functional: a goal evaluation carries exactly one logic:LifecycleStatus — the lifecycle axis of the factored outcome — a single value that varies independently of the satisfaction, feasibility, and goal-evaluation axes yet is itself one-valued per evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:lifecycleStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:lifecycleStatus ;
@@ -5531,7 +5531,7 @@ logic:planGoalFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "planGoal is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:planGoal is functional: a plan has exactly one success criterion — the single gmeow:Goal its steps, invoking action schemas, are arranged to reach — against which its success over nondeterministic outcomes is quantified by logic:planSuccessMode."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:planGoal is functional: a plan has exactly one success criterion — the single gmeow:Goal its steps, invoking action schemas, are arranged to reach — against which its success over nondeterministic outcomes is quantified by logic:planSuccessMode. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:planGoal ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:planGoal ;
@@ -5576,7 +5576,7 @@ logic:recoveryTransformFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "recoveryTransform is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:recoveryTransform is functional: a recovery case executes exactly one ordered source-to-view logic:Formula — the single universally-quantified implication whose antecedent is the complete source graph pattern and consequent the projected view pattern — where reversing the one implication would change which information must be recovered."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:recoveryTransform is functional: a recovery case executes exactly one ordered source-to-view logic:Formula — the single universally-quantified implication whose antecedent is the complete source graph pattern and consequent the projected view pattern — where reversing the one implication would change which information must be recovered. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:recoveryTransform ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:recoveryTransform ;
@@ -5621,7 +5621,7 @@ logic:satisfactionStatusFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "satisfactionStatus is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:satisfactionStatus is functional: a goal evaluation carries exactly one logic:SatisfactionStatus — the satisfaction axis of the factored outcome — a single value that varies independently of the feasibility, lifecycle, and goal-evaluation axes yet is itself one-valued per evaluation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:satisfactionStatus is functional: a goal evaluation carries exactly one logic:SatisfactionStatus — the satisfaction axis of the factored outcome — a single value that varies independently of the feasibility, lifecycle, and goal-evaluation axes yet is itself one-valued per evaluation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:satisfactionStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:satisfactionStatus ;
@@ -5636,7 +5636,7 @@ logic:termApplicationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "termApplication is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:termApplication is functional: a term-carrier bears exactly one term value, so when that value is a compound function term the carrier points at a single logic:FunctionTerm sub-tree — the fifth of the five mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:termApplication is functional: a term-carrier bears exactly one term value, so when that value is a compound function term the carrier points at a single logic:FunctionTerm sub-tree — the fifth of the five mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:termApplication ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termApplication ;
@@ -5651,7 +5651,7 @@ logic:termIndexFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "termIndex is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:termIndex is functional: a term-carrier occupies exactly one position in its ordered list — argument or bound variable — so it fixes a single zero-based ordinal, the explicit position that makes variadic, order-significant lists round-trip independent of RDF statement order."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:termIndex is functional: a term-carrier occupies exactly one position in its ordered list — argument or bound variable — so it fixes a single zero-based ordinal, the explicit position that makes variadic, order-significant lists round-trip independent of RDF statement order. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:termIndex ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termIndex ;
@@ -5666,7 +5666,7 @@ logic:termIriFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "termIri is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:termIri is functional: a term-carrier bears exactly one term value, so an IRI-constant carrier names a single IRI — the one individual, reified relation, or type it stands for — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:termIri is functional: a term-carrier bears exactly one term value, so an IRI-constant carrier names a single IRI — the one individual, reified relation, or type it stands for — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:termIri ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termIri ;
@@ -5681,7 +5681,7 @@ logic:termLiteralFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "termLiteral is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:termLiteral is functional: a term-carrier bears exactly one term value, so a literal carrier holds a single lexical form — its datatype riding on the companion logic:termLiteralDatatype — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:termLiteral is functional: a term-carrier bears exactly one term value, so a literal carrier holds a single lexical form — its datatype riding on the companion logic:termLiteralDatatype — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:termLiteral ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termLiteral ;
@@ -5696,7 +5696,7 @@ logic:termLiteralDatatypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "termLiteralDatatype is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:termLiteralDatatype is functional: a literal term-carrier has exactly one datatype, so it carries a single datatype IRI held separately from the lexical form on logic:termLiteral, letting the typed-literal term round-trip losslessly — absent for a plain literal, and one datatype when present."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:termLiteralDatatype is functional: a literal term-carrier has exactly one datatype, so it carries a single datatype IRI held separately from the lexical form on logic:termLiteral, letting the typed-literal term round-trip losslessly — absent for a plain literal, and one datatype when present. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:termLiteralDatatype ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termLiteralDatatype ;
@@ -5726,7 +5726,7 @@ logic:termVariableFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "termVariable is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:termVariable is functional: a term-carrier bears exactly one term value, so a variable carrier holds a single authored variable name (without a sigil) — one variable bound by an enclosing quantifier or free — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that logic:termVariable is functional: a term-carrier bears exactly one term value, so a variable carrier holds a single authored variable name (without a sigil) — one variable bound by an enclosing quantifier or free — as one of the mutually exclusive term-value properties, exactly one of which is present on each carrier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes logic:termVariable ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termVariable ;
@@ -5801,7 +5801,7 @@ logic:demonstratedByCompetencyFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "demonstratedByCompetency is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByCompetency is functional: a gmeow:FlagshipScenario is pinned by exactly one competency question — the single gmeow:CompetencyQuestion IRI whose gmeow:cqExpectRow expectation the native flagship cross-check confirms for that scenario."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByCompetency is functional: a gmeow:FlagshipScenario is pinned by exactly one competency question — the single gmeow:CompetencyQuestion IRI whose gmeow:cqExpectRow expectation the native flagship cross-check confirms for that scenario. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:demonstratedByCompetency ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByCompetency ;
@@ -5831,7 +5831,7 @@ logic:demonstratedByProducerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "demonstratedByProducer is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier the execution-discharge harness dispatches, runs, and pins the output of to discharge the acceptance bar."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier the execution-discharge harness dispatches, runs, and pins the output of to discharge the acceptance bar. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:demonstratedByProducer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByProducer ;
@@ -5846,7 +5846,7 @@ logic:guardedByCounterExampleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "guardedByCounterExample is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the discharge harness runs to confirm the gate bites."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the discharge harness runs to confirm the gate bites. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:guardedByCounterExample ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:guardedByCounterExample ;
@@ -5869,7 +5869,7 @@ logic:RelatumDistinctnessAssertion
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "relatum distinctness assertion"@x-gmeow-english ;
-    skos:definition "A central record asserting that, on a target class, two named roles must bind DISTINCT values on any one focus node — the mutual-inequality integrity condition of a relator whose relata must differ (a Commitment's committed agent and beneficiary, a Criterion's reward and penalty poles). It names the class with logic:distinctnessTarget and the two roles with logic:distinctnessRole, the triple the native coherence gate joins to raise a violation when the roles coincide, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. The reasoning authority names and enforces it here; the domain slice keeps the OWL-facing role declarations."@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, two named roles must bind DISTINCT values on any one focus node — the mutual-inequality integrity condition of a relator whose relata must differ (a Commitment's committed agent and beneficiary, a Criterion's reward and penalty poles). It names the class with logic:distinctnessTarget and the two roles with logic:distinctnessRole, the triple the native coherence gate joins to raise a violation when the roles coincide, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. The reasoning authority names and enforces it here; the domain slice keeps the OWL-facing role declarations. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:distinctnessTarget
@@ -5877,7 +5877,7 @@ logic:distinctnessTarget
     rdfs:domain logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "distinctness target"@x-gmeow-english ;
-    skos:definition "Relates a logic:RelatumDistinctnessAssertion to the class whose focus nodes it constrains (the relator class). Read together with logic:distinctnessRole, it tells the native coherence gate which class bears the mutual-inequality condition. Domain logic:RelatumDistinctnessAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:RelatumDistinctnessAssertion to the class whose focus nodes it constrains (the relator class). Read together with logic:distinctnessRole, it tells the native coherence gate which class bears the mutual-inequality condition. Domain logic:RelatumDistinctnessAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:distinctnessRole
@@ -5885,7 +5885,7 @@ logic:distinctnessRole
     rdfs:domain logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "distinctness role"@x-gmeow-english ;
-    skos:definition "Relates a logic:RelatumDistinctnessAssertion to one of the two roles that must bind distinct values on a focus node. Exactly two are asserted per record; the native coherence gate raises a violation when both roles bind the same value on one focus node. Domain logic:RelatumDistinctnessAssertion; two-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:RelatumDistinctnessAssertion to one of the two roles that must bind distinct values on a focus node. Exactly two are asserted per record; the native coherence gate raises a violation when both roles bind the same value on one focus node. Domain logic:RelatumDistinctnessAssertion; two-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Key / uniqueness assertions (a class is identified by a key property) ─────────────
@@ -5911,7 +5911,7 @@ logic:keyClass
     rdfs:domain logic:KeyAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "key class"@x-gmeow-english ;
-    skos:definition "Relates a logic:KeyAssertion to the class its key identifies — the class whose instances the key value uniquely picks out. Read together with logic:keyProperty, it tells the native DL consistency gate which class bears the key: two instances of this class agreeing on every key value are the same individual. Domain logic:KeyAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:KeyAssertion to the class its key identifies — the class whose instances the key value uniquely picks out. Read together with logic:keyProperty, it tells the native DL consistency gate which class bears the key: two instances of this class agreeing on every key value are the same individual. Domain logic:KeyAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:keyProperty
@@ -5949,7 +5949,7 @@ logic:conditionalRangeTarget
     rdfs:domain logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "conditional range target"@x-gmeow-english ;
-    skos:definition "Relates a logic:ConditionalRangeAssertion to the class whose focus nodes it constrains. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the class whose focus nodes it constrains. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:conditionalRangeSelector
@@ -5957,7 +5957,7 @@ logic:conditionalRangeSelector
     rdfs:domain logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "conditional range selector"@x-gmeow-english ;
-    skos:definition "Relates a logic:ConditionalRangeAssertion to the discriminant property whose value triggers the condition. Read together with logic:conditionalRangeSelectorValue. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the discriminant property whose value triggers the condition. Read together with logic:conditionalRangeSelectorValue. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:conditionalRangeSelectorValue
@@ -5965,7 +5965,7 @@ logic:conditionalRangeSelectorValue
     rdfs:domain logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "conditional range selector value"@x-gmeow-english ;
-    skos:definition "Relates a logic:ConditionalRangeAssertion to the named value of the discriminant property that triggers the required-type condition. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the named value of the discriminant property that triggers the required-type condition. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:conditionalRangeValue
@@ -5973,7 +5973,7 @@ logic:conditionalRangeValue
     rdfs:domain logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "conditional range value"@x-gmeow-english ;
-    skos:definition "Relates a logic:ConditionalRangeAssertion to the property whose bound value must satisfy the required type when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the property whose bound value must satisfy the required type when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:conditionalRangeRequiredType
@@ -5981,7 +5981,7 @@ logic:conditionalRangeRequiredType
     rdfs:domain logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "conditional range required type"@x-gmeow-english ;
-    skos:definition "Relates a logic:ConditionalRangeAssertion to the class the constrained value must instantiate when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the class the constrained value must instantiate when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Role-composition-exclusion assertions (a relator's two roles are not whole/part) ──
@@ -6007,7 +6007,7 @@ logic:compositionExclusionTarget
     rdfs:domain logic:RoleCompositionExclusionAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "composition exclusion target"@x-gmeow-english ;
-    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the class whose focus nodes it constrains. Domain logic:RoleCompositionExclusionAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the class whose focus nodes it constrains. Domain logic:RoleCompositionExclusionAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:compositionExclusionWhole
@@ -6031,7 +6031,7 @@ logic:compositionExclusionVia
     rdfs:domain logic:RoleCompositionExclusionAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "composition exclusion via"@x-gmeow-english ;
-    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to a composition property linking the whole role's value to a component. Each asserted value is one step the exclusion ranges over; the native coherence gate raises a violation when the part role coincides with a component reached through any of them. Domain logic:RoleCompositionExclusionAssertion; multi-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to a composition property linking the whole role's value to a component. Each asserted value is one step the exclusion ranges over; the native coherence gate raises a violation when the part role coincides with a component reached through any of them. Domain logic:RoleCompositionExclusionAssertion; multi-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Mediated-property-requirement assertions (a mediated value must carry a property) ──
@@ -6048,7 +6048,7 @@ logic:MediatedPropertyRequirementAssertion
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "mediated property requirement assertion"@x-gmeow-english ;
-    skos:definition "A central record asserting that, on a target class, every value a focus node reaches through a mediating property must itself declare at least one value of a required property — the interval that scopes a situation must carry its temporal frame (Principle 11). It names the class with logic:mediatedRequirementTarget, the mediating property with logic:mediatedRequirementVia, and the demanded property with logic:mediatedRequirementProperty; the native coherence gate joins them to raise a violation when a mediated value lacks the required property. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, every value a focus node reaches through a mediating property must itself declare at least one value of a required property — the interval that scopes a situation must carry its temporal frame (Principle 11). It names the class with logic:mediatedRequirementTarget, the mediating property with logic:mediatedRequirementVia, and the demanded property with logic:mediatedRequirementProperty; the native coherence gate joins them to raise a violation when a mediated value lacks the required property. Carries a logic:formalizes back-reference to the domain property whose prose it encodes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:mediatedRequirementTarget
@@ -6056,7 +6056,7 @@ logic:mediatedRequirementTarget
     rdfs:domain logic:MediatedPropertyRequirementAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "mediated requirement target"@x-gmeow-english ;
-    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the class whose focus nodes it constrains. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the class whose focus nodes it constrains. Domain logic:MediatedPropertyRequirementAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:mediatedRequirementVia
@@ -6064,7 +6064,7 @@ logic:mediatedRequirementVia
     rdfs:domain logic:MediatedPropertyRequirementAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "mediated requirement via"@x-gmeow-english ;
-    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the mediating property whose values must carry the required property. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the mediating property whose values must carry the required property. Domain logic:MediatedPropertyRequirementAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:mediatedRequirementProperty
@@ -6072,7 +6072,7 @@ logic:mediatedRequirementProperty
     rdfs:domain logic:MediatedPropertyRequirementAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "mediated requirement property"@x-gmeow-english ;
-    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the property each mediated value must declare at least once. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the property each mediated value must declare at least once. Domain logic:MediatedPropertyRequirementAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────

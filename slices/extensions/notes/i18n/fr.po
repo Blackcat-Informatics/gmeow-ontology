@@ -18,24 +18,24 @@ msgid "annotationBody is functional"
 msgstr "annotationBody est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationBodyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:annotationBody is functional: an annotation attaches exactly one note as its body, the single piece of content being attached — a highlight or bookmark simply has none."
-msgstr "Affirme sur le porteur canonique que gmeow:annotationBody est fonctionnelle : une annotation attache exactement une note comme corps, l'unique élément de contenu attaché — un surlignage ou un signet n'en possède simplement aucun."
+msgid "Asserts on the canonical carrier that gmeow:annotationBody is functional: an annotation attaches exactly one note as its body, the single piece of content being attached — a highlight or bookmark simply has none. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:annotationBody est fonctionnelle : une annotation attache exactement une note comme corps, l'unique élément de contenu attaché — un surlignage ou un signet n'en possède simplement aucun. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationMotivationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "annotationMotivation is functional"
 msgstr "annotationMotivation est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationMotivationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:annotationMotivation is functional: an annotation carries exactly one motivation, the single purpose for which its body is attached to its target."
-msgstr "Affirme sur le porteur canonique que gmeow:annotationMotivation est fonctionnelle : une annotation porte exactement une motivation, l'unique finalité pour laquelle son corps est attaché à sa cible."
+msgid "Asserts on the canonical carrier that gmeow:annotationMotivation is functional: an annotation carries exactly one motivation, the single purpose for which its body is attached to its target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:annotationMotivation est fonctionnelle : une annotation porte exactement une motivation, l'unique finalité pour laquelle son corps est attaché à sa cible. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "annotationTarget is functional"
 msgstr "annotationTarget est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:annotationTarget is functional: an annotation binds exactly one target, the single entity being annotated."
-msgstr "Affirme sur le porteur canonique que gmeow:annotationTarget est fonctionnelle : une annotation lie exactement une cible, l'unique entité annotée."
+msgid "Asserts on the canonical carrier that gmeow:annotationTarget is functional: an annotation binds exactly one target, the single entity being annotated. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:annotationTarget est fonctionnelle : une annotation lie exactement une cible, l'unique entité annotée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationBodyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:annotationBody names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

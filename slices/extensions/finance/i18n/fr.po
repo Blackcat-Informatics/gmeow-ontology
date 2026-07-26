@@ -18,32 +18,32 @@ msgid "accountType is functional"
 msgstr "accountType est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts."
-msgstr "Affirme sur le porteur canonique que gmeow:accountType est fonctionnelle : un compte financier possède exactement un type canonique — un unique FinancialAccountType (bancaire, crédit, investissement, portefeuille), car un compte à plusieurs types est modélisé comme plusieurs comptes."
+msgid "Asserts on the canonical carrier that gmeow:accountType is functional: a financial account has exactly one canonical type — a single FinancialAccountType (bank, credit, investment, wallet), since an account with several types is modelled as several accounts. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:accountType est fonctionnelle : un compte financier possède exactement un type canonique — un unique FinancialAccountType (bancaire, crédit, investissement, portefeuille), car un compte à plusieurs types est modélisé comme plusieurs comptes. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "assetType is functional"
 msgstr "assetType est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/assetTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity)."
-msgstr "Affirme sur le porteur canonique que gmeow:assetType est fonctionnelle : un actif financier possède exactement un type canonique — un unique AssetType (action, obligation, cryptomonnaie, immobilier, matière première)."
+msgid "Asserts on the canonical carrier that gmeow:assetType is functional: a financial asset has exactly one canonical type — a single AssetType (stock, bond, cryptocurrency, real estate, commodity). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:assetType est fonctionnelle : un actif financier possède exactement un type canonique — un unique AssetType (action, obligation, cryptomonnaie, immobilier, matière première). Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "holdingAgent is functional"
 msgstr "holdingAgent est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis."
-msgstr "Affirme sur le porteur canonique que gmeow:holdingAgent est fonctionnelle : un avoir est détenu par exactement un agent — la partie unique que le relateur d'avoir relie à son actif, sa quantité et sa base de coût."
+msgid "Asserts on the canonical carrier that gmeow:holdingAgent is functional: a holding is held by exactly one agent — the single party the holding relator connects to its asset, quantity, and cost basis. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:holdingAgent est fonctionnelle : un avoir est détenu par exactement un agent — la partie unique que le relateur d'avoir relie à son actif, sa quantité et sa base de coût. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "holdingAsset is functional"
 msgstr "holdingAsset est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingAssetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent."
-msgstr "Affirme sur le porteur canonique que gmeow:holdingAsset est fonctionnelle : un avoir porte sur exactement un actif — l'instrument financier unique que le relateur d'avoir relie à son agent détenteur."
+msgid "Asserts on the canonical carrier that gmeow:holdingAsset is functional: a holding is of exactly one asset — the single financial instrument the holding relator connects to its holding agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:holdingAsset est fonctionnelle : un avoir porte sur exactement un actif — l'instrument financier unique que le relateur d'avoir relie à son agent détenteur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingCostBasisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "holdingCostBasis is functional"
@@ -58,48 +58,48 @@ msgid "holdingQuantity is functional"
 msgstr "holdingQuantity est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/holdingQuantityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements."
-msgstr "Affirme sur le porteur canonique que gmeow:holdingQuantity est fonctionnelle : un avoir possède exactement une quantité — le montant unique xsd:decimal de l'actif détenu à un instant donné, les chiffres concurrents étant conservés sous forme d'énoncés distincts indexés par point de vue."
+msgid "Asserts on the canonical carrier that gmeow:holdingQuantity is functional: a holding has exactly one quantity — the single xsd:decimal amount of the asset held at a given point in time, with competing figures kept as separate standpoint-indexed statements. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:holdingQuantity est fonctionnelle : un avoir possède exactement une quantité — le montant unique xsd:decimal de l'actif détenu à un instant donné, les chiffres concurrents étant conservés sous forme d'énoncés distincts indexés par point de vue. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "invoiceAmount is functional"
 msgstr "invoiceAmount est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/invoiceAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment."
-msgstr "Affirme sur le porteur canonique que gmeow:invoiceAmount est fonctionnelle : une facture possède exactement un montant total canonique — l'unique MonetaryAmount qu'elle demande en paiement."
+msgid "Asserts on the canonical carrier that gmeow:invoiceAmount is functional: an invoice has exactly one canonical total amount — the single MonetaryAmount it requests in payment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:invoiceAmount est fonctionnelle : une facture possède exactement un montant total canonique — l'unique MonetaryAmount qu'elle demande en paiement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "ledgerAccountType is functional"
 msgstr "ledgerAccountType est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ledgerAccountTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation."
-msgstr "Affirme sur le porteur canonique que gmeow:ledgerAccountType est fonctionnelle : un compte du grand livre possède exactement un type canonique — un unique LedgerAccountType (actif, passif, capitaux propres, produit, charge) fixant son rôle dans l'équation comptable."
+msgid "Asserts on the canonical carrier that gmeow:ledgerAccountType is functional: a ledger account has exactly one canonical type — a single LedgerAccountType (asset, liability, equity, revenue, expense) fixing its role in the accounting equation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:ledgerAccountType est fonctionnelle : un compte du grand livre possède exactement un type canonique — un unique LedgerAccountType (actif, passif, capitaux propres, produit, charge) fixant son rôle dans l'équation comptable. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "orderAmount is functional"
 msgstr "orderAmount est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/orderAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller."
-msgstr "Affirme sur le porteur canonique que gmeow:orderAmount est fonctionnelle : une commande a exactement un montant total canonique — l'unique MonetaryAmount convenu entre l'acheteur et le vendeur."
+msgid "Asserts on the canonical carrier that gmeow:orderAmount is functional: an order has exactly one canonical total amount — the single MonetaryAmount agreed between the buyer and the seller. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:orderAmount est fonctionnelle : une commande a exactement un montant total canonique — l'unique MonetaryAmount convenu entre l'acheteur et le vendeur. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "postingAccount is functional"
 msgstr "postingAccount est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postingAccountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits."
-msgstr "Affirme sur le porteur canonique que gmeow:postingAccount est fonctionnelle : une écriture affecte exactement un compte du grand livre — l'unique compte comptable que son montant débite ou crédite."
+msgid "Asserts on the canonical carrier that gmeow:postingAccount is functional: a posting affects exactly one ledger account — the single book-keeping account its amount debits or credits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:postingAccount est fonctionnelle : une écriture affecte exactement un compte du grand livre — l'unique compte comptable que son montant débite ou crédite. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "postingAmount is functional"
 msgstr "postingAmount est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postingAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account."
-msgstr "Affirme sur le porteur canonique que gmeow:postingAmount est fonctionnelle : une écriture a exactement un montant — l'unique MonetaryAmount, dans un cadre monétaire explicite unique, qu'elle débite ou crédite sur son compte du grand livre."
+msgid "Asserts on the canonical carrier that gmeow:postingAmount is functional: a posting has exactly one amount — the single MonetaryAmount, in one explicit currency frame, that it debits or credits its ledger account. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:postingAmount est fonctionnelle : une écriture a exactement un montant — l'unique MonetaryAmount, dans un cadre monétaire explicite unique, qu'elle débite ou crédite sur son compte du grand livre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postingDirectionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "postingDirection is functional"
@@ -114,8 +114,8 @@ msgid "postingJournalEntry is functional"
 msgstr "postingJournalEntry est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/postingJournalEntryFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of."
-msgstr "Affirme sur le porteur canonique que gmeow:postingJournalEntry est fonctionnelle : une écriture appartient à exactement une pièce comptable — l'unique événement équilibré en partie double dont elle est une ligne."
+msgid "Asserts on the canonical carrier that gmeow:postingJournalEntry is functional: a posting belongs to exactly one journal entry — the single balanced double-entry event it is one line of. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:postingJournalEntry est fonctionnelle : une écriture appartient à exactement une pièce comptable — l'unique événement équilibré en partie double dont elle est une ligne. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transactionAmountFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transactionAmount is functional"
@@ -130,8 +130,8 @@ msgid "walletScheme is functional"
 msgstr "walletScheme est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/walletSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets."
-msgstr "Affirme sur le porteur canonique que gmeow:walletScheme est fonctionnelle : un portefeuille crypto opère sur exactement un schéma de chaîne de blocs — un unique WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), un contenant multi-schémas étant modélisé comme plusieurs portefeuilles."
+msgid "Asserts on the canonical carrier that gmeow:walletScheme is functional: a crypto wallet operates on exactly one blockchain scheme — a single WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), since a multi-scheme container is modelled as several wallets. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:walletScheme est fonctionnelle : un portefeuille crypto opère sur exactement un schéma de chaîne de blocs — un unique WalletScheme (Bitcoin, Ethereum, Solana, Monero, …), un contenant multi-schémas étant modélisé comme plusieurs portefeuilles. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/accountTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:accountType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

@@ -18,40 +18,40 @@ msgid "durationValue is functional"
 msgstr "durationValue 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/durationValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection."
-msgstr "在规范载体上断言 gmeow:durationValue 是函数性的：一个 gmeow:Duration 恰好有一个以 xsd:duration 字面量表达的长度，TEO 规范化时长字符串是其投影。"
+msgid "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:durationValue 是函数性的：一个 gmeow:Duration 恰好有一个以 xsd:duration 字面量表达的长度，TEO 规范化时长字符串是其投影。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTemporalFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "eventTemporalFrame is functional"
 msgstr "eventTemporalFrame 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTemporalFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing."
-msgstr "在规范载体上断言 gmeow:eventTemporalFrame 是函数性的：一个 gmeow:Event 的日期或区间恰好以一个时间参照系表达（原则 11），即消除该事件时间歧义的单一参照系。"
+msgid "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:eventTemporalFrame 是函数性的：一个 gmeow:Event 的日期或区间恰好以一个时间参照系表达（原则 11），即消除该事件时间歧义的单一参照系。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participationEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "participationEvent is functional"
 msgstr "participationEvent 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participationEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator."
-msgstr "在规范载体上断言 gmeow:participationEvent 是函数性的:一个 gmeow:Participation 恰好是一个事件的一部分,因此参与另一事件将构成一个不同的参与关系元。"
+msgid "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:participationEvent 是函数性的:一个 gmeow:Participation 恰好是一个事件的一部分,因此参与另一事件将构成一个不同的参与关系元。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "recurrenceRuleText is functional"
 msgstr "recurrenceRuleText 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE."
-msgstr "在规范载体上断言 gmeow:recurrenceRuleText 是函数性的:一个 gmeow:RecurrenceRule 恰好携带一个 RFC 5545 RRULE 字符串,直接投影为唯一的一个 iCalendar RRULE。"
+msgid "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:recurrenceRuleText 是函数性的:一个 gmeow:RecurrenceRule 恰好携带一个 RFC 5545 RRULE 字符串,直接投影为唯一的一个 iCalendar RRULE。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "subEventOf is transitive"
 msgstr "「subEventOf」具有传递性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."
-msgstr "在规范载体上断言 gmeow:subEventOf 是传递的：部分的部分即是部分——这是其自身 skos:definition 所承诺的解读（CIDOC-CRM P9）。原生一致性关卡读取此项以闭合子事件关系。"
+msgid "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:subEventOf 是传递的：部分的部分即是部分——这是其自身 skos:definition 所承诺的解读（CIDOC-CRM P9）。原生一致性关卡读取此项以闭合子事件关系。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:subEventOf composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

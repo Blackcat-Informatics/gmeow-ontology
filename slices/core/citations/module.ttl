@@ -469,7 +469,7 @@ gmeow:citedEntityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citedEntity is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:citedEntity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:citedEntity ;
@@ -484,7 +484,7 @@ gmeow:citingEntityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citingEntity is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:citingEntity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:citingEntity ;

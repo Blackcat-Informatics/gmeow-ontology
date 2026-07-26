@@ -398,7 +398,7 @@ gmeow:environmentAtLocationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "environmentAtLocation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:environmentAtLocation is functional: a sensory environment concerns exactly one location, which is constitutive of its identity as the ambient conditions of that place. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:environmentAtLocation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:environmentAtLocation ;
@@ -413,7 +413,7 @@ gmeow:matrixShapeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "matrixShape is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:matrixShape is functional: a coordinate matrix carries exactly one shape descriptor, the single dimension string (such as '4×1' or '640×480×3') the solver layer parses its serialised value against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:matrixShape ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:matrixShape ;
@@ -428,7 +428,7 @@ gmeow:matrixValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "matrixValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:matrixValue is functional: a coordinate matrix carries exactly one serialised numeric payload, the single vector, matrix, or tensor literal the solver layer interprets under the matrix's declared frame and shape. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:matrixValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:matrixValue ;
@@ -443,7 +443,7 @@ gmeow:perceptionEnvironmentFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "perceptionEnvironment is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:perceptionEnvironment is functional: a sensory perception is about exactly one sensory environment, its single observed feature of interest. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:perceptionEnvironment ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:perceptionEnvironment ;
@@ -458,7 +458,7 @@ gmeow:perceptionModalityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "perceptionModality is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:perceptionModality is functional: a sensory perception is made through exactly one sensory channel, the single modality on which that perceived value is registered. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:perceptionModality ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:perceptionModality ;

@@ -190,7 +190,7 @@ gmeow:aggregationFunctionFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "aggregationFunction is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:aggregationFunction is functional: a spatial aggregation applies exactly one statistical function — count, sum, average, density, minimum, maximum, or centroid — so computing a different function over the same region is a different aggregation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:aggregationFunction is functional: a spatial aggregation applies exactly one statistical function — count, sum, average, density, minimum, maximum, or centroid — so computing a different function over the same region is a different aggregation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:aggregationFunction ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:aggregationFunction ;
@@ -205,7 +205,7 @@ gmeow:minimumPopulationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "minimumPopulation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:minimumPopulation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:minimumPopulation ;

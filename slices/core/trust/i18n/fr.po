@@ -34,8 +34,8 @@ msgid "certifiedKey is functional"
 msgstr "certifiedKey est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/certifiedKeyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:certifiedKey is functional: a gmeow:Certification vouches for exactly one gmeow:CryptographicKey, since the key half of the attested binding is singular and a different key is a different attestation."
-msgstr "Affirme sur le porteur canonique que gmeow:certifiedKey est fonctionnelle : une gmeow:Certification se porte garante d'exactement une gmeow:CryptographicKey, puisque la moitié « clé » de la liaison attestée est singulière et qu'une clé différente constitue une attestation différente."
+msgid "Asserts on the canonical carrier that gmeow:certifiedKey is functional: a gmeow:Certification vouches for exactly one gmeow:CryptographicKey, since the key half of the attested binding is singular and a different key is a different attestation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:certifiedKey est fonctionnelle : une gmeow:Certification se porte garante d'exactement une gmeow:CryptographicKey, puisque la moitié « clé » de la liaison attestée est singulière et qu'une clé différente constitue une attestation différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/certifierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "certifier is functional"
@@ -50,8 +50,8 @@ msgid "introducerAmount is functional"
 msgstr "introducerAmount est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/introducerAmountFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:introducerAmount is functional: a gmeow:TrustAssertion carries exactly one introducer amount, since one trustor assigns one trust-signature weight to its trustee and a different weight is a different assertion."
-msgstr "Affirme sur le porteur canonique que gmeow:introducerAmount est fonctionnelle : un gmeow:TrustAssertion porte exactement un montant d'introducteur, car un mandant de confiance attribue un unique poids de signature de confiance à son mandataire, et un poids différent constitue une affirmation différente."
+msgid "Asserts on the canonical carrier that gmeow:introducerAmount is functional: a gmeow:TrustAssertion carries exactly one introducer amount, since one trustor assigns one trust-signature weight to its trustee and a different weight is a different assertion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:introducerAmount est fonctionnelle : un gmeow:TrustAssertion porte exactement un montant d'introducteur, car un mandant de confiance attribue un unique poids de signature de confiance à son mandataire, et un poids différent constitue une affirmation différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/introducerDepthFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "introducerDepth is functional"
@@ -66,32 +66,32 @@ msgid "keyScheme is functional"
 msgstr "keyScheme est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/keySchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:keyScheme is functional: a gmeow:CryptographicKey has exactly one scheme — OpenPGP, X.509, SSH, or Nostr — since a key of a different format is a different key."
-msgstr "Affirme sur le porteur canonique que gmeow:keyScheme est fonctionnelle : une gmeow:CryptographicKey possède exactement un schéma — OpenPGP, X.509, SSH ou Nostr — car une clé d'un format différent est une clé différente."
+msgid "Asserts on the canonical carrier that gmeow:keyScheme is functional: a gmeow:CryptographicKey has exactly one scheme — OpenPGP, X.509, SSH, or Nostr — since a key of a different format is a different key. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:keyScheme est fonctionnelle : une gmeow:CryptographicKey possède exactement un schéma — OpenPGP, X.509, SSH ou Nostr — car une clé d'un format différent est une clé différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signatureAlgorithmFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "signatureAlgorithm is functional"
 msgstr "signatureAlgorithm est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signatureAlgorithmFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:signatureAlgorithm is functional: a gmeow:CryptographicSignature was produced with exactly one algorithm, since one signing act uses one algorithm and a signature made with a different algorithm is a different signature."
-msgstr "Affirme sur le porteur canonique que gmeow:signatureAlgorithm est fonctionnelle: une gmeow:CryptographicSignature a été produite avec exactement un algorithme, puisqu'un acte de signature utilise un algorithme et qu'une signature produite avec un algorithme différent est une signature différente."
+msgid "Asserts on the canonical carrier that gmeow:signatureAlgorithm is functional: a gmeow:CryptographicSignature was produced with exactly one algorithm, since one signing act uses one algorithm and a signature made with a different algorithm is a different signature. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:signatureAlgorithm est fonctionnelle: une gmeow:CryptographicSignature a été produite avec exactement un algorithme, puisqu'un acte de signature utilise un algorithme et qu'une signature produite avec un algorithme différent est une signature différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingDomainFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "signingDomain is functional"
 msgstr "signingDomain est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingDomainFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:signingDomain is functional: a gmeow:CryptographicSignature asserts exactly one signing domain, since a single signature carries one claimed signing authority such as one DKIM d= tag."
-msgstr "Affirme sur le porteur canonique que gmeow:signingDomain est fonctionnelle: une gmeow:CryptographicSignature affirme exactement un domaine de signature, puisqu'une seule signature porte une seule autorité de signature revendiquée, telle qu'une seule balise DKIM d=."
+msgid "Asserts on the canonical carrier that gmeow:signingDomain is functional: a gmeow:CryptographicSignature asserts exactly one signing domain, since a single signature carries one claimed signing authority such as one DKIM d= tag. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:signingDomain est fonctionnelle: une gmeow:CryptographicSignature affirme exactement un domaine de signature, puisqu'une seule signature porte une seule autorité de signature revendiquée, telle qu'une seule balise DKIM d=. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingKeyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "signingKey is functional"
 msgstr "signingKey est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signingKeyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:signingKey is functional: a gmeow:CryptographicSignature is produced by exactly one gmeow:CryptographicKey, since one signing act uses the one specific key whose binding to the signer a certification vouches for."
-msgstr "Affirme sur le porteur canonique que gmeow:signingKey est fonctionnelle: une gmeow:CryptographicSignature est produite par exactement une gmeow:CryptographicKey, puisqu'un acte de signature utilise la seule clé spécifique dont une certification garantit le lien avec le signataire."
+msgid "Asserts on the canonical carrier that gmeow:signingKey is functional: a gmeow:CryptographicSignature is produced by exactly one gmeow:CryptographicKey, since one signing act uses the one specific key whose binding to the signer a certification vouches for. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:signingKey est fonctionnelle: une gmeow:CryptographicSignature est produite par exactement une gmeow:CryptographicKey, puisqu'un acte de signature utilise la seule clé spécifique dont une certification garantit le lien avec le signataire. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trustLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "trustLevel is functional"
@@ -106,16 +106,16 @@ msgid "trustee is functional"
 msgstr "trustee est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trusteeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:trustee is functional: a gmeow:TrustAssertion names exactly one trustee, since a single assertion expresses one trustor's stance toward one trusted agent and trust in another agent is a separate assertion."
-msgstr "Affirme sur le porteur canonique que gmeow:trustee est fonctionnelle : une gmeow:TrustAssertion nomme exactement un mandataire de confiance, puisqu'une seule assertion exprime la position d'un mandant envers un seul agent de confiance et que la confiance envers un autre agent constitue une assertion distincte."
+msgid "Asserts on the canonical carrier that gmeow:trustee is functional: a gmeow:TrustAssertion names exactly one trustee, since a single assertion expresses one trustor's stance toward one trusted agent and trust in another agent is a separate assertion. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:trustee est fonctionnelle : une gmeow:TrustAssertion nomme exactement un mandataire de confiance, puisqu'une seule assertion exprime la position d'un mandant envers un seul agent de confiance et que la confiance envers un autre agent constitue une assertion distincte. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trustorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "trustor is functional"
 msgstr "trustor est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trustorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:trustor is functional: a gmeow:TrustAssertion is held from exactly one trustor's standpoint, being the single perspective holder whose subjective trust it expresses, since another agent's trust is a separate assertion (Principle 9)."
-msgstr "Affirme sur le porteur canonique que gmeow:trustor est fonctionnelle : une gmeow:TrustAssertion est tenue depuis exactement le point de vue d'un seul mandant, l'unique détenteur de perspective dont elle exprime la confiance subjective, puisque la confiance d'un autre agent constitue une assertion distincte (Principe 9)."
+msgid "Asserts on the canonical carrier that gmeow:trustor is functional: a gmeow:TrustAssertion is held from exactly one trustor's standpoint, being the single perspective holder whose subjective trust it expresses, since another agent's trust is a separate assertion (Principle 9). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:trustor est fonctionnelle : une gmeow:TrustAssertion est tenue depuis exactement le point de vue d'un seul mandant, l'unique détenteur de perspective dont elle exprime la confiance subjective, puisque la confiance d'un autre agent constitue une assertion distincte (Principe 9). Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verificationStatusFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "verificationStatus is functional"

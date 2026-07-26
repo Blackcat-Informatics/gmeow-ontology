@@ -34,8 +34,8 @@ msgid "blockHash is functional"
 msgstr "blockHash 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number."
-msgstr "在规范载体上断言 gmeow:blockHash 是函数性的:一个账本区块具有一个按内容寻址的密码学身份,因此其区块哈希是独立于其顺序编号、用以锚定该区块的单一值。"
+msgid "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:blockHash 是函数性的:一个账本区块具有一个按内容寻址的密码学身份,因此其区块哈希是独立于其顺序编号、用以锚定该区块的单一值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "blockNumber is functional"
@@ -50,16 +50,16 @@ msgid "chainId is functional"
 msgstr "chainId 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network."
-msgstr "在规范载体上断言 gmeow:chainId 是函数式的：一个区块链网络由一个 CAIP-2 链标识符命名，因此将其与所有其他链区分开来的字符串是单值的，链上哈希和地址仅针对恰好一个网络进行解析。"
+msgid "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:chainId 是函数式的：一个区块链网络由一个 CAIP-2 链标识符命名，因此将其与所有其他链区分开来的字符串是单值的，链上哈希和地址仅针对恰好一个网络进行解析。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "contractAddress is functional"
 msgstr "contractAddress 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id."
-msgstr "在规范载体上断言 gmeow:contractAddress 是函数式的：一个智能合约在其所在链上恰好位于一个部署位置，因此其程序被调用所依据的链上地址是一个单一值，只有与其链标识符一起时才不含糊。"
+msgid "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:contractAddress 是函数式的：一个智能合约在其所在链上恰好位于一个部署位置，因此其程序被调用所依据的链上地址是一个单一值，只有与其链标识符一起时才不含糊。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "issuedAt is functional"
@@ -82,8 +82,8 @@ msgid "logIndex is functional"
 msgstr "logIndex 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely."
-msgstr "在规范载体上断言 gmeow:logIndex 是函数式的:一个账本事件在其所属区块或交易中恰好位于一个偏移位置,因此用以区分不同已发出日志的区块内位置是单值的,并且与交易哈希及区块一起,唯一地定位该事件。"
+msgid "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:logIndex 是函数式的:一个账本事件在其所属区块或交易中恰好位于一个偏移位置,因此用以区分不同已发出日志的区块内位置是单值的,并且与交易哈希及区块一起,唯一地定位该事件。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transactionHash is functional"

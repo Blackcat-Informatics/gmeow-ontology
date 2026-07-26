@@ -18,24 +18,24 @@ msgid "annotationBody is functional"
 msgstr "annotationBody 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationBodyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:annotationBody is functional: an annotation attaches exactly one note as its body, the single piece of content being attached — a highlight or bookmark simply has none."
-msgstr "在规范载体上断言 gmeow:annotationBody 是函数性的:一条注释恰好附加一条笔记作为其正文,即被附加的单一内容——而高亮或书签则根本没有正文。"
+msgid "Asserts on the canonical carrier that gmeow:annotationBody is functional: an annotation attaches exactly one note as its body, the single piece of content being attached — a highlight or bookmark simply has none. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:annotationBody 是函数性的:一条注释恰好附加一条笔记作为其正文,即被附加的单一内容——而高亮或书签则根本没有正文。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationMotivationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "annotationMotivation is functional"
 msgstr "annotationMotivation 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationMotivationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:annotationMotivation is functional: an annotation carries exactly one motivation, the single purpose for which its body is attached to its target."
-msgstr "在规范载体上断言 gmeow:annotationMotivation 是函数性的:一条注释恰好携带一个动机,即其正文被附加到其目标的唯一目的。"
+msgid "Asserts on the canonical carrier that gmeow:annotationMotivation is functional: an annotation carries exactly one motivation, the single purpose for which its body is attached to its target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:annotationMotivation 是函数性的:一条注释恰好携带一个动机,即其正文被附加到其目标的唯一目的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "annotationTarget is functional"
 msgstr "annotationTarget 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:annotationTarget is functional: an annotation binds exactly one target, the single entity being annotated."
-msgstr "在规范载体上断言 gmeow:annotationTarget 是函数性的:一条注释恰好绑定一个目标,即被注释的单一实体。"
+msgid "Asserts on the canonical carrier that gmeow:annotationTarget is functional: an annotation binds exactly one target, the single entity being annotated. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:annotationTarget 是函数性的:一条注释恰好绑定一个目标,即被注释的单一实体。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationBodyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:annotationBody names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

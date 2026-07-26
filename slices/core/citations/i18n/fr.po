@@ -26,16 +26,16 @@ msgid "citedEntity is functional"
 msgstr "citedEntity est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at."
-msgstr "Affirme sur le porteur canonique que gmeow:citedEntity est fonctionnelle : chaque relateur gmeow:CitationAct pointe vers exactement une œuvre créative citée — l'unique cible de niveau WEMI vers laquelle la citation est dirigée."
+msgid "Asserts on the canonical carrier that gmeow:citedEntity is functional: each gmeow:CitationAct relator points at exactly one cited creative work — the single WEMI-tier target the citation is directed at. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:citedEntity est fonctionnelle : chaque relateur gmeow:CitationAct pointe vers exactement une œuvre créative citée — l'unique cible de niveau WEMI vers laquelle la citation est dirigée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "citingEntity is functional"
 msgstr "citingEntity est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing."
-msgstr "Affirme sur le porteur canonique que gmeow:citingEntity est fonctionnelle : chaque relateur gmeow:CitationAct possède exactement un acteur citant — l'unique revendication, œuvre, module ou jeu de données qui effectue la citation."
+msgid "Asserts on the canonical carrier that gmeow:citingEntity is functional: each gmeow:CitationAct relator has exactly one citing player — the single claim, work, module, or dataset that does the citing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:citingEntity est fonctionnelle : chaque relateur gmeow:CitationAct possède exactement un acteur citant — l'unique revendication, œuvre, module ou jeu de données qui effectue la citation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:citationIntent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

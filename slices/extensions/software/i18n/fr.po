@@ -26,8 +26,8 @@ msgid "buildConfigUri is functional"
 msgstr "buildConfigUri est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/buildConfigUriFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran."
-msgstr "Affirme sur le porteur canonique que gmeow:buildConfigUri est fonctionnelle : une activité de build est pilotée par exactement un fichier de configuration de build ou de workflow, dont l'unique URI identifie la recette décrivant comment le build s'est déroulé."
+msgid "Asserts on the canonical carrier that gmeow:buildConfigUri is functional: a build activity is driven by exactly one build-configuration or workflow file, whose single URI identifies the recipe that describes how the build ran. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:buildConfigUri est fonctionnelle : une activité de build est pilotée par exactement un fichier de configuration de build ou de workflow, dont l'unique URI identifie la recette décrivant comment le build s'est déroulé. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/commitAuthorIdentityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "commitAuthorIdentity is functional"
@@ -58,56 +58,56 @@ msgid "commitTree is functional"
 msgstr "commitTree est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/commitTreeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history."
-msgstr "Affirme sur le porteur canonique que gmeow:commitTree est fonctionnelle : un commit enregistre exactement un arbre source racine — l'unique instantané de répertoire qu'il capture à ce point de l'histoire du dépôt."
+msgid "Asserts on the canonical carrier that gmeow:commitTree is functional: a commit records exactly one root source tree — the single directory snapshot it captures at that point in the repository's history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:commitTree est fonctionnelle : un commit enregistre exactement un arbre source racine — l'unique instantané de répertoire qu'il capture à ce point de l'histoire du dépôt. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/diffFromFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "diffFrom is functional"
 msgstr "diffFrom est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/diffFromFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from."
-msgstr "Affirme sur le porteur canonique que gmeow:diffFrom est fonctionnelle : un diff possède exactement un commit de base — l'unique état « avant » à partir duquel il mesure le changement."
+msgid "Asserts on the canonical carrier that gmeow:diffFrom is functional: a diff has exactly one base commit — the single 'before' state it measures the change away from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:diffFrom est fonctionnelle : un diff possède exactement un commit de base — l'unique état « avant » à partir duquel il mesure le changement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/diffToFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "diffTo is functional"
 msgstr "diffTo est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/diffToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward."
-msgstr "Affirme sur le porteur canonique que gmeow:diffTo est fonctionnelle : un diff possède exactement un commit cible — l'unique état « après » vers lequel il mesure le changement."
+msgid "Asserts on the canonical carrier that gmeow:diffTo is functional: a diff has exactly one target commit — the single 'after' state it measures the change toward. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:diffTo est fonctionnelle : un diff possède exactement un commit cible — l'unique état « après » vers lequel il mesure le changement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/materializationDepthFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "materializationDepth is functional"
 msgstr "materializationDepth est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/materializationDepthFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples."
-msgstr "Affirme sur le porteur canonique que gmeow:materializationDepth est fonctionnelle : un dépôt porte exactement un réglage de profondeur de matérialisation — l'entier non négatif unique fixant combien de niveaux de son arbre source de Merkle sont projetés en triplets."
+msgid "Asserts on the canonical carrier that gmeow:materializationDepth is functional: a repository carries exactly one materialization-depth setting — the single non-negative integer fixing how many levels of its Merkle source tree are projected as triples. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:materializationDepth est fonctionnelle : un dépôt porte exactement un réglage de profondeur de matérialisation — l'entier non négatif unique fixant combien de niveaux de son arbre source de Merkle sont projetés en triplets. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mergeTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "mergeTarget is functional"
 msgstr "mergeTarget est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mergeTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources."
-msgstr "Affirme sur le porteur canonique que gmeow:mergeTarget est fonctionnelle : un événement de fusion possède exactement une référence cible — la branche ou l'étiquette unique dans laquelle la source est fusionnée — par contraste avec ses éventuelles sources de fusion multiples."
+msgid "Asserts on the canonical carrier that gmeow:mergeTarget is functional: a merge event has exactly one target ref — the single branch or tag into which the source is merged, in contrast to its possibly many merge sources. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:mergeTarget est fonctionnelle : un événement de fusion possède exactement une référence cible — la branche ou l'étiquette unique dans laquelle la source est fusionnée — par contraste avec ses éventuelles sources de fusion multiples. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/projectHomepageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "projectHomepage is functional"
 msgstr "projectHomepage est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/projectHomepageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point."
-msgstr "Affirme sur le porteur canonique que gmeow:projectHomepage est fonctionnelle : un projet possède exactement un IRI de page d'accueil canonique — son unique point d'atterrissage doap:homepage / schema:url."
+msgid "Asserts on the canonical carrier that gmeow:projectHomepage is functional: a project has exactly one canonical homepage IRI — its single doap:homepage / schema:url landing point. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:projectHomepage est fonctionnelle : un projet possède exactement un IRI de page d'accueil canonique — son unique point d'atterrissage doap:homepage / schema:url. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/releaseOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "releaseOf is functional"
 msgstr "releaseOf est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/releaseOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships."
-msgstr "Affirme sur le porteur canonique que gmeow:releaseOf est fonctionnelle : un événement de publication appartient à exactement un projet — l'unique entreprise dont cette publication livre le logiciel."
+msgid "Asserts on the canonical carrier that gmeow:releaseOf is functional: a release event belongs to exactly one project — the single endeavour whose software that release ships. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:releaseOf est fonctionnelle : un événement de publication appartient à exactement un projet — l'unique entreprise dont cette publication livre le logiciel. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/repositoryTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "repositoryType is functional"
@@ -122,24 +122,24 @@ msgid "treeEntryMode is functional"
 msgstr "treeEntryMode est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object."
-msgstr "Affirme sur le porteur canonique que gmeow:treeEntryMode est fonctionnelle : une entrée d'arbre porte exactement un mode de fichier git — le champ de mode unique (fichier normal, exécutable, répertoire, sous-module ou lien symbolique) sur cette seule ligne de l'objet arbre."
+msgid "Asserts on the canonical carrier that gmeow:treeEntryMode is functional: a tree entry carries exactly one git file mode — the single mode field (regular file, executable, directory, submodule, or symlink) on that one line of the tree object. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:treeEntryMode est fonctionnelle : une entrée d'arbre porte exactement un mode de fichier git — le champ de mode unique (fichier normal, exécutable, répertoire, sous-module ou lien symbolique) sur cette seule ligne de l'objet arbre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryNameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "treeEntryName is functional"
 msgstr "treeEntryName est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryNameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object."
-msgstr "Affirme sur le porteur canonique que gmeow:treeEntryName est fonctionnelle : une entrée d'arbre porte exactement un nom de fichier ou de répertoire — le nom unique sur cette seule ligne de l'objet arbre git."
+msgid "Asserts on the canonical carrier that gmeow:treeEntryName is functional: a tree entry carries exactly one file-or-directory name — the single name on that one line of the git tree object. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:treeEntryName est fonctionnelle : une entrée d'arbre porte exactement un nom de fichier ou de répertoire — le nom unique sur cette seule ligne de l'objet arbre git. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "treeEntryObject is functional"
 msgstr "treeEntryObject est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names."
-msgstr "Affirme sur le porteur canonique que gmeow:treeEntryObject est fonctionnelle : une entrée d'arbre pointe vers exactement un objet adressé par contenu — le Blob ou SourceTree unique que nomme cette ligne de l'arbre."
+msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:treeEntryObject est fonctionnelle : une entrée d'arbre pointe vers exactement un objet adressé par contenu — le Blob ou SourceTree unique que nomme cette ligne de l'arbre. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:authorIdentityString names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

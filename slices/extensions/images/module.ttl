@@ -682,7 +682,7 @@ gmeow:depictionContextFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depictionContext is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:depictionContext is functional: a gmeow:DepictionUsage relator records exactly one context — the single work, family, childhood, portrait, or candid setting in which the image depicts its subject."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:depictionContext is functional: a gmeow:DepictionUsage relator records exactly one context — the single work, family, childhood, portrait, or candid setting in which the image depicts its subject. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:depictionContext ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:depictionContext ;
@@ -697,7 +697,7 @@ gmeow:depictionImageFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depictionImage is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:depictionImage is functional: a gmeow:DepictionUsage relator binds exactly one image — the single gmeow:MediaObject that depicts the subject in that reified depiction."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:depictionImage is functional: a gmeow:DepictionUsage relator binds exactly one image — the single gmeow:MediaObject that depicts the subject in that reified depiction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:depictionImage ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:depictionImage ;
@@ -712,7 +712,7 @@ gmeow:depictionSubjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depictionSubject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:depictionSubject is functional: a gmeow:DepictionUsage relator names exactly one depicted entity — the single subject shown in that reified depiction."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:depictionSubject is functional: a gmeow:DepictionUsage relator names exactly one depicted entity — the single subject shown in that reified depiction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:depictionSubject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:depictionSubject ;
@@ -727,7 +727,7 @@ gmeow:exifTagIdFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "exifTagId is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:exifTagId is functional: a gmeow:ExifTag carries exactly one tag identifier — the single machine key, such as 'FNumber' or 'ExposureTime', naming which EXIF field the record captures."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exifTagId is functional: a gmeow:ExifTag carries exactly one tag identifier — the single machine key, such as 'FNumber' or 'ExposureTime', naming which EXIF field the record captures. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:exifTagId ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:exifTagId ;
@@ -742,7 +742,7 @@ gmeow:exifTagValueFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "exifTagValue is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:exifTagValue is functional: a gmeow:ExifTag holds exactly one value — the single reading, such as 'f/2.0' or 'sRGB', recorded for that one tagged field."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exifTagValue is functional: a gmeow:ExifTag holds exactly one value — the single reading, such as 'f/2.0' or 'sRGB', recorded for that one tagged field. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:exifTagValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:exifTagValue ;
@@ -757,7 +757,7 @@ gmeow:regionOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "regionOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:regionOf is functional: a gmeow:ImageRegion is part of exactly one image — a bounded region belongs to the single gmeow:MediaObject it was cut from."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:regionOf is functional: a gmeow:ImageRegion is part of exactly one image — a bounded region belongs to the single gmeow:MediaObject it was cut from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:regionOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:regionOf ;
@@ -772,7 +772,7 @@ gmeow:regionSelectorFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "regionSelector is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:regionSelector is functional: a gmeow:ImageRegion is described by exactly one selector — the single boundary specification that fixes its extent."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:regionSelector is functional: a gmeow:ImageRegion is described by exactly one selector — the single boundary specification that fixes its extent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:regionSelector ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:regionSelector ;
@@ -787,7 +787,7 @@ gmeow:sceneConfidenceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneConfidence is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:sceneConfidence is functional: a gmeow:SceneGraphEdge carries exactly one confidence value — a single decimal in [0.0, 1.0] quantifying that one asserted relation."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneConfidence is functional: a gmeow:SceneGraphEdge carries exactly one confidence value — a single decimal in [0.0, 1.0] quantifying that one asserted relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:sceneConfidence ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:sceneConfidence ;
@@ -802,7 +802,7 @@ gmeow:sceneObjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneObject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:sceneObject is functional: a gmeow:SceneGraphEdge points at exactly one object region — the single gmeow:ImageRegion toward which its relation is directed."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneObject is functional: a gmeow:SceneGraphEdge points at exactly one object region — the single gmeow:ImageRegion toward which its relation is directed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:sceneObject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:sceneObject ;
@@ -817,7 +817,7 @@ gmeow:sceneRelationFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneRelation is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:sceneRelation is functional: a gmeow:SceneGraphEdge asserts exactly one relation — the single spatial or semantic tie it represents between its subject and object regions."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneRelation is functional: a gmeow:SceneGraphEdge asserts exactly one relation — the single spatial or semantic tie it represents between its subject and object regions. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:sceneRelation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:sceneRelation ;
@@ -832,7 +832,7 @@ gmeow:sceneSubjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneSubject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:sceneSubject is functional: a gmeow:SceneGraphEdge originates at exactly one subject region — the single gmeow:ImageRegion from which its relation proceeds."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sceneSubject is functional: a gmeow:SceneGraphEdge originates at exactly one subject region — the single gmeow:ImageRegion from which its relation proceeds. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:sceneSubject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:sceneSubject ;
@@ -847,7 +847,7 @@ gmeow:selectorTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "selectorType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:selectorType is functional: a gmeow:RegionSelector has exactly one encoding kind — the single gmeow:SelectorType telling a reader how to decode its boundary coordinates."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:selectorType is functional: a gmeow:RegionSelector has exactly one encoding kind — the single gmeow:SelectorType telling a reader how to decode its boundary coordinates. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:selectorType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:selectorType ;

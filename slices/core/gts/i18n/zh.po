@@ -26,8 +26,8 @@ msgid "gtsHeadId is functional"
 msgstr "gtsHeadId 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsHeadIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history."
-msgstr "在规范载体上断言 gmeow:gtsHeadId 是函数性的:一个 gmeow:GTSSegment 恰好有一个链头——其最后一帧的唯一内容标识,记作 'blake3:<hex>',它以传递方式承诺该分段的整个帧历史。"
+msgid "Asserts on the canonical carrier that gmeow:gtsHeadId is functional: a gmeow:GTSSegment has exactly one chain head — the single content-id of its last frame, written 'blake3:<hex>', which transitively commits to the segment's entire frame history. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:gtsHeadId 是函数性的:一个 gmeow:GTSSegment 恰好有一个链头——其最后一帧的唯一内容标识,记作 'blake3:<hex>',它以传递方式承诺该分段的整个帧历史。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsProfileFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "gtsProfile is functional"
@@ -50,8 +50,8 @@ msgid "gtsSegmentIndex is functional"
 msgstr "gtsSegmentIndex 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity."
-msgstr "在规范载体上断言 gmeow:gtsSegmentIndex 是函数性的:一个 gmeow:GTSSegment 在其文档的文件顺序中恰好占据一个从零开始的位置——一个单一的索引,这些索引的有序列表构成文档的复合身份。"
+msgid "Asserts on the canonical carrier that gmeow:gtsSegmentIndex is functional: a gmeow:GTSSegment occupies exactly one zero-based position in its document's file order — a single index, the ordered list of which forms the document's composite identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:gtsSegmentIndex 是函数性的:一个 gmeow:GTSSegment 在其文档的文件顺序中恰好占据一个从零开始的位置——一个单一的索引,这些索引的有序列表构成文档的复合身份。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gtsSegmentOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "gtsSegmentOf is functional"
@@ -66,16 +66,16 @@ msgid "opacityReason is functional"
 msgstr "opacityReason 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opacityReasonFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss."
-msgstr "在规范载体上断言 gmeow:opacityReason 是函数性的:一个 gmeow:OpaqueFrame 恰好有一个不透明原因——单一成因,可能是缺少密钥的加密类编解码器、读取方所不具备的编解码器,或是损坏,因为没有说明原因的不透明将与数据丢失无法区分。"
+msgid "Asserts on the canonical carrier that gmeow:opacityReason is functional: a gmeow:OpaqueFrame has exactly one reason for its opacity — a single cause, an encrypt-class codec without a key, a codec the reader lacks, or damage, since opacity without a stated reason would be indistinguishable from data loss. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:opacityReason 是函数性的:一个 gmeow:OpaqueFrame 恰好有一个不透明原因——单一成因,可能是缺少密钥的加密类编解码器、读取方所不具备的编解码器,或是损坏,因为没有说明原因的不透明将与数据丢失无法区分。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "opaqueFrameIn is functional"
 msgstr "opaqueFrameIn 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/opaqueFrameInFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain."
-msgstr "在规范载体上断言 gmeow:opaqueFrameIn 是函数性的:一个 gmeow:OpaqueFrame 恰好属于一个片段——一帧在某一个片段的链中占据单一位置。"
+msgid "Asserts on the canonical carrier that gmeow:opaqueFrameIn is functional: a gmeow:OpaqueFrame belongs to exactly one segment — a frame occupies a single position in one segment's chain. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:opaqueFrameIn 是函数性的:一个 gmeow:OpaqueFrame 恰好属于一个片段——一帧在某一个片段的链中占据单一位置。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/codecClassFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:codecClass names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

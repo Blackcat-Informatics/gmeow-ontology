@@ -259,7 +259,7 @@ gmeow:indexAlgorithmFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "indexAlgorithm is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:indexAlgorithm is functional: a vector index is built with exactly one approximate-nearest-neighbour structure, a single build-time commitment fixing how that index is searched. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:indexAlgorithm ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:indexAlgorithm ;
@@ -274,7 +274,7 @@ gmeow:relationshipSourceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationshipSource is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relationshipSource is functional: an extracted relationship has exactly one entity description at its tail, the single source endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:relationshipSource ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:relationshipSource ;
@@ -289,7 +289,7 @@ gmeow:relationshipTargetFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationshipTarget is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relationshipTarget is functional: an extracted relationship has exactly one entity description at its head, the single target endpoint of the directed edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:relationshipTarget ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:relationshipTarget ;
@@ -304,7 +304,7 @@ gmeow:summarizesCommunityFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "summarizesCommunity is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:summarizesCommunity is functional: a community summary condenses exactly one community, the single cluster whose members and chunks the summary was generated from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:summarizesCommunity ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:summarizesCommunity ;

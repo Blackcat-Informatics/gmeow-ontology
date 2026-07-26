@@ -1866,7 +1866,7 @@ gmeow:profileSurfaceKindFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "profileSurfaceKind is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:profileSurfaceKind ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:profileSurfaceKind ;
@@ -1881,7 +1881,7 @@ gmeow:profileSurfaceOfFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "profileSurfaceOf is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:profileSurfaceOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:profileSurfaceOf ;
@@ -1896,7 +1896,7 @@ gmeow:projectionSourceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "projectionSource is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:projectionSource ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:projectionSource ;
@@ -1926,7 +1926,7 @@ gmeow:reproducibilityToleranceFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "reproducibilityTolerance is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:reproducibilityTolerance ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:reproducibilityTolerance ;

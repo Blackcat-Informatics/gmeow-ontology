@@ -18,40 +18,40 @@ msgid "durationValue is functional"
 msgstr "durationValue est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/durationValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection."
-msgstr "Affirme sur le porteur canonique que gmeow:durationValue est fonctionnelle : une gmeow:Duration possède exactement une longueur exprimée sous forme de littéral xsd:duration, dont la chaîne de durée normalisée TEO est une projection."
+msgid "Asserts on the canonical carrier that gmeow:durationValue is functional: a gmeow:Duration has exactly one length expressed as an xsd:duration literal, of which the TEO normalized-duration string is a projection. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:durationValue est fonctionnelle : une gmeow:Duration possède exactement une longueur exprimée sous forme de littéral xsd:duration, dont la chaîne de durée normalisée TEO est une projection. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTemporalFrameFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "eventTemporalFrame is functional"
 msgstr "eventTemporalFrame est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTemporalFrameFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing."
-msgstr "Affirme sur le porteur canonique que gmeow:eventTemporalFrame est fonctionnelle : la date ou l'intervalle d'un gmeow:Event est exprimé dans exactement un cadre temporel (Principe 11), un cadre de référence unique qui lève l'ambiguïté sur la datation de l'événement."
+msgid "Asserts on the canonical carrier that gmeow:eventTemporalFrame is functional: a gmeow:Event's date or interval is expressed in exactly one temporal frame (Principle 11), a single reference frame that disambiguates the event's timing. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:eventTemporalFrame est fonctionnelle : la date ou l'intervalle d'un gmeow:Event est exprimé dans exactement un cadre temporel (Principe 11), un cadre de référence unique qui lève l'ambiguïté sur la datation de l'événement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participationEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "participationEvent is functional"
 msgstr "participationEvent est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/participationEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator."
-msgstr "Affirme sur le porteur canonique que gmeow:participationEvent est fonctionnelle : un gmeow:Participation fait partie d'exactement un événement, de sorte que la participation à un autre événement constitue un relateur de participation distinct."
+msgid "Asserts on the canonical carrier that gmeow:participationEvent is functional: a gmeow:Participation is part of exactly one event, so participation in another event is a distinct participation relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:participationEvent est fonctionnelle : un gmeow:Participation fait partie d'exactement un événement, de sorte que la participation à un autre événement constitue un relateur de participation distinct. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "recurrenceRuleText is functional"
 msgstr "recurrenceRuleText est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/recurrenceRuleTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE."
-msgstr "Affirme sur le porteur canonique que gmeow:recurrenceRuleText est fonctionnelle : un gmeow:RecurrenceRule porte exactement une chaîne RRULE RFC 5545, projetée directement vers une unique RRULE iCalendar."
+msgid "Asserts on the canonical carrier that gmeow:recurrenceRuleText is functional: a gmeow:RecurrenceRule carries exactly one RFC 5545 RRULE string, projected directly to a single iCalendar RRULE. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:recurrenceRuleText est fonctionnelle : un gmeow:RecurrenceRule porte exactement une chaîne RRULE RFC 5545, projetée directement vers une unique RRULE iCalendar. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "subEventOf is transitive"
 msgstr "« subEventOf » est transitif"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."
-msgstr "Affirme sur le porteur canonique que gmeow:subEventOf est transitif : une partie d'une partie est une partie — la lecture à laquelle sa propre skos:definition s'engage (CIDOC-CRM P9). La barrière de cohérence native le lit pour clôturer la relation de sous-événement."
+msgid "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:subEventOf est transitif : une partie d'une partie est une partie — la lecture à laquelle sa propre skos:definition s'engage (CIDOC-CRM P9). La barrière de cohérence native le lit pour clôturer la relation de sous-événement. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/subEventOfTransitivity|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:subEventOf composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

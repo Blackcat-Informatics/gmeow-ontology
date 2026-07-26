@@ -106,24 +106,24 @@ msgid "profileSurfaceKind is functional"
 msgstr "profileSurfaceKind 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares."
-msgstr "在规范载体上断言 gmeow:profileSurfaceKind 是函数性的:一个配置文件表面恰好是一种视图类型——容器或清单——这样一致性约束才能明确地识别出投影的容器操作数和清单操作数;如果一个表面同时是两种类型,就会使容器/清单交叉检查所比较的操作数本身发生塌缩。"
+msgid "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:profileSurfaceKind 是函数性的:一个配置文件表面恰好是一种视图类型——容器或清单——这样一致性约束才能明确地识别出投影的容器操作数和清单操作数;如果一个表面同时是两种类型,就会使容器/清单交叉检查所比较的操作数本身发生塌缩。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "profileSurfaceOf is functional"
 msgstr "profileSurfaceOf 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against."
-msgstr "在规范载体上断言 gmeow:profileSurfaceOf 是函数性的:一个配置文件表面恰好是某一个内嵌投影的视图,这样容器与清单的一致性约束才能通过它们共享的唯一投影精确地连接两个表面;若一个表面对应两个投影,就没有明确定义的投影可供交叉检查。"
+msgid "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:profileSurfaceOf 是函数性的:一个配置文件表面恰好是某一个内嵌投影的视图,这样容器与清单的一致性约束才能通过它们共享的唯一投影精确地连接两个表面;若一个表面对应两个投影,就没有明确定义的投影可供交叉检查。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "projectionSource is functional"
 msgstr "projectionSource 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor."
-msgstr "在规范载体上断言 gmeow:projectionSource 是函数性的:一个投影恰好由一个源工件生成,因此「究竟来自哪个源?」这个问题会归结到唯一一个携带自身 gmeow:contentDigest 的内容寻址包;若一个投影绑定两个源,就没有可验证的来源锚点。"
+msgid "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:projectionSource 是函数性的:一个投影恰好由一个源工件生成,因此「究竟来自哪个源?」这个问题会归结到唯一一个携带自身 gmeow:contentDigest 的内容寻址包;若一个投影绑定两个源,就没有可验证的来源锚点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reproducibilityLevel is functional"
@@ -138,8 +138,8 @@ msgid "reproducibilityTolerance is functional"
 msgstr "reproducibilityTolerance 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one."
-msgstr "在规范载体上断言 gmeow:reproducibilityTolerance 是函数性的:一个「容差内」投影被认定为在恰好一个数值边界下得以重现,即使 gmeow:reproducibleWithinTolerance 可被核验的唯一 math:Quantity;两个相互竞争的容差会使「容差内」这一主张变得含糊,因此一个投影只携带一个容差。"
+msgid "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:reproducibilityTolerance 是函数性的:一个「容差内」投影被认定为在恰好一个数值边界下得以重现,即使 gmeow:reproducibleWithinTolerance 可被核验的唯一 math:Quantity;两个相互竞争的容差会使「容差内」这一主张变得含糊,因此一个投影只携带一个容差。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "similarityScore is functional"
