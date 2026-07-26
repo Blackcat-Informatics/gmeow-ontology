@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N3 - a prescription version with no content address. Immutability is enforced by
+# content addressing rather than a flag, so an unaddressed version makes in-place
+# revision undetectable. MUST trip logic:PrescriptionVersionImmutabilityConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:versionNoDigest a logic:PrescriptionVersion ;
+    rdfs:label "a prescription version that is not content-addressed"@en .

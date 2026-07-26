@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N10 - a capability gap naming no blocked step, so the absent OCR capability is
+# reported as a general provisioning complaint rather than a concrete blockage a
+# proposal could close. MUST trip logic:OperationalGapCarriesProposalConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:ocrGapNoStep a logic:OperationalCapabilityGap ;
+    rdfs:label "an absent OCR capability blocking nothing nameable"@en .

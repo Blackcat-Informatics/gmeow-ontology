@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# N8 - a model advisory occupying the pin-authority position. Model output is
+# attributed evidence and may never license an action.
+# MUST trip logic:AdvisoryNeverAuthorityConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:suggestedPlan a logic:Advisory ;
+    rdfs:label "a model suggestion presented as authorization"@en .
+
+ex:pinAuthorizedByAdvice a logic:PinnedExecutableSubgraph ;
+    logic:pinAuthority ex:suggestedPlan ;
+    rdfs:label "a pin authorized by advice rather than by a proof"@en .

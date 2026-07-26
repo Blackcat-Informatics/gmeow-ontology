@@ -252,3 +252,76 @@ ex:ecTypedIrDatatypeWithoutLiteral a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The indexed carrier has one IRI value kind plus logic:termLiteralDatatype but no lexical logic:termLiteral, so LiteralDatatypeConstraint must reject the dangling datatype IRI." .
+
+# --- Enactment kernel: the required negatives --------------------------------
+#
+# One fixture per law, each isolating a single defect so the (fixture, code) pair
+# pins that law specifically. Every kernel constraint projects to an
+# sh:SPARQLConstraint, so the code is uniformly shacl.SPARQLConstraintComponent
+# and the specific law is named in the rationale.
+
+ex:ecCheckpointNoFoldedIdentity a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/checkpoint-no-folded-identity.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:EnactmentCheckpoint with no logic:checkpointDescriptorHash. Restore is identity-gated across seven axes and the fold is what the gate compares first, so an unfolded checkpoint cannot be gated at all. MUST emit shacl.SPARQLConstraintComponent for logic:CheckpointRestoreIdentityConstraint and NO other finding." .
+
+ex:ecContinuationConflated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/continuation-resume-and-repeat-conflated.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A continuation record claiming both logic:ContinuationResume and logic:ContinuationRepeat. The two carry different required bindings and different consequences, so a record claiming both has not said which happened. MUST emit shacl.SPARQLConstraintComponent for logic:ContinuationKindDisjointnessConstraint and NO other finding." .
+
+ex:ecPrescriptionNotAddressed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/prescription-version-not-content-addressed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:PrescriptionVersion with no logic:prescriptionDigest. Immutability is enforced by content addressing rather than a flag, so an unaddressed version makes in-place revision undetectable. MUST emit shacl.SPARQLConstraintComponent for logic:PrescriptionVersionImmutabilityConstraint and NO other finding." .
+
+ex:ecReceiptWithoutAttempt a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/receipt-without-attempt.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:ExternalEffectReceipt with no logic:receiptOfAttempt, asserting an outcome nobody caused — the shape a fabricated or mis-imported effect record takes. MUST emit shacl.SPARQLConstraintComponent for logic:ReceiptRequiresAttemptConstraint and NO other finding." .
+
+ex:ecUnknownWithoutAttempt a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/unknown-outcome-without-attempt.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:ExternalOutcomeUnknown naming no attempt. Retry from an undetermined position is licensed only through the attempt, so this record can never be resolved and can never license the retry it invites. MUST emit shacl.SPARQLConstraintComponent for logic:NoBlindRetryConstraint and NO other finding." .
+
+ex:ecCompensationAsInverse a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/compensation-typed-as-its-forward-receipt.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:CompensationAttempt also typed logic:ExternalEffectReceipt, collapsing the counteraction into the thing counteracted — the guaranteed-inverse reading that makes a failed compensation invisible. MUST emit shacl.SPARQLConstraintComponent for logic:CompensationNotInverseConstraint and NO other finding." .
+
+ex:ecCompensationNoReceipt a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/compensation-outcome-without-receipt.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:CompensationOutcome with no logic:compensationReceipt. Coded separately from the not-an-inverse fixture because the two are independent obligations and a corpus must be able to trip each alone. MUST emit shacl.SPARQLConstraintComponent for logic:CompensationSuccessRequiresReceiptConstraint and NO other finding." .
+
+ex:ecApprovalDetached a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/approval-detached-from-intent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:ApprovalCommitment binding no logic:approvalIntentDigest. Exact binding is what stops an authorization for one thing licensing another; a commitment with no digest detaches against anything. MUST emit shacl.SPARQLConstraintComponent for logic:ApprovalCommitmentCompletenessConstraint and NO other finding." .
+
+ex:ecAdvisoryAuthorizesPin a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/advisory-authorizes-a-pin.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:Advisory occupying the logic:pinAuthority position. Model output is attributed evidence and may never license an action; the separation is structural rather than conventional because a convention is what fails under time pressure. MUST emit shacl.SPARQLConstraintComponent for logic:AdvisoryNeverAuthorityConstraint and NO other finding." .
+
+ex:ecFrontierUnwitnessed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/frontier-closed-without-saturation-witness.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:ActionableFrontier with no logic:frontierSaturationWitness. An unwitnessed closure claim is exactly how a roster truncated by a budget cut passes for complete, after which the system confidently omits the action it should have taken. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint and NO other finding." .
+
+ex:ecCapabilityGapNoStep a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/capability-gap-without-blocked-step.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "A logic:OperationalCapabilityGap naming no blocked step, so an absent capability is reported as a general provisioning complaint rather than a concrete blockage a proposal could close — the silent-substitution failure inverted. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapCarriesProposalConstraint and NO other finding." .
