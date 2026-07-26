@@ -32,7 +32,7 @@
 //! `emit_divergence_nq`) and the real gate morphism (`gmeow_errors::grade::gate`),
 //! so they PASS with no regeneration. Gates 1/2/3 read the SHIPPED generated
 //! artifacts (`gmeow.gts`, `functions.fno.ttl`, `gmeow-conformance-corpus.sssom.tsv`);
-//! until `make sync` re-mints those artifacts with the Task 1–4 individuals,
+//! until `make regen` re-mints those artifacts with the Task 1–4 individuals,
 //! they FAIL with a CLEAN drift / empty report (never a panic or parse crash) and
 //! pass post-regenerate.
 
@@ -119,7 +119,7 @@ fn load_shipped_bundle() -> Arc<RdfDataset> {
     let path = shipped_gts_path();
     let bytes = std::fs::read(&path).unwrap_or_else(|e| {
         panic!(
-            "SHIPPED bundle {} could not be read: {e} — run `make sync`",
+            "SHIPPED bundle {} could not be read: {e} — run `make regen`",
             path.display()
         )
     });
@@ -189,7 +189,7 @@ fn no_drift_szs_table_matches_outcome_for_szs() {
     let fno_path = functions_fno_path();
     let fno_text = std::fs::read_to_string(&fno_path).unwrap_or_else(|e| {
         panic!(
-            "shipped FnO catalog {} could not be read: {e} — run `make sync`",
+            "shipped FnO catalog {} could not be read: {e} — run `make regen`",
             fno_path.display()
         )
     });
@@ -232,7 +232,7 @@ fn no_drift_szs_table_matches_outcome_for_szs() {
             panic!(
                 "shipped SZS individual {subj} carries logic:projectsToVerdict but no \
                  logic:rawStatusToken — cannot bind it to outcome_for_szs (stale gmeow.gts? \
-                 run `make sync`)"
+                 run `make regen`)"
             )
         });
         let shipped = conf_local_to_verdict_status(verdict_local).unwrap_or_else(|| {
@@ -262,7 +262,7 @@ fn no_drift_szs_table_matches_outcome_for_szs() {
     assert_eq!(
         shipped_tokens, expected,
         "SZS DOMAIN DRIFT: gmeow.gts ships {shipped_tokens:?} but outcome_for_szs's domain \
-         is {expected:?} (stale gmeow.gts fails here until `make sync`)"
+         is {expected:?} (stale gmeow.gts fails here until `make regen`)"
     );
 }
 
@@ -276,7 +276,7 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
             "shipped SSSOM {} could not be read: {e} — the eqConfCorpus cells project here; \
-             run `make sync`",
+             run `make regen`",
             path.display()
         )
     });
@@ -345,7 +345,7 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
     assert!(
         rows >= 4,
         "shipped SSSOM {} has {rows} data rows; the four eqConfCorpus cells must all project \
-         (stale/absent file fails here until `make sync`)",
+         (stale/absent file fails here until `make regen`)",
         path.display()
     );
     for kind in [
@@ -421,7 +421,7 @@ fn graph_isolation_conformance_never_imported_and_lives_in_its_own_graph() {
         comparison_or_tally_graphs.contains(CONFORMANCE_GRAPH),
         "no ConformanceComparison/CorpusAgreementTally individual found in the conformance graph \
          <{CONFORMANCE_GRAPH}> of the shipped bundle (stale gmeow.gts fails here until \
-         `make sync`; observed graphs: {comparison_or_tally_graphs:?})"
+         `make regen`; observed graphs: {comparison_or_tally_graphs:?})"
     );
 }
 
@@ -589,7 +589,7 @@ fn non_empty_conformance_graph_per_graded_corpus() {
                     "NON-EMPTY: verdict corpus {corpus:?} has ≥1 gradeable case but the shipped \
                      conformance graph carries no ConformanceComparison for it with a Conf* \
                      comparisonNativeVerdict AND a rawStatusToken (stale gmeow.gts fails here \
-                     until `make sync`)"
+                     until `make regen`)"
                 );
             }
             Gradeability::Ontouml => {
@@ -598,14 +598,14 @@ fn non_empty_conformance_graph_per_graded_corpus() {
                     corpus_has_comparison.contains(&corpus),
                     "NON-EMPTY: OntoUML corpus {corpus:?} has ≥1 gradeable case but the shipped \
                      conformance graph carries no ConformanceComparison for it (stale gmeow.gts \
-                     fails here until `make sync`)"
+                     fails here until `make regen`)"
                 );
             }
         }
         assert!(
             tally_corpora.contains(&corpus),
             "NON-EMPTY: corpus {corpus:?} grades cases but the shipped conformance graph carries \
-             no CorpusAgreementTally for it (stale gmeow.gts fails here until `make sync`)"
+             no CorpusAgreementTally for it (stale gmeow.gts fails here until `make regen`)"
         );
     }
 

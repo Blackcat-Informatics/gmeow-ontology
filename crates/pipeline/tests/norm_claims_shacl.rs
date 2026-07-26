@@ -28,7 +28,7 @@
 //!
 //! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle AND the
 //! post-sync `generated/shapes/*.ttl` shape union (`purrdf::shapes::shape_union::shape_files`
-//! fails closed when `generated/shapes/` is empty) — it runs green only after `make sync`.
+//! fails closed when `generated/shapes/` is empty) — it runs green only after `make regen`.
 
 use std::path::{Path, PathBuf};
 

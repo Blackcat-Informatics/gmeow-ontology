@@ -2110,7 +2110,7 @@ fn render_fragments_json(surface: &DecidabilitySurface) -> Result<String, serde_
 /// the shipped manifest rather than re-authoring a static table. Output is
 /// deterministic (sorted by id). A graph source carrying NO decidability manifest is
 /// a hard fail (never a silent empty success): the manifest is materialized into the
-/// bundle by `make sync`, so an empty read points the user at that.
+/// bundle by `make regen`, so an empty read points the user at that.
 pub fn logic_fragments(
     reporter: &dyn Reporter,
     bundle: Option<&Path>,
@@ -2126,7 +2126,7 @@ pub fn logic_fragments(
             reporter,
             "gmeow-cli.logic-fragments.empty-surface",
             "the graph source carries no logic:DecidedFragment / logic:expressivenessBoundary \
-             decidability manifest; the embedded bundle is materialized by `make sync`, or pass \
+             decidability manifest; the embedded bundle is materialized by `make regen`, or pass \
              --bundle pointing at a graph source that ships the manifest (e.g. the logic slice \
              module.ttl)",
         );

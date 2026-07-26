@@ -26,12 +26,12 @@ use purrdf::{NativeRdfFormat, parse_dataset};
 /// through this constant to run the substrate SHACL validation — a HARD dependency:
 /// the build fails if `generated/dist/gmeow.gts` is absent, never a degraded fallback.
 ///
-/// The bundle is a git-ignored staged product materialized by `make sync` (or
+/// The bundle is a git-ignored staged product materialized by `make regen` (or
 /// `make install`), never a committed input. `build.rs` resolves it to an
 /// absolute path, guards against it being absent or empty, and exposes that
 /// path via the `GMEOW_BUNDLE_PATH` build-time env var this `include_bytes!`
 /// reads — so the build fails closed with a bootstrap pointer (naming
-/// `make sync`) rather than a bare "file not found" when the bundle hasn't
+/// `make regen`) rather than a bare "file not found" when the bundle hasn't
 /// been materialized yet. `GMEOW_BUNDLE_PATH` may be set in the environment to
 /// override the staged path for release/package flows; the same hard fail on
 /// absence still applies.

@@ -32,6 +32,7 @@ fn small_model() -> DocsModel {
             creators: Vec::new(),
             consumers: Vec::new(),
             artifacts: Vec::new(),
+            documents: Vec::new(),
             profiles: Vec::new(),
             depends_on: Vec::new(),
             has_thesis_sentence: false,

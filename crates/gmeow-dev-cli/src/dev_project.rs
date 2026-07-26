@@ -93,8 +93,28 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
         .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
     let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
         .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
+    // The browser bundle assets: the object-level core N-Quads (the explorer's
+    // client-side query dataset) and the full bundle bytes (the in-browser Tier-1
+    // validate surface's shapes source). Both ship as external site assets.
+    let core_bundle_nquads = gmeow_validate::store::core_browser_bundle_nquads(&bytes, &[])
+        .map_err(|e| fail(format!("cannot build core browser bundle from bundle: {e}")))?
+        .into_bytes();
+    // The W4 conjecture-playground demo library: the committed curated
+    // `logic:Conjecture` corpus, shipped verbatim as a site sub-asset. No-optionality —
+    // a missing example is a HARD FAIL (never a silently empty playground); the release
+    // path also hard-fails on an empty declared `ConjectureDemo` sub-asset.
+    let conjectures_path = root.join("slices/grounding/logic/examples/conjectures.ttl");
+    let conjectures_ttl = std::fs::read(&conjectures_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed conjecture demo library {}: {e}",
+            conjectures_path.display()
+        ))
+    })?;
     Ok(gmeow_docs::ExecutableDocsData {
         playground_trig,
+        core_bundle_nquads,
+        full_bundle_gts: bytes,
+        conjectures_ttl,
         ..Default::default()
     })
 }
@@ -111,7 +131,7 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     };
     // Attach the per-term JSON-Schema / OpenAPI fragment digest so the per-term
     // Python (Pydantic) + Rust example tabs actually render on this — the sole —
-    // production docs surface (`make sync SYNC_OUTPUTS=docs` fanout). The standalone render has no
+    // production docs surface (`make regen SYNC_OUTPUTS=docs` fanout). The standalone render has no
     // live pipeline product, so the digest is sourced off the committed
     // `generated/schemas/*.json`, the projection of the same
     // `stage-export-json-schema` emitter output the in-pipeline reader consumes.
@@ -227,9 +247,53 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
             media_type: media_type.to_string(),
         });
     }
-    let manifest_nt =
-        gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(&entries, &gts_bytes)
-            .map_err(|e| fail(format!("cannot build the docs distribution manifest: {e}")))?;
+    // Price the `site` sub-assets (the vendored interactive engines + the browser
+    // bundle) into the release-instance manifest: content-address each from the rendered
+    // site tree and hang its digest off the SAME site_sub_asset subject the carrier
+    // catalog prices digest-free. This release render is unconditionally interactive —
+    // `exec` (the playground data) is hard-required above, so the vendored engines + the
+    // browser bundle are ALWAYS emitted here. `site_sub_asset_pricing()` DECLARES every
+    // one; no-optionality makes each a mandatory output of this selected profile. A
+    // declared sub-asset that produced zero files is therefore a HARD FAIL (an incomplete
+    // interactive site with a missing release digest), never a silent skip — a silent
+    // skip would make a shipped engine and a dropped engine indistinguishable on the
+    // release path.
+    let mut sub_asset_entries = Vec::new();
+    for (slug, prefix, media_type) in
+        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
+    {
+        let subtree: BTreeMap<String, Vec<u8>> = site
+            .iter()
+            .filter(|(p, _)| p.as_str() == prefix || p.starts_with(prefix))
+            .map(|(p, b)| (p.clone(), b.clone()))
+            .collect();
+        if subtree.is_empty() {
+            return Err(fail(format!(
+                "declared site sub-asset {slug:?} produced no files under {prefix:?}: the \
+                 release site render is interactive, so this engine/bundle is a mandatory \
+                 output — its absence is a degraded site with a missing release digest, not \
+                 a silent skip"
+            )));
+        }
+        let blake3 =
+            gmeow_pipeline::docs_distribution::distribution_blake3(&subtree).map_err(|e| {
+                fail(format!(
+                    "cannot content-address the {slug} site sub-asset: {e}"
+                ))
+            })?;
+        sub_asset_entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
+            slug: slug.to_string(),
+            rel_path: format!("dist/gmeow-docs/site/{prefix}"),
+            blake3,
+            media_type: media_type.to_string(),
+        });
+    }
+    let manifest_nt = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
+        &entries,
+        &sub_asset_entries,
+        &gts_bytes,
+    )
+    .map_err(|e| fail(format!("cannot build the docs distribution manifest: {e}")))?;
     let manifest = BTreeMap::from([("docs-manifest.ttl".to_string(), manifest_nt.into_bytes())]);
 
     let destinations = [

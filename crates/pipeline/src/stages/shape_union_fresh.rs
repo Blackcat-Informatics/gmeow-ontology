@@ -16,7 +16,7 @@
 //! read off disk"); this module extends the SAME law to the shape-union consumers —
 //! `stage-export-json-schema`, `stage-export-pydantic`, and `stage-validate` — through
 //! ONE fresh-union implementation, so a shape-source edit reaches every derived
-//! surface in a single `make sync`.
+//! surface in a single `make regen`.
 //!
 //! The merge semantics replicate `purrdf::shapes::shape_union::load_shapes` EXACTLY:
 //! the ordered `shape_files` file list, per-file Turtle parse via

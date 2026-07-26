@@ -11,6 +11,7 @@
 //! across runs — no `/CreationDate`, a fixed document identifier. The embedded
 //! font set is pinned by [`embedded_font_digest`].
 
+mod doc_render;
 mod error;
 mod render;
 mod world;
