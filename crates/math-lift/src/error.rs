@@ -83,8 +83,12 @@ define_diag_kind! {
 
 define_diag_kind! {
     /// A TSTP derivation is not syntactically well-formed: a malformed annotated
-    /// formula, an unterminated `inference(...)` record, or a parent name the
-    /// derivation never introduces.
+    /// formula, an unterminated `inference(...)` record, an unquoted atom where a
+    /// term is required, or a construct outside the derivation fragment (`fof`,
+    /// `tff`, `include`).
+    ///
+    /// A structurally well-formed derivation whose DEPENDENCIES do not resolve is
+    /// [`ProofUnliftable`], not this — there is nothing wrong with the syntax.
     pub struct TstpParse { detail: String }
     code = "math.lift.proof.parse";
     grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
@@ -92,8 +96,15 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A TSTP derivation parses, but carries no proof to lift: no derived step, or a
-    /// dependency graph with a cycle, so there is no well-founded proof DAG.
+    /// A TSTP derivation parses, but carries no well-founded proof to lift: no derived
+    /// step, a parent name the derivation never introduces, or a cycle in the
+    /// dependency graph.
+    ///
+    /// It also covers a derivation that parses but cannot be carried at the declared
+    /// `logic:ExactPreservation` rung — an unstructured `file(...)`/`theory(...)`
+    /// source, or a step whose status is not `status(thm)`. At that rung an
+    /// unrepresentable construct must hard-fail rather than be silently dropped, or
+    /// the section/retraction claim would be false.
     pub struct ProofUnliftable { detail: String }
     code = "math.lift.proof.unliftable";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);

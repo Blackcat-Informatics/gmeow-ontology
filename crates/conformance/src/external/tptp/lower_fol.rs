@@ -1095,8 +1095,7 @@ mod tests {
         // hand-written artifact: regenerate it from the committed problem and require a
         // byte match of its derivation lines (the `%` header is prose). This also parses
         // the fixture as it ships, header and all.
-        const FIXTURE: &str =
-            include_str!("../../../../logic/tests/fixtures/tstp/theorem-subclass.tstp");
+        const FIXTURE: &str = include_str!("../../../../math-lift/fixtures/theorem-subclass.tstp");
 
         let regenerated = prove(THEOREM_SUBCLASS).answers[0]
             .tree

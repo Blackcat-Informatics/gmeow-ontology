@@ -55,6 +55,7 @@ pub mod error;
 pub mod frame;
 pub mod ns;
 pub mod onnx;
+pub mod proof;
 pub mod r;
 pub mod sink;
 
