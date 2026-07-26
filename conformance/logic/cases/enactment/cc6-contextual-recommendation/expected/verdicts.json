@@ -1,1 +1,6 @@
-{}
+{
+  "https://example.org/enactment/cc6-contextual-recommendation/world": {
+    "quads": 45,
+    "status": "consistent"
+  }
+}

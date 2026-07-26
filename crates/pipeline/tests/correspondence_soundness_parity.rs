@@ -24,24 +24,24 @@ use gmeow_pipeline::stages::correspondence_soundness::lint_correspondence_soundn
 /// is the authority; this is a fast floor that fails with a readable count delta before the
 /// (larger) snapshot diff. A drift here is a coverage regression: investigate the snapshot,
 /// it is NOT a number to blindly re-bless.
-/// Lowered 449 -> 443 by the enactment-kernel supersession, and the six lost findings were
-/// identified individually rather than re-blessed on sight (the assertion below says not to).
+/// Raised 449 -> 452 by the enactment kernel.
 ///
-/// They are exactly the six alignment cells that were keyed on the retired process-model
-/// properties: `gmeow:stepInput` -> `prov:used` / `schema:supply` / `schema:tool`,
-/// `gmeow:stepOutput` -> `prov:wasGeneratedBy` / `schema:result`, and
-/// `gmeow:hasProcedureStep` -> `schema:step`.
+/// The supersession first DROPPED six findings: the alignment cells keyed on the retired
+/// process-model properties (`gmeow:stepInput` -> `prov:used` / `schema:supply` /
+/// `schema:tool`, `gmeow:stepOutput` -> `prov:wasGeneratedBy` / `schema:result`,
+/// `gmeow:hasProcedureStep` -> `schema:step`). The mappings themselves survived — they are
+/// re-authored onto the kernel spine in
+/// `slices/core/work-orchestration/mappings/equivalences.ttl` — but `lint_alignment_directions`
+/// scoped its property-mapping scan to `gmeow:`-subject cells, so re-keying them onto
+/// `logic:precondition` / `logic:planBody` moved them outside the check. The alignment kept
+/// shipping and nothing verified its direction again.
 ///
-/// The MAPPINGS survive: all six targets are re-authored in
-/// `slices/core/work-orchestration/mappings/equivalences.ttl` onto the kernel spine
-/// (`logic:precondition`, `logic:planBody`), with their confidence and justification intact,
-/// so the alignment-target set is still a superset of the pre-branch one. What changed is the
-/// SUBJECT namespace, and `referenced_prefixes` scopes the domain-range check to
-/// `gmeow:`-subject mappings (correspondence_soundness.rs:289) — so the six cells are no
-/// longer domain-range checked.
-///
-/// That scope reduction is recorded in `.deficiencies` rather than treated as a non-event.
-const EXPECTED_FINDING_COUNT: usize = 443;
+/// Rather than lower the floor to match, the scan now accepts `logic:`-subject cells as well
+/// (`logic-compile/src/projections/correspondence_soundness.rs`), which is the rule the
+/// grounding-supersession doctrine already implies: a term superseded into `logic:` keeps its
+/// alignments, so those alignments must keep being checked. That restores the six and picks up
+/// the kernel's own alignment surface, landing above the pre-branch floor rather than below it.
+const EXPECTED_FINDING_COUNT: usize = 452;
 
 fn repo_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

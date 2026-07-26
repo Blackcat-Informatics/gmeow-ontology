@@ -1,1 +1,6 @@
-{}
+{
+  "https://example.org/enactment/cc5-exact-approval-binding/world": {
+    "quads": 55,
+    "status": "consistent"
+  }
+}

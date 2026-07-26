@@ -1,1 +1,6 @@
-{}
+{
+  "https://example.org/enactment/cc2-capability-present/world": {
+    "quads": 54,
+    "status": "consistent"
+  }
+}

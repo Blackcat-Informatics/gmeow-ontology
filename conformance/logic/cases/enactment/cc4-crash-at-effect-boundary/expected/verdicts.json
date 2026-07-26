@@ -1,1 +1,6 @@
-{}
+{
+  "https://example.org/enactment/cc4-crash-at-effect-boundary/world": {
+    "quads": 66,
+    "status": "consistent"
+  }
+}

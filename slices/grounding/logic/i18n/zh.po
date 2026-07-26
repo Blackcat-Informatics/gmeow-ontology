@@ -19420,3 +19420,43 @@ msgstr "WEMI 链溯因模式"
 msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The constructive-repair schema for a gmeow:Item that hangs off no gmeow:Manifestation: the candidate addition is a gmeow:exemplifies link to a Manifestation — 'this Item needs a Manifestation it exemplifies' — and the completeness formula holds when the Item exemplifies some Manifestation, completing the realization chain."
 msgstr "针对某个不依附于任何 gmeow:Manifestation 的 gmeow:Item 的建设性修复模式：候选添加项是一个通向某个 Manifestation 的 gmeow:exemplifies 链接 —— '此 Item 需要一个它所例示的 Manifestation' —— 且当该 Item 例示某个 Manifestation 时完整性公式为真，从而补全实现链。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReadyAuthorized|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: ready and authorized"
+msgstr "前沿标签：就绪且已授权"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReadyAuthorized|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierReadyAuthorized for a frontier entry whose step axis is ready and whose approval axis is null — the policy already authorizes the effect, so no operator gate stands between the action and its dispatch. Positive Horn. This is the rule that makes policy-maximal automation a derivation rather than a habit: an entry is authorized because its axis tuple says so, not because nobody remembered to gate it."
+msgstr "为「步骤轴已就绪、审批轴为空」的前沿条目导出 logic:FrontierReadyAuthorized——策略已然授权该效应，故行动与其派发之间并无操作者关卡。正 Horn 规则。正是这条规则使「策略容许范围内的最大化自动化」成为一项推导而非一种习惯：一个条目之所以获授权，是因为它的轴元组如此表明，而不是因为无人记得为它设卡。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReadyApprovalRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: ready but approval required"
+msgstr "前沿标签：就绪但需审批"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReadyApprovalRequired|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierReadyApprovalRequired for a frontier entry whose step axis is ready and whose approval axis is created but not yet detached. Readiness and approval are separate axes, and this rule is where that separation earns its keep: the same entry is simultaneously ready to run and gated, which a single blended state could only express by minting a combined value for every such pairing."
+msgstr "为「步骤轴已就绪、审批轴已创建但尚未脱离」的前沿条目导出 logic:FrontierReadyApprovalRequired。就绪与审批是两条彼此独立的轴，而这条规则正是该分离体现其价值之处：同一条目既已可运行、又受关卡约束——若用单一的混合状态来表达，就只能为每一种此类配对另铸一个组合值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: reconciliation required"
+msgstr "前沿标签：须先核实"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationRequired|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierReconciliationRequired for a frontier entry whose effect axis sits at attempted — an effect was dispatched and no receipt settled it. This is the no-blind-retry law stated positively: rather than only forbidding a retry, the frontier NAMES the one action that is licensed from an undetermined position, so an operator reading it is told what to do instead of merely what not to do."
+msgstr "为「效应轴停留在『已尝试』」的前沿条目导出 logic:FrontierReconciliationRequired——效应已派发，却无回执将其了结。这是把「禁止盲目重试」的律令正面表述出来：前沿不止于禁止重试，而是明确指出自未定位置唯一获许可的那一项行动，使读到它的操作者知道该做什么，而不仅仅是不该做什么。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierBlockedCapability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: blocked on capability or resource"
+msgstr "前沿标签：受阻于能力或资源"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierBlockedCapability|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierBlockedCapabilityOrResource for a frontier entry whose step axis is waiting and whose action is the blocked step of an operational capability gap. The gap is an operational one — a capability the deployment does not have — and never a reasoning-profile gap, so this rule is also where the non-conflation is enforced by construction rather than by a reviewer noticing."
+msgstr "为「步骤轴处于等待、且其行动正是某项运行能力缺口所阻塞之步骤」的前沿条目导出 logic:FrontierBlockedCapabilityOrResource。此处的缺口属运行层面——即该部署并不具备的能力——而绝非推理配置层面的缺口；故这条规则也正是「二者不得混同」由构造本身来施行、而非仰赖评审者察觉之处。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationEligible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: compensation eligible"
+msgstr "前沿标签：可予补偿"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationEligible|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCompensationEligible for a frontier entry whose effect axis sits at receipted — a forward effect is known to have committed, so a counteraction is now permissible. Eligibility is all this derives: it asserts no compensation attempt, no compensation outcome, and no claim that compensating will succeed, because compensation is a new action with its own possibility of failing."
+msgstr "为「效应轴停留在『已回执』」的前沿条目导出 logic:FrontierCompensationEligible——既已确知某一正向效应业已提交，则反向举措于此时方为可行。此处所导出的仅止于「可予补偿」这一资格：它并不断言存在补偿尝试，不断言补偿结果，也不断言补偿必将成功——因为补偿是一项全新行动，自有其失败的可能。"

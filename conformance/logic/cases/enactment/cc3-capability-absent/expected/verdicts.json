@@ -1,1 +1,6 @@
-{}
+{
+  "https://example.org/enactment/cc3-capability-absent/world": {
+    "quads": 39,
+    "status": "consistent"
+  }
+}

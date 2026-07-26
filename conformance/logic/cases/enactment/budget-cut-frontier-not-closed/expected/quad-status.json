@@ -1,1 +1,70 @@
-[]
+[
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/allReviewed> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Goal> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/allReviewed> <http://www.w3.org/2000/01/rdf-schema#label> \"Every candidate action enumerated\"@x-gmeow-english <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/cutOutcome> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/OperationOutcome> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/cutOutcome> <http://www.w3.org/2000/01/rdf-schema#label> \"Incomplete — step budget exhausted before fixpoint\"@x-gmeow-english <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Plan> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <https://blackcatinformatics.ca/logic/planGoal> <https://blackcatinformatics.ca/gmeow/conformance/enactment/allReviewed> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <https://blackcatinformatics.ca/logic/planSuccessMode> <https://blackcatinformatics.ca/logic/WeakPlanSuccess> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <https://blackcatinformatics.ca/logic/prescriptionKind> <https://blackcatinformatics.ca/logic/prescriptionKindDataPipeline> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/PrescriptionVersion> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <https://blackcatinformatics.ca/logic/prescriptionDigest> \"b3:62a1c0537be9d248015a9c37be0d284f61ac0539be7d1840fa25c86b39e0d275\" <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <https://blackcatinformatics.ca/logic/prescriptionOf> <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Enactment> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <https://blackcatinformatics.ca/logic/enactmentInputSnapshot> <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <https://blackcatinformatics.ca/logic/enactmentState> <https://blackcatinformatics.ca/logic/EnactmentRunning> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <https://blackcatinformatics.ca/logic/enactsPrescriptionVersion> <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/InputSnapshot> <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> <https://blackcatinformatics.ca/logic/snapshotDigest> \"b3:8b03a915ce72d648015a9c37be0d284f61ac0539be7d1840fa25c86b39e0d273\" <https://example.org/enactment/budget-cut-frontier-not-closed/world> .",
+    "status": "ok"
+  }
+]

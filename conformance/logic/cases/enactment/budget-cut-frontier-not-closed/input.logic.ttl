@@ -3,24 +3,15 @@
 #
 # Conformance case: enactment/budget-cut-frontier-not-closed
 #
-# WHAT THIS PINS TODAY, stated exactly. The profile imposes a hard cut
-# (max_rule_firings: 2) over a kernel ABox and certifies the result. The golden
-# records budget_status "ok", saturated [], strata 1/1 — NOT because the budget
-# is generous but because no kernel derivation rules are compiled yet, so there
-# is nothing to fire and the run saturates trivially. The frontier in this case
-# is therefore authored rather than derived.
+# A kernel A-Box reasoned under a hard cut (max_rule_firings: 2), certified. The
+# property under guard is that an incomplete roster must never present as complete:
+# an unwitnessed closure claim is exactly how a roster truncated by a budget cut
+# passes for exhaustive, after which the system confidently omits the action it
+# should have taken and reports no error, because from its own point of view it
+# finished.
 #
-# This is a real regression guard despite that, and it is the reason the case is
-# committed rather than deferred: when the frontier derivation lands, the run
-# stops saturating trivially, this golden MOVES, and the move forces someone to
-# look at whether a cut roster is being reported as closed. A case that silently
-# kept passing through that change would be worse than no case.
-#
-# The property being guarded is that an incomplete roster must never present as
-# complete. An unwitnessed closure claim is exactly how a roster truncated by a
-# budget cut passes for exhaustive, after which the system confidently omits the
-# action it should have taken and reports no error, because from its own point of
-# view it finished.
+# The budget report is blessed alongside the closure, so if a future change lets a
+# cut run claim saturation this golden moves and someone has to look at why.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

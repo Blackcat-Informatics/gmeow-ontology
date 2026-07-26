@@ -1,7 +1,19 @@
 {
   "budget_status": "ok",
   "incomplete": false,
-  "saturated": [],
+  "saturated": [
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/logic/enactmentInputSnapshot",
+    "https://blackcatinformatics.ca/logic/enactmentState",
+    "https://blackcatinformatics.ca/logic/enactsPrescriptionVersion",
+    "https://blackcatinformatics.ca/logic/planGoal",
+    "https://blackcatinformatics.ca/logic/planSuccessMode",
+    "https://blackcatinformatics.ca/logic/prescriptionDigest",
+    "https://blackcatinformatics.ca/logic/prescriptionKind",
+    "https://blackcatinformatics.ca/logic/prescriptionOf",
+    "https://blackcatinformatics.ca/logic/snapshotDigest"
+  ],
   "strata_completed": 1,
   "strata_total": 1
 }
