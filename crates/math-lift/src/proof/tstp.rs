@@ -1088,7 +1088,15 @@ fn lex(src: &str) -> gmeow_errors::Result<Vec<Token>> {
             step!();
             continue;
         }
-        if c == '%' {
+        // `%` is TPTP's own line comment. `#` is not in the grammar, but it is what E
+        // actually writes: `eprover --proof-object` frames its derivation in
+        // `# SZS status Theorem`, `# SZS output start CNFRefutation`, and
+        // `# Proof object total steps : 12`. Refusing them meant the bridge could not read
+        // an unedited E proof at all — and the committed eprover fixtures were written
+        // WITHOUT those lines, so they passed a parser that could not read the tool they
+        // are named for. Skipping them is not leniency about the grammar; it is reading the
+        // file the tool emits.
+        if c == '%' || c == '#' {
             while i < n && chars[i] != '\n' {
                 step!();
             }
@@ -2648,6 +2656,28 @@ mod tests {
             let text = err(source);
             assert!(text.contains(needle), "{source:?} → {text}");
         }
+    }
+
+    #[test]
+    fn eprovers_hash_framed_szs_envelope_parses() {
+        // `eprover --proof-object` frames its derivation in `#` lines. They are not TPTP
+        // grammar, so the scanner refused them — and an unedited E proof could not be read
+        // at all. The committed eprover fixtures had been written WITHOUT the framing, so
+        // they passed a parser that could not read the tool they are named for.
+        let derivation = parse(
+            b"# SZS status Theorem\n\
+              # SZS output start CNFRefutation\n\
+              cnf(a1, axiom, (p(a))).\n\
+              cnf(d1, plain, (q(a)), inference(spm,[status(thm)],[a1,theory(equality)])).\n\
+              # SZS output end CNFRefutation\n\
+              # Proof object total steps    : 2\n",
+        )
+        .expect("an unedited E proof object must parse");
+        assert_eq!(derivation.steps().len(), 2);
+        assert_eq!(
+            derivation.step("d1").expect("the derived step").parents,
+            vec!["a1".to_owned()]
+        );
     }
 
     #[test]

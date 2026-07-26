@@ -27,6 +27,8 @@
 % proof layer has no property to carry, a lift of THIS document enumerates them as
 % residue on its source witness and travels at a lossy rung — the honest
 % alternative to silently reading every step as theorem-preserving.
+# SZS status Theorem
+# SZS output start CNFRefutation
 fof(c_0_0, axiom, ! [X1] : (p(X1) => q(X1)), file('SYN075+1.p', ax_pq)).
 fof(c_0_1, axiom, ! [X1] : (q(X1) => r(X1)), file('SYN075+1.p', ax_qr)).
 fof(c_0_2, conjecture, ! [X1] : (p(X1) => r(X1)), file('SYN075+1.p', goal)).
@@ -42,3 +44,5 @@ cnf(c_0_11, plain, ~q(X1) | r(X1), inference(split_conjunct, [status(thm)], [c_0
 cnf(c_0_12, plain, q(esk1_0), inference(spm, [status(thm)], [c_0_9, c_0_6, theory(equality)])).
 cnf(c_0_13, plain, r(esk1_0), inference(spm, [status(thm)], [c_0_11, c_0_12, theory(equality)])).
 cnf(c_0_14, plain, $false, inference(sr, [status(thm)], [c_0_13, c_0_7, theory(equality)]), [proof]).
+# SZS output end CNFRefutation
+# Proof object total steps    : 15

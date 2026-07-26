@@ -3,6 +3,11 @@
 %
 % Dialect: E prover (`eprover --proof-object`) TSTP output over a FOF problem.
 %
+% Carries E's own `#`-prefixed SZS framing verbatim — `# SZS status`,
+% `# SZS output start/end CNFRefutation`, `# Proof object total steps`. Those lines are
+% not TPTP grammar, they are what the tool actually writes, and a fixture stripped of
+% them would characterise the parser instead of the prover.
+%
 % This is the shape a real first-order prover writes and the shape our own
 % reasoner never writes: `fof` conclusions with explicit quantifiers, connectives
 % and equality; `file(Problem, Name)` sources for the formulas read from the
@@ -26,6 +31,8 @@
 %     problem file. They carry no inference; the lift carries the reference.
 %   * `c_0_3`..`c_0_11` are derived steps, each with an E rule name.
 %   * `esk1_0` is E's Skolem constant for the existential the negation produced.
+# SZS status Theorem
+# SZS output start CNFRefutation
 fof(c_0_0, axiom, ! [X1] : (p(X1) => q(X1)), file('SYN075+1.p', ax_pq)).
 fof(c_0_1, axiom, ! [X1] : (f(X1) = X1), file('SYN075+1.p', ax_id)).
 fof(c_0_2, negated_conjecture, ~ (! [X1] : (p(f(X1)) => q(X1))), file('SYN075+1.p', goal)).
@@ -38,3 +45,5 @@ cnf(c_0_8, plain, ~q(esk1_0), inference(split_conjunct, [status(thm)], [c_0_4]))
 cnf(c_0_9, plain, p(esk1_0), inference(rw, [status(thm)], [c_0_7, c_0_6, theory(equality)])).
 cnf(c_0_10, plain, q(esk1_0), inference(spm, [status(thm)], [c_0_5, c_0_9, theory(equality)])).
 cnf(c_0_11, plain, $false, inference(sr, [status(thm)], [c_0_10, c_0_8, theory(equality)])).
+# SZS output end CNFRefutation
+# Proof object total steps    : 12
