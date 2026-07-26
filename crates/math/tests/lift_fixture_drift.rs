@@ -56,6 +56,64 @@ fn body<'a>(fixture: &'a str, name: &str) -> &'a str {
     &fixture[start..]
 }
 
+/// Re-bless every lift fixture from its producer, in place.
+///
+/// A drift pin is only useful if re-blessing it is mechanical: a maintainer who has to
+/// hand-transcribe a 400-line graph will eventually weaken the pin instead. Run with
+/// `GMEOW_LIFT_BLESS=1 cargo test -p gmeow-math --test lift_fixture_drift` after a
+/// deliberate parser or lift change, then READ THE DIFF — this rewrites the RDF body and
+/// the header's codomain count, and a change you did not intend shows up there.
+///
+/// It is a no-op without the environment variable, so it can never re-bless a fixture as a
+/// side effect of an ordinary test run — which would silently disarm the pin.
+#[test]
+fn bless_lift_fixtures() {
+    if std::env::var_os("GMEOW_LIFT_BLESS").is_none() {
+        return;
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/grounding/math/tests/fixtures");
+    for (fixture, name, turtle, count) in [
+        (
+            LIFTED_R,
+            "lifted-r.ttl",
+            r_lift().turtle,
+            r_lift().codomain_nodes,
+        ),
+        (
+            LIFTED_ONNX,
+            "lifted-onnx.ttl",
+            onnx_lift().turtle,
+            onnx_lift().codomain_nodes,
+        ),
+        (
+            LIFTED_PROOF,
+            "lifted-proof.ttl",
+            proof_lift().turtle,
+            proof_lift().codomain_nodes,
+        ),
+    ] {
+        let start = fixture.find("@prefix").expect("header cut point");
+        // Rewrite the header's stated count in place, so the narrative and the body cannot
+        // disagree after a bless.
+        let header = regex_free_replace_count(&fixture[..start], count);
+        std::fs::write(root.join(name), format!("{header}{turtle}")).expect("bless");
+    }
+}
+
+/// Replace the `codomain of N nodes` claim in a fixture header with the live count.
+///
+/// Hand-rolled rather than a regex dependency: the phrase is fixed, so scanning for it and
+/// splicing the digits is total and needs no crate.
+fn regex_free_replace_count(header: &str, count: usize) -> String {
+    let Some(at) = header.find("codomain of ") else {
+        return header.to_owned();
+    };
+    let rest = &header[at + "codomain of ".len()..];
+    let digits = rest.len() - rest.trim_start_matches(|c: char| c.is_ascii_digit()).len();
+    format!("{}codomain of {count}{}", &header[..at], &rest[digits..])
+}
+
 #[test]
 fn lifted_r_fixture_is_exactly_what_the_producer_emits() {
     let produced = r_lift();

@@ -1150,7 +1150,37 @@ impl Lift<'_> {
             return;
         }
         let (formula, _) = self.mint("logic-formula", &key);
+
+        // The lowered formula must be a WELL-FORMED `logic:` AST node, not a bare
+        // `a logic:Formula`. `logic:FormulaConstructorConstraint` requires exactly one
+        // constructor from {and, antecedent, exists, forall, iff, not, or, relation}, and a
+        // node carrying none is as malformed as one carrying two. It lowers as the atomic
+        // constructor: the predication `<construct>(<computation node>)`.
+        //
+        // That is exactly what `logic:SoundUnderApproximation` licenses and no more — the
+        // atom says this computation node denotes a proposition of that construct kind. R's
+        // operational semantics are NOT modelled, and inventing a richer formula would claim
+        // structure the lift never recovered.
+        let construct = logic_construct(expr);
+        let (relation, relation_fresh) = self.mint("logic-relation", construct);
+        if relation_fresh {
+            // `logic:relation`'s range is a reified `logic:Type` individual, per the HiLog
+            // reflection: predicating over a reified relation keeps the object level
+            // first-order rather than admitting a predicate variable.
+            self.sink.typed(&relation, &logic("Type"));
+            self.label(&relation, construct);
+        }
+        // One ordered argument carrier. `logic:TermCarrierIndexConstraint` requires the
+        // index; `logic:TermCarrierValueConstraint` requires exactly one term-value kind, and
+        // an IRI term is the honest one — the argument IS the computation node.
+        let (carrier, _) = self.mint("logic-argument", &key);
+        self.sink.typed(&carrier, &logic("TermCarrier"));
+        self.sink.integer(&carrier, &logic("termIndex"), 0);
+        self.sink.iri(&carrier, &logic("termIri"), &iri);
+
         self.sink.typed(&formula, &logic("Formula"));
+        self.sink.iri(&formula, &logic("relation"), &relation);
+        self.sink.iri(&formula, &logic("argument"), &carrier);
         self.sink.typed(&iri, &math("MathematicalExpression"));
         self.sink
             .iri(&iri, &math("compilesToLogicFormula"), &formula);
@@ -1163,6 +1193,41 @@ impl Lift<'_> {
         );
         self.label(&iri, &render(expr));
         self.lowerings += 1;
+    }
+}
+
+/// The R construct an expression routed to `logic:` is, as the relation name of its atomic
+/// lowering.
+///
+/// One reified `logic:Type` individual per construct kind, shared across every lowering of
+/// that kind, so a KB can ask "which lifted computations were loops?" without string
+/// matching. The names are R's own, not invented categories.
+fn logic_construct(expr: &RExpr) -> &'static str {
+    match expr {
+        RExpr::If { .. } => "r-if",
+        RExpr::For { .. } => "r-for",
+        RExpr::While { .. } => "r-while",
+        RExpr::Repeat { .. } => "r-repeat",
+        RExpr::Break => "r-break",
+        RExpr::Next => "r-next",
+        RExpr::Function { .. } => "r-function",
+        RExpr::Block(_) => "r-block",
+        RExpr::Assign { .. } => "r-assignment",
+        RExpr::Call { .. } | RExpr::Pipe { .. } => "r-call",
+        RExpr::Index { .. } => "r-subscript",
+        RExpr::Component { .. } => "r-component",
+        RExpr::Namespace { .. } => "r-namespace",
+        RExpr::Unary { .. } | RExpr::Binary { .. } | RExpr::Special { .. } => "r-operator",
+        RExpr::Paren(inner) => logic_construct(inner),
+        RExpr::Formula(_) => "r-formula",
+        RExpr::Number { .. }
+        | RExpr::Str(_)
+        | RExpr::Logical(_)
+        | RExpr::Null
+        | RExpr::Na
+        | RExpr::NotANumber
+        | RExpr::Infinity
+        | RExpr::Ident(_) => "r-value",
     }
 }
 
@@ -1946,6 +2011,73 @@ mod tests {
             assert!(ttl.contains(&logic("SoundUnderApproximation")));
             assert!(ttl.contains(&math("denotesProposition")));
         }
+    }
+
+    #[test]
+    fn every_lowered_formula_selects_exactly_one_constructor() {
+        // logic:FormulaConstructorConstraint: every logic:Formula must select EXACTLY ONE of
+        // {and, antecedent, exists, forall, iff, not, or, relation}. A node carrying none is
+        // as malformed as one carrying two, and a bare `a logic:Formula` carries none — the
+        // shape this lift originally emitted, copied from the hand-authored bridges.ttl
+        // template, and caught only once a validate lane finally consumed the output.
+        const CONSTRUCTORS: [&str; 8] = [
+            "and",
+            "antecedent",
+            "exists",
+            "forall",
+            "iff",
+            "not",
+            "or",
+            "relation",
+        ];
+        for src in [
+            "z <- log(wt)\nif (z > 0) {\n  z <- z\n}\n",
+            "z <- log(wt)\nfor (i in 1:3) print(i)\n",
+            "z <- log(wt)\nwhile (TRUE) break\n",
+            "z <- log(wt)\nf <- function(a) a\n",
+            MTCARS,
+        ] {
+            let ttl = turtle(src);
+            let formulas = subjects_with(&ttl, &logic("Formula"));
+            assert!(!formulas.is_empty(), "`{src}` lowered nothing");
+            for formula in &formulas {
+                let selected: Vec<&str> = CONSTRUCTORS
+                    .iter()
+                    .copied()
+                    .filter(|c| {
+                        ttl.lines().any(|l| {
+                            l.starts_with(formula.as_str())
+                                && l.contains(&format!("<{}>", logic(c)))
+                        })
+                    })
+                    .collect();
+                assert_eq!(
+                    selected.len(),
+                    1,
+                    "<{formula}> selected {selected:?}; exactly one constructor is required\n{ttl}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_lowered_atom_carries_a_typed_relation_and_an_indexed_argument() {
+        // logic:relation's range is a reified logic:Type; logic:TermCarrierIndexConstraint
+        // requires an index on every carrier; logic:TermCarrierValueConstraint requires
+        // exactly one term-value kind on it.
+        let ttl = turtle("z <- log(wt)\nfor (i in 1:3) print(i)\n");
+        assert!(ttl.contains(&format!("<{}> .", logic("Type"))), "{ttl}");
+        assert!(
+            ttl.contains(&format!("<{}> .", logic("TermCarrier"))),
+            "{ttl}"
+        );
+        assert!(ttl.contains(&format!("<{}>", logic("termIndex"))), "{ttl}");
+        assert!(ttl.contains(&format!("<{}>", logic("termIri"))), "{ttl}");
+        // The relation individual is named for R's own construct, not an invented category.
+        assert!(
+            ttl.contains("r-for"),
+            "the atom names the construct:\n{ttl}"
+        );
     }
 
     #[test]

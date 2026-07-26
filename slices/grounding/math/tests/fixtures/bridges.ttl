@@ -28,7 +28,15 @@ ex:rCorr a logic:Correspondence ;
 ex:rComp a math:MathematicalExpression ;
     gmeow:wasGeneratedBy ex:rRun ;
     math:compilesToLogicFormula ex:rLogic .
-ex:rLogic a logic:Formula .
+# A well-formed atomic logic: AST node. logic:FormulaConstructorConstraint requires EXACTLY
+# ONE constructor, so a bare `a logic:Formula` is malformed — it selects none.
+ex:rLogic a logic:Formula ;
+    logic:relation ex:rComputes ;
+    logic:argument ex:rLogicArg .
+ex:rComputes a logic:Type .
+ex:rLogicArg a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termIri ex:rComp .
 ex:rFit a math:FittedModel ;
     gmeow:wasGeneratedBy ex:rRun ;
     math:modelFormula ex:rFormula ;

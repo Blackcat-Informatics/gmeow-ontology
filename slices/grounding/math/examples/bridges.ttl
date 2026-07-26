@@ -99,7 +99,16 @@ ex:fitComputation a math:MathematicalExpression ;
     math:compilesToLogicFormula ex:fitLogicFormula ;
     math:logicLoweringPreservation logic:SoundUnderApproximation ;
     math:denotationKind math:denotesProposition .
-ex:fitLogicFormula a logic:Formula .
+# A well-formed atomic logic: AST node. logic:FormulaConstructorConstraint requires EXACTLY
+# ONE constructor from {and, antecedent, exists, forall, iff, not, or, relation}, so a bare
+# `a logic:Formula` is malformed — it selects none.
+ex:fitLogicFormula a logic:Formula ;
+    logic:relation ex:fitComputes ;
+    logic:argument ex:fitLogicArg .
+ex:fitComputes a logic:Type .
+ex:fitLogicArg a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termIri ex:fitComputation .
 
 # The held claim (Q5): the fit summary as a vantage-grounded observation.
 ex:rFitClaim a gmeow:Observation ;
