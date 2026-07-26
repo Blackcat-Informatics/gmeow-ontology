@@ -608,7 +608,27 @@ fn deep_consistency_findings(
         .map_err(|e| DeepPassError::Unavailable(format!("GTS read error: {e}")))?;
     let user = data_dataset(data_bytes, data_format)
         .map_err(|d| DeepPassError::Unavailable(d.message().to_string()))?;
-    let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
+    // Narrow the bundle side to the object-level reasoning EDB (G13) — the SAME
+    // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
+    // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`)
+    // — BEFORE merging in the caller's own data, so `gmeow validate <data> --deep`
+    // reasons the consumer's data against byte-identical bundle worlds to the
+    // pipeline's own `make reason-verify` gate rather than also reasoning over
+    // meta/report graphs (documentation, diagnostics, correspondence, …) that assert
+    // no object-level axioms.
+    let bundle_edb = gmeow_logic::reasoning_graphs::project_object_level_edb(
+        bundle.dataset.as_ref(),
+    )
+    .map_err(|e| DeepPassError::Unavailable(format!("object-level EDB projection failed: {e}")))?;
+    let edb = {
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        builder.push_dataset(bundle_edb.as_ref());
+        builder.push_dataset(user.as_ref());
+        builder
+            .freeze()
+            .map_err(|e| DeepPassError::Unavailable(format!("freeze merged EDB: {e}")))?
+    };
+    let result = gmeow_logic::reason::reason_all(edb.as_ref())
         .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
     // Build the faithful cited-quad-reifier derivation skeletons for the SAME result.
     // A build failure AFTER the reasoner produced a real verdict is an internal
@@ -636,6 +656,42 @@ fn deep_consistency_findings(
     .map_err(|e| DeepPassError::ContractResolution(format!("contract resolution failed: {e}")))?;
     crate::validate_all::fold_reasoning_result(&result, policy, &explanations, report)
         .map_err(|e| DeepPassError::Derivation(e.message))?;
+
+    // The math: dimensional-homogeneity + math: expression-identity reasoned gates
+    // (G13): the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
+    // build time over the pipeline's own `assemble_object_level_edb`, now reachable
+    // from `gmeow validate --deep` over the CALLER'S OWN data merged with the bundle
+    // — a consumer with their own math AST graph gets `math:StructuralKeyDrift` /
+    // `math:FalseStructuralNormalizationClaim` findings directly from the `gmeow`
+    // CLI, not only from the MCP `verify_graph` tool. Deliberately narrower than the
+    // FULL `gmeow_logic::verify::verify_with_reasoning_result` battery: that also
+    // runs the embedded `queries/verify/*.rq` bad-example queries, several of which
+    // check for FIXED gmeow vocabulary (e.g. `axis-not-disjoint`'s seven
+    // identity-axis classes) that only the real production bundle carries —
+    // misfiring on a caller's own PARTIAL data graph unioned with a non-production
+    // bundle. The math: gates carry no such fixed-vocabulary assumption. Runs over
+    // the SAME `edb` + `result` the consistency fold above just used.
+    match gmeow_logic::verify::materialize_reasoned_graph(edb.as_ref(), &result).map_err(|e| {
+        DeepPassError::Unavailable(format!("reasoned-graph materialization failed: {e}"))
+    })? {
+        gmeow_logic::verify::ReasonedGraphOutcome::Ready(reasoned) => {
+            for finding in gmeow_logic::math_dimension::check_math_dimension_findings(
+                reasoned.dataset.as_ref(),
+            ) {
+                report.add_finding(finding);
+            }
+            for finding in gmeow_logic::math_expression::check_math_expression_findings(
+                reasoned.dataset.as_ref(),
+            ) {
+                report.add_finding(finding);
+            }
+        }
+        gmeow_logic::verify::ReasonedGraphOutcome::IncompleteClosure(findings) => {
+            for finding in findings {
+                report.add_finding(finding);
+            }
+        }
+    }
     Ok(())
 }
 

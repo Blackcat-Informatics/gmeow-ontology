@@ -15,7 +15,7 @@
 //! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly, routing each
 //! source into its named graph.
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use purrdf::RdfDatasetBuilder;
@@ -936,6 +936,19 @@ fn assemble_carrier(
     for graph_iri in MATH_PRODUCER_GRAPHS {
         datasets.push(producer_graph(upstream, "stage-math-producers", graph_iri)?);
     }
+    // graph/math-examples (G13) — the math slice's authored positive-demonstrator ABox
+    // corpus (every slices/grounding/math/examples/*.ttl file), read off the SAME
+    // `stage-math-producers` product's attached named graph. UNLIKE the eight producer
+    // graphs above, this one IS admitted to the object-level reasoning EDB (see
+    // `assemble_object_level_edb`), so it ships here both as a queryable bundle graph AND
+    // as reasoned-closure input: the expression-identity gate
+    // (`gmeow_logic::math_expression::check_math_expression_findings`) has a real witness
+    // to decide over the shipped bundle instead of running vacuously.
+    datasets.push(producer_graph(
+        upstream,
+        "stage-math-producers",
+        gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES,
+    )?);
     datasets.extend(compile_logic_carrier_graphs(upstream)?);
     datasets.push(rooted_in_graph(
         &reason.bundle().dataset().project_named_graph(reasoning_iri),
@@ -1256,11 +1269,13 @@ fn rdf_fanout_members(
 /// full fold vs this projection is isomorphic up to renaming of the content-addressed
 /// Skolem witnesses. Excluding them makes the closure (and its witness IRIs) a
 /// function of the ontology alone, not of its self-description. This is the single
-/// EDB the sole `stage-reason` pass reasons over; it depends only on the
+/// EDB the sole `stage-reason` pass reasons over; it depends on the
 /// `stage-statements`, `stage-compile-logic`, `stage-source-load` products (the authored
-/// / imports self-description graphs) — never on mapping/correspondence projections or
-/// the snapshot, so reasoning need not wait on either. `stage-reason` consumes exactly
-/// those three producers (see `run.rs`).
+/// / imports self-description graphs) and (G13) `stage-math-producers`' math-examples
+/// graph (the math slice's authored positive-demonstrator ABox corpus — see
+/// [`gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES`]) — never on mapping/
+/// correspondence projections or the snapshot, so reasoning need not wait on either.
+/// `stage-reason` consumes exactly those four producers (see `run.rs`).
 pub(crate) fn assemble_object_level_edb(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
@@ -1282,6 +1297,15 @@ pub(crate) fn assemble_object_level_edb(
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
+        // (G13) The math slice's positive-demonstrator ABox — the authored
+        // `math:structuralKey` / `math:NormalizationDeclaration` instances under
+        // `slices/grounding/math/examples/` — admitted to object-level reasoning so the
+        // expression-identity gate has a real witness to decide over the shipped bundle.
+        producer_graph(
+            upstream,
+            "stage-math-producers",
+            gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES,
+        )?,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     // The termination-class ladder demonstrators: one general existential program per
@@ -1297,154 +1321,35 @@ pub(crate) fn assemble_object_level_edb(
     without_recovery_case_envelopes(&purrdf::RdfDataset::union(&refs))
 }
 
-/// Remove correspondence-owned recovery evidence from an otherwise object-level dataset.
-///
-/// A recovery case is executable meta-language: its formula seeds a source graph for the
-/// correspondence executor, but the formula tree is not an ontology ABox to saturate.  The
-/// compiled `graph/correspondence` projection is already excluded from the reasoning EDB; this
-/// function applies the same boundary to the canonical source envelope that remains in the
-/// default graph.  Besides avoiding false ontology facts, doing so keeps RDFC-1.0 labels for
-/// unrelated ontology blank nodes stable when recovery evidence grows.
-///
-/// Traversal follows only ownership links.  In particular, `logic:relation` and
-/// `logic:termIri` are deliberately not followed: their objects are ontology vocabulary terms,
-/// not nodes owned by the recovery case.
+/// Remove correspondence-owned recovery evidence from an otherwise object-level dataset —
+/// a thin re-export of
+/// [`gmeow_logic::reasoning_graphs::without_recovery_case_envelopes`], the SHARED
+/// authority [`snapshot_reasoning_edb`] (via
+/// [`gmeow_logic::reasoning_graphs::project_object_level_edb`]) and `crates/validate`'s
+/// deep-semantic pass also delegate to.
 fn without_recovery_case_envelopes(
     dataset: &purrdf::RdfDataset,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-    const RECOVERY_CASE: &str = "https://blackcatinformatics.ca/logic/recoveryCase";
-    const OWNERSHIP_LINKS: [&str; 11] = [
-        "https://blackcatinformatics.ca/logic/recoveryTransform",
-        "https://blackcatinformatics.ca/logic/not",
-        "https://blackcatinformatics.ca/logic/and",
-        "https://blackcatinformatics.ca/logic/or",
-        "https://blackcatinformatics.ca/logic/antecedent",
-        "https://blackcatinformatics.ca/logic/consequent",
-        "https://blackcatinformatics.ca/logic/iff",
-        "https://blackcatinformatics.ca/logic/forall",
-        "https://blackcatinformatics.ca/logic/exists",
-        "https://blackcatinformatics.ca/logic/argument",
-        "https://blackcatinformatics.ca/logic/quantifiedVariable",
-    ];
-
-    fn resource(term: &RdfTerm) -> bool {
-        matches!(term, RdfTerm::Iri(_) | RdfTerm::BlankNode(_))
-    }
-
-    let quads: Vec<RdfQuad> = dataset.owned_quads().collect();
-    let reifiers: Vec<purrdf::RdfReifier> = dataset.owned_reifiers().collect();
-    let mut owned: HashSet<(Option<RdfTerm>, RdfTerm)> = quads
-        .iter()
-        .filter(|quad| quad.predicate == RECOVERY_CASE)
-        .filter(|quad| resource(&quad.object))
-        .map(|quad| (quad.graph_name.clone(), quad.object.clone()))
-        .collect();
-
-    loop {
-        let before = owned.len();
-        for quad in &quads {
-            if owned.contains(&(quad.graph_name.clone(), quad.subject.clone()))
-                && OWNERSHIP_LINKS.contains(&quad.predicate.as_str())
-                && resource(&quad.object)
-            {
-                owned.insert((quad.graph_name.clone(), quad.object.clone()));
-            }
-        }
-        // A reifier binds a name to a triple occurrence: when the reified statement
-        // touches recovery-owned territory (its subject or object is owned), the
-        // reifier's own identity is recovery-owned too. Folding that into the SAME
-        // fixed-point closure (rather than a one-shot pass below) makes pruning
-        // transitive across nested reification: RDF 1.2 allows annotating an
-        // annotation by reifying its `~reifier` triple (`<<~r1 :note "x">> :certainty
-        // 0.9 .`), so an outer reifier whose statement subject/object IS an inner
-        // pruned reifier's identity becomes owned here too, and on the next
-        // iteration any annotation keyed on THAT outer reifier is caught below.
-        for reifier in &reifiers {
-            if resource(&reifier.reifier)
-                && !owned.contains(&(reifier.graph.clone(), reifier.reifier.clone()))
-                && (owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
-                    || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone())))
-            {
-                owned.insert((reifier.graph.clone(), reifier.reifier.clone()));
-            }
-        }
-        if owned.len() == before {
-            break;
-        }
-    }
-
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in quads {
-        let recovery_owned = quad.predicate == RECOVERY_CASE
-            || owned.contains(&(quad.graph_name.clone(), quad.subject.clone()));
-        if !recovery_owned {
-            builder.push_owned_quad(&quad);
-        }
-    }
-    for reifier in reifiers {
-        let recovery_owned = owned.contains(&(reifier.graph.clone(), reifier.reifier.clone()))
-            || owned.contains(&(reifier.graph.clone(), reifier.statement.subject.clone()))
-            || owned.contains(&(reifier.graph.clone(), reifier.statement.object.clone()));
-        if !recovery_owned {
-            builder.push_owned_reifier(&reifier);
-        }
-    }
-    // Every annotation quad keyed on a pruned reifier is dropped here too: `owned`
-    // now includes every reifier identity pruned above (directly, or transitively
-    // through nested reification of an annotation triple), so no dangling
-    // RDF-star metadata can reference a reifier that no longer exists in the EDB.
-    for annotation in dataset.owned_annotations() {
-        if !owned.contains(&(annotation.graph.clone(), annotation.reifier.clone())) {
-            builder.push_owned_annotation(&annotation);
-        }
-    }
-    builder
-        .freeze()
-        .map_err(|e| stage_err(&format!("freeze recovery-free reasoning EDB: {e}")))
+    gmeow_logic::reasoning_graphs::without_recovery_case_envelopes(dataset)
 }
 
 /// Project a shipped snapshot back to the exact object-level EDB admitted by
 /// [`assemble_object_level_edb`]. The authored default graph remains default-world;
-/// statement/import/logic/relational-core worlds retain their graph names. Every
-/// mapping, correspondence, report, documentation, and fanout graph is excluded.
+/// statement/import/logic/relational-core/math-examples worlds retain their graph
+/// names. Every mapping, correspondence, report, documentation, and fanout graph is
+/// excluded.
 ///
-/// This is the single snapshot-reader boundary used by the maintainer reasoning CLI.
-/// Keeping it beside the producer-side assembly prevents `--fresh` and `reason-verify`
-/// from accidentally reasoning over more of the shipped ontology than the pipeline
-/// authority did.
+/// This is the single snapshot-reader boundary used by the maintainer reasoning CLI —
+/// a thin re-export of [`gmeow_logic::reasoning_graphs::project_object_level_edb`], the
+/// SHARED authority `crates/validate`'s `validate --deep` / `verify --deep` deep-
+/// semantic pass also delegates to, so neither caller can silently drift from the
+/// other's notion of "object-level". Keeping the boundary in `gmeow_logic` (rather than
+/// duplicated here) prevents `--fresh`, `reason-verify`, and the CLI deep pass from
+/// ever disagreeing about how much of the shipped ontology they reason over.
 pub fn snapshot_reasoning_edb(
     snapshot: &purrdf::RdfDataset,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-    fn admitted_graph(graph: &Option<RdfTerm>) -> bool {
-        match graph {
-            None => true,
-            Some(RdfTerm::Iri(iri)) => {
-                gmeow_logic::reasoning_graphs::is_object_level_named_graph(iri)
-            }
-            Some(_) => false,
-        }
-    }
-
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in snapshot.owned_quads() {
-        if admitted_graph(&quad.graph_name) {
-            builder.push_owned_quad(&quad);
-        }
-    }
-    for reifier in snapshot.owned_reifiers() {
-        if admitted_graph(&reifier.graph) {
-            builder.push_owned_reifier(&reifier);
-        }
-    }
-    for annotation in snapshot.owned_annotations() {
-        if admitted_graph(&annotation.graph) {
-            builder.push_owned_annotation(&annotation);
-        }
-    }
-    let admitted = builder
-        .freeze()
-        .map_err(|e| stage_err(&format!("freeze snapshot object-level reasoning EDB: {e}")))?;
-    without_recovery_case_envelopes(admitted.as_ref())
+    gmeow_logic::reasoning_graphs::project_object_level_edb(snapshot)
 }
 
 #[cfg(test)]
@@ -3919,7 +3824,12 @@ impl Stage for SnapshotStage {
         // v29 additionally folds `stage-math-producers`' EIGHTH graph
         // (graph/math-producers/clifford-12-13, `gmeow_math::producers::
         // clifford_twelve_thirteen`) carrying both exact Cl12 -> Cl13 positive extensions.
-        "snapshot.v29-clifford-12-13-producer"
+        // v30 (G13) additionally folds `stage-math-producers`' math-examples graph
+        // (graph/math-examples — the math slice's whole examples/*.ttl positive-
+        // demonstrator corpus) into gmeow.gts, so the corpus reaches the shipped bundle
+        // (and, via `assemble_object_level_edb`, the reasoned closure) instead of only the
+        // docs/competency-question harvest.
+        "snapshot.v30-math-examples"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

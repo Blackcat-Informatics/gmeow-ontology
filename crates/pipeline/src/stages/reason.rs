@@ -395,11 +395,17 @@ pub struct ReasonStage {
 
 impl ReasonStage {
     /// Construct the stage. It reasons over the object-level EDB assembled from the
-    /// compile-logic / source-load / statements producers (plus the on-disk authored /
-    /// imports sources); the slice DAG's `stage-reason`
+    /// compile-logic / source-load / statements / math-producers producers (plus the
+    /// on-disk authored / imports sources); the slice DAG's `stage-reason`
     /// `dataflowConsumes` mirrors this set. It requires the exclusive
     /// [`ENGINE_RESOURCE`] (the sole resource-bearing build stage), so the scheduler
     /// serializes it against any stage competing for the reasoning engine.
+    ///
+    /// The `stage-math-producers` edge (G13) is a whole-product dependency, exactly like
+    /// `stage-source-load` / `stage-statements`: it supplies the math slice's
+    /// positive-demonstrator ABox (`graph/math-examples`), admitted to object-level
+    /// reasoning so the expression-identity gate has a real witness to decide over the
+    /// shipped bundle instead of running vacuously.
     ///
     /// Typed dataflow (artifact-level): from `stage-compile-logic` it reads ONLY the
     /// `logic` and `relational-core` named graphs (see
@@ -412,6 +418,7 @@ impl ReasonStage {
         Self {
             consumes: vec![
                 "stage-compile-logic".to_string(),
+                "stage-math-producers".to_string(),
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
             ],

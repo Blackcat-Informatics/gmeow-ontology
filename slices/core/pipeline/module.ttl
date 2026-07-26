@@ -643,6 +643,7 @@ gmeow:stage-reason
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
+        gmeow:stage-math-producers ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ;
     gmeow:producesFormat "rdf12-turtle" ;
@@ -1160,6 +1161,7 @@ gmeow:stage-compile-logic
 
 gmeow:stage-math-producers
     gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/math-examples> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl> ,

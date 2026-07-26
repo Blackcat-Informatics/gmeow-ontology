@@ -168,16 +168,21 @@ fn spine() -> PipelineSpec {
                 "reason",
                 &[
                     "stage-compile-logic",
+                    "stage-math-producers",
                     "stage-source-load",
                     "stage-statements",
                 ],
             ),
             // The production consumer of the native proof-carrying backward engine: it
             // attaches graph/goal-directed, which the snapshot folds into gmeow.gts.
+            // Mirrors run.rs::st_goal_directed's consumes exactly: stage-reason is
+            // required (not just stage-compile-logic) — the stage's own typed dataflow
+            // entity narrows to stage-reason's graph/reasoning, and `spec.validate()`
+            // hard-fails a typed-dataflow producer that is not also a plain consumes edge.
             spec(
                 "stage-goal-directed",
                 "goal_directed",
-                &["stage-compile-logic"],
+                &["stage-compile-logic", "stage-reason"],
             ),
             spec(
                 "stage-gts-compose",
