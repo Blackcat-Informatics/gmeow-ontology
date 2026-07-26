@@ -263,14 +263,19 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
-/// The eight `math:` producer graphs, one per native producer entrypoint — five bound to the
+/// The eleven `math:` producer graphs, one per native producer entrypoint — five bound to the
 /// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals, plus
 /// `probability-model` ([`gmeow_math::producers::probability_model_seam`]), the probability
 /// layer's live `logic:probabilityModel` seam producer, and `pvalue-tri-slice`
 /// ([`gmeow_math::producers::pvalue_tri_slice`]), the signature `lang:` → `logic:` → `math:`
 /// p-value round-trip, and `clifford-12-13`
 /// ([`gmeow_math::producers::clifford_twelve_thirteen`]), the exact positive-extension
-/// calculation (all three NOT flagship-bound; the manifest's "five, not adjectives"
+/// calculation, and the three EXECUTABLE ingestion lifts `r-lift` / `onnx-lift` /
+/// `proof-lift` ([`gmeow_math::producers::r_lift`], [`onnx_lift`](gmeow_math::producers::onnx_lift),
+/// [`proof_lift`](gmeow_math::producers::proof_lift)), each of which runs the shipped
+/// `gmeow_math_lift` front-end over a real committed artifact embedded at compile time, so
+/// `gmeow.gts` carries the output of the ACTUAL R / ONNX / TSTP parsers (all six NOT
+/// flagship-bound; the manifest's "five, not adjectives"
 /// depth-bar contract stays exactly five). The `stage-math-producers`
 /// stage RUNS each `gmeow_math::producers::*` function and parses its deterministic `.turtle`
 /// into the matching named graph here; the snapshot presenter reads each back via
@@ -280,7 +285,7 @@ pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
 /// and NOT a `generated/` file, so they map to no committed path — the superset gate's orphan
 /// sweep only considers `graph/fanout/…` / `graph/projections/…` reps. The array order pins
 /// the producer→graph pairing shared by the stage and the presenter.
-pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 8] = [
+pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 11] = [
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
@@ -289,6 +294,9 @@ pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 8] = [
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-lift",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/onnx-lift",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-lift",
 ];
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
@@ -925,8 +933,9 @@ fn assemble_carrier(
         authoring_briefs,
         authoring_briefs_fanout,
     ];
-    // graph/math-producers/<name> — the eight `math:` producers' (five flagship producers,
-    // the probability-model seam, p-value tri-slice, and Clifford producers) deterministic
+    // graph/math-producers/<name> — the eleven `math:` producers' (five flagship producers,
+    // the probability-model seam, p-value tri-slice, and Clifford producers, and the three
+    // executable R / ONNX / proof lifts) deterministic
     // RDF graphs, each read off the
     // `stage-math-producers` product's attached named graph (a pure keyed fold,
     // PIPELINE_SPINE §4) and folded into gmeow.gts (Design A — the producer output ships in
@@ -3762,8 +3771,9 @@ impl SnapshotStage {
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
-                // The eight math producer graphs (five flagship producers plus the
-                // probability-model seam, p-value tri-slice, and Clifford producers), folded
+                // The eleven math producer graphs (five flagship producers plus the
+                // probability-model seam, p-value tri-slice, Clifford, and the three
+                // executable R / ONNX / proof lift producers), folded
                 // into gmeow.gts as their own bundle-internal named graphs (Design A — the
                 // producer output ships).
                 "stage-math-producers".to_string(),
@@ -3919,7 +3929,13 @@ impl Stage for SnapshotStage {
         // v29 additionally folds `stage-math-producers`' EIGHTH graph
         // (graph/math-producers/clifford-12-13, `gmeow_math::producers::
         // clifford_twelve_thirteen`) carrying both exact Cl12 -> Cl13 positive extensions.
-        "snapshot.v29-clifford-12-13-producer"
+        // v30 additionally folds `stage-math-producers`' NINTH, TENTH, and ELEVENTH graphs
+        // (graph/math-producers/{r-lift,onnx-lift,proof-lift}, `gmeow_math::producers::
+        // {r_lift,onnx_lift,proof_lift}`): the output of the SHIPPED executable
+        // `gmeow_math_lift` R / ONNX / TSTP front-ends over real committed artifacts
+        // embedded at compile time, so the bundle carries what the actual parsers derive
+        // rather than a hand-written imitation of them.
+        "snapshot.v30-executable-lift-producers"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

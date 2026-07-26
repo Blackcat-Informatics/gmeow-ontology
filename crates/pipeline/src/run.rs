@@ -203,8 +203,9 @@ pub fn full_spec() -> PipelineSpec {
             "compile_logic",
             &["stage-source-load"],
         ),
-        // Leaf compute: RUN the eight math producers (five flagship producers plus the
-        // probability-model seam, p-value tri-slice, and Clifford producers) and attach each
+        // Leaf compute: RUN the eleven math producers (five flagship producers plus the
+        // probability-model seam, p-value tri-slice, Clifford, and the three executable
+        // R / ONNX / proof lift producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
@@ -370,9 +371,9 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
-                // The eight math producer graphs (five flagship producers plus the
-                // probability-model seam, p-value tri-slice, and Clifford producers),
-                // folded into gmeow.gts.
+                // The eleven math producer graphs (five flagship producers plus the
+                // probability-model seam, p-value tri-slice, Clifford, and the three
+                // executable R / ONNX / proof lift producers), folded into gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",
                 // The authoring-packet corpus (graph/authoring-briefs), folded into

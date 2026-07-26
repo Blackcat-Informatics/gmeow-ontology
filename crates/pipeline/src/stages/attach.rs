@@ -121,7 +121,8 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
     );
 
     // stage-math-producers — the five flagship producer graphs plus the probability-model
-    // seam, p-value tri-slice, and exact Clifford producer graphs.
+    // seam, p-value tri-slice, and exact Clifford producer graphs, and the three executable
+    // R / ONNX / proof lift producer graphs.
     entry(
         &mut t,
         "stage-math-producers",
@@ -129,11 +130,14 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/onnx-lift",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-lift",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-lift",
         ],
         &[],
     );
