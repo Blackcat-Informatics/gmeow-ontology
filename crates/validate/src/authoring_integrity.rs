@@ -36,15 +36,7 @@ const TOOL: &str = "authoring-integrity";
 const SH_NODE_SHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
 const SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
 const SLICE_TIER: &str = "https://blackcatinformatics.ca/gmeow/sliceTier";
-/// `gmeow:GroundingSlice` — a slice typed as one of the three co-foundational
-/// grounding layers (`lang:`/`math:`/`logic:`). Duplicated from
-/// [`crate::slice_peerage`]'s private const of the same value (both readers
-/// keep their own copy rather than exposing it, matching this crate's existing
-/// posture of per-module governance-vocabulary constants).
-const GMEOW_GROUNDING_SLICE: &str = "https://blackcatinformatics.ca/gmeow/GroundingSlice";
-/// `gmeow:sliceCoFoundationalWith` — the symmetric grounding-peerage relation.
-const GMEOW_CO_FOUNDATIONAL_WITH: &str =
-    "https://blackcatinformatics.ca/gmeow/sliceCoFoundationalWith";
+use crate::slice_peerage::{GMEOW_CO_FOUNDATIONAL_WITH, GMEOW_GROUNDING_SLICE};
 /// The `slices/` subdirectory every grounding slice's manifest must live under.
 const GROUNDING_GROUP_PREFIX: &str = "grounding/";
 

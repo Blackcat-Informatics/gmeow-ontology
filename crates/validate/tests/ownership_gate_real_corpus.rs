@@ -98,3 +98,57 @@ fn the_peerage_aware_dependency_gate_is_clean_on_the_real_corpus() {
             .join("\n")
     );
 }
+
+/// RATCHET on the non-coupling exemption's blast radius.
+///
+/// The Class-B exemption ([`slice_peerage`]'s `is_pure_non_coupling`) is derived
+/// from the corpus, not hard-coded: a reference is non-coupling when its
+/// predicate is declared `owl:AnnotationProperty` or carries an open
+/// `rdfs:range rdfs:Resource`. Deriving it is what makes it honest — but it also
+/// means a slice could exempt its own cross-slice coupling from this now-gating
+/// check simply by declaring the carrying predicate that way in its own
+/// `module.ttl`. Nothing gates that declaration.
+///
+/// So gate its GROWTH instead. A semantic undeclared edge whose every referenced
+/// term is filtered as non-coupling produces no verdict at all — it is silently
+/// suppressed. This pins how many such edges exist. The number may FALL freely
+/// (authoring that removes a suppressed coupling is pure improvement); a RISE
+/// means the exemption just swallowed a crossing the gate used to see, and must
+/// be inspected and re-pinned deliberately rather than discovered later.
+///
+/// The pin is the measured count, not a judgement that all 77 are load-bearing:
+/// most are references that would not gate anyway. Measured separately, removing
+/// the exemption entirely surfaces only 5 additional ownership ERRORS. This
+/// number is a tripwire on growth, not a debt figure.
+#[test]
+fn the_non_coupling_exemption_suppresses_no_more_edges_than_pinned() {
+    let dir = slices_dir();
+    let catalog = purrdf::slice::SliceCatalog::discover(&dir, gmeow_ns::gmeow_slice_vocab())
+        .expect("discover the real slice catalog");
+    let report = purrdf::slice::OwnershipAnalyzer::new(&catalog)
+        .analyze()
+        .expect("analyze slice ownership over the real corpus");
+    let classification = gmeow_validate::slice_peerage::classify(&report, &catalog)
+        .expect("classify the real corpus");
+
+    // Semantic undeclared edges the analyzer computed…
+    let undeclared_semantic = report
+        .edges
+        .iter()
+        .filter(|e| {
+            e.reconciliation == purrdf::slice::ReconciliationStatus::Undeclared
+                && e.edge_kind.is_semantic()
+        })
+        .count();
+    // …minus those that reached a verdict: the remainder is what the exemption ate.
+    let suppressed = undeclared_semantic.saturating_sub(classification.verdicts.len());
+
+    assert!(
+        suppressed <= 77,
+        "the non-coupling exemption now suppresses {suppressed} semantic undeclared edge(s), \
+         above the pinned ceiling of 77. A rise means a predicate was declared \
+         owl:AnnotationProperty or rdfs:range rdfs:Resource and thereby removed a real \
+         cross-slice crossing from this gate. Inspect the new declaration, confirm it is \
+         genuinely non-coupling, and only then re-pin this number."
+    );
+}

@@ -165,8 +165,10 @@ use purrdf::slice::{
 // same posture `crate::authoring_integrity`'s R7 gate already takes.
 
 /// `gmeow:GroundingSlice` — a slice typed as one of the three co-foundational
-/// grounding layers (`lang:`/`math:`/`logic:`).
-const GMEOW_GROUNDING_SLICE: &str = "https://blackcatinformatics.ca/gmeow/GroundingSlice";
+/// grounding layers (`lang:`/`math:`/`logic:`). Shared with
+/// [`crate::authoring_integrity`]: one declaration, not a per-module copy.
+pub(crate) const GMEOW_GROUNDING_SLICE: &str =
+    "https://blackcatinformatics.ca/gmeow/GroundingSlice";
 /// `gmeow:Seam` — a sanctioned cross-grounding reference channel individual.
 const GMEOW_SEAM: &str = "https://blackcatinformatics.ca/gmeow/Seam";
 /// `gmeow:seamDirection` — a seam's directed `(from, to)` leg (a blank node).
@@ -180,7 +182,8 @@ const GMEOW_SEAM_CARRYING_TERM: &str = "https://blackcatinformatics.ca/gmeow/sea
 /// `gmeow:seamOwningDoc` — the design-doc filename a seam is documented in.
 const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOwningDoc";
 /// `gmeow:sliceCoFoundationalWith` — the symmetric grounding-peerage relation.
-const GMEOW_CO_FOUNDATIONAL_WITH: &str =
+/// Shared with [`crate::authoring_integrity`]: one declaration, not a copy.
+pub(crate) const GMEOW_CO_FOUNDATIONAL_WITH: &str =
     "https://blackcatinformatics.ca/gmeow/sliceCoFoundationalWith";
 /// `gmeow:GroundingDomain` — one of the three external-grounding subject-matter
 /// domains of `docs/GROUNDING.md`'s "External grounding ownership" table.
