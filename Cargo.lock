@@ -1581,6 +1581,7 @@ dependencies = [
  "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-mcp",
  "gmeow-music",
  "gmeow-pipeline",
  "gmeow-slice-brief",
@@ -1644,6 +1645,7 @@ dependencies = [
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-mcp-dev",
  "gmeow-music",
  "gmeow-ns",
  "gmeow-pipeline",
@@ -1846,6 +1848,37 @@ version = "0.2.0"
 dependencies = [
  "gmeow-errors",
  "purrdf",
+]
+
+[[package]]
+name = "gmeow-mcp"
+version = "0.2.0"
+dependencies = [
+ "gmeow-bundle-view",
+ "gmeow-docs-model",
+ "gmeow-errors",
+ "gmeow-lang-bridge",
+ "gmeow-logic",
+ "gmeow-logic-compile",
+ "gmeow-ns",
+ "gmeow-slice-quality",
+ "gmeow-validate",
+ "jsonschema",
+ "purrdf",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
+name = "gmeow-mcp-dev"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-logic",
+ "gmeow-mcp",
+ "gmeow-pipeline",
+ "serde_json",
 ]
 
 [[package]]

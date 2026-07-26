@@ -1,17 +1,84 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native MCP surfaces over the bundled GMEOW snapshot.
+//! `gmeow-mcp` — the CONSUMER-mode MCP engine over a bundled `gmeow.gts` snapshot.
 //!
-//! `McpView` loads the bundled `gmeow.gts` snapshot ONCE (the narrow waist,
-//! bundle-only — never the repo) and serves the `export`-backed surfaces —
-//! `lookup_term`, `llms_txt`, `llms_full`, `doc_card`, `okf_index` — over a
-//! per-language [`FoldView`]. The standard `llms.txt`/`doc_card` surfaces
-//! make the docs themselves agent-consumable: the index links into the published
-//! site (URLs recovered from the `gmeow:graph/documentation` graph) and the card
-//! is the per-term, context-window-ready twin of the site's `card.md`. `McpServer`
-//! owns the stdio JSON-RPC loop, startup language validation, resource routing,
-//! and grounded-memory triad; the native `gmeow`/`gmeow-dev` CLI is the launcher.
+//! [`McpView`] loads the snapshot ONCE (the narrow waist, bundle-only — never the
+//! repo) and serves the `export`-backed surfaces — `lookup_term`, `llms_txt`,
+//! `llms_full`, `doc_card`, `okf_index` — over a per-language `FoldView`. The
+//! standard `llms.txt` / `doc_card` surfaces make the docs themselves
+//! agent-consumable: the index links into the published site (URLs recovered from
+//! the `gmeow:graph/documentation` graph) and the card is the per-term,
+//! context-window-ready twin of the site's `card.md`. [`McpServer`] owns the stdio
+//! JSON-RPC loop, startup language validation, tool/resource routing, the native
+//! reasoning and validation tools, and the grounded-memory triad; the native `gmeow`
+//! CLI is the launcher.
+//!
+//! # Why this crate exists
+//!
+//! The MCP surface used to live inside `gmeow-pipeline`, so an agent server that
+//! only ever READS a shipped bundle inherited the whole build executor: the stage
+//! DAG, the scheduler, the persistent cache, rayon, the release signer, the network
+//! client, the docs renderer and its embedded multi-megabyte wasm. That is a hard
+//! blocker for a wasm target and a very poor deal for a consumer that wants a term
+//! card. This crate is the extraction: everything the consumer surface needs, and
+//! nothing that writes a bundle.
+//!
+//! # Boundary rules
+//!
+//! * **Leaf.** It never depends on `gmeow-pipeline`. The four repo-reading dev tools
+//!   (`validate`, `sync`, `reason`, `constitution`) live in `gmeow-mcp-dev`, which
+//!   depends on THIS crate and registers them through [`extension`]. That inversion
+//!   is what breaks the cycle: the only pipeline-coupled symbols were `run_full` /
+//!   `RunMode`, and they now sit on the dev side of the seam.
+//! * **wasm-clean at the dependency level.** Nothing in the dependency tree pulls in
+//!   rayon, process spawning, or an embedded-asset crate. The crate still calls
+//!   `std::fs` / `std::env` directly (the grounded-memory store, the query overlay,
+//!   `GMEOW_LANG` / `GMEOW_MEMORY_PATH`, the stdio loop); routing those through a
+//!   cfg-selected storage seam is separate, later work.
+//! * **Bundle-only.** No tool here reads a checkout. `slice_quality` scores an
+//!   arbitrary external directory against the rubric carried IN the bundle bytes;
+//!   the grounded-memory triad writes to `GMEOW_MEMORY_PATH`, not the repo.
+//! * **One surface, total dispatch.** Tools and resources are `(descriptor,
+//!   handler)` pairs in an assembled [`extension::Surface`]; see that module for the
+//!   totality and duplicate-registration contract.
+//!
+//! # Direct dependencies
+//!
+//! The list below is the crate's complete direct dependency set (it must set-equal
+//! `cargo tree -p gmeow-mcp --depth 1`), each with the reason it is here:
+//!
+//! * `purrdf` — the RDF 1.2 kernel: the snapshot imports to an `RdfDataset`, every
+//!   query surface evaluates SPARQL over one, and the memory / conjecture / candidate
+//!   libraries are GTS segment files written with its writer.
+//! * `gmeow-errors` — the diagnostic substrate: every tool defect is a typed
+//!   `DiagKind` raised as a `Diag`, and `explain_finding` rehydrates `Finding`s.
+//! * `gmeow-ns` — the registered term namespaces (`GMEOW_NS`, `LOGIC_NS`, `MATH_NS`)
+//!   the tool surface builds predicate and class IRIs from.
+//! * `gmeow-bundle-view` — the bundle READ side: blob access, the fold view and card
+//!   renderers, the diagnostics reader, the native query substrate, the graph IRIs.
+//! * `gmeow-docs-model` — the documentation MODEL (`card`, `llms`, `gmn1_primer`)
+//!   the `doc_card` / `llms_txt` / primer surfaces render through; never
+//!   `gmeow-docs`, whose renderer embeds vendored wasm.
+//! * `gmeow-logic` — the native reasoner and its result algebra behind
+//!   `verify_graph`, `explain_quad`, `coherence_certificate`, `entailments`,
+//!   `counter_examples`, the conjecture engine, and the transaction executor.
+//! * `gmeow-logic-compile` — the canonical prefix registry the tools render Turtle
+//!   with, plus `ir::LOGIC_NAMESPACE`.
+//! * `gmeow-validate` — the shipped validator behind `validate_local` and `advise`,
+//!   and the local oracle's finding schema / entailment / fixture views.
+//! * `gmeow-lang-bridge` — the GMN-1 codec behind `gmn_validate`, `gmn_expand`, and
+//!   `gmn_explain`.
+//! * `gmeow-slice-quality` — the advisor kernel `slice_quality` scores an external
+//!   slice directory with, against the bundle-carried rubric.
+//! * `serde_json` — the MCP wire format: every tool envelope and JSON-RPC frame.
+//! * `sha2` — SHA-256 content addressing for the append-only library segments and
+//!   the claim fingerprints.
+//! * `tempfile` — atomic write-then-rename for the append-only library commit path.
+
+pub mod error;
+pub mod extension;
+pub mod fold_arena;
 
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -48,8 +115,11 @@ use purrdf::gts::writer::Writer as GtsWriter;
 use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 use sha2::{Digest, Sha256};
 
-use crate::stages::export::{self, ConsumerResolution, FoldView, Term};
-use crate::stages::fold_arena;
+use gmeow_bundle_view::export::{self, ConsumerResolution, FoldView, Term};
+
+use crate::extension::{
+    Extension, ResourceHandler, Surface, ToolHandler, zip_resources, zip_tools,
+};
 
 // The internal→BCP-47 display-language map is carried on the lang: carrier
 // varieties: each lang:LanguageVariety bears its internal tag through
@@ -324,7 +394,7 @@ SELECT ?target ?judgment WHERE {{
 }
 
 /// The output format of the `doc_card` tool: rendered Markdown or the neutral
-/// [`gmeow_docs::card::Card`] serialized to JSON.
+/// [`gmeow_docs_model::card::Card`] serialized to JSON.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum CardFormat {
     /// The card rendered through the single shared Markdown renderer.
@@ -357,10 +427,12 @@ impl CardFormat {
     }
 }
 
-/// Parse the `detail` argument into a [`gmeow_docs::card::CardDetail`] tier — an
+/// Parse the `detail` argument into a [`gmeow_docs_model::card::CardDetail`] tier — an
 /// UNKNOWN value is a HARD FAIL listing the valid values (never a silent default).
-fn parse_card_detail(raw: Option<&str>) -> gmeow_errors::Result<gmeow_docs::card::CardDetail> {
-    use gmeow_docs::card::CardDetail;
+fn parse_card_detail(
+    raw: Option<&str>,
+) -> gmeow_errors::Result<gmeow_docs_model::card::CardDetail> {
+    use gmeow_docs_model::card::CardDetail;
     match raw.unwrap_or("standard") {
         "summary" => Ok(CardDetail::Summary),
         "standard" => Ok(CardDetail::Standard),
@@ -374,8 +446,8 @@ fn parse_card_detail(raw: Option<&str>) -> gmeow_errors::Result<gmeow_docs::card
 }
 
 /// The canonical `detail` label echoed back in the response envelope.
-fn card_detail_label(detail: gmeow_docs::card::CardDetail) -> &'static str {
-    use gmeow_docs::card::CardDetail;
+fn card_detail_label(detail: gmeow_docs_model::card::CardDetail) -> &'static str {
+    use gmeow_docs_model::card::CardDetail;
     match detail {
         CardDetail::Summary => "summary",
         CardDetail::Standard => "standard",
@@ -388,7 +460,7 @@ fn card_detail_label(detail: gmeow_docs::card::CardDetail) -> &'static str {
 /// available through the `counter_examples` tool).
 fn fixture_body_snippet(text: &str) -> String {
     let one_line = text.split_whitespace().collect::<Vec<_>>().join(" ");
-    gmeow_docs::llms::cap_note(&one_line)
+    gmeow_docs_model::llms::cap_note(&one_line)
 }
 
 /// SELECT the documented competency questions for the `competency_questions` tool:
@@ -523,7 +595,10 @@ fn search_documentation(
                 .to_string(),
         }));
     }
-    let value = sparql_result_to_json(crate::stages::native_query::query(docs, DOC_SEARCH_QUERY)?)?;
+    let value = sparql_result_to_json(gmeow_bundle_view::native_query::query(
+        docs,
+        DOC_SEARCH_QUERY,
+    )?)?;
 
     // Aggregate the (repeatable advice/alignment/missing) rows back per entry subject.
     #[derive(Default)]
@@ -952,8 +1027,8 @@ impl McpView {
 
     /// The graph-derived GMN-1 teachability primer over THIS view's carrier dataset — shared by
     /// the `llms_full` surface and the `gmeow://ontology/gmn1-primer` resource.
-    fn gmn1_primer(&self) -> gmeow_errors::Result<gmeow_docs::gmn1_primer::Gmn1Primer> {
-        gmeow_docs::gmn1_primer::build_primer(self.dataset.as_ref()).map_err(|e| {
+    fn gmn1_primer(&self) -> gmeow_errors::Result<gmeow_docs_model::gmn1_primer::Gmn1Primer> {
+        gmeow_docs_model::gmn1_primer::build_primer(self.dataset.as_ref()).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("build GMN-1 teachability primer: {e}"),
             })
@@ -965,8 +1040,8 @@ impl McpView {
     /// (`{"ok":true,"detail","format","bytes","tokens","card"}`).
     ///
     /// The card is built through the SINGLE shared builder + renderer
-    /// (`export::doc_card_build` → `gmeow_docs::card`). For
-    /// [`CardDetail::Full`](gmeow_docs::card::CardDetail::Full) the rich oracle
+    /// (`export::doc_card_build` → `gmeow_docs_model::card`). For
+    /// [`CardDetail::Full`](gmeow_docs_model::card::CardDetail::Full) the rich oracle
     /// panels (entailments, Do / Don't fixtures, diagnostics, projection loss) are
     /// populated by querying the `gmeow:graph/documentation` projection for the
     /// resolved term IRI. An UNKNOWN term is a HARD FAIL (`Err`).
@@ -977,11 +1052,11 @@ impl McpView {
     fn doc_card(
         &self,
         term: &str,
-        detail: gmeow_docs::card::CardDetail,
+        detail: gmeow_docs_model::card::CardDetail,
         format: CardFormat,
         requested: Vec<String>,
     ) -> gmeow_errors::Result<String> {
-        use gmeow_docs::card::CardDetail;
+        use gmeow_docs_model::card::CardDetail;
         let modeled_defs = self.modeled_defs();
         let built = self.with_terms(requested, |terms| {
             export::doc_card_build(terms, term, &modeled_defs)
@@ -1006,7 +1081,7 @@ impl McpView {
         }
         let (rendered, card_value) = match format {
             CardFormat::Markdown => {
-                let md = gmeow_docs::card::render_card(&title, &card, detail);
+                let md = gmeow_docs_model::card::render_card(&title, &card, detail);
                 let value = Value::String(md.clone());
                 (md, value)
             }
@@ -1030,7 +1105,7 @@ impl McpView {
             "detail": card_detail_label(detail),
             "format": format.label(),
             "bytes": rendered.len(),
-            "tokens": gmeow_docs::llms::estimate_tokens(&rendered),
+            "tokens": gmeow_docs_model::llms::estimate_tokens(&rendered),
             "card": card_value,
         })
         .to_string())
@@ -1042,11 +1117,11 @@ impl McpView {
     fn card_entailments(
         &self,
         term_iri: &str,
-    ) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardEntailment>> {
+    ) -> gmeow_errors::Result<Vec<gmeow_docs_model::card::CardEntailment>> {
         Ok(self
             .term_entailments(term_iri)?
             .iter()
-            .map(|v| gmeow_docs::card::CardEntailment {
+            .map(|v| gmeow_docs_model::card::CardEntailment {
                 rule: value_str(v, "rule"),
                 conclusion: value_str(v, "conclusion"),
                 premises: value_str_array(v, "premises"),
@@ -1063,10 +1138,10 @@ impl McpView {
         &self,
         term_iri: &str,
     ) -> gmeow_errors::Result<(
-        Vec<gmeow_docs::card::CardFixture>,
-        Vec<gmeow_docs::card::CardFixture>,
+        Vec<gmeow_docs_model::card::CardFixture>,
+        Vec<gmeow_docs_model::card::CardFixture>,
     )> {
-        let to_card = |v: &Value| gmeow_docs::card::CardFixture {
+        let to_card = |v: &Value| gmeow_docs_model::card::CardFixture {
             title: value_str(v, "title"),
             body: fixture_body_snippet(&value_str(v, "text")),
         };
@@ -1084,7 +1159,7 @@ impl McpView {
     fn card_diagnostics(
         &self,
         term_iri: &str,
-    ) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardDiagnostic>> {
+    ) -> gmeow_errors::Result<Vec<gmeow_docs_model::card::CardDiagnostic>> {
         let mut by_code: BTreeMap<String, String> = BTreeMap::new();
         for row in self.docs_select_rows(&diagnostics_by_term_query(term_iri))? {
             let (Some(code), Some(claim)) = (row.get("code"), row.get("claim")) else {
@@ -1094,7 +1169,7 @@ impl McpView {
         }
         Ok(by_code
             .into_iter()
-            .map(|(code, note)| gmeow_docs::card::CardDiagnostic { code, note })
+            .map(|(code, note)| gmeow_docs_model::card::CardDiagnostic { code, note })
             .collect())
     }
 
@@ -1103,7 +1178,10 @@ impl McpView {
     /// `gmeow:docEvidenceKindLoss` evidence in the documentation graph. Rows are
     /// ordered by target, so the panel is deterministic. Empty for a term that
     /// degrades under no projection.
-    fn card_loss(&self, term_iri: &str) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardLoss>> {
+    fn card_loss(
+        &self,
+        term_iri: &str,
+    ) -> gmeow_errors::Result<Vec<gmeow_docs_model::card::CardLoss>> {
         let mut by_target: BTreeMap<String, String> = BTreeMap::new();
         for row in self.docs_select_rows(&loss_by_term_query(term_iri))? {
             let (Some(target), Some(judgment)) = (row.get("target"), row.get("judgment")) else {
@@ -1115,7 +1193,7 @@ impl McpView {
         }
         Ok(by_target
             .into_iter()
-            .map(|(target, preservation)| gmeow_docs::card::CardLoss {
+            .map(|(target, preservation)| gmeow_docs_model::card::CardLoss {
                 target,
                 preservation,
             })
@@ -1141,7 +1219,7 @@ impl McpView {
 
     fn run_docs_query(&self, sparql: &str) -> gmeow_errors::Result<Value> {
         let docs = self.documentation();
-        let result = crate::stages::native_query::query(docs, sparql)?;
+        let result = gmeow_bundle_view::native_query::query(docs, sparql)?;
         sparql_result_to_json(result)
     }
 
@@ -1361,7 +1439,7 @@ impl McpView {
             builder.push_owned_quad(&tagged);
         }
         let dataset = builder.freeze()?;
-        let result = crate::stages::native_query::query(&dataset, sparql)?;
+        let result = gmeow_bundle_view::native_query::query(&dataset, sparql)?;
         sparql_result_to_json(result)
     }
 
@@ -1681,11 +1759,11 @@ impl McpView {
     /// with codes), and the anchor cluster. An unknown/malformed target is a HARD
     /// FAIL (`Err`) — NEVER an empty-but-ok DAG.
     ///
-    /// [`FindingIndex`]: crate::diagnostics_reader::FindingIndex
-    /// [`verdict`]: crate::diagnostics_reader::verdict
-    /// [`minimal_fatal_cut`]: crate::diagnostics_reader::minimal_fatal_cut
+    /// [`FindingIndex`]: gmeow_bundle_view::diagnostics_reader::FindingIndex
+    /// [`verdict`]: gmeow_bundle_view::diagnostics_reader::verdict
+    /// [`minimal_fatal_cut`]: gmeow_bundle_view::diagnostics_reader::minimal_fatal_cut
     fn explain_finding_json(&self, target: &str) -> gmeow_errors::Result<String> {
-        use crate::diagnostics_reader::{
+        use gmeow_bundle_view::diagnostics_reader::{
             explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
         };
         // The reader projects the `graph/diagnostics` named graph out of THIS
@@ -1870,7 +1948,7 @@ impl McpView {
         self.documentation.get_or_init(|| {
             Arc::new(
                 self.dataset
-                    .project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION),
+                    .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION),
             )
         })
     }
@@ -1881,7 +1959,7 @@ impl McpView {
         self.authoring_briefs.get_or_init(|| {
             Arc::new(
                 self.dataset
-                    .project_named_graph(crate::stages::carrier::GRAPH_AUTHORING_BRIEFS),
+                    .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS),
             )
         })
     }
@@ -1900,12 +1978,12 @@ impl McpView {
     /// `export::term_to_card`'s `python_model` gate reads (see
     /// `export::class_is_modeled`), built once from the raw snapshot bytes (like
     /// `doc_urls`, language-independent). Empty when the bundle carries no
-    /// `schemas-archive` rep, mirroring `crate::bundle_blobs::Bundle`'s own
+    /// `schemas-archive` rep, mirroring `gmeow_bundle_view::bundle_blobs::Bundle`'s own
     /// wheel-only-install contract for this accessor — a card's `python_model`
     /// line is ancillary, never worth a hard crash of the whole server.
     fn modeled_defs(&self) -> Arc<BTreeSet<String>> {
         Arc::clone(self.modeled_defs.get_or_init(|| {
-            let defs = crate::bundle_blobs::Bundle::from_snapshot(&self.gts)
+            let defs = gmeow_bundle_view::bundle_blobs::Bundle::from_snapshot(&self.gts)
                 .and_then(|b| b.modeled_def_keys())
                 .unwrap_or_default();
             Arc::new(defs)
@@ -1942,43 +2020,50 @@ impl McpView {
     }
 }
 
-/// Which tool surface an [`McpServer`] advertises: the bundle-only consumer
-/// surface, or the repository-anchored developer surface (dev adds the
-/// repo-reading maintenance tools).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum McpMode {
-    /// Bundle-only surface — the shippable `gmeow mcp` server.
-    Consumer,
-    /// Consumer surface plus the repo-reading dev tools (`gmeow-dev mcp`).
-    Dev,
-}
-
-impl McpMode {
-    fn includes_dev_tools(self) -> bool {
-        self == Self::Dev
-    }
-}
-
-/// A Rust MCP server over the bundled snapshot and optional repository root.
+/// A Rust MCP server over a bundled `gmeow.gts` snapshot.
+///
+/// There is no "mode" field and no repository root. What a server can do IS its
+/// [`Surface`] — the assembled tool/resource registry — so the consumer server and
+/// a host-extended server differ only in which registrations they carry. A host that
+/// needs a checkout (`gmeow-mcp-dev`) captures the root inside its own handlers, so
+/// the state a dev tool needs lives with the dev tools rather than as a
+/// perpetually-`None` field on the consumer server. That replaces the old
+/// `McpMode` + `root: Option<PathBuf>` pair, which encoded the same distinction
+/// twice and left every dev-gated call site to re-derive it.
 pub struct McpServer {
     view: McpView,
-    mode: McpMode,
-    root: Option<PathBuf>,
+    surface: Surface,
     tag_map: BTreeMap<String, String>,
     available: BTreeSet<String>,
     startup_requested: Vec<String>,
 }
 
 impl McpServer {
-    /// Build a native MCP server over the bundled `gmeow.gts` snapshot bytes.
-    /// `root` (the checkout path) is required only for the [`McpMode::Dev`]
-    /// repo-reading tools; the consumer surface passes `None`. Hard-fails if the
-    /// snapshot does not read or the startup language (`GMEOW_LANG`) is unknown.
-    pub fn from_snapshot(
-        snapshot: &[u8],
-        root: Option<PathBuf>,
-        mode: McpMode,
-    ) -> gmeow_errors::Result<Self> {
+    /// Build the CONSUMER MCP server over the bundled `gmeow.gts` snapshot bytes —
+    /// the shippable `gmeow mcp` surface, which reads nothing but the bundle.
+    ///
+    /// # Errors
+    ///
+    /// Hard-fails if the snapshot does not read, if the startup language
+    /// (`GMEOW_LANG`) is unknown, or if the builtin surface does not assemble.
+    pub fn from_snapshot(snapshot: &[u8]) -> gmeow_errors::Result<Self> {
+        Self::from_snapshot_with(snapshot, Extension::new())
+    }
+
+    /// Build an MCP server whose surface is the consumer builtins PLUS `extension`.
+    ///
+    /// This is the seam a host crate with more than the bundle registers through;
+    /// see [`crate::extension`]. Registration order is builtins first, then the
+    /// extension's entries in declaration order.
+    ///
+    /// # Errors
+    ///
+    /// As [`from_snapshot`](Self::from_snapshot), plus
+    /// [`DuplicateRegistration`](crate::error::DuplicateRegistration) if `extension`
+    /// claims a tool name or resource URI a builtin (or an earlier entry) already
+    /// claims, and [`InvalidRegistration`](crate::error::InvalidRegistration) if a
+    /// descriptor carries no dispatch key.
+    pub fn from_snapshot_with(snapshot: &[u8], extension: Extension) -> gmeow_errors::Result<Self> {
         let bundle = purrdf::import_gts_events(snapshot)
             .with_ctx(|| "read snapshot gmeow.gts".to_string())?;
         let dataset = bundle.dataset;
@@ -1990,12 +2075,23 @@ impl McpServer {
             resolve_lang(env::var("GMEOW_LANG").ok().as_deref(), &tag_map, &available)?;
         Ok(Self {
             view: McpView::from_dataset(dataset, Arc::from(snapshot))?,
-            mode,
-            root,
+            surface: Surface::assemble(builtin_extension()?, extension)?,
             tag_map,
             available,
             startup_requested,
         })
+    }
+
+    /// The bundle view this server serves from — the read-side handle a
+    /// host-registered tool needs (its snapshot bytes, its folded dataset).
+    pub fn view(&self) -> &McpView {
+        &self.view
+    }
+
+    /// The assembled tool/resource surface: what this server advertises and,
+    /// identically, what it dispatches.
+    pub fn surface(&self) -> &Surface {
+        &self.surface
     }
 
     fn requested_from_args(&self, args: &Value) -> gmeow_errors::Result<Vec<String>> {
@@ -2005,26 +2101,38 @@ impl McpServer {
         }
     }
 
-    fn tools_result(&self) -> Value {
-        let mut tools = vec![
-            tool(
-                "lookup_term",
-                "Resolve a bundled GMEOW term.",
-                &[("term", "string"), ("lang", "string")],
-            ),
-            tool(
-                "llms_txt",
-                "Return the standard bundled vocabulary index.",
-                &[("lang", "string")],
-            ),
-            tool(
-                "llms_full",
-                "Return the complete inlined bundled vocabulary index.",
-                &[("lang", "string")],
-            ),
-            tool(
-                "doc_card",
-                "Return a prompt-ready term card for a bundled term, wrapped in a \
+    pub fn tools_result(&self) -> Value {
+        json!({ "tools": self.surface.tool_descriptors() })
+    }
+}
+
+/// The CONSUMER tool descriptors — what a bundle-only `gmeow mcp` advertises — in
+/// advertised order.
+///
+/// This list is joined to [`builtin_tool_handlers`] index-by-index by
+/// [`zip_tools`], which refuses to build unless the two agree name-for-name. Keep
+/// them in the same order: a descriptor added here without its handler (or the
+/// converse) is a hard construction failure, not a silently unusable tool.
+fn builtin_tool_descriptors() -> Vec<Value> {
+    vec![
+        tool(
+            "lookup_term",
+            "Resolve a bundled GMEOW term.",
+            &[("term", "string"), ("lang", "string")],
+        ),
+        tool(
+            "llms_txt",
+            "Return the standard bundled vocabulary index.",
+            &[("lang", "string")],
+        ),
+        tool(
+            "llms_full",
+            "Return the complete inlined bundled vocabulary index.",
+            &[("lang", "string")],
+        ),
+        tool(
+            "doc_card",
+            "Return a prompt-ready term card for a bundled term, wrapped in a \
                  cost-metadata envelope ({ok, detail, format, bytes, tokens, card}). \
                  `detail` selects a token-budgeted tier: `summary` (title + definition \
                  only), `standard` (the compact card — default), or `full` (the oracle \
@@ -2032,27 +2140,27 @@ impl McpServer {
                  and projection-loss panels, queried from gmeow:graph/documentation). \
                  `format` is `markdown` (default) or `json` (the neutral Card object). \
                  An unknown detail/format is a hard error.",
-                &[
-                    ("term", "string"),
-                    ("detail", "string"),
-                    ("format", "string"),
-                    ("lang", "string"),
-                ],
-            ),
-            tool(
-                "okf_index",
-                "Return the OKF manifest JSON envelope.",
-                &[("lang", "string")],
-            ),
-            tool(
-                "query_docs",
-                "Run a SELECT or ASK SPARQL query over the bundled documentation graph \
+            &[
+                ("term", "string"),
+                ("detail", "string"),
+                ("format", "string"),
+                ("lang", "string"),
+            ],
+        ),
+        tool(
+            "okf_index",
+            "Return the OKF manifest JSON envelope.",
+            &[("lang", "string")],
+        ),
+        tool(
+            "query_docs",
+            "Run a SELECT or ASK SPARQL query over the bundled documentation graph \
                  (gmeow:graph/documentation) and return SPARQL-1.1 JSON results.",
-                &[("query", "string")],
-            ),
-            tool(
-                "docs_search",
-                "Full-text search the bundled documentation graph (gmeow:graph/documentation) \
+            &[("query", "string")],
+        ),
+        tool(
+            "docs_search",
+            "Full-text search the bundled documentation graph (gmeow:graph/documentation) \
                  for terms, slices, and concerns whose label, definition, or advisory prose \
                  match `query` (case-insensitive substring / token match). Returns ranked \
                  records — a label match outranks a definition match outranks an advice match, \
@@ -2060,21 +2168,21 @@ impl McpServer {
                  site URL, and the same advice / alignments / missing_coverage facets the site \
                  search index carries. Pass an optional `limit` (default 20). A query that \
                  matches nothing returns an empty result list.",
-                &[("query", "string"), ("limit", "integer")],
-            ),
-            tool(
-                "query_local",
-                "Run a SELECT or ASK SPARQL query over the bundle UNIONED with a READ-ONLY \
+            &[("query", "string"), ("limit", "integer")],
+        ),
+        tool(
+            "query_local",
+            "Run a SELECT or ASK SPARQL query over the bundle UNIONED with a READ-ONLY \
                  local overlay graph file (path). The overlay is loaded as an EXTERNAL, \
                  read-only annex: its triples are visible to reads (bundle \u{222a} overlay, \
                  also isolable via GRAPH <urn:gmeow:mcp:overlay:external>) but are NEVER merged \
                  into the signed gmeow: canon and NEVER written back to disk. Accepts Turtle / \
                  TriG / N-Triples / N-Quads / RDF-XML by file extension.",
-                &[("path", "string"), ("query", "string")],
-            ),
-            tool(
-                "verify_graph",
-                "Reason over the bundle UNIONED with a READ-ONLY local overlay graph file \
+            &[("path", "string"), ("query", "string")],
+        ),
+        tool(
+            "verify_graph",
+            "Reason over the bundle UNIONED with a READ-ONLY local overlay graph file \
                  (path), then run the native reasoned-graph verify (the bad-example negative \
                  tests + non-entailment obligations) and return a PROOF-CARRYING judgment. \
                  The overlay is loaded as an EXTERNAL, read-only annex exactly like \
@@ -2091,15 +2199,15 @@ impl McpServer {
                  logic:ReasoningResult). An overlay exceeding the size ceiling or an unknown \
                  file extension is a hard error. Accepts Turtle / TriG / N-Triples / N-Quads / \
                  RDF-XML by file extension.",
-                &[
-                    ("path", "string"),
-                    ("max_steps", "integer"),
-                    ("max_answers", "integer"),
-                ],
-            ),
-            tool(
-                "explain_quad",
-                "Reconstruct the FAITHFUL cited-IRI derivation skeleton for ONE arbitrary quad \
+            &[
+                ("path", "string"),
+                ("max_steps", "integer"),
+                ("max_answers", "integer"),
+            ],
+        ),
+        tool(
+            "explain_quad",
+            "Reconstruct the FAITHFUL cited-IRI derivation skeleton for ONE arbitrary quad \
                  the bundle's reasoned closure entails: the target `(subject, predicate, \
                  object_value)` in named graph `graph`. Reasons over the bundle under the \
                  mid-chase step governor (max_steps bounds the derivation budget), locates the \
@@ -2118,19 +2226,19 @@ impl McpServer {
                  provenance. A quad the closure does not entail, or a reifier shared across \
                  worlds that `graph` does not resolve, is a hard error (never an empty-but-ok \
                  proof).",
-                &[
-                    ("subject", "string"),
-                    ("predicate", "string"),
-                    ("object_value", "string"),
-                    ("object_kind", "string"),
-                    ("object_datatype", "string"),
-                    ("graph", "string"),
-                    ("max_steps", "integer"),
-                ],
-            ),
-            tool(
-                "coherence_certificate",
-                "Read the bundle's SCOPED COHERENCE CERTIFICATE — a budget-free, \
+            &[
+                ("subject", "string"),
+                ("predicate", "string"),
+                ("object_value", "string"),
+                ("object_kind", "string"),
+                ("object_datatype", "string"),
+                ("graph", "string"),
+                ("max_steps", "integer"),
+            ],
+        ),
+        tool(
+            "coherence_certificate",
+            "Read the bundle's SCOPED COHERENCE CERTIFICATE — a budget-free, \
                  proof-carrying coherence attestation computed ONCE at pipeline time over the \
                  whole assembled bundle and folded into graph/attestations. This tool reads it \
                  straight off the bundled dataset: it takes NO inputs, runs NO reasoning, and \
@@ -2142,11 +2250,11 @@ impl McpServer {
                  certified_fragment, the completeness/evaluation axes, contradiction_policy, \
                  projection_losses, and forbidden_violations. A bundle carrying no coherence \
                  artifact is a hard error (never a silent recompute).",
-                &[],
-            ),
-            tool(
-                "validate_local",
-                "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
+            &[],
+        ),
+        tool(
+            "validate_local",
+            "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
                  (the same core as `gmeow validate`), then CLOSE THE LOOP: every finding is \
                  returned with its rule catalog helpUri, the CORRESPONDING counter-example fixture \
                  (matched by violation code), a positive well-formed exemplar, and the entailments \
@@ -2157,15 +2265,15 @@ impl McpServer {
                  like `gmeow validate --deep` — powerful but multiple minutes; default false). \
                  Nothing is written (the data is validated in-memory and discarded); an unknown \
                  format or an oversized payload is a hard error.",
-                &[
-                    ("data", "string"),
-                    ("format", "string"),
-                    ("deep", "boolean"),
-                ],
-            ),
-            tool(
-                "gmn_validate",
-                "Validate a GMN-1 document (the token-compact GMEOW Model Notation surface) \
+            &[
+                ("data", "string"),
+                ("format", "string"),
+                ("deep", "boolean"),
+            ],
+        ),
+        tool(
+            "gmn_validate",
+            "Validate a GMN-1 document (the token-compact GMEOW Model Notation surface) \
                  against the shipped codebook dictionary + validator tier, checkout-free off the \
                  bundle. This is an external LLM's entry to the GMN `@err` repair loop: `gmn` is \
                  the GMN-1 document text. Returns {ok, conformant} — conformant:true for a \
@@ -2173,22 +2281,22 @@ impl McpServer {
                  (failure_class / failure_local_name) and message of the first defect, so the \
                  caller repairs against the named class. A defect is a valid result, never a tool \
                  error; an oversized payload is a hard error.",
-                &[("gmn", "string")],
-            ),
-            tool(
-                "gmn_expand",
-                "Expand a GMN-1 document to its GMN-0 normal form (the alias/glyph → full-IRI \
+            &[("gmn", "string")],
+        ),
+        tool(
+            "gmn_expand",
+            "Expand a GMN-1 document to its GMN-0 normal form (the alias/glyph → full-IRI \
                  direction) and return the canonical N-Quads, checkout-free off the bundle. `gmn` \
                  is the GMN-1 document text. The expansion carries an internal round-trip witness \
                  (the decoded model is re-encoded and re-read, and canonical equality asserted), \
                  so it never returns a lossy expansion. Returns {ok, expanded_nquads, \
                  reencoded_gmn, round_trip}. A non-conformant input, or a round-trip that does not \
                  hold, is a hard error.",
-                &[("gmn", "string")],
-            ),
-            tool(
-                "gmn_explain",
-                "Explain a GMN operator glyph: resolve `glyph` to its lang:Denotation and its \
+            &[("gmn", "string")],
+        ),
+        tool(
+            "gmn_explain",
+            "Explain a GMN operator glyph: resolve `glyph` to its lang:Denotation and its \
                  graph-authored gmeow:gmnFixity / gmeow:gmnPrecedence / gmeow:gmnArity signature, \
                  plus its controlled-NL gloss (the deterministic GMN⇄NL verbalizer rendering), \
                  checkout-free off the bundle. Returns {ok, found, glyph, denotation, \
@@ -2196,11 +2304,11 @@ impl McpServer {
                  gmn_surface, gloss}. An input that is not a covered operator glyph returns an \
                  honest typed miss (found:false + lang:GmnUncoveredTerm), never a fabricated \
                  answer.",
-                &[("glyph", "string")],
-            ),
-            tool(
-                "advise",
-                "Advise on an inline agent-authored RDF claim: return the non-gating \
+            &[("glyph", "string")],
+        ),
+        tool(
+            "advise",
+            "Advise on an inline agent-authored RDF claim: return the non-gating \
                  RECOMMENDATIONS (never rejections) GMEOW harvests for it — the avoid-when \
                  prohibition, the how-to-use corrective directive, and the use-when permission \
                  prose of every advisory `advice.*` finding the claim trips. The companion of \
@@ -2212,33 +2320,33 @@ impl McpServer {
                  ntriples|nt|n-triples, nquads|nq|n-quads, trig, rdfxml|rdf+xml|xml, \
                  jsonld|json-ld. Nothing is written; an unknown format or an oversized payload \
                  is a hard error.",
-                &[("data", "string"), ("format", "string")],
-            ),
-            tool(
-                "explain_finding",
-                "Explain a diagnostic witness over the bundled graph/diagnostics projection, \
+            &[("data", "string"), ("format", "string")],
+        ),
+        tool(
+            "explain_finding",
+            "Explain a diagnostic witness over the bundled graph/diagnostics projection, \
                  addressed by its fingerprint IRI (a finding) or its anchor IRI (a cluster): \
                  returns the provenance DAG, the aggregate ledger gate verdict, the minimal fatal \
                  cut (fingerprint IRIs + codes), and the anchor cluster. An unknown target is a \
                  hard error (never an empty-but-ok DAG).",
-                &[("target_iri", "string")],
-            ),
-            tool(
-                "store_claim",
-                "Append one attributed memory claim, executed as a Transaction-Logic \
+            &[("target_iri", "string")],
+        ),
+        tool(
+            "store_claim",
+            "Append one attributed memory claim, executed as a Transaction-Logic \
                  transaction (the executional-entailment verdict gates the commit). Pass \
                  dry_run=true for a non-committing sandbox run (verdict only, nothing written).",
-                &[
-                    ("text", "string"),
-                    ("source", "string"),
-                    ("confidence", "number"),
-                    ("according_to", "string"),
-                    ("dry_run", "boolean"),
-                ],
-            ),
-            tool(
-                "conjecture_test",
-                "Test — a PURE hypothetical evaluation of a candidate logic: formula against a \
+            &[
+                ("text", "string"),
+                ("source", "string"),
+                ("confidence", "number"),
+                ("according_to", "string"),
+                ("dry_run", "boolean"),
+            ],
+        ),
+        tool(
+            "conjecture_test",
+            "Test — a PURE hypothetical evaluation of a candidate logic: formula against a \
                  KB: compute and return the engine verdict, but NEVER TR-commit and NEVER \
                  append to the conjecture library. formula is a Turtle logic: document naming \
                  one candidate; kb is a Turtle KB; standpoint is the required reified scope \
@@ -2246,18 +2354,18 @@ impl McpServer {
                  max_answers optionally bound the isolated scenario evaluation (a \
                  derived-closure-size ceiling: exceeding it stamps BudgetExhausted → lifecycle \
                  open). For the committing counterpart, see store_conjecture.",
-                &[
-                    ("formula", "string"),
-                    ("kb", "string"),
-                    ("standpoint", "string"),
-                    ("math_conjecture", "string"),
-                    ("max_steps", "integer"),
-                    ("max_answers", "integer"),
-                ],
-            ),
-            tool(
-                "store_conjecture",
-                "Store — evaluate a candidate logic: formula against a KB and, TR-gated on the \
+            &[
+                ("formula", "string"),
+                ("kb", "string"),
+                ("standpoint", "string"),
+                ("math_conjecture", "string"),
+                ("max_steps", "integer"),
+                ("max_answers", "integer"),
+            ],
+        ),
+        tool(
+            "store_conjecture",
+            "Store — evaluate a candidate logic: formula against a KB and, TR-gated on the \
                  persistConjecture schema (the executional-entailment verdict gates the \
                  commit), APPEND the engine verdict to the append-only conjecture library. \
                  formula is a Turtle logic: document naming one candidate; kb is a Turtle KB; \
@@ -2267,19 +2375,19 @@ impl McpServer {
                  stamps BudgetExhausted → lifecycle open). Pass dry_run=true for a \
                  non-committing sandbox run (verdict only, nothing written) — a \
                  hypothetical-commit witness.",
-                &[
-                    ("formula", "string"),
-                    ("kb", "string"),
-                    ("standpoint", "string"),
-                    ("math_conjecture", "string"),
-                    ("dry_run", "boolean"),
-                    ("max_steps", "integer"),
-                    ("max_answers", "integer"),
-                ],
-            ),
-            tool(
-                "refute_conjecture",
-                "Author-withdraw a stored conjecture — the store_conjecture compensation (P10, \
+            &[
+                ("formula", "string"),
+                ("kb", "string"),
+                ("standpoint", "string"),
+                ("math_conjecture", "string"),
+                ("dry_run", "boolean"),
+                ("max_steps", "integer"),
+                ("max_answers", "integer"),
+            ],
+        ),
+        tool(
+            "refute_conjecture",
+            "Author-withdraw a stored conjecture — the store_conjecture compensation (P10, \
                  as revise_belief compensates store_claim), executed as a Transaction-Logic \
                  transaction on the withdrawConjecture schema. It APPENDS a compensating \
                  author-withdrawn segment to the append-only conjecture library, flipping the \
@@ -2290,230 +2398,268 @@ impl McpServer {
                  withdrawn — is decided from the live library state by segment order, so an \
                  unknown id or an already-withdrawn node is rejected before any write. Pass \
                  dry_run=true for a non-committing sandbox run (verdict only, nothing written).",
-                &[
-                    ("conjecture_id", "string"),
-                    ("reason", "string"),
-                    ("dry_run", "boolean"),
-                ],
-            ),
-            tool(
-                "recall",
-                "Recall stored memory claims.",
-                &[
-                    ("query", "string"),
-                    ("min_confidence", "number"),
-                    ("limit", "integer"),
-                    ("include_suppressed", "boolean"),
-                ],
-            ),
-            tool(
-                "revise_belief",
-                "Suppress a stored claim without deleting history (the store_claim \
+            &[
+                ("conjecture_id", "string"),
+                ("reason", "string"),
+                ("dry_run", "boolean"),
+            ],
+        ),
+        tool(
+            "recall",
+            "Recall stored memory claims.",
+            &[
+                ("query", "string"),
+                ("min_confidence", "number"),
+                ("limit", "integer"),
+                ("include_suppressed", "boolean"),
+            ],
+        ),
+        tool(
+            "revise_belief",
+            "Suppress a stored claim without deleting history (the store_claim \
                  compensation, P10), executed as a Transaction-Logic transaction whose \
                  precondition is that the target claim exists. Pass dry_run=true for a \
                  non-committing sandbox run (verdict only, nothing suppressed).",
-                &[
-                    ("claim_id", "string"),
-                    ("reason", "string"),
-                    ("superseded_by", "string"),
-                    ("dry_run", "boolean"),
-                ],
-            ),
-            tool(
-                "counter_examples",
-                "Return the conformance fixtures documenting a bundled term, split into \
+            &[
+                ("claim_id", "string"),
+                ("reason", "string"),
+                ("superseded_by", "string"),
+                ("dry_run", "boolean"),
+            ],
+        ),
+        tool(
+            "counter_examples",
+            "Return the conformance fixtures documenting a bundled term, split into \
                  well-formed exemplars and counter-examples, each with its full Turtle body and \
                  the authored expected outcome / violation code / conformance rationale (read from \
                  gmeow:graph/documentation). A term with no fixtures returns empty lists; an \
                  unknown term is a hard error.",
-                &[("term", "string")],
-            ),
-            tool(
-                "entailments",
-                "Return the reasoner entailments documenting a bundled term — each derivation's \
+            &[("term", "string")],
+        ),
+        tool(
+            "entailments",
+            "Return the reasoner entailments documenting a bundled term — each derivation's \
                  rule, conclusion, and every premise (read from gmeow:graph/documentation). A term \
                  with no entailments returns an empty list; an unknown term is a hard error.",
-                &[("term", "string")],
-            ),
-            tool(
-                "competency_questions",
-                "Return the runnable competency questions from gmeow:graph/documentation, each with \
+            &[("term", "string")],
+        ),
+        tool(
+            "competency_questions",
+            "Return the runnable competency questions from gmeow:graph/documentation, each with \
                  its SPARQL query text and the authored rationale / expected row count / exact-rows \
                  flag. With the OPTIONAL `term`, only that term's questions (an unknown term is a \
                  hard error); without `term`, the whole index.",
-                &[("term", "string")],
-            ),
-            tool(
-                "slice_quality",
-                "Score an external slice directory against the bundle-carried slice-quality rubric \
+            &[("term", "string")],
+        ),
+        tool(
+            "slice_quality",
+            "Score an external slice directory against the bundle-carried slice-quality rubric \
                  and return its per-axis grades and ranked uplift advice. `path` is a slice \
                  directory on disk; scoring is checkout-free (the rubric ships in gmeow.gts). A \
                  missing or malformed slice directory is a hard error.",
-                &[("path", "string")],
-            ),
-            tool(
-                "slice_brief",
-                "Serve the pre-assembled authoring packet(s) for a slice straight from the bundle: \
+            &[("path", "string")],
+        ),
+        tool(
+            "slice_brief",
+            "Serve the pre-assembled authoring packet(s) for a slice straight from the bundle: \
                  the covered-term IRIs, their present fr/zh/external grounding cells, exemplars, \
                  and coverage margins, as structured JSON plus canonical turtle. `slice` is a \
                  slice short-name (e.g. `ai`) or a full slice IRI; the OPTIONAL `axis` (default \
                  `whole`) and `batch` narrow the result. A slice/axis/batch with no packet is a \
                  hard error. Resolve each covered-term IRI to its full definition/axioms via \
                  `lookup_term` / `doc_card`.",
-                &[
-                    ("slice", "string"),
-                    ("axis", "string"),
-                    ("batch", "integer"),
-                ],
-            ),
-            tool(
-                "submit_candidate",
-                "Propose/verify seam: test a candidate logic: formula against a KB and — ONLY if \
+            &[
+                ("slice", "string"),
+                ("axis", "string"),
+                ("batch", "integer"),
+            ],
+        ),
+        tool(
+            "submit_candidate",
+            "Propose/verify seam: test a candidate logic: formula against a KB and — ONLY if \
                  the isolated-world verdict CORROBORATES it (admissible) — append it to the \
                  append-only candidate library. A refuted or open candidate is never admitted and \
                  stages nothing. `formula`/`kb`/`standpoint` are as conjecture_test; optional \
                  `for_slice`/`for_packet` record target provenance; optional `max_steps`/\
                  `max_answers` bound the isolated-world reasoning budget (as conjecture_test); \
                  `dry_run=true` returns the verdict but writes nothing.",
-                &[
-                    ("formula", "string"),
-                    ("kb", "string"),
-                    ("standpoint", "string"),
-                    ("math_conjecture", "string"),
-                    ("for_slice", "string"),
-                    ("for_packet", "string"),
-                    ("dry_run", "boolean"),
-                    ("max_steps", "integer"),
-                    ("max_answers", "integer"),
-                ],
-            ),
-            tool(
-                "withdraw_candidate",
-                "The P10 compensating withdrawal of a persisted candidate: append a 'withdrawn' \
+            &[
+                ("formula", "string"),
+                ("kb", "string"),
+                ("standpoint", "string"),
+                ("math_conjecture", "string"),
+                ("for_slice", "string"),
+                ("for_packet", "string"),
+                ("dry_run", "boolean"),
+                ("max_steps", "integer"),
+                ("max_answers", "integer"),
+            ],
+        ),
+        tool(
+            "withdraw_candidate",
+            "The P10 compensating withdrawal of a persisted candidate: append a 'withdrawn' \
                  segment flipping the candidate's effective lifecycle (recorded, never deleted). \
                  An unknown or already-withdrawn id hard-fails before writing. `dry_run=true` \
                  witnesses the withdrawal but writes nothing.",
-                &[
-                    ("candidate_id", "string"),
-                    ("reason", "string"),
-                    ("dry_run", "boolean"),
-                ],
-            ),
-            tool(
-                "list_candidates",
-                "List every admitted candidate in the library with its effective disposition \
+            &[
+                ("candidate_id", "string"),
+                ("reason", "string"),
+                ("dry_run", "boolean"),
+            ],
+        ),
+        tool(
+            "list_candidates",
+            "List every admitted candidate in the library with its effective disposition \
                  (in-library | withdrawn) and target provenance (for_slice / for_packet). \
                  Optional `slice` filters by target provenance and `disposition` by effective \
                  state. A missing library is an empty list.",
-                &[("slice", "string"), ("disposition", "string")],
-            ),
-        ];
-        if self.mode.includes_dev_tools() {
-            tools.extend([
-                tool("validate", "Run the native validation/check surface.", &[]),
-                tool(
-                    "reason",
-                    "Run native reasoning over the bundled snapshot.",
-                    &[],
-                ),
-                tool(
-                    "sync",
-                    "Run the native pipeline update-and-check surface.",
-                    &[],
-                ),
-                tool(
-                    "constitution",
-                    "Read the checked-out GMEOW Constitution.",
-                    &[],
-                ),
-            ]);
-        }
-        json!({ "tools": tools })
-    }
+            &[("slice", "string"), ("disposition", "string")],
+        ),
+    ]
+}
 
-    fn resources_result(&self) -> Value {
-        let mut resources = vec![
-            resource(
-                "gmeow://ontology/llms.txt",
-                "llms.txt",
-                "Standard bundled vocabulary index.",
-                "text/plain",
-            ),
-            resource(
-                "gmeow://ontology/llms-full.txt",
-                "llms-full.txt",
-                "Complete inlined bundled vocabulary index.",
-                "text/plain",
-            ),
-            resource(
-                "gmeow://ontology/gmn1-primer",
-                "gmn1-primer",
-                "The ~500-token graph-derived GMN-1 teachability primer (record sigils, \
+/// The CONSUMER `tools/call` handlers, in the SAME order as
+/// [`builtin_tool_descriptors`]. Each entry restates the tool name so
+/// [`zip_tools`] can prove the pairing rather than assume it.
+fn builtin_tool_handlers() -> Vec<(&'static str, ToolHandler)> {
+    /// Box one handler at its declaration site (the closures have distinct opaque
+    /// types, so the vec needs them already coerced).
+    fn h<F>(name: &'static str, f: F) -> (&'static str, ToolHandler)
+    where
+        F: Fn(&McpServer, &Value) -> gmeow_errors::Result<String> + Send + Sync + 'static,
+    {
+        (name, Box::new(f))
+    }
+    vec![
+        h("lookup_term", |s, a| s.tool_lookup_term(a)),
+        h("llms_txt", |s, a| s.tool_llms_txt(a)),
+        h("llms_full", |s, a| s.tool_llms_full(a)),
+        h("doc_card", |s, a| s.tool_doc_card(a)),
+        h("okf_index", |s, a| s.tool_okf_index(a)),
+        h("query_docs", |s, a| s.tool_query_docs(a)),
+        h("docs_search", |s, a| s.tool_docs_search(a)),
+        h("query_local", |s, a| s.tool_query_local(a)),
+        h("verify_graph", |s, a| s.tool_verify_graph(a)),
+        h("explain_quad", |s, a| s.tool_explain_quad(a)),
+        h("coherence_certificate", |s, a| {
+            s.tool_coherence_certificate(a)
+        }),
+        h("validate_local", |s, a| s.tool_validate_local(a)),
+        h("gmn_validate", |s, a| s.tool_gmn_validate(a)),
+        h("gmn_expand", |s, a| s.tool_gmn_expand(a)),
+        h("gmn_explain", |s, a| s.tool_gmn_explain(a)),
+        h("advise", |s, a| s.tool_advise(a)),
+        h("explain_finding", |s, a| s.tool_explain_finding(a)),
+        h("store_claim", |s, a| s.tool_store_claim(a)),
+        h("conjecture_test", |s, a| s.tool_conjecture_test(a)),
+        h("store_conjecture", |s, a| s.tool_store_conjecture(a)),
+        h("refute_conjecture", |s, a| s.tool_refute_conjecture(a)),
+        h("recall", |s, a| s.tool_recall(a)),
+        h("revise_belief", |s, a| s.tool_revise_belief(a)),
+        h("counter_examples", |s, a| s.tool_counter_examples(a)),
+        h("entailments", |s, a| s.tool_entailments(a)),
+        h("competency_questions", |s, a| {
+            s.tool_competency_questions(a)
+        }),
+        h("slice_quality", |s, a| s.tool_slice_quality(a)),
+        h("slice_brief", |s, a| s.tool_slice_brief(a)),
+        h("submit_candidate", |s, a| s.tool_submit_candidate(a)),
+        h("withdraw_candidate", |s, a| s.tool_withdraw_candidate(a)),
+        h("list_candidates", |s, a| s.tool_list_candidates(a)),
+    ]
+}
+
+/// The CONSUMER surface as an [`Extension`]: the builtin descriptors joined to the
+/// builtin handlers, both for tools and for resources. Every [`McpServer`] starts
+/// from exactly this, so a consumer server and a host-extended server share one
+/// definition of "the consumer surface".
+///
+/// # Errors
+///
+/// [`InvalidRegistration`](crate::error::InvalidRegistration) if the descriptor and
+/// handler lists have drifted out of bijection.
+fn builtin_extension() -> gmeow_errors::Result<Extension> {
+    Ok(Extension::from_parts(
+        zip_tools(builtin_tool_descriptors(), builtin_tool_handlers())?,
+        zip_resources(builtin_resource_descriptors(), builtin_resource_handlers())?,
+    ))
+}
+
+impl McpServer {
+    pub fn resources_result(&self) -> Value {
+        json!({ "resources": self.surface.resource_descriptors() })
+    }
+}
+
+/// The CONSUMER resource descriptors, in advertised order — paired with
+/// [`builtin_resource_handlers`] exactly as the tool lists are.
+fn builtin_resource_descriptors() -> Vec<Value> {
+    vec![
+        resource(
+            "gmeow://ontology/llms.txt",
+            "llms.txt",
+            "Standard bundled vocabulary index.",
+            "text/plain",
+        ),
+        resource(
+            "gmeow://ontology/llms-full.txt",
+            "llms-full.txt",
+            "Complete inlined bundled vocabulary index.",
+            "text/plain",
+        ),
+        resource(
+            "gmeow://ontology/gmn1-primer",
+            "gmn1-primer",
+            "The ~500-token graph-derived GMN-1 teachability primer (record sigils, \
                  operator glyph table, repair loop).",
-                "text/plain",
-            ),
-            resource(
-                "gmeow://ontology/okf-index",
-                "okf-index",
-                "OKF manifest JSON envelope.",
-                "application/json",
-            ),
-        ];
-        if self.mode.includes_dev_tools() {
-            resources.push(resource(
-                "gmeow://ontology/constitution",
-                "constitution",
-                "The checked-out GMEOW Constitution.",
-                "text/markdown",
-            ));
-        }
-        json!({ "resources": resources })
-    }
+            "text/plain",
+        ),
+        resource(
+            "gmeow://ontology/okf-index",
+            "okf-index",
+            "OKF manifest JSON envelope.",
+            "application/json",
+        ),
+    ]
+}
 
-    fn call_tool_result(&self, name: &str, args: &Value) -> Value {
+/// The CONSUMER `resources/read` handlers, in the SAME order as
+/// [`builtin_resource_descriptors`]. The media type is NOT restated here — it comes
+/// from the descriptor, so advertised and served can never disagree.
+fn builtin_resource_handlers() -> Vec<(&'static str, ResourceHandler)> {
+    /// Box one resource handler at its declaration site.
+    fn h<F>(uri: &'static str, f: F) -> (&'static str, ResourceHandler)
+    where
+        F: Fn(&McpServer, &[String]) -> gmeow_errors::Result<String> + Send + Sync + 'static,
+    {
+        (uri, Box::new(f))
+    }
+    vec![
+        h("gmeow://ontology/llms.txt", |s, requested| {
+            Ok(s.view.llms_txt_text(requested.to_vec()))
+        }),
+        h("gmeow://ontology/llms-full.txt", |s, requested| {
+            s.view.llms_full_text(requested.to_vec())
+        }),
+        h("gmeow://ontology/gmn1-primer", |s, _requested| {
+            s.view.gmn1_primer().map(|p| p.resource_text())
+        }),
+        h("gmeow://ontology/okf-index", |s, requested| {
+            Ok(s.view.okf_index_json(requested.to_vec()))
+        }),
+    ]
+}
+
+impl McpServer {
+    pub fn call_tool_result(&self, name: &str, args: &Value) -> Value {
         if let Some(err) = args.get("__parse_error").and_then(Value::as_str) {
             return tool_text(json!({"ok": false, "error": err}).to_string(), true);
         }
-        let result = match name {
-            "lookup_term" => self.tool_lookup_term(args),
-            "llms_txt" => self.tool_llms_txt(args),
-            "llms_full" => self.tool_llms_full(args),
-            "doc_card" => self.tool_doc_card(args),
-            "okf_index" => self.tool_okf_index(args),
-            "query_docs" => self.tool_query_docs(args),
-            "docs_search" => self.tool_docs_search(args),
-            "query_local" => self.tool_query_local(args),
-            "verify_graph" => self.tool_verify_graph(args),
-            "explain_quad" => self.tool_explain_quad(args),
-            "coherence_certificate" => self.tool_coherence_certificate(args),
-            "validate_local" => self.tool_validate_local(args),
-            "gmn_validate" => self.tool_gmn_validate(args),
-            "gmn_expand" => self.tool_gmn_expand(args),
-            "gmn_explain" => self.tool_gmn_explain(args),
-            "advise" => self.tool_advise(args),
-            "explain_finding" => self.tool_explain_finding(args),
-            "store_claim" => self.tool_store_claim(args),
-            "conjecture_test" => self.tool_conjecture_test(args),
-            "store_conjecture" => self.tool_store_conjecture(args),
-            "refute_conjecture" => self.tool_refute_conjecture(args),
-            "recall" => self.tool_recall(args),
-            "revise_belief" => self.tool_revise_belief(args),
-            "counter_examples" => self.tool_counter_examples(args),
-            "entailments" => self.tool_entailments(args),
-            "competency_questions" => self.tool_competency_questions(args),
-            "slice_quality" => self.tool_slice_quality(args),
-            "slice_brief" => self.tool_slice_brief(args),
-            "submit_candidate" => self.tool_submit_candidate(args),
-            "withdraw_candidate" => self.tool_withdraw_candidate(args),
-            "list_candidates" => self.tool_list_candidates(args),
-            "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
-            "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
-            "sync" if self.mode.includes_dev_tools() => self.tool_sync(),
-            "constitution" if self.mode.includes_dev_tools() => self.tool_constitution(),
-            _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("unknown tool: {name}"),
-            })),
-        };
+        // TOTAL dispatch: the assembled surface is the ONLY router. A name it does
+        // not carry raises `mcp.unknown-tool` naming that name — there is no
+        // fallthrough arm and no mode guard, so "advertised" and "dispatchable" stay
+        // the same fact for builtin and host-registered tools alike.
+        let result = self.surface.dispatch_tool(self, name, args);
         match result {
             Ok(text) => tool_text(text, false),
             Err(err) => tool_text(
@@ -2523,7 +2669,7 @@ impl McpServer {
         }
     }
 
-    fn read_resource_result(&self, uri: &str) -> Value {
+    pub fn read_resource_result(&self, uri: &str) -> Value {
         match self.read_resource_text(uri) {
             Ok((mime, text)) => json!({
                 "contents": [{"uri": uri, "mimeType": mime, "text": text}],
@@ -3552,19 +3698,6 @@ impl McpServer {
         })
     }
 
-    fn tool_validate(&self) -> gmeow_errors::Result<String> {
-        let root = self.root_path()?;
-        let report = crate::run::run_full(&root, 1, crate::run::RunMode::Check)?;
-        Ok(json!({
-            "ok": report.is_clean(),
-            "mode": "check",
-            "produced": report.produced,
-            "reproduced": report.reproduced,
-            "drifted": report.drifted,
-        })
-        .to_string())
-    }
-
     /// Score ONE slice on demand and return its grades + advice as JSON. This is a
     /// read-only advisory surface: it computes a fresh assessment for the caller and
     /// folds nothing. The whole-repo `gmeow:QualityAssessment` graph is instead attached
@@ -3736,68 +3869,24 @@ impl McpServer {
         )
     }
 
-    fn tool_sync(&self) -> gmeow_errors::Result<String> {
-        let root = self.root_path()?;
-        let jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
-        let report = crate::run::run_full(&root, jobs, crate::run::RunMode::Update)?;
-        Ok(json!({
-            "ok": report.is_clean(),
-            "mode": "update",
-            "produced": report.produced,
-            "reproduced": report.reproduced,
-            "drifted": report.drifted,
-        })
-        .to_string())
-    }
-
-    fn tool_reason(&self) -> gmeow_errors::Result<String> {
-        let result =
-            gmeow_logic::reason::reason_all(self.view.graph_dataset()?.as_ref()).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("native reasoning failed: {e}"),
-                })
-            })?;
-        Ok(json!({
-            "ok": true,
-            "input": result.input.wire(),
-            "evaluation": result.evaluation.wire(),
-            "completeness": result.completeness.wire(),
-            "information": result.information.wire(),
-        })
-        .to_string())
-    }
-
-    fn tool_constitution(&self) -> gmeow_errors::Result<String> {
-        let root = self.root_path()?;
-        Ok(fs::read_to_string(root.join("CONSTITUTION.md"))?)
-    }
-
-    fn read_resource_text(&self, uri: &str) -> gmeow_errors::Result<(&'static str, String)> {
+    /// Resolve `uri` against the assembled surface and run its handler, returning
+    /// `(mimeType, body)`.
+    ///
+    /// The `?lang=` query is stripped and resolved here (it is a property of the
+    /// REQUEST, shared by every resource) and handed to the handler; the media type
+    /// comes from the advertised descriptor. Like tool dispatch this is TOTAL: a URI
+    /// the surface does not carry raises `mcp.unknown-resource` naming it.
+    ///
+    /// # Errors
+    ///
+    /// An unresolvable `?lang=`, an unregistered URI, or whatever the handler raises.
+    fn read_resource_text(&self, uri: &str) -> gmeow_errors::Result<(String, String)> {
         let (base, query) = uri.split_once('?').unwrap_or((uri, ""));
         let requested = lang_from_query(query)
             .map(|raw| resolve_lang(Some(raw), &self.tag_map, &self.available))
             .transpose()?
             .unwrap_or_else(|| self.startup_requested.clone());
-        match base {
-            "gmeow://ontology/llms.txt" => Ok(("text/plain", self.view.llms_txt_text(requested))),
-            "gmeow://ontology/llms-full.txt" => self
-                .view
-                .llms_full_text(requested)
-                .map(|t| ("text/plain", t)),
-            "gmeow://ontology/gmn1-primer" => self
-                .view
-                .gmn1_primer()
-                .map(|p| ("text/plain", p.resource_text())),
-            "gmeow://ontology/okf-index" => {
-                Ok(("application/json", self.view.okf_index_json(requested)))
-            }
-            "gmeow://ontology/constitution" if self.mode.includes_dev_tools() => {
-                self.tool_constitution().map(|text| ("text/markdown", text))
-            }
-            _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!("unknown resource: {uri}"),
-            })),
-        }
+        self.surface.read_resource(self, base, &requested)
     }
 
     fn memory(&self) -> gmeow_errors::Result<Memory> {
@@ -3810,18 +3899,21 @@ impl McpServer {
         }
         Ok(Memory::new(path))
     }
-
-    fn root_path(&self) -> gmeow_errors::Result<PathBuf> {
-        self.root.clone().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: "repository root is required for dev MCP tools".to_string(),
-            })
-        })
-    }
 }
 
 impl McpView {
-    fn graph_dataset(&self) -> gmeow_errors::Result<Arc<purrdf::RdfDataset>> {
+    /// The base reasoning EDB: the bundle's folded carrier dataset.
+    ///
+    /// Public because a host-registered tool reasons over exactly this graph and
+    /// nothing else — the grounded-memory triad, the conjecture library, and the
+    /// query overlay are all DISTINCT stores that are never unioned in here.
+    ///
+    /// # Errors
+    ///
+    /// Infallible today (the carrier IS the dataset, so there is no gts round-trip),
+    /// but fallible in signature so a future lazily-materialized carrier does not
+    /// force a breaking change on every caller.
+    pub fn graph_dataset(&self) -> gmeow_errors::Result<Arc<purrdf::RdfDataset>> {
         // The carrier IS the dataset — no gts round-trip (GTS is exit-only).
         Ok(Arc::clone(&self.dataset))
     }
@@ -4707,7 +4799,7 @@ impl ExpandHome for PathBuf {
     }
 }
 
-fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
+pub fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
         .filter_map(|(prop, _)| {
@@ -4794,7 +4886,7 @@ fn canonical_rdf_format(format: &str) -> gmeow_errors::Result<&'static str> {
     Ok(token)
 }
 
-fn resource(uri: &str, name: &str, description: &str, mime: &str) -> Value {
+pub fn resource(uri: &str, name: &str, description: &str, mime: &str) -> Value {
     json!({
         "uri": uri,
         "name": name,
@@ -4884,7 +4976,7 @@ fn completeness_refused(result: &ReasoningResult) -> bool {
 /// named graph and map it to the proof-carrying read envelope (R6).
 ///
 /// This is BUDGET-FREE and REASON-FREE: the certificate was computed ONCE at pipeline
-/// time (`crate::stages::carrier`, over the whole assembled carrier) and folded into the
+/// time (by the pipeline's carrier stage, over the whole assembled carrier) and folded into the
 /// bundle; this reads it straight off the loaded dataset — it NEVER re-reasons. The class
 /// (`logic:CoherenceCertificate` vs the strictly-weaker `logic:CoherenceCheckAttestation`)
 /// is read from the carried `rdf:type`, so an attestation is NEVER silently reported as a
@@ -4899,7 +4991,7 @@ fn completeness_refused(result: &ReasoningResult) -> bool {
 fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<Value> {
     use purrdf::RdfTerm;
 
-    let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+    let graph = gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
     let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     let cert_type = format!("{LOGIC_NAMESPACE}CoherenceCertificate");
     let att_type = format!("{LOGIC_NAMESPACE}CoherenceCheckAttestation");
@@ -6499,9 +6591,11 @@ pub fn extract_authoring_packets(
         purrdf::SerializeGraph::Dataset,
     )
     .map_err(|e| err(format!("slice_brief: serialize packet subgraph: {e}")))?;
-    let turtle =
-        purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
-            .map_err(|m| err(format!("slice_brief: canonicalize packet turtle: {m}")))?;
+    let turtle = purrdf::turtle_normalize::canonical_turtle(
+        &nt,
+        &gmeow_logic_compile::ingest::prefixes::registry_pairs(),
+    )
+    .map_err(|m| err(format!("slice_brief: canonicalize packet turtle: {m}")))?;
 
     Ok(json!({
         "slice": slice_iri,
@@ -6525,7 +6619,7 @@ pub fn slice_brief_from_bundle(
         purrdf::import_gts_events(snapshot).with_ctx(|| "read snapshot gmeow.gts".to_string())?;
     let briefs = bundle
         .dataset
-        .project_named_graph(crate::stages::carrier::GRAPH_AUTHORING_BRIEFS);
+        .project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS);
     let slice_iri = expand_slice_iri(slice);
     extract_authoring_packets(&briefs, &slice_iri, axis, batch)
 }
@@ -6652,16 +6746,17 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         assert_eq!(
             server.view.gts_bytes(),
             bytes.as_slice(),
             "the view must retain the snapshot bytes verbatim",
         );
-        let shapes = crate::bundle_blobs::Bundle::from_snapshot(server.view.gts_bytes())
-            .expect("bundle parses from retained bytes")
-            .shapes()
-            .expect("shapes-archive readable from retained bytes");
+        let shapes =
+            gmeow_bundle_view::bundle_blobs::Bundle::from_snapshot(server.view.gts_bytes())
+                .expect("bundle parses from retained bytes")
+                .shapes()
+                .expect("shapes-archive readable from retained bytes");
         assert!(
             !shapes.is_empty(),
             "the shapes-archive blob must be reachable from the retained snapshot \
@@ -6669,8 +6764,242 @@ mod tests {
         );
     }
 
+    /// The CONSUMER surface is exactly 31 tools and 4 resources.
+    ///
+    /// The counts are pinned, not approximated: a later bijection gate is defined
+    /// against the consumer tool list, so silently adding (or dev-promoting) a tool
+    /// would change that contract without anyone noticing. The names are asserted
+    /// alongside the counts so a rename cannot pass by keeping the arithmetic.
     #[test]
-    fn modes_advertise_consumer_and_dev_surfaces() {
+    fn consumer_surface_is_thirty_one_tools_and_four_resources() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let consumer = McpServer::from_snapshot(&bytes).unwrap();
+        let names = consumer.surface().tool_names();
+        assert_eq!(
+            names.len(),
+            31,
+            "the consumer tool surface is 31 tools, got {names:?}"
+        );
+        assert_eq!(
+            names,
+            [
+                "lookup_term",
+                "llms_txt",
+                "llms_full",
+                "doc_card",
+                "okf_index",
+                "query_docs",
+                "docs_search",
+                "query_local",
+                "verify_graph",
+                "explain_quad",
+                "coherence_certificate",
+                "validate_local",
+                "gmn_validate",
+                "gmn_expand",
+                "gmn_explain",
+                "advise",
+                "explain_finding",
+                "store_claim",
+                "conjecture_test",
+                "store_conjecture",
+                "refute_conjecture",
+                "recall",
+                "revise_belief",
+                "counter_examples",
+                "entailments",
+                "competency_questions",
+                "slice_quality",
+                "slice_brief",
+                "submit_candidate",
+                "withdraw_candidate",
+                "list_candidates",
+            ],
+            "the consumer tool list changed"
+        );
+        let resources = consumer.surface().resource_descriptors();
+        assert_eq!(
+            resources.len(),
+            4,
+            "the consumer resource surface is 4 resources, got {resources:?}"
+        );
+        let uris: Vec<&str> = resources
+            .iter()
+            .map(|r| r["uri"].as_str().expect("resource uri"))
+            .collect();
+        assert_eq!(
+            uris,
+            [
+                "gmeow://ontology/llms.txt",
+                "gmeow://ontology/llms-full.txt",
+                "gmeow://ontology/gmn1-primer",
+                "gmeow://ontology/okf-index",
+            ],
+            "the consumer resource list changed"
+        );
+    }
+
+    /// Dispatching a name the surface does not carry is a NAMED hard error
+    /// (`mcp.unknown-tool`, quoting the name) — never a silent no-op and never a
+    /// generic fallthrough. The same holds for a resource URI.
+    #[test]
+    fn dispatching_an_unregistered_tool_is_a_named_hard_error() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
+
+        let err = server
+            .surface()
+            .dispatch_tool(&server, "no_such_tool", &json!({}))
+            .expect_err("an unregistered tool name must NOT dispatch");
+        assert_eq!(err.code(), crate::error::UnknownTool::register());
+        assert!(
+            err.to_string().contains("no_such_tool"),
+            "the refusal must name the tool: {err}"
+        );
+
+        // `sync` is a DEV tool: over a consumer server it is not registered at all,
+        // so it takes the same named-refusal path (not a mode guard that quietly
+        // returns nothing).
+        let dev_only = server
+            .surface()
+            .dispatch_tool(&server, "sync", &json!({}))
+            .expect_err("a dev tool must not dispatch on a consumer server");
+        assert_eq!(dev_only.code(), crate::error::UnknownTool::register());
+        assert!(dev_only.to_string().contains("sync"), "{dev_only}");
+
+        // The JSON-RPC envelope carries the same refusal as an MCP tool error.
+        let envelope = server.call_tool_result("no_such_tool", &json!({}));
+        assert_eq!(envelope["isError"], json!(true), "{envelope}");
+        assert!(
+            envelope["content"][0]["text"]
+                .as_str()
+                .expect("text content")
+                .contains("no_such_tool"),
+            "{envelope}"
+        );
+
+        let missing = server
+            .surface()
+            .read_resource(&server, "gmeow://ontology/nope", &["en".to_string()])
+            .expect_err("an unregistered resource URI must NOT resolve");
+        assert_eq!(missing.code(), crate::error::UnknownResource::register());
+        assert!(missing.to_string().contains("gmeow://ontology/nope"));
+    }
+
+    /// Registering a tool name (or a resource URI) that is already claimed is a
+    /// NAMED hard error at construction — last-writer-wins would let the advertised
+    /// descriptor and the dispatched handler disagree.
+    #[test]
+    fn duplicate_registration_is_a_named_hard_error() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+
+        // Shadowing a BUILTIN tool name.
+        let shadowing = Extension::new()
+            .with_tool(tool("lookup_term", "A second lookup_term.", &[]), |_, _| {
+                Ok(String::new())
+            });
+        let err = McpServer::from_snapshot_with(&bytes, shadowing)
+            .err()
+            .expect("shadowing a builtin tool name must refuse to construct");
+        assert_eq!(err.code(), crate::error::DuplicateRegistration::register());
+        assert!(err.to_string().contains("lookup_term"), "{err}");
+
+        // Two EXTENSION entries claiming the same new name.
+        let twice = Extension::new()
+            .with_tool(tool("host_tool", "First.", &[]), |_, _| Ok(String::new()))
+            .with_tool(tool("host_tool", "Second.", &[]), |_, _| Ok(String::new()));
+        let err = McpServer::from_snapshot_with(&bytes, twice)
+            .err()
+            .expect("registering one tool name twice must refuse to construct");
+        assert_eq!(err.code(), crate::error::DuplicateRegistration::register());
+        assert!(err.to_string().contains("host_tool"), "{err}");
+
+        // The resource twin: shadowing a builtin resource URI.
+        let dup_resource = Extension::new().with_resource(
+            resource(
+                "gmeow://ontology/okf-index",
+                "okf-index",
+                "A second okf-index.",
+                "application/json",
+            ),
+            |_, _| Ok(String::new()),
+        );
+        let err = McpServer::from_snapshot_with(&bytes, dup_resource)
+            .err()
+            .expect("shadowing a builtin resource URI must refuse to construct");
+        assert_eq!(err.code(), crate::error::DuplicateRegistration::register());
+        assert!(
+            err.to_string().contains("gmeow://ontology/okf-index"),
+            "{err}"
+        );
+    }
+
+    /// A host extension's tools and resources are advertised AND dispatchable —
+    /// the seam `gmeow-mcp-dev` registers its four repo-reading tools through.
+    #[test]
+    fn a_host_extension_is_advertised_and_dispatchable() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let extension = Extension::new()
+            .with_tool(tool("host_echo", "Echo the arg.", &[]), |_, args| {
+                Ok(json!({"ok": true, "echo": args.clone()}).to_string())
+            })
+            .with_resource(
+                resource(
+                    "gmeow://host/marker",
+                    "marker",
+                    "A host-registered resource.",
+                    "text/markdown",
+                ),
+                |_, _| Ok("host body".to_string()),
+            );
+        let server = McpServer::from_snapshot_with(&bytes, extension).unwrap();
+
+        assert_eq!(server.surface().tool_names().len(), 32);
+        assert_eq!(
+            server.surface().tool_names().last().copied(),
+            Some("host_echo"),
+            "a host tool is advertised AFTER the builtins"
+        );
+        let out = text_payload(server.call_tool_result("host_echo", &json!({"a": 1})));
+        assert_eq!(out["echo"], json!({"a": 1}), "{out}");
+
+        assert_eq!(server.surface().resource_descriptors().len(), 5);
+        let read = server.read_resource_result("gmeow://host/marker");
+        assert!(read.get("isError").is_none(), "{read}");
+        assert_eq!(read["contents"][0]["text"], json!("host body"), "{read}");
+        assert_eq!(
+            read["contents"][0]["mimeType"],
+            json!("text/markdown"),
+            "the served media type is the ADVERTISED one: {read}"
+        );
+    }
+
+    #[test]
+    fn the_consumer_surface_advertises_the_agent_facing_tools() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
@@ -6678,7 +7007,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let consumer = McpServer::from_snapshot(&bytes).unwrap();
         let consumer_tools = consumer.tools_result().to_string();
         assert!(consumer_tools.contains("\"lookup_term\""));
         assert!(consumer_tools.contains("\"llms_txt\""));
@@ -6706,16 +7035,14 @@ mod tests {
                 .to_string()
                 .contains("constitution")
         );
-
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
-        let dev_tools = dev.tools_result().to_string();
-        assert!(dev_tools.contains("\"validate\""));
-        assert!(dev_tools.contains("\"reason\""));
-        assert!(dev_tools.contains("\"sync\""));
-        assert!(dev_tools.contains("\"constitution\""));
-        assert!(dev_tools.contains("\"slice_quality\""));
-        assert!(dev.resources_result().to_string().contains("constitution"));
+        // The four repo-reading dev tools live in `gmeow-mcp-dev` and are registered
+        // through the extension seam; the DEV surface counts are asserted there.
+        for dev_only in ["validate", "reason", "sync", "constitution"] {
+            assert!(
+                !consumer.surface().tool_names().contains(&dev_only),
+                "`{dev_only}` must NOT be on the consumer surface"
+            );
+        }
     }
 
     #[test]
@@ -6727,7 +7054,7 @@ mod tests {
         // enforces — otherwise a client sees an arg marked OPTIONAL and only discovers it is
         // mandatory from a runtime error (the dishonest-schema gap this test closes).
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let tools_result = server.tools_result();
         let tools = tools_result["tools"].as_array().expect("tools array");
 
@@ -6815,7 +7142,7 @@ mod tests {
         let bytes = snapshot();
         // Positive CONSUMER-mode dispatch (AC3): a server built with `root: None`
         // scores an external slice directory purely off the embedded bundle rubric.
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let slice_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/core/ai");
 
         // Functional dispatch: the tool returns the documented JSON shape — grades as
@@ -6855,7 +7182,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // The `slices/` containment guard is gone (external scoring is the feature);
         // an absent directory is now a clean hard error (a `slice_quality:` diagnostic),
@@ -6892,7 +7219,7 @@ mod tests {
         // carries a present French grounding cell is NOT a fixed constant — it is
         // discovered dynamically below (a bare, batch-less request returns every `lang`
         // packet) rather than hardcoded, so the test survives future renumbering.
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let all = text_payload(server.call_tool_result("slice_brief", &json!({"slice": "lang"})));
         let fr_batch = all["packets"]
             .as_array()
@@ -6966,7 +7293,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // No packet for the slice → explicit hard error, never a vacuous empty pass.
         let miss = text_payload(
@@ -6993,7 +7320,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // A SELECT over the bundled documentation graph returns SPARQL-1.1 JSON
         // bindings (the doc graph carries a gmeow:DocumentedTerm per documented term).
@@ -7038,7 +7365,7 @@ mod tests {
         }
         let (_dir, memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let canary = text_payload(server.call_tool_result(
             "store_claim",
@@ -7118,7 +7445,7 @@ mod tests {
         }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let claim =
             text_payload(server.call_tool_result("store_claim", &json!({"text": "a real belief"})));
         let claim_id = claim["claim"]["id"].as_str().unwrap();
@@ -7244,7 +7571,7 @@ mod tests {
         }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let bad = text_payload(
             server.call_tool_result("store_claim", &json!({"text": "x", "dry_run": "yes"})),
         );
@@ -7267,7 +7594,7 @@ mod tests {
         }
         let (_dir, memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let dry = text_payload(server.call_tool_result(
             "store_claim",
@@ -7302,7 +7629,7 @@ mod tests {
         }
         let (_dir, memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let stored = text_payload(server.call_tool_result(
             "store_claim",
@@ -7356,7 +7683,7 @@ mod tests {
         }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let stored = text_payload(
             server.call_tool_result("store_claim", &json!({"text": "a revisable belief"})),
         );
@@ -7387,7 +7714,7 @@ mod tests {
         }
         let (_dir, _memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let stored = text_payload(
             server.call_tool_result("store_claim", &json!({"text": "a belief to retire"})),
         );
@@ -7427,7 +7754,7 @@ mod tests {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::set_var("GMEOW_LANG", "notatag");
         }
-        let err = match McpServer::from_snapshot(&bytes, None, McpMode::Consumer) {
+        let err = match McpServer::from_snapshot(&bytes) {
             Ok(_) => panic!("invalid startup language must fail"),
             Err(err) => err,
         };
@@ -7437,7 +7764,7 @@ mod tests {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::set_var("GMEOW_LANG", "fr");
         }
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let init: Value = serde_json::from_str(
             &server.handle_message(r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}"#),
         )
@@ -7460,7 +7787,7 @@ mod tests {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::set_var("GMEOW_LANG", "X-GMEOW-FRENCH");
         }
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         let fr = text_payload(
             server.call_tool_result("lookup_term", &json!({"term": "gmeow:EntityExistence"})),
         );
@@ -7553,7 +7880,7 @@ mod tests {
             env::set_var("HOME", dir.path());
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         text_payload(server.call_tool_result("store_claim", &json!({"text": "durable belief"})));
         assert!(dir.path().join(".gmeow/memory.gts").exists());
     }
@@ -7575,7 +7902,7 @@ mod tests {
             env::set_var("USERPROFILE", dir.path());
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         text_payload(
             server.call_tool_result("store_claim", &json!({"text": "profile fallback belief"})),
         );
@@ -7587,7 +7914,7 @@ mod tests {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::set_var("GMEOW_MEMORY_PATH", "memory.gts");
         }
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
         text_payload(
             server.call_tool_result("store_claim", &json!({"text": "relative path belief"})),
         );
@@ -7607,7 +7934,7 @@ mod tests {
         }
         let (mem_dir, memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // A local lower-tier vocab file the agent supplies (not part of the canon).
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
@@ -7692,7 +8019,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("bad-credence.ttl");
@@ -7745,7 +8072,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("forge-cited-iris.ttl");
@@ -7801,7 +8128,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("probe.ttl");
@@ -7858,7 +8185,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("probe.ttl");
@@ -7902,7 +8229,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("probe.ttl");
@@ -7966,7 +8293,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("oversized.ttl");
@@ -8014,7 +8341,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("oversized-bytes.ttl");
@@ -8051,7 +8378,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("small.ttl");
@@ -8080,7 +8407,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
         let overlay_path = overlay_dir.path().join("probe.ttl");
@@ -8273,7 +8600,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // A small governor budget already derives IRI-object quads (subsumption /
         // typing) while the mid-chase cut keeps the whole-bundle reason bounded — a
@@ -8342,7 +8669,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // Asserted rows are present regardless of chase depth, so a tiny budget suffices.
         let max_steps = 8u64;
@@ -8395,7 +8722,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let out = text_payload(server.call_tool_result(
             "explain_quad",
@@ -8429,7 +8756,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let max_steps = 8u64;
         let rows = reasoned_rows(&server, max_steps);
@@ -8483,7 +8810,7 @@ mod tests {
         }
         let (_mem_dir, memory_path) = temp_memory();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let rpc = |body: &str| -> Value {
             let raw = server.handle_message(body);
@@ -8629,7 +8956,7 @@ mod tests {
     /// Build a consumer server over the shipped bundle with a clean language env.
     fn consumer_server() -> McpServer {
         let bytes = snapshot();
-        McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap()
+        McpServer::from_snapshot(&bytes).unwrap()
     }
 
     /// The sorted finding-code multiset of a report.
@@ -9005,7 +9332,7 @@ mod tests {
 
     /// SELF-DESCRIBING SURFACE (card): a REAL `doc_card format=json` payload — the
     /// exact bytes the packed `terms/{slug}/card.json` member carries — CONFORMS to
-    /// the hand-authored `card.schema.json` (`gmeow_docs::card::card_json_schema`).
+    /// the hand-authored `card.schema.json` (`gmeow_docs_model::card::card_json_schema`).
     /// Both the STANDARD tier (the `card.json` shape) and the FULL tier (every rich
     /// panel, exercising the `$defs`) are checked against the SAME schema.
     #[test]
@@ -9017,7 +9344,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let schema = gmeow_docs::card::card_json_schema();
+        let schema = gmeow_docs_model::card::card_json_schema();
 
         // STANDARD tier — the `card.json` shape. `gmeow:Entity` is a real bundled term.
         let standard = text_payload(server.call_tool_result(
@@ -9443,12 +9770,12 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // Obtain a real fingerprint IRI the SAME way `explain` does: the first key of
         // the FindingIndex the reader rehydrates from the server's held snapshot. An
         // empty graph/diagnostics is a blocker, not something to paper over.
-        let index = crate::diagnostics_reader::read_findings(&server.view.dataset)
+        let index = gmeow_bundle_view::diagnostics_reader::read_findings(&server.view.dataset)
             .expect("read graph/diagnostics from shipped bundle");
         assert!(
             !index.is_empty(),
@@ -9505,7 +9832,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // query_local requires an overlay path; a trivial annex suffices — the query
         // itself targets the bundle's graph/diagnostics named graph directly.
@@ -9694,7 +10021,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         assert!(!path.exists(), "library must not exist before the call");
         let resp = text_payload(server.call_tool_result(
@@ -9756,7 +10083,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         assert!(
             !path.exists(),
@@ -9810,7 +10137,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let math_iri = "https://blackcatinformatics.ca/math/conjecture/goldbach";
         let resp = text_payload(server.call_tool_result(
@@ -9847,7 +10174,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let resp = text_payload(server.call_tool_result(
             "store_conjecture",
@@ -9938,7 +10265,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let node = store_one_conjecture(&server, "B");
         // Before withdrawal the effective state is the engine verdict (Open), never Withdrawn.
@@ -10023,7 +10350,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let node = store_one_conjecture(&server, "B");
         let first = text_payload(server.call_tool_result(
@@ -10069,7 +10396,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         assert!(!path.exists(), "library must not exist before the call");
         let resp = text_payload(server.call_tool_result(
@@ -10098,7 +10425,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let node = store_one_conjecture(&server, "B");
         let before = fs::read(&path).expect("library bytes before dry run");
@@ -10144,7 +10471,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let node = store_one_conjecture(&server, "B");
         let after_store = read_conjectures(&path);
@@ -10464,7 +10791,7 @@ mod tests {
         let (_env, _cg) = ConjEnvGuard::set();
         let (_dir, path) = temp_candidate();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         assert!(!path.exists(), "library must not exist before the call");
         let resp = text_payload(server.call_tool_result(
@@ -10530,7 +10857,7 @@ mod tests {
         ] {
             let (_env, _cg) = ConjEnvGuard::set();
             let (_dir, path) = temp_candidate();
-            let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+            let server = McpServer::from_snapshot(&bytes).unwrap();
             assert!(!path.exists(), "{label}: library absent before the call");
 
             let resp = text_payload(server.call_tool_result(
@@ -10561,7 +10888,7 @@ mod tests {
         let (_env, _cg) = ConjEnvGuard::set();
         let (_dir, path) = temp_candidate();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // Populate the library with one admissible candidate.
         let admit = text_payload(server.call_tool_result(
@@ -10613,7 +10940,7 @@ mod tests {
         let (_env, _cg) = ConjEnvGuard::set();
         let (_dir, path) = temp_candidate();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let resp = text_payload(server.call_tool_result(
             "submit_candidate",
@@ -10641,7 +10968,7 @@ mod tests {
         let (_env, _cg) = ConjEnvGuard::set();
         let (_dir, path) = temp_candidate();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let submit = text_payload(server.call_tool_result(
             "submit_candidate",
@@ -10743,7 +11070,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // Unbounded control: the same candidate/KB runs to Completed (a non-budget verdict).
         let unbounded = text_payload(server.call_tool_result(
@@ -10818,7 +11145,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         assert!(!path.exists());
         let bounded = text_payload(server.call_tool_result(
@@ -10861,7 +11188,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         text_payload(server.call_tool_result(
             "store_conjecture",
@@ -10907,7 +11234,7 @@ mod tests {
         let (_mem, mem_path) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let kb = refuting_kb("B");
         let kb_before = kb.clone();
@@ -10942,7 +11269,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         let a = text_payload(server.call_tool_result(
             "store_conjecture",
@@ -10977,7 +11304,7 @@ mod tests {
         let (_mem, _mp) = temp_memory();
         let (_dir, path) = temp_conjecture();
         let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // Two refuted (B, D disjoint) and two open (C, E unrelated).
         for cls in ["B", "D"] {
@@ -11343,7 +11670,11 @@ mod tests {
             let (title, card) = export::doc_card_build(terms, term, &modeled_defs)
                 .resolved()
                 .expect("known term resolves");
-            gmeow_docs::card::render_card(&title, &card, gmeow_docs::card::CardDetail::Standard)
+            gmeow_docs_model::card::render_card(
+                &title,
+                &card,
+                gmeow_docs_model::card::CardDetail::Standard,
+            )
         });
         assert_eq!(
             card_md, expected,
@@ -11553,7 +11884,7 @@ mod tests {
                 .freeze()
                 .expect("empty dataset"),
         );
-        let parsed = crate::stages::native_query::query(&empty, first_query)
+        let parsed = gmeow_bundle_view::native_query::query(&empty, first_query)
             .expect("competency query_text is a valid SPARQL query");
         assert!(
             matches!(parsed, purrdf::SparqlResult::Solutions { .. }),
@@ -11606,9 +11937,9 @@ mod tests {
     /// depend on the committed bundle (which only gains the facets after regenerate) —
     /// it exercises the projection + search end to end from the model.
     fn synthetic_docs_dataset() -> Arc<purrdf::RdfDataset> {
-        use gmeow_docs::{DocLinkage, DocTerm, DocTermCategory};
+        use gmeow_docs_model::model::{DocLinkage, DocTerm, DocTermCategory};
         let ns = "https://blackcatinformatics.ca/gmeow/";
-        let model = gmeow_docs::DocsModel {
+        let model = gmeow_docs_model::model::DocsModel {
             terms: vec![
                 DocTerm {
                     iri: format!("{ns}Cat"),
@@ -11645,7 +11976,7 @@ mod tests {
             }],
             ..Default::default()
         };
-        let nquads = gmeow_docs::to_gmeow_rdf(&model, &BTreeMap::new());
+        let nquads = gmeow_docs_model::rdf::to_gmeow_rdf(&model, &BTreeMap::new());
         purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None)
             .expect("to_gmeow_rdf emits valid N-Quads")
     }
@@ -11657,8 +11988,9 @@ mod tests {
     #[test]
     fn search_documentation_matches_facets_ranks_and_is_deterministic() {
         let dataset_arc = synthetic_docs_dataset();
-        let dataset =
-            Arc::new(dataset_arc.project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION));
+        let dataset = Arc::new(
+            dataset_arc.project_named_graph(gmeow_bundle_view::graph_iris::GRAPH_DOCUMENTATION),
+        );
         let cat_iri = "https://blackcatinformatics.ca/gmeow/Cat";
         let feline_iri = "https://blackcatinformatics.ca/gmeow/Feline";
 
@@ -11859,7 +12191,8 @@ mod tests {
         .unwrap();
         assert!(outcome.issues_certificate(), "the fixture must certify");
 
-        let dataset = dataset_of(&outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS));
+        let dataset =
+            dataset_of(&outcome.to_nquads(gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS));
         let env = coherence_certificate_envelope(dataset.as_ref()).expect("certificate present");
 
         assert_eq!(env["ok"], true);
@@ -11918,7 +12251,8 @@ mod tests {
         .unwrap();
         assert!(!outcome.issues_certificate());
 
-        let dataset = dataset_of(&outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS));
+        let dataset =
+            dataset_of(&outcome.to_nquads(gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS));
         let env = coherence_certificate_envelope(dataset.as_ref()).expect("attestation present");
         assert_eq!(env["ok"], true);
         assert_eq!(
@@ -11950,7 +12284,7 @@ mod tests {
     fn coherence_certificate_hard_fails_on_an_ambiguous_bundle() {
         use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 
-        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let graph = gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
         let a = CoherenceOutcome::from_reasoning_result(
             &coherence_result(
                 EvaluationStatus::Completed,
@@ -11999,7 +12333,7 @@ mod tests {
     fn coherence_certificate_json_hard_fails_on_a_dual_typed_subject() {
         use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 
-        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let graph = gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
         let outcome = CoherenceOutcome::from_reasoning_result(
             &coherence_result(
                 EvaluationStatus::Completed,
@@ -12056,7 +12390,7 @@ mod tests {
     fn coherence_certificate_json_hard_fails_on_each_missing_required_field() {
         use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 
-        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let graph = gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
         let outcome = CoherenceOutcome::from_reasoning_result(
             &coherence_result(
                 EvaluationStatus::Completed,
@@ -12153,7 +12487,7 @@ mod tests {
              <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
              <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
              {}",
-            outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS)
+            outcome.to_nquads(gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS)
         );
         let dataset = dataset_of(&doc);
         let mut builder = SnapshotBuilder::new();
@@ -12171,7 +12505,7 @@ mod tests {
         )
         .expect("emit tiny cert-carrying snapshot");
 
-        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&gts).unwrap();
         let out = text_payload(server.call_tool_result("coherence_certificate", &json!({})));
         assert_eq!(
             out["ok"], true,
@@ -12243,7 +12577,7 @@ mod tests {
         )
         .expect("emit tiny header-only canon");
 
-        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&gts).unwrap();
 
         // The overlay: a genuine DL contradiction — A ⊑ B, A ⊑ C, B disjointWith C,
         // x : A forces x into owl:Nothing. Un-graphed triples reason under the single
@@ -12360,7 +12694,7 @@ mod tests {
         )
         .expect("emit tiny header-only canon");
 
-        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+        let server = McpServer::from_snapshot(&gts).unwrap();
 
         // The glut: same shape as `verify_graph_inconsistent_but_conclusive_never_
         // certifies`, but PAIRWISE `owl:disjointWith` on classes NOT named in the
@@ -12583,7 +12917,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let consumer = McpServer::from_snapshot(&bytes).unwrap();
         let result = consumer.tools_result();
         let arr = result["tools"].as_array().expect("tools array");
         for (name, req) in [
@@ -12619,7 +12953,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let bytes = snapshot();
-        let consumer = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let consumer = McpServer::from_snapshot(&bytes).unwrap();
 
         // Advertised in the consumer resource list.
         let list = consumer.resources_result();
@@ -12665,6 +12999,6 @@ mod tests {
 
     /// The primer heading constant, re-exposed for the resource test (the shared docs const).
     fn gmn1_primer_heading() -> &'static str {
-        gmeow_docs::gmn1_primer::PRIMER_HEADING
+        gmeow_docs_model::gmn1_primer::PRIMER_HEADING
     }
 }

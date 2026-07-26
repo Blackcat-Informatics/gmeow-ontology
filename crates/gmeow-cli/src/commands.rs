@@ -570,7 +570,7 @@ pub fn describe(
 /// `gmeow conjecture test` — test a candidate `logic:` formula against a KB in an
 /// isolated, standpoint-scoped scenario world, print the engine verdict, and —
 /// unless `--dry-run` — APPEND it to the append-only conjecture library. Delegates
-/// to the SHARED [`gmeow_pipeline::mcp::run_conjecture_test`] core (the same path
+/// to the SHARED [`gmeow_mcp::run_conjecture_test`] core (the same path
 /// the MCP `conjecture_test` tool runs), so there is one implementation, not two.
 #[allow(clippy::too_many_arguments)]
 pub fn conjecture_test(
@@ -604,25 +604,24 @@ pub fn conjecture_test(
         }
     };
 
-    let out =
-        match gmeow_pipeline::mcp::run_conjecture_test(&gmeow_pipeline::mcp::ConjectureRunInput {
-            formula_ttl: &formula_ttl,
-            kb_ttl: &kb_ttl,
-            standpoint,
-            math_conjecture,
-            dry_run,
-            max_steps,
-            max_answers,
-        }) {
-            Ok(out) => out,
-            Err(e) => {
-                return fail(
-                    reporter,
-                    "gmeow-cli.conjecture.failed",
-                    format!("conjecture test failed: {e}"),
-                );
-            }
-        };
+    let out = match gmeow_mcp::run_conjecture_test(&gmeow_mcp::ConjectureRunInput {
+        formula_ttl: &formula_ttl,
+        kb_ttl: &kb_ttl,
+        standpoint,
+        math_conjecture,
+        dry_run,
+        max_steps,
+        max_answers,
+    }) {
+        Ok(out) => out,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.conjecture.failed",
+                format!("conjecture test failed: {e}"),
+            );
+        }
+    };
 
     // A precondition-unmet TR gate refused the write: report it and fail (exit 1),
     // mirroring the MCP `ok:false` path — the verdict was computed but not persisted.
@@ -664,7 +663,7 @@ pub fn conjecture_test(
 
 /// `gmeow candidate submit` — test a candidate `logic:` formula against a KB and, ONLY if the
 /// isolated-world verdict CORROBORATES it (admissible), APPEND it to the append-only candidate
-/// library. Delegates to the SHARED [`gmeow_pipeline::mcp::run_submit_candidate`] core (the same
+/// library. Delegates to the SHARED [`gmeow_mcp::run_submit_candidate`] core (the same
 /// path the MCP `submit_candidate` tool runs), so there is one implementation, not two. A refuted
 /// or open candidate is not admitted (a non-zero exit), and `--dry-run` writes nothing.
 #[allow(clippy::too_many_arguments)]
@@ -701,19 +700,17 @@ pub fn candidate_submit(
         }
     };
 
-    let out = match gmeow_pipeline::mcp::run_submit_candidate(
-        &gmeow_pipeline::mcp::CandidateSubmitInput {
-            formula_ttl: &formula_ttl,
-            kb_ttl: &kb_ttl,
-            standpoint,
-            math_conjecture,
-            for_slice,
-            for_packet,
-            dry_run,
-            max_steps,
-            max_answers,
-        },
-    ) {
+    let out = match gmeow_mcp::run_submit_candidate(&gmeow_mcp::CandidateSubmitInput {
+        formula_ttl: &formula_ttl,
+        kb_ttl: &kb_ttl,
+        standpoint,
+        math_conjecture,
+        for_slice,
+        for_packet,
+        dry_run,
+        max_steps,
+        max_answers,
+    }) {
         Ok(out) => out,
         Err(e) => {
             return fail(
@@ -752,7 +749,7 @@ pub fn candidate_submit(
 }
 
 /// `gmeow candidate withdraw` — withdraw a persisted candidate (P10 supersession). Delegates to
-/// the SHARED [`gmeow_pipeline::mcp::run_withdraw_candidate`] core the MCP tool runs. An unknown
+/// the SHARED [`gmeow_mcp::run_withdraw_candidate`] core the MCP tool runs. An unknown
 /// or already-withdrawn id is a hard error (a non-zero exit).
 pub fn candidate_withdraw(
     reporter: &dyn Reporter,
@@ -760,11 +757,8 @@ pub fn candidate_withdraw(
     reason: Option<&str>,
     dry_run: bool,
 ) -> i32 {
-    let body = match gmeow_pipeline::mcp::run_withdraw_candidate(
-        candidate_id,
-        reason.unwrap_or(""),
-        dry_run,
-    ) {
+    let body = match gmeow_mcp::run_withdraw_candidate(candidate_id, reason.unwrap_or(""), dry_run)
+    {
         Ok(body) => body,
         Err(e) => {
             return fail(
@@ -778,13 +772,13 @@ pub fn candidate_withdraw(
 }
 
 /// `gmeow candidate list` — list admitted candidates with their disposition + provenance.
-/// Delegates to the SHARED [`gmeow_pipeline::mcp::run_list_candidates`] core.
+/// Delegates to the SHARED [`gmeow_mcp::run_list_candidates`] core.
 pub fn candidate_list(
     reporter: &dyn Reporter,
     slice: Option<&str>,
     disposition: Option<&str>,
 ) -> i32 {
-    let body = match gmeow_pipeline::mcp::run_list_candidates(slice, disposition) {
+    let body = match gmeow_mcp::run_list_candidates(slice, disposition) {
         Ok(body) => body,
         Err(e) => {
             return fail(
@@ -4294,13 +4288,14 @@ pub fn crossref(reporter: &dyn Reporter, out: &Path, gts: Option<&Path>) -> i32 
 
 /// `gmeow mcp` — serve the native, bundle-only MCP consumer surface over stdio.
 ///
-/// The embedded [`BUNDLE_GTS`] snapshot is the sole ontology source (repo-free);
-/// `root = None` so no repo-reading dev tools are exposed. Blocks on the stdio
-/// JSON-RPC loop until EOF, then exits `0`; a construction or I/O error maps to a
-/// nonzero exit.
+/// The embedded [`BUNDLE_GTS`] snapshot is the sole ontology source (repo-free).
+/// This binary links `gmeow-mcp` alone, never `gmeow-mcp-dev`, so the repo-reading
+/// dev tools are not merely hidden here — they are not compiled in. Blocks on the
+/// stdio JSON-RPC loop until EOF, then exits `0`; a construction or I/O error maps
+/// to a nonzero exit.
 pub fn mcp(reporter: &dyn Reporter) -> i32 {
-    use gmeow_pipeline::mcp::{McpMode, McpServer};
-    let server = match McpServer::from_snapshot(BUNDLE_GTS, None, McpMode::Consumer) {
+    use gmeow_mcp::McpServer;
+    let server = match McpServer::from_snapshot(BUNDLE_GTS) {
         Ok(server) => server,
         Err(e) => return fail(reporter, "gmeow-cli.mcp.construct", format!("mcp: {e}")),
     };
@@ -4769,7 +4764,7 @@ pub fn slice_lint(
 /// tiering [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
 /// pipeline stage uses — so an in-repo slice's live CLI brief and its committed
 /// `generated/briefs/authoring-packets.nt` projection tier terms identically. The
-/// bundle path runs the SAME [`gmeow_pipeline::mcp::extract_authoring_packets`] core the
+/// bundle path runs the SAME [`gmeow_mcp::extract_authoring_packets`] core the
 /// MCP `slice_brief` tool serves. A `--batch` out of range is a typed hard failure
 /// through [`fail`] (a non-zero exit) on both paths, never a panic or an empty packet.
 pub fn slice_brief(
@@ -4802,7 +4797,7 @@ pub fn slice_brief(
 
 /// `gmeow slice brief --from-bundle <slice>` — serve the pre-assembled authoring
 /// packet(s) for a slice straight from the embedded gmeow.gts bundle, via the SAME
-/// [`gmeow_pipeline::mcp::extract_authoring_packets`] core the MCP `slice_brief` tool
+/// [`gmeow_mcp::extract_authoring_packets`] core the MCP `slice_brief` tool
 /// runs (one implementation, not two). Checkout-free: no repo root, no SHACL shape union.
 fn slice_brief_from_bundle(
     reporter: &dyn Reporter,
@@ -4811,21 +4806,17 @@ fn slice_brief_from_bundle(
     batch: Option<u32>,
     format: &str,
 ) -> i32 {
-    let out = match gmeow_pipeline::mcp::slice_brief_from_bundle(
-        BUNDLE_GTS,
-        slice,
-        axis,
-        batch.map(u64::from),
-    ) {
-        Ok(v) => v,
-        Err(e) => {
-            return fail(
-                reporter,
-                "gmeow-cli.slice.brief.bundle",
-                format!("cannot serve packet for slice {slice:?}: {e}"),
-            );
-        }
-    };
+    let out =
+        match gmeow_mcp::slice_brief_from_bundle(BUNDLE_GTS, slice, axis, batch.map(u64::from)) {
+            Ok(v) => v,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.slice.brief.bundle",
+                    format!("cannot serve packet for slice {slice:?}: {e}"),
+                );
+            }
+        };
     let rendered = match format {
         "json" => serde_json::to_string_pretty(&out).unwrap_or_else(|_| out.to_string()),
         "turtle" => out

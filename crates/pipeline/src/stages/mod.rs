@@ -43,7 +43,6 @@ pub mod docs_format_rendering;
 pub mod docs_render;
 pub mod evals;
 pub mod export;
-pub mod fold_arena;
 pub mod frame_shapes;
 pub mod gate_verdict;
 pub mod goal_directed;

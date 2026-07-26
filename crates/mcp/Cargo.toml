@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-mcp"
+description = "GMEOW's consumer-mode MCP engine: the bundle-only tool/resource surface, the JSON-RPC stdio loop, and the extension seam a repo-anchored host registers dev tools through"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["gmeow", "mcp", "agent", "rdf", "wasm"]
+
+[lib]
+# rlib-only, and a LEAF with respect to gmeow-pipeline: the consumer MCP surface is
+# served off the embedded `gmeow.gts` snapshot alone, so it must never inherit the
+# build executor — its scheduler, cache, release signer, network client, or the docs
+# renderer's embedded multi-megabyte wasm. Every repo-reading tool lives in
+# `gmeow-mcp-dev`, which depends on THIS crate and registers through its extension
+# seam. Nothing in this dependency set may pull in rayon, process spawning, or an
+# embedded-asset crate.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The RDF 1.2 kernel: the snapshot is imported to a `purrdf::RdfDataset`, every query
+# surface evaluates SPARQL over one, and the grounded-memory triad + the append-only
+# conjecture/candidate libraries are GTS segment files written with purrdf's writer.
+purrdf.workspace = true
+# The diagnostic substrate: every tool defect is a typed `DiagKind` raised as a
+# `Diag`, and `explain_finding` rehydrates `gmeow_errors::Finding` values.
+gmeow-errors = { path = "../errors" }
+# The registered term namespaces (`GMEOW_NS` / `LOGIC_NS` / `MATH_NS`): the tool
+# surface builds predicate and class IRIs from the ONE declaration site.
+gmeow-ns = { path = "../ns" }
+# The bundle READ side: `bundle_blobs` (shapes/schemas archives out of the raw
+# snapshot bytes), `export` (the fold view, the term surface, `doc_card`/`llms.txt`
+# rendering, consumer resolution), `diagnostics_reader` (`explain_finding`),
+# `native_query` (the SPARQL substrate) and `graph_iris` (the named graphs the tools
+# address). This is the crate that lets the MCP surface read a bundle without the
+# writer.
+gmeow-bundle-view = { path = "../bundle-view" }
+# The documentation MODEL only — never `gmeow-docs`, whose renderer embeds ~13.6 MB
+# of vendored wasm. `doc_card` renders through the shared `card` surface, `llms_txt`
+# through `llms`, and the `gmn1-primer` resource through `gmn1_primer`, so the MCP
+# card is the genuine twin of the docs-site card rather than a second renderer.
+gmeow-docs-model = { path = "../docs-model" }
+# The native reasoner and its result algebra: `verify_graph`, `explain_quad`,
+# `coherence_certificate`, `entailments`, `counter_examples`, the conjecture engine
+# and the transaction executor all run through `gmeow_logic`.
+gmeow-logic = { path = "../logic" }
+# The canonical prefix registry (`ingest::prefixes::registry_pairs`) the tool
+# surface renders canonical Turtle with, and `ir::LOGIC_NAMESPACE`.
+gmeow-logic-compile = { path = "../logic-compile" }
+# The shipped validator: `validate_local` runs `data_validate` over the bundle's
+# folded Tier-1 shapes, `advise` runs the advisory catalog, and `local_oracle`
+# supplies the finding JSON Schema + entailment/fixture views.
+gmeow-validate = { path = "../validate" }
+# The GMN-1 codec: `gmn_validate` / `gmn_expand` / `gmn_explain` read, write, and
+# canonically compare GMN documents through the ONE bridge implementation.
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# The slice-quality advisor kernel: `slice_quality` scores an external slice
+# directory against the rubric carried IN the bundle bytes
+# (`score_external_slice_bytes`), so the tool needs no checkout.
+gmeow-slice-quality = { path = "../slice-quality" }
+# JSON is the MCP wire format: every tool envelope, every JSON-RPC frame, and the
+# `format=json` card projection are `serde_json::Value`s.
+serde_json = "1"
+# SHA-256 content addressing for the append-only conjecture/candidate library
+# segments and the claim fingerprints the grounded-memory triad keys on.
+sha2 = "0.10"
+# Atomic, self-cleaning temp files for the append-only library commit path (write a
+# sibling temp file, then rename over the target), so a crash mid-append can never
+# leave a torn library.
+tempfile = "3"
+
+[dev-dependencies]
+# The `doc_card` JSON projection is asserted against the hand-authored
+# `card.schema.json` (`gmeow_docs_model::card::card_json_schema`), so the tests
+# compile and run a real JSON Schema validator over the tool output.
+jsonschema = { version = "0.46", default-features = false }

@@ -43,12 +43,13 @@ default-filter = '''
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(english_carrier_tree_matches_render_site))
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
     | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
-    | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
-    | (package(gmeow-pipeline) & test(/mcp::tests::verify_graph_.*_heavy_offgate/))
-    | (package(gmeow-pipeline) & test(/mcp::tests::explain_quad_.*_heavy_offgate/))
+    | (package(gmeow-mcp) & test(/tests::json_rpc_protocol_conformance_round_trip/))
+    | (package(gmeow-mcp) & test(/tests::verify_graph_.*_heavy_offgate/))
+    | (package(gmeow-mcp) & test(/tests::explain_quad_.*_heavy_offgate/))
+    | (package(gmeow-mcp-dev) & test(/tests::the_reason_tool_.*_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
-    | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))
+    | (package(gmeow-bundle-view) & test(/export::tests::export_produces_structurally_valid_artifacts/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }

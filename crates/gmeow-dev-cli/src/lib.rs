@@ -718,18 +718,18 @@ fn info() -> i32 {
 
 /// `gmeow-dev mcp` — serve the native, repo-anchored MCP developer surface over
 /// stdio. Reads the on-disk `generated/dist/gmeow.gts` snapshot from the working
-/// tree (like every other dev command) and passes the repository root so the
-/// [`McpMode::Dev`](gmeow_pipeline::mcp::McpMode::Dev) repo-reading maintenance
-/// tools (validate/reason/sync/constitution) are exposed alongside the
-/// consumer surface. Blocks on the JSON-RPC loop until EOF.
+/// tree (like every other dev command) and passes the repository root to
+/// [`gmeow_mcp_dev::dev_server`], which registers the four repo-reading maintenance
+/// tools (validate/reason/sync/constitution) plus the Constitution resource into the
+/// consumer surface through the MCP extension seam. Blocks on the JSON-RPC loop
+/// until EOF.
 fn mcp() -> i32 {
-    use gmeow_pipeline::mcp::{McpMode, McpServer};
     let root = project_root();
     let bytes = match snapshot_bytes(&root) {
         Ok(b) => b,
         Err(code) => return code,
     };
-    let server = match McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev) {
+    let server = match gmeow_mcp_dev::dev_server(&bytes, root) {
         Ok(server) => server,
         Err(e) => return dev_common::fail(format!("mcp: {e}")),
     };

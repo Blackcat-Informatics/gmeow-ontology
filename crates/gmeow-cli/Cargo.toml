@@ -34,6 +34,12 @@ gmeow-affect = { path = "../affect" }
 # evidence, and its inverse. Drives `gmeow affect ingest-goemotions` / `recover-goemotions`.
 gmeow-affect-ingest = { path = "../affect-ingest" }
 gmeow-pipeline = { path = "../pipeline" }
+# The CONSUMER MCP engine: `gmeow mcp`'s server, and the shared conjecture /
+# candidate / authoring-brief cores the corresponding `gmeow` subcommands run
+# through so the CLI and the MCP tool are one implementation. A leaf over
+# gmeow-bundle-view — the repo-reading dev tools live in `gmeow-mcp-dev`, which this
+# binary deliberately does NOT link.
+gmeow-mcp = { path = "../mcp" }
 # The GMN-1 codec + digest/witness/pack layer. A pure-Rust runtime rlib the wheel
 # ships (in the tree transitively via gmeow-pipeline): its `gmn1_write`/`gmn1_read`,
 # `codebook_digest`/`content_digest`/`pack_root`, and per-claim/idempotence witnesses
