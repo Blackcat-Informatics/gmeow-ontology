@@ -1,0 +1,147 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a crash at the EXTERNAL EFFECT BOUNDARY — the hardest state in
+# the whole kernel and the one most systems get wrong.
+#
+# The sequence: an intent to charge a customer was persisted; the attempt was
+# transmitted; then the process died before any durable receipt was written. The
+# payment provider may or may not have taken the money. Nothing in our records
+# can settle it, because the fact in question is not in our records.
+#
+# The two tempting wrong answers are both destructive:
+#
+#   Retry blindly       -> a double charge.
+#   Compensate blindly  -> a refund for a payment that never happened.
+#
+# The kernel's answer is that RECONCILIATION is the only licensed next action:
+# go and ask the provider what actually happened. Retry becomes permissible only
+# once an idempotency contract is discharged or a reconciliation verdict lands.
+#
+# This is also why the unknown outcome must NAME its attempt. An unknown with no
+# attempt is unresolvable in principle — there is nothing to probe — so it could
+# never be closed and could never license the retry it invites.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/effect-boundary/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:settlementRun a logic:Enactment ;
+    rdfs:label "Nightly settlement run"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:settlementProcessV5 ;
+    logic:enactmentInputSnapshot ex:invoiceBatchNightly ;
+    logic:enactmentJournal ex:settlementJournal ;
+    logic:enactmentState logic:EnactmentPaused .
+
+ex:settlementJournal a logic:TransitionJournal ;
+    rdfs:label "Settlement run journal"@x-gmeow-english ;
+    logic:journalHead "b3:0a75c93e18bd246f015c7a9b30e2df8461c05a37be91d4207f8a6c15b39e02d4" .
+
+# --- The intent, persisted BEFORE anything left the process. It carries the
+#     journal head it expects, so a resubmission after this crash arrives with a
+#     stale head and is structurally detectable as a duplicate rather than
+#     depending on someone remembering to check.
+ex:chargeIntent a logic:DispatchIntent ;
+    rdfs:label "Charge customer 4471, invoice 90233"@x-gmeow-english ;
+    logic:intentOfEnactment ex:settlementRun ;
+    logic:intentOfStep ex:chargeStep ;
+    logic:intentActionSchemaVersion ex:chargeSchemaV2 ;
+    logic:intentNormalizedArguments ex:chargeArguments ;
+    logic:intentTarget ex:acmePaymentsEndpoint ;
+    logic:intentPolicy ex:settlementPolicy ;
+    logic:intentApprovalRequired false ;
+    logic:intentDigest "b3:6c1a80f35e97d24b013fa95c28be0d746a1c530be89d2f4071a6c85b39e0d27a" ;
+    logic:intentIdempotency ex:chargeIdempotency ;
+    logic:expectedJournalHead "b3:0a75c93e18bd246f015c7a9b30e2df8461c05a37be91d4207f8a6c15b39e02d4" .
+
+# The retention window is load-bearing, not documentation: a retry sent AFTER the
+# provider stops honouring the key is not idempotent any more, it is simply a
+# second charge. This is the classic production bug, and it is a law here.
+ex:chargeIdempotency a logic:IdempotencyContract ;
+    rdfs:label "Idempotency contract for invoice 90233"@x-gmeow-english ;
+    logic:idempotencyKey "invoice:90233:charge:attempt-1" ;
+    logic:idempotencyScope "provider:acme-payments:merchant-88" ;
+    logic:idempotencyRetention "PT24H"^^xsd:duration ;
+    logic:idempotencyDuplicateSemantics "Provider returns the original result for a repeated key within 24 hours; after that the key is forgotten and a repeat is a NEW charge."@x-gmeow-english ;
+    logic:idempotencyProviderEvidence "Acme Payments API v3 idempotency specification, section 4.2, and the conformance probe recorded at provider onboarding."@x-gmeow-english .
+
+# --- The attempt: transmitted. Observed by the dispatching organ, never derived.
+ex:chargeStep a logic:TransactionStep ;
+    rdfs:label "Charge the customer for invoice 90233"@x-gmeow-english .
+
+ex:chargeSchemaV2 a logic:ActionSchema ;
+    rdfs:label "Payment charge action schema, revision 2"@x-gmeow-english ;
+    logic:capability ex:acmePaymentsEndpoint ;
+    logic:precondition ex:invoiceDueAndUnpaid .
+
+ex:invoiceDueAndUnpaid a logic:Constraint ;
+    rdfs:label "Precondition: the invoice is due and not already settled"@x-gmeow-english .
+
+ex:chargeArguments a logic:ArgumentNormalization ;
+    rdfs:label "Normalized arguments: customer 4471, invoice 90233, 142.50 EUR"@x-gmeow-english .
+
+ex:acmePaymentsEndpoint a logic:EngineCapability ;
+    rdfs:label "Acme Payments charge endpoint"@x-gmeow-english .
+
+ex:settlementPolicy a logic:Constraint ;
+    rdfs:label "Settlement dispatch policy"@x-gmeow-english .
+
+ex:chargeAttempt a logic:EffectAttempt ;
+    rdfs:label "Charge request transmitted to Acme Payments"@x-gmeow-english ;
+    logic:attemptOfIntent ex:chargeIntent ;
+    logic:providerCorrelationId "acme-req-01JQ8ZK3MF7T2XN0" .
+
+# --- Then the crash. No receipt. This is the boundary state.
+ex:chargeUnknown a logic:ExternalOutcomeUnknown ;
+    rdfs:label "Process died before a durable receipt; charge outcome undetermined"@x-gmeow-english ;
+    logic:unknownOfAttempt ex:chargeAttempt .
+
+# --- On restart the derived frontier says RECONCILE. It does not say retry, and
+#     it does not say compensate.
+ex:settlementFrontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier after restart"@x-gmeow-english ;
+    logic:frontierSaturationWitness ex:settlementSaturation ;
+    logic:frontierOfEnactment ex:settlementRun ;
+    logic:hasFrontierEntry ex:chargeReconcileEntry .
+
+ex:chargeReconcileEntry a logic:FrontierEntry ;
+    rdfs:label "Charge — reconciliation required before anything else"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReconciliationRequired ;
+    logic:entryAxisWitness logic:EffectAttempted .
+
+ex:chargeProbe a logic:ReconciliationProbe ;
+    rdfs:label "Query Acme Payments for the status of acme-req-01JQ8ZK3MF7T2XN0"@x-gmeow-english ;
+    logic:probesAttempt ex:chargeAttempt .
+
+# --- The verdict resolves the unknown. Only NOW is a next action licensed, and
+#     which action depends on which verdict came back.
+ex:chargeProbeResult a logic:ReconciliationResult ;
+    rdfs:label "Provider confirms the charge was committed"@x-gmeow-english ;
+    logic:reconciliationVerdict logic:ReconciledCommitted .
+
+# The saturation witness: which predicates the reasoner proved final, and under
+# what budget. Without it a roster truncated by a budget cut is indistinguishable
+# from a genuinely complete one, and the system confidently omits an action.
+ex:settlementSaturation a logic:FrontierEntry ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierCompleted .
+
+ex:settlementProcess a logic:Plan ;
+    rdfs:label "Nightly settlement process"@x-gmeow-english ;
+    logic:planGoal ex:invoicesSettled ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindBusinessProcess .
+
+ex:invoicesSettled a gmeow:Goal ;
+    rdfs:label "All due invoices are settled exactly once"@x-gmeow-english .
+
+ex:settlementProcessV5 a logic:PrescriptionVersion ;
+    rdfs:label "Nightly settlement process, revision 5"@x-gmeow-english ;
+    logic:prescriptionOf ex:settlementProcess ;
+    logic:prescriptionDigest "b3:5e08a3c91f7bd246015c8a370be9d24f18a6c053be7d1940fa25c86b3e097d13" .
+
+ex:invoiceBatchNightly a logic:InputSnapshot ;
+    rdfs:label "Invoice batch frozen at settlement-run start"@x-gmeow-english ;
+    logic:snapshotDigest "b3:9d720ba53e18cf46015a9c73be0d284f610ac539be8d2740f1a5c96b3e07d825" .
+

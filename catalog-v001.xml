@@ -95,6 +95,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/temporal" uri="slices/core/temporal/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/trust" uri="slices/core/trust/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/versions" uri="slices/core/versions/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/work-orchestration" uri="slices/core/work-orchestration/module.ttl"/>
 
     <!-- Named profiles (generated) -->
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/claims" uri="generated/profiles/claims.ttl"/>

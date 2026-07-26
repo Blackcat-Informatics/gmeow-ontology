@@ -164,6 +164,31 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/notation/examples/notation-systems.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + lang:renderingPreservation → logic:PreservationKind untyped standalone
     "slices/core/notation/examples/pydantic-projection-profile.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + gmeow:notationSystemKind → gmeow:symbolicKindEncoding + lang:renderingPreservation/logic:preservationKind → logic:ValidationOnly + the logic:Correspondence value individuals (logic:Overlaps/BridgeView/CommitmentShiftingBridge/Crisp) are shared individuals defined in module.ttl, untyped standalone
     "slices/grounding/math/examples/expression-rendering.ttl", // lang:renderingKind → lang:renderingNotation + lang:renderingPreservation → logic:ExactPreservation (shared logic:PreservationKind) untyped standalone
+    // Bucket A (enactment kernel) — every one of these fails on EXACTLY ONE
+    // shape, verified by running the sweep's own engine over each file:
+    // logic:Plan-shape's `sh:class logic:PlanSuccessMode` on the value of
+    // logic:planSuccessMode. The value individuals (logic:StrongPlanSuccess,
+    // logic:StrongCyclicPlanSuccess) are typed in the logic: module and untyped
+    // in the example's closed-world scope. Restating their type inside the
+    // example WOULD make each file standalone-conformant, but
+    // `authoring_integrity::slice_examples_use_only_declared_terms` forbids an
+    // example asserting types for ontology terms — so the exclusion is the
+    // repo's considered answer, not a shortcut. Every other violation these
+    // files originally carried (missing plan goal, unbound dispatch-intent
+    // fields, frontiers claiming closure with no saturation witness, enactments
+    // pinning neither prescription nor snapshot, action schemas with no
+    // capability or precondition, an observation with no feature or vantage, a
+    // context assembly naming no guidance version, a schedule with no
+    // recurrence rule) was a REAL defect in the example and was fixed rather
+    // than allowlisted.
+    "slices/core/work-orchestration/examples/contextual-recommendation.ttl", // logic:planSuccessMode → logic:StrongCyclicPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
+    "slices/core/work-orchestration/examples/effect-boundary-unknown.ttl", // logic:planSuccessMode → logic:StrongCyclicPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
+    "slices/core/work-orchestration/examples/ocr-capability-absent.ttl", // logic:planSuccessMode → logic:StrongCyclicPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
+    "slices/core/work-orchestration/examples/ocr-capability-present.ttl", // logic:planSuccessMode → logic:StrongCyclicPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
+    "slices/core/work-orchestration/examples/weekly-adr-review.ttl", // logic:planSuccessMode → logic:StrongCyclicPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
+    "slices/grounding/logic/examples/enactment-curriculum.ttl", // logic:planSuccessMode → logic:StrongCyclicPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
+    "slices/grounding/logic/examples/enactment-dag-workflow.ttl", // logic:planSuccessMode → logic:StrongCyclicPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
+    "slices/grounding/logic/examples/enactment-scada-control.ttl", // logic:planSuccessMode → logic:StrongPlanSuccess (shared logic:PlanSuccessMode individual) untyped standalone
 ];
 
 /// The repo root (two levels up from this crate's manifest dir).

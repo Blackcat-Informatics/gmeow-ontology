@@ -239,7 +239,7 @@ clause by clause (`gmeow:ReviewProjectionCompletenessConstraint`), one clause pe
 7. accumulated notes, decisions, artifacts, receipts, and prior-enactment comparison;
 8. an exact accessible graph and timeline representation.
 
-Content 4 is joined to `gmeow:frontierExplanation`, which carries, per recommended or blocked action:
+Content 4 is joined to `gmeow:FrontierExplanation`, which carries, per recommended or blocked action:
 the **proof term** (not a citation), the evidence, the governing policy, the cost/risk/benefit
 criteria as `gmeow:Criterion` values, and **at least one dissenting attributed observation where one
 exists**. An explanation that silently omits dissent is an advocacy document, not an explanation.

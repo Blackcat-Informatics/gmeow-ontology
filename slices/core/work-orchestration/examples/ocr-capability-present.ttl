@@ -1,0 +1,110 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the capability IS present — the positive counterpart to
+# ocr-capability-absent.ttl, and the case that proves the system can actually do
+# the work rather than only decline it well.
+#
+# Two things are demonstrated, and the second is the one usually missing:
+#
+#  1. Refinement selects a decomposition and pins it as an IMMUTABLE executable
+#     subgraph: inspect -> prepare -> OCR -> verify -> store receipt. Pinning is
+#     what makes the plan that was approved the plan that runs.
+#  2. Policy-maximal automation. Every step whose effects the policy already
+#     authorizes is labelled ready-and-authorized, and ONLY the genuinely
+#     approval-gated step is labelled approval-required. A system that marks
+#     everything approval-required is not being careful, it is pushing its
+#     judgement onto an operator who will soon start approving without reading.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ingestScannedDocs a logic:Plan ;
+    rdfs:label "Ingest scanned documents"@x-gmeow-english ;
+    logic:planGoal ex:scansIngestedWithText ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindIngestion .
+
+ex:scansIngestedWithText a gmeow:Goal ;
+    rdfs:label "Scanned pages are ingested with extracted text"@x-gmeow-english .
+
+ex:ingestScannedDocsV2 a logic:PrescriptionVersion ;
+    rdfs:label "Ingest scanned documents, revision 2"@x-gmeow-english ;
+    logic:prescriptionOf ex:ingestScannedDocs ;
+    logic:prescriptionDigest "b3:83b0a45c19d7e26f014a95c3b80de274f6109ac538b2d64e07f1a5c96b3d802e" .
+
+ex:scanBatch78 a logic:InputSnapshot ;
+    rdfs:label "Scan batch 78"@x-gmeow-english ;
+    logic:snapshotDigest "b3:c4907b1ea538d26f0173b9a5c02e8df4610b73ac9d5e28f140a6c85b3e097d21" .
+
+ex:ingestRun78 a logic:Enactment ;
+    rdfs:label "Ingest run over scan batch 78"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:ingestScannedDocsV2 ;
+    logic:enactmentInputSnapshot ex:scanBatch78 ;
+    logic:enactmentState logic:EnactmentRunning .
+
+# --- The decomposition method: a REUSABLE, versioned schema, not a one-off.
+#     This is what lets a continuing cluster learn: next batch refines through
+#     the same method rather than rediscovering the decomposition.
+ex:scannedIngestMethod a logic:DecompositionMethod ;
+    rdfs:label "Method: decompose scanned ingest into inspect/prepare/OCR/verify/store"@x-gmeow-english ;
+    logic:methodDecomposes ex:ocrStep .
+
+ex:refineRun78 a logic:RefinementEpisode ;
+    rdfs:label "Refinement of the OCR step for batch 78"@x-gmeow-english ;
+    logic:refinesStep ex:ocrStep ;
+    logic:refinementCandidate ex:pinnedOcrPlan .
+
+ex:ocrStep a logic:TransactionStep ;
+    rdfs:label "Extract text from scanned pages"@x-gmeow-english .
+
+# --- The pinned subgraph: immutable and content-addressed, so what was
+#     validated is what executes.
+ex:pinnedOcrPlan a logic:PinnedExecutableSubgraph ;
+    rdfs:label "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english .
+
+# --- The frontier. Four authorized steps, ONE approval-gated step.
+ex:run78Frontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier for ingest run 78"@x-gmeow-english ;
+    logic:frontierSaturationWitness ex:run78Saturation ;
+    logic:frontierOfEnactment ex:ingestRun78 ;
+    logic:hasFrontierEntry ex:inspectEntry, ex:prepareEntry, ex:ocrEntry,
+                           ex:verifyEntry, ex:storeReceiptEntry .
+
+ex:inspectEntry a logic:FrontierEntry ;
+    rdfs:label "Inspect — ready, authorized"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+ex:prepareEntry a logic:FrontierEntry ;
+    rdfs:label "Prepare — ready, authorized"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+ex:ocrEntry a logic:FrontierEntry ;
+    rdfs:label "OCR — ready, authorized"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+ex:verifyEntry a logic:FrontierEntry ;
+    rdfs:label "Verify — ready, authorized"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+# The ONLY approval-gated step: storing the receipt publishes outside the batch
+# boundary, which the policy does gate. Note it is ready on the step axis and
+# gated on the approval axis simultaneously — two axes, not one blended state.
+ex:storeReceiptEntry a logic:FrontierEntry ;
+    rdfs:label "Store receipt — ready, but publishing requires approval"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyApprovalRequired ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+# The saturation witness: which predicates the reasoner proved final, and under
+# what budget. Without it a roster truncated by a budget cut is indistinguishable
+# from a genuinely complete one, and the system confidently omits an action.
+ex:run78Saturation a logic:FrontierEntry ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierCompleted .
+

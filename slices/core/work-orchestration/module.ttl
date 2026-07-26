@@ -342,14 +342,14 @@ gmeow:reviewTimelineRepresentation
     skos:definition "Content eight of eight: an exact, accessible graph or timeline rendering. Range the timeline view (stated in prose); its textual surface grounds in the lang: rendering vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:frontierExplanation
+gmeow:FrontierExplanation
     a logic:Kind ,
         owl:Class ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "Frontier Explanation"@x-gmeow-english ;
     skos:definition "Why one frontier entry carries the position it does, in the five terms an operator actually needs: the proof, the evidence, the governing policy, the cost/risk/benefit criteria, and the DISSENTING attributed observations. Dissent is a required content rather than a courtesy — an explanation that presents only the supporting view has told the operator what to think rather than what is known."@x-gmeow-english ;
-    skos:example "ex:ocrWhyBlocked a gmeow:frontierExplanation ; gmeow:explanationDissent ex:reviewerObjection ."@x-gmeow-english ;
+    skos:example "ex:ocrWhyBlocked a gmeow:FrontierExplanation ; gmeow:explanationDissent ex:reviewerObjection ."@x-gmeow-english ;
     gmeow:useWhen "Use for every recommended or blocked action an operator may act on."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an explanation that omits dissent, and avoid substituting a model summary for the proof."@x-gmeow-english ;
     gmeow:howToUse "Bind all five contents; the proof is a checkable term, not a narrative."@x-gmeow-english ;
@@ -357,7 +357,7 @@ gmeow:frontierExplanation
 
 gmeow:explainsEntry
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:frontierExplanation ;
+    rdfs:domain gmeow:FrontierExplanation ;
     rdfs:range logic:FrontierEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explains entry"@x-gmeow-english ;
@@ -366,7 +366,7 @@ gmeow:explainsEntry
 
 gmeow:explanationProof
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:frontierExplanation ;
+    rdfs:domain gmeow:FrontierExplanation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation proof"@x-gmeow-english ;
     skos:definition "The checkable derivation supporting the entry's position. Range a proof or derivation reference (stated in prose). A model-generated narrative may never occupy this position."@x-gmeow-english ;
@@ -374,7 +374,7 @@ gmeow:explanationProof
 
 gmeow:explanationEvidence
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:frontierExplanation ;
+    rdfs:domain gmeow:FrontierExplanation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation evidence"@x-gmeow-english ;
     skos:definition "Evidence bearing on the entry's position. Range an evidence node (stated in prose). Multi-valued."@x-gmeow-english ;
@@ -382,7 +382,7 @@ gmeow:explanationEvidence
 
 gmeow:explanationPolicy
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:frontierExplanation ;
+    rdfs:domain gmeow:FrontierExplanation ;
     rdfs:range gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation policy"@x-gmeow-english ;
@@ -391,7 +391,7 @@ gmeow:explanationPolicy
 
 gmeow:explanationCriterion
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:frontierExplanation ;
+    rdfs:domain gmeow:FrontierExplanation ;
     rdfs:range gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation criterion"@x-gmeow-english ;
@@ -400,7 +400,7 @@ gmeow:explanationCriterion
 
 gmeow:explanationDissent
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:frontierExplanation ;
+    rdfs:domain gmeow:FrontierExplanation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation dissent"@x-gmeow-english ;
     skos:definition "An attributed observation that DISAGREES with the entry's position. Range an attributed observation (stated in prose). Multi-valued and required where dissent exists: suppressing it turns coexisting standpoints into a manufactured consensus, which is the failure the whole preference apparatus exists to prevent."@x-gmeow-english ;
@@ -479,17 +479,17 @@ gmeow:ContributionAttributionConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "an explanation surfaces its dissent"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a gmeow:frontierExplanation that carries no proof. An explanation whose supporting derivation is absent is a narrative, and a narrative presented where a proof belongs is exactly the substitution the advice-is-never-authority discipline forbids."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a gmeow:FrontierExplanation that carries no proof. An explanation whose supporting derivation is absent is a narrative, and a narrative presented where a proof belongs is exactly the substitution the advice-is-never-authority discipline forbids."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Violation" ;
-    logic:message "A gmeow:frontierExplanation must carry a gmeow:explanationProof; a narrative may not stand where a checkable derivation belongs." ;
+    logic:message "A gmeow:FrontierExplanation must carry a gmeow:explanationProof; a narrative may not stand where a checkable derivation belongs." ;
     logic:integrity logic:cacForall .
 logic:cacForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:cacImpl .
 logic:cacImpl a logic:Formula ; logic:antecedent logic:cacGuard ; logic:consequent logic:cacCons .
 logic:cacGuard a logic:Formula ; logic:relation rdf:type ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:frontierExplanation ] .
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FrontierExplanation ] .
 logic:cacCons a logic:Formula ; logic:relation gmeow:explanationProof ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "proof" ] .
 

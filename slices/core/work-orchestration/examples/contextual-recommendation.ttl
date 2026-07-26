@@ -1,0 +1,128 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: recommendation RELATIVE TO A COMPARISON CONTEXT, with ties and
+# incomparability preserved rather than broken.
+#
+# The same three remediation options are ranked under three policies. Under
+# "restore service fastest" they order strictly. Under "minimise customer
+# impact" two of them TIE — genuinely equal on every criterion that policy
+# cares about. Under "minimise regulatory exposure" two are INCOMPARABLE: one is
+# better on exposure, the other better on reversibility, and that policy names
+# no rule for trading those against each other.
+#
+# A tie and an incomparability are different facts and must not be collapsed:
+#
+#   Tie             -> "these are equally good; pick either."
+#   Incomparable    -> "this policy does not tell you how to choose; a human
+#                       must decide, and should know that is what they are doing."
+#
+# Flattening either into a total order manufactures a winner the policy never
+# licensed. There is deliberately NO global winner asserted in this file: a
+# recommendation detached from the context that produced it is exactly the kind
+# of advice that later gets cited as authority.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:incidentRemediation a logic:Enactment ;
+    rdfs:label "Incident 4412 remediation"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:remediationRunbookV3 ;
+    logic:enactmentInputSnapshot ex:incident4412State ;
+    logic:enactmentState logic:EnactmentRunning .
+
+ex:remediationRunbook a logic:Plan ;
+    rdfs:label "Incident remediation runbook"@x-gmeow-english ;
+    logic:planGoal ex:serviceRestored ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindRepeatableGuide .
+
+ex:serviceRestored a gmeow:Goal ;
+    rdfs:label "Service is restored to normal operation"@x-gmeow-english .
+
+ex:remediationRunbookV3 a logic:PrescriptionVersion ;
+    rdfs:label "Incident remediation runbook, revision 3"@x-gmeow-english ;
+    logic:prescriptionOf ex:remediationRunbook ;
+    logic:prescriptionDigest "b3:71ac05b93e2d846f015c7a90be3d247f186a0c53be9d1740fa26c85b39e0d217" .
+
+ex:incident4412State a logic:InputSnapshot ;
+    rdfs:label "Incident 4412 state at the point of decision"@x-gmeow-english ;
+    logic:snapshotDigest "b3:2fd80a95c17be643019a5c38be0d724f6c1a05397be2d840f5a6c19b37e0d248" .
+
+# --- The three candidates.
+ex:rollback a gmeow:InformationObject ;
+    rdfs:label "Roll back to the previous release"@x-gmeow-english .
+
+ex:hotfix a gmeow:InformationObject ;
+    rdfs:label "Ship a targeted hotfix"@x-gmeow-english .
+
+ex:featureFlag a gmeow:InformationObject ;
+    rdfs:label "Disable the feature by flag"@x-gmeow-english .
+
+ex:remediationCandidates a gmeow:CandidateSet ;
+    rdfs:label "Remediation options for incident 4412"@x-gmeow-english ;
+    gmeow:hasCandidate ex:rollback, ex:hotfix, ex:featureFlag .
+
+# --- Context 1: restore service fastest. A strict order.
+ex:fastestRestore a gmeow:ComparisonContext ;
+    rdfs:label "Policy: restore service fastest"@x-gmeow-english .
+
+# --- Context 2: minimise customer impact. Rollback and feature-flag TIE — under
+#     this policy's criteria they are equally good, and saying so is more useful
+#     than inventing a tiebreak the policy does not authorize.
+ex:minimiseImpact a gmeow:ComparisonContext ;
+    rdfs:label "Policy: minimise customer impact"@x-gmeow-english .
+
+# --- Context 3: minimise regulatory exposure. Hotfix and rollback are
+#     INCOMPARABLE: better exposure versus better reversibility, with no
+#     exchange rate between them in this policy.
+ex:minimiseExposure a gmeow:ComparisonContext ;
+    rdfs:label "Policy: minimise regulatory exposure"@x-gmeow-english .
+
+# --- The frontier under context 1, with its explanation. The explanation is
+#     what makes the recommendation reviewable rather than merely stated: the
+#     proof it rests on, the evidence, the governing policy, the criteria
+#     traded, and any recorded dissent.
+ex:remediationFrontier a logic:ActionableFrontier ;
+    rdfs:label "Remediation frontier under the fastest-restore policy"@x-gmeow-english ;
+    logic:frontierSaturationWitness ex:remediationSaturation ;
+    logic:frontierOfEnactment ex:incidentRemediation ;
+    logic:hasFrontierEntry ex:rollbackEntry .
+
+ex:rollbackEntry a logic:FrontierEntry ;
+    rdfs:label "Roll back — ready, authorized"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+# Dissent is retained as an attributed observation, not averaged away. A
+# recommendation that has quietly discarded the objection to it is not a
+# recommendation an operator can properly weigh.
+ex:rollbackExplanation a gmeow:FrontierExplanation ;
+    rdfs:label "Why roll back is recommended under the fastest-restore policy"@x-gmeow-english ;
+    gmeow:explainsEntry ex:rollbackEntry ;
+    gmeow:explanationPolicy ex:fastestRestore ;
+    gmeow:explanationDissent ex:onCallObjection .
+
+ex:onCallObjection a gmeow:Observation ;
+    rdfs:label "On-call engineer: rollback reintroduces the data-export defect fixed last week"@x-gmeow-english ;
+    gmeow:observedFeature ex:rollbackRegressionRisk ;
+    gmeow:vantage ex:onCallEngineerVantage ;
+    gmeow:contributionKind gmeow:contributionOperator .
+
+ex:rollbackRegressionRisk a gmeow:Entity ;
+    rdfs:label "Regression risk introduced by rolling back"@x-gmeow-english .
+
+# The vantage is what makes dissent weighable rather than merely recorded: a
+# competing view from a different standpoint is a different claim, not noise.
+ex:onCallEngineerVantage a gmeow:Entity ;
+    rdfs:label "On-call engineer, incident 4412"@x-gmeow-english .
+
+# The saturation witness: which predicates the reasoner proved final, and under
+# what budget. Without it a roster truncated by a budget cut is indistinguishable
+# from a genuinely complete one, and the system confidently omits an action.
+ex:remediationSaturation a logic:FrontierEntry ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierCompleted .
+

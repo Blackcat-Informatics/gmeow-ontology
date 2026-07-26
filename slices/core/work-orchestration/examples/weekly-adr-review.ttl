@@ -1,0 +1,164 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a CONTINUING work cluster — the weekly architecture-decision
+# review. This is the consumer binding of the prescription/enactment kernel, and
+# it is the example that shows why "continuing" is a different thing from
+# "recurring task".
+#
+# Three properties this file demonstrates, each of which is a distinct failure
+# in systems that lack them:
+#
+#  1. Each week is a FRESH immutable enactment against a CLOSED snapshot of the
+#     ADR corpus, so week 12 and week 13 are comparable rather than two views of
+#     a mutating present.
+#  2. A snapshot delta names exactly which ADRs appeared or changed since last
+#     week, so "what is new" is derived rather than eyeballed from timestamps.
+#  3. One successful week does NOT close the goal. Keeping architectural
+#     decisions reviewed is a maintenance goal: it is satisfied continuously or
+#     not at all, and a system that marks it done after a good week has
+#     misunderstood what it was asked to do.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/adr/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The continuing cluster. It holds the goal, the policy, the schedule and a
+#     POINTER to the currently active prescription version. The pointer moves as
+#     the review process is revised; enactments already in flight keep the
+#     version they pinned at start, which is what stops a mid-week process
+#     change from retroactively altering this week's review.
+ex:adrReviewCluster a gmeow:WorkCluster ;
+    rdfs:label "Weekly architecture-decision review"@x-gmeow-english ;
+    gmeow:clusterGoal ex:keepDecisionsReviewed ;
+    gmeow:clusterPolicy ex:adrReviewPolicy ;
+    gmeow:clusterSchedule ex:weeklyThursdaySchedule ;
+    gmeow:clusterActivePrescription ex:adrReviewProcessV4 ;
+    gmeow:clusterGuidanceSet ex:adrReviewGuidance ;
+    gmeow:clusterEnactment ex:adrReviewWeek12, ex:adrReviewWeek13 ;
+    gmeow:clusterNote ex:noteOnDeprecationBacklog .
+
+# A MAINTENANCE goal: true continuously or not at all. A completed enactment is
+# evidence about its own interval and nothing more.
+ex:keepDecisionsReviewed a logic:MaintenanceGoal ;
+    rdfs:label "Architectural decisions stay reviewed and current"@x-gmeow-english .
+
+ex:adrReviewPolicy a gmeow:Norm ;
+    rdfs:label "ADR review policy — quorum, escalation and publication rules"@x-gmeow-english .
+
+# --- Recurrence resolves through the calendar vocabulary. The schedule is the
+#     GENERATOR; the occurrences are the generated; and each occurrence gives
+#     rise to an enactment. The occurrence and the enactment are NOT the same
+#     thing — a skipped week is a schedule exception with no enactment, not an
+#     enactment in a "skipped" state.
+ex:weeklyThursdaySchedule a gmeow:EventSchedule ;
+    rdfs:label "Every Thursday, 14:00 UTC"@x-gmeow-english ;
+    gmeow:scheduleTemplateEvent ex:adrReviewTemplateEvent ;
+    gmeow:scheduleRecurrenceRule ex:everyThursdayRule .
+
+ex:adrReviewTemplateEvent a gmeow:Event ;
+    rdfs:label "ADR review meeting (template)"@x-gmeow-english .
+
+# Reused from the calendar vocabulary rather than re-minted: recurrence is a
+# solved problem here, and a second rule concept would be a second source of truth.
+ex:everyThursdayRule a gmeow:RecurrenceRule ;
+    rdfs:label "Weekly on Thursday at 14:00 UTC"@x-gmeow-english .
+
+# --- The prescription: the review process itself, versioned and immutable.
+ex:adrReviewProcess a logic:Plan ;
+    rdfs:label "ADR review process"@x-gmeow-english ;
+    logic:planGoal ex:weeklyReviewCompleted ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindRepeatableGuide .
+
+# The PER-WEEK goal, which a completed week does satisfy. It is deliberately
+# distinct from the cluster's maintenance goal above: one week being reviewed is
+# not the same claim as decisions staying reviewed, and collapsing them is
+# exactly how a system concludes it is finished.
+ex:weeklyReviewCompleted a gmeow:Goal ;
+    rdfs:label "This week's review is completed"@x-gmeow-english .
+
+ex:adrReviewProcessV4 a logic:PrescriptionVersion ;
+    rdfs:label "ADR review process, revision 4"@x-gmeow-english ;
+    logic:prescriptionOf ex:adrReviewProcess ;
+    logic:prescriptionDigest "b3:4c8a03f7b25e91d6047ac35b8e1f20d9637b0ae514c92d87f30a6b15c8e04d29" .
+
+# --- Week 12: completed. Its input snapshot is the ADR corpus frozen at the
+#     moment the review opened, which is what makes the week's findings
+#     reproducible after the corpus moves on.
+ex:adrCorpusWeek12 a logic:InputSnapshot ;
+    rdfs:label "ADR corpus as of week 12"@x-gmeow-english ;
+    logic:snapshotDigest "b3:1f70b8a4c2593de6018b4c7a05e2d93f86a0c1537be24d90f5c837a1e60b492d" .
+
+ex:adrReviewWeek12 a logic:Enactment ;
+    rdfs:label "ADR review — week 12"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:adrReviewProcessV4 ;
+    logic:enactmentInputSnapshot ex:adrCorpusWeek12 ;
+    logic:enactmentState logic:EnactmentCompleted ;
+    gmeow:enactmentContextAssembly ex:week12Context .
+
+# --- Week 13: running, against its OWN closed snapshot.
+ex:adrCorpusWeek13 a logic:InputSnapshot ;
+    rdfs:label "ADR corpus as of week 13"@x-gmeow-english ;
+    logic:snapshotDigest "b3:93e5c1a70bd2f846015c8b3ae209df74c60b18a52d7e930f4a1c86b05e37d92a" .
+
+ex:adrReviewWeek13 a logic:Enactment ;
+    rdfs:label "ADR review — week 13"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:adrReviewProcessV4 ;
+    logic:enactmentInputSnapshot ex:adrCorpusWeek13 ;
+    logic:enactmentJournal ex:week13Journal ;
+    logic:enactmentState logic:EnactmentRunning ;
+    gmeow:enactmentContextAssembly ex:week13Context .
+
+ex:week13Journal a logic:TransitionJournal ;
+    rdfs:label "Week 13 transition journal"@x-gmeow-english ;
+    logic:journalHead "b3:58c0d3a91e764bf2015a9c7b0e83d2b647fa15c0e938d47b1a06c25f39e8a417" .
+
+# --- THE DELTA: exactly which ADRs are new or changed since week 12. This is
+#     what makes the review incremental and honest at the same time; without it
+#     "review the new ones" is a judgement call made under time pressure.
+ex:week13Delta a logic:SnapshotDelta ;
+    rdfs:label "ADRs added or changed between week 12 and week 13"@x-gmeow-english ;
+    logic:snapshotDigest "b3:7a209fc158b3e64d0179ac250e8b3df641c07a92be5d1380f6a4c98b17e250d3" .
+
+# --- Context assembly: what was actually put in front of the reviewers, and —
+#     equally important — what was withheld and why. Recorded exclusions are
+#     what make a later dissent meaningful: "I would have objected had I seen X"
+#     is checkable only if the record says whether X was shown.
+ex:week12Context a logic:ContextAssembly ;
+    rdfs:label "What was surfaced to the week 12 review"@x-gmeow-english ;
+    logic:assemblyForEnactment ex:adrReviewWeek12 ;
+    logic:assemblyGuidanceVersion ex:adrReviewGuidanceV2 .
+
+ex:week13Context a logic:ContextAssembly ;
+    rdfs:label "What was surfaced to the week 13 review"@x-gmeow-english ;
+    logic:assemblyForEnactment ex:adrReviewWeek13 ;
+    logic:assemblyGuidanceVersion ex:adrReviewGuidanceV2 .
+
+# --- Versioned guidance. Which rubric governed a given week is part of the
+#     record, so a decision made under revision 2 is not later judged by
+#     revision 3.
+ex:adrReviewGuidance a gmeow:GuidanceSet ;
+    rdfs:label "ADR review guidance, rubrics and checklist"@x-gmeow-english ;
+    gmeow:guidanceRubric ex:adrQualityRubric ;
+    gmeow:guidanceChecklist ex:adrReviewChecklist .
+
+ex:adrQualityRubric a gmeow:Rubric ;
+    rdfs:label "ADR quality rubric"@x-gmeow-english .
+
+ex:noteOnDeprecationBacklog a gmeow:Note ;
+    rdfs:label "Standing note: the deprecation backlog needs a decision"@x-gmeow-english .
+
+# --- An attributed contribution. Every recorded contribution names whether it
+#     came from a model, an operator or a tool — closed, exactly one, and
+#     enforced, because an unattributed recommendation is indistinguishable from
+#     an authorized decision once it is a week old.
+ex:draftSummaryWeek13 a logic:Advisory ;
+    rdfs:label "Model-drafted summary of week 13 changes"@x-gmeow-english ;
+    gmeow:contributionKind gmeow:contributionModel ;
+    logic:advisoryAbout ex:adrReviewWeek13 .
+
+ex:adrReviewGuidanceV2 a gmeow:VersionMembership ;
+    rdfs:label "ADR review guidance, revision 2 — the version governing weeks 12 and 13"@x-gmeow-english .
+

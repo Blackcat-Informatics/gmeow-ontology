@@ -1,0 +1,97 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the capability is ABSENT, and the system says so.
+#
+# A scanned document needs OCR. No OCR capability is available. The correct
+# behaviour is the one this file records: the step is BLOCKED, an operational
+# capability gap is raised, and the gap carries a complete proposal for what
+# would close it.
+#
+# What must NOT happen is the whole point. The system does not fall back to a
+# weaker text extractor and report success; it does not invent a tool call; it
+# does not mark the step complete with empty output. Each of those turns an
+# absent capability into a silent quality loss that surfaces much later as
+# unexplained bad data. Surfacing the gap is only useful if the gap is
+# answerable to a CONCRETE blocked step, which is why the blocked step is one of
+# the proposal's mandatory fields rather than context an operator must guess.
+#
+# Note also the non-conflation: this is a logic:OperationalCapabilityGap — a
+# capability the deployment does not currently HAVE — and not a reasoning-profile
+# capability gap, which is a statement about what a logic fragment can EXPRESS.
+# Collapsing the two would let "install an OCR service" and "this needs
+# full first-order logic" arrive as the same finding.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-absent/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ingestScannedDocs a logic:Plan ;
+    rdfs:label "Ingest scanned documents"@x-gmeow-english ;
+    logic:planGoal ex:scansIngestedWithText ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindIngestion .
+
+ex:scansIngestedWithText a gmeow:Goal ;
+    rdfs:label "Scanned pages are ingested with extracted text"@x-gmeow-english .
+
+ex:ingestScannedDocsV2 a logic:PrescriptionVersion ;
+    rdfs:label "Ingest scanned documents, revision 2"@x-gmeow-english ;
+    logic:prescriptionOf ex:ingestScannedDocs ;
+    logic:prescriptionDigest "b3:2d94c015af38be6701c5a97d3be0284fc16a509db73e28f4a061c58b39e07d2a" .
+
+ex:scanBatch77 a logic:InputSnapshot ;
+    rdfs:label "Scan batch 77"@x-gmeow-english ;
+    logic:snapshotDigest "b3:6e1b93da05c7f284013ba95c780e2df46019ac35be82d740f1a5c69b03e27d18" .
+
+ex:ingestRun77 a logic:Enactment ;
+    rdfs:label "Ingest run over scan batch 77"@x-gmeow-english ;
+    logic:enactsPrescriptionVersion ex:ingestScannedDocsV2 ;
+    logic:enactmentInputSnapshot ex:scanBatch77 ;
+    logic:enactmentState logic:EnactmentRunning .
+
+# --- The frontier says BLOCKED. It does not say "completed with warnings".
+ex:run77Frontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier for ingest run 77"@x-gmeow-english ;
+    logic:frontierSaturationWitness ex:run77Saturation ;
+    logic:frontierOfEnactment ex:ingestRun77 ;
+    logic:hasFrontierEntry ex:ocrStepEntry .
+
+ex:ocrStepEntry a logic:FrontierEntry ;
+    rdfs:label "OCR step — blocked, no capability available"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierBlockedCapabilityOrResource ;
+    logic:entryAxisWitness logic:StepWaiting .
+
+# --- The gap, bound to the step it blocks.
+ex:ocrCapabilityGap a logic:OperationalCapabilityGap ;
+    rdfs:label "No OCR capability is available to this deployment"@x-gmeow-english ;
+    logic:gapBlockedStep ex:ocrStep .
+
+ex:ocrStep a logic:TransactionStep ;
+    rdfs:label "Extract text from scanned pages"@x-gmeow-english .
+
+# --- The proposal: complete, or it is not a proposal. An operator reading this
+#     can act on it without a follow-up conversation, which is the bar a gap
+#     report has to clear to be worth raising at all.
+ex:ocrGapProposal a logic:CapabilityGapProposal ;
+    rdfs:label "Proposal to close the OCR capability gap"@x-gmeow-english ;
+    logic:proposalMissingCapability ex:ocrCapability ;
+    logic:proposalRequiredContract "Page-image in, positioned text out, with a per-token confidence score and a declared language set."@x-gmeow-english ;
+    logic:proposalExpectedInputs "Rasterised page images, 300dpi or better, PNG or TIFF, one file per page."@x-gmeow-english ;
+    logic:proposalExpectedOutputs "Per-page text with token bounding boxes and confidence scores, plus a page-level confidence summary."@x-gmeow-english ;
+    logic:proposalExpectedEffects "Reads batch images from object storage and writes extracted text alongside them. No effect outside the batch prefix, and no mutation of the source images."@x-gmeow-english ;
+    logic:proposalVerificationMethod "Character error rate below 2% on the committed 200-page ground-truth set, measured before the capability is enabled and on every version change."@x-gmeow-english ;
+    logic:proposalSecurityLifecycle "Scanned documents may contain personal data: the capability runs inside the data boundary, retains no page content after extraction, and is subject to the same retention schedule as the batch."@x-gmeow-english ;
+    logic:proposalBlockedStep ex:ocrStep .
+
+ex:ocrCapability a logic:EngineCapability ;
+    rdfs:label "Optical character recognition over scanned page images"@x-gmeow-english .
+
+# The saturation witness: which predicates the reasoner proved final, and under
+# what budget. Without it a roster truncated by a budget cut is indistinguishable
+# from a genuinely complete one, and the system confidently omits an action.
+ex:run77Saturation a logic:FrontierEntry ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:entryLabel logic:FrontierCompleted .
+
