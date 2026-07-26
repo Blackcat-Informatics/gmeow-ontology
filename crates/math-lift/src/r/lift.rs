@@ -223,7 +223,13 @@ struct FitInfo {
     key: String,
     /// The coefficient names `coef()` would return, in R's order.
     coefficients: Vec<String>,
-    estimator: Estimator,
+    /// The recognised estimation method, when the call names one. `None` for a
+    /// formula-shaped fit whose method the lift did not determine — the estimator is then
+    /// named by the call itself rather than guessed at.
+    estimator: Option<Estimator>,
+    /// The R function that produced the fit, which names the estimator when the method is
+    /// not one this lift recognises.
+    function: String,
 }
 
 /// Which estimation procedure a model call names.
@@ -487,8 +493,16 @@ impl Lift<'_> {
             return Ok(Binding::Opaque);
         };
 
+        // A call is a model fit when it NAMES a known estimator, or — the general rule —
+        // when it carries a model formula. Keying only on a name list made the bridge refuse
+        // coxph, gam, and every other formula-based fit in R's ecosystem, and each earlier
+        // refusal was closed by appending one more name. The shape is the invariant: a `~`
+        // binder in the formula position IS a model specification, whatever fits it.
         if let Some(estimator) = model_estimator(&name) {
-            return self.emit_fit(&name, estimator, args);
+            return self.emit_fit(&name, Some(estimator), args);
+        }
+        if self.is_model_fit(args) {
+            return self.emit_fit(&name, None, args);
         }
         if DATASET_FUNCTIONS.contains(&name.as_str()) {
             let label = render(&RExpr::Call {
@@ -586,7 +600,7 @@ impl Lift<'_> {
     fn emit_fit(
         &mut self,
         function: &str,
-        estimator: Estimator,
+        estimator: Option<Estimator>,
         args: &[Arg],
     ) -> gmeow_errors::Result<Binding> {
         let formula = named_or_positional(args, "formula", 0)
@@ -653,6 +667,7 @@ impl Lift<'_> {
             key: fit_key,
             coefficients: coefficient_names(&formula),
             estimator,
+            function: function.to_owned(),
         }))
     }
 
@@ -711,7 +726,7 @@ impl Lift<'_> {
         let mut slots: Vec<(StructNode, String)> = Vec::new();
 
         if let Some(response) = &formula.response {
-            if !self.liftable_as_math(response) {
+            if !self.liftable_in_formula(response) {
                 return Err(unliftable(format!(
                     "the response `{}` of model formula `{}` has no math: image, and a formula \
                      response is never carried as an opaque string",
@@ -815,7 +830,7 @@ impl Lift<'_> {
                     );
                     return Ok((node, iri));
                 }
-                if !self.liftable_as_math(factor) {
+                if !self.liftable_in_formula(factor) {
                     return Err(unliftable(format!(
                         "formula term `{}` has no math: image; a term that would survive only as \
                          an opaque string is an unliftable ingest",
@@ -829,7 +844,7 @@ impl Lift<'_> {
             TermKind::Interaction => {
                 let mut operands = Vec::with_capacity(term.factors.len());
                 for factor in &term.factors {
-                    if !self.liftable_as_math(factor) {
+                    if !self.liftable_in_formula(factor) {
                         return Err(unliftable(format!(
                             "interaction factor `{}` has no math: image",
                             render(factor)
@@ -849,7 +864,7 @@ impl Lift<'_> {
                 let mut operands = Vec::new();
                 for removed in &formula.removed {
                     for factor in &removed.factors {
-                        if !self.liftable_as_math(factor) {
+                        if !self.liftable_in_formula(factor) {
                             return Err(unliftable(format!(
                                 "the removed formula term `{}` has no math: image",
                                 render(factor)
@@ -872,6 +887,34 @@ impl Lift<'_> {
     ///
     /// A pure predicate, checked BEFORE any emission, so a partially-lifted expression
     /// never leaves orphan nodes behind when a subterm turns out to be unliftable.
+    /// Whether an expression may stand in a FORMULA position — a response or a term.
+    ///
+    /// Wider than [`Self::liftable_as_math`] by exactly one case: a named call over liftable
+    /// arguments. `Surv(t, e)` in `coxph(Surv(t, e) ~ x, …)` is a real construction over two
+    /// variables, and refusing it because `Surv` is not in a table hard-failed the whole
+    /// script. The operator is minted as a generic `math:Operation`, as every other
+    /// unrecognised R operator already is: the STRUCTURE crosses, the function's semantics
+    /// are not claimed.
+    ///
+    /// It is deliberately NOT the general predicate. Widening that one would pull
+    /// `library(stats)` and `set.seed(…)` into `math:` — a formula position is where a
+    /// construction is expected; a statement position is not.
+    fn liftable_in_formula(&self, expr: &RExpr) -> bool {
+        if self.liftable_as_math(expr) {
+            return true;
+        }
+        match expr.unparenthesized() {
+            RExpr::Call { callee, args } => {
+                callable_name(callee).is_some()
+                    && !args.is_empty()
+                    && args
+                        .iter()
+                        .all(|a| a.value.as_ref().is_some_and(|v| self.liftable_as_math(v)))
+            }
+            _ => false,
+        }
+    }
+
     fn liftable_as_math(&self, expr: &RExpr) -> bool {
         match expr.unparenthesized() {
             RExpr::Number { .. } | RExpr::Ident(_) => true,
@@ -1088,7 +1131,7 @@ impl Lift<'_> {
 
     /// One `math:Estimate` per model coefficient.
     fn emit_estimates(&mut self, fit: &FitInfo) {
-        let estimator = self.emit_estimator(fit.estimator);
+        let estimator = self.emit_estimator(fit.estimator, &fit.function);
         for coefficient in &fit.coefficients {
             let key = format!("{}|{coefficient}", fit.key);
             let (parameter, parameter_fresh) = self.mint("parameter", &key);
@@ -1112,11 +1155,44 @@ impl Lift<'_> {
         }
     }
 
-    fn emit_estimator(&mut self, estimator: Estimator) -> String {
-        let (iri, fresh) = self.mint("estimator", estimator.slug());
+    /// Whether an unrecognised call is a model FIT.
+    ///
+    /// It must carry both a model formula and the data it is fitted to — which is exactly
+    /// what `math:FittedModel`'s own OWL restrictions require (min-1 `math:modelFormula`
+    /// AND min-1 `math:fittedToData`). A call that cannot satisfy them is not a fit, so the
+    /// ontology supplies the discriminator rather than a curated name list.
+    ///
+    /// This is what separates `coxph(Surv(t, e) ~ x, data = d)` from `plot(y ~ x)`: both
+    /// take a formula, only one fits a model to data.
+    fn is_model_fit(&self, args: &[Arg]) -> bool {
+        let has_formula =
+            named_or_positional(args, "formula", 0).is_some_and(|e| match e.unparenthesized() {
+                RExpr::Formula(_) => true,
+                RExpr::Ident(name) => self.formula_env.contains_key(name),
+                _ => false,
+            });
+        has_formula && named_or_positional(args, "data", 1).is_some()
+    }
+
+    /// The `math:Estimator` a fit used.
+    ///
+    /// A recognised method names itself. An unrecognised one is named by the CALL — `coxph`
+    /// genuinely has an estimator (partial likelihood) and the call is its honest name, so
+    /// the graph says "this was fitted by coxph" rather than claiming a method the lift did
+    /// not determine. Inventing OLS here would be fabrication; omitting the estimator would
+    /// leave math:Estimate short of its own obligation.
+    fn emit_estimator(&mut self, estimator: Option<Estimator>, function: &str) -> String {
+        let (slug, label) = match estimator {
+            Some(e) => (e.slug().to_owned(), e.label().to_owned()),
+            None => (
+                format!("r-call:{function}"),
+                format!("the estimator `{function}(…)` applies"),
+            ),
+        };
+        let (iri, fresh) = self.mint("estimator", &slug);
         if fresh {
             self.sink.typed(&iri, &math("Estimator"));
-            self.label(&iri, estimator.label());
+            self.label(&iri, &label);
         }
         iri
     }
@@ -3753,6 +3829,38 @@ mod tests {
         let a = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         let b = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         assert_eq!(a, b, "the lift is idempotent: no clock, no counter");
+    }
+
+    #[test]
+    fn an_unlisted_model_family_lifts_by_shape() {
+        // The whitelist was closed three times by appending one more name — the mechanism
+        // was the gap, not the table. A call carrying a model formula AND the data it fits
+        // is a fit, whatever it is called; the estimator is then named by the call rather
+        // than guessed at, so nothing claims a method the lift did not determine.
+        for (src, estimator) in [
+            (
+                "fit <- coxph(Surv(t, e) ~ x, data = d)\nb <- coef(fit)\n",
+                "coxph",
+            ),
+            ("fit <- gam(y ~ s, data = d)\nb <- coef(fit)\n", "gam"),
+            ("fit <- rlm(y ~ x, data = d)\nb <- coef(fit)\n", "rlm"),
+        ] {
+            let ttl = turtle(src);
+            assert_eq!(typed(&ttl, "FittedModel"), 1, "{src} → {ttl}");
+            assert!(
+                ttl.contains(&format!("the estimator `{estimator}(…)` applies")),
+                "the estimator is named by the CALL, not invented:\n{ttl}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_formula_taking_call_that_fits_nothing_is_not_a_fit() {
+        // math:FittedModel requires min-1 math:modelFormula AND min-1 math:fittedToData, so
+        // a call that names no data cannot be one. `plot(y ~ x)` takes a formula and fits
+        // nothing — the ontology's own restriction is the discriminator.
+        let err = lift(b"plot(y ~ x)\n", BASE).expect_err("a graphics call is not a fit");
+        assert!(format!("{err}").contains("no statistical content"), "{err}");
     }
 
     #[test]
