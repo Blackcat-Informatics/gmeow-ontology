@@ -34,12 +34,12 @@ use crate::physical::proof::{check, structured_derivation_iri};
 use crate::physical::resolve_fol::{
     FolClause, FolControl, FolLit, FolProgram, Truth, render, resolve_fol,
 };
-use crate::physical::term_dag::TermDag;
 use crate::physical::unify::{SortContext, SortOrder};
 use crate::query_ir::Budget;
 use crate::rule_ir::{
     EvalAtom, EvalRule, EvalTerm, Fact, FactStore, Solution, least_model_of_reduct, match_atom,
 };
+use gmeow_term_arena::engine::TermDag;
 
 /// The gmeow namespace every projected goal-directed IRI/predicate lives under.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";

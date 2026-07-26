@@ -165,7 +165,7 @@ impl Lowering {
             format!("<{subject_iri}> <{RDF_TYPE}> <{LANG_NS}CompositionalLowering> ."),
             format!(
                 "<{subject_iri}> <{LANG_NS}formulaKey> \"{}\" .",
-                escape_literal(&self.formula.content_key())
+                escape_literal(self.formula.content_key().as_str())
             ),
         ];
         for (order, stage) in self.stages.iter().enumerate() {

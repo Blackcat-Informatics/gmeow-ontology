@@ -1752,6 +1752,7 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-term-arena",
  "hashbrown 0.15.5",
  "iai-callgrind",
  "insta",
@@ -1774,6 +1775,7 @@ version = "0.2.0"
 dependencies = [
  "blake3",
  "gmeow-errors",
+ "gmeow-term-arena",
  "insta",
  "purrdf",
  "roxmltree",
@@ -1909,6 +1911,16 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-validate",
  "purrdf",
+]
+
+[[package]]
+name = "gmeow-term-arena"
+version = "0.2.0"
+dependencies = [
+ "foldhash 0.1.5",
+ "hashbrown 0.15.5",
+ "purrdf",
+ "smallvec",
 ]
 
 [[package]]

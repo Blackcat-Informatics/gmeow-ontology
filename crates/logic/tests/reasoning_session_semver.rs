@@ -132,8 +132,17 @@ use session_common::*;
 /// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
 /// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
 /// changes (all additions are inert on it).
+/// Re-blessed once more when the hash-consed structured-term arena was relocated out of
+/// this runtime into the reasoner-free `gmeow-term-arena` crate: `EXTERNAL_BACKWARD_SOURCE`
+/// (`runtime.rs`) `include_str!`s that crate's `src/` tree into `backward_source_hash`, so
+/// moving `physical/term_dag.rs` + `physical/term_key.rs` to `term-arena/src/` — and
+/// splitting the atom dictionary into `interner.rs` and the term rendering into
+/// `display.rs` — changes the folded source-content digest on that axis. The relocation is
+/// byte-for-byte behaviour-preserving (the same netstring fold, the same de-Bruijn
+/// encoding, the same interning constructors), so no reasoning verdict on any input
+/// changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "cbfd938bdd5c449089cbaf373e86e18cd44c748cc65b6b88235a883192d77169";
+    "79efe37c017e76193051412210cc1e415d3f809080d1969d470acfee819005ae";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -182,8 +191,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
 /// session identity moves with it, while the fixed edge-only input's reasoning verdict is
 /// unchanged.
+/// Re-blessed once more for the term-arena relocation (see the engine-descriptor golden
+/// above): the backward-source digest is one of the seven folded identity axes and moves
+/// with the arena's new crate-relative source paths, while the fixed edge-only input's
+/// reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "2cf35a8bfa43ca5d2a2b6830e464bd2252c9715c9099b2cdb95f5e2fe93a4e1a";
+    "eed3bfab8b10e806f21a3529f2f0026258f0b6bca422a311e5df57d2013725aa";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

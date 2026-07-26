@@ -38,6 +38,14 @@ roxmltree = "0.20"
 # projection-loss accumulators onto one DiagLedger of FindingCategory::ProjectionLoss
 # witnesses. A wasm-clean rlib leaf (serde/serde_json/purrdf/blake3 only, python OFF).
 gmeow-errors = { path = "../errors" }
+# THE one structured-term representation. `Formula::content_key` is one of exactly two
+# content-key folds in the workspace (the other is the arena's own netstring fold), and
+# both sides of that congruence seam now return the arena's `ContentKey` newtype — landing
+# it on one side only would leave two conventions and the guarantee unenforced exactly
+# where `dag_congruent_with_ir_content_key` pins it. The arena is reasoner-free and
+# wasm-clean (purrdf + hashbrown/foldhash/smallvec), so this crate stays wasm-buildable and
+# oxigraph-free; no layering cycle (the arena depends on neither logic nor this crate).
+gmeow-term-arena = { path = "../term-arena" }
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
 sha2 = "0.10"

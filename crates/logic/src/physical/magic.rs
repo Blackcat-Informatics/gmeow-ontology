@@ -1651,7 +1651,7 @@ pub(crate) fn resolve_native(
     // A bare-`QProgram` entry owns no structured-term arena; a parsed program is flat, so the
     // fresh DAG is unused. A caller holding a STRUCTURED program interned into a live DAG calls
     // `resolve_native_under` directly, passing that owning arena so the `Struct` nodes resolve.
-    let mut dag = super::term_dag::TermDag::new();
+    let mut dag = gmeow_term_arena::engine::TermDag::new();
     resolve_native_under(
         "gmeow-backward-unscoped-v1",
         foreign,
@@ -1677,7 +1677,7 @@ pub(crate) fn resolve_native_under(
     world: &str,
     program: &QProgram,
     budget: &Budget,
-    dag: &mut super::term_dag::TermDag,
+    dag: &mut gmeow_term_arena::engine::TermDag,
 ) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
     // (0) Gate cut (reuse the structural detector the dispatch gate uses).  Arithmetic
     // is no longer a whole-program gap — the closed builtin set is evaluated natively;

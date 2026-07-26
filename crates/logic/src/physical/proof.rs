@@ -6,7 +6,7 @@
 //! # A proof IS a term
 //!
 //! A proof is not a side structure that mirrors a derivation — it is a
-//! [`TermDag`](crate::physical::term_dag::TermDag) node in the SAME persistent arena as the
+//! [`TermDag`](gmeow_term_arena::engine::TermDag) node in the SAME persistent arena as the
 //! goals it proves, built from two constructors:
 //!
 //! - [`proof_by_rule`] → `App{op: Leaf(logic:byRule), args: [goal, Leaf(rule_iri), subproof₀, …]}`
@@ -53,9 +53,9 @@ use purrdf::TermValue;
 
 use crate::physical::id::{NodeId, TermId};
 use crate::physical::lower::canon;
-use crate::physical::term_dag::{NodeData, TermDag};
 use crate::physical::unify::{Subst, Unified, apply, unify};
 use crate::provenance;
+use gmeow_term_arena::engine::{NodeData, TermDag};
 
 /// Wrap a proof-projection hard failure as a typed provenance diagnostic on the shared
 /// substrate, preserving the authored text verbatim (mirrors

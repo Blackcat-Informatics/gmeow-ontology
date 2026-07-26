@@ -453,7 +453,7 @@ pub fn dispatch_query(
     // A parsed production program is flat (the parser never mints a `Struct` term), so the
     // structured routing inside `resolve_native_under` is not taken and this fresh arena is
     // unused; it is present so the structured entry has a valid owning arena to thread.
-    let mut dag = crate::physical::term_dag::TermDag::new();
+    let mut dag = gmeow_term_arena::engine::TermDag::new();
     match crate::physical::resolve_native_under(
         &contract_hash,
         foreign,

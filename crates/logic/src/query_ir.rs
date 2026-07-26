@@ -23,9 +23,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::physical::id::NodeId;
-use crate::physical::term_dag::ArenaId;
 use crate::seam::BudgetStatus;
+use gmeow_term_arena::engine::StructNodeParts;
 
 /// Wrap a query-program parse condition message as a typed diagnostic on the
 /// shared substrate, preserving the authored text verbatim.
@@ -66,7 +65,8 @@ pub enum QTerm {
     /// A compound (function-symbol) term interned in the structured-term DAG — the
     /// full-FOL surface a `Const`/`Var`/`Num` cannot express (e.g. `s(X)`,
     /// `cons(H, T)`).  The payload is an OPAQUE [`StructNode`] wrapping the term's
-    /// [`NodeId`] in the resolver's [`crate::physical::term_dag::TermDag`]; because a
+    /// [`NodeId`](gmeow_term_arena::engine::NodeId) in the resolver's
+    /// [`TermDag`](gmeow_term_arena::engine::TermDag); because a
     /// `NodeId` is a crate-internal runtime handle meaningful ONLY within the DAG that
     /// minted it, it is wrapped so it never crosses the public API (the wrapper's inner
     /// handle is private to the crate). A `Struct` term always travels with that DAG (the
@@ -100,41 +100,22 @@ pub enum QTerm {
 /// An opaque handle to a compound-term node in the structured-term DAG, carried by
 /// [`QTerm::Struct`].
 ///
-/// It wraps a [`crate::physical::term_dag::TermDag`] [`NodeId`] — a crate-internal runtime
-/// handle — behind a PRIVATE field, so the handle stays out of the public API surface even
-/// though [`QTerm`] (and hence [`QProgram`]) is `pub`. Only the crate can mint one (from a
-/// live DAG) or read the wrapped node, matching the doctrine that a `NodeId` is never a
-/// serialized/public identity.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StructNode(NodeId, ArenaId);
-
-impl StructNode {
-    /// Wrap a DAG node handle as a structured-term payload (crate-internal — only a live DAG
-    /// mints a `NodeId`), branded with the arena that minted it.
-    ///
-    /// The `arena` brand ([`crate::physical::term_dag::TermDag::arena`]) travels WITH the node
-    /// so a later membership test ([`crate::physical::term_dag::TermDag::contains_node`]) is an
-    /// arena-identity check, not a numeric index-range coincidence — a node from a foreign DAG
-    /// is rejected even when its index happens to fall in the target arena's range.
-    ///
-    /// The parser produces only flat terms, so a `Struct` is constructed exclusively by
-    /// crate-internal callers holding a live DAG — currently the resolver's own tests and the
-    /// shipped structured demonstrators; the flat production surface never reaches it.
-    #[allow(dead_code)]
-    pub(crate) fn new(node: NodeId, arena: ArenaId) -> Self {
-        Self(node, arena)
-    }
-
-    /// The wrapped DAG node handle.
-    pub(crate) fn node(self) -> NodeId {
-        self.0
-    }
-
-    /// The brand of the arena that minted [`Self::node`].
-    pub(crate) fn arena(self) -> ArenaId {
-        self.1
-    }
-}
+/// It is the shared arena's own façade handle ([`gmeow_term_arena::StructNode`]): private
+/// fields wrapping a `NodeId` plus the brand of the arena that minted it, so the dense
+/// integer stays out of the public API surface even though [`QTerm`] (and hence
+/// [`QProgram`]) is `pub`. Minting one or reading the wrapped handle requires the sealed
+/// engine-tier [`StructNodeParts`] trait,
+/// matching the doctrine that a `NodeId` is never a serialized/public identity.
+///
+/// The brand travels WITH the node, so a later membership test
+/// ([`TermDag::contains_node`](gmeow_term_arena::engine::TermDag::contains_node)) is an
+/// arena-identity check, not a numeric index-range coincidence — a node from a foreign DAG
+/// is rejected even when its index happens to fall in the target arena's range.
+///
+/// The parser produces only flat terms, so a `Struct` is constructed exclusively by
+/// crate-internal callers holding a live DAG — currently the resolver's own tests and the
+/// shipped structured demonstrators; the flat production surface never reaches it.
+pub use gmeow_term_arena::StructNode;
 
 /// A predicate atom over RDF (or an n-ary IDB predicate).
 ///
