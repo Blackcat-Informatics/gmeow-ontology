@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:NormalizationDeclaration held at math:algebraicNormalization
+# (coarser than structural) carries its math:normalizationProcedure and its
+# logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair — the
+# claim is unattributed to any standpoint (math:UnattributedNormalization). Mirrors
+# tests/counter-examples/normalization-unattributed.ttl (math:commutativeNormalization)
+# one rung coarser, since math:algebraicNormalization's own definition says the SAME
+# attribution obligation applies at every coarser-than-structural rung.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:algebraicUnattributedSource a math:MathematicalExpression ;
+    math:normalForm ex:algebraicUnattributedTarget ;
+    math:literalValue "9"^^xsd:integer .
+
+ex:algebraicUnattributedTarget a math:MathematicalExpression .
+
+ex:algebraicUnattributedDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:algebraicUnattributedSource ;
+    math:normalizesTo ex:algebraicUnattributedTarget ;
+    math:normalizationStrength math:algebraicNormalization ;
+    math:normalizationProcedure ex:algebraicRewrite ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:algebraicRewrite a math:NormalizationProcedure .

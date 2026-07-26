@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a math:NormalizationDeclaration held at math:algebraicNormalization
+# (one rung coarser than math:commutativeNormalization) that carries its
+# math:normalizationProcedure (a Gröbner basis reduction — the exact kind of algebraic
+# rewrite math:algebraicNormalization's own definition names), is named by a
+# gmeow:Observation (through gmeow:observationResult) that itself carries a
+# gmeow:vantage, and carries a logic:preservationKind — the full attribution any
+# coarser-than-structural equivalence claim owes.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:algebraicSource a math:MathematicalExpression ;
+    math:normalForm ex:algebraicTarget ;
+    math:literalValue "8"^^xsd:integer .
+
+ex:algebraicTarget a math:MathematicalExpression ;
+    math:literalValue "8"^^xsd:integer .
+
+ex:algebraicDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:algebraicSource ;
+    math:normalizesTo ex:algebraicTarget ;
+    math:normalizationStrength math:algebraicNormalization ;
+    math:normalizationProcedure ex:groebnerBasisReduction ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:groebnerBasisReduction a math:NormalizationProcedure .
+
+ex:algebraicDeclObservation a gmeow:Observation ;
+    gmeow:observationResult ex:algebraicDecl ;
+    gmeow:vantage ex:algebraistStandpoint .
+
+ex:algebraistStandpoint a gmeow:Standpoint , gmeow:Entity .

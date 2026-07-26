@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a bare math:normalForm edge (source, target) whose ONLY candidate
+# "declaration" is a node carrying math:normalizes/math:normalizesTo naming that SAME
+# pair but is NOT ITSELF typed math:NormalizationDeclaration. Before the G11 hardening
+# (module.ttl's math:unfBody gaining an rdf:type atom on the existential ?decl
+# variable), ANY node carrying just the two mediating edges discharged
+# math:UndeclaredNormalFormConstraint's guard — a bare edge with an untyped, unattributed
+# neighbour was indistinguishable from a genuine declaration. It no longer is: the
+# added rdf:type atom requires the witness to actually be a math:NormalizationDeclaration,
+# so this untyped neighbour no longer discharges the gate and math:UndeclaredNormalForm
+# fires.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+ex:mistypedSource a math:MathematicalExpression ;
+    math:normalForm ex:mistypedTarget ;
+    math:literalValue "7"^^xsd:integer .
+
+ex:mistypedTarget a math:MathematicalExpression .
+
+ex:notADeclaration
+    math:normalizes ex:mistypedSource ;
+    math:normalizesTo ex:mistypedTarget .

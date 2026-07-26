@@ -15,6 +15,7 @@
 # `make validate` gate never loads the intentional violations as data.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
 
 # === Rule 1: a number declares its number system ============================ #
@@ -1549,8 +1550,20 @@ ex:ecNormalFormDeclared a gmeow:ExampleConformance ;
 ex:ecNormalFormUndeclared a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/normal-form-undeclared.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a bare math:normalForm edge (source, target) with no math:NormalizationDeclaration naming that pair at all, so math:UndeclaredNormalFormConstraint's guard/exists formula fails; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UndeclaredNormalForm)." .
+    gmeow:expectedFailureClass math:UndeclaredNormalForm ;
+    gmeow:conformanceRationale "The counter-example is a bare math:normalForm edge (source, target) with no math:NormalizationDeclaration naming that pair at all, so math:UndeclaredNormalFormConstraint's guard/exists formula fails. Pinned by gmeow:expectedFailureClass (not the bare component code, which shacl.SPARQLConstraintComponent shares with every other SPARQL-derived math: gate, including math:StringOnlyComputableExpressionConstraint over this SAME math:normalForm-bearing expression): validation MUST raise ONLY math:UndeclaredNormalForm, isolated from that cross-fire risk by the fixture's math:literalValue structured child." .
+
+ex:ecNormalizationDeclarationStrengthMissing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/normalization-strength-missing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration correctly names its (source, target) pair through math:normalizes/math:normalizesTo but declares NO math:normalizationStrength at all — the bare, strength-less declaration the G11 hardening's min-qualified-cardinality-1 restriction on math:normalizationStrength exists to forbid (before it, a strength-less declaration satisfied neither math:FalseStructuralNormalizationClaimConstraint's nor math:UnattributedNormalizationConstraint's guard, both gated on an ASSERTED strength, while math:UndeclaredNormalFormConstraint was already discharged for free). Validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (a bare cardinality gate, so no bespoke math: failure class is minted for it)." .
+
+ex:ecNormalFormMistypedDeclaration a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/normal-form-mistyped-declaration.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UndeclaredNormalForm ;
+    gmeow:conformanceRationale "The counter-example's math:normalForm edge (source, target) has a candidate witness naming that SAME pair through math:normalizes/math:normalizesTo, but that witness is NOT itself typed math:NormalizationDeclaration — the bare edge the G11 hardening's math:unfBody rdf:type atom exists to reject (before it, ANY node carrying the two mediating edges discharged the gate, typed or not). Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UndeclaredNormalForm, isolated from math:StringOnlyComputableExpression cross-fire by the fixture's math:literalValue structured child." .
 
 # === Rule: a structural-strength math:NormalizationDeclaration needs equal structuralKey values === #
 
@@ -1562,8 +1575,8 @@ ex:ecStructuralNormalizationKeysEqual a gmeow:ExampleConformance ;
 ex:ecStructuralNormalizationKeysMismatched a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/structural-normalization-keys-mismatched.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:structuralNormalization but its math:normalizes source and math:normalizesTo target carry DIFFERENT math:structuralKey values, so math:FalseStructuralNormalizationClaimConstraint's existential digest-equality witness cannot be found; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:FalseStructuralNormalizationClaim)." .
+    gmeow:expectedFailureClass math:FalseStructuralNormalizationClaim ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:structuralNormalization but its math:normalizes source and math:normalizesTo target carry DIFFERENT math:structuralKey values, so math:FalseStructuralNormalizationClaimConstraint's existential digest-equality witness cannot be found. Pinned by gmeow:expectedFailureClass (not the bare component code, which shacl.SPARQLConstraintComponent shares with every other SPARQL-derived math: gate): validation MUST raise ONLY math:FalseStructuralNormalizationClaim, isolated from math:StringOnlyComputableExpression cross-fire by the fixture's math:literalValue structured children." .
 
 # === Rule: a coarser-than-structural math:NormalizationDeclaration is procedure/vantage/preservation-attributed === #
 
@@ -1575,8 +1588,30 @@ ex:ecNormalizationAttributed a gmeow:ExampleConformance ;
 ex:ecNormalizationUnattributed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/normalization-unattributed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:commutativeNormalization and carries its math:normalizationProcedure and logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair, so math:UnattributedNormalizationConstraint's existential attribution witness cannot be found; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnattributedNormalization)." .
+    gmeow:expectedFailureClass math:UnattributedNormalization ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:commutativeNormalization and carries its math:normalizationProcedure and logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair, so math:UnattributedNormalizationConstraint's existential attribution witness cannot be found. Pinned by gmeow:expectedFailureClass (not the bare component code, which shacl.SPARQLConstraintComponent shares with every other SPARQL-derived math: gate): validation MUST raise ONLY math:UnattributedNormalization, isolated from math:StringOnlyComputableExpression cross-fire by the fixture's math:literalValue structured child." .
+
+ex:ecNormalizationAlgebraicAttributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/normalization-algebraic-attributed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:NormalizationDeclaration held at math:algebraicNormalization (one rung coarser than math:commutativeNormalization) carrying a math:normalizationProcedure naming a Gröbner basis reduction, named by a gmeow:Observation that itself carries a gmeow:vantage, and carrying a logic:preservationKind satisfies math:UnattributedNormalizationConstraint and validates with no findings — the SECOND-coarsest rung exercised, not only math:commutativeNormalization." .
+
+ex:ecNormalizationAlgebraicUnattributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/normalization-algebraic-unattributed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnattributedNormalization ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:algebraicNormalization and carries its math:normalizationProcedure and logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair, so math:UnattributedNormalizationConstraint's existential attribution witness cannot be found. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UnattributedNormalization, isolated from math:StringOnlyComputableExpression cross-fire by the fixture's math:literalValue structured child." .
+
+ex:ecNormalizationSemanticAttributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/normalization-semantic-attributed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:NormalizationDeclaration held at math:semanticNormalization — the COARSEST rung, whose own definition says the strongest attribution obligation applies here — carrying a math:normalizationProcedure naming the external theorem that licenses the claim, named by a gmeow:Observation that itself carries a gmeow:vantage, and carrying a logic:preservationKind satisfies math:UnattributedNormalizationConstraint and validates with no findings." .
+
+ex:ecNormalizationSemanticUnattributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/normalization-semantic-unattributed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnattributedNormalization ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration is held at math:semanticNormalization — the COARSEST rung, whose own definition says the strongest attribution obligation applies here — and carries its math:normalizationProcedure and logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair, so math:UnattributedNormalizationConstraint's existential attribution witness cannot be found. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UnattributedNormalization, isolated from math:StringOnlyComputableExpression cross-fire by the fixture's math:literalValue structured child." .
 
 # === Rule: a computable expression carries a structured child, not only a string ==== #
 
@@ -1592,79 +1627,165 @@ ex:ecComputableExpressionStringOnly a gmeow:ExampleConformance ;
     gmeow:conformanceRationale "The counter-example's math:MathematicalExpression carries a math:normalForm trigger edge but none of the four structured-child edges (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, math:literalValue) — represented only by a string — so math:StringOnlyComputableExpressionConstraint's existential structured-child witness cannot be found; validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:StringOnlyComputableExpression). A math:NormalizationDeclaration names the normal-form pair so the fixture does not also trip math:UndeclaredNormalForm." .
 
 # =========================================================================== #
-# Expression-identity native-gate carve-out: math:StringOnlyComputableExpression's
-# SOURCE-LINT half (above is its SHACL-Core-derived half, bound as a conformance cell
-# like every other logic:Constraint-tier class), math:MalformedStructuralKey,
-# math:StructuralKeyDrift, math:SurfaceLeakInNormalForm, and
-# math:StructuralKeyOnRejectedExpression are decided by plain Rust computations over the
-# frozen reasoned graph / the ONE math: expression lowering — classifying a
-# math:structuralKey predicate's usage shape, a digest recompute
-# (crates/logic/src/math_expression.rs) or a source-lint structural check
-# (crates/validate/src/lint.rs) — never a flat relational join the SHACL/Datalog
-# fragment can express, so each is discharged by its own in-crate isolation tests
-# rather than a bound gmeow:ExampleConformance cell here (their shared counter-example
-# fixture, tests/counter-examples/malformed-structural-key.ttl, is discharged by the
-# whole-matrix reconciliation harness's reasoned-graph channel instead — see
-# crates/pipeline/tests/math_conformance_discharge.rs), exactly as
-# lang:SurfaceLeakInContentKey, lang:FabricatedEquivalence, and lang:AssertedRollup
-# carry no example-conformance cell in the lang: slice.
-#
-# The SAME carve-out covers math:CyclicExpressionGraph and math:ExpressionDepthExceeded:
-# a cycle or a too-deep recursion through the math:argumentSlot / math:slotExpression
-# graph is a graph-traversal computation the native math: expression lowering
-# (crates/logic/src/physical/lower.rs) decides directly, never a flat relational join —
-# so, like their three siblings above, they carry no SHACL/Datalog derivation and no
-# bound gmeow:ExampleConformance cell here. Their counter-example fixtures
-# (tests/counter-examples/cyclic-expression-graph.ttl,
-# tests/counter-examples/expression-depth-exceeded.ttl) are discharged by
-# crates/logic/src/physical/lower.rs's in-crate variant-liveness test
-# (`every_math_lowering_error_variant_is_produced_by_a_committed_fixture`), which runs
-# every MathLoweringError variant — including these two — through the SAME production
-# lowering entry point (`math_expression_structural_keys`) against every committed
-# counter-example fixture, rather than hand-constructing the error.
-#
-# The remaining `MathLoweringError` variants — math:MalformedArgumentSlot's
-# `ArgumentSlotMissingIndex` / `ArgumentSlotMultipleIndexes` / `ArgumentSlotIndexNotInteger`
-# / `ArgumentSlotMissingExpression` / `NegativeArgumentSlotIndex` /
-# `NumberLiteralMissingValue` / `UnrecognizedExpressionType`; math:MalformedBindingExpression's
-# `BindingMissingOperator` / `BindingMultipleOperators` / `BindingMultipleBoundVariables` /
-# `BindingBodyNotSingleSlot`; and math:UnscopedVariableOccurrence's
-# `OccurrenceMissingDeclaredVariable` / `OccurrenceMultipleDeclaredVariables` /
-# `VariableExpressionMultipleOccurrences` / `UnscopedOccurrence` — DO already carry a
-# bound gmeow:ExampleConformance cell for their shared failure class (elsewhere in this
-# file, via an older SHACL-only standalone fixture such as
-# tests/counter-examples/argument-slot-malformed.ttl or
-# tests/counter-examples/malformed-binding-expression.ttl). Those older fixtures author
-# the malformed shape UNREFERENCED by any expression root, so SHACL reaches them but the
-# native lowering (`math_expression_structural_keys`, which walks from
-# `MathGraph::expression_roots`) never does. Each variant below therefore ALSO has its
-# own dedicated counter-example fixture
-# (tests/counter-examples/argument-slot-index-missing-lowering.ttl,
-# tests/counter-examples/argument-slot-index-not-integer.ttl,
-# tests/counter-examples/argument-slot-missing-expression-lowering.ttl,
-# tests/counter-examples/argument-slot-multiple-indexes.ttl,
-# tests/counter-examples/argument-slot-negative-index.ttl,
-# tests/counter-examples/number-literal-missing-value.ttl,
-# tests/counter-examples/unrecognized-expression-type.ttl,
-# tests/counter-examples/binding-missing-operator.ttl,
-# tests/counter-examples/binding-multiple-operators.ttl,
-# tests/counter-examples/binding-multiple-bound-variables.ttl,
-# tests/counter-examples/binding-body-not-single-slot.ttl,
-# tests/counter-examples/occurrence-missing-declared-variable-lowering.ttl,
-# tests/counter-examples/occurrence-multiple-declared-variables.ttl,
-# tests/counter-examples/variable-expression-multiple-occurrences.ttl,
-# tests/counter-examples/variable-occurrence-truly-unscoped.ttl) that wires the SAME
-# malformed shape under a real math:ApplicationExpression / math:BindingExpression /
-# math:VariableExpression root, so the native lowering actually reaches and rejects it —
-# reachable-by-name in Rust AND reachable from authored data, not merely the former. Each
-# also carries an authored math:structuralKey so the reasoned-graph gate
-# (check_structural_key_on_rejected_expression) reaches it too, alongside its class's
-# already-registered SHACL/Datalog cell above. Like their two siblings immediately
-# above, these carry no SEPARATE bound gmeow:ExampleConformance cell of their own here —
-# the class is already reconciled by its existing cell, and their sole job is
-# variant-level (not class-level) liveness, discharged the same way, by
-# `every_math_lowering_error_variant_is_produced_by_a_committed_fixture`.
+# Native-channel classes — math:expectedFailureClass reaches every one of these
+# through gmeow:expectedFailureClass's SECOND finding channel (native Rust findings
+# from crates/logic/src/math_expression.rs, resolved via the `math:<Class>:`
+# message-token convention), so the cells below REPLACE the carve-out this section used
+# to be: every one of these fixtures now carries a REAL gmeow:ExampleConformance cell
+# instead of a comment excusing its absence. math:MalformedStructuralKey,
+# math:StructuralKeyDrift, and math:SurfaceLeakInNormalForm have NO SHACL derivation at
+# all (a plain Rust computation over the frozen reasoned graph); their cells rely
+# EXCLUSIVELY on the native channel. math:CyclicExpressionGraph and
+# math:ExpressionDepthExceeded, and the 15 MathLoweringError-variant fixtures below
+# them, are ALSO reached by the native channel (each authors a math:structuralKey on a
+# real expression root, so check_structural_key_on_rejected_expression reaches it,
+# embedding the variant's OWN failure-class token alongside its own
+# math:StructuralKeyOnRejectedExpression token); several of the variant classes ALSO
+# have a SHACL derivation the fixture legitimately trips too (math:MalformedArgumentSlot,
+# math:MalformedBindingExpression, math:UnscopedVariableOccurrence) — both channels
+# resolve to the SAME class, so isolation holds either way. math:StringOnlyComputableExpression's
+# source-lint half (crates/validate/src/lint.rs) needs no separate cell here: it shares
+# tests/counter-examples/computable-expression-string-only.ttl with its SHACL-derived
+# half, already celled above, and is discharged by its own in-crate test.
 # =========================================================================== #
+
+ex:ecMalformedStructuralKey a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/malformed-structural-key.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedStructuralKey ;
+    gmeow:conformanceRationale "The counter-example's two math:NumberLiteral roots each carry a math:structuralKey usage that is not a well-formed singleton literal (a plural value; a non-literal value) — decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's classify_structural_key_usage/check_malformed_structural_key), which carries no SHACL/Datalog derivation at all. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:MalformedStructuralKey." .
+
+ex:ecStructuralKeyDrift a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/structural-key-drift.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:StructuralKeyDrift ;
+    gmeow:conformanceRationale "The counter-example's math:NumberLiteral root authors a math:structuralKey that cannot equal its recomputed structural digest — decided ONLY by the native reasoned-graph gate (check_structural_key_drift), which carries no SHACL/Datalog derivation at all. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:StructuralKeyDrift." .
+
+ex:ecSurfaceLeakInNormalForm a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/surface-leak-in-normal-form.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:SurfaceLeakInNormalForm ;
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration's math:normalizes source directly carries math:rendersAs — a surface-stratum predicate leaking into structural-identity computation — decided ONLY by the native reasoned-graph gate (check_surface_leak_in_normal_form), which carries no SHACL/Datalog derivation at all; the declaration is otherwise fully attributed (math:commutativeNormalization with procedure, observation/vantage, and preservation kind) so the G11-hardened declarative tier stays clean. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:SurfaceLeakInNormalForm." .
+
+ex:ecStructuralKeyOnRejectedExpressionOperatorMissing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/structural-key-on-rejected-expression.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ApplicationOperatorCardinality ;
+    gmeow:conformanceRationale "The counter-example's math:ApplicationExpression has no math:operator at all (sh:minCount 1 on math:ApplicationExpressionShape) — the MIN-count half of math:ApplicationOperatorCardinality, distinct from tests/counter-examples/application-two-operators.ttl's MAX-count half. It also carries an authored math:structuralKey, so the native reasoned gate (check_structural_key_on_rejected_expression) ALSO fires, embedding the SAME math:ApplicationOperatorCardinality token alongside its own math:StructuralKeyOnRejectedExpression token — both channels agree, so gmeow:expectedFailureClass isolation holds." .
+
+ex:ecCyclicExpressionGraph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cyclic-expression-graph.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:CyclicExpressionGraph ;
+    gmeow:conformanceRationale "The counter-example's two math:ApplicationExpression nodes each name the OTHER as its sole operand through math:argumentSlot/math:slotExpression — a fully closed cycle SHACL cannot detect (each node is individually well-formed) but the native math: expression lowering's rootless-cyclic seeding path rejects on the second visit. Both authored math:structuralKey values let check_structural_key_on_rejected_expression reach it, embedding math:CyclicExpressionGraph (crates/logic/src/physical/lower.rs's MathLoweringError::CyclicExpressionGraph) alongside its own wrapper token. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:CyclicExpressionGraph." .
+
+ex:ecExpressionDepthExceeded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/expression-depth-exceeded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:ExpressionDepthExceeded ;
+    gmeow:conformanceRationale "The counter-example's 501-deep chain of nested math:ApplicationExpression nodes is individually well-formed at every level (SHACL sees nothing wrong), one level past MAX_MATH_EXPRESSION_DEPTH; the native math: expression lowering's depth guard rejects it. The authored math:structuralKey on the root lets check_structural_key_on_rejected_expression reach it, embedding math:ExpressionDepthExceeded alongside its own wrapper token. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:ExpressionDepthExceeded." .
+
+# --- math:MalformedArgumentSlot: the SAME shape reached from a REAL expression root -- #
+
+ex:ecArgumentSlotIndexMissingLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slot-index-missing-lowering.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedArgumentSlot ;
+    gmeow:conformanceRationale "Unlike tests/counter-examples/argument-slot-malformed.ttl (a standalone, unreferenced math:ArgumentSlot the native lowering never reaches), this fixture wires the missing-index slot under a real math:ApplicationExpression root, so BOTH math:ArgumentSlotShape's sh:minCount AND the native lowering (MathLoweringError::ArgumentSlotMissingIndex, via check_structural_key_on_rejected_expression) resolve to math:MalformedArgumentSlot — a variant-level liveness proof, not merely a class-level one." .
+
+ex:ecArgumentSlotIndexNotIntegerLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slot-index-not-integer.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.DatatypeConstraintComponent" ;
+    gmeow:conformanceRationale "Wired under a real math:ApplicationExpression root: math:slotIndex \"first\" fails math:ArgumentSlotShape's sh:datatype xsd:integer (shacl.DatatypeConstraintComponent) AND the native lowering (MathLoweringError::ArgumentSlotIndexNotInteger, via check_structural_key_on_rejected_expression) resolves to math:MalformedArgumentSlot. A non-integer index ALSO trips math:ArgumentSlotContiguityConstraint's SPARQL guard (a non-numeric index can never equal 0 or have a computable integer predecessor), a genuine second declarative finding the class-level restriction cannot avoid — so this cell asserts the component code alone rather than gmeow:expectedFailureClass isolation." .
+
+ex:ecArgumentSlotMissingExpressionLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slot-missing-expression-lowering.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedArgumentSlot ;
+    gmeow:conformanceRationale "Wired under a real math:ApplicationExpression root: a math:ArgumentSlot naming an index but no math:slotExpression fails math:ArgumentSlotShape's sh:minCount AND the native lowering (MathLoweringError::ArgumentSlotMissingExpression) rejects it — both channels resolve to math:MalformedArgumentSlot." .
+
+ex:ecArgumentSlotMultipleIndexesLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slot-multiple-indexes.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedArgumentSlot ;
+    gmeow:conformanceRationale "Wired under a real math:ApplicationExpression root: a math:ArgumentSlot naming TWO math:slotIndex values fails math:ArgumentSlotShape's sh:maxCount AND the native lowering (MathLoweringError::ArgumentSlotMultipleIndexes) rejects it — both channels resolve to math:MalformedArgumentSlot." .
+
+ex:ecArgumentSlotNegativeIndexLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/argument-slot-negative-index.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Wired under a real math:ApplicationExpression root: a math:ArgumentSlot's negative math:slotIndex (-1) is rejected by the native lowering (MathLoweringError::NegativeArgumentSlotIndex, via check_structural_key_on_rejected_expression), resolving to math:MalformedArgumentSlot. Declaratively, a negative index trips BOTH math:ArgumentSlotIndexNonNegativeConstraint (its own dedicated SPARQL guard) AND math:ArgumentSlotContiguityConstraint (a negative index is never 0 and has no computable non-negative integer predecessor) — two genuine, unavoidable SPARQLConstraintComponent findings — so this cell asserts the shared component code alone rather than gmeow:expectedFailureClass isolation; math:ArgumentSlot's OWN exact-one restrictions (datatype, cardinality) stay satisfied, so no THIRD finding fires." .
+
+ex:ecNumberLiteralMissingValueLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/number-literal-missing-value.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedArgumentSlot ;
+    gmeow:conformanceRationale "A math:NumberLiteral root with no math:literalValue at all carries no SHACL obligation of its own (math:NumberLiteral has no class-scoped restriction), so this cell relies on the native lowering alone (MathLoweringError::NumberLiteralMissingValue, via check_structural_key_on_rejected_expression), resolving to math:MalformedArgumentSlot — distinct from the unrelated math:StringOnlyComputableExpression source-lint rule, since this root carries no computable-expression trigger edge at all." .
+
+ex:ecUnrecognizedExpressionTypeLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/unrecognized-expression-type.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedArgumentSlot ;
+    gmeow:conformanceRationale "The counter-example's operand carries a math:-namespaced type recognized by NEITHER the four expression-root types nor math:SymbolReference — no SHACL shape targets an unrecognized type by construction, so this cell relies on the native lowering alone (MathLoweringError::UnrecognizedExpressionType, via check_structural_key_on_rejected_expression), resolving to math:MalformedArgumentSlot." .
+
+# --- math:MalformedBindingExpression: the SAME shape reached from a REAL expression root --- #
+
+ex:ecBindingMissingOperatorLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/binding-missing-operator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedBindingExpression ;
+    gmeow:conformanceRationale "A math:BindingExpression missing math:operator carries no SHACL obligation of its own (operator cardinality is enforced ONLY on math:ApplicationExpression, per math:ApplicationOperatorCardinality's own definition — the sibling binder AST is exempt), so this cell relies on the native lowering alone (MathLoweringError::BindingMissingOperator, via check_structural_key_on_rejected_expression), resolving to math:MalformedBindingExpression." .
+
+ex:ecStructuralKeyOnRejectedExpressionViaBinding a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/binding-missing-operator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:StructuralKeyOnRejectedExpression ;
+    gmeow:conformanceRationale "The SAME fixture as ex:ecBindingMissingOperatorLowering, re-asserted for the WRAPPER class itself: this root's authored math:structuralKey lets check_structural_key_on_rejected_expression reach it, and its single finding's message embeds BOTH math:StructuralKeyOnRejectedExpression (the gate's own token) and math:MalformedBindingExpression (the inner rejection reason) — gmeow:expectedFailureClass isolation holds under EITHER expected class, since no OTHER finding fires at all. This is the wrapper gate's own conformance cell (no SHACL derivation exists for it whatsoever)." .
+
+ex:ecBindingMultipleOperatorsLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/binding-multiple-operators.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedBindingExpression ;
+    gmeow:conformanceRationale "A math:BindingExpression naming TWO math:operator values carries no SHACL obligation of its own (operator cardinality is enforced ONLY on math:ApplicationExpression), so this cell relies on the native lowering alone (MathLoweringError::BindingMultipleOperators, via check_structural_key_on_rejected_expression), resolving to math:MalformedBindingExpression." .
+
+ex:ecBindingMultipleBoundVariablesLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/binding-multiple-bound-variables.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedBindingExpression ;
+    gmeow:conformanceRationale "Wired under a real math:BindingExpression root: TWO math:boundVariable values fail math:BindingExpressionShape's sh:maxCount AND the native lowering (MathLoweringError::BindingMultipleBoundVariables) rejects it — both channels resolve to math:MalformedBindingExpression." .
+
+ex:ecBindingBodyNotSingleSlotLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/binding-body-not-single-slot.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedBindingExpression ;
+    gmeow:conformanceRationale "Wired under a real math:BindingExpression root naming its operator and bound variable but NO math:argumentSlot: fails math:BindingExpressionShape's sh:minCount AND the native lowering (MathLoweringError::BindingBodyNotSingleSlot) rejects it — both channels resolve to math:MalformedBindingExpression." .
+
+# --- math:UnscopedVariableOccurrence: the SAME shape reached from a REAL expression root --- #
+
+ex:ecOccurrenceMissingDeclaredVariableLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/occurrence-missing-declared-variable-lowering.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnscopedVariableOccurrence ;
+    gmeow:conformanceRationale "Unlike tests/counter-examples/variable-occurrence-unscoped.ttl (a standalone occurrence the native lowering never reaches — no math:VariableExpression root), this fixture wires the empty math:VariableOccurrence under a real root: math:VariableOccurrenceShape's max-cardinality-1 on math:declaredVariable is vacuously satisfied by ZERO values (no SHACL minCount exists), so this cell relies on the native lowering alone (MathLoweringError::OccurrenceMissingDeclaredVariable, via check_structural_key_on_rejected_expression), resolving to math:UnscopedVariableOccurrence." .
+
+ex:ecOccurrenceMultipleDeclaredVariablesLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/occurrence-multiple-declared-variables.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnscopedVariableOccurrence ;
+    gmeow:conformanceRationale "Wired under a real math:VariableExpression root: TWO math:declaredVariable values fail math:VariableOccurrenceShape's sh:maxCount AND the native lowering (MathLoweringError::OccurrenceMultipleDeclaredVariables) rejects it — both channels resolve to math:UnscopedVariableOccurrence. Both declarations name a math:variableDomain so neither incidentally also trips math:UntypedFreeVariable." .
+
+ex:ecVariableExpressionMultipleOccurrencesLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/variable-expression-multiple-occurrences.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnscopedVariableOccurrence ;
+    gmeow:conformanceRationale "A math:VariableExpression naming TWO math:variableOccurrence values carries no SHACL obligation at all (math:variableOccurrence has no cardinality restriction), so this cell relies on the native lowering alone (MathLoweringError::VariableExpressionMultipleOccurrences), resolving to math:UnscopedVariableOccurrence. The shared declaration names a math:variableDomain so it does not incidentally also trip math:UntypedFreeVariable." .
+
+ex:ecVariableOccurrenceTrulyUnscopedLowering a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/variable-occurrence-truly-unscoped.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnscopedVariableOccurrence ;
+    gmeow:conformanceRationale "The occurrence's math:declaredVariable resolves to a plain math:VariableDeclaration that is neither a math:FreeVariableDeclaration nor bound by an enclosing binder — a graph-topology fact no SHACL shape can express, so this cell relies on the native lowering alone (MathLoweringError::UnscopedOccurrence), resolving to math:UnscopedVariableOccurrence." .
 
 # === Rule: a math:ArgumentSlot names exactly one index and one expression ==== #
 

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:    <https://blackcatinformatics.ca/math/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
@@ -424,6 +425,17 @@ gmeow:expectedSourceShape a owl:ObjectProperty ;
     gmeow:useWhen "Use on a gmeow:violates fixture whose gmeow:expectedViolationCode is a generic component shared by many rules (e.g. shacl.SPARQLConstraintComponent, shacl.MinCountConstraintComponent) to pin the exact derived shape that must fire, so the fixture proves the SPECIFIC named rule — not merely some rule of the same component — rejected the counter-example."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid on gmeow:conforms fixtures (there is no finding), and where the finding's sh:sourceShape is not per-rule stable — e.g. a sh:minCount derived from a class-level node shape reports the shared class shape as its source, not a per-property shape, so pinning it would not narrow to the specific property; leave such a fixture on the component code."@x-gmeow-english ;
     gmeow:howToUse "Read the derived shape the counter-example must red — for a logic:Constraint it is the projected sh:NodeShape carrying the sh:sparql (the shape logic:formalizes maps FROM, as the generated procedural-constraints surface names it) — and pin its IRI here alongside the gmeow:expectedViolationCode; the harness matches the finding's sh:sourceShape by exact IRI or by local-name suffix."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:expectedFailureClass a owl:ObjectProperty ;
+    rdfs:domain gmeow:ExampleConformance ;
+    rdfs:range rdfs:Resource ;
+    rdfs:label "expected failure class"@x-gmeow-english ;
+    skos:definition "The semantic failure-class IRI (e.g. math:UndeclaredNormalForm) the counter-example is expected to raise, checked with ISOLATION across BOTH finding channels the harness executes: native SHACL violations (resolved to a class through the generated shape's own gmeow:enforcesFailureClass annotation, the SAME IRI reported as sh:sourceShape) and native Rust findings such as the math: expression-identity reasoned gate (resolved through the `<prefix>:<ClassName>:` message-token convention those validators use). Unlike gmeow:expectedViolationCode/gmeow:expectedSourceShape, which only prove the intended finding is PRESENT, this property additionally requires that NO OTHER finding fires anywhere in either channel — closing the gap where a SPARQL-derived gate's shared generic component code let an unrelated cross-fire finding hide beside the intended one. It is also the ONLY conformance-cell mechanism that reaches a purely native failure class with no SHACL derivation at all (e.g. math:MalformedStructuralKey, math:StructuralKeyDrift): for such a class the cell sets ONLY gmeow:expectedFailureClass, since no gmeow:expectedViolationCode exists to give. Applies only to gmeow:violates fixtures, and when present it REPLACES the component-code check rather than layering on top of it."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ; gmeow:expectedFailureClass math:UndeclaredNormalForm ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:violates fixture whenever the counter-example must isolate its ONE intended failure class from every other finding a shared component code or an unrelated native check could hide beside it — including a purely native class that carries no SHACL derivation and hence no finding code to pin at all."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on gmeow:conforms fixtures (there is no finding). Avoid pairing it with gmeow:expectedViolationCode expecting BOTH to be checked — setting gmeow:expectedFailureClass replaces the code check for that cell."@x-gmeow-english ;
+    gmeow:howToUse "Name the exact math:<Class> (or other slice-owned) failure-class IRI the counter-example must raise; repair the fixture so it carries no OTHER structured trigger the SAME data would also fire (e.g. give a math:normalForm-bearing expression a structured-child edge so it does not also trip math:StringOnlyComputableExpression), then bind this property alone (no gmeow:expectedViolationCode needed)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:conformanceRationale a owl:DatatypeProperty ;

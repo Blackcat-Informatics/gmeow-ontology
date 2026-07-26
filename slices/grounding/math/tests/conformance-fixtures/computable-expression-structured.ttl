@@ -4,14 +4,18 @@
 # Positive fixture: a math:MathematicalExpression carrying a math:normalForm trigger edge
 # also carries a math:argumentSlot structured-child edge — a computable expression whose
 # structure is data, not prose — clean of math:StringOnlyComputableExpression. A
-# math:NormalizationDeclaration names the (source, target) pair so this fixture is also
-# clean of math:UndeclaredNormalForm.
+# math:NormalizationDeclaration names the (source, target) pair, held at
+# math:structuralNormalization with EQUAL math:structuralKey values on both ends, so this
+# fixture is also clean of math:UndeclaredNormalForm,
+# math:FalseStructuralNormalizationClaim, and (post-G11) the min-qualified-cardinality-1
+# restriction on math:normalizationStrength.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
 ex:structuredExpr a math:MathematicalExpression ;
     math:normalForm ex:structuredExprNormalForm ;
-    math:argumentSlot ex:structuredExprSlot0 .
+    math:argumentSlot ex:structuredExprSlot0 ;
+    math:structuralKey "structured-expr-key" .
 
 ex:structuredExprSlot0 a math:ArgumentSlot ;
     math:slotIndex 0 ;
@@ -19,8 +23,10 @@ ex:structuredExprSlot0 a math:ArgumentSlot ;
 
 ex:structuredExprOperand a math:MathematicalExpression .
 
-ex:structuredExprNormalForm a math:MathematicalExpression .
+ex:structuredExprNormalForm a math:MathematicalExpression ;
+    math:structuralKey "structured-expr-key" .
 
 ex:structuredExprDeclaration a math:NormalizationDeclaration ;
     math:normalizes ex:structuredExpr ;
-    math:normalizesTo ex:structuredExprNormalForm .
+    math:normalizesTo ex:structuredExprNormalForm ;
+    math:normalizationStrength math:structuralNormalization .

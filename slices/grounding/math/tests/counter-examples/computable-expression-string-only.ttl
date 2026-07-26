@@ -5,16 +5,22 @@
 # but none of the four structured-child edges (math:argumentSlot, math:boundVariable,
 # math:hasMathematicalSymbol, math:literalValue) — represented only by a string
 # (math:StringOnlyComputableExpression). A math:NormalizationDeclaration names the
-# (source, target) pair so this fixture stays isolated to ONLY this violation and does not
-# also trip math:UndeclaredNormalForm.
+# (source, target) pair, held at math:structuralNormalization with EQUAL
+# math:structuralKey values on both ends, so this fixture stays isolated to ONLY this
+# violation and does not also trip math:UndeclaredNormalForm,
+# math:FalseStructuralNormalizationClaim, or (post-G11) the min-qualified-cardinality-1
+# restriction on math:normalizationStrength.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
 ex:stringOnlyExpr a math:MathematicalExpression ;
-    math:normalForm ex:stringOnlyExprNormalForm .
+    math:normalForm ex:stringOnlyExprNormalForm ;
+    math:structuralKey "string-only-key" .
 
-ex:stringOnlyExprNormalForm a math:MathematicalExpression .
+ex:stringOnlyExprNormalForm a math:MathematicalExpression ;
+    math:structuralKey "string-only-key" .
 
 ex:stringOnlyExprDeclaration a math:NormalizationDeclaration ;
     math:normalizes ex:stringOnlyExpr ;
-    math:normalizesTo ex:stringOnlyExprNormalForm .
+    math:normalizesTo ex:stringOnlyExprNormalForm ;
+    math:normalizationStrength math:structuralNormalization .

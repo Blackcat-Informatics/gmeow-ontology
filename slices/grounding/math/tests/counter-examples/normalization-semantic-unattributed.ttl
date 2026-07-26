@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Single violation: a math:NormalizationDeclaration held at math:semanticNormalization —
+# the COARSEST rung, whose own definition says "the strongest attribution obligation
+# applies here" — carries its math:normalizationProcedure and its logic:preservationKind,
+# but is named by NO gmeow:Observation/gmeow:vantage pair — the claim is unattributed to
+# any standpoint (math:UnattributedNormalization). "Two closed forms are equal" is
+# precisely the inferential act that must never be asserted for free, even (especially)
+# at this coarsest rung.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:semanticUnattributedSource a math:MathematicalExpression ;
+    math:normalForm ex:semanticUnattributedTarget ;
+    math:literalValue "11"^^xsd:integer .
+
+ex:semanticUnattributedTarget a math:MathematicalExpression .
+
+ex:semanticUnattributedDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:semanticUnattributedSource ;
+    math:normalizesTo ex:semanticUnattributedTarget ;
+    math:normalizationStrength math:semanticNormalization ;
+    math:normalizationProcedure ex:externalTheoremEquivalence ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:externalTheoremEquivalence a math:NormalizationProcedure .

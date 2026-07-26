@@ -2,11 +2,16 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Single violation: a bare math:normalForm edge with NO math:NormalizationDeclaration
-# naming its (source, target) pair at all (math:UndeclaredNormalForm).
+# naming its (source, target) pair at all (math:UndeclaredNormalForm). ex:undeclaredSource
+# carries a math:literalValue structured child so the math:normalForm trigger does not
+# ALSO fire math:StringOnlyComputableExpression — this fixture isolates the ONE undeclared-
+# normal-form class.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 ex:undeclaredSource a math:MathematicalExpression ;
-    math:normalForm ex:undeclaredTarget .
+    math:normalForm ex:undeclaredTarget ;
+    math:literalValue "1"^^xsd:integer .
 
 ex:undeclaredTarget a math:MathematicalExpression .

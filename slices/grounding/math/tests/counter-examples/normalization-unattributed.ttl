@@ -5,12 +5,17 @@
 # (coarser than structural) carries its math:normalizationProcedure and its
 # logic:preservationKind, but is named by NO gmeow:Observation/gmeow:vantage pair — the
 # claim is unattributed to any standpoint (math:UnattributedNormalization).
+# ex:unattributedSource carries a math:literalValue structured child so the
+# math:normalForm trigger does not ALSO fire math:StringOnlyComputableExpression — this
+# fixture isolates the ONE unattributed-normalization class.
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:unattributedSource a math:MathematicalExpression ;
-    math:normalForm ex:unattributedTarget .
+    math:normalForm ex:unattributedTarget ;
+    math:literalValue "3"^^xsd:integer .
 
 ex:unattributedTarget a math:MathematicalExpression .
 

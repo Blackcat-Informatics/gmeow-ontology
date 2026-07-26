@@ -4,7 +4,7 @@ expression: head
 ---
 # Competency questions
 
-**293** competency question(s) — declarative SPARQL questions the ontology must answer, each pinning an expected result over the asserted merged ontology (or its RDFS/native-reasoned closure, when the question opts in).
+**294** competency question(s) — declarative SPARQL questions the ontology must answer, each pinning an expected result over the asserted merged ontology (or its RDFS/native-reasoned closure, when the question opts in).
 
 ## GMEOW Affect Module
 

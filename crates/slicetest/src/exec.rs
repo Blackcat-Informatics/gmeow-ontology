@@ -18,11 +18,12 @@
 //!   grounding kernel is the sole data-scope exception: its three co-foundational
 //!   modules are visible together, while shape authority remains slice-owned.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_errors::{Diag, Result};
+use gmeow_errors::{Diag, Result, Severity};
+use gmeow_logic::math_expression::check_math_expression_findings;
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
 use gmeow_validate::findings::finding_from_shacl;
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
@@ -197,6 +198,11 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
         })
         .collect::<Result<Vec<_>>>()?
         .join("\n");
+    // Built ONCE from the raw (unscoped) shapes text: a `sh:NodeShape IRI ->
+    // gmeow:enforcesFailureClass IRI` index, so a `gmeow:expectedFailureClass` cell can
+    // resolve a reported `sh:sourceShape` to the semantic class it enforces. See
+    // `shape_failure_class_index`'s own doc comment for why this reads unscoped.
+    let failure_class_index = shape_failure_class_index(&shapes_ttl)?;
     // Surface a malformed shape set / module ONCE, as a typed diagnostic, before fanning out.
     let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
         Diag::of_kind(ShapeValidation {
@@ -240,11 +246,21 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
             let slice_dir = &slice_dir;
             let shapes = &shapes;
             let module = &module;
+            let failure_class_index = &failure_class_index;
             handles.push(scope.spawn(move || {
                 let mut out = Vec::new();
                 for (i, ec) in cells.iter().enumerate() {
                     if i % workers == w {
-                        out.push((i, run_conformance_cell(ec, slice_dir, module, shapes)));
+                        out.push((
+                            i,
+                            run_conformance_cell(
+                                ec,
+                                slice_dir,
+                                module,
+                                shapes,
+                                failure_class_index,
+                            ),
+                        ));
                     }
                 }
                 out
@@ -732,6 +748,7 @@ fn run_conformance_cell(
     slice_dir: &Path,
     module: &Arc<RdfDataset>,
     shapes: &purrdf::shapes::shapes::Shapes,
+    failure_class_index: &BTreeMap<String, String>,
 ) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
     let example = native_query::dataset_from_file(&example_path).map_err(|e| {
@@ -802,6 +819,20 @@ fn run_conformance_cell(
             }
         }
         Outcome::Violates => {
+            // `gmeow:expectedFailureClass` is a wholly alternative, STRONGER check: it
+            // reaches native (non-SHACL) failure classes that carry no finding code at
+            // all, and it requires ISOLATION across BOTH channels (no unmatched finding
+            // anywhere), not merely "the expected code is present somewhere". A cell
+            // that sets it does not also need `gmeow:expectedViolationCode`.
+            if let Some(expected_class) = ec.expected_failure_class.as_deref() {
+                return check_failure_class_isolation(
+                    ec,
+                    &report,
+                    &data,
+                    expected_class,
+                    failure_class_index,
+                );
+            }
             let expected = ec.violation_code.as_deref().ok_or_else(|| {
                 Diag::of_kind(ConformanceCell {
                     detail: "outcome 'violates' but no gmeow:expectedViolationCode".to_owned(),
@@ -868,6 +899,177 @@ fn strip_angle(term: &str) -> &str {
     term.strip_prefix('<')
         .and_then(|t| t.strip_suffix('>'))
         .unwrap_or(term)
+}
+
+/// Build a `sh:NodeShape IRI -> gmeow:enforcesFailureClass IRI` index from the raw
+/// (repository-wide, unscoped) shapes Turtle text. The derive pipeline projects
+/// `gmeow:enforcesFailureClass` directly onto the generated shape node itself — the
+/// SAME IRI a SHACL engine reports as a violation's `sh:sourceShape` — for both
+/// `logic:Constraint`-derived procedural shapes and plain OWL-restriction-derived
+/// validation shapes alike, so one generic query over either generated surface reaches
+/// every annotated shape regardless of which derive path produced it. Read unscoped
+/// (not through `scope_shapes_to_slice`'s slice-owned filter) because a finding's
+/// reported source shape may legitimately belong to a co-foundational grounding module
+/// (`logic:`/`lang:`/`math:`) the cell's own slice does not own.
+fn shape_failure_class_index(shapes_ttl: &str) -> Result<BTreeMap<String, String>> {
+    let dataset = native_query::dataset_from_turtle(shapes_ttl)?;
+    let solutions = native_query::select(
+        &dataset,
+        "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
+         SELECT ?shape ?class WHERE { ?shape gmeow:enforcesFailureClass ?class }",
+    )?;
+    let shape_idx = solutions.variables.iter().position(|v| v == "shape");
+    let class_idx = solutions.variables.iter().position(|v| v == "class");
+    let mut index = BTreeMap::new();
+    if let (Some(si), Some(ci)) = (shape_idx, class_idx) {
+        for row in &solutions.rows {
+            if let (Some(Some(TermValue::Iri(shape))), Some(Some(TermValue::Iri(class)))) =
+                (row.get(si), row.get(ci))
+            {
+                index.insert(shape.clone(), class.clone());
+            }
+        }
+    }
+    Ok(index)
+}
+
+/// Every `<prefix>:<ClassName>:` class-token embedded in a native Rust finding's
+/// message, resolved to full IRIs against the namespace prefixes the native
+/// validators (`crates/logic/src/math_expression.rs`, `crates/validate/src/lint.rs`)
+/// use in their `<prefix>:<LocalName>: ` message-token convention documented on
+/// `crate::math_expression::failure_class_local_name` — the ONLY place a native
+/// (non-SHACL) finding names the semantic failure class(es) it decided, since its
+/// `Finding::code` is one stable string per gate FUNCTION, shared by every class that
+/// function can raise (e.g. `math:StructuralKeyOnRejectedExpression`'s code is shared
+/// with whichever `MathLoweringError` variant rejected the underlying expression, so a
+/// finding routed through that gate embeds BOTH its own class token and the inner
+/// rejection's class token).
+fn message_class_tokens(message: &str) -> BTreeSet<String> {
+    const PREFIXES: &[(&str, &str)] = &[
+        ("math:", "https://blackcatinformatics.ca/math/"),
+        ("logic:", "https://blackcatinformatics.ca/logic/"),
+        ("lang:", "https://blackcatinformatics.ca/lang/"),
+        ("gmeow:", "https://blackcatinformatics.ca/gmeow/"),
+    ];
+    let mut tokens = BTreeSet::new();
+    for (prefix, ns) in PREFIXES {
+        let mut rest = message;
+        while let Some(idx) = rest.find(prefix) {
+            let after = &rest[idx + prefix.len()..];
+            let end = after
+                .find(|c: char| !c.is_ascii_alphanumeric())
+                .unwrap_or(after.len());
+            let name = &after[..end];
+            let starts_upper = name.chars().next().is_some_and(|c| c.is_ascii_uppercase());
+            if starts_upper && after[end..].starts_with(':') {
+                tokens.insert(format!("{ns}{name}"));
+            }
+            rest = if end < after.len() {
+                &after[end + 1..]
+            } else {
+                ""
+            };
+            if rest.is_empty() {
+                break;
+            }
+        }
+    }
+    tokens
+}
+
+/// `gmeow:expectedFailureClass` isolation check: EVERY finding produced across BOTH
+/// channels — native SHACL Violation-severity results (resolved to a class through
+/// `failure_class_index`) and native Rust findings from
+/// [`check_math_expression_findings`] (resolved via [`message_class_tokens`]) — must
+/// name `expected_class`. This is the ONLY conformance-cell mechanism that reaches
+/// native (non-SHACL) failure classes, and it closes two gaps at once: a SPARQL-derived
+/// gate's shared generic component code letting an unrelated cross-fire finding hide
+/// beside the intended one, and a purely native class (no SHACL derivation exists at
+/// all, e.g. `math:MalformedStructuralKey`) having no conformance-cell mechanism to
+/// assert against whatsoever.
+fn check_failure_class_isolation(
+    ec: &ExampleConformance,
+    report: &purrdf::shapes::report::ValidationReport,
+    data: &Arc<RdfDataset>,
+    expected_class: &str,
+    failure_class_index: &BTreeMap<String, String>,
+) -> Result<()> {
+    // One (description, matches-expected) pair per finding across both channels.
+    let mut findings: Vec<(String, bool)> = Vec::new();
+
+    for r in report
+        .results
+        .iter()
+        .filter(|r| matches!(r.severity, purrdf::shapes::report::Severity::Violation))
+    {
+        let finding = finding_from_shacl(r);
+        let shape = strip_angle(&r.source_shape.to_string()).to_owned();
+        let class = failure_class_index.get(&shape).cloned();
+        let matches = class.as_deref() == Some(expected_class);
+        findings.push((
+            format!(
+                "shacl {} at {} (shape {shape}, class {})",
+                finding.code,
+                r.focus_node,
+                class.as_deref().unwrap_or("<unmapped>")
+            ),
+            matches,
+        ));
+    }
+
+    for finding in check_math_expression_findings(data) {
+        if finding.severity != Severity::Error {
+            continue;
+        }
+        let tokens = message_class_tokens(&finding.message);
+        let matches = tokens.contains(expected_class);
+        let token_list = if tokens.is_empty() {
+            "<no class token>".to_owned()
+        } else {
+            tokens.into_iter().collect::<Vec<_>>().join(", ")
+        };
+        findings.push((
+            format!(
+                "native {} ({token_list}): {}",
+                finding.code, finding.message
+            ),
+            matches,
+        ));
+    }
+
+    let matched = findings.iter().filter(|(_, m)| *m).count();
+    let unmatched: Vec<&str> = findings
+        .iter()
+        .filter(|(_, m)| !*m)
+        .map(|(d, _)| d.as_str())
+        .collect();
+
+    if matched == 0 {
+        return Err(Diag::of_kind(ConformanceCell {
+            detail: format!(
+                "cell {} expected failure class {expected_class}, but no finding (SHACL or \
+                 native) matched it; findings observed: [{}]",
+                ec.iri,
+                findings
+                    .iter()
+                    .map(|(d, _)| d.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; ")
+            ),
+        }));
+    }
+    if !unmatched.is_empty() {
+        return Err(Diag::of_kind(ConformanceCell {
+            detail: format!(
+                "cell {} expected ONLY failure class {expected_class}, but {} other finding(s) \
+                 also fired: [{}]",
+                ec.iri,
+                unmatched.len(),
+                unmatched.join("; ")
+            ),
+        }));
+    }
+    Ok(())
 }
 
 /// Restrict the repository-wide generated shape union to the authority owned by

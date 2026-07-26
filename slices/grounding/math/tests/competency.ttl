@@ -2883,3 +2883,11 @@ ex:rowDiscreteConnectionFlatness a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "connection" ; gmeow:cellValueIri exh:discreteConnection ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sheaf" ; gmeow:cellValueIri exh:loopSheaf ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cochain" ; gmeow:cellValueIri exh:transportCocycle ] .
+
+# === Q — the coarser-normalization ladder's transitive closure is a LIVE entailment === #
+
+ex:cqCoarserNormalizationTransitive a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/coarser-normalization-transitive.rq" ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "module.ttl asserts ONLY the three adjacent links of the four-rung math:NormalizationStrength ladder (semantic->algebraic, algebraic->commutative, commutative->structural); the two-hop-plus link from the COARSEST rung directly to the FINEST is never asserted. math:coarserNormalizationThan is declared owl:TransitiveProperty, so the native logic: reasoner's transitive chase MUST derive math:semanticNormalization math:coarserNormalizationThan math:structuralNormalization from the three adjacent facts alone — a genuine entailment, not a restated assertion." ;
+    gmeow:cqExpectAsk true .
