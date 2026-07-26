@@ -145,17 +145,35 @@ fn check_structural_key_on_rejected_expression(
     subs.sort();
     for subj in subs {
         if let Some(Err(err)) = keys.get(&subj) {
+            // The rejection's OWN typed `math:` failure class (`err.failure_class()`) is
+            // routed into the message as a second `math:<LocalName>: ` token, alongside this
+            // gate's own `math:StructuralKeyOnRejectedExpression` token — never collapsed to
+            // the error's untyped `Display` prose alone. This is the ONE production emitter
+            // of [`crate::physical::lower::MathLoweringError::failure_class`]: without it the
+            // typed rejection algebra decides a class in Rust and then discards it, exactly
+            // the defect this gate exists to abolish.
+            let class_local = failure_class_local_name(err.failure_class());
             findings.push(error(
                 CODE_STRUCTURAL_KEY_ON_REJECTED_EXPRESSION,
                 format!(
                     "math:StructuralKeyOnRejectedExpression: expression {subj} declares \
-                     math:structuralKey but its math: expression lowering rejects it ({err}) — \
-                     a structural identity cannot be claimed for an expression the grammar \
-                     itself refutes"
+                     math:structuralKey but its math: expression lowering rejects it as \
+                     math:{class_local}: {err} — a structural identity cannot be claimed for \
+                     an expression the grammar itself refutes"
                 ),
             ));
         }
     }
+}
+
+/// The local name of a full `math:` failure-class IRI (the substring after the last `/`),
+/// used ONLY to render the `math:<LocalName>: ` message token
+/// [`crate::physical::lower::MathLoweringError::failure_class`] decides — the same
+/// `<prefix>:<Class>:` convention `crates/validate/src/lint.rs`'s native structural lint
+/// messages use, which the `math:` conformance-completeness harness
+/// (`crates/pipeline/tests/math_conformance_discharge.rs`) scans for verbatim.
+fn failure_class_local_name(iri: &str) -> &str {
+    iri.rsplit('/').next().unwrap_or(iri)
 }
 
 /// `math:SurfaceLeakInNormalForm`: structural-normal-form identity is computed over

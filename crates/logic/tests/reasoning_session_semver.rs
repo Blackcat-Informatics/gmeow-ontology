@@ -167,8 +167,19 @@ use session_common::*;
 /// (a previously-silently-accepted ill-typed leaf or rootless cycle is now soundly
 /// rejected), but NOT on this fixed edge-only input (which authors no `math:` expression
 /// graph at all), so the fixed-input session verdict is unchanged.
+/// Re-blessed once more for the `math:` expressions hardening task's phantom-variant
+/// removal (see the fixed-input golden below too): `physical/lower.rs`'s
+/// `intern_bound_checked_math` duplicate helper and its two `DeBruijnDistanceOverflow` /
+/// `DeBruijnSlotOverflow` variants (unreachable by construction — `lower_math_binding`
+/// pushes exactly one declaration per binder frame and every descent is depth-bounded by
+/// `MAX_MATH_EXPRESSION_DEPTH`) are deleted, and the call site now reuses the shared
+/// `intern_bound_checked` helper, panicking on the now-provably-unreachable error case
+/// instead of laundering it into a `math:` conformance failure. `physical/lower.rs` is a
+/// `BACKWARD_SOURCE` member, so this moves the native-contract source-content digest
+/// folded into this descriptor; the fixed edge-only input (authoring no `math:`
+/// expression graph) has an unchanged reasoning verdict.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "597796a6b726faa4fdb457e3bf778132e073dd9f9bbf16dbd22de18697e20dde";
+    "f04b68066526d844b8d1f63ee2618adcdcfd4d546718c9a3a0f4870694f96c1b";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -240,8 +251,15 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// is one of the seven folded identity axes and moves with the changed `physical/lower.rs`
 /// engine source, while the fixed edge-only input (authoring no `math:` expression graph)
 /// has an unchanged reasoning verdict.
+/// Re-blessed once more for the `math:` expressions hardening task's phantom-variant
+/// removal (see the engine-descriptor golden above for the mechanism): `physical/lower.rs`
+/// is a `BACKWARD_SOURCE` member, so deleting the unreachable `DeBruijnDistanceOverflow` /
+/// `DeBruijnSlotOverflow` variants and their duplicate `intern_bound_checked_math` helper
+/// moves the native contract hash, one of the seven folded identity axes, while the fixed
+/// edge-only input (authoring no `math:` expression graph) has an unchanged reasoning
+/// verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "b167cadbe234ea2a2dbb9860ff71bfa526d044bf8e6d2686f575de03f99fc914";
+    "4f8b674c86588e298b3e8addf5ee79a3649f641c18ef6c03cecd41726e2edf4d";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

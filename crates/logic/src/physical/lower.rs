@@ -393,14 +393,21 @@ const M_LITERAL_VALUE: &str = "https://blackcatinformatics.ca/math/literalValue"
 /// bound turns that hazard into a typed, catchable [`MathLoweringError`].
 const MAX_MATH_EXPRESSION_DEPTH: usize = 500;
 
-/// The `math:` failure-class IRIs [`MathLoweringError::failure_class`] decides.
+/// The `math:` failure-class IRIs [`MathLoweringError::failure_class`] decides. Every one
+/// of the eight is authored in `slices/grounding/math/module.ttl` as an `owl:Class`
+/// `logic:subClassOf math:MathConformanceFailure`, with the full annotation coat
+/// (`rdfs:label`, `skos:definition`, `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`,
+/// `skos:example`) and a row in `slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md`.
 ///
-/// `DUPLICATE_ARGUMENT_SLOT_INDEX`, `CYCLIC_EXPRESSION_GRAPH`, and
-/// `EXPRESSION_DEPTH_EXCEEDED` are NEW classes this hardening task's Rust side needs; a
-/// sibling ontology-authoring task mints the corresponding `logic:Situation` charter
-/// entries in `slices/grounding/math/module.ttl` — referencing the IRI by convention
-/// ahead of that authoring is this repo's normal Rust-first order, not a forward
-/// reference bug. The rest are existing charter classes already authored there.
+/// `CYCLIC_EXPRESSION_GRAPH` (`math:CyclicExpressionGraph:`) and
+/// `EXPRESSION_DEPTH_EXCEEDED` (`math:ExpressionDepthExceeded:`) are the two classes with
+/// NO SHACL/OWL-derived twin — a cycle through the `math:slotExpression` graph and a
+/// too-deep recursion are graph-traversal computations, not flat relational joins the
+/// SHACL/Datalog fragment can express, so they carry no `gmeow:enforcesFailureClass`
+/// triple and are reachable ONLY through this Rust decision (the SAME architectural shape
+/// as `math:StructuralKeyDrift` / `math:SurfaceLeakInNormalForm` /
+/// `math:StructuralKeyOnRejectedExpression` in `crate::math_expression`). The other six
+/// buckets are additionally SHACL-Core/SHACL-SPARQL-enforced.
 mod failure_class {
     pub(super) const MALFORMED_ARGUMENT_SLOT: &str =
         "https://blackcatinformatics.ca/math/MalformedArgumentSlot";
@@ -497,10 +504,6 @@ pub(crate) enum MathLoweringError {
     CyclicExpressionGraph { node: String },
     /// Lowering recursed past [`MAX_MATH_EXPRESSION_DEPTH`].
     ExpressionDepthExceeded { node: String, depth: usize },
-    /// A bound occurrence's de-Bruijn distance exceeds `u32::MAX`.
-    DeBruijnDistanceOverflow { distance: usize },
-    /// A bound occurrence's de-Bruijn slot exceeds `u16::MAX`.
-    DeBruijnSlotOverflow { slot: usize },
 }
 
 impl std::fmt::Display for MathLoweringError {
@@ -624,18 +627,6 @@ impl std::fmt::Display for MathLoweringError {
                 "math expression node {node} exceeds the maximum supported lowering \
                  recursion depth ({depth} > {MAX_MATH_EXPRESSION_DEPTH})"
             ),
-            Self::DeBruijnDistanceOverflow { distance } => write!(
-                f,
-                "binder de-Bruijn distance {distance} exceeds u32::MAX while lowering a \
-                 math: variable occurrence; a silent wrap would rebind the occurrence to \
-                 the wrong binder (variable-capture bug)"
-            ),
-            Self::DeBruijnSlotOverflow { slot } => write!(
-                f,
-                "binder slot {slot} exceeds u16::MAX while lowering a math: variable \
-                 occurrence; a silent wrap would rebind the occurrence to the wrong \
-                 declaration slot (variable-capture bug)"
-            ),
         }
     }
 }
@@ -669,9 +660,7 @@ impl MathLoweringError {
             | Self::OccurrenceMultipleDeclaredVariables { .. }
             | Self::UnscopedOccurrence { .. } => failure_class::UNSCOPED_VARIABLE_OCCURRENCE,
             Self::CyclicExpressionGraph { .. } => failure_class::CYCLIC_EXPRESSION_GRAPH,
-            Self::ExpressionDepthExceeded { .. }
-            | Self::DeBruijnDistanceOverflow { .. }
-            | Self::DeBruijnSlotOverflow { .. } => failure_class::EXPRESSION_DEPTH_EXCEEDED,
+            Self::ExpressionDepthExceeded { .. } => failure_class::EXPRESSION_DEPTH_EXCEEDED,
         }
     }
 }
@@ -1196,22 +1185,6 @@ fn lower_math_binding(
     Ok(dag.intern_binder(op, vec![sort], body))
 }
 
-/// Mint a bound-variable occurrence at de-Bruijn `distance`/`slot` for the `math:`
-/// lowering, HARD-FAILING with a typed [`MathLoweringError`] if either exceeds the
-/// physical node's field width — the `math:`-specific twin of [`intern_bound_checked`]
-/// (which stays the `logic:`/`lang:` path's untouched shared helper), so the two
-/// overflow sites this hardening task must cover raise their own distinct variants.
-fn intern_bound_checked_math(
-    dag: &mut TermDag,
-    distance: usize,
-    slot: usize,
-) -> MathResult<NodeId> {
-    let debruijn = u32::try_from(distance)
-        .map_err(|_| MathLoweringError::DeBruijnDistanceOverflow { distance })?;
-    let slot = u16::try_from(slot).map_err(|_| MathLoweringError::DeBruijnSlotOverflow { slot })?;
-    Ok(dag.intern_bound(debruijn, slot))
-}
-
 fn lower_math_variable(
     dag: &mut TermDag,
     graph: &MathGraph,
@@ -1249,7 +1222,25 @@ fn lower_math_variable(
     };
 
     if let Some((distance, slot)) = resolve_debruijn(env, &declaration) {
-        return intern_bound_checked_math(dag, distance, slot);
+        // `intern_bound_checked`'s two overflow modes are provably unreachable on this
+        // path: `lower_math_binding` pushes exactly one declaration per binder frame
+        // (`env.push(vec![declaration])`), so `resolve_debruijn`'s returned `slot` is
+        // always `0` and `u16::try_from` cannot fail; and every recursive descent is
+        // gated by `depth > MAX_MATH_EXPRESSION_DEPTH` (500) before it proceeds, so
+        // `env.len()` — and therefore any `distance < env.len()` this lookup can return —
+        // never exceeds 500, far inside `u32`. An `Err` here would mean that invariant
+        // broke, which is an internal defect in this lowering, never a `math:`
+        // conformance failure of the authored data — so it is a hard panic, not a
+        // laundered `MathLoweringError`.
+        return Ok(
+            intern_bound_checked(dag, distance, slot).unwrap_or_else(|e| {
+                panic!(
+                    "math: binder frames carry exactly one declaration each and recursion is \
+                 depth-bounded by MAX_MATH_EXPRESSION_DEPTH, so a de-Bruijn distance/slot \
+                 computed here can never overflow u32/u16; got {e:?}"
+                )
+            }),
+        );
     }
     if graph.has_type(&declaration, M_FREE_DECLARATION) {
         return Ok(dag.intern_free(TermValue::iri(declaration)));
@@ -2100,9 +2091,15 @@ mod tests {
 
     // ── math: failure_class is exhaustive, non-empty, and groups variants coherently ──
 
-    #[test]
-    fn math_lowering_error_failure_class_is_exhaustive_and_non_empty() {
-        let variants = vec![
+    /// One concrete sample of EVERY [`MathLoweringError`] variant — the single committed
+    /// enumeration of "all variants" both
+    /// [`math_lowering_error_failure_class_is_exhaustive_and_non_empty`] (the failure-class
+    /// bucketing property) and
+    /// [`every_math_lowering_error_variant_is_produced_by_a_committed_fixture`] (the
+    /// variant-liveness property) drive from, so the two properties can never silently
+    /// diverge on "how many variants there are" — exactly one list, never two.
+    fn sample_variants() -> Vec<MathLoweringError> {
+        vec![
             MathLoweringError::NumberLiteralMissingValue {
                 node: "n".to_owned(),
             },
@@ -2188,9 +2185,161 @@ mod tests {
                 node: "n".to_owned(),
                 depth: 501,
             },
-            MathLoweringError::DeBruijnDistanceOverflow { distance: 1 },
-            MathLoweringError::DeBruijnSlotOverflow { slot: 1 },
-        ];
+        ]
+    }
+
+    /// The variant name of a [`MathLoweringError`] sample, for a human-readable liveness
+    /// report ONLY (never used to decide equality — that is
+    /// [`std::mem::discriminant`]'s job). Exhaustive with NO wildcard arm for the SAME
+    /// reason [`MathLoweringError::failure_class`] has none: a variant added later without
+    /// a label fails to compile rather than silently reporting as unnamed.
+    fn variant_label(v: &MathLoweringError) -> &'static str {
+        match v {
+            MathLoweringError::NumberLiteralMissingValue { .. } => "NumberLiteralMissingValue",
+            MathLoweringError::UnrecognizedExpressionType { .. } => "UnrecognizedExpressionType",
+            MathLoweringError::ArgumentSlotMissingIndex { .. } => "ArgumentSlotMissingIndex",
+            MathLoweringError::ArgumentSlotMultipleIndexes { .. } => "ArgumentSlotMultipleIndexes",
+            MathLoweringError::ArgumentSlotIndexNotInteger { .. } => "ArgumentSlotIndexNotInteger",
+            MathLoweringError::ArgumentSlotMissingExpression { .. } => {
+                "ArgumentSlotMissingExpression"
+            }
+            MathLoweringError::NonContiguousArgumentSlots { .. } => "NonContiguousArgumentSlots",
+            MathLoweringError::DuplicateArgumentSlotIndex { .. } => "DuplicateArgumentSlotIndex",
+            MathLoweringError::NegativeArgumentSlotIndex { .. } => "NegativeArgumentSlotIndex",
+            MathLoweringError::ApplicationMissingOperator { .. } => "ApplicationMissingOperator",
+            MathLoweringError::ApplicationMultipleOperators { .. } => {
+                "ApplicationMultipleOperators"
+            }
+            MathLoweringError::BindingMissingOperator { .. } => "BindingMissingOperator",
+            MathLoweringError::BindingMultipleOperators { .. } => "BindingMultipleOperators",
+            MathLoweringError::BindingMissingBoundVariable { .. } => "BindingMissingBoundVariable",
+            MathLoweringError::BindingMultipleBoundVariables { .. } => {
+                "BindingMultipleBoundVariables"
+            }
+            MathLoweringError::BindingBodyNotSingleSlot { .. } => "BindingBodyNotSingleSlot",
+            MathLoweringError::VariableExpressionMissingOccurrence { .. } => {
+                "VariableExpressionMissingOccurrence"
+            }
+            MathLoweringError::VariableExpressionMultipleOccurrences { .. } => {
+                "VariableExpressionMultipleOccurrences"
+            }
+            MathLoweringError::OccurrenceMissingDeclaredVariable { .. } => {
+                "OccurrenceMissingDeclaredVariable"
+            }
+            MathLoweringError::OccurrenceMultipleDeclaredVariables { .. } => {
+                "OccurrenceMultipleDeclaredVariables"
+            }
+            MathLoweringError::UnscopedOccurrence { .. } => "UnscopedOccurrence",
+            MathLoweringError::CyclicExpressionGraph { .. } => "CyclicExpressionGraph",
+            MathLoweringError::ExpressionDepthExceeded { .. } => "ExpressionDepthExceeded",
+        }
+    }
+
+    /// Every committed `math:` counter-example fixture, parsed as its own standalone
+    /// dataset — mirrors [`MathGraph::from_turtle`]'s own parse call exactly, since a
+    /// fixture is a self-contained Turtle document (its own `@prefix` declarations, no
+    /// dependency on `module.ttl` schema triples: [`MathGraph`] walks asserted
+    /// `math:`/`rdf:type` edges directly, it consults no OWL/RDFS axiom).
+    fn counter_example_fixtures() -> Vec<(String, std::sync::Arc<purrdf::RdfDataset>)> {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("slices/grounding/math/tests/counter-examples");
+        let mut entries: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)
+            .unwrap_or_else(|e| panic!("read counter-examples dir {}: {e}", dir.display()))
+            .map(|e| e.expect("dir entry").path())
+            .filter(|p| p.extension().is_some_and(|x| x == "ttl"))
+            .collect();
+        entries.sort();
+        entries
+            .into_iter()
+            .map(|path| {
+                let name = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .expect("utf8 fixture name")
+                    .to_owned();
+                let bytes = std::fs::read(&path)
+                    .unwrap_or_else(|e| panic!("read fixture {}: {e}", path.display()));
+                let ds = purrdf::parse_dataset(&bytes, "text/turtle", None)
+                    .unwrap_or_else(|e| panic!("parse fixture {}: {e}", path.display()));
+                (name, ds)
+            })
+            .collect()
+    }
+
+    /// **G20 — the real variant-liveness test.** For every [`MathLoweringError`] variant,
+    /// at least one committed `slices/grounding/math/tests/counter-examples/*.ttl` fixture
+    /// must actually produce it through the REAL production entry point
+    /// [`math_expression_structural_keys`] — the SAME function
+    /// [`crate::math_expression::check_math_expression_findings`] calls over the frozen
+    /// reasoned graph. A hand-built [`MathLoweringError`] sample (as
+    /// [`sample_variants`] provides for the failure-class bucketing property) proves the
+    /// variant COMPILES and has a class; it does NOT prove the variant is REACHABLE from
+    /// authored data. Without this test, an unreachable variant is a phantom failure class
+    /// the charter would report as enforced when no fixture on disk can ever raise it — the
+    /// gap this test exists to close (G2's two new classes, `CyclicExpressionGraph` /
+    /// `ExpressionDepthExceeded`, shipped with exactly this gap until their fixtures landed).
+    ///
+    /// No allowlist, no skip-set: a variant absent from EVERY fixture's produced errors
+    /// fails the test by name, never silently passes.
+    #[test]
+    fn every_math_lowering_error_variant_is_produced_by_a_committed_fixture() {
+        let fixtures = counter_example_fixtures();
+        assert!(
+            !fixtures.is_empty(),
+            "tests/counter-examples has no fixtures to drive this liveness test"
+        );
+
+        // discriminant -> (label, fixtures that produced it) — built by ACTUALLY RUNNING the
+        // real production lowering entry point over every committed fixture, never by
+        // hand-constructing a variant.
+        let mut produced: std::collections::HashMap<
+            std::mem::Discriminant<MathLoweringError>,
+            (&'static str, Vec<String>),
+        > = std::collections::HashMap::new();
+        for (name, ds) in &fixtures {
+            for result in math_expression_structural_keys(ds).into_values() {
+                if let Err(err) = result {
+                    let discriminant = std::mem::discriminant(&err);
+                    produced
+                        .entry(discriminant)
+                        .or_insert_with(|| (variant_label(&err), Vec::new()))
+                        .1
+                        .push(name.clone());
+                }
+            }
+        }
+
+        let samples = sample_variants();
+        assert_eq!(
+            samples.len(),
+            23,
+            "sample_variants() must enumerate every MathLoweringError variant exactly once \
+             (update this count alongside the enum and both variant lists when a variant is \
+             added or removed)"
+        );
+        let missing: Vec<&'static str> = samples
+            .iter()
+            .filter(|v| !produced.contains_key(&std::mem::discriminant(*v)))
+            .map(variant_label)
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "the following MathLoweringError variant(s) are produced by NO committed \
+             counter-example fixture through the real production lowering entry point — each \
+             is a phantom failure class (reachable-by-name in Rust, unreachable from any \
+             authored data): {missing:?}. Fixtures that DID trip a variant: {:#?}",
+            produced
+                .values()
+                .map(|(label, files)| (*label, files.clone()))
+                .collect::<std::collections::BTreeMap<_, _>>()
+        );
+    }
+
+    #[test]
+    fn math_lowering_error_failure_class_is_exhaustive_and_non_empty() {
+        let variants = sample_variants();
 
         // Every variant must decide a non-empty, properly-namespaced `math:` IRI, and
         // the Display impl must not panic (each variant is exercised through `{}`).
@@ -2238,9 +2387,7 @@ mod tests {
                 | MathLoweringError::OccurrenceMultipleDeclaredVariables { .. }
                 | MathLoweringError::UnscopedOccurrence { .. } => "UnscopedVariableOccurrence",
                 MathLoweringError::CyclicExpressionGraph { .. } => "CyclicExpressionGraph",
-                MathLoweringError::ExpressionDepthExceeded { .. }
-                | MathLoweringError::DeBruijnDistanceOverflow { .. }
-                | MathLoweringError::DeBruijnSlotOverflow { .. } => "ExpressionDepthExceeded",
+                MathLoweringError::ExpressionDepthExceeded { .. } => "ExpressionDepthExceeded",
             }
         };
         for variant in &variants {
@@ -2506,9 +2653,10 @@ mod tests {
              ex:bogus a math:MathematicalSttaement .\n";
         let graph = MathGraph::from_turtle(ttl.as_bytes()).expect("parse");
         let mut dag = TermDag::new();
-        let err = lower_math_expression(&mut dag, &graph, "https://example.org/app")
-            .expect_err("a typo'd math: class on a slot target must hard-fail, never silently \
-                         degrade to an opaque leaf");
+        let err = lower_math_expression(&mut dag, &graph, "https://example.org/app").expect_err(
+            "a typo'd math: class on a slot target must hard-fail, never silently \
+                         degrade to an opaque leaf",
+        );
         assert!(
             matches!(err, MathLoweringError::UnrecognizedExpressionType { .. }),
             "{err:?}"

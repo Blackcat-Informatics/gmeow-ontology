@@ -1603,6 +1603,62 @@ ex:ecComputableExpressionStringOnly a gmeow:ExampleConformance ;
 # isolation tests rather than a bound gmeow:ExampleConformance cell here, exactly as
 # lang:SurfaceLeakInContentKey, lang:FabricatedEquivalence, and lang:AssertedRollup
 # carry no example-conformance cell in the lang: slice.
+#
+# The SAME carve-out covers math:CyclicExpressionGraph and math:ExpressionDepthExceeded:
+# a cycle or a too-deep recursion through the math:argumentSlot / math:slotExpression
+# graph is a graph-traversal computation the native math: expression lowering
+# (crates/logic/src/physical/lower.rs) decides directly, never a flat relational join —
+# so, like their three siblings above, they carry no SHACL/Datalog derivation and no
+# bound gmeow:ExampleConformance cell here. Their counter-example fixtures
+# (tests/counter-examples/cyclic-expression-graph.ttl,
+# tests/counter-examples/expression-depth-exceeded.ttl) are discharged by
+# crates/logic/src/physical/lower.rs's in-crate variant-liveness test
+# (`every_math_lowering_error_variant_is_produced_by_a_committed_fixture`), which runs
+# every MathLoweringError variant — including these two — through the SAME production
+# lowering entry point (`math_expression_structural_keys`) against every committed
+# counter-example fixture, rather than hand-constructing the error.
+#
+# The remaining `MathLoweringError` variants — math:MalformedArgumentSlot's
+# `ArgumentSlotMissingIndex` / `ArgumentSlotMultipleIndexes` / `ArgumentSlotIndexNotInteger`
+# / `ArgumentSlotMissingExpression` / `NegativeArgumentSlotIndex` /
+# `NumberLiteralMissingValue` / `UnrecognizedExpressionType`; math:MalformedBindingExpression's
+# `BindingMissingOperator` / `BindingMultipleOperators` / `BindingMultipleBoundVariables` /
+# `BindingBodyNotSingleSlot`; and math:UnscopedVariableOccurrence's
+# `OccurrenceMissingDeclaredVariable` / `OccurrenceMultipleDeclaredVariables` /
+# `VariableExpressionMultipleOccurrences` / `UnscopedOccurrence` — DO already carry a
+# bound gmeow:ExampleConformance cell for their shared failure class (elsewhere in this
+# file, via an older SHACL-only standalone fixture such as
+# tests/counter-examples/argument-slot-malformed.ttl or
+# tests/counter-examples/malformed-binding-expression.ttl). Those older fixtures author
+# the malformed shape UNREFERENCED by any expression root, so SHACL reaches them but the
+# native lowering (`math_expression_structural_keys`, which walks from
+# `MathGraph::expression_roots`) never does. Each variant below therefore ALSO has its
+# own dedicated counter-example fixture
+# (tests/counter-examples/argument-slot-index-missing-lowering.ttl,
+# tests/counter-examples/argument-slot-index-not-integer.ttl,
+# tests/counter-examples/argument-slot-missing-expression-lowering.ttl,
+# tests/counter-examples/argument-slot-multiple-indexes.ttl,
+# tests/counter-examples/argument-slot-negative-index.ttl,
+# tests/counter-examples/number-literal-missing-value.ttl,
+# tests/counter-examples/unrecognized-expression-type.ttl,
+# tests/counter-examples/binding-missing-operator.ttl,
+# tests/counter-examples/binding-multiple-operators.ttl,
+# tests/counter-examples/binding-multiple-bound-variables.ttl,
+# tests/counter-examples/binding-body-not-single-slot.ttl,
+# tests/counter-examples/occurrence-missing-declared-variable-lowering.ttl,
+# tests/counter-examples/occurrence-multiple-declared-variables.ttl,
+# tests/counter-examples/variable-expression-multiple-occurrences.ttl,
+# tests/counter-examples/variable-occurrence-truly-unscoped.ttl) that wires the SAME
+# malformed shape under a real math:ApplicationExpression / math:BindingExpression /
+# math:VariableExpression root, so the native lowering actually reaches and rejects it —
+# reachable-by-name in Rust AND reachable from authored data, not merely the former. Each
+# also carries an authored math:structuralKey so the reasoned-graph gate
+# (check_structural_key_on_rejected_expression) reaches it too, alongside its class's
+# already-registered SHACL/Datalog cell above. Like their two siblings immediately
+# above, these carry no SEPARATE bound gmeow:ExampleConformance cell of their own here —
+# the class is already reconciled by its existing cell, and their sole job is
+# variant-level (not class-level) liveness, discharged the same way, by
+# `every_math_lowering_error_variant_is_produced_by_a_committed_fixture`.
 # =========================================================================== #
 
 # === Rule: a math:ArgumentSlot names exactly one index and one expression ==== #

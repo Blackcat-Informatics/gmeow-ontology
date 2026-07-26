@@ -2864,6 +2864,30 @@ math:MalformedBindingExpression
     skos:definition "The failure raised when a math:BindingExpression does not name the math:VariableDeclaration it binds through math:boundVariable, or does not name its body through math:argumentSlot. A binder binds a variable over a body; a binder missing either is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:CyclicExpressionGraph
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cyclic Expression Graph"@x-gmeow-english ;
+    skos:definition "The failure raised when the math:argumentSlot / math:slotExpression graph of an application or binding expression loops back to a node already being lowered. A mathematical expression AST is a tree grounded in leaves, never a graph with a cycle through its own operand/body positions; a cycle makes the expression's structure — and therefore its structural identity — undecidable by any finite walk. Decided by the native math: expression lowering's own cycle guard (a graph-traversal computation over the authored math:argumentSlot/math:slotExpression edges), never a flat relational join the SHACL/Datalog fragment can express."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when an application or binding expression's math:argumentSlot/math:slotExpression chain loops back to a node still being lowered — the expression graph is not acyclic."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a merely DEEP but acyclic expression — that is math:ExpressionDepthExceeded, the sibling recursion-bound failure; this failure is specific to a genuine cycle."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); there is no SHACL/Datalog derivation to point at it — cycle detection over an authored graph is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:a math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression -> math:CyclicExpressionGraph"@x-gmeow-english .
+
+math:ExpressionDepthExceeded
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Expression Depth Exceeded"@x-gmeow-english ;
+    skos:definition "The failure raised when lowering an application or binding expression recurses past the native lowering's maximum supported expression-graph depth. A generous but finite recursion bound turns a pathologically deep (or, absent the sibling cycle guard, cyclic) authoring into a typed, catchable rejection rather than an unbounded stack dive. Decided by the native math: expression lowering's own recursion-depth guard, never a flat relational join the SHACL/Datalog fragment can express."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when an application or binding expression's math:argumentSlot/math:slotExpression nesting recurses past the native lowering's maximum supported depth."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a genuine CYCLE — that is math:CyclicExpressionGraph, the sibling cycle-detection failure (and fires first for a tight cycle, before the depth bound would otherwise be reached); this failure is specific to an acyclic but pathologically deep expression."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); there is no SHACL/Datalog derivation to point at it — an authored-graph recursion-depth bound is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "A chain of 501 nested math:ApplicationExpression nodes, each naming the next as its sole operand through math:argumentSlot/math:slotExpression — one level deeper than the native lowering's maximum supported depth -> math:ExpressionDepthExceeded"@x-gmeow-english .
+
 math:UndeclaredLogicLowering
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
@@ -15472,6 +15496,7 @@ math:AsymmetricGramMatrix a logic:Situation .
 math:CalibrationSenseConflation a logic:Situation .
 math:ConfidenceAsProbability a logic:Situation .
 math:ConstantAsDecimalLiteral a logic:Situation .
+math:CyclicExpressionGraph a logic:Situation .
 math:DimensionMismatch a logic:Situation .
 math:DimensionalInhomogeneity a logic:Situation .
 math:DistributionParameterConstraint a logic:Situation .
@@ -15479,6 +15504,7 @@ math:DistributionParameterRoleCardinality a logic:Situation .
 math:DuplicateArgumentSlotIndex a logic:Situation .
 math:ExactApproximateConflation a logic:Situation .
 math:ExactPreservationViolated a logic:Situation .
+math:ExpressionDepthExceeded a logic:Situation .
 math:FalseStructuralNormalizationClaim a logic:Situation .
 math:IllFramedPValue a logic:Situation .
 math:ImplicitMissingness a logic:Situation .

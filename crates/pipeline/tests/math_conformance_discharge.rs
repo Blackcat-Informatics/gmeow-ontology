@@ -450,6 +450,7 @@ fn native_source_message_classes() -> BTreeSet<String> {
     for rel in [
         "crates/validate/src/lint.rs",
         "crates/logic/src/math_expression.rs",
+        "crates/logic/src/physical/lower.rs",
     ] {
         let path = repo_root().join(rel);
         let text = std::fs::read_to_string(&path)
