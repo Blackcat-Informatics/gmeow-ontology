@@ -219,7 +219,11 @@ pub(crate) fn proof_assert(dag: &mut TermDag, goal: NodeId, reifier_iri: TermId)
 // ── Structural decoding ─────────────────────────────────────────────────────────
 
 /// The decoded shape of a proof node — the one place the `App` framing is parsed.
-enum ProofShape {
+///
+/// `pub(crate)` so the public structured proof view ([`crate::proof_tree`]) reads the proof
+/// tree through THIS decoder rather than re-implementing the `App` framing: a second parse of
+/// the constructor shape would be a forkable duplicate of the one place it is defined.
+pub(crate) enum ProofShape {
     /// An `assert(goal, reifier)` leaf.
     Assert {
         /// The asserted goal.
@@ -266,7 +270,10 @@ fn atom_iri(dag: &TermDag, atom: TermId) -> gmeow_errors::Result<String> {
 
 /// Decode a proof node into its [`ProofShape`], or a [`ProofError::Malformed`] on any
 /// structural defect.
-fn classify(dag: &TermDag, node: NodeId) -> Result<ProofShape, ProofError> {
+///
+/// `pub(crate)` for the same single-source reason as [`ProofShape`]: [`crate::proof_tree`]'s
+/// public tree view decodes every step through this function.
+pub(crate) fn classify(dag: &TermDag, node: NodeId) -> Result<ProofShape, ProofError> {
     // Copy the operator and clone the arg ids to release the immutable borrow on `dag`.
     let (op, args) = match dag.data(node) {
         NodeData::App { op, args } => (*op, args.clone()),

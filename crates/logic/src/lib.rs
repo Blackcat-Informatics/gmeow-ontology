@@ -81,6 +81,11 @@ mod physical;
 pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 pub mod probabilistic;
 pub mod profile_gate;
+/// The public STRUCTURED proof view: a checked backward-engine proof as a step TREE
+/// ([`proof_tree::ProofTree`]) with parent edges, asserted leaves, and content-addressed
+/// step identities, plus its TSTP derivation projection — the proof-as-process surface
+/// [`goal_directed`]'s single `derivation_iri` hash cannot carry.
+pub mod proof_tree;
 pub mod provenance;
 /// Verified PURREMB external-relation provider: a query-scoped nearest-neighbour relation
 /// over a fully verified embedding artifact, exposing retrieved RDF 1.2 identities to the

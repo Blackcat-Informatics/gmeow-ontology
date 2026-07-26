@@ -28,5 +28,9 @@
 pub mod lower_fol;
 pub mod parser;
 
-pub use lower_fol::{LoweredProblem, LoweringGap, lower_and_decide, lower_problem};
-pub use parser::{AnnotatedFormula, TPTP_NS, TptpError, TptpRole, parse_tptp};
+pub use lower_fol::{
+    LoweredProblem, LoweringGap, lower_and_decide, lower_problem, lower_to_fol_program,
+};
+pub use parser::{
+    AnnotatedFormula, TPTP_NS, TptpError, TptpRole, TptpSource, TstpTerm, parse_tptp,
+};

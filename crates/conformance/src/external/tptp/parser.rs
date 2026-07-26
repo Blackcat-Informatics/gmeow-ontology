@@ -11,6 +11,17 @@
 //! arity 0). Predicate and constant symbols are minted into the [`TPTP_NS`]
 //! namespace so alpha-equivalent problems lower deterministically.
 //!
+//! # TSTP derivations, not only problems
+//!
+//! An annotated formula's optional 4th (`<source>`) and 5th (`<useful_info>`)
+//! fields are parsed, so this reads a TSTP **solution** — a derivation — as well
+//! as a problem. `inference(<rule>, [status(thm)], [<parents>])`, `file(...)`,
+//! `theory(...)`, and a bare parent name are recognized into [`TptpSource`]; the
+//! generic annotation-term shape survives as [`TstpTerm`]. A derived step's role
+//! `plain` is its OWN [`TptpRole::Derived`] rather than collapsing into
+//! [`TptpRole::Premise`] — a derivation step is not an asserted premise, and
+//! conflating the two would silently re-assert every inference as an axiom.
+//!
 //! Everything the first-order [`Formula`] AST cannot faithfully carry is a
 //! **typed capability gap**, not a silent drop: a function symbol in argument
 //! position (the `Term` AST has no function-application leaf — that is the EL/DL
@@ -51,13 +62,22 @@ impl std::fmt::Display for TptpError {
 impl std::error::Error for TptpError {}
 
 /// The TPTP formula role. Only the roles whose model-theoretic meaning the
-/// refutation reduction needs are distinguished; the rest collapse to
-/// [`TptpRole::Premise`]. An unrecognized role string is a [`TptpError::Syntax`].
+/// refutation reduction or a TSTP derivation needs are distinguished; the rest
+/// collapse to [`TptpRole::Premise`]. An unrecognized role string is a
+/// [`TptpError::Syntax`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TptpRole {
     /// An asserted premise (`axiom`, `hypothesis`, `definition`, `assumption`,
-    /// `lemma`, `theorem`, `corollary`, `plain`). Used as-is.
+    /// `lemma`, `theorem`, `corollary`). Used as-is.
     Premise,
+    /// A DERIVED step of a TSTP derivation (`plain`) — a formula the prover
+    /// inferred, normally carrying an `inference(...)` [`TptpSource`].
+    ///
+    /// This is deliberately NOT [`TptpRole::Premise`]: a derivation step is
+    /// justified by its parents, and treating it as an asserted premise would
+    /// re-assert every inference as an independent axiom — turning a proof into a
+    /// (much stronger, possibly inconsistent) axiom set.
+    Derived,
     /// A conjecture to prove. The refutation reduction negates it
     /// (`premises ∧ ¬conjecture`).
     Conjecture,
@@ -70,7 +90,8 @@ impl TptpRole {
     fn parse(s: &str) -> Result<TptpRole, TptpError> {
         match s {
             "axiom" | "hypothesis" | "definition" | "assumption" | "lemma" | "theorem"
-            | "corollary" | "plain" => Ok(TptpRole::Premise),
+            | "corollary" => Ok(TptpRole::Premise),
+            "plain" => Ok(TptpRole::Derived),
             "conjecture" => Ok(TptpRole::Conjecture),
             "negated_conjecture" => Ok(TptpRole::NegatedConjecture),
             "type" | "fi_domain" | "fi_functors" | "fi_predicates" => {
@@ -79,6 +100,162 @@ impl TptpRole {
                 )))
             }
             other => Err(TptpError::Syntax(format!("unknown formula role {other:?}"))),
+        }
+    }
+}
+
+/// A general TSTP annotation term: the shape the `<source>` / `<useful_info>`
+/// fields of an annotated formula are built from.
+///
+/// Kept structural (rather than a rendered string) so a consumer reads a
+/// derivation's annotations without re-parsing text: `status(thm)` is
+/// `Func("status", [Name("thm")])`, `[status(thm)]` is a [`Self::List`], and a
+/// bare parent name is a [`Self::Name`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TstpTerm {
+    /// A bare name: a lower word, a single-quoted atom, an upper word, or a number.
+    /// The quoting is not retained — the name is its unescaped text.
+    Name(String),
+    /// A functor applied to one or more arguments, e.g. `status(thm)`.
+    Func(String, Vec<TstpTerm>),
+    /// A bracketed list, e.g. `[status(thm)]`, `[c_1, c_2]`, or the empty `[]`.
+    List(Vec<TstpTerm>),
+}
+
+/// The recognized `<source>` annotation of an annotated formula — where the
+/// formula came from.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TptpSource {
+    /// `inference(<rule>, [<status>…], [<parent>…])` — a derived step.
+    Inference {
+        /// The inference rule name (a bare functor / quoted atom).
+        rule: String,
+        /// The status list's items verbatim (conventionally one `status(thm)`).
+        status: Vec<TstpTerm>,
+        /// The parent step names, in source order.
+        parents: Vec<String>,
+    },
+    /// `file('<path>')` or `file('<path>', <name>)` — an input formula.
+    File {
+        /// The source file path.
+        path: String,
+        /// The formula's name within that file, when given.
+        name: Option<String>,
+    },
+    /// A bare name: the source is the identically-named formula.
+    Name(String),
+    /// `theory(<name>, …)` — the formula comes from a background theory.
+    Theory {
+        /// The theory name (e.g. `equality`).
+        name: String,
+        /// Any further theory arguments, verbatim.
+        args: Vec<TstpTerm>,
+    },
+}
+
+impl TptpSource {
+    /// Recognize a parsed annotation term as a source.
+    ///
+    /// # Errors
+    /// [`TptpError::Syntax`] for a malformed `inference`/`file`/`theory` shape;
+    /// [`TptpError::Unsupported`] for a well-formed but unrecognized source
+    /// functor (e.g. `introduced(...)`) or a NESTED source inside a parent list —
+    /// an honest capability gap, never a silently dropped provenance edge.
+    fn recognize(term: TstpTerm) -> Result<TptpSource, TptpError> {
+        match term {
+            TstpTerm::Name(n) => Ok(TptpSource::Name(n)),
+            TstpTerm::List(_) => Err(TptpError::Syntax(
+                "a formula source must be a name or a functor, found a list".into(),
+            )),
+            TstpTerm::Func(f, args) => match f.as_str() {
+                "inference" => {
+                    let [rule, status, parents] = <[TstpTerm; 3]>::try_from(args).map_err(|a| {
+                        TptpError::Syntax(format!(
+                            "inference(...) takes exactly (rule, status-list, parent-list); \
+                             found {} argument(s)",
+                            a.len()
+                        ))
+                    })?;
+                    let TstpTerm::Name(rule) = rule else {
+                        return Err(TptpError::Syntax(
+                            "an inference rule must be a bare name / quoted atom".into(),
+                        ));
+                    };
+                    let TstpTerm::List(status) = status else {
+                        return Err(TptpError::Syntax(
+                            "an inference's 2nd argument must be a bracketed status list".into(),
+                        ));
+                    };
+                    let TstpTerm::List(parent_terms) = parents else {
+                        return Err(TptpError::Syntax(
+                            "an inference's 3rd argument must be a bracketed parent list".into(),
+                        ));
+                    };
+                    let mut parents = Vec::with_capacity(parent_terms.len());
+                    for p in parent_terms {
+                        match p {
+                            TstpTerm::Name(n) => parents.push(n),
+                            other => {
+                                return Err(TptpError::Unsupported(format!(
+                                    "nested inference parent {other:?} — only NAMED parents are \
+                                     carried (an inline parent derivation would need a second, \
+                                     anonymous step identity this IR does not mint)"
+                                )));
+                            }
+                        }
+                    }
+                    Ok(TptpSource::Inference {
+                        rule,
+                        status,
+                        parents,
+                    })
+                }
+                "file" => {
+                    let mut it = args.into_iter();
+                    let path = match it.next() {
+                        Some(TstpTerm::Name(p)) => p,
+                        _ => {
+                            return Err(TptpError::Syntax(
+                                "file(...) requires a leading file-name atom".into(),
+                            ));
+                        }
+                    };
+                    let name = match it.next() {
+                        None => None,
+                        Some(TstpTerm::Name(n)) => Some(n),
+                        Some(other) => {
+                            return Err(TptpError::Syntax(format!(
+                                "file(...)'s 2nd argument must be a formula name, found {other:?}"
+                            )));
+                        }
+                    };
+                    if it.next().is_some() {
+                        return Err(TptpError::Syntax(
+                            "file(...) takes at most (path, name)".into(),
+                        ));
+                    }
+                    Ok(TptpSource::File { path, name })
+                }
+                "theory" => {
+                    let mut it = args.into_iter();
+                    let name = match it.next() {
+                        Some(TstpTerm::Name(n)) => n,
+                        _ => {
+                            return Err(TptpError::Syntax(
+                                "theory(...) requires a leading theory name".into(),
+                            ));
+                        }
+                    };
+                    Ok(TptpSource::Theory {
+                        name,
+                        args: it.collect(),
+                    })
+                }
+                other => Err(TptpError::Unsupported(format!(
+                    "formula source `{other}(...)` (only inference/file/theory and a bare \
+                     parent name are carried)"
+                ))),
+            },
         }
     }
 }
@@ -92,6 +269,14 @@ pub struct AnnotatedFormula {
     pub role: TptpRole,
     /// The parsed first-order formula.
     pub formula: Formula,
+    /// The `<source>` annotation (the optional 4th field), when present. A plain
+    /// problem file carries none; a TSTP derivation step carries an
+    /// [`TptpSource::Inference`].
+    pub source: Option<TptpSource>,
+    /// The `<useful_info>` annotation (the optional 5th field) verbatim, when
+    /// present — retained rather than dropped, so nothing the source states is
+    /// silently lost.
+    pub useful_info: Option<TstpTerm>,
 }
 
 /// Parse a complete TPTP problem document into its annotated formulas.
@@ -452,6 +637,11 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// `fof(name, role, formula[, source[, useful_info]]).`
+    ///
+    /// The trailing annotation fields are the TSTP derivation slot: a problem file
+    /// omits them (and parses exactly as before), a derivation step supplies at
+    /// least the `<source>`.
     fn fof_or_cnf(&mut self, is_cnf: bool) -> Result<AnnotatedFormula, TptpError> {
         self.expect(&Tok::LParen)?;
         let name = self.name()?;
@@ -471,13 +661,84 @@ impl<'a> Parser<'a> {
         } else {
             self.fof_formula()?
         };
+        let mut source = None;
+        let mut useful_info = None;
+        if matches!(self.peek(), Some(Tok::Comma)) {
+            self.bump()?;
+            source = Some(TptpSource::recognize(self.tstp_term()?)?);
+            if matches!(self.peek(), Some(Tok::Comma)) {
+                self.bump()?;
+                useful_info = Some(self.tstp_term()?);
+            }
+        }
         self.expect(&Tok::RParen)?;
         self.expect(&Tok::Dot)?;
         Ok(AnnotatedFormula {
             name,
             role,
             formula,
+            source,
+            useful_info,
         })
+    }
+
+    /// A general TSTP annotation term: a bracketed list, or a name optionally
+    /// applied to a parenthesized argument list.
+    fn tstp_term(&mut self) -> Result<TstpTerm, TptpError> {
+        if matches!(self.peek(), Some(Tok::LBracket)) {
+            self.bump()?;
+            let mut items = Vec::new();
+            if matches!(self.peek(), Some(Tok::RBracket)) {
+                self.bump()?;
+                return Ok(TstpTerm::List(items));
+            }
+            loop {
+                items.push(self.tstp_term()?);
+                match self.peek() {
+                    Some(Tok::Comma) => {
+                        self.bump()?;
+                    }
+                    Some(Tok::RBracket) => break,
+                    other => {
+                        return Err(TptpError::Syntax(format!(
+                            "expected `,` or `]` in an annotation list, found {other:?}"
+                        )));
+                    }
+                }
+            }
+            self.expect(&Tok::RBracket)?;
+            return Ok(TstpTerm::List(items));
+        }
+        let word = match self.bump()? {
+            Tok::Lower(w) | Tok::Upper(w) | Tok::Number(w) => w.clone(),
+            other => {
+                return Err(TptpError::Syntax(format!(
+                    "expected an annotation term, found {other:?}"
+                )));
+            }
+        };
+        if !matches!(self.peek(), Some(Tok::LParen)) {
+            return Ok(TstpTerm::Name(word));
+        }
+        self.bump()?;
+        let mut args = Vec::new();
+        // `f()` is not TPTP: a functor is either bare or applied to ≥1 argument.
+        loop {
+            args.push(self.tstp_term()?);
+            match self.peek() {
+                Some(Tok::Comma) => {
+                    self.bump()?;
+                }
+                Some(Tok::RParen) => break,
+                other => {
+                    return Err(TptpError::Syntax(format!(
+                        "expected `,` or `)` in an annotation argument list, found {other:?}"
+                    )));
+                }
+            }
+        }
+        self.expect(&Tok::RParen)?;
+        Ok(TstpTerm::Func(word, args))
     }
 
     fn name(&mut self) -> Result<String, TptpError> {
@@ -1006,5 +1267,196 @@ mod tests {
         assert_eq!(v.len(), 2);
         assert_eq!(v[0].name, "a1");
         assert_eq!(v[1].name, "a2");
+    }
+
+    // --- TSTP derivation grammar ---------------------------------------------
+
+    #[test]
+    fn a_plain_problem_formula_carries_no_annotation() {
+        // Backwards shape guarantee: the 3-field form still parses and reports an
+        // ABSENT source, so `lower_problem`'s premise/conjecture routing is unchanged.
+        let af = one("fof(x_is_a, axiom, a(x)).\n");
+        assert_eq!(af.role, TptpRole::Premise);
+        assert_eq!(af.source, None);
+        assert_eq!(af.useful_info, None);
+    }
+
+    #[test]
+    fn plain_role_is_a_derived_step_not_a_premise() {
+        let af = one("cnf(d_1, plain, b(x), inference(r, [status(thm)], [d_0])).\n");
+        assert_eq!(
+            af.role,
+            TptpRole::Derived,
+            "a `plain` TSTP step must not masquerade as an asserted premise"
+        );
+    }
+
+    #[test]
+    fn parses_an_inference_source_with_status_and_parents() {
+        let af = one("cnf(c3, plain, b(x), inference(resolution, [status(thm)], [c1, c2])).\n");
+        match af.source.expect("a source is present") {
+            TptpSource::Inference {
+                rule,
+                status,
+                parents,
+            } => {
+                assert_eq!(rule, "resolution");
+                assert_eq!(
+                    status,
+                    vec![TstpTerm::Func(
+                        "status".into(),
+                        vec![TstpTerm::Name("thm".into())]
+                    )]
+                );
+                assert_eq!(parents, vec!["c1".to_string(), "c2".to_string()]);
+            }
+            other => panic!("expected an inference source, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_an_inference_with_no_parents_and_a_quoted_rule_iri() {
+        let af = one(
+            "cnf(c1, plain, 'https://example.org/p'('https://example.org/a'), \
+             inference('https://example.org/rule/1', [status(thm)], [])).\n",
+        );
+        match af.source.expect("source") {
+            TptpSource::Inference { rule, parents, .. } => {
+                assert_eq!(rule, "https://example.org/rule/1");
+                assert!(parents.is_empty());
+            }
+            other => panic!("expected an inference source, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_file_bare_name_and_theory_sources() {
+        let af = one("cnf(c1, axiom, a(x), file('problem.p', x_is_a)).\n");
+        assert_eq!(
+            af.source,
+            Some(TptpSource::File {
+                path: "problem.p".into(),
+                name: Some("x_is_a".into())
+            })
+        );
+
+        let af = one("cnf(c1, axiom, a(x), file('problem.p')).\n");
+        assert_eq!(
+            af.source,
+            Some(TptpSource::File {
+                path: "problem.p".into(),
+                name: None
+            })
+        );
+
+        let af = one("cnf(c1, axiom, a(x), x_is_a).\n");
+        assert_eq!(af.source, Some(TptpSource::Name("x_is_a".into())));
+
+        let af = one("cnf(c1, axiom, a(x), theory(equality)).\n");
+        assert_eq!(
+            af.source,
+            Some(TptpSource::Theory {
+                name: "equality".into(),
+                args: vec![]
+            })
+        );
+    }
+
+    #[test]
+    fn parses_the_useful_info_field() {
+        let af = one("cnf(c1, plain, a(x), inference(r, [], [c0]), [iquote('foo')]).\n");
+        assert_eq!(
+            af.useful_info,
+            Some(TstpTerm::List(vec![TstpTerm::Func(
+                "iquote".into(),
+                vec![TstpTerm::Name("foo".into())]
+            )]))
+        );
+    }
+
+    #[test]
+    fn a_nested_inference_parent_is_a_capability_gap() {
+        // An inline parent derivation would need a second, anonymous step identity —
+        // an honest gap, never a silently dropped provenance edge.
+        let err = parse_tptp("cnf(c2, plain, a(x), inference(r, [], [inference(s, [], [c0])])).\n")
+            .unwrap_err();
+        assert!(matches!(err, TptpError::Unsupported(_)), "{err}");
+    }
+
+    #[test]
+    fn an_unrecognized_source_functor_is_a_capability_gap() {
+        let err = parse_tptp("cnf(c1, plain, a(x), introduced(definition)).\n").unwrap_err();
+        assert!(matches!(err, TptpError::Unsupported(_)), "{err}");
+    }
+
+    #[test]
+    fn a_malformed_inference_arity_is_a_syntax_error() {
+        let err = parse_tptp("cnf(c1, plain, a(x), inference(r, [])).\n").unwrap_err();
+        assert!(matches!(err, TptpError::Syntax(_)), "{err}");
+    }
+
+    #[test]
+    fn the_committed_tptp_mini_problem_corpus_still_parses() {
+        // Regression pin for the annotation-slot grammar: every committed
+        // `tptp-mini` problem must keep parsing to exactly its authored formulas,
+        // with no source annotation invented.
+        const CORPUS: &[(&str, &str, usize)] = &[
+            (
+                "cnf-disjoint-clash",
+                include_str!(
+                    "../../../../../conformance/logic/cases/external/tptp-mini/cnf-disjoint-clash/source/problem.p"
+                ),
+                4,
+            ),
+            (
+                "contradictory-axioms",
+                include_str!(
+                    "../../../../../conformance/logic/cases/external/tptp-mini/contradictory-axioms/source/problem.p"
+                ),
+                4,
+            ),
+            (
+                "countersatisfiable",
+                include_str!(
+                    "../../../../../conformance/logic/cases/external/tptp-mini/countersatisfiable/source/problem.p"
+                ),
+                2,
+            ),
+            (
+                "satisfiable-open",
+                include_str!(
+                    "../../../../../conformance/logic/cases/external/tptp-mini/satisfiable-open/source/problem.p"
+                ),
+                2,
+            ),
+            (
+                "theorem-ground",
+                include_str!(
+                    "../../../../../conformance/logic/cases/external/tptp-mini/theorem-ground/source/problem.p"
+                ),
+                3,
+            ),
+            (
+                "theorem-subclass",
+                include_str!(
+                    "../../../../../conformance/logic/cases/external/tptp-mini/theorem-subclass/source/problem.p"
+                ),
+                3,
+            ),
+        ];
+        for (case, src, expected) in CORPUS {
+            let parsed = parse_tptp(src).unwrap_or_else(|e| panic!("{case} must parse: {e}"));
+            assert_eq!(parsed.len(), *expected, "{case} formula count");
+            for af in &parsed {
+                assert_eq!(af.source, None, "{case}/{} carries no source", af.name);
+                assert_eq!(af.useful_info, None, "{case}/{}", af.name);
+                assert!(
+                    matches!(af.role, TptpRole::Premise | TptpRole::Conjecture),
+                    "{case}/{} role {:?}",
+                    af.name,
+                    af.role
+                );
+            }
+        }
     }
 }

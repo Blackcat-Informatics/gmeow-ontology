@@ -141,8 +141,17 @@ use session_common::*;
 /// byte-for-byte behaviour-preserving (the same netstring fold, the same de-Bruijn
 /// encoding, the same interning constructors), so no reasoning verdict on any input
 /// changes.
+/// Re-blessed once more for the public STRUCTURED proof view (`proof_tree.rs`): reading a
+/// checked proof term as a step TREE requires `physical/proof.rs`'s `ProofShape` decoder and
+/// its `classify` entry to be `pub(crate)` (a second decode of the `App` proof framing would
+/// be a forked duplicate of the one place it is parsed), and `physical/proof.rs` is folded via
+/// `include_str!` into `backward_source_hash`, so the raw source-content digest moves. The
+/// change is visibility-only — no constructor, checker rule, or minting recipe is touched — so
+/// no reasoning verdict on any input changes. (`proof_tree.rs` itself is a downstream READER of
+/// an already-decided proof and is classified in `NOT_BACKWARD_SOURCE` alongside
+/// `goal_directed.rs`, so it adds nothing to the digest.)
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "79efe37c017e76193051412210cc1e415d3f809080d1969d470acfee819005ae";
+    "d20353676c204fbafb89709a070f0f585e9f20fae20f69274141303970e64e3e";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -195,8 +204,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// above): the backward-source digest is one of the seven folded identity axes and moves
 /// with the arena's new crate-relative source paths, while the fixed edge-only input's
 /// reasoning verdict is unchanged.
+/// Re-blessed once more for the public structured proof view (see the engine-descriptor
+/// golden above): the backward-source digest is one of the seven folded identity axes and
+/// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
+/// edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "eed3bfab8b10e806f21a3529f2f0026258f0b6bca422a311e5df57d2013725aa";
+    "b3a38b213f260fde663540fa791be2d96c5cd6eb85d98bd1fe2929e775195815";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

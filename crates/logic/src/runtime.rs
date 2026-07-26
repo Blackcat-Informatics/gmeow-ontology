@@ -481,6 +481,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "goal_directed.rs",
         "the pub façade that runs shipped goal-directed demonstrators through the backward engine and projects proof-checked answers to RDF — a downstream consumer of the decision path (it calls resolve_fol), not part of what dispatch_query decides",
     ),
+    (
+        "proof_tree.rs",
+        "the pub structured proof view (proof term -> step tree -> TSTP derivation) — like goal_directed.rs a downstream READER of an already-decided proof (it calls goal_directed's lowering, resolve_fol, and proof::check and then only projects); nothing in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it, so it cannot change what dispatch_query decides",
+    ),
     ("lib.rs", "crate-root module wiring, not the decision path"),
     (
         "logic_diagnostics.rs",
