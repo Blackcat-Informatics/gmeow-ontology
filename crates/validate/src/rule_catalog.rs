@@ -583,7 +583,7 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     ),
     (
         codes::AUTHORING_CATALOG_MISSING_MODULE,
-        "Regenerate the XML catalog (make sync) so every slice module owl:Ontology IRI is mapped.",
+        "Regenerate the XML catalog (make regen) so every slice module owl:Ontology IRI is mapped.",
     ),
     (
         codes::AUTHORING_MODULE_IRI_MISMATCH,

@@ -650,7 +650,7 @@ mod tests {
 
     /// Task 7 Part B (adversary F2/N1): the projection producer
     /// [`build_catalog_nquads`] (called directly with the REAL registry seeds —
-    /// deterministic, no `make sync` dependency: it reads straight off the
+    /// deterministic, no `make regen` dependency: it reads straight off the
     /// authored ontology sources on disk) emits a `gmeow:ruleRemediation` triple
     /// for EVERY enforced rule whose code is NOT on
     /// [`gmeow_validate::rule_catalog::REMEDIATION_ABSENT`], and NO such triple

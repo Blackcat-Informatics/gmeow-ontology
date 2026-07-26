@@ -1002,6 +1002,10 @@ fn no_dangling_internal_html_links() {
         let html = std::str::from_utf8(bytes).expect("html is utf-8");
         let dir = path.rsplit_once('/').map(|(d, _)| d).unwrap_or("");
         for href in extract_hrefs(html) {
+            // A `#fragment` addresses a within-page anchor; the dangling check is
+            // about the target FILE, so resolve only the path portion (anchor
+            // existence is guaranteed separately by the SourceToPageMap hard-fail).
+            let href = href.split('#').next().unwrap_or(&href);
             if href.is_empty()
                 || href.contains("://")
                 || href.starts_with("mailto:")
@@ -1009,7 +1013,7 @@ fn no_dangling_internal_html_links() {
             {
                 continue;
             }
-            let resolved = resolve(dir, &href);
+            let resolved = resolve(dir, href);
             assert!(
                 keys.contains(&resolved),
                 "dangling internal link in {path}: href={href:?} -> {resolved:?}"

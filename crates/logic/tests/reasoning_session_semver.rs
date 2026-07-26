@@ -125,9 +125,15 @@ use session_common::*;
 /// raw source-content digest moves on both axes. The change only makes an already-malformed
 /// multi-valued cell decline instead of mis-decoding, so no reasoning verdict on any
 /// well-formed input — including this fixed edge-only input, which authors no dimension
-/// cell — changes. (Value below is the post-`cargo fmt` state of the branch.)
+/// cell — changes.
+/// Re-blessed for the origin/main merge into this branch: this branch's ADDITIVE engine
+/// sources — the W4b browser reasoner `reason::reason_closure_dataset` (wrapping the
+/// unchanged native chase) and the W4 `conjecture_eval` orchestration module — combine with
+/// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
+/// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
+/// changes (all additions are inert on it).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "4d975a17ed4114c3943f99057dd559faecc414763816307f4812f52369147be5";
+    "3975aebcdfcea0425a765d972844451cf2437d90831a6c6f8063f471c2302aaf";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -181,8 +187,15 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// the native contract hash — and with it the engine descriptor and the fixed-input
 /// session identity — moves. The fixed edge-only input authors no enactment record, so
 /// its reasoning verdict is unchanged; only the identity moved.
+/// Re-blessed again on integrating main, and for a different reason than the ones above: BOTH
+/// sides had already moved this golden away from the merge base, so neither branch's value is
+/// correct for the merged engine. The descriptor folds this branch's enactment-gate
+/// registration together with main's own source changes, producing a third value that is not a
+/// choice between the two. It was recomputed from the merged engine rather than resolved by
+/// taking a side — taking a side here would pin a hash that no build actually produces, and the
+/// test would then fail for everyone on a value that looked deliberate.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "2617a923640b3b52000b88427a7a4b54ffc6ba6fd43ceb69ad30958a5a1183b7";
+    "8aa639d65ad214533b37d09d424c4ba903df7dcdaa064d9269a1a0a164983f0e";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

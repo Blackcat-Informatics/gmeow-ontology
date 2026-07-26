@@ -17970,48 +17970,48 @@ msgid "Model Advisory"
 msgstr "模型咨询意见"
 
 msgctxt "https://blackcatinformatics.ca/logic/ApprovalCommitment|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \\\"blake3:7f21\\\" ."
-msgstr "示例：ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \\\"blake3:7f21\\\" ."
+msgid "ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \"blake3:7f21\" ."
+msgstr "示例：ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \"blake3:7f21\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ArgumentNormalization|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \\\"canonical-nt-sorted\\\" ."
-msgstr "示例：ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \\\"canonical-nt-sorted\\\" ."
+msgid "ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \"canonical-nt-sorted\" ."
+msgstr "示例：ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \"canonical-nt-sorted\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ClockAttribution|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \\\"2026-07-25T04:00:00Z\\\"^^xsd:dateTime ."
-msgstr "示例：ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \\\"2026-07-25T04:00:00Z\\\"^^xsd:dateTime ."
+msgid "ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \"2026-07-25T04:00:00Z\"^^xsd:dateTime ."
+msgstr "示例：ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \"2026-07-25T04:00:00Z\"^^xsd:dateTime ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationRevise|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "revise the prescription"
 msgstr "修订规定"
 
 msgctxt "https://blackcatinformatics.ca/logic/DispatchIntent|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payIntent a logic:DispatchIntent ; logic:intentDigest \\\"blake3:7f21\\\" ."
-msgstr "示例：ex:payIntent a logic:DispatchIntent ; logic:intentDigest \\\"blake3:7f21\\\" ."
+msgid "ex:payIntent a logic:DispatchIntent ; logic:intentDigest \"blake3:7f21\" ."
+msgstr "示例：ex:payIntent a logic:DispatchIntent ; logic:intentDigest \"blake3:7f21\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/EffectAttempt|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \\\"txn-9f21ab\\\" ."
-msgstr "示例：ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \\\"txn-9f21ab\\\" ."
+msgid "ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \"txn-9f21ab\" ."
+msgstr "示例：ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \"txn-9f21ab\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/EnactmentCheckpoint|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \\\"blake3:5a6b\\\" ."
-msgstr "示例：ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \\\"blake3:5a6b\\\" ."
+msgid "ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \"blake3:5a6b\" ."
+msgstr "示例：ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \"blake3:5a6b\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierReconciliationImpossible|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reconciliation foreclosed"
 msgstr "核实已无从进行"
 
 msgctxt "https://blackcatinformatics.ca/logic/IdempotencyContract|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \\\"P1D\\\"^^xsd:duration ."
-msgstr "示例：ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \\\"P1D\\\"^^xsd:duration ."
+msgid "ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \"P1D\"^^xsd:duration ."
+msgstr "示例：ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \"P1D\"^^xsd:duration ."
 
 msgctxt "https://blackcatinformatics.ca/logic/InputSnapshot|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \\\"blake3:9f8e\\\" ."
-msgstr "示例：ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \\\"blake3:9f8e\\\" ."
+msgid "ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \"blake3:9f8e\" ."
+msgstr "示例：ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \"blake3:9f8e\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/JournalEntry|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \\\"blake3:a1b2\\\" ; logic:journalNewHead \\\"blake3:c3d4\\\" ."
-msgstr "示例：ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \\\"blake3:a1b2\\\" ; logic:journalNewHead \\\"blake3:c3d4\\\" ."
+msgid "ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \"blake3:a1b2\" ; logic:journalNewHead \"blake3:c3d4\" ."
+msgstr "示例：ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \"blake3:a1b2\" ; logic:journalNewHead \"blake3:c3d4\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/OutcomeIncomplete|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "incomplete operation"
@@ -19308,3 +19308,115 @@ msgstr "核实结果携带一项裁断"
 msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:Constraint rejecting a logic:ReconciliationResult with no logic:ReconciliationVerdict. A probe that completed and recorded nothing is indistinguishable from a probe that never ran, and the difference matters: the first leaves an effect where it was, the second leaves it unprobed and still owing a reconciliation."
 msgstr "拒斥无 logic:ReconciliationVerdict 之 logic:ReconciliationResult 的 logic:Constraint。一次完成却什么也未记录的探询，与一次从未运行的探询无从分辨，而这一区别至关紧要：前者使效应停留在原处，后者则使它仍未被探询，且仍欠着一次核实。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abductive repair schema"
+msgstr "溯因修复模式"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A constructive-advice carrier: it marks a modeling discipline as abductively repairable and supplies the machinery for deriving the minimal 'what to ADD' addition that completes an under-specified subject. It logic:formalizes the governed term, names its repair mechanism with logic:repairStrategy (how the candidate addition is read off the declared structure), optionally back-links the discipline it repairs with logic:repairsDiscipline, and carries a logic:completenessFormula — the discipline-satisfied condition, authored as a first-class logic:Formula so the abductive suggestion is warranted by a native conjecture-engine corroboration rather than by hand-authored prose. Unlike a logic:Constraint it neither gates nor projects to a shape surface; it is consumed by the abductive advice producer, which instantiates the completeness formula at a gap subject and tests a candidate addition in an isolated scenario world."
+msgstr "一个建设性建议载体：它将一个建模纪律标记为可溯因修复的，并提供用于推导出补全某个欠规约主体的最小'应添加什么'添加项的机制。它以 logic:formalizes 形式化所治理的术语，用 logic:repairStrategy 命名其修复机制（即如何从已声明的结构中读出候选添加项），并可选地用 logic:repairsDiscipline 反向链接其所修复的纪律，且携带一个 logic:completenessFormula —— 即纪律满足条件，作为一等 logic:Formula 编写，从而使溯因建议由原生猜想引擎的确证、而非由手工编写的散文所担保。与 logic:Constraint 不同，它既不进行门控也不投射到形状表面；它由溯因建议生产者消费，后者在缺口主体处实例化完整性公式，并在一个隔离的情景世界中测试候选添加项。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abductive repair strategy"
+msgstr "溯因修复策略"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed value class naming HOW a logic:AbductiveSchema reads its candidate addition off the governed subject's declared-but-unsatisfied structure. Its individuals — logic:StrategyRelatumCompletion, logic:StrategyChainCompletion, logic:StrategySortalSpecialization and logic:StrategyFrameDeclaration — each stand for one derivation of the minimal addition, so registering a further discipline of an existing kind is a data mark (a new logic:AbductiveSchema naming an existing strategy), never new engine code."
+msgstr "命名 logic:AbductiveSchema 如何从所治理主体的已声明但未满足的结构中读出其候选添加项的封闭值类。其个体 —— logic:StrategyRelatumCompletion、logic:StrategyChainCompletion、logic:StrategySortalSpecialization 和 logic:StrategyFrameDeclaration —— 各自代表最小添加项的一种推导，因此注册一个既有种类的额外纪律只是一处数据标记（一个命名既有策略的新 logic:AbductiveSchema），而绝非新的引擎代码。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relatum completion"
+msgstr "关系项补全"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for an under-mediated relator: the candidate additions are the relator's declared logic:mediates targets that the subject does not yet fill — 'add the missing relatum' (for a Commitment, the second party via gmeow:committedAgent or gmeow:commitmentBeneficiary)."
+msgstr "针对某个中介化不足的关系子的修复策略：候选添加项是该关系子已声明的、主体尚未填充的 logic:mediates 目标 —— '添加缺失的关系项'（对于 Commitment 而言，即经由 gmeow:committedAgent 或 gmeow:commitmentBeneficiary 的第二方）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chain completion"
+msgstr "链补全"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for an incomplete realization chain: the candidate addition is the next missing link along a declared chain of predicates — for a bare gmeow:Item, the gmeow:exemplifies link to a gmeow:Manifestation the Item must exemplify."
+msgstr "针对某条不完整实现链的修复策略：候选添加项是沿某条已声明谓词链的下一个缺失环节 —— 对于一个裸 gmeow:Item，即通向该 Item 必须例示的某个 gmeow:Manifestation 的 gmeow:exemplifies 链接。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sortal specialization"
+msgstr "sortal 特化"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations the completeness disjunction offers (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — of which the engine keeps only those consistent with the subject's other assertions."
+msgstr "针对某个裸 gmeow:Entity 实例的修复策略：候选添加项是完整性析取所提供的顶层 sortal 特化（gmeow:Agent、gmeow:InformationObject、gmeow:PhysicalObject、gmeow:SocialObject）—— '特化为 sortal X' —— 引擎只保留其中与该主体其他断言相一致的那些。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frame declaration"
+msgstr "参照系声明"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for a subject that requires a reference frame it lacks: the candidate addition is a declared gmeow:hasReferenceFrame value — 'declare a reference frame F' — for a gmeow:Expression whose realizing language or notation is left implicit (the required-frame discipline, Principle 11)."
+msgstr "针对某个需要它所缺乏的参照系的主体的修复策略：候选添加项是一个已声明的 gmeow:hasReferenceFrame 值 —— '声明一个参照系 F' —— 用于某个其实现语言或记法被留作隐含的 gmeow:Expression（即所需参照系纪律，原则 11）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repairs discipline"
+msgstr "修复纪律"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Back-links a logic:AbductiveSchema to the modeling discipline (a logic:Discipline, a logic:Constraint, or a foundation-lowering violation term) whose under-satisfaction the schema constructively repairs. Provenance only: the completeness warrant lives on the schema's own logic:completenessFormula, not on the discipline, so a discipline that carries no logic:integrity is still fully repairable."
+msgstr "将一个 logic:AbductiveSchema 反向链接到其欠满足由该模式建设性修复的建模纪律（一个 logic:Discipline、一个 logic:Constraint，或一个基础降格违规术语）。仅为出处：完整性担保位于该模式自身的 logic:completenessFormula 上，而非位于该纪律上，因此一个不携带任何 logic:integrity 的纪律仍然完全可修复。"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repair strategy"
+msgstr "修复策略"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names, on a logic:AbductiveSchema, the logic:AbductiveRepairStrategy by which the abductive producer reads the candidate addition off the governed subject's declared structure — the single knob that lets a further discipline of an existing kind be registered as data rather than code."
+msgstr "在一个 logic:AbductiveSchema 上命名 logic:AbductiveRepairStrategy，溯因生产者借此从所治理主体的已声明结构中读出候选添加项 —— 这是使既有种类的额外纪律得以作为数据而非代码来注册的唯一旋钮。"
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "completeness formula"
+msgstr "完整性公式"
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The discipline-SATISFIED condition a logic:AbductiveSchema carries: a first-class logic:Formula over one free subject variable (\"this\") that holds exactly when the governed subject is no longer under-specified for the discipline. The abductive producer instantiates it at a gap subject and asks the native conjecture engine whether a candidate addition makes it hold in a consistent scenario world; a corroboration is the warrant for the emitted 'add X' recommendation. Reached only through this property (never asserted as a free-standing axiom), so authoring the completeness condition never changes what the reasoner entails about the live model."
+msgstr "一个 logic:AbductiveSchema 所携带的纪律已满足条件：一个作用于单个自由主体变量（\"this\"）的一等 logic:Formula，当所治理主体对该纪律不再欠规约时它恰好为真。溯因生产者在缺口主体处将其实例化，并询问原生猜想引擎某个候选添加项是否使其在一个一致的情景世界中为真；一次确证即所发出的 '添加 X' 建议的担保。仅经由该属性抵达（绝不作为独立公理断言），因此编写该完整性条件绝不会改变推理器就活动模型所蕴涵的内容。"
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relator-mediation abductive schema"
+msgstr "关系子中介溯因模式"
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for an under-mediated gmeow:Commitment relator: when a Commitment leaves at least one of its declared logic:mediates relata (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) unfilled, each missing relatum is its own candidate addition, warranted independently against its own ground completeness condition — so a Commitment missing two or even all three relata still yields one corroborated suggestion per missing relatum. The completeness formula holds, for the Commitment as a whole, once all three relata are filled."
+msgstr "针对某个中介化不足的 gmeow:Commitment 关系子的建设性修复模式：当一个 Commitment 使其已声明的 logic:mediates 关系项（gmeow:committedAgent、gmeow:commitmentBeneficiary、gmeow:intentionGoal）中至少一个未被填充时，每个缺失的关系项都是它自己的候选添加项，独立地依其自身的基态完整性条件得到担保 —— 因此一个缺失两个甚至全部三个关系项的 Commitment 仍会为每个缺失的关系项产生一条经确证的建议。就整个 Commitment 而言，一旦三个关系项全部填充，完整性公式即为真。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reference-frame abductive schema"
+msgstr "参照系溯因模式"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for a gmeow:Expression that leaves its realizing language or notation implicit: the required reference frame (Principle 11) is the candidate addition, and the completeness formula holds when the Expression declares a gmeow:hasReferenceFrame value — 'declare a reference frame F for this expression'."
+msgstr "针对某个将其实现语言或记法留作隐含的 gmeow:Expression 的建设性修复模式：所需参照系（原则 11）是候选添加项，且当该 Expression 声明一个 gmeow:hasReferenceFrame 值时完整性公式为真 —— '为该表达式声明一个参照系 F'。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurement-frame abductive schema"
+msgstr "测量参照系溯因模式"
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for a measurement that is expressed in a unit but leaves the reference frame it is read in implicit: a value bearing a logic:unit but no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11 — a value asserted without its frame is ill-formed), so the required reference frame is the candidate addition and the completeness formula holds once the measurement declares a logic:referenceFrame value — 'declare a reference frame F for this unit-bearing value'. The guard is the property-presence of logic:unit (the IRI-valued witness that a framed value exists), not a class type, so a unit-bearing subject of any measurement class is caught."
+msgstr "针对某个以单位表达但将其被读取所依的参照系留作隐含的测量的建设性修复模式：一个携带 logic:unit 却没有 logic:referenceFrame 的值即 logic:MeasurementFrameMissing 违规（原则 11 —— 一个未附其参照系而断言的值是病态的），因此所需参照系是候选添加项，且一旦该测量声明一个 logic:referenceFrame 值，完整性公式即为真 —— '为该携带单位的值声明一个参照系 F'。其守卫是 logic:unit 的属性存在性（即某个已框定值存在的 IRI 值见证），而非某个类类型，因此任意测量类的携带单位的主体都会被捕获。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bare-entity sortal abductive schema"
+msgstr "裸实体 sortal 溯因模式"
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. It reuses the gmeow:BareEntitySortalAdviceConstraint's completeness disjunction (logic:besForall) as its warrant target, so the engine keeps only the specializations consistent with the subject's other assertions."
+msgstr "针对某个被类型化为裸 gmeow:Entity 的个体的建设性修复模式：候选添加项是顶层 sortal 特化（gmeow:Agent、gmeow:InformationObject、gmeow:PhysicalObject、gmeow:SocialObject）—— '特化为 sortal X'。它复用 gmeow:BareEntitySortalAdviceConstraint 的完整性析取（logic:besForall）作为其担保目标，因此引擎只保留与该主体其他断言相一致的那些特化。"
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "WEMI-chain abductive schema"
+msgstr "WEMI 链溯因模式"
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for a gmeow:Item that hangs off no gmeow:Manifestation: the candidate addition is a gmeow:exemplifies link to a Manifestation — 'this Item needs a Manifestation it exemplifies' — and the completeness formula holds when the Item exemplifies some Manifestation, completing the realization chain."
+msgstr "针对某个不依附于任何 gmeow:Manifestation 的 gmeow:Item 的建设性修复模式：候选添加项是一个通向某个 Manifestation 的 gmeow:exemplifies 链接 —— '此 Item 需要一个它所例示的 Manifestation' —— 且当该 Item 例示某个 Manifestation 时完整性公式为真，从而补全实现链。"

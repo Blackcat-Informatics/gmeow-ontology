@@ -17970,48 +17970,48 @@ msgid "Model Advisory"
 msgstr "Avis consultatif de modèle"
 
 msgctxt "https://blackcatinformatics.ca/logic/ApprovalCommitment|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \\\"blake3:7f21\\\" ."
-msgstr "Exemple : ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \\\"blake3:7f21\\\" ."
+msgid "ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \"blake3:7f21\" ."
+msgstr "Exemple : ex:payApproval a logic:ApprovalCommitment ; logic:approvalIntentDigest \"blake3:7f21\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ArgumentNormalization|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \\\"canonical-nt-sorted\\\" ."
-msgstr "Exemple : ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \\\"canonical-nt-sorted\\\" ."
+msgid "ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \"canonical-nt-sorted\" ."
+msgstr "Exemple : ex:payArgs a logic:ArgumentNormalization ; logic:normalizationRecipe \"canonical-nt-sorted\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ClockAttribution|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \\\"2026-07-25T04:00:00Z\\\"^^xsd:dateTime ."
-msgstr "Exemple : ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \\\"2026-07-25T04:00:00Z\\\"^^xsd:dateTime ."
+msgid "ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \"2026-07-25T04:00:00Z\"^^xsd:dateTime ."
+msgstr "Exemple : ex:payClock a logic:ClockAttribution ; logic:clockObservedAt \"2026-07-25T04:00:00Z\"^^xsd:dateTime ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationRevise|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "revise the prescription"
 msgstr "réviser la prescription"
 
 msgctxt "https://blackcatinformatics.ca/logic/DispatchIntent|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payIntent a logic:DispatchIntent ; logic:intentDigest \\\"blake3:7f21\\\" ."
-msgstr "Exemple : ex:payIntent a logic:DispatchIntent ; logic:intentDigest \\\"blake3:7f21\\\" ."
+msgid "ex:payIntent a logic:DispatchIntent ; logic:intentDigest \"blake3:7f21\" ."
+msgstr "Exemple : ex:payIntent a logic:DispatchIntent ; logic:intentDigest \"blake3:7f21\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/EffectAttempt|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \\\"txn-9f21ab\\\" ."
-msgstr "Exemple : ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \\\"txn-9f21ab\\\" ."
+msgid "ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \"txn-9f21ab\" ."
+msgstr "Exemple : ex:payAttempt1 a logic:EffectAttempt ; logic:providerCorrelationId \"txn-9f21ab\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/EnactmentCheckpoint|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \\\"blake3:5a6b\\\" ."
-msgstr "Exemple : ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \\\"blake3:5a6b\\\" ."
+msgid "ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \"blake3:5a6b\" ."
+msgstr "Exemple : ex:ckptW12 a logic:EnactmentCheckpoint ; logic:checkpointDescriptorHash \"blake3:5a6b\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierReconciliationImpossible|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reconciliation foreclosed"
 msgstr "rapprochement forclos"
 
 msgctxt "https://blackcatinformatics.ca/logic/IdempotencyContract|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \\\"P1D\\\"^^xsd:duration ."
-msgstr "Exemple : ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \\\"P1D\\\"^^xsd:duration ."
+msgid "ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \"P1D\"^^xsd:duration ."
+msgstr "Exemple : ex:payIdempotency a logic:IdempotencyContract ; logic:idempotencyRetention \"P1D\"^^xsd:duration ."
 
 msgctxt "https://blackcatinformatics.ca/logic/InputSnapshot|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \\\"blake3:9f8e\\\" ."
-msgstr "Exemple : ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \\\"blake3:9f8e\\\" ."
+msgid "ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \"blake3:9f8e\" ."
+msgstr "Exemple : ex:adrCorpusW12 a logic:InputSnapshot ; logic:snapshotDigest \"blake3:9f8e\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/JournalEntry|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \\\"blake3:a1b2\\\" ; logic:journalNewHead \\\"blake3:c3d4\\\" ."
-msgstr "Exemple : ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \\\"blake3:a1b2\\\" ; logic:journalNewHead \\\"blake3:c3d4\\\" ."
+msgid "ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \"blake3:a1b2\" ; logic:journalNewHead \"blake3:c3d4\" ."
+msgstr "Exemple : ex:entry7 a logic:JournalEntry ; logic:journalPrevHead \"blake3:a1b2\" ; logic:journalNewHead \"blake3:c3d4\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/OutcomeIncomplete|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "incomplete operation"
@@ -19308,3 +19308,115 @@ msgstr "un résultat de rapprochement porte un verdict"
 msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:Constraint rejecting a logic:ReconciliationResult with no logic:ReconciliationVerdict. A probe that completed and recorded nothing is indistinguishable from a probe that never ran, and the difference matters: the first leaves an effect where it was, the second leaves it unprobed and still owing a reconciliation."
 msgstr "La logic:Constraint qui rejette un logic:ReconciliationResult dépourvu de logic:ReconciliationVerdict. Une sonde qui s'est achevée sans rien consigner est indiscernable d'une sonde qui n'a jamais été lancée, et la différence compte : la première laisse un effet là où il était, la seconde le laisse non sondé et devant toujours un rapprochement."
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abductive repair schema"
+msgstr "schéma de réparation abductif"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A constructive-advice carrier: it marks a modeling discipline as abductively repairable and supplies the machinery for deriving the minimal 'what to ADD' addition that completes an under-specified subject. It logic:formalizes the governed term, names its repair mechanism with logic:repairStrategy (how the candidate addition is read off the declared structure), optionally back-links the discipline it repairs with logic:repairsDiscipline, and carries a logic:completenessFormula — the discipline-satisfied condition, authored as a first-class logic:Formula so the abductive suggestion is warranted by a native conjecture-engine corroboration rather than by hand-authored prose. Unlike a logic:Constraint it neither gates nor projects to a shape surface; it is consumed by the abductive advice producer, which instantiates the completeness formula at a gap subject and tests a candidate addition in an isolated scenario world."
+msgstr "Un porteur de conseil constructif : il marque une discipline de modélisation comme abductivement réparable et fournit la machinerie permettant de dériver l'ajout minimal du « quoi AJOUTER » qui complète un sujet sous-spécifié. Il logic:formalizes le terme régi, nomme son mécanisme de réparation avec logic:repairStrategy (comment l'ajout candidat est lu à partir de la structure déclarée), rétro-relie éventuellement la discipline qu'il répare avec logic:repairsDiscipline, et porte une logic:completenessFormula — la condition de satisfaction de la discipline, rédigée comme une logic:Formula de première classe afin que la suggestion abductive soit garantie par une corroboration du moteur de conjecture natif plutôt que par une prose rédigée à la main. Contrairement à une logic:Constraint, il ne verrouille ni ne projette vers une surface de forme ; il est consommé par le producteur de conseil abductif, qui instancie la formule de complétude sur un sujet lacunaire et teste un ajout candidat dans un monde-scénario isolé."
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abductive repair strategy"
+msgstr "stratégie de réparation abductive"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed value class naming HOW a logic:AbductiveSchema reads its candidate addition off the governed subject's declared-but-unsatisfied structure. Its individuals — logic:StrategyRelatumCompletion, logic:StrategyChainCompletion, logic:StrategySortalSpecialization and logic:StrategyFrameDeclaration — each stand for one derivation of the minimal addition, so registering a further discipline of an existing kind is a data mark (a new logic:AbductiveSchema naming an existing strategy), never new engine code."
+msgstr "La classe de valeurs fermée nommant COMMENT une logic:AbductiveSchema lit son ajout candidat à partir de la structure déclarée-mais-non-satisfaite du sujet régi. Ses individus — logic:StrategyRelatumCompletion, logic:StrategyChainCompletion, logic:StrategySortalSpecialization et logic:StrategyFrameDeclaration — représentent chacun une dérivation de l'ajout minimal, de sorte qu'enregistrer une discipline supplémentaire d'un genre existant est une marque de données (une nouvelle logic:AbductiveSchema nommant une stratégie existante), jamais du nouveau code moteur."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relatum completion"
+msgstr "complétion de relatum"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for an under-mediated relator: the candidate additions are the relator's declared logic:mediates targets that the subject does not yet fill — 'add the missing relatum' (for a Commitment, the second party via gmeow:committedAgent or gmeow:commitmentBeneficiary)."
+msgstr "La stratégie de réparation pour un relateur sous-médiatisé : les ajouts candidats sont les cibles logic:mediates déclarées du relateur que le sujet ne remplit pas encore — « ajouter le relatum manquant » (pour un Commitment, la seconde partie via gmeow:committedAgent ou gmeow:commitmentBeneficiary)."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chain completion"
+msgstr "complétion de chaîne"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for an incomplete realization chain: the candidate addition is the next missing link along a declared chain of predicates — for a bare gmeow:Item, the gmeow:exemplifies link to a gmeow:Manifestation the Item must exemplify."
+msgstr "La stratégie de réparation pour une chaîne de réalisation incomplète : l'ajout candidat est le prochain maillon manquant le long d'une chaîne de prédicats déclarée — pour un gmeow:Item nu, le lien gmeow:exemplifies vers une gmeow:Manifestation que l'Item doit exemplifier."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sortal specialization"
+msgstr "spécialisation sortale"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations the completeness disjunction offers (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — of which the engine keeps only those consistent with the subject's other assertions."
+msgstr "La stratégie de réparation pour une instance gmeow:Entity nue : les ajouts candidats sont les spécialisations de sortal supérieur qu'offre la disjonction de complétude (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — « spécialiser vers le sortal X » — dont le moteur ne conserve que celles compatibles avec les autres assertions du sujet."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frame declaration"
+msgstr "déclaration de référentiel"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repair strategy for a subject that requires a reference frame it lacks: the candidate addition is a declared gmeow:hasReferenceFrame value — 'declare a reference frame F' — for a gmeow:Expression whose realizing language or notation is left implicit (the required-frame discipline, Principle 11)."
+msgstr "La stratégie de réparation pour un sujet qui requiert un référentiel dont il est dépourvu : l'ajout candidat est une valeur gmeow:hasReferenceFrame déclarée — « déclarer un référentiel F » — pour une gmeow:Expression dont la langue ou la notation réalisante est laissée implicite (la discipline du référentiel requis, Principe 11)."
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repairs discipline"
+msgstr "répare la discipline"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Back-links a logic:AbductiveSchema to the modeling discipline (a logic:Discipline, a logic:Constraint, or a foundation-lowering violation term) whose under-satisfaction the schema constructively repairs. Provenance only: the completeness warrant lives on the schema's own logic:completenessFormula, not on the discipline, so a discipline that carries no logic:integrity is still fully repairable."
+msgstr "Rétro-relie une logic:AbductiveSchema à la discipline de modélisation (une logic:Discipline, une logic:Constraint, ou un terme de violation issu de l'abaissement fondationnel) dont la sous-satisfaction est réparée constructivement par le schéma. Provenance seulement : la garantie de complétude réside sur la logic:completenessFormula propre au schéma, non sur la discipline, de sorte qu'une discipline ne portant aucune logic:integrity reste pleinement réparable."
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repair strategy"
+msgstr "stratégie de réparation"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names, on a logic:AbductiveSchema, the logic:AbductiveRepairStrategy by which the abductive producer reads the candidate addition off the governed subject's declared structure — the single knob that lets a further discipline of an existing kind be registered as data rather than code."
+msgstr "Nomme, sur une logic:AbductiveSchema, la logic:AbductiveRepairStrategy par laquelle le producteur abductif lit l'ajout candidat à partir de la structure déclarée du sujet régi — l'unique levier permettant d'enregistrer une discipline supplémentaire d'un genre existant comme donnée plutôt que comme code."
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "completeness formula"
+msgstr "formule de complétude"
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The discipline-SATISFIED condition a logic:AbductiveSchema carries: a first-class logic:Formula over one free subject variable (\"this\") that holds exactly when the governed subject is no longer under-specified for the discipline. The abductive producer instantiates it at a gap subject and asks the native conjecture engine whether a candidate addition makes it hold in a consistent scenario world; a corroboration is the warrant for the emitted 'add X' recommendation. Reached only through this property (never asserted as a free-standing axiom), so authoring the completeness condition never changes what the reasoner entails about the live model."
+msgstr "La condition de discipline-SATISFAITE que porte une logic:AbductiveSchema : une logic:Formula de première classe sur une seule variable de sujet libre (\"this\") qui est vraie exactement lorsque le sujet régi n'est plus sous-spécifié pour la discipline. Le producteur abductif l'instancie sur un sujet lacunaire et demande au moteur de conjecture natif si un ajout candidat la rend vraie dans un monde-scénario cohérent ; une corroboration est la garantie de la recommandation « ajouter X » émise. Atteinte uniquement via cette propriété (jamais affirmée comme un axiome autonome), de sorte que rédiger la condition de complétude ne change jamais ce que le raisonneur entraîne sur le modèle vivant."
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relator-mediation abductive schema"
+msgstr "schéma abductif de médiation de relateur"
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for an under-mediated gmeow:Commitment relator: when a Commitment leaves at least one of its declared logic:mediates relata (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) unfilled, each missing relatum is its own candidate addition, warranted independently against its own ground completeness condition — so a Commitment missing two or even all three relata still yields one corroborated suggestion per missing relatum. The completeness formula holds, for the Commitment as a whole, once all three relata are filled."
+msgstr "Le schéma de réparation constructive pour un relateur gmeow:Commitment sous-médiatisé : lorsqu'un Commitment laisse au moins un de ses relata logic:mediates déclarés (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) non rempli, chaque relatum manquant est son propre ajout candidat, garanti indépendamment au regard de sa propre condition de complétude fondée — de sorte qu'un Commitment auquel manquent deux voire les trois relata produit tout de même une suggestion corroborée par relatum manquant. La formule de complétude est vraie, pour le Commitment dans son ensemble, une fois les trois relata remplis."
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reference-frame abductive schema"
+msgstr "schéma abductif de référentiel"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for a gmeow:Expression that leaves its realizing language or notation implicit: the required reference frame (Principle 11) is the candidate addition, and the completeness formula holds when the Expression declares a gmeow:hasReferenceFrame value — 'declare a reference frame F for this expression'."
+msgstr "Le schéma de réparation constructive pour une gmeow:Expression qui laisse implicite sa langue ou sa notation réalisante : le référentiel requis (Principe 11) est l'ajout candidat, et la formule de complétude est vraie lorsque l'Expression déclare une valeur gmeow:hasReferenceFrame — « déclarer un référentiel F pour cette expression »."
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measurement-frame abductive schema"
+msgstr "schéma abductif de référentiel de mesure"
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for a measurement that is expressed in a unit but leaves the reference frame it is read in implicit: a value bearing a logic:unit but no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11 — a value asserted without its frame is ill-formed), so the required reference frame is the candidate addition and the completeness formula holds once the measurement declares a logic:referenceFrame value — 'declare a reference frame F for this unit-bearing value'. The guard is the property-presence of logic:unit (the IRI-valued witness that a framed value exists), not a class type, so a unit-bearing subject of any measurement class is caught."
+msgstr "Le schéma de réparation constructive pour une mesure exprimée dans une unité mais laissant implicite le référentiel dans lequel elle est lue : une valeur portant une logic:unit mais aucune logic:referenceFrame est la violation logic:MeasurementFrameMissing (Principe 11 — une valeur affirmée sans son référentiel est mal formée), de sorte que le référentiel requis est l'ajout candidat et que la formule de complétude est vraie dès que la mesure déclare une valeur logic:referenceFrame — « déclarer un référentiel F pour cette valeur portant une unité ». La garde est la présence-de-propriété de logic:unit (le témoin à valeur IRI qu'une valeur encadrée existe), et non un type de classe, de sorte qu'un sujet portant une unité, de n'importe quelle classe de mesure, est capté."
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bare-entity sortal abductive schema"
+msgstr "schéma abductif de sortal d'entité nue"
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. It reuses the gmeow:BareEntitySortalAdviceConstraint's completeness disjunction (logic:besForall) as its warrant target, so the engine keeps only the specializations consistent with the subject's other assertions."
+msgstr "Le schéma de réparation constructive pour un individu typé gmeow:Entity nu : les ajouts candidats sont les spécialisations de sortal supérieur (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — « spécialiser vers le sortal X ». Il réutilise la disjonction de complétude de gmeow:BareEntitySortalAdviceConstraint (logic:besForall) comme cible de garantie, de sorte que le moteur ne conserve que les spécialisations compatibles avec les autres assertions du sujet."
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "WEMI-chain abductive schema"
+msgstr "schéma abductif de chaîne WEMI"
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The constructive-repair schema for a gmeow:Item that hangs off no gmeow:Manifestation: the candidate addition is a gmeow:exemplifies link to a Manifestation — 'this Item needs a Manifestation it exemplifies' — and the completeness formula holds when the Item exemplifies some Manifestation, completing the realization chain."
+msgstr "Le schéma de réparation constructive pour un gmeow:Item qui ne dépend d'aucune gmeow:Manifestation : l'ajout candidat est un lien gmeow:exemplifies vers une Manifestation — « cet Item a besoin d'une Manifestation qu'il exemplifie » — et la formule de complétude est vraie lorsque l'Item exemplifie quelque Manifestation, complétant la chaîne de réalisation."

@@ -9,7 +9,7 @@ name: Pages
 on:
   push:
     branches: [main]
-    # The site is rendered from CANONICAL SOURCES (make sync SYNC_OUTPUTS=docs), not
+    # The site is rendered from CANONICAL SOURCES (make regen SYNC_OUTPUTS=docs), not
     # from the git-ignored generated/ product — so trigger on the sources the bundle and
     # site are projected from, the renderer/CLI/pipeline, or this workflow, never on a
     # generated/ path (which no longer exists in the tree).
@@ -59,7 +59,7 @@ jobs:
       # The site remains external to gmeow.gts; sync writes the Pages tree into
       # ontology-docs/ and validates the complete one-pass fixed point.
       - name: Render ontology docs
-        run: make sync SYNC_MODE=update SYNC_OUTPUTS=docs
+        run: make regen SYNC_MODE=update SYNC_OUTPUTS=docs
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

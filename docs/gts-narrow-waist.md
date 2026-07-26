@@ -50,8 +50,8 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
 5. **Reproducible without rebase pain.** `generated/dist/gmeow.gts` is a
    git-ignored local/release product, never committed: there is no
    `.gitattributes` merge driver and no binary file to resolve during a merge
-   or rebase. `make install`/`make sync` materialize it from canonical
-   sources; after a merge or rebase, re-run `make sync` to bring the bundle
+   or rebase. `make install`/`make regen` materialize it from canonical
+   sources; after a merge or rebase, re-run `make regen` to bring the bundle
    back in step rather than resolving anything by hand.
 6. **One mandatory frame profile.** Every payload-bearing frame authored by
    GMEOW production code uses exactly one transform: `zstd-rsyncable`, at zstd

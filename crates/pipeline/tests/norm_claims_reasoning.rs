@@ -20,7 +20,7 @@
 //! The isolated, deterministic proof over a controlled fixture lives in `advice_wing_fixture.rs`.
 //!
 //! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle — it runs green only
-//! after `make sync`.
+//! after `make regen`.
 
 use std::path::{Path, PathBuf};
 
