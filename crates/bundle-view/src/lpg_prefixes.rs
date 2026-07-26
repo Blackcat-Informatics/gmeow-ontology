@@ -1,25 +1,65 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
-// The LPG/consumer-projection prefix table, longest-namespace-first. It MUST stay a
-// superset-consistent mirror of the canonical `gmeow_logic_compile::ingest::PREFIX_REGISTRY`
-// for every GMEOW-local namespace (the four grounding namespaces `gmeow`/`logic`/`math`/
-// `lang` MUST all be present) except the diagnostic-only affect-classifier label
-// registries (`gmeow-goemotions`/`gmeow-hf`/`gmeow-labelset`), which never surface in an
-// LPG/consumer projection; the extra external vocabularies here beyond the registry are
-// retained so their CURIEs survive in the LPG projections. This contract is compile-tested
-// below (`lpg_prefixes_registry_coherence_tests`) — it is not enforced by convention alone.
-const PREFIXES_BY_LEN: &[(&str, &str)] = &[
-    ("fibo-fbc-pas-fpas", "https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/"),
-    ("fibo-fbc-fi-fi", "https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/"),
-    ("fibo-fnd-pas-ps", "https://spec.edmcouncil.org/fibo/ontology/FND/ProductsAndServices/ProductsAndServices/"),
-    ("fibo-iso4217", "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/"),
-    ("fibo-fnd-acc-ae", "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/AccountingEquity/"),
-    ("fibo-fnd-acc-cur", "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/"),
-    ("align", "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#"),
-    ("nmo", "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#"),
-    ("dul", "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#"),
-    ("oboe", "http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#"),
-    ("gts", "http://resource.geosciml.org/ontology/timescale/gts#"),
+//! The LPG/consumer-projection prefix table, longest-namespace-first.
+//!
+//! [`PREFIXES_BY_LEN`] MUST stay a superset-consistent mirror of the canonical
+//! [`gmeow_logic_compile::ingest::PREFIX_REGISTRY`] for every GMEOW-local namespace
+//! (the four grounding namespaces `gmeow`/`logic`/`math`/`lang` MUST all be present)
+//! except the diagnostic-only affect-classifier label registries
+//! (`gmeow-goemotions`/`gmeow-hf`/`gmeow-labelset`), which never surface in an
+//! LPG/consumer projection; the extra external vocabularies here beyond the registry
+//! are retained so their CURIEs survive in the LPG projections. This contract is
+//! compile-tested below (`lpg_prefixes_registry_coherence_tests`) — it is not
+//! enforced by convention alone.
+//!
+//! It lives on the read side because the flat-export CURIE writer ([`crate::export`])
+//! is its heaviest consumer; `gmeow_pipeline`'s `carrier` and `metadata` stages
+//! import the SAME constant from here rather than keeping a second table.
+pub const PREFIXES_BY_LEN: &[(&str, &str)] = &[
+    (
+        "fibo-fbc-pas-fpas",
+        "https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/",
+    ),
+    (
+        "fibo-fbc-fi-fi",
+        "https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/",
+    ),
+    (
+        "fibo-fnd-pas-ps",
+        "https://spec.edmcouncil.org/fibo/ontology/FND/ProductsAndServices/ProductsAndServices/",
+    ),
+    (
+        "fibo-iso4217",
+        "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/",
+    ),
+    (
+        "fibo-fnd-acc-ae",
+        "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/AccountingEquity/",
+    ),
+    (
+        "fibo-fnd-acc-cur",
+        "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
+    ),
+    (
+        "align",
+        "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
+    ),
+    (
+        "nmo",
+        "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
+    ),
+    (
+        "dul",
+        "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
+    ),
+    (
+        "oboe",
+        "http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#",
+    ),
+    (
+        "gts",
+        "http://resource.geosciml.org/ontology/timescale/gts#",
+    ),
     ("sta", "http://www.opengis.net/def/ont/sensorthings/1.1/"),
     ("tags", "http://www.holygoat.co.uk/owl/redwood/0.1/tags/"),
     ("ifc", "http://www.buildingsmart-tech.org/ifcOWL/IFC4#"),
@@ -184,10 +224,7 @@ const PREFIXES_BY_LEN: &[(&str, &str)] = &[
     ("gx", "http://gedcomx.org/"),
 ];
 
-// This file is textually `include!()`d into `lpg.rs`, `metadata.rs`, `export.rs`, and
-// `carrier.rs`, each of which already owns its own bare `mod tests`; this module is
-// named uniquely (not `tests`) so it doesn't collide when pasted into those scopes.
-// It runs once per include site, which is a harmless duplication of a cheap check.
+// The registry-coherence contract, checked once for the single table.
 #[cfg(test)]
 mod lpg_prefixes_registry_coherence_tests {
     use std::collections::BTreeMap;
@@ -221,14 +258,14 @@ mod lpg_prefixes_registry_coherence_tests {
                     *mirrored_ns, ns,
                     "PREFIXES_BY_LEN prefix `{prefix}` maps to `{mirrored_ns}`, but the \
                      canonical PREFIX_REGISTRY maps `{prefix}` to `{ns}` — \
-                     crates/pipeline/src/stages/lpg_prefixes.rs has drifted from \
+                     crates/bundle-view/src/lpg_prefixes.rs has drifted from \
                      gmeow_logic_compile::ingest::PREFIX_REGISTRY for GMEOW-local prefix \
                      `{prefix}`",
                 ),
                 None => panic!(
                     "PREFIXES_BY_LEN is missing GMEOW-local prefix `{prefix}` (namespace \
                      `{ns}`) that is present in the canonical PREFIX_REGISTRY — add it to \
-                     PREFIXES_BY_LEN in crates/pipeline/src/stages/lpg_prefixes.rs",
+                     PREFIXES_BY_LEN in crates/bundle-view/src/lpg_prefixes.rs",
                 ),
             }
         }

@@ -7930,14 +7930,6 @@ mod tests {
     }
 
     #[test]
-    fn slugify_is_filesystem_safe() {
-        assert_eq!(slugify("HasOwner"), "hasowner");
-        assert_eq!(slugify("Cat 9 Lives!"), "cat-9-lives");
-        assert_eq!(slugify("--weird--"), "weird");
-        assert_eq!(slugify(""), "unnamed");
-    }
-
-    #[test]
     fn md_escape_neutralizes_table_and_inline_metachars() {
         assert_eq!(md_escape("a|b"), "a\\|b");
         assert_eq!(md_escape("<x>"), "\\<x\\>");
@@ -8028,23 +8020,6 @@ mod tests {
             !turtle.contains(&close),
             "chosen fence {width} still matches inside content: {turtle:?}"
         );
-    }
-
-    #[test]
-    fn align_tag_handles_trailing_separators() {
-        assert_eq!(
-            align_tag("http://www.w3.org/2004/02/skos/core#closeMatch"),
-            "closeMatch"
-        );
-        assert_eq!(
-            align_tag("http://www.w3.org/2002/07/owl#equivalentClass"),
-            "equivalentClass"
-        );
-        // trailing separator must not yield an empty tag
-        assert_eq!(align_tag("http://example.org/vocab#"), "vocab");
-        assert_eq!(align_tag("http://example.org/vocab/"), "vocab");
-        // no separator at all -> whole predicate
-        assert_eq!(align_tag("bareword"), "bareword");
     }
 
     /// A minimal two-term model with one French translation, used to assert the

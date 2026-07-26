@@ -90,17 +90,10 @@ pub(crate) const GRAPH_QUALITY_ASSESSMENT: &str =
 /// fanout copy serves the superset gate / fanout writer (the correspondence-laws corpus
 /// follows the same twin-graph pattern).
 pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
-/// The per-slice authoring-packet corpus: a `gmeow:AuthoringPacket` for every in-repo
-/// slice batch (definition + axioms + bounded neighbourhood + grounding cross-table),
-/// assembled by [`gmeow_slice_brief::assemble_packet`] and attached by the dedicated
-/// `stage-slice-brief` producer. Folded as its own queryable named graph so a repo-free
-/// consumer reads every slice's authoring briefs straight out of `gmeow.gts` (the
-/// shippable authoring deliverable). Excluded from the reasoned object-level EDB exactly
-/// like `graph/quality-assessment` (it asserts a self-description corpus, not object-level
-/// axioms — `gts_compose` folds only the default graph, so this named graph never pollutes
-/// the composed EDB).
-pub(crate) const GRAPH_AUTHORING_BRIEFS: &str =
-    "https://blackcatinformatics.ca/gmeow/graph/authoring-briefs";
+/// The per-slice authoring-packet corpus. DEFINED ONCE in
+/// [`gmeow_bundle_view::graph_iris`] — the read side names this graph too, so
+/// producer and reader share ONE constant and cannot drift to different IRIs.
+pub(crate) use gmeow_bundle_view::graph_iris::GRAPH_AUTHORING_BRIEFS;
 /// The committed on-disk projection of the authoring-packet corpus (PIPELINE_SPINE §5:
 /// RDF travels as RDF, so the `gmeow:AuthoringPacket` triples are reconstructible from
 /// `gmeow.gts` as a flat `generated/` file, not only as a bundle-internal named graph).
@@ -118,9 +111,11 @@ pub(crate) const SLICE_QUALITY_REPORT_HTML_ARTIFACT: &str = "pipeline/slice-qual
 /// Bundle-relative docs path exported by `gmeow export-docs`.
 #[cfg(test)]
 const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
-pub(crate) const GRAPH_DOCUMENTATION: &str =
-    "https://blackcatinformatics.ca/gmeow/graph/documentation";
-pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+/// The documentation and diagnostics corpora graphs. DEFINED ONCE in
+/// [`gmeow_bundle_view::graph_iris`] — both are addressed by the read side (the
+/// bundle readers, the `graph/diagnostics` section, the MCP tool surface), so
+/// producer and reader share ONE constant each.
+pub(crate) use gmeow_bundle_view::graph_iris::{GRAPH_DIAGNOSTICS, GRAPH_DOCUMENTATION};
 /// The advisory dual-projection's second wing (D4): the materialised
 /// `gmeow:ComplianceAssessment` / `deonticRecommendation` claim graph
 /// `stage-validate` emits alongside `graph/diagnostics`'s flat Note finding —
@@ -3553,8 +3548,9 @@ fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> Strin
 
 // The canonical prefix registry (generated from the ontology's prefix config,
 // longest-namespace-first). Shared verbatim with the LPG/JSON-LD projections rather
-// than hand-maintaining a second, divergent table for the try-it display lines.
-include!("lpg_prefixes.rs");
+// than hand-maintaining a second, divergent table for the try-it display lines: the
+// ONE table lives in the read-side leaf, which is the projections' heaviest consumer.
+use gmeow_bundle_view::lpg_prefixes::PREFIXES_BY_LEN;
 
 /// A compact CURIE for a full IRI, or `<iri>` when no known prefix matches. Drawing
 /// from the full canonical registry means every external ontology GMEOW links to

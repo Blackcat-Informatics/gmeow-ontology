@@ -51,7 +51,7 @@ fn docs_distribution_source() -> String {
 }
 
 fn bundle_blobs_source() -> String {
-    read("crates/pipeline/src/bundle_blobs.rs")
+    read("crates/bundle-view/src/bundle_blobs.rs")
 }
 
 fn reasoning_graphs_source() -> String {
@@ -408,7 +408,7 @@ fn ac5_forbidden_embed_gate_stays_present() {
     let source = bundle_blobs_source();
     assert!(
         source.contains("fn documentation_projections_are_absent"),
-        "AC5 (forbidden-embed): crates/pipeline/src/bundle_blobs.rs must keep the \
+        "AC5 (forbidden-embed): crates/bundle-view/src/bundle_blobs.rs must keep the \
          `documentation_projections_are_absent` gate — the shipped gmeow.gts bundle must never \
          embed a documentation projection"
     );

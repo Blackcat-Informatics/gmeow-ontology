@@ -30,11 +30,16 @@
 //! (single source of truth).
 
 pub mod bundle;
-pub mod bundle_blobs;
+// The bundle READ side lives in the leaf crate `gmeow-bundle-view` so a consumer
+// that only reads a materialized `gmeow.gts` (the `gmeow` CLI, `gmeow-dev`, the MCP
+// tool surface) never inherits the build executor. Re-exported under the original
+// paths so every `gmeow_pipeline::bundle_blobs::*` /
+// `gmeow_pipeline::diagnostics_reader::*` caller is unchanged.
+pub use gmeow_bundle_view::bundle_blobs;
+pub use gmeow_bundle_view::diagnostics_reader;
 pub mod cache;
 pub mod cli_ops;
 pub mod correspondence_law;
-pub mod diagnostics_reader;
 pub mod docs_distribution;
 pub mod docs_loss_lattice;
 pub mod docs_measure;

@@ -92,6 +92,10 @@ members = [
     # without inheriting the renderer's 13.6 MB of embedded vendored wasm.
     "crates/docs-model",
     "crates/transcode",
+    # The READ side of a materialized gmeow.gts, split from gmeow-pipeline so a
+    # bundle reader (the consumer CLI, gmeow-dev, the MCP tool surface) never
+    # inherits the build executor. A LEAF, and wasm-clean.
+    "crates/bundle-view",
     "crates/pipeline",
 
     # The purrdf semantic C-ABI (purrdf P8 / #842): builds libpurrdf (cdylib +

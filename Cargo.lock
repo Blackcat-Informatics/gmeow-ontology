@@ -1551,6 +1551,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-bundle-view"
+version = "0.2.0"
+dependencies = [
+ "blake3",
+ "ciborium",
+ "gmeow-docs-model",
+ "gmeow-errors",
+ "gmeow-logic-compile",
+ "gmeow-ns",
+ "gmeow-validate",
+ "purrdf",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "gmeow-cli"
 version = "0.2.0"
 dependencies = [
@@ -1859,6 +1875,7 @@ dependencies = [
  "docs-print",
  "ed25519-dalek",
  "gmeow-affect",
+ "gmeow-bundle-view",
  "gmeow-cli-core",
  "gmeow-conformance",
  "gmeow-docs",

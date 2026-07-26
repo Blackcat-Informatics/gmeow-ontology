@@ -817,10 +817,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2096af5b36e05462> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/20aae8c4b1aa7e5e> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://sweetontology.net/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/20aae8c4b1aa7e5e> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/21ba294810302cfa> a gmeow:CitationAct ;
@@ -1118,10 +1118,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2ce426792d29717b> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/2d053fe517a1a22c> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://creativecommons.org/publicdomain/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2d053fe517a1a22c> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/2d2f14d129c53b13> a gmeow:CitationAct ;
@@ -1132,10 +1132,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2d2f14d129c53b13> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/2d7fc96c5b8f3596> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://lexvo.org/id/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2d7fc96c5b8f3596> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/2de09e7b9ea79a9a> a gmeow:CitationAct ;
@@ -1489,10 +1489,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/3b42640b98673914> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/3b48eb1a67db740d> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://w3id.org/function/vocabulary/mapping#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/3b48eb1a67db740d> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/3b7121d5568aea21> a gmeow:CitationAct ;
@@ -1776,10 +1776,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/48bcb5bd06d30e88> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/48e3af60f1d5c59a> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://purl.obolibrary.org/obo/bfo.owl> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/48e3af60f1d5c59a> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/4916f2f9d0072c53> a gmeow:CitationAct ;
@@ -1839,10 +1839,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/4ac5e2631c7c0655> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/4ad47b0995c970c5> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/4ad47b0995c970c5> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/4afd2ab217bad30c> a gmeow:CitationAct ;
@@ -2518,10 +2518,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/688d3ea730fd5ace> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/68a0e5348dcbed05> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://glottolog.org/resource/languoid/id/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/68a0e5348dcbed05> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/68a5fdd051c2dce8> a gmeow:CitationAct ;
@@ -2539,10 +2539,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/68ad65ebbe2a5230> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/68bef6b043267070> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://rightsstatements.org/vocab/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/68bef6b043267070> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/68f54d3c09c75c7d> a gmeow:CitationAct ;
@@ -2728,10 +2728,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/6f82369836438192> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/704b5de892cfacd2> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://qudt.org/vocab/unit/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/704b5de892cfacd2> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/7068c0b45542a604> a gmeow:CitationAct ;
@@ -2931,10 +2931,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/799f39105981c678> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/79f9bb48cba002cb> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://umbel.org/umbel#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/79f9bb48cba002cb> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/7a3626c6dc4f97fd> a gmeow:CitationAct ;
@@ -3099,10 +3099,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/8267096c3b97de8f> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/82a9701a40c62c2b> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://umbel.org/umbel/rc/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/82a9701a40c62c2b> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/82cea626de4a02ad> a gmeow:CitationAct ;
@@ -3386,10 +3386,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/8cc331a0dbee432c> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/8cfe0713db248c28> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://vocab.getty.edu/tgn/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/8cfe0713db248c28> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/8ddc6b8c7178357e> a gmeow:CitationAct ;
@@ -4058,10 +4058,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/ac1bf8c502638db7> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/ac21ae14e0c04841> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://ns.inria.org/edoal/1.0/#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/ac21ae14e0c04841> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/ac499af48debcc7d> a gmeow:CitationAct ;
@@ -4142,10 +4142,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/af0f324fd3dcc72c> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/af3fbf763fc57006> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://purl.org/ppsr/core#> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/af3fbf763fc57006> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/af61d14d7dae0d09> a gmeow:CitationAct ;
@@ -4590,10 +4590,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/c1d9da7516486ebe> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/c21c5977e19436d3> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity ssn: ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/c21c5977e19436d3> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/c2395730d2535d2f> a gmeow:CitationAct ;
@@ -4702,10 +4702,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/c71d571004cbea86> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/c767814fc24cc623> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://w3id.org/sssom/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/c767814fc24cc623> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/c8104c1da023a62b> a gmeow:CitationAct ;
@@ -4898,10 +4898,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/d314c6622a2ac37d> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/d31d54bbd3efadff> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://www.wikidata.org/entity/statement/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/d31d54bbd3efadff> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/d5f80f2d4424e282> a gmeow:CitationAct ;
@@ -5332,10 +5332,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/e772341afc178432> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/e80042d08c42aa28> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity void: ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/e80042d08c42aa28> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/e8bb54888ba41260> a gmeow:CitationAct ;
@@ -5780,10 +5780,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/f9bf83498ef2443b> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/fa0b014d4fc4e250> a gmeow:CitationAct ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <http://www.wikidata.org/prop/statement/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/fa0b014d4fc4e250> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/fb5887276553ff44> a gmeow:CitationAct ;
@@ -7649,7 +7649,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "dsl/mappings/equivalences/classes.ttl:9" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/20aae8c4b1aa7e5e> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:302" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:302" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/21ba294810302cfa> a gmeow:Selector ;
     gmeow:selectorLocator "crates/pipeline/src/stages/lpg.rs:78" .
@@ -7778,13 +7778,13 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "tests/fixtures/coverage/attestation-quality-report.ttl:20" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/2d053fe517a1a22c> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:404" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:404" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/2d2f14d129c53b13> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/265#discussion_r3385555545:22" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/2d7fc96c5b8f3596> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:428" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:428" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/2de09e7b9ea79a9a> a gmeow:Selector ;
     gmeow:selectorLocator "tests/fixtures/observation-example.ttl:95" .
@@ -7937,7 +7937,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "docs/rights.md:103" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/3b48eb1a67db740d> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:285" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:285" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/3b7121d5568aea21> a gmeow:Selector ;
     gmeow:selectorLocator "crates/validate/src/language_tags.rs:73" .
@@ -8060,7 +8060,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "metadata/gmeow-self.ttl:48" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/48e3af60f1d5c59a> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:582" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:582" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/4916f2f9d0072c53> a gmeow:Selector ;
     gmeow:selectorLocator "slices/core/rights/mappings/equivalences.ttl:1109" .
@@ -8087,7 +8087,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "docs/projects-mapping.md:242" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/4ad47b0995c970c5> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:287" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:287" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/4afd2ab217bad30c> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/211:246" .
@@ -8378,7 +8378,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/265#discussion_r3385555545:23" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/68a0e5348dcbed05> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:430" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:430" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/68a5fdd051c2dce8> a gmeow:Selector ;
     gmeow:selectorLocator "slices/core/rights/mappings/equivalences.ttl:186" .
@@ -8387,7 +8387,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/218#discussion_r3375225968:40" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/68bef6b043267070> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:403" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:403" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/68f54d3c09c75c7d> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/306:279" .
@@ -8468,7 +8468,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/191#discussion_r3370550323:115" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/704b5de892cfacd2> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:342" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:342" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/7068c0b45542a604> a gmeow:Selector ;
     gmeow:selectorLocator "README.md:297" .
@@ -8555,7 +8555,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "slices/core/temporal/mappings/equivalences.ttl:11" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/79f9bb48cba002cb> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:290" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:290" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/7a3626c6dc4f97fd> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/235#discussion_r3377108577:12" .
@@ -8627,7 +8627,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/3:33" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/82a9701a40c62c2b> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:291" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:291" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/82cea626de4a02ad> a gmeow:Selector ;
     gmeow:selectorLocator "docs/lpg-mapping.md:192" .
@@ -8750,7 +8750,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/256#discussion_r3384267330:17" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/8cfe0713db248c28> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:376" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:376" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/8ddc6b8c7178357e> a gmeow:Selector ;
     gmeow:selectorLocator "shapes/gmeow-shapes.ttl:496" .
@@ -9038,7 +9038,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/123#discussion_r3368633853:12" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/ac21ae14e0c04841> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:286" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:286" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/ac499af48debcc7d> a gmeow:Selector ;
     gmeow:selectorLocator "dsl/mappings/equivalences/fibo.ttl:7" .
@@ -9074,7 +9074,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/273#discussion_r3388703253:115" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/af3fbf763fc57006> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:316" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:316" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/af61d14d7dae0d09> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/487#discussion_r3409869912:57" .
@@ -9267,7 +9267,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/227#discussion_r3376312855:47" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/c21c5977e19436d3> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:301" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:301" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/c2395730d2535d2f> a gmeow:Selector ;
     gmeow:selectorLocator "crates/gts/src/compact.rs:30" .
@@ -9315,7 +9315,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "slices/core/places/mappings/equivalences.ttl:1258" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/c767814fc24cc623> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:281" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:281" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/c8104c1da023a62b> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/250#discussion_r3382543281:37" .
@@ -9399,7 +9399,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/235#discussion_r3377108573:12" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/d31d54bbd3efadff> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:426" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:426" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/d5f80f2d4424e282> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/235#discussion_r3377108573:16" .
@@ -9585,7 +9585,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/256#discussion_r3384267330:64" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/e80042d08c42aa28> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:278" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:278" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/e8bb54888ba41260> a gmeow:Selector ;
     gmeow:selectorLocator "slices/extensions/sensory-environment/mappings/equivalences.ttl:36" .
@@ -9777,7 +9777,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "slices/extensions/images/mappings/equivalences.ttl:10" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/fa0b014d4fc4e250> a gmeow:Selector ;
-    gmeow:selectorLocator "crates/pipeline/src/stages/lpg_prefixes.rs:425" .
+    gmeow:selectorLocator "crates/bundle-view/src/lpg_prefixes.rs:425" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/fb5887276553ff44> a gmeow:Selector ;
     gmeow:selectorLocator "dsl/mappings/equivalences/determinacy.ttl:7" .
@@ -13141,9 +13141,9 @@ repo:README.md a gmeow:CreativeWork ;
     rdfs:label "GitHub issue or PR #212: EPIC: Deception, Untruth, Falsehood & Myth — graph-native epistemics of the lie"@en ;
     gmeow:sourceLocation "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/212" .
 
-<https://blackcatinformatics.ca/gmeow/repo/crates/pipeline/src/stages/lpg_prefixes.rs> a gmeow:CreativeWork ;
-    rdfs:label "crates/pipeline/src/stages/lpg_prefixes.rs"@en ;
-    gmeow:sourceLocation "crates/pipeline/src/stages/lpg_prefixes.rs" .
+<https://blackcatinformatics.ca/gmeow/repo/crates/bundle-view/src/lpg_prefixes.rs> a gmeow:CreativeWork ;
+    rdfs:label "crates/bundle-view/src/lpg_prefixes.rs"@en ;
+    gmeow:sourceLocation "crates/bundle-view/src/lpg_prefixes.rs" .
 
 <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/208> a gmeow:CreativeWork ;
     rdfs:label "GitHub issue or PR #208: Creative Works base: a WEMI spine (Work/Expression/Manifestation/Item) rebuilt from GMEOW primitives — the schema.org-trap-free foundation"@en ;

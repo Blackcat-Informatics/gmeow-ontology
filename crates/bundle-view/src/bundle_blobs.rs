@@ -29,7 +29,7 @@
 //! consumer already holds (`include_bytes!` of the embedded bundle); it never
 //! reads the repo tree or disk.
 //!
-//! The rep-label strings MUST match the producer (`crate::stages::carrier`) and
+//! The rep-label strings MUST match the producer (`gmeow_pipeline::stages::carrier`) and
 //! the retired Python `REP_*` constants EXACTLY — a drifted label silently
 //! resolves to an empty archive, shipping the bundle without that surface.
 
@@ -78,15 +78,15 @@ pub const REP_DENIED: &str = "transform:denied";
 /// bundles (the run ledger's single source); on the SHIPPED gts it is absent (the run ledger is a
 /// build-time projection, not a folded gts surface), so `diag_nodes` resolves to an
 /// empty set — the wheel-only contract. This is the SINGLE definition of the label; the
-/// producer side re-exports it as [`crate::stages::carrier::REP_DIAG_NODES`], so no drift
+/// producer side re-exports it as `gmeow_pipeline::stages::carrier::REP_DIAG_NODES`, so no drift
 /// is possible (a drifted label would silently read empty).
 pub const REP_DIAG_NODES: &str = "diagnostics:nodes";
 /// JSON (NOT a tar) of `stage-source-load`'s authored subject→source-position
-/// [`SpanIndex`](crate::ingest::SpanIndex): the source spans the diagnostics consumers
+/// `gmeow_pipeline::ingest::SpanIndex`: the source spans the diagnostics consumers
 /// lift onto their findings. It rides ONLY the source-load product's blob lane and is
 /// dropped before the carrier assembles, so it never folds into a shipped `gmeow.gts`
 /// surface. This is the SINGLE definition of the label; the producer side re-exports it
-/// as [`crate::stages::carrier::REP_SPAN_TABLE`], so no drift is possible (a drifted
+/// as `gmeow_pipeline::stages::carrier::REP_SPAN_TABLE`, so no drift is possible (a drifted
 /// label would silently read empty).
 pub const REP_SPAN_TABLE: &str = "spans:source-table";
 /// tar of the mdbook `src/` source tree (`book.toml` + `SUMMARY.md` + `src/<page>/index.md`
@@ -126,7 +126,7 @@ use gmeow_errors::{FindingCategory, Grade, Severity, Standpoint, define_diag_kin
 define_diag_kind! {
     /// The snapshot bytes did not fold into a usable GTS graph.
     pub struct BundleParse { message: String }
-    code = "pipeline.bundle.parse";
+    code = "bundle-view.bundle.parse";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "bundle snapshot parse: {}", message;
 }
@@ -134,7 +134,7 @@ define_diag_kind! {
 define_diag_kind! {
     /// A blob's transformed wire bytes could not be decoded to its payload.
     pub struct BundleDecode { message: String }
-    code = "pipeline.bundle.decode";
+    code = "bundle-view.bundle.decode";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "bundle blob decode: {}", message;
 }
@@ -142,7 +142,7 @@ define_diag_kind! {
 define_diag_kind! {
     /// A blob's tar frame was malformed.
     pub struct BundleUntar { message: String }
-    code = "pipeline.bundle.untar";
+    code = "bundle-view.bundle.untar";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "bundle archive untar: {}", message;
 }
@@ -150,7 +150,7 @@ define_diag_kind! {
 define_diag_kind! {
     /// The `transform:denied` JSON payload was malformed.
     pub struct BundleJson { message: String }
-    code = "pipeline.bundle.json";
+    code = "bundle-view.bundle.json";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "bundle denied-cells JSON: {}", message;
 }
@@ -334,7 +334,7 @@ impl Bundle {
     /// — the "this class has a generated Pydantic model" existence signal EVERY
     /// term→model gate must share (§19 one-path): `gmeow describe`
     /// (`gmeow_docs::describe::build_card`), the folded/MCP card
-    /// (`crate::stages::export::term_to_card`), and the docs-site card
+    /// (`crate::export::term_to_card`), and the docs-site card
     /// (`gmeow_docs::render::doc_term_card`) all check a class's
     /// [`purrdf::shapes::json_schema::Namespaces::def_key`] against this set before
     /// emitting a `python_model` link, so a class the emitter never gave a `$defs`
@@ -575,7 +575,7 @@ impl Bundle {
     /// blobs, and the hash-integrity mismatches.
     ///
     /// Modeled on the attestation-digest walk in
-    /// [`crate::stages::release::verify_release_bundle`] — same idiom, applied
+    /// `gmeow_pipeline::stages::release::verify_release_bundle` — same idiom, applied
     /// to the whole blob DAG rather than just the attested subset.
     ///
     /// Reference predicates are found by the ontology's own naming
@@ -592,7 +592,7 @@ impl Bundle {
     /// literal shape without ever promising a matching bundle blob — for
     /// `gmeow:contentDigest` specifically, that dereference contract holds only
     /// inside a fully folded release-attestation graph, which is
-    /// [`crate::stages::release::verify_release_bundle`]'s own, separate
+    /// `gmeow_pipeline::stages::release::verify_release_bundle`'s own, separate
     /// concern. Scanning those generically here would flag thousands of
     /// legitimate fingerprints as "dangling", which is not what this law means.
     pub fn integrity_report(&self) -> Result<BundleIntegrityReport, gmeow_errors::Diag> {
@@ -652,7 +652,7 @@ impl Bundle {
         // A `blob_meta` "pub" map's `rep` field is the producer's own
         // declaration of why the blob exists (§12) — every archive/report/
         // export the pipeline folds sets one (see the `REP_*` catalogs spread
-        // across `crate::stages::carrier` / `crate::stages::compile_logic` and
+        // across `gmeow_pipeline::stages::carrier` / `gmeow_pipeline::stages::compile_logic` and
         // this module's own subset), so "carries a rep" is the complete,
         // forward-compatible test for "intentionally shipped", not a
         // hand-maintained enumeration of the reps this module happens to
@@ -895,7 +895,7 @@ mod tests {
 
     // (The former `span_table_rep_labels_agree` drift-pin test is gone: the producer
     // side now RE-EXPORTS `REP_SPAN_TABLE`/`REP_DIAG_NODES` from this module
-    // (`crate::stages::carrier`), so producer and reader are one constant and the label
+    // (`gmeow_pipeline::stages::carrier`), so producer and reader are one constant and the label
     // cannot drift structurally — a runtime assert_eq of a const against itself guards
     // nothing.)
 
@@ -1044,7 +1044,7 @@ mod tests {
     // 48 MB committed bundle) so the fixtures stay fixture-scale and on-gate. --
 
     /// Ingest RDF `text` into a fresh [`purrdf::gts_compose::SnapshotBuilder`]
-    /// (mirrors `crate::stages::release::tests::builder_from`) — the same
+    /// (mirrors `gmeow_pipeline::stages::release`'s test builder) — the same
     /// single-exit ingestion (`parse_dataset` → `add_dataset`) those fixtures use
     /// to author a synthetic snapshot without touching the committed bundle.
     fn builder_from(text: &str, media_type: &str) -> purrdf::gts_compose::SnapshotBuilder {

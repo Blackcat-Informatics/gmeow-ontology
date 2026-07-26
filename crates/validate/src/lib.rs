@@ -102,7 +102,11 @@ pub mod enrich;
 pub mod guidance;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod instance;
-#[cfg(not(target_arch = "wasm32"))]
+// Pure computation over an `RdfDataset` / literal set (its only imports are
+// `std::collections` and `purrdf`) — no filesystem, no network. Like
+// `distinctiveness` it was gated only by sitting inside the native-only block; the
+// read-side bundle views need the internal-tag → BCP-47 remap and the public-text
+// selection/fallback on both targets, so it belongs on both.
 pub mod language_tags;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod lint;

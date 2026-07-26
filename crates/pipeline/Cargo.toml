@@ -55,6 +55,13 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # existing `gmeow_pipeline::transcode::*` caller is unchanged. stages::yaml_ld's
 # Stage impl still calls into it, which is why the edge points this way.
 gmeow-transcode = { path = "../transcode" }
+# The bundle READ side, extracted to a wasm-clean leaf so a consumer that only
+# reads a materialized gmeow.gts never inherits this executor. The pipeline is the
+# WRITER, so the edge points this way: `stages::export`'s Stage impl drives the
+# renderers here, `stages::carrier`/`stages::release` re-export the four shared
+# graph IRIs and the blob rep labels from it (one constant, no drift), and lib.rs
+# re-exports `bundle_blobs`/`diagnostics_reader` at their historical paths.
+gmeow-bundle-view = { path = "../bundle-view" }
 # The affect-intensity geometry compute (√(xᵀGx) over gmeow:coreAffectGram): the
 # `mappings` stage's EmotionML lowering projects the canonical schadenfreude example, so
 # the worked-<emotion> intensity + per-dimension unit-clamp values are COMPUTED from the

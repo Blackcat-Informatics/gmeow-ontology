@@ -371,10 +371,6 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
     crate::transcode::CodecError::CODE,
-    crate::bundle_blobs::BundleParse::CODE,
-    crate::bundle_blobs::BundleDecode::CODE,
-    crate::bundle_blobs::BundleUntar::CODE,
-    crate::bundle_blobs::BundleJson::CODE,
     crate::stages::rule_severity::UnknownRuleSeverity::CODE,
 ];
 
@@ -419,10 +415,6 @@ pub fn register_all() -> Vec<Code> {
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),
         crate::transcode::CodecError::register(),
-        crate::bundle_blobs::BundleParse::register(),
-        crate::bundle_blobs::BundleDecode::register(),
-        crate::bundle_blobs::BundleUntar::register(),
-        crate::bundle_blobs::BundleJson::register(),
         crate::stages::rule_severity::UnknownRuleSeverity::register(),
     ]
 }
