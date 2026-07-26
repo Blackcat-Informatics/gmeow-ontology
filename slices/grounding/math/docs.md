@@ -51,7 +51,7 @@ subclasses, each wired from a canonical EL-safe axiom or `logic:Constraint` thro
 `gmeow:enforcesFailureClass` and projected to the applicable validation surface. The
 preservation-polarity vocabulary is reused verbatim from the `logic:` loss ledger, and each named
 constant and number system is anchored to Wikidata (with OEIS locators for the constants) as a
-`gmeow:TermEquivalence` alignment.
+native alignment cell.
 
 ## The design set
 

@@ -32,6 +32,15 @@ pub mod error;
 pub mod gmn1_codec;
 pub mod gmn1_digest;
 pub mod gmn1_witness;
+pub mod gmn_consume;
+pub mod gmn_metrics;
+pub mod gmn_migrate;
+pub mod gmn_verbalize;
+// The glyph-cost analytics module depends on `tiktoken-rs` (a ~1.7 MB embedded BPE
+// vocabulary), which is excluded from the wasm32 target — it feeds cost analytics, never
+// the wasm-clean GMN-1 validator path (`gmn1_read`). Gated in lockstep with its sole
+// dependency so the wasm build links without the vocabulary.
+#[cfg(not(target_arch = "wasm32"))]
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -56,15 +65,33 @@ pub use emit::{assert_no_digest_collision, digest16, ntriples_sorted};
 pub use engine::{
     EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading, interpretation_act_to_ntriples,
 };
+pub use gmn_consume::{
+    CLASS_RING_LATTICE_MALFORMED, CLASS_RING_LEAK, ConsumeProjection, GmnConsumeError, RingLattice,
+    consume_project,
+};
+pub use gmn_metrics::{TokenMetrics, compute_token_metrics};
+pub use gmn_migrate::{
+    GlyphRewrite, GmnMigrateError, GmnMigration, GmnRecordSet, MigratedOperator, MigratedRecordSet,
+    OperatorOccurrence, PRED_GMN_SCHEMA_VERSION, derive_target_inventory, extract_operators,
+    header_schema_major, reemit_migrated_document, resolved_schema_version, source_operator_table,
+    tag_schema_version,
+};
+#[cfg(not(target_arch = "wasm32"))]
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
+pub use gmn_verbalize::{
+    GmnOperatorForm, VerbalizeError, VerbalizedPair, build_verbalization_pairs, parse_nl,
+    resolve_operator_forms, round_trip_holds as verbalizer_round_trip_holds,
+};
 pub use gmn1_codec::{
-    ConstructCoverageTally, CoverageReport, CurrentCodebook, Gmn0Model, Gmn1ConstructCategory,
-    Gmn1Document, Gmn1Error, GmnDictionary, GmnGlyphRegistry, QuadCoverage, classify_model,
-    gmn0_canonically_equal, gmn1_read, gmn1_write, gmn1_write_tabular, measure_coverage,
-    resolve_current_codebook, round_trip_check,
+    ConstructCoverageTally, CoverageReport, CurrentCodebook, DialectAcceptance, Gmn0Model,
+    Gmn1ConstructCategory, Gmn1Document, Gmn1Error, Gmn1RepairError, GmnDictionary,
+    GmnGlyphRegistry, QuadCoverage, classify_model, gmn0_canonically_equal, gmn1_read, gmn1_write,
+    gmn1_write_tabular, measure_coverage, resolve_current_codebook, resolve_dialect_acceptance,
+    resolve_effective, round_trip_check,
 };
 pub use gmn1_digest::{
-    codebook_digest, content_digest, grammar_leaf, pack_root, pack_root_from_grammar_leaf,
+    EcosystemLeaves, codebook_digest, content_digest, grammar_leaf, pack_root,
+    pack_root_from_grammar_leaf, view_leaf,
 };
 pub use gmn1_witness::{
     StandaloneReport, compare_claim_partitions, idempotence_check, partition_by_subject,
@@ -72,7 +99,8 @@ pub use gmn1_witness::{
 };
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,
-    grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
+    distinguished_rule, expr_precedence, gbnf_blocking_constructs, grammar_correspondence,
+    grammar_leg_pair, grammar_to_ntriples, lark_blocking_constructs, parse_grammar,
     serialize_grammar,
 };
 pub use lower::{

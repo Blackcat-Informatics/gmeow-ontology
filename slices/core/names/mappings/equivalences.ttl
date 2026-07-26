@@ -26,277 +26,211 @@ gmeow:mapsetNames a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. Multi-cultural name-part KINDS (gmeow:NamePartType value individuals such as namePartGiven/namePartSurname) align closeMatch to the nearest external concept, following the places.ttl idiom; there are no flat given/family name properties — a 'First Last' rendering is produced by downcasting the structured gmeow:NamePart model in the projection layer (projections/*). The PronounSet CLASS and the hasPronounSet PROPERTY now align (closeMatch) to Wikidata's 'personal pronoun set' (Q65067284) and 'personal pronoun' (P6553) — verified live against the Wikidata API — whose Sept-2025 RfC calls for full-declension pronoun sets (each set's forms, not a single lexeme) — aligning with GMEOW's reified five-form English model; the per-set declensions, NameRegister, NameUsage and the inclusivity machinery (displayable, namePurposeChosen/Deadname) remain CANONICAL — no maintained external RDF vocabulary declines individual sets faithfully (the pronoun ANCHOR list is sourced from the pronouns.page structured database, cited in names.ttl + docs/identity-mapping.md). Co-equality of multilingual names is a structural stance, not an external mapping. Coreference of name INSTANCES is done in data, not here." .
 
-gmeow:eqNames001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:fullName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:fullName skos:closeMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:fullName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:fn ;
+gmeow:fullName skos:closeMatch vcard:fn {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:fullName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:name ;
+gmeow:fullName skos:closeMatch foaf:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:fullName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1559 ;
+gmeow:fullName skos:closeMatch wdt:P1559 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqNames005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PersonName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:Name ;
+gmeow:PersonName skos:closeMatch gx:Name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasNamePart ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:nameForm ;
+gmeow:hasNamePart skos:closeMatch gx:nameForm {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.6
+|} .
 
-gmeow:eqNames007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartGiven ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:givenName ;
+gmeow:namePartGiven skos:closeMatch schema:givenName {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartGiven ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:given-name ;
+gmeow:namePartGiven skos:closeMatch vcard:given-name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartGiven ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:givenName ;
+gmeow:namePartGiven skos:closeMatch foaf:givenName {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartGiven ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:Given ;
+gmeow:namePartGiven skos:closeMatch gx:Given {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartGiven ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P735 ;
+gmeow:namePartGiven skos:closeMatch wdt:P735 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqNames012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartSurname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:familyName ;
+gmeow:namePartSurname skos:closeMatch schema:familyName {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartSurname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:family-name ;
+gmeow:namePartSurname skos:closeMatch vcard:family-name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartSurname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:familyName ;
+gmeow:namePartSurname skos:closeMatch foaf:familyName {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartSurname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:Surname ;
+gmeow:namePartSurname skos:closeMatch gx:Surname {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartSurname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P734 ;
+gmeow:namePartSurname skos:closeMatch wdt:P734 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqNames017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartMiddle ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:additionalName ;
+gmeow:namePartMiddle skos:closeMatch schema:additionalName {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartMiddle ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:additional-name ;
+gmeow:namePartMiddle skos:closeMatch vcard:additional-name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames019 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartNickname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:nickname ;
+gmeow:namePartNickname skos:closeMatch vcard:nickname {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartNickname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject foaf:nick ;
+gmeow:namePartNickname skos:closeMatch foaf:nick {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartNickname ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1449 ;
+gmeow:namePartNickname skos:closeMatch wdt:P1449 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartHonorificPrefix ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:honorificPrefix ;
+gmeow:namePartHonorificPrefix skos:closeMatch schema:honorificPrefix {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartHonorificPrefix ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:honorific-prefix ;
+gmeow:namePartHonorificPrefix skos:closeMatch vcard:honorific-prefix {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartHonorificSuffix ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:honorificSuffix ;
+gmeow:namePartHonorificSuffix skos:closeMatch schema:honorificSuffix {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartHonorificSuffix ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject vcard:honorific-suffix ;
+gmeow:namePartHonorificSuffix skos:closeMatch vcard:honorific-suffix {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqNames026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePartPatronymic ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gx:Patronymic ;
+gmeow:namePartPatronymic skos:closeMatch gx:Patronymic {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:honorific ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:honorificPrefix ;
+gmeow:honorific skos:closeMatch schema:honorificPrefix {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.7
+|} .
 
-gmeow:eqNames028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:honorific ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P511 ;
+gmeow:honorific skos:closeMatch wdt:P511 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePurposeBirth ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1477 ;
+gmeow:namePurposeBirth skos:closeMatch wdt:P1477 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePurposePenStage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P742 ;
+gmeow:namePurposePenStage skos:closeMatch wdt:P742 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
 # Pronoun linkage — Wikidata's 'personal pronoun set' model (verified live against
 # the Wikidata API). closeMatch, not exactMatch: GMEOW carries the set's full
 # declension (five forms for English), Wikidata's P6553 values are lexemes.
 # broadMatch to the grammatical 'pronoun' concept is a hint, never materialized
 # by saturation.
-gmeow:eqNames031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PronounSet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q65067284 ;
+gmeow:PronounSet skos:closeMatch wd:Q65067284 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model"
+|} .
 
-gmeow:eqNames032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPronounSet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P6553 ;
+gmeow:hasPronounSet skos:closeMatch wdt:P6553 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Wikidata 'personal pronoun' property (P6553); lossy — its values are lexemes, GMEOW's range is the full five-form PronounSet" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "Wikidata 'personal pronoun' property (P6553); lossy — its values are lexemes, GMEOW's range is the full five-form PronounSet"
+|} .
 
-gmeow:eqNames033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PronounSet ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject wd:Q36224 ;
+gmeow:PronounSet skos:broadMatch wd:Q36224 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence"
+|} .
 
 # Place naming (place-naming design). A place's toponyms are co-equal gmeow:PlaceName
 # appellations borne via gmeow:hasPlaceName; the time/audience/authority-scoped use
@@ -304,223 +238,177 @@ gmeow:eqNames033 a gmeow:TermEquivalence ;
 # is CIDOC-CRM's E48 Place Name; the relator itself, like gmeow:NameUsage, has no
 # clean external class (Principle 5 — bridge honestly, do not force one).
 
-gmeow:eqNames034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:PlaceName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E48_Place_Name ;
+gmeow:PlaceName skos:closeMatch crm:E48_Place_Name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)"
+|} .
 
-gmeow:eqNames035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPlaceName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject gn:name ;
+gmeow:hasPlaceName skos:broadMatch gn:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "GeoNames gn:name — lossy: gn:name links a feature to a name LITERAL, gmeow:hasPlaceName to a structured PlaceName object" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "GeoNames gn:name — lossy: gn:name links a feature to a name LITERAL, gmeow:hasPlaceName to a structured PlaceName object"
+|} .
 
-gmeow:eqNames036 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasPlaceName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:hasPlaceName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "schema:name — downcast: a place's structured name objects flatten to the schema:name literal in projection (non-selected names → schema:alternateName)" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — downcast: a place's structured name objects flatten to the schema:name literal in projection (non-selected names → schema:alternateName)"
+|} .
 
 # nameLanguage now points at a first-class gmeow:Language (was a BCP-47 literal).
-gmeow:eqNames037 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:nameLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:language ;
+gmeow:nameLanguage skos:closeMatch dcterms:language {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
-gmeow:eqNames038 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:nameLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:inLanguage ;
+gmeow:nameLanguage skos:closeMatch schema:inLanguage {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75
+|} .
+
+gmeow:nameLanguage skos:closeMatch wdt:P407 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
-
-gmeow:eqNames039 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:nameLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P407 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "Wikidata 'language of work or name' (P407) — verified live against the Wikidata API" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "Wikidata 'language of work or name' (P407) — verified live against the Wikidata API"
+|} .
 
 # Endonym / exonym name purposes — co-equal toponym kinds (no privileged claimant).
-gmeow:eqNames040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePurposeEndonym ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q1266782 ;
+gmeow:namePurposeEndonym skos:closeMatch wd:Q1266782 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'endonym' (Q1266782) — verified live against the Wikidata API" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "Wikidata 'endonym' (Q1266782) — verified live against the Wikidata API"
+|} .
 
-gmeow:eqNames041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:namePurposeExonym ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q81639 ;
+gmeow:namePurposeExonym skos:closeMatch wd:Q81639 {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'exonym' (Q81639) — verified live against the Wikidata API" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "Wikidata 'exonym' (Q81639) — verified live against the Wikidata API"
+|} .
 
 # OntoLex-Lemon alignments for names
-gmeow:eqNames042 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Appellation ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject ontolex:LexicalEntry ;
+gmeow:Appellation rdfs:subClassOf ontolex:LexicalEntry {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "GMEOW Appellation subclasses OntoLex LexicalEntry" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "GMEOW Appellation subclasses OntoLex LexicalEntry"
+|} .
 
-gmeow:eqNames043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:nameLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lime:language ;
+gmeow:nameLanguage skos:closeMatch lime:language {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "GMEOW nameLanguage close-matches LIME language" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "GMEOW nameLanguage close-matches LIME language"
+|} .
 
-gmeow:eqNames044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:fullName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ontolex:writtenRep ;
+gmeow:fullName skos:closeMatch ontolex:writtenRep {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW fullName close-matches OntoLex writtenRep" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "GMEOW fullName close-matches OntoLex writtenRep"
+|} .
 
 # Cross-cutting multilingual labels — multilingual-label design. New bearer properties bridge to
 # flat surface-vocabulary name/title literals by projection (Principle 5).
 
-gmeow:eqNames045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasOrganizationName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:hasOrganizationName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — downcast: an organization's structured name objects flatten to the schema:name literal in projection" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — downcast: an organization's structured name objects flatten to the schema:name literal in projection"
+|} .
 
-gmeow:eqNames046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasOrganizationName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject vcard:organization-name ;
+gmeow:hasOrganizationName skos:broadMatch vcard:organization-name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "vcard:organization-name — downcast from structured OrganizationName to flat literal" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "vcard:organization-name — downcast from structured OrganizationName to flat literal"
+|} .
 
-gmeow:eqNames047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasOrganizationName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject foaf:name ;
+gmeow:hasOrganizationName skos:broadMatch foaf:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "foaf:name — downcast from structured OrganizationName to flat literal" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "foaf:name — downcast from structured OrganizationName to flat literal"
+|} .
 
-gmeow:eqNames048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasTitle ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:title ;
+gmeow:hasTitle skos:closeMatch dcterms:title {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection"
+|} .
 
-gmeow:eqNames049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasTitle ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:hasTitle skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — downcast: a creative work's structured title objects flatten to schema:name in projection" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — downcast: a creative work's structured title objects flatten to schema:name in projection"
+|} .
 
-gmeow:eqNames050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasTitle ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:headline ;
+gmeow:hasTitle skos:broadMatch schema:headline {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:headline — downcast from structured CreativeWorkTitle to flat literal" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:headline — downcast from structured CreativeWorkTitle to flat literal"
+|} .
 
-gmeow:eqNames051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CreativeWorkTitle ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:CreativeWorkTitle skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — broad: a CreativeWorkTitle is a kind of name borne by a creative work" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — broad: a CreativeWorkTitle is a kind of name borne by a creative work"
+|} .
 
-gmeow:eqNames052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:AgreementName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:AgreementName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — broad: an AgreementName is a kind of name borne by an agreement" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — broad: an AgreementName is a kind of name borne by an agreement"
+|} .
 
-gmeow:eqNames053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SoftwareName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:SoftwareName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — broad: a SoftwareName is a kind of name borne by a software project" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — broad: a SoftwareName is a kind of name borne by a software project"
+|} .
 
-gmeow:eqNames054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasAgreementName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:hasAgreementName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — downcast: an agreement's structured name objects flatten to the schema:name literal in projection" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — downcast: an agreement's structured name objects flatten to the schema:name literal in projection"
+|} .
 
-gmeow:eqNames055 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSoftwareName ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject schema:name ;
+gmeow:hasSoftwareName skos:broadMatch schema:name {|
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection" ;
-    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+    gmeow:comment "schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqDcTerms007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:nameLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:language ;
+gmeow:nameLanguage skos:closeMatch dcterms:language {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:confidence 0.8
+|} .
 
 # --------------------------------------------------------------------------- #
 # lang: graft supersession ledger — the machine-checked rung carrier lives in  #
 # imports/supersession-correspondences.ttl as logic:Correspondence nodes        #
 # (logic:morphismClass + logic:mnemomorphic + logic:getLeg), run through         #
-# assert_gates in the logic-compile stage. The prose-rung gmeow:TermEquivalence  #
-# graft rows are removed: the rung is a gate-enforced correspondence law, not a  #
+# assert_gates in the logic-compile stage. The prose-rung alignment cell graft   #
+# rows are removed: the rung is a gate-enforced correspondence law, not a        #
 # comment (Principle 17 — SSSOM is its lossy projection).                        #
 # --------------------------------------------------------------------------- #

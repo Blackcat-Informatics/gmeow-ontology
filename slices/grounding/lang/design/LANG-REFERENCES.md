@@ -12,7 +12,7 @@
 >
 > **Tags.** *subsume* = the contribution is carried natively and exceeded; *project* = a generated
 > lossy emission target ([`LANG-PROJECTIONS.md`](LANG-PROJECTIONS.md)); *link* = an
-> alignment/authority surface via `gmeow:TermEquivalence`; *reference* = cited theory or spec,
+> alignment/authority surface via a native alignment cell; *reference* = cited theory or spec,
 > no artifact. Licenses are as reviewed at design time; anything marked *review* requires a
 > license pass before any data (not spec) ingestion.
 

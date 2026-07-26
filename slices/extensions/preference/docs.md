@@ -41,7 +41,7 @@ Cross-slice reuse obeys Principle 16 (DAG): axioms anchor **only** on core +
 `Condition`), model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology,
 and embedding-projection (`VectorSpaceContract`) are **extensions** and are reused
 **only** at the instance level (Principle 5) and named by-reference as
-`gmeow:TermEquivalence` in `mappings/equivalences.ttl` — never a subclass/domain/range
+a native alignment cell in `mappings/equivalences.ttl` — never a subclass/domain/range
 axiom.
 
 ## The pipeline

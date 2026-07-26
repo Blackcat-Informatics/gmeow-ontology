@@ -23,20 +23,16 @@ gmeow:mapsetInquiry a gmeow:MappingSet ;
 # schema.org — QA vocabulary
 # --------------------------------------------------------------------------- #
 
-gmeow:eqInq001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Question ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Question ;
+gmeow:Question skos:closeMatch schema:Question {|
+    gmeow:sssomFile "gmeow-inquiry.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "schema:Question models the QA SPEECH ACT / posted question on a QAPage; gmeow:Question is answerhood-individuated CONTENT (the third content sibling of Proposition and Goal), neither true/false nor a page. closeMatch, not equivalentClass." ;
-    gmeow:sssomFile "gmeow-inquiry.sssom.tsv" .
+    gmeow:comment "schema:Question models the QA SPEECH ACT / posted question on a QAPage; gmeow:Question is answerhood-individuated CONTENT (the third content sibling of Proposition and Goal), neither true/false nor a page. closeMatch, not equivalentClass."
+|} .
 
-gmeow:eqInq002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:answers ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:answer ;
+gmeow:answers skos:closeMatch schema:answer {|
+    gmeow:sssomFile "gmeow-inquiry.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema:answer links a question to an Answer; its schema:acceptedAnswer / schema:suggestedAnswer lineage (QAPage practice) picks ONE accepted answer, whereas gmeow:answers is vantage-indexed and coexisting (P9) — several answers, none privileged, acceptance carried on the epistemics spine. closeMatch." ;
-    gmeow:sssomFile "gmeow-inquiry.sssom.tsv" .
+    gmeow:comment "schema:answer links a question to an Answer; its schema:acceptedAnswer / schema:suggestedAnswer lineage (QAPage practice) picks ONE accepted answer, whereas gmeow:answers is vantage-indexed and coexisting (P9) — several answers, none privileged, acceptance carried on the epistemics spine. closeMatch."
+|} .

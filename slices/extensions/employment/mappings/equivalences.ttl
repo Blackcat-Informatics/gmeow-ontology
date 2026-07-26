@@ -26,88 +26,72 @@ gmeow:mapsetEmployment a gmeow:MappingSet ;
 # schema.org
 # =========================================================================== #
 
-gmeow:eqEmployment001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Employment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:EmployeeRole ;
+gmeow:Employment skos:closeMatch schema:EmployeeRole {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW Employment is a reified relator (membership + role + compensation + type); schema:EmployeeRole is a flatter role construct." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "GMEOW Employment is a reified relator (membership + role + compensation + type); schema:EmployeeRole is a flatter role construct."
+|} .
 
-gmeow:eqEmployment002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Employment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:OrganizationRole ;
+gmeow:Employment skos:closeMatch schema:OrganizationRole {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema:OrganizationRole is broader than EmployeeRole; GMEOW Employment is employment-specific." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "schema:OrganizationRole is broader than EmployeeRole; GMEOW Employment is employment-specific."
+|} .
 
-gmeow:eqEmployment003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:employmentType ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:employmentType ;
+gmeow:employmentType skos:closeMatch schema:employmentType {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW uses a value vocabulary (EmploymentType individual); schema.org uses a string." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "GMEOW uses a value vocabulary (EmploymentType individual); schema.org uses a string."
+|} .
 
-gmeow:eqEmployment004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:employmentCompensation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject schema:salary ;
+gmeow:employmentCompensation skos:relatedMatch schema:salary {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "GMEOW compensation is a MonetaryAmount with explicit currency frame; schema:salary is a broader, flatter construct." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "GMEOW compensation is a MonetaryAmount with explicit currency frame; schema:salary is a broader, flatter construct."
+|} .
 
 # =========================================================================== #
 # Wikidata
 # =========================================================================== #
 
-gmeow:eqEmployment010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Employment ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wdt:P108 ;
+gmeow:Employment skos:relatedMatch wdt:P108 {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "employer" ;
-    gmeow:comment "Wikidata P108 is the flat employer property; GMEOW Employment is the reified relator. Class-to-property alignment is intentional but cross-category, hence relatedMatch." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "Wikidata P108 is the flat employer property; GMEOW Employment is the reified relator. Class-to-property alignment is intentional but cross-category, hence relatedMatch."
+|} .
 
-gmeow:eqEmployment011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:employmentCompensation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P2250 ;
+gmeow:employmentCompensation skos:closeMatch wdt:P2250 {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "salary" ;
-    gmeow:comment "Wikidata salary property; GMEOW uses MonetaryAmount with currency frame." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "Wikidata salary property; GMEOW uses MonetaryAmount with currency frame."
+|} .
 
 # =========================================================================== #
 # W3C ORG
 # =========================================================================== #
 
-gmeow:eqEmployment020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Employment ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject org:Role ;
+gmeow:Employment skos:closeMatch org:Role {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "ORG Role covers any role in an organization, including employment; GMEOW Employment is specifically the employment relationship." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "ORG Role covers any role in an organization, including employment; GMEOW Employment is specifically the employment relationship."
+|} .
 
 # =========================================================================== #
 # ESCO
 # =========================================================================== #
 
-gmeow:eqEmployment040 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:employmentOccupation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject esco:occupation ;
+gmeow:employmentOccupation skos:closeMatch esco:occupation {|
+    gmeow:sssomFile "gmeow-employment.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "ESCO occupation taxonomy aligned to GMEOW Employment via employmentOccupation." ;
-    gmeow:sssomFile "gmeow-employment.sssom.tsv" .
+    gmeow:comment "ESCO occupation taxonomy aligned to GMEOW Employment via employmentOccupation."
+|} .

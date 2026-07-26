@@ -35,90 +35,72 @@ gmeow:mapsetLexicon a gmeow:MappingSet ;
 # OntoLex-Lemon + LIME
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLexicon001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LexicalItem ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject ontolex:LexicalEntry ;
+gmeow:LexicalItem skos:broadMatch ontolex:LexicalEntry {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW LexicalItem is broader than ontolex:LexicalEntry (covers morphemes, phrases, symbols, constructions, not just words), but the alignment is the closest surface term." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "GMEOW LexicalItem is broader than ontolex:LexicalEntry (covers morphemes, phrases, symbols, constructions, not just words), but the alignment is the closest surface term."
+|} .
 
-gmeow:eqLexicon002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LexicalForm ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject ontolex:Form ;
+gmeow:LexicalForm skos:broadMatch ontolex:Form {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "GMEOW LexicalForm is broader than ontolex:Form (covers spoken, signed, reconstructed, and rendered forms, not just written)." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "GMEOW LexicalForm is broader than ontolex:Form (covers spoken, signed, reconstructed, and rendered forms, not just written)."
+|} .
 
-gmeow:eqLexicon003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasLexicalForm ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ontolex:lexicalForm ;
+gmeow:hasLexicalForm skos:closeMatch ontolex:lexicalForm {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqLexicon004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:formRepresentation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ontolex:writtenRep ;
+gmeow:formRepresentation skos:closeMatch ontolex:writtenRep {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Lossy: ontolex:writtenRep covers only written forms; GMEOW formRepresentation also carries spoken (IPA), signed, reconstructed, and rendered forms." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "Lossy: ontolex:writtenRep covers only written forms; GMEOW formRepresentation also carries spoken (IPA), signed, reconstructed, and rendered forms."
+|} .
 
-gmeow:eqLexicon005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:lexicalItemLanguage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject lime:language ;
+gmeow:lexicalItemLanguage skos:closeMatch lime:language {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Both link a lexical entity to its language. GMEOW uses a first-class gmeow:Language IRI; LIME expects a language tag string." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "Both link a lexical entity to its language. GMEOW uses a first-class gmeow:Language IRI; LIME expects a language tag string."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLexicon006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:UsageAttestation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:UsageAttestation skos:closeMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A UsageAttestation is a provenance entity — information about observed use that can be attributed, derived, and versioned." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "A UsageAttestation is a provenance entity — information about observed use that can be attributed, derived, and versioned."
+|} .
 
-gmeow:eqLexicon007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:EtymologicalDerivation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Derivation ;
+gmeow:EtymologicalDerivation skos:closeMatch prov:Derivation {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "An EtymologicalDerivation is a specialized provenance derivation with standpoint, confidence, and temporal scope. The full relator structure is lost in PROV-O projection." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "An EtymologicalDerivation is a specialized provenance derivation with standpoint, confidence, and temporal scope. The full relator structure is lost in PROV-O projection."
+|} .
 
-gmeow:eqLexicon008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:etymonSource ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:entity ;
+gmeow:etymonSource skos:closeMatch prov:entity {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Structural difference: GMEOW models etymology via a reified EtymologicalDerivation relator (Derivation --etymonSource--> SourceItem), while PROV-O uses a direct binary property (DerivedItem --wasDerivedFrom--> SourceItem). Aligning etymonSource to prov:entity preserves the relator-level linkage to the source entity within the PROV-O Derivation structure, though the reified relator itself and its provenance metadata are lost in projection." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "Structural difference: GMEOW models etymology via a reified EtymologicalDerivation relator (Derivation --etymonSource--> SourceItem), while PROV-O uses a direct binary property (DerivedItem --wasDerivedFrom--> SourceItem). Aligning etymonSource to prov:entity preserves the relator-level linkage to the source entity within the PROV-O Derivation structure, though the reified relator itself and its provenance metadata are lost in projection."
+|} .
 
 # --------------------------------------------------------------------------- #
 # Wikidata
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLexicon009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LexicalItem ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q181970 ;
+gmeow:LexicalItem skos:closeMatch wd:Q181970 {|
+    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'lexeme' (Q181970) — a lexical item in a language, broader than a word." ;
-    gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
+    gmeow:comment "Wikidata 'lexeme' (Q181970) — a lexical item in a language, broader than a word."
+|} .

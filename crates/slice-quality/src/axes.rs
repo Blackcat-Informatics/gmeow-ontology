@@ -19,12 +19,13 @@ use gmeow_lang_bridge::{
     Gmn0Model, GmnDictionary, GmnGlyphRegistry, gmn_glyph_token_cost, measure_coverage,
 };
 use gmeow_logic_compile::projections::correspondence::extract_correspondences;
+use gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri;
 use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_dc_refinement};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use regex::Regex;
 
 use crate::counting;
-use crate::graph::{self, all_iris, all_lits, g, id, instances_of, one_iri, one_lit};
+use crate::graph::{self, all_iris, all_lits, g, id, instances_of, one_lit};
 use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};
 
 /// A measurement primitive: score the slice and surface advisories.
@@ -640,25 +641,17 @@ struct LegacyRecord {
 fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
     let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
     let mut out = Vec::new();
-    for record in instances_of(ds, &g("TermEquivalence")) {
-        let Some(sid) = id(ds, &record) else { continue };
-        let Some(pred) = id(ds, &g("alignPredicate")).and_then(|p| one_iri(ds, sid, p)) else {
-            continue;
-        };
-        if !identity.contains(pred.as_str()) {
+    for cell in crate::grounding::native_alignment_cells(ds) {
+        if !identity.contains(cell.predicate.as_str()) {
             continue;
         }
-        let subj = id(ds, &g("alignSubject"))
-            .and_then(|p| one_iri(ds, sid, p))
-            .unwrap_or_default();
-        let obj = id(ds, &g("alignObject"))
-            .and_then(|p| one_iri(ds, sid, p))
-            .unwrap_or_default();
+        let record = alignment_provenance_iri(&cell.subject, &cell.predicate, &cell.obj);
+        let (subj, obj, pred) = (&cell.subject, &cell.obj, &cell.predicate);
         out.push(LegacyRecord {
-            record_iri: record.clone(),
             detail: format!(
                 "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — either author a complete logic:GroundingCorrespondence envelope for a shipped grounding law or lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (Principle 17)."
             ),
+            record_iri: record,
         });
     }
     out.sort_by(|a, b| a.record_iri.cmp(&b.record_iri));
@@ -683,21 +676,16 @@ fn dc_curie(iri: &str) -> String {
 /// instead. Builds `Mapping` rows from the slice's `gmeow:TermEquivalence` records, runs the
 /// lint, and maps each flagged row back to its record IRI. Sorted by record IRI.
 fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
-    // Build one Mapping row per TermEquivalence, keyed back to its record IRI.
+    // Build one Mapping row per native alignment cell, keyed back to its content-addressed
+    // correspondence identity IRI.
     let mut rows: Vec<(Mapping, String)> = Vec::new();
-    for record in instances_of(ds, &g("TermEquivalence")) {
-        let Some(sid) = id(ds, &record) else { continue };
-        let field = |local: &str| {
-            id(ds, &g(local))
-                .and_then(|p| one_iri(ds, sid, p))
-                .map(|iri| dc_curie(&iri))
-                .unwrap_or_default()
-        };
+    for cell in crate::grounding::native_alignment_cells(ds) {
+        let record = alignment_provenance_iri(&cell.subject, &cell.predicate, &cell.obj);
         rows.push((
             Mapping {
-                subject_id: field("alignSubject"),
-                predicate_id: field("alignPredicate"),
-                object_id: field("alignObject"),
+                subject_id: dc_curie(&cell.subject),
+                predicate_id: dc_curie(&cell.predicate),
+                object_id: dc_curie(&cell.obj),
                 confidence: String::new(),
                 mapping_justification: String::new(),
             },
@@ -769,19 +757,18 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
         .map(|c| c.iri)
         .collect();
     calculus.extend(mnemomorphic_projection_cells(ds));
-    let term_cells: BTreeSet<String> = instances_of(ds, &g("TermEquivalence"))
-        .into_iter()
-        .collect();
+    // Native identity-strength alignment cells, keyed by their content-addressed correspondence
+    // identity — the term-equivalence grounding cells that are also identity-strength.
     let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
+    let identity_records: BTreeSet<String> = crate::grounding::native_alignment_cells(ds)
+        .iter()
+        .filter(|c| identity.contains(c.predicate.as_str()))
+        .map(|c| alignment_provenance_iri(&c.subject, &c.predicate, &c.obj))
+        .collect();
     calculus.extend(
         crate::grounding::validated_grounding_cells(ds)
             .into_iter()
-            .filter(|cell| term_cells.contains(cell))
-            .filter(|cell| {
-                id(ds, cell)
-                    .and_then(|sid| id(ds, &g("alignPredicate")).and_then(|p| one_iri(ds, sid, p)))
-                    .is_some_and(|predicate| identity.contains(predicate.as_str()))
-            }),
+            .filter(|cell| identity_records.contains(cell)),
     );
 
     // Legacy: the hand-authored identity-strength records — the migration targets.

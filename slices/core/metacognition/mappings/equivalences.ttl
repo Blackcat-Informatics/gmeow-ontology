@@ -14,11 +14,11 @@
 # its source literatures (Nelson & Narens' metamemory model, Flavell's
 # metacognition, and the Brier-score calibration tradition) have no stable IRI
 # vocabulary to map to, so the mapping set carries the scholarly grounding in its
-# comment and seeds NO gmeow:TermEquivalence rows. This is the same intentional
+# comment and seeds NO alignment cells. This is the same intentional
 # non-mapping the inquiry slice applies to its question-type vocabulary.
 
 gmeow:mapsetMetacognition a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-metacognition.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/metacognition" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Metacognition-slice alignments are intentionally prose-only: the slice's grounding literatures have no stable external IRI vocabulary to map to, so no gmeow:TermEquivalence rows are seeded. Grounding (by reference, Principle 5): the reflexivity turn and the metamemory monitoring/control loop follow Nelson & Narens' metamemory model; the umbrella of second-order cognition follows Flavell's metacognition; gmeow:calibration / gmeow:calibrationError follow the calibration / Brier-score tradition (a proper-scoring measure of the fit between avowed confidence and accuracy), kept solver-layer (Principle 12). The reused first-order quantities — gmeow:confidence (provenance) and credence (epistemics) — and the cross-slice bridges (inquiry's gmeow:evokes, inference's gmeow:Attack, the trust slice's gmeow:trustLevel) carry their own alignments in their home slices and are not re-mapped here." .
+    gmeow:setComment "Metacognition-slice alignments are intentionally prose-only: the slice's grounding literatures have no stable external IRI vocabulary to map to, so no alignment cells are seeded. Grounding (by reference, Principle 5): the reflexivity turn and the metamemory monitoring/control loop follow Nelson & Narens' metamemory model; the umbrella of second-order cognition follows Flavell's metacognition; gmeow:calibration / gmeow:calibrationError follow the calibration / Brier-score tradition (a proper-scoring measure of the fit between avowed confidence and accuracy), kept solver-layer (Principle 12). The reused first-order quantities — gmeow:confidence (provenance) and credence (epistemics) — and the cross-slice bridges (inquiry's gmeow:evokes, inference's gmeow:Attack, the trust slice's gmeow:trustLevel) carry their own alignments in their home slices and are not re-mapped here." .

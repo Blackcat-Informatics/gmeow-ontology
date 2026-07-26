@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The cross-lingual grounding-CONFLICT path of the SINGLE canonical assembly:
-//! when two terms are asserted equivalent (a `gmeow:TermEquivalence`) yet carry
+//! when two terms are asserted equivalent (a native alignment cell) yet carry
 //! DIFFERENT translations for the same annotation predicate + language, the packet
 //! records the disagreement on the affected language cell (via
 //! `gmeow:groundingConflict` and `gmeow:groundingConflictWith`) — a cross-lingual
@@ -14,7 +14,7 @@
 //! disagreement today, which is the legitimate absence case).
 //!
 //! Fixture: two internal `logic:` terms defined by one slice and asserted equivalent
-//! via an in-slice `gmeow:TermEquivalence`, whose `fr.po` catalog gives them
+//! via an in-slice native alignment cell, whose `fr.po` catalog gives them
 //! DIFFERENT French `rdfs:label` values ("Vérité" vs "Véracité").
 
 use std::collections::BTreeMap;
@@ -51,7 +51,7 @@ logic:GmeowTruthB a owl:Class ;
     skos:definition "The truth value, spelling B." .
 "#;
 
-/// The in-slice alignment linkage: an internal `gmeow:TermEquivalence` asserting the
+/// The in-slice alignment linkage: an internal native alignment cell asserting the
 /// two terms are equivalent — the antecedent the disagreement check reads.
 const EQUIV_TTL: &str = r#"
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
@@ -59,13 +59,11 @@ const EQUIV_TTL: &str = r#"
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix logic:  <https://blackcatinformatics.ca/logic/> .
 
-gmeow:eqFixture001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject logic:GmeowTruthA ;
-    gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject logic:GmeowTruthB ;
+logic:GmeowTruthA skos:exactMatch logic:GmeowTruthB {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 1.0 ;
-    gmeow:sssomFile "fixture.sssom.tsv" .
+    gmeow:sssomFile "fixture.sssom.tsv"
+|} .
 "#;
 
 /// The fr catalog: the two EQUIVALENT terms disagree on their French `rdfs:label`.

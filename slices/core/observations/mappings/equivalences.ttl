@@ -44,270 +44,212 @@ gmeow:mapsetObservations a gmeow:MappingSet ;
 # SOSA / SSN
 # --------------------------------------------------------------------------- #
 
-gmeow:eqObs001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Observation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:Observation skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqObs002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observedFeature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasFeatureOfInterest ;
+gmeow:observedFeature skos:closeMatch sosa:hasFeatureOfInterest {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:confidence 0.95
+|} .
 
-gmeow:eqObs003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observationResult ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasResult ;
+gmeow:observationResult skos:closeMatch sosa:hasResult {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:confidence 0.9
+|} .
 
-gmeow:eqObs004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:vantage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:madeBySensor ;
+gmeow:vantage skos:closeMatch sosa:madeBySensor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "SOSA is device-centric; gmeow:vantage covers human standpoints, organizations, and sensors alike. CloseMatch with a note." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA is device-centric; gmeow:vantage covers human standpoints, organizations, and sensors alike. CloseMatch with a note."
+|} .
 
-gmeow:eqObs005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observationMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:usedProcedure ;
+gmeow:observationMethod skos:closeMatch sosa:usedProcedure {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:ObservationMethod skos:closeMatch sosa:Procedure {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85
+|} .
+
+gmeow:Measurement skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "A Measurement is a kind of Observation; SOSA does not distinguish them."
+|} .
 
-gmeow:eqObs006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservationMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Procedure ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
-gmeow:eqObs007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Measurement ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:StandpointClaim skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "A Measurement is a kind of Observation; SOSA does not distinguish them." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish observation types; a standpoint claim is a kind of observation, and the standpoint-indexed statement realises sosa:Observation."
+|} .
 
-gmeow:eqObs017 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "SOSA does not distinguish observation types; a standpoint claim is a kind of observation, and the standpoint-indexed statement realises sosa:Observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
-gmeow:eqObs018 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Agent ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject sosa:Sensor ;
+gmeow:Agent skos:broadMatch sosa:Sensor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine."
+|} .
 
 # Added (observation-spine bridge) — universal claim construct: all relator subclasses align to SOSA.
-gmeow:eqObs020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:IdentityFacet ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:IdentityFacet skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "SOSA does not distinguish observation types; an identity claim (gender, expression, orientation) is a kind of observation in the universal stack." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish observation types; an identity claim (gender, expression, orientation) is a kind of observation in the universal stack."
+|} .
 
-gmeow:eqObs021 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:NameUsage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:NameUsage skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "SOSA does not distinguish observation types; a naming claim is a kind of observation in the universal stack." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish observation types; a naming claim is a kind of observation in the universal stack."
+|} .
 
-gmeow:eqObs022 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:RightsStatement ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:RightsStatement skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "SOSA does not distinguish observation types; a rights claim is a kind of observation in the universal stack." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish observation types; a rights claim is a kind of observation in the universal stack."
+|} .
 
-gmeow:eqObs023 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:KinRelationship ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:KinRelationship skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "SOSA does not distinguish observation types; a kinship claim is a kind of observation in the universal stack." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish observation types; a kinship claim is a kind of observation in the universal stack."
+|} .
 
-gmeow:eqObs024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetSubject ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasFeatureOfInterest ;
+gmeow:facetSubject skos:closeMatch sosa:hasFeatureOfInterest {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "facetSubject is the observedFeature of an identity claim; aligns to SOSA's feature of interest." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "facetSubject is the observedFeature of an identity claim; aligns to SOSA's feature of interest."
+|} .
 
-gmeow:eqObs025 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:facetVantage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:madeBySensor ;
+gmeow:facetVantage skos:closeMatch sosa:madeBySensor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "facetVantage is the asserting agent of an identity claim; aligns to SOSA's sensor (device-centric, broader via broadMatch on Agent)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "facetVantage is the asserting agent of an identity claim; aligns to SOSA's sensor (device-centric, broader via broadMatch on Agent)."
+|} .
 
 # Added (stream-to-trajectory design) — SOSA streaming alignments
 
-gmeow:eqObs026 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Stream ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:ObservationCollection ;
+gmeow:Stream skos:closeMatch sosa:ObservationCollection {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "SOSA has no first-class Stream; ObservationCollection is the closest grouping construct." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA has no first-class Stream; ObservationCollection is the closest grouping construct."
+|} .
 
-gmeow:eqObs027 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:streamSample ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasMember ;
+gmeow:streamSample skos:closeMatch sosa:hasMember {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Stream sample is a member of the observation collection." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "Stream sample is a member of the observation collection."
+|} .
 
 
-gmeow:eqObs029 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:streamSensor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:madeBySensor ;
+gmeow:streamSensor skos:closeMatch sosa:madeBySensor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Per-stream vs per-observation sensor attribution." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "Per-stream vs per-observation sensor attribution."
+|} .
 
-gmeow:eqObs030 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Observation ;
-    gmeow:alignPredicate skos:broadMatch ;
-    gmeow:alignObject sosa:Sampling ;
+gmeow:Observation skos:broadMatch sosa:Sampling {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "A sampling act is a kind of observation; GMEOW models it through observationTypeSampling." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "A sampling act is a kind of observation; GMEOW models it through observationTypeSampling."
+|} .
 
-gmeow:eqObs031 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Agent ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject sosa:Platform ;
+gmeow:Agent skos:relatedMatch sosa:Platform {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "An agent hosting sensors can act as a platform (broader than the sosa:Sensor alignment in eqObs018)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "An agent hosting sensors can act as a platform (broader than the sosa:Sensor alignment in eqObs018)."
+|} .
 
-gmeow:eqObs032 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:streamInterval ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:phenomenonTime ;
+gmeow:streamInterval skos:closeMatch sosa:phenomenonTime {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Stream interval vs per-observation phenomenon time." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "Stream interval vs per-observation phenomenon time."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O
 # --------------------------------------------------------------------------- #
 
-gmeow:eqObs009 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Observation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Entity ;
+gmeow:Observation skos:closeMatch prov:Entity {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned."
+|} .
 
-gmeow:eqObs010 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:vantage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasAttributedTo ;
+gmeow:vantage skos:closeMatch prov:wasAttributedTo {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "prov:wasAttributedTo is a property, gmeow:vantage is a property; the alignment is on the semantic axis (who is responsible), not structural identity." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "prov:wasAttributedTo is a property, gmeow:vantage is a property; the alignment is on the semantic axis (who is responsible), not structural identity."
+|} .
 
-gmeow:eqObs011 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observationResult ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:generated ;
+gmeow:observationResult skos:closeMatch prov:generated {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "Inverse direction: prov:wasGeneratedBy links Entity to Activity; gmeow:observationResult links Observation to its result Entity. Semantic alignment, not structural identity." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "Inverse direction: prov:wasGeneratedBy links Entity to Activity; gmeow:observationResult links Observation to its result Entity. Semantic alignment, not structural identity."
+|} .
 
 # --------------------------------------------------------------------------- #
 # CIDOC-CRM E13 Attribute Assignment
 # --------------------------------------------------------------------------- #
 
-gmeow:eqObs012 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Observation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E13_Attribute_Assignment ;
+gmeow:Observation skos:closeMatch crm:E13_Attribute_Assignment {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "CIDOC-CRM E13 Attribute Assignment is the closest CRM class for an observation: it is both the activity of assigning an attribute and, in GMEOW terms, the observation that results from such an activity. The event perspective is aligned to gmeow:ObservationalActivity in the events mapping set." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E13 Attribute Assignment is the closest CRM class for an observation: it is both the activity of assigning an attribute and, in GMEOW terms, the observation that results from such an activity. The event perspective is aligned to gmeow:ObservationalActivity in the events mapping set."
+|} .
 
-gmeow:eqObs013 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observedFeature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P140_assigned_attribute_to ;
+gmeow:observedFeature skos:closeMatch crm:P140_assigned_attribute_to {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqObs014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observationResult ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P141_assigned ;
+gmeow:observationResult skos:closeMatch crm:P141_assigned {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
-gmeow:eqObs015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:vantage ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P14_carried_out_by ;
+gmeow:vantage skos:closeMatch crm:P14_carried_out_by {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "crm:P14 is event-centric; gmeow:vantage is relator-centric. Semantic alignment on 'who performed it'." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "crm:P14 is event-centric; gmeow:vantage is relator-centric. Semantic alignment on 'who performed it'."
+|} .
 
-gmeow:eqObs016 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observationMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:P33_used_specific_technique ;
+gmeow:observationMethod skos:closeMatch crm:P33_used_specific_technique {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:confidence 0.85
+|} .
 
 # --------------------------------------------------------------------------- #
 # spatial-measurement design — SpatialMeasurement / CoordinateObservation alignments
@@ -315,83 +257,67 @@ gmeow:eqObs016 a gmeow:TermEquivalence ;
 
 # SOSA
 
-gmeow:eqObs033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SpatialMeasurement ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:SpatialMeasurement skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "SOSA does not distinguish spatial measurement types; SpatialMeasurement is a kind of Observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish spatial measurement types; SpatialMeasurement is a kind of Observation."
+|} .
 
-gmeow:eqObs034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CoordinateObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Observation ;
+gmeow:CoordinateObservation skos:closeMatch sosa:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "SOSA does not distinguish coordinate observation types; CoordinateObservation is a kind of Observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA does not distinguish coordinate observation types; CoordinateObservation is a kind of Observation."
+|} .
 
-gmeow:eqObs035 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:coordinateResult ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasResult ;
+gmeow:coordinateResult skos:closeMatch sosa:hasResult {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "coordinateResult is the GeoCoordinates-specific subproperty of observationResult; aligns to SOSA's generic hasResult." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "coordinateResult is the GeoCoordinates-specific subproperty of observationResult; aligns to SOSA's generic hasResult."
+|} .
 
-gmeow:eqObs036 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:geometryResult ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasResult ;
+gmeow:geometryResult skos:closeMatch sosa:hasResult {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "geometryResult is the Geometry-specific subproperty of observationResult; aligns to SOSA's generic hasResult." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "geometryResult is the Geometry-specific subproperty of observationResult; aligns to SOSA's generic hasResult."
+|} .
 
 # O&M (ISO 19156)
 
-gmeow:eqObs037 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SpatialMeasurement ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject iso19156:OM_Observation ;
+gmeow:SpatialMeasurement skos:closeMatch iso19156:OM_Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "ISO 19156 O&M is the conceptual geographic standard that inspired SOSA/SSN. SpatialMeasurement aligns to the generic OM_Observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "ISO 19156 O&M is the conceptual geographic standard that inspired SOSA/SSN. SpatialMeasurement aligns to the generic OM_Observation."
+|} .
 
-gmeow:eqObs038 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CoordinateObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject iso19156:OM_GeometryObservation ;
+gmeow:CoordinateObservation skos:closeMatch iso19156:OM_GeometryObservation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "ISO 19156 O&M GeometryObservation is the closest O&M class for coordinate/geometry assignment." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "ISO 19156 O&M GeometryObservation is the closest O&M class for coordinate/geometry assignment."
+|} .
 
 # CRMarchaeo
 
-gmeow:eqObs039 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:CoordinateObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmarc:S4_Observation ;
+gmeow:CoordinateObservation skos:closeMatch crmarc:S4_Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "CRMarchaeo S4 Observation covers stratigraphic and spatial observations in archaeological context." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "CRMarchaeo S4 Observation covers stratigraphic and spatial observations in archaeological context."
+|} .
 
 # StandpointTenure observation design — StandpointClaim as Observation: claimModality maps to SOSA result.
 
-gmeow:eqObs041 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:claimModality ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:hasResult ;
+gmeow:claimModality skos:closeMatch sosa:hasResult {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "the modality result of a standpoint claim is the SOSA result of the observation (StandpointTenure observation design)";
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "the modality result of a standpoint claim is the SOSA result of the observation (StandpointTenure observation design)"
+|} .
 
 # --------------------------------------------------------------------------- #
 # sensory slice — Sensory module alignments (SOSA/SSN, OBOE, PATO, OBI, OM, QB)
@@ -399,413 +325,327 @@ gmeow:eqObs041 a gmeow:TermEquivalence ;
 
 # SOSA/SSN — precise sensor / platform / observable property / result alignments
 
-gmeow:eqObs042 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Sensor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Sensor ;
+gmeow:Sensor skos:closeMatch sosa:Sensor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Precise alignment: a GMEOW Sensor is a more specific kind of Agent that acts as vantage in a SensoryObservation. Supersedes the broader Agent → sosa:Sensor broadMatch (eqObs018)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "Precise alignment: a GMEOW Sensor is a more specific kind of Agent that acts as vantage in a SensoryObservation. Supersedes the broader Agent → sosa:Sensor broadMatch (eqObs018)."
+|} .
 
-gmeow:eqObs043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensorPlatform ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Platform ;
+gmeow:SensorPlatform skos:closeMatch sosa:Platform {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "Precise alignment: a GMEOW SensorPlatform hosts sensors and is situated at a place. Supersedes the broader Agent → sosa:Platform relatedMatch (eqObs031)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "Precise alignment: a GMEOW SensorPlatform hosts sensors and is situated at a place. Supersedes the broader Agent → sosa:Platform relatedMatch (eqObs031)."
+|} .
 
-gmeow:eqObs044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservableProperty ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:ObservableProperty ;
+gmeow:ObservableProperty skos:closeMatch sosa:ObservableProperty {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "A property that can be observed or measured by a sensor. GMEOW models it as a gufo:QualityValue vocabulary (individuals); SOSA as a class." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "A property that can be observed or measured by a sensor. GMEOW models it as a gufo:QualityValue vocabulary (individuals); SOSA as a class."
+|} .
 
-gmeow:eqObs045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryQuantity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:Result ;
+gmeow:SensoryQuantity skos:closeMatch sosa:Result {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a sensory-produced scalar numeric and specializes the sole math:Quantity authority.";
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a sensory-produced scalar numeric and specializes the sole math:Quantity authority."
+|} .
 
-gmeow:eqObs046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:sensoryProperty ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject sosa:observedProperty ;
+gmeow:sensoryProperty skos:closeMatch sosa:observedProperty {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "The observable property that a sensory observation measures." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "The observable property that a sensory observation measures."
+|} .
 
-gmeow:eqObs047 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:platformLocation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject geo:location ;
+gmeow:platformLocation skos:closeMatch geo:location {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "SOSA core has no direct platform-location property; bridge via GeoSPARQL geo:location by reference." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SOSA core has no direct platform-location property; bridge via GeoSPARQL geo:location by reference."
+|} .
 
 # OBOE — Extensible Observation Ontology
 
-gmeow:eqObs048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservableProperty ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oboe:Characteristic ;
+gmeow:ObservableProperty skos:closeMatch oboe:Characteristic {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "OBOE Characteristic is the property being measured; GMEOW ObservableProperty is a value vocabulary (individuals)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "OBOE Characteristic is the property being measured; GMEOW ObservableProperty is a value vocabulary (individuals)."
+|} .
 
-gmeow:eqObs049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observationMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oboe:Protocol ;
+gmeow:observationMethod skos:closeMatch oboe:Protocol {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "The procedure or protocol used to make an observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "The procedure or protocol used to make an observation."
+|} .
 
-gmeow:eqObs050 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observedFeature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oboe:Entity ;
+gmeow:observedFeature skos:closeMatch oboe:Entity {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "OBOE Entity is broader (any entity); GMEOW observedFeature is the specific entity whose property is being observed." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "OBOE Entity is broader (any entity); GMEOW observedFeature is the specific entity whose property is being observed."
+|} .
 
 # PATO — Phenotype And Trait Ontology
 
-gmeow:eqObs051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservableProperty ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject pato:0000001 ;
+gmeow:ObservableProperty skos:closeMatch pato:0000001 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "PATO quality (PATO:0000001) is the broadest quality class; GMEOW ObservableProperty is a value vocabulary of specific observable properties." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "PATO quality (PATO:0000001) is the broadest quality class; GMEOW ObservableProperty is a value vocabulary of specific observable properties."
+|} .
 
 # OBI — Ontology for Biomedical Investigations
 
-gmeow:eqObs052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Sensor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject obi:0000968 ;
+gmeow:Sensor skos:closeMatch obi:0000968 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "OBI device (OBI:0000968) is a material entity that is designed to perform a function. A GMEOW Sensor is an Agent (observer) that may be realised by a device." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "OBI device (OBI:0000968) is a material entity that is designed to perform a function. A GMEOW Sensor is an Agent (observer) that may be realised by a device."
+|} .
 
-gmeow:eqObs053 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:observationMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject obi:0000070 ;
+gmeow:observationMethod skos:closeMatch obi:0000070 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "OBI assay (OBI:0000070) is a planned process with the objective to produce information about some evaluant. Aligns to the procedure/method of an observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "OBI assay (OBI:0000070) is a planned process with the objective to produce information about some evaluant. Aligns to the procedure/method of an observation."
+|} .
 
 # QB — RDF Data Cube
 
-gmeow:eqObs054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qb:Observation ;
+gmeow:SensoryObservation skos:closeMatch qb:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "QB Observation is contextual — a SensoryObservation becomes a QB Observation when it is part of a qb:DataSet / qb:Slice. The alignment is closeMatch with context note." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "QB Observation is contextual — a SensoryObservation becomes a QB Observation when it is part of a qb:DataSet / qb:Slice. The alignment is closeMatch with context note."
+|} .
 
 # OM — Ontology of Units of Measure (complementing existing QUDT alignment)
 
-gmeow:eqObs055 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:unit ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject om:hasUnit ;
+gmeow:unit skos:closeMatch om:hasUnit {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "OM models om:hasUnit as the property relating a measure to its om:Unit; gmeow:unit is the parallel property edge (a quantity to its unit IRI), so the alignment stays property-to-property. GMEOW unit points to QUDT by default, with OM as an alternative by reference." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "OM models om:hasUnit as the property relating a measure to its om:Unit; gmeow:unit is the parallel property edge (a quantity to its unit IRI), so the alignment stays property-to-property. GMEOW unit points to QUDT by default, with OM as an alternative by reference."
+|} .
 
 # --------------------------------------------------------------------------- #
 # observation-linkage design / observation activity alignment comment — ObservationalActivity alignments (OBI, OBOE, QB).
 # --------------------------------------------------------------------------- #
 
-gmeow:eqObs056 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservationalActivity ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject obi:0000011 ;
+gmeow:ObservationalActivity skos:closeMatch obi:0000011 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "OBI investigation (OBI:0000011) is a planned process with the objective to produce information about some evaluant — the closest OBI class for a structured observational activity such as a clinical trial or survey." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "OBI investigation (OBI:0000011) is a planned process with the objective to produce information about some evaluant — the closest OBI class for a structured observational activity such as a clinical trial or survey."
+|} .
 
-gmeow:eqObs057 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Observation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject oboe:Observation ;
+gmeow:Observation skos:closeMatch oboe:Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "OBOE Observation is the core observation construct in the Extensible Observation Ontology; GMEOW Observation unifies it with measurement, standpoint claim, and identity claim." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "OBOE Observation is the core observation construct in the Extensible Observation Ontology; GMEOW Observation unifies it with measurement, standpoint claim, and identity claim."
+|} .
 
-gmeow:eqObs058 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservationalActivity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject qb:DataSet ;
+gmeow:ObservationalActivity skos:relatedMatch qb:DataSet {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "An ObservationalActivity that produces aggregate statistical data (e.g. a census) projects to an RDF Data Cube DataSet. Related match because the activity and the dataset are distinct: one generates the other." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "An ObservationalActivity that produces aggregate statistical data (e.g. a census) projects to an RDF Data Cube DataSet. Related match because the activity and the dataset are distinct: one generates the other."
+|} .
 
 # --------------------------------------------------------------------------- #
 # archaeological-domain model — Domain-specific observation profiles
 # --------------------------------------------------------------------------- #
 
 # Archaeological — CRMarchaeo
-gmeow:eqObs060 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservationalActivity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject crmarc:A1_Excavation_Process_Unit ;
+gmeow:ObservationalActivity skos:relatedMatch crmarc:A1_Excavation_Process_Unit {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "CRMarchaeo A1 Excavation Process Unit is the closest class for an observational activity whose event type is excavation. Related match because A1 is specifically about destructive excavation, not any observational activity." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "CRMarchaeo A1 Excavation Process Unit is the closest class for an observational activity whose event type is excavation. Related match because A1 is specifically about destructive excavation, not any observational activity."
+|} .
 
-gmeow:eqObs061 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Observation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmarc:S4_Observation ;
+gmeow:Observation skos:closeMatch crmarc:S4_Observation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "CRMarchaeo S4 Observation is the closest CRM class for a stratigraphic or physical-layer observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "CRMarchaeo S4 Observation is the closest CRM class for a stratigraphic or physical-layer observation."
+|} .
 
-gmeow:eqObs062 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservedFeature ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crmarc:A2_Stratigraphic_Volume_Unit ;
+gmeow:ObservedFeature skos:closeMatch crmarc:A2_Stratigraphic_Volume_Unit {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CRMarchaeo A2 Stratigraphic Volume Unit is the physical layer being observed in an archaeological context." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "CRMarchaeo A2 Stratigraphic Volume Unit is the physical layer being observed in an archaeological context."
+|} .
 
 # Astronomical — IVOA / ObsCore
-gmeow:eqObs063 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject obscore:ObsDataset ;
+gmeow:SensoryObservation skos:closeMatch obscore:ObsDataset {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "IVOA ObsCore ObsDataset is the closest class for an astronomical observation dataset." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "IVOA ObsCore ObsDataset is the closest class for an astronomical observation dataset."
+|} .
 
-gmeow:eqObs064 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasReferenceFrame ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject obscore:coordsys ;
+gmeow:hasReferenceFrame skos:relatedMatch obscore:coordsys {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "IVOA ObsCore coordsys carries coordinate system metadata for celestial reference frames. Related match because GMEOW hasReferenceFrame is more general (spatial, temporal, and celestial frames)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "IVOA ObsCore coordsys carries coordinate system metadata for celestial reference frames. Related match because GMEOW hasReferenceFrame is more general (spatial, temporal, and celestial frames)."
+|} .
 
-gmeow:eqObs065 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Sensor ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject obscore:facility ;
+gmeow:Sensor skos:relatedMatch obscore:facility {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "IVOA ObsCore facility identifies the telescope or observatory that produced the observation." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "IVOA ObsCore facility identifies the telescope or observatory that produced the observation."
+|} .
 
-gmeow:eqObs066 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Sensor ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject obscore:instrument ;
+gmeow:Sensor skos:relatedMatch obscore:instrument {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument."
+|} .
 
 # Media / Journalism — BBC + IPTC + OA
-gmeow:eqObs068 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject bbc:NewsEvent ;
+gmeow:StandpointClaim skos:relatedMatch bbc:NewsEvent {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "BBC NewsEvent is a reported real-world event; GMEOW StandpointClaim generalises this to any standpoint-indexed claim, not only news." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "BBC NewsEvent is a reported real-world event; GMEOW StandpointClaim generalises this to any standpoint-indexed claim, not only news."
+|} .
 
-gmeow:eqObs069 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:vantage ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject iptc:Assertor ;
+gmeow:vantage skos:relatedMatch iptc:Assertor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "IPTC Assertor is the person or organisation making the claim; GMEOW vantage is broader (human, machine, organisational, or sensor standpoint)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "IPTC Assertor is the person or organisation making the claim; GMEOW vantage is broader (human, machine, organisational, or sensor standpoint)."
+|} .
 
-gmeow:eqObs070 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservationalActivity ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject iptc:NewsMessage ;
+gmeow:ObservationalActivity skos:relatedMatch iptc:NewsMessage {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "IPTC NewsMessage is the report container; GMEOW ObservationalActivity is broader than journalism (science, archaeology, clinical trials, etc.)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "IPTC NewsMessage is the report container; GMEOW ObservationalActivity is broader than journalism (science, archaeology, clinical trials, etc.)."
+|} .
 
-gmeow:eqObs071 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject oa:Annotation ;
+gmeow:StandpointClaim skos:relatedMatch oa:Annotation {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "Open Annotation Annotation is the closest W3C construct for a standpoint-indexed claim with body (the claim) and target (the observed feature). The projection layer provides the directional mapping to oa:hasBody / oa:hasTarget." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:confidence 0.55 ;
+    gmeow:comment "Open Annotation Annotation is the closest W3C construct for a standpoint-indexed claim with body (the claim) and target (the observed feature). The projection layer provides the directional mapping to oa:hasBody / oa:hasTarget."
+|} .
 
 # Clinical — LOINC + SNOMED CT
-gmeow:eqObs072 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryObservation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject loinc:LabTest ;
+gmeow:SensoryObservation skos:relatedMatch loinc:LabTest {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "LOINC LabTest is the closest LOINC class for a laboratory test observation. Related match because GMEOW SensoryObservation covers any sensory/perceptual observation, not only lab tests." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "LOINC LabTest is the closest LOINC class for a laboratory test observation. Related match because GMEOW SensoryObservation covers any sensory/perceptual observation, not only lab tests."
+|} .
 
-gmeow:eqObs073 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservableProperty ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject loinc:Component ;
+gmeow:ObservableProperty skos:relatedMatch loinc:Component {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "LOINC Component identifies what is being measured (glucose, WBC, etc.)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "LOINC Component identifies what is being measured (glucose, WBC, etc.)."
+|} .
 
-gmeow:eqObs074 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservationMethod ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject loinc:Method ;
+gmeow:ObservationMethod skos:closeMatch loinc:Method {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "LOINC Method describes how a laboratory test was performed; close match to GMEOW ObservationMethod in clinical contexts." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "LOINC Method describes how a laboratory test was performed; close match to GMEOW ObservationMethod in clinical contexts."
+|} .
 
-gmeow:eqObs076 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:ObservedFeature ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject snomed:116154003 ;
+gmeow:ObservedFeature skos:relatedMatch snomed:116154003 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "SNOMED CT Patient is the subject of a clinical observation. Related match because observedFeature is more general (any entity, not only patients)." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SNOMED CT Patient is the subject of a clinical observation. Related match because observedFeature is more general (any entity, not only patients)."
+|} .
 
-gmeow:eqObs077 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:SensoryObservation ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject snomed:404684003 ;
+gmeow:SensoryObservation skos:relatedMatch snomed:404684003 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "SNOMED CT ClinicalFinding is an observation interpreted as a diagnosis or finding." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+    gmeow:comment "SNOMED CT ClinicalFinding is an observation interpreted as a diagnosis or finding."
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqAi001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Claim ;
+gmeow:StandpointClaim skos:closeMatch schema:Claim {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema:Claim is the fact-check-markup claim; a StandpointClaim carries vantage/modality/confidence the schema.org term lacks — the projection emits text + appearance and NO reviewRating" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "schema:Claim is the fact-check-markup claim; a StandpointClaim carries vantage/modality/confidence the schema.org term lacks — the projection emits text + appearance and NO reviewRating"
+|} .
 
-gmeow:eqAi002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I2_Belief ;
+gmeow:StandpointClaim skos:closeMatch crminf:I2_Belief {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "CRMinf's belief (a proposition held by an agent) is the heritage-argumentation cousin of the standpoint-indexed claim; CRMinf adds inference-making machinery GMEOW keeps in the solver layer" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "CRMinf's belief (a proposition held by an agent) is the heritage-argumentation cousin of the standpoint-indexed claim; CRMinf adds inference-making machinery GMEOW keeps in the solver layer"
+|} .
 
-gmeow:eqAi003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject np:Assertion ;
+gmeow:StandpointClaim skos:relatedMatch np:Assertion {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "a nanopublication's assertion graph plays the claim-content role; nanopubs package assertion+provenance+pubinfo as named graphs where GMEOW uses RDF 1.2 statement annotations" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "a nanopublication's assertion graph plays the claim-content role; nanopubs package assertion+provenance+pubinfo as named graphs where GMEOW uses RDF 1.2 statement annotations"
+|} .
 
-gmeow:eqAi004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2684591 ;
+gmeow:StandpointClaim skos:closeMatch wd:Q2684591 {|
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'statement' — that which a true-or-false sentence asserts; curl-validated 2026-06-12" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
+    gmeow:comment "Wikidata 'statement' — that which a true-or-false sentence asserts; curl-validated 2026-06-12"
+|} .
 
-gmeow:eqFibo003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MonetaryAmount ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fnd-acc-cur:MonetaryAmount ;
+gmeow:MonetaryAmount skos:closeMatch fibo-fnd-acc-cur:MonetaryAmount {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a quantity of money expressed as a value in a currency" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "a quantity of money expressed as a value in a currency"
+|} .
 
-gmeow:eqFibo004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:currency ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject fibo-fnd-acc-cur:hasCurrency ;
+gmeow:currency skos:closeMatch fibo-fnd-acc-cur:hasCurrency {|
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "links a monetary amount to its currency frame (subproperty of hasReferenceFrame)" ;
-    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+    gmeow:comment "links a monetary amount to its currency frame (subproperty of hasReferenceFrame)"
+|} .
 
-gmeow:eqQudt006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:quantityUncertainty ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject qudt:standardUncertainty ;
+gmeow:quantityUncertainty skos:closeMatch qudt:standardUncertainty {|
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "QUDT's standard uncertainty is the estimated standard deviation of the mean; GMEOW's quantityUncertainty is the same concept, in the same unit as the quantity value." ;
-    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+    gmeow:comment "QUDT's standard uncertainty is the estimated standard deviation of the mean; GMEOW's quantityUncertainty is the same concept, in the same unit as the quantity value."
+|} .
 
-gmeow:eqSchemaOrgFin003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MonetaryAmount ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:MonetaryAmount ;
+gmeow:MonetaryAmount skos:closeMatch schema:MonetaryAmount {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a quantity of money; GMEOW makes the currency frame explicit via ReferenceFrame" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "a quantity of money; GMEOW makes the currency frame explicit via ReferenceFrame"
+|} .
 
-gmeow:eqSchemaOrgFin004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:monetaryValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:value ;
+gmeow:monetaryValue skos:closeMatch schema:value {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "the numeric value of a monetary amount" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "the numeric value of a monetary amount"
+|} .
 
-gmeow:eqSchemaOrgFin005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:currency ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:currency ;
+gmeow:currency skos:closeMatch schema:currency {|
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "the currency of a monetary amount; GMEOW uses a ReferenceFrame individual, schema.org uses a string code" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+    gmeow:comment "the currency of a monetary amount; GMEOW uses a ReferenceFrame individual, schema.org uses a string code"
+|} .

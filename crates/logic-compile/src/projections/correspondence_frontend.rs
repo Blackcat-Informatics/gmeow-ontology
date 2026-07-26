@@ -9,7 +9,7 @@
 //! Two cell kinds feed the program, each reusing the SAME typed derivation its dialect
 //! lowering already trusts — never a forked mapping:
 //!
-//! * a `gmeow:TermEquivalence` cell (the SSSOM 1:1 band): its relation + morphism class
+//! * a native alignment cell (the SSSOM 1:1 band): its relation + morphism class
 //!   come from `sssom::sssom_band` (so the typed node and the rendered SSSOM TSV agree
 //!   by construction), its confidence from `gmeow:confidence`, and its evidence strength
 //!   from the justification band ([`evidence_strength_of_justification`]);
@@ -79,6 +79,18 @@ fn correspondence_iri(tag: &str, key: &str) -> String {
     format!("{LOGIC_NAMESPACE}correspondence/{tag}/{hex}")
 }
 
+/// The content-addressed correspondence identity IRI for an alignment keyed by its
+/// `(subject, predicate, object)` triple — the SAME digest scheme the transpiler mints for
+/// a non-grounding term-equivalence. Exposed for consumers that record alignment provenance
+/// (e.g. `gmeow:mappedFrom`) now that native alignment cells carry no bespoke `gmeow:eqXxx`
+/// cell IRI. Stable, collision-free, and IRI-legal.
+pub fn alignment_provenance_iri(subject: &str, predicate: &str, object: &str) -> String {
+    correspondence_iri(
+        "term-equivalence",
+        &format!("{subject}|{predicate}|{object}"),
+    )
+}
+
 /// Parse an optional `logic:` enum IRI authored on a mapping cell. The mapping SHACL
 /// shape constrains these values too, but the compiler remains fail-closed when called
 /// directly: a foreign namespace or unknown local name is never silently treated as the
@@ -122,7 +134,7 @@ pub struct TypedRelation {
 /// term-equivalence and a projection binding can never collide on a key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum NaturalKey {
-    /// A `gmeow:TermEquivalence` cell, keyed by its `(subject, predicate, object)` triple
+    /// A native alignment cell, keyed by its `(subject, predicate, object)` triple
     /// (one subject may align to several objects, so the whole triple is the identity).
     Equivalence {
         subject: String,
@@ -144,7 +156,7 @@ pub struct CorrespondenceLookup {
     by_key: BTreeMap<NaturalKey, TypedRelation>,
     /// Correspondence IRI → the profile of the `gmeow:ProjectionMapping` binding it was
     /// minted from. Only per-profile binding correspondences carry a profile (a
-    /// `gmeow:TermEquivalence` cell is not profile-scoped and is absent here). Consumed by
+    /// native alignment cell is not profile-scoped and is absent here). Consumed by
     /// the mappings stage to pair a correspondence with its OWN per-binding get/put CONSTRUCT
     /// fragments for executed lens-law discharge — the per-profile UNION query is the wrong
     /// unit (a single UNION branch's law must be checked in isolation).
@@ -152,7 +164,7 @@ pub struct CorrespondenceLookup {
 }
 
 impl CorrespondenceLookup {
-    /// The materialized typed relation of a `gmeow:TermEquivalence` cell, keyed by its
+    /// The materialized typed relation of a native alignment cell, keyed by its
     /// `(subject, predicate, object)` triple.
     ///
     /// # Errors
@@ -174,7 +186,7 @@ impl CorrespondenceLookup {
         self.by_key.get(&key).copied().ok_or_else(|| {
             Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "no materialized correspondence for TermEquivalence cell \
+                    "no materialized correspondence for alignment cell \
                      ({subject}, {predicate}, {obj}) — every authored cell must be transpiled"
                 ),
             })
@@ -231,7 +243,7 @@ impl CorrespondenceLookup {
 }
 
 /// Transpile the authored `dsl/mappings/` cells into a typed [`CorrespondenceProgram`]:
-/// one [`Correspondence`] per `gmeow:TermEquivalence` cell and one per
+/// one [`Correspondence`] per native alignment cell and one per
 /// `gmeow:ProjectionMapping` per-profile binding. Thin wrapper over
 /// [`transpile_correspondences_indexed`] for callers that need only the program.
 ///
@@ -270,33 +282,43 @@ pub fn transpile_correspondences_indexed(
     let mut correspondences: Vec<Correspondence> = Vec::new();
     let mut by_key: BTreeMap<NaturalKey, TypedRelation> = BTreeMap::new();
     let mut binding_profiles: BTreeMap<String, String> = BTreeMap::new();
+    // Two authored cells that mint the SAME content-addressed correspondence IRI must agree on
+    // the SEMANTIC identity of the fact: confidence, justification, and endpoints. The IRI
+    // folds in (subject, predicate, object) + morphism metadata, so a cell that additionally
+    // diverges on confidence/justification/endpoints would otherwise be resolved by silent
+    // last-write-wins — a MAXIMAL-INFORMATION-FLOW violation. `sssom_file` is deliberately
+    // EXCLUDED from the signature: the SSSOM projection emits one row per cell keyed by its
+    // file (`build_rows_and_ledger`), so one fact may legitimately belong to several thematic
+    // SSSOM sets; the typed correspondence (which carries no file) collapses those to one node.
+    // Map each minted IRI to (semantic signature, first sssom file) and fail closed on a clash.
+    let mut seen_correspondences: BTreeMap<String, (String, String)> = BTreeMap::new();
 
-    // ── gmeow:TermEquivalence cells (the SSSOM 1:1 band) ───────────────────────────
-    for cell in equivalence_cells(dsl_view) {
+    // ── Native alignment cells (the SSSOM 1:1 band) ────────────────────────────────
+    for cell in equivalence_cells(dsl_view)? {
         // Relation + morphism class from the SAME band the SSSOM ledger gate uses.
         let (relation, derived_class) = sssom_band(&cell.predicate);
         let authored_class = parse_logic_enum(
             cell.morphism_class.as_deref(),
-            "TermEquivalence",
+            "alignment cell",
             "logic:morphismClass",
             MorphismClass::from_local,
         )?;
         let authored_kind = parse_logic_enum(
             cell.morphism_kind.as_deref(),
-            "TermEquivalence",
+            "alignment cell",
             "logic:morphismKind",
             MorphismKind::from_local,
         )?;
         let preservation = parse_logic_enum(
             cell.preservation.as_deref(),
-            "TermEquivalence",
+            "alignment cell",
             "logic:preservationKind",
             PreservationKind::from_local,
         )?;
         if cell.grounding && cell.justification.is_none() {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) must explicitly author \
+                    "grounding alignment cell ({}, {}, {}) must explicitly author \
                      gmeow:justification",
                     cell.subject, cell.predicate, cell.obj
                 ),
@@ -311,7 +333,7 @@ pub fn transpile_correspondences_indexed(
         {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) must explicitly author \
+                    "grounding alignment cell ({}, {}, {}) must explicitly author \
                      logic:sourceEndpoint, logic:targetEndpoint, logic:morphismClass, \
                      logic:morphismKind, and logic:preservationKind",
                     cell.subject, cell.predicate, cell.obj
@@ -324,8 +346,8 @@ pub fn transpile_correspondences_indexed(
         {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) endpoints must agree with \
-                     gmeow:alignSubject and gmeow:alignObject",
+                    "grounding alignment cell ({}, {}, {}) endpoints must agree with \
+                     the match subject and object",
                     cell.subject, cell.predicate, cell.obj
                 ),
             }));
@@ -340,7 +362,7 @@ pub fn transpile_correspondences_indexed(
         {
             return Err(Diag::of_kind(crate::error::Correspondence {
                 detail: format!(
-                    "grounding TermEquivalence ({}, {}, {}) must pair logic:BridgeView with \
+                    "grounding alignment cell ({}, {}, {}) must pair logic:BridgeView with \
                      logic:CommitmentShiftingBridge (and only that pair)",
                     cell.subject, cell.predicate, cell.obj
                 ),
@@ -368,6 +390,32 @@ pub fn transpile_correspondences_indexed(
             cell.subject, cell.predicate, cell.obj, authored_key
         );
         let iri = correspondence_iri("term-equivalence", &key);
+        // Fail closed on a semantically divergent duplicate; collapse a redundant restatement.
+        let signature = format!(
+            "conf={:?}|just={:?}|src={:?}|tgt={:?}",
+            cell.confidence, cell.justification, cell.source_endpoint, cell.target_endpoint,
+        );
+        match seen_correspondences.get(&iri) {
+            Some((prev_signature, prev_file)) if *prev_signature != signature => {
+                return Err(Diag::of_kind(crate::error::Correspondence {
+                    detail: format!(
+                        "divergent duplicate alignment cell: ({}, {}, {}) is authored more than \
+                         once with conflicting metadata (confidence/justification/endpoints) — \
+                         first in '{}', again in '{}'. Both mint the same content-addressed \
+                         correspondence identity, so one would be silently dropped; reconcile \
+                         them to a single canonical value.",
+                        cell.subject, cell.predicate, cell.obj, prev_file, cell.sssom_file,
+                    ),
+                }));
+            }
+            // A semantically identical restatement (possibly in another SSSOM set) is already
+            // materialized — skip the redundant typed node; the per-cell SSSOM emission keeps
+            // its own file membership.
+            Some(_) => continue,
+            None => {
+                seen_correspondences.insert(iri.clone(), (signature, cell.sssom_file.clone()));
+            }
+        }
         let evidence_strength = evidence_strength_of_justification(cell.justification.as_deref());
         let mut corr = Correspondence::new(
             iri,

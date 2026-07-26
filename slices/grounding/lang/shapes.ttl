@@ -353,10 +353,10 @@ lang:FregeDisjointShape
         sh:select """
             SELECT DISTINCT $this WHERE {
                 {
-                    $this a <https://blackcatinformatics.ca/lang/Form> .
+                    $this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://blackcatinformatics.ca/lang/Form> .
                     $this a <https://blackcatinformatics.ca/lang/Sense> .
                 } UNION {
-                    $this a <https://blackcatinformatics.ca/lang/Form> .
+                    $this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <https://blackcatinformatics.ca/lang/Form> .
                     $this a <https://blackcatinformatics.ca/lang/Denotation> .
                 } UNION {
                     $this a <https://blackcatinformatics.ca/lang/Sense> .

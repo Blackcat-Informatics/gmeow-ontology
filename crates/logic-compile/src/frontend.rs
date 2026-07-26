@@ -44,12 +44,14 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateBalance, AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec,
-    ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope,
-    Correspondence, EvaluationMode, Formula, JoinAggregate, JoinLeg, LOGIC_NAMESPACE, LogicAxiom,
-    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr,
-    ReasoningContract, ReasoningProgramIr, SemanticProfileId, ShaclNodeKind, ShaclSeverity,
-    ShapeTarget, ShapeValue, Term, ValidationShapeIr, VariableSortScope,
+    ANNOTATION_LIFT_PREDS, AggregateBalance, AggregateComparator, AggregateComparison,
+    AggregateRhs, AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintIr,
+    ConstraintProvenance, ContextualScope, Correspondence, EvaluationMode, Formula, JoinAggregate,
+    JoinLeg, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule, NodeKind,
+    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, ReasoningProgramIr,
+    SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
+    ValidationShapeIr, VariableSortScope, X_GMEOW_ENGLISH_TAG, annotation_pred_is_load_bearing,
+    subject_is_gmeow_authored,
 };
 use super::restriction;
 
@@ -340,6 +342,20 @@ fn is_constraint_sugar_class(local: &str) -> bool {
     )
 }
 
+/// The reserved `logic:` predicate-local names that carry a `logic:AbductiveSchema`'s repair
+/// mechanism — the discipline back-link, the repair-strategy selector, and the completeness
+/// formula root. Like the constraint annotations, these are consumed by the abductive advice
+/// producer (which queries the reasoned RDF dataset directly) and must NOT leak into
+/// `prog.axioms`; in particular `completenessFormula` reaches a `logic:Formula` root that is
+/// excluded from the top-level formula set in [`extract_formulas`], so authoring a completeness
+/// condition never changes what the reasoner entails about the live model.
+fn is_abductive_schema_structural_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        "repairsDiscipline" | "repairStrategy" | "completenessFormula"
+    )
+}
+
 /// The reserved `logic:` predicate-local names that carry a `logic:ReasoningProgram`'s
 /// clause set, goal, verdict probes, evaluation-strategy selector, and per-variable
 /// order-sort declarations. Like the formula-structural predicates, these are consumed by
@@ -428,6 +444,79 @@ fn collect_owned_recovery_cases(store: &RdfDataset) -> HashSet<String> {
         .filter(|quad| quad.predicate.as_str() == recovery_case_pred)
         .map(|quad| term_str(&quad.object))
         .collect()
+}
+
+/// Lift the RDFS/SKOS annotation surface (`ANNOTATION_LIFT_PREDS`) into first-class
+/// [`NodeKind::Annotation`] axioms — the inbound half of `logic: isSupersetOf SKOS/RDFS`.
+/// Each `<term> <annotation-pred> "literal"@x-gmeow-english` triple becomes one annotation
+/// axiom carrying the surface predicate verbatim, so the SKOS/RDFS annotation surface
+/// round-trips through the canonical IR and the generated SKOS surface is a projection of
+/// these axioms rather than an authored second source.
+///
+/// The `@x-gmeow-english` carrier discipline is honored: ONLY carrier-tagged literals are
+/// lifted — an annotation literal carrying a *different* language tag (an `@en` example
+/// label, a foreign literal) or an untagged/typed literal is skipped, never silently
+/// retagged. The authoritative fail-closed carrier guard is the structural lint (the
+/// validate `x-gmeow-` language-tag check), scoped to the shipped core-term graphs, which
+/// flags a genuine core violation; internal terms are always carrier-tagged.
+fn extract_annotation_axioms(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<LogicAxiom> {
+    let mut axioms: Vec<LogicAxiom> = Vec::new();
+    for quad in default_graph_quads(store) {
+        let p_str = quad.predicate.as_str();
+        if !ANNOTATION_LIFT_PREDS.contains(&p_str) {
+            continue;
+        }
+        // Annotations belong on named terms; a blank-node subject is a structural
+        // interior (a restriction / formula node), never a term carrying a display label.
+        if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        // Only GMEOW-authored subjects are lifted: a foreign alignment-target / example
+        // subject carries its own external-vocabulary label (@en, …), which is that
+        // vocabulary's metadata, not GMEOW's SKOS/RDFS surface, and must not be lifted or
+        // carrier-checked (mirrors the structural-lint scoping).
+        if !subject_is_gmeow_authored(&subject_str(&quad.subject)) {
+            continue;
+        }
+        let Node::Lit { lexical, lang, .. } = &quad.object else {
+            // A non-literal object on an annotation predicate is malformed authoring
+            // (e.g. rdfs:seeAlso-style IRI object); it is not a lift target.
+            continue;
+        };
+        // Only the internal carrier surface is lifted. Any other language tag (an `@en`
+        // example/demonstration label, a foreign literal) or an untagged/typed literal is
+        // NOT part of GMEOW's carrier SKOS/RDFS surface, so it is skipped — never lifted and
+        // never treated as a hard error here. The authoritative fail-closed carrier-discipline
+        // guard is the structural lint (validate-gts), which is scoped to the shipped
+        // core-term graphs and flags a genuine core violation (R2/AC2); the compile-logic
+        // corpus also carries example/test subjects the lint deliberately does not police, so
+        // rejecting their @en annotations here would be stricter than the guard itself.
+        if lang.as_deref() != Some(X_GMEOW_ENGLISH_TAG) {
+            continue;
+        }
+        match LogicAxiom::new(
+            subject_str(&quad.subject),
+            p_str,
+            lexical.clone(),
+            true,
+            false,
+            ContextualScope::default(),
+        ) {
+            Ok(ax) => axioms.push(
+                ax.with_node_kind(NodeKind::Annotation)
+                    .with_load_bearing(annotation_pred_is_load_bearing(p_str)),
+            ),
+            Err(exc) => diagnostics.push(Diagnostic::warning(
+                "MALFORMED_ANNOTATION",
+                exc.message().to_owned(),
+                Some(subject_str(&quad.subject)),
+            )),
+        }
+    }
+    axioms
 }
 
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
@@ -528,6 +617,12 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // Reasoning-program structural triples are consumed by extract_reasoning_programs;
         // they are never domain facts.
         if is_reasoning_program_structural_predicate(p_local) {
+            continue;
+        }
+        // Abductive-schema structural triples are consumed by the abductive advice producer;
+        // they are never domain facts (and completenessFormula's root is excluded from the
+        // top-level formula set in extract_formulas).
+        if is_abductive_schema_structural_predicate(p_local) {
             continue;
         }
         match LogicAxiom::new(
@@ -3246,6 +3341,22 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Fo
             }
         }
     }
+    // A formula reached as a `logic:AbductiveSchema`'s `logic:completenessFormula` is the
+    // discipline-satisfied condition the abductive producer instantiates at a gap subject —
+    // NOT a free-standing top-level assertion. Excluding every completeness root here is what
+    // keeps authoring a completeness condition from asserting it as an always-true axiom (which
+    // would both corrupt the reasoned core and auto-assert the very structure the advice only
+    // RECOMMENDS adding).
+    let completeness_pred = nn(&logic_iri("completenessFormula"));
+    for schema in subjects_with(
+        store,
+        &nn(RDF_TYPE),
+        &Node::iri(logic_iri("AbductiveSchema")),
+    ) {
+        for obj in objects(store, &schema, &completeness_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
@@ -3341,6 +3452,18 @@ fn one_child_subject(
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
 pub(crate) fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
     parse_formula_inner(store, node, &mut Vec::new())
+}
+
+/// Reconstruct the [`Formula`] rooted at the `logic:Formula` node named `root_iri` from `store`.
+///
+/// The public entry for consumers that hold a formula-root IRI resolved from the reasoned RDF
+/// dataset and need its first-order [`Formula`] IR without compiling the whole document — notably
+/// the abductive advice producer, which reads a `logic:AbductiveSchema`'s
+/// `logic:completenessFormula` root. That root is deliberately kept out of the top-level formula
+/// set (see [`extract_formulas`]), so it is unreachable through `parse_logic_*`; this reconstructs
+/// exactly the one subtree, applying the same strict well-formedness checks as every other formula.
+pub fn reconstruct_formula(store: &RdfDataset, root_iri: &str) -> gmeow_errors::Result<Formula> {
+    parse_formula(store, &Subject::Iri(root_iri.to_owned()))
 }
 
 fn parse_formula_inner(
@@ -5571,6 +5694,9 @@ pub fn parse_logic_dataset(
 
     let plain_axioms = extract_axioms(store, &mut diagnostics);
     let scoped_axioms = extract_scoped_axioms(store, &mut diagnostics);
+    // Lift the RDFS/SKOS annotation surface into first-class NodeKind::Annotation axioms
+    // (logic: isSupersetOf SKOS/RDFS); fail-closed on a non-carrier language tag.
+    let annotation_axioms = extract_annotation_axioms(store, &mut diagnostics);
 
     // Read the top-level `logic:Formula` trees, then ROUTE a trivially-Horn leaf (a reified
     // ordinary triple: an IRI relation over two non-sequence-marker arguments) to its axiom
@@ -5613,6 +5739,7 @@ pub fn parse_logic_dataset(
         .into_iter()
         .chain(scoped_axioms)
         .chain(horn_axioms)
+        .chain(annotation_axioms)
     {
         if seen.insert(content_dedup_key(&ax)) {
             all_axioms.push(ax);

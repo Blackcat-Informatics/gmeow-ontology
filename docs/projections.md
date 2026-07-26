@@ -50,7 +50,7 @@ distributions + checksums, the DCAT catalog leg; see
 [research-objects.md](./research-objects.md)), and the five standpoint
 projections (CRMinf,
 Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
-`generated/queries/*.rq` by `make sync`. A
+`generated/queries/*.rq` by `make regen`. A
 target-by-target summary with spec links is in the
 [README projection-targets table](../README.md#projection-targets).
 
@@ -121,8 +121,9 @@ The authoring source is a GMEOW-grounded Turtle frontend (vocabulary in
 `dsl/mappings/vocabulary.ttl`, all in the `gmeow:` namespace, a spec layer never
 reasoned over):
 
-- `slices/<group>/<name>/mappings/equivalences.ttl` — slice-owned
-  `gmeow:TermEquivalence` cells, one per SSSOM row.
+- `slices/<group>/<name>/mappings/equivalences.ttl` — slice-owned native alignment
+  cells (a reified `skos:*Match`/`owl:equivalent*` statement carrying
+  `gmeow:sssomFile`), one per SSSOM row.
 - `slices/<group>/<name>/mappings/projections-<profile>.ttl` — slice-owned
   `gmeow:ProjectionMapping` cells.
 - `dsl/mappings/projections/*.ttl` — shared or cross-slice projection enrichment.
@@ -137,8 +138,8 @@ algebra** (`CONCAT`/`COALESCE`/`IF`/`STR`/`IRI`/`STRDT`/`regex` +
 alt/seq/zero-or-more property paths) — **no raw SPARQL** appears in the source.
 
 ```sh
-make sync        # render registered generated artifacts from canonical sources
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated   # CI gate: fail if a committed artifact is stale
+make regen        # render registered generated artifacts from canonical sources
+make check-sync   # CI gate: fail if a committed artifact is stale
 ```
 
 Two properties hold **by construction**, eliminating the bug classes review used
@@ -191,13 +192,15 @@ reference. There are two cell types.
 slice-local `mappings/equivalences.ttl`:
 
 ```turtle
-ex:eqPersonFoaf a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Person ;
-    gmeow:alignPredicate owl:equivalentClass ;   # or skos:exactMatch / closeMatch …
-    gmeow:alignObject   foaf:Person ;
+# The native RDF-1.2 form: the match relation is asserted directly on the term, and
+# the SSSOM side-data rides the statement's reifier. The predicate is one of
+# skos:*Match / owl:equivalent* / owl:sameAs / rdfs:sub*Of.
+gmeow:Person owl:equivalentClass foaf:Person {|
     gmeow:confidence    1.0 ;
     gmeow:objectLabel   "person" ;                # optional → object_label column
-    gmeow:sssomFile     "gmeow-classes.sssom.tsv" .
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:sssomFile     "gmeow-classes.sssom.tsv"
+|} .
 ```
 
 **A projection (a lossy downcast)** → an EDOAL cell + FnO function + a SPARQL
@@ -249,7 +252,30 @@ Key authoring choices, each a single field on the pattern or binding:
   traversal; otherwise `gmeow:edoalSource` names the salient term; otherwise the
   projection is structural / SSSOM-backed (no EDOAL cell).
 
-After any change, run `make sync` or the registered generator in check mode; the
+After any change, run `make regen` or the registered generator in check mode; the
 compiler runs the cross-layer invariants on its own output and refuses to emit on
 violation. Never hand-edit generated mapping artifacts under `generated/mappings/`,
-`generated/projections/`, or `generated/queries/` — `make sync SYNC_MODE=check SYNC_OUTPUTS=generated` fails on drift.
+`generated/projections/`, or `generated/queries/` — `make check-sync` fails on drift.
+
+## GMN-1 — the token-compact model notation projection
+
+Alongside the vocabulary downcasts above, the `lang:` grounding slice projects
+**GMN-1** (Grounded Model Notation), a token-compact serialization of the model
+authored for LLM producers and constrained decoding. Like every projection it is a
+lossy, directional **view of `gmeow.gts`** — graph-derived, never hand-authored —
+and it is version-keyed by the graph-resolved dialect major under
+`generated/projections/lang/gmn1/v<major>/**` (see
+[the pipeline spine § 6.1](./PIPELINE_SPINE.md)). The ecosystem projects to:
+
+| Layer | Expresses | Generated artifact |
+|---|---|---|
+| **EBNF / ABNF grammar** | the reference GMN grammar, per formalism | `generated/projections/lang/ebnf/gmn.ebnf`, `generated/projections/lang/abnf/gmn.abnf` |
+| **GBNF / Lark grammar** | the same graph-derived grammar as a real **constrained-decode** artifact | `generated/projections/lang/gmn1/v*/gbnf/gmn.gbnf`, `.../v*/lark/gmn.lark` |
+| **token-metrics** | a math-grounded `gmeow:Measurement` 7-vector (byte-fallback compression gate) | `generated/projections/lang/gmn1/v*/token-metrics.ttl` |
+| **verbalizations** | GMN↔controlled-NL `lang:translationCorrespondence` pairs | `generated/projections/lang/gmn1/v*/verbalizations.ttl` |
+| **primer card** | a ~500-token teachability card | folded into `llms.txt` / `llms-full.txt` + MCP `gmeow://ontology/gmn1-primer` |
+| **training corpus** | a rejection-sampled, proof-carrying corpus (`stage-gmn-training-corpus`) | bundle-internal graph `graph/gmn-training-corpus` |
+
+The verifier surface (`gmn_validate` / `gmn_expand` / `gmn_explain`) is documented in
+[the MCP server guide](./mcp-server.md). Never hand-edit these artifacts — they
+regenerate from the bundle and are drift-gated exactly like the mapping projections above.

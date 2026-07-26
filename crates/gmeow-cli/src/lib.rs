@@ -34,12 +34,12 @@ use gmeow_cli_core::ConsoleMode;
 /// generator inputs, and no network. Every command that defaults to "the bundle"
 /// reads these bytes unless the user supplies a file / `--gts`.
 ///
-/// The bundle is a git-ignored staged product materialized by `make sync` (or
+/// The bundle is a git-ignored staged product materialized by `make regen` (or
 /// `make install`), never a committed input. `build.rs` resolves it to an
 /// absolute path, guards against it being absent or empty, and exposes that
 /// path via the `GMEOW_BUNDLE_PATH` build-time env var this `include_bytes!`
 /// reads — so the build fails closed with a bootstrap pointer (naming
-/// `make sync`) rather than a bare "file not found" when the bundle hasn't
+/// `make regen`) rather than a bare "file not found" when the bundle hasn't
 /// been materialized yet. `GMEOW_BUNDLE_PATH` may be set in the environment to
 /// override the staged path for release/package flows; the same hard fail on
 /// absence still applies.
@@ -72,6 +72,16 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
     }
 }
 
+/// The `logic fragments` output serialization.
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+pub enum FragmentsFormat {
+    /// Deterministic, greppable human-readable text (the default).
+    #[default]
+    Text,
+    /// Pretty JSON of the decided-fragment / retained-boundary surface.
+    Json,
+}
+
 /// The `gmeow` consumer CLI.
 #[derive(Debug, Parser)]
 #[command(name = "gmeow", version, about = "The GMEOW ontology consumer CLI.")]
@@ -92,6 +102,12 @@ pub struct Cli {
 }
 
 /// The consumer subcommands.
+///
+/// This is the top-level clap dispatch enum, constructed exactly once per
+/// process from parsed arguments; the flag-rich `HybridQuery` variant makes it
+/// the largest, but there is no hot path allocating many of these, so the
+/// per-variant size difference is immaterial here.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Subcommand)]
 pub enum Commands {
     /// Print the gmeow package version.
@@ -335,8 +351,8 @@ pub enum Commands {
         /// IRI (`--relation`) plus any ordinary RDF predicates from `--facts`.
         #[arg(long = "program")]
         program: PathBuf,
-        /// The external provider's candidate tuples: DERIVED QUERY INPUTS,
-        /// never asserted ontology facts, so this is deliberately a plain
+        /// TABLE MODE. The external provider's candidate tuples: DERIVED QUERY
+        /// INPUTS, never asserted ontology facts, so this is deliberately a plain
         /// line-oriented table, not RDF. One tuple per line:
         /// `<arg1-iri> <arg2-iri> annotation order-key`, whitespace-separated
         /// (tabs or spaces, repeated whitespace collapses); blank lines and
@@ -344,11 +360,68 @@ pub enum Commands {
         /// bracketed absolute IRIs (`<https://example.org/x>`); `annotation`
         /// is a signed 64-bit ZWeight integer; `order-key` is the provider's
         /// own lexical rank key for the pushed-down ascending total order
-        /// (ties break on canonical tuple order).
+        /// (ties break on canonical tuple order). Mutually exclusive with
+        /// `--purremb`; exactly one mode must be selected.
         #[arg(long = "candidates")]
-        candidates: PathBuf,
+        candidates: Option<PathBuf>,
+        /// PURREMB MODE. A `.purremb` artifact to open and fully verify
+        /// (verify-once and source-pack certify), then expose as a query-scoped
+        /// nearest-neighbour relation whose retrieved rows are RDF 1.2 identities.
+        /// Requires `--source` and the full selection surface below; mutually
+        /// exclusive with `--candidates`.
+        #[arg(long = "purremb")]
+        purremb: Option<PathBuf>,
+        /// PURREMB MODE. The exact source pack the `--purremb` artifact is bound
+        /// to (verified under `--source-mode`).
+        #[arg(long = "source")]
+        source: Option<PathBuf>,
+        /// PURREMB MODE. Target-set identity (64 hex characters).
+        #[arg(long = "target-set")]
+        target_set: Option<String>,
+        /// PURREMB MODE. Embedding-family identity (64 hex characters).
+        #[arg(long = "family")]
+        family: Option<String>,
+        /// PURREMB MODE. Effective vector-space identity (64 hex characters).
+        #[arg(long = "vector-space")]
+        vector_space: Option<String>,
+        /// PURREMB MODE. Stored-matrix identity (64 hex characters).
+        #[arg(long = "matrix")]
+        matrix: Option<String>,
+        /// PURREMB MODE. Effective-projection identity (64 hex characters);
+        /// required only for the Matryoshka prefix-then-rerank policy.
+        #[arg(long = "projection")]
+        projection: Option<String>,
+        /// PURREMB MODE. Declared distance metric: `cosine`, `negative-dot`, or
+        /// `squared-euclidean`.
+        #[arg(long = "metric", default_value = "cosine")]
+        metric: String,
+        /// PURREMB MODE. Effective (leading-prefix) dimension scored against.
+        #[arg(long = "effective-dimension", default_value_t = 0)]
+        effective_dimension: u32,
+        /// PURREMB MODE. Declared stored scalar type: `f32` or `f64`.
+        #[arg(long = "dtype", default_value = "f32")]
+        dtype: String,
+        /// PURREMB MODE. Effective-space prefix postprocessing: `none` or
+        /// `deterministic-l2`.
+        #[arg(long = "postprocessing", default_value = "none")]
+        postprocessing: String,
+        /// PURREMB MODE. Selected retrieval branch: `exact-full-space` or
+        /// `matryoshka-prefix-then-rerank`.
+        #[arg(long = "retrieval-policy", default_value = "exact-full-space")]
+        retrieval_policy: String,
+        /// PURREMB MODE. Source-verification mode: `exact` or `certified`.
+        #[arg(long = "source-mode", default_value = "certified")]
+        source_mode: String,
+        /// PURREMB MODE. RDF 1.2 term kind of the corpus target rows, applied to
+        /// both the query and candidate columns: `iri` (default), `triple-term`,
+        /// or `literal`. A `triple-term` corpus is queried with a `<<( s p o )>>`
+        /// goal term and its candidates round-trip as quoted triples.
+        #[arg(long = "term-kind", default_value = "iri")]
+        term_kind: String,
         /// The provider relation IRI referenced by `--program` (fixed arity 2,
-        /// both arguments IRIs, `logic:SimilarityAnnotation` dimension).
+        /// both arguments IRIs). Table mode carries a
+        /// `logic:SimilarityAnnotation`; PURREMB mode carries a
+        /// `logic:DistanceAnnotation`.
         #[arg(long = "relation")]
         relation: String,
         /// Provider identity IRI (provenance only).
@@ -363,8 +436,10 @@ pub enum Commands {
             default_value = "https://blackcatinformatics.ca/gmeow/hybrid-query/model"
         )]
         model_iri: String,
-        /// Immutable artifact-generation IRI the `--candidates` table is
-        /// pinned to (provenance only).
+        /// Artifact-generation IRI. Table mode: the immutable generation the
+        /// `--candidates` table is pinned to. PURREMB mode: the BASE IRI the
+        /// pinned artifact root and the explicit selection (policy + source
+        /// mode) are folded into, so a differing selection is never cache-aliased.
         #[arg(
             long = "artifact-generation",
             default_value = "https://blackcatinformatics.ca/gmeow/hybrid-query/generation/1"
@@ -505,6 +580,28 @@ pub enum GmnCommands {
         #[arg(long = "format", short = 'f', value_enum, default_value_t = DecodeFormat::Nquads)]
         format: DecodeFormat,
     },
+    /// The consume-path security-ring filter: canonicalize → SECURITY-RING FILTER →
+    /// GMN-1 → token-budget fit. Filters a ring-tagged Turtle input to exactly the
+    /// content admissible into `--ring` under the derived `gmeow:gmnRingWithin`
+    /// product-order, projects it to GMN-1 on stdout, and fits it to `--budget`
+    /// tokens with the elided remainder disclosed. Hard-fails (`lang:GmnRingLeak`)
+    /// on any leakage violation.
+    Project {
+        /// The ring-tagged RDF (Turtle) input to filter and project.
+        input: PathBuf,
+        /// The TARGET security ring: a full IRI or a `gmeow:` local name
+        /// (`gmnRingCore` / `gmnRingTrusted` / `gmnRingRestricted` / `gmnRingNato`).
+        #[arg(long = "ring")]
+        ring: String,
+        /// An optional token budget: admitted claims beyond it are elided (whole-claim,
+        /// disclosed on stderr), never silently truncated.
+        #[arg(long = "budget")]
+        budget: Option<u64>,
+        /// Override the embedded bundle's codebook/dictionary AND ring-lattice coordinates with a
+        /// lang `module.ttl` file (default: the embedded `gmeow.gts` snapshot).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
+    },
     /// The conformance driver: over a frozen vector corpus, prove every positive
     /// vector is byte-frozen + round-trips, every codec-tier negative raises its
     /// recorded class, and the recomputed codebook digest + pack root match the bundle's
@@ -527,6 +624,26 @@ pub enum GmnCommands {
         /// file (default: the `gmeow:gmnPackRoot` in the embedded `gmeow.gts` snapshot).
         #[arg(long = "pack")]
         pack: Option<PathBuf>,
+    },
+    /// Re-emit a STORED GMN-1 document at a target dialect major across an authored
+    /// inter-version correspondence (the version-migration executor's production entry
+    /// point). Hard-fails with the named `lang:GmnUnbridgedGlyphDrop` class (exit 1) on an
+    /// operator the target major drops with no covering rewrite — never a silent repair.
+    Migrate {
+        /// The stored source-major GMN-1 (`.gmn`) document to migrate.
+        input: PathBuf,
+        /// The migration `logic:Correspondence` IRI (the `gmeow:gmnMigratesFrom` /
+        /// `gmeow:gmnMigratesTo` leg to apply).
+        #[arg(long = "correspondence")]
+        correspondence: String,
+        /// The Turtle file authoring the correspondence, its `gmeow:GmnMigrationRewrite`s, and the
+        /// target major's `gmeow:gmnVersionDefinesOperator` native inventory.
+        #[arg(long = "migrations")]
+        migrations: PathBuf,
+        /// Override the embedded bundle's codebook/dictionary + operator registry with a lang
+        /// `module.ttl` file (default: the embedded `gmeow.gts` snapshot).
+        #[arg(long = "lang-module")]
+        lang_module: Option<PathBuf>,
     },
 }
 
@@ -679,6 +796,26 @@ pub enum LogicCommands {
     Session {
         #[command(subcommand)]
         command: LogicSessionCommands,
+    },
+    /// Query the shipped fragment-certified decidability surface: list the construct
+    /// families the native refutation kernel natively DECIDES (each with the
+    /// `logic:RefutationPattern` it closes under and its completeness bound), plus
+    /// their dual — the retained `logic:expressivenessBoundary` records the kernel
+    /// deliberately WITHHOLDS, with their technical reasons. Reads the decidability
+    /// manifest (`logic:DecidedFragment` / `logic:RefutationPattern` /
+    /// `logic:expressivenessBoundary`) straight from a graph source via graph queries:
+    /// the embedded `gmeow.gts` bundle by default, or a `--bundle` override (a `.gts`
+    /// snapshot, or an RDF file such as the `logic` slice `module.ttl`, chosen by
+    /// extension). Output is deterministic (sorted by fragment / boundary id).
+    Fragments {
+        /// Query this graph source instead of the embedded bundle: a `.gts` snapshot,
+        /// or an RDF file (`.ttl`/`.nt`/`.nq`/`.rdf`/`.owl`/`.xml`/`.trig`) carrying
+        /// the `logic:DecidedFragment` / `logic:expressivenessBoundary` manifest.
+        #[arg(long = "bundle")]
+        bundle: Option<PathBuf>,
+        /// Output serialization: `text` (default) or `json`.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = FragmentsFormat::Text)]
+        format: FragmentsFormat,
     },
 }
 
@@ -1183,6 +1320,9 @@ pub fn run() -> i32 {
                     reapply.as_deref(),
                 ),
             },
+            LogicCommands::Fragments { bundle, format } => {
+                commands::logic_fragments(reporter, bundle.as_deref(), format)
+            }
         },
         Commands::Slice { command } => match command {
             SliceCommands::Quality { dir, format } => {
@@ -1231,6 +1371,12 @@ pub fn run() -> i32 {
                 lang_module,
                 format,
             } => gmn::decode(reporter, &input, lang_module.as_deref(), format),
+            GmnCommands::Project {
+                input,
+                ring,
+                budget,
+                lang_module,
+            } => gmn::project(reporter, &input, &ring, budget, lang_module.as_deref()),
             GmnCommands::Verify {
                 vectors,
                 lang_module,
@@ -1243,11 +1389,37 @@ pub fn run() -> i32 {
                 grammar.as_deref(),
                 pack.as_deref(),
             ),
+            GmnCommands::Migrate {
+                input,
+                correspondence,
+                migrations,
+                lang_module,
+            } => gmn::migrate(
+                reporter,
+                &input,
+                &correspondence,
+                &migrations,
+                lang_module.as_deref(),
+            ),
         },
         Commands::HybridQuery {
             facts,
             program,
             candidates,
+            purremb,
+            source,
+            target_set,
+            family,
+            vector_space,
+            matrix,
+            projection,
+            metric,
+            effective_dimension,
+            dtype,
+            postprocessing,
+            retrieval_policy,
+            source_mode,
+            term_kind,
             relation,
             provider_iri,
             model_iri,
@@ -1255,18 +1427,173 @@ pub fn run() -> i32 {
             per_call_limit,
             max_calls,
             max_rows,
-        } => commands::hybrid_query(
+        } => dispatch_hybrid_query(
             reporter,
-            &facts,
-            &program,
-            &candidates,
-            &relation,
-            &provider_iri,
-            &model_iri,
-            &artifact_generation,
-            per_call_limit,
-            max_calls,
-            max_rows,
+            HybridQueryInputs {
+                facts,
+                program,
+                candidates,
+                purremb,
+                source,
+                target_set,
+                family,
+                vector_space,
+                matrix,
+                projection,
+                metric,
+                effective_dimension,
+                dtype,
+                postprocessing,
+                retrieval_policy,
+                source_mode,
+                term_kind,
+                relation,
+                provider_iri,
+                model_iri,
+                artifact_generation,
+                per_call_limit,
+                max_calls,
+                max_rows,
+            },
         ),
+    }
+}
+
+/// Owned `hybrid-query` inputs, threaded from clap to the mode selector.
+struct HybridQueryInputs {
+    facts: PathBuf,
+    program: PathBuf,
+    candidates: Option<PathBuf>,
+    purremb: Option<PathBuf>,
+    source: Option<PathBuf>,
+    target_set: Option<String>,
+    family: Option<String>,
+    vector_space: Option<String>,
+    matrix: Option<String>,
+    projection: Option<String>,
+    metric: String,
+    effective_dimension: u32,
+    dtype: String,
+    postprocessing: String,
+    retrieval_policy: String,
+    source_mode: String,
+    term_kind: String,
+    relation: String,
+    provider_iri: String,
+    model_iri: String,
+    artifact_generation: String,
+    per_call_limit: usize,
+    max_calls: u64,
+    max_rows: u64,
+}
+
+/// Stable diagnostic code for a mis-specified `hybrid-query` mode selection.
+const HYBRID_QUERY_MODE_DIAG: &str = "gmeow-cli.hybrid-query.mode";
+
+/// Select the table or verified-PURREMB retrieval mode from the CLI inputs. The
+/// two modes are mutually exclusive and each is fully specified — a
+/// half-specified request is a hard usage failure, never a silent degradation to
+/// the other mode.
+fn dispatch_hybrid_query(
+    reporter: &dyn gmeow_cli_core::Reporter,
+    inputs: HybridQueryInputs,
+) -> i32 {
+    match (inputs.candidates.as_ref(), inputs.purremb.as_ref()) {
+        (Some(_), Some(_)) => commands::fail_code(
+            reporter,
+            HYBRID_QUERY_MODE_DIAG,
+            "--candidates (table mode) and --purremb (PURREMB mode) are mutually exclusive; \
+             select exactly one",
+            2,
+        ),
+        (None, None) => commands::fail_code(
+            reporter,
+            HYBRID_QUERY_MODE_DIAG,
+            "one retrieval mode is required: pass --candidates (table mode) or --purremb + \
+             --source (PURREMB mode)",
+            2,
+        ),
+        (Some(candidates), None) => commands::hybrid_query(
+            reporter,
+            &inputs.facts,
+            &inputs.program,
+            candidates,
+            &inputs.relation,
+            &inputs.provider_iri,
+            &inputs.model_iri,
+            &inputs.artifact_generation,
+            inputs.per_call_limit,
+            inputs.max_calls,
+            inputs.max_rows,
+        ),
+        (None, Some(purremb)) => {
+            let Some(source) = inputs.source.as_ref() else {
+                return commands::fail_code(
+                    reporter,
+                    HYBRID_QUERY_MODE_DIAG,
+                    "PURREMB mode requires --source (the exact source pack the artifact is \
+                     bound to)",
+                    2,
+                );
+            };
+            // Every selection identity is mandatory in PURREMB mode.
+            let required = [
+                ("--target-set", inputs.target_set.as_deref()),
+                ("--family", inputs.family.as_deref()),
+                ("--vector-space", inputs.vector_space.as_deref()),
+                ("--matrix", inputs.matrix.as_deref()),
+            ];
+            for (flag, value) in required {
+                if value.is_none() {
+                    return commands::fail_code(
+                        reporter,
+                        HYBRID_QUERY_MODE_DIAG,
+                        format!("PURREMB mode requires {flag} (a bound in-corpus identity)"),
+                        2,
+                    );
+                }
+            }
+            // The effective (leading-prefix) dimension is a mandatory selection input; its
+            // clap default of 0 is not a valid scored space. Reject it here with a clear
+            // usage error rather than letting it fail deep inside `PurrembBinding::open`.
+            if inputs.effective_dimension == 0 {
+                return commands::fail_code(
+                    reporter,
+                    HYBRID_QUERY_MODE_DIAG,
+                    "PURREMB mode requires --effective-dimension (a non-zero effective \
+                     vector-space dimension)"
+                        .to_owned(),
+                    2,
+                );
+            }
+            commands::hybrid_query_purremb(
+                reporter,
+                &commands::PurrembHybridQuery {
+                    facts: &inputs.facts,
+                    program: &inputs.program,
+                    purremb,
+                    source,
+                    relation: &inputs.relation,
+                    provider_iri: &inputs.provider_iri,
+                    model_iri: &inputs.model_iri,
+                    generation_base: &inputs.artifact_generation,
+                    target_set: inputs.target_set.as_deref().unwrap_or_default(),
+                    family: inputs.family.as_deref().unwrap_or_default(),
+                    vector_space: inputs.vector_space.as_deref().unwrap_or_default(),
+                    matrix: inputs.matrix.as_deref().unwrap_or_default(),
+                    projection: inputs.projection.as_deref(),
+                    metric: &inputs.metric,
+                    effective_dimension: inputs.effective_dimension,
+                    dtype: &inputs.dtype,
+                    postprocessing: &inputs.postprocessing,
+                    retrieval_policy: &inputs.retrieval_policy,
+                    source_mode: &inputs.source_mode,
+                    term_kind: &inputs.term_kind,
+                    per_call_limit: inputs.per_call_limit,
+                    max_calls: inputs.max_calls,
+                    max_rows: inputs.max_rows,
+                },
+            )
+        }
     }
 }

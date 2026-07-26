@@ -1349,7 +1349,7 @@ mod tests {
     /// bytes `gmeow-cli` embeds. Used by the coherence gate.
     ///
     /// The bundle is a git-ignored local/release product materialized by
-    /// `make sync` (or `make install`), never a committed input, so an absent or
+    /// `make regen` (or `make install`), never a committed input, so an absent or
     /// zero-length (empty/truncated) file here is a bootstrap problem, not a
     /// bare IO error — fail closed with an actionable pointer instead of
     /// surfacing a raw `std::io::Error`.
@@ -1358,7 +1358,7 @@ mod tests {
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/dist/gmeow.gts");
         let bytes = std::fs::read(&path).unwrap_or_else(|e| {
             panic!(
-                "gmeow: staged bundle {} is missing or empty — run `make sync` (or `make install`) \
+                "gmeow: staged bundle {} is missing or empty — run `make regen` (or `make install`) \
                  to materialize generated/dist/gmeow.gts before running this test. It is a \
                  git-ignored local/release product, not a committed input. (underlying error: {e})",
                 path.display()
@@ -1366,7 +1366,7 @@ mod tests {
         });
         assert!(
             !bytes.is_empty(),
-            "gmeow: staged bundle {} is empty — run `make sync` (or `make install`) to \
+            "gmeow: staged bundle {} is empty — run `make regen` (or `make install`) to \
              materialize generated/dist/gmeow.gts before running this test. It is a git-ignored \
              local/release product, not a committed input.",
             path.display()

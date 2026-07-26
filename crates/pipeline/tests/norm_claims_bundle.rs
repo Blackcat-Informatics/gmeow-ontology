@@ -22,7 +22,7 @@
 //!
 //! Like `correspondence_laws_bundle.rs`, this test `.expect()`s the committed bundle — it FAILS
 //! (never silently skips) if `generated/dist/gmeow.gts` is absent. It runs green only after
-//! `make sync` materializes the bundle.
+//! `make regen` materializes the bundle.
 
 use std::path::{Path, PathBuf};
 

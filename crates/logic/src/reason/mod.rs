@@ -18,7 +18,9 @@ pub(crate) mod builtin_gap;
 pub mod dl;
 pub mod el;
 pub mod ledger;
+pub(crate) mod math_gate;
 pub mod perf_ledger;
+pub(crate) mod refute;
 pub mod rl;
 pub(crate) mod rl_rules;
 
@@ -116,6 +118,9 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
 ///   `classify_coverage` — any edit to those changes the contract semantics even
 ///   when the rule text is unchanged;
+/// * the full source of `refute.rs`, the fragment-certified refutation kernel the
+///   `dl.rs` decide path invokes — any change to which withheld constructs it
+///   decides (or the certificate/boundary it emits) changes the contract;
 /// * the structured rule IR, typed adapter, plan, semi-naive evaluator, restricted
 ///   existential chase, and relation store that execute those rules;
 /// * the canonical-program lowering, selected-view materializer, and native
@@ -131,6 +136,7 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/el.rs", include_str!("el.rs")),
     ("reason/rl_rules.rs", include_str!("rl_rules.rs")),
     ("reason/dl.rs", include_str!("dl.rs")),
+    ("reason/refute.rs", include_str!("refute.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
     ("oracle.rs", include_str!("../oracle.rs")),
     ("certify.rs", include_str!("../certify.rs")),
@@ -209,6 +215,32 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
     Ok(inferred)
+}
+
+/// The reasoned closure of `edb` as a frozen [`RdfDataset`] of the INFERRED triples
+/// — the structured-DL closure ([`reason_closure_axioms`]) materialized into RDF.
+/// This is the browser reasoner's entry (`gmeow-reason-wasm` serializes it to
+/// N-Quads for the live entailment panel), running the SAME native chase — serially
+/// on wasm (single-threaded rayon fallback), byte-identical to the parallel path
+/// (proven by the rule-parallel evidence probe).
+///
+/// # Errors
+///
+/// Returns `Err` if reasoning fails or an inferred term cannot be lowered to RDF.
+pub fn reason_closure_dataset(
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    let inferred = reason_closure_axioms(edb)?;
+    let mut builder = RdfDatasetBuilder::new();
+    for ax in &inferred {
+        let subject = RdfTerm::iri(ax.subject.clone());
+        let object = term_value_to_rdf_term(&crate::rule_ir::surface_to_value(&ax.object)?)?;
+        let quad = RdfQuad::new(subject, ax.predicate.clone(), object);
+        builder.push_owned_quad(&quad);
+    }
+    builder
+        .freeze()
+        .map_err(|e| reason_err(format!("freeze reasoned closure dataset: {e}")))
 }
 
 /// One IRI-object axiom to probe through exact leave-one-out reasoning.
@@ -1905,6 +1937,7 @@ mod tests {
                 "reason/el.rs",
                 "reason/rl_rules.rs",
                 "reason/dl.rs",
+                "reason/refute.rs",
                 "reason/mod.rs",
                 "oracle.rs",
                 "certify.rs",

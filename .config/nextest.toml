@@ -18,6 +18,7 @@ default-filter = '''
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-conformance) & binary(full_divergence_gate) & test(/_heavy_offgate/))
+    | (package(gmeow-conformance) & binary(full_decided_gate) & test(/_heavy_offgate/))
     | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & binary(fanout_parity))
@@ -86,9 +87,25 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-dev-cli) & test(/dev_logic::compile_tests::mode_(owl_dl|datalog|report)_matches/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
+# The dev-cli real-repository end-to-end contract tests (docs-distribution manifest
+# verify, and the whole-repo slice-quality gate) assemble the full bundle; the
+# advice-catalog content pushed them past the 60s default under gate parallelism
+# (they pass at ~97-115s). Same 300s backstop the sibling bundle-assembly proofs use.
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & ( binary(docs_distribution_contract) | test(/dev_slice_quality::gate_enforcement_tests::the_real_repository_slice_quality_gate_is_green_end_to_end/) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+# Heavy whole-bundle "discharge/parity by execution" proofs: they assemble the merged
+# bundle and execute every flagship / SHACL tier / EDOAL+SPARQL lowering against it.
+# The advice-catalog merge grew the bundle, and these run with high variance (79-108s)
+# close to the 120s ceiling — give them the same 300s backstop as the sibling bundle proofs.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
@@ -97,6 +114,21 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-slice-quality) & test(scores_the_logic_slice_green_vs_advisory)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+# Real-slice batch reasoning parity is a heavy whole-repository proof (purrdf
+# 0.8.x parallel SHACL): it runs ~90-120s and starves past the 60s default under
+# gate parallelism. Give it the same 300s backstop the sibling bundle-building
+# proofs use — it passes on content, it is only slow.
+[[profile.default.overrides]]
+filter = 'package(gmeow-slice-quality) & test(reasoner::tests::curated_real_slices_batch_matches_scratch)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# Whole-bundle SSSOM lowering parity assembles the merged DSL and lowers every
+# SSSOM set against the committed corpus — a ~85-120s bundle-assembly proof that
+# likewise starves past the 60s default. Same 300s backstop.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(sssom_correspondence_parity) & test(sssom_lowering_matches_committed_corpus)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & test(/twin_/)'
@@ -141,3 +173,16 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & test(/mcp::tests::verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle/)'
 threads-required = "num-cpus"
+
+# The docs-distribution, scoreboards, slice-brief, translation-rollup, and mappings
+# module tests each materialize or verify the WHOLE gmeow.gts bundle (the same order
+# of magnitude as the mappings byte-parity lanes above) — purrdf 0.8.x's parallel
+# SHACL made that assembly heavier still. As a class they belong in the extended
+# runaway backstop rather than the 60s-x2 default that only fits focused unit tests;
+# otherwise many bundle-builders running in parallel starve each other past the 120s
+# edge under host contention (0 assertion failures — they pass at ~100-118s each). A
+# fast test in one of these modules simply never approaches the backstop; the 600s
+# ceiling still bounds a genuine runaway.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & ( test(/docs_distribution::tests::/) | test(/scoreboards::tests::/) | test(/stages::slice_brief::tests::/) | test(/stages::lang_docs_rendering::tests::/) | test(/stages::mappings::tests::/) )'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }

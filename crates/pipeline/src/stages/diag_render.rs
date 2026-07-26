@@ -182,9 +182,11 @@ pub fn render_diagnostics_artifacts(
     // gate() morphism) over the projected finding grades and fold the derived
     // gmeow:findingGateVerdict gmeow:gateFatal triples in BEFORE canonicalization, so
     // both the byte artifact and the carrier graph carry the entailment and the
-    // gmeow:GateFatalUpsetShape passes under validate-gts. Producers whose findings can
-    // never join the up-set (e.g. the logic-compiler's Note-severity lossy drops) pass
-    // `None` and the projection is byte-unchanged.
+    // gmeow:GateFatalUpsetShape passes under the authored-source `make validate` /
+    // stage-validate SHACL pass (the shipped-bundle subset is independently covered by
+    // the `norm_claims_shacl` test). Producers whose findings can never join the up-set
+    // (e.g. the logic-compiler's Note-severity lossy drops) pass `None` and the
+    // projection is byte-unchanged.
     if let Some(gate) = gate {
         let derived = gate
             .derived_verdict_nquads(&nq, crate::stages::carrier::GRAPH_DIAGNOSTICS)

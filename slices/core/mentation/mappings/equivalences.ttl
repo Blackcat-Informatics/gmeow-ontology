@@ -26,7 +26,7 @@ gmeow:mapsetMentation a gmeow:MappingSet ;
         * Cognitive Atlas (cognitiveatlas.org): 'cognitive process' and 'mental process' concepts
           (e.g. reasoning, perception, attention, imagery) closely match the gmeow:MentalProcessType
           value vocabulary; the Cognitive Atlas uses ad-hoc numeric IRIs inside an undeclared namespace
-          and no OWL-resolvable ontology file, so no TermEquivalence row can be written — the
+          and no OWL-resolvable ontology file, so no alignment cell can be written — the
           conceptual alignment is documented here instead.
         * Cognitive Paradigm Ontology (cpo, cogpo.org): maps cognitive tasks and paradigms to mental
           constructs; broadly aligns with the gmeow:MentalProcessType seed vocabulary but exposes no
@@ -39,18 +39,16 @@ gmeow:mapsetMentation a gmeow:MappingSet ;
         * SUMO (ontologyportal.org): IntentionalProcess and Reasoning are conceptually adjacent to
           gmeow:MentalProcess and gmeow:processReasoning; the SUMO OWL serialization IRIs
           (ontologyportal.org/SUMO.owl#...) are not resolvable over HTTPS, so SUMO alignments are
-          named in prose here rather than as TermEquivalence rows.""" ;
+          named in prose here rather than as alignment cells.""" ;
     gmeow:setTrailer "# No frame-selecting mapping (Principle 9): GMEOW does not assert a single 'correct' mental process taxonomy; value-vocab members are co-equal." .
 
 # BFO 'process' (BFO_0000015) — a mental process IS a process in the BFO sense.
 # Confidence is moderate: BFO process is broad (any occurrent with temporal extension
 # that is not a temporal region), and gmeow:MentalProcess adds the experiencer/mind
 # constraint; the overlap is genuine but the semantics are not identical.
-gmeow:eqMentation001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MentalProcess ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject bfo:BFO_0000015 ;
+gmeow:MentalProcess skos:relatedMatch bfo:BFO_0000015 {|
+    gmeow:sssomFile "gmeow-mentation.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "a mental process is a process (BFO_0000015: a occurrent that has some temporal proper part and is not a temporal region); loose match — BFO process is very broad and does not imply an experiencer" ;
-    gmeow:sssomFile "gmeow-mentation.sssom.tsv" .
+    gmeow:comment "a mental process is a process (BFO_0000015: a occurrent that has some temporal proper part and is not a temporal region); loose match — BFO process is very broad and does not imply an experiencer"
+|} .

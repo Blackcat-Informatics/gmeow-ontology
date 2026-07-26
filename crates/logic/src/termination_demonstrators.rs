@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn each_demonstrator_parses_and_certifies_to_its_class() {
         // Freeze each demonstrator turtle against its intended termination class — a typo
-        // or a drifted witness would hard-fail `stage-reason` at `make sync`, so catch it
+        // or a drifted witness would hard-fail `stage-reason` at `make regen`, so catch it
         // here on the fast path.
         for (i, (graph, ttl)) in termination_ladder_demonstrators().iter().enumerate() {
             let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)

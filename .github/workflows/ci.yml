@@ -115,7 +115,7 @@ jobs:
       # Update mode runs the superset, declared-inventory completeness, fanout-
       # bijection, drift, orphan, and internal-tag-leak gates while materializing.
       - name: Cold-materialize the generated product
-        run: make sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_OUTPUTS=generated
+        run: make regen GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_OUTPUTS=generated
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
         run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev CHECK_SYNC_MODE=check
@@ -171,52 +171,6 @@ jobs:
           path: generated-a
           if-no-files-found: error
           retention-days: 3
-
-  # Semantic validation remains a mandatory gate, but it does not define whether
-  # two complete reconstructions are the same authoritative artifact. Run it once
-  # over that byte-proven authority in parallel with the other downstream lanes.
-  bundle-validate:
-    needs: [producer]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Download the exact producer binary
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: gmeow-dev-producer-${{ github.sha }}
-          path: dist/bin
-
-      - name: Make the producer executable
-        run: chmod +x dist/bin/gmeow-dev
-
-      - name: Download the authoritative generated tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: generated-tree-${{ github.sha }}
-          path: generated
-
-      - name: Validate the producer artifact digest
-        env:
-          BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
-        run: |
-          set -euo pipefail
-          echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
-
-      # Reuse the same content-addressed findings store as the source-validation
-      # lane. Its internal content keys remain authoritative on a coarse-key miss.
-      - name: Cache validate (content-addressed SHACL findings)
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/validate
-          key: validate-${{ runner.os }}-${{ hashFiles('slices/**/*.ttl', 'shapes/**/*.ttl', 'dsl/**/*.ttl', 'crates/shacl/**/*.rs', 'crates/validate/**/*.rs') }}
-          restore-keys: |
-            validate-${{ runner.os }}-
-
-      - name: Validate the authoritative bundle
-        run: make validate-gts GMEOW_DEV=./dist/bin/gmeow-dev
 
   lint:
     needs: [producer]
@@ -689,12 +643,13 @@ jobs:
           echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"
           /tmp/binaryen/bin/wasm-opt --version
 
-      # ubuntu-latest ships a current Node; `make validate-wasm-pkg-test` builds gmeow's
-      # Tier-1 validator npm package and runs its Node round-trip suite against the real
-      # wasm (validating a sample dataset against the committed gmeow.gts). The purrdf
-      # RDF/wasm engine ships + tests its own npm package on purrdf's CI.
-      - name: Build the validator npm package + Node real-execution round-trip
-        run: make validate-wasm-pkg-test
+      # ubuntu-latest ships a current Node; `make wasm-parity` is the CHECK_DAG task that
+      # builds all three gmeow-owned wasm engine npm packages (validate / reason / gmn)
+      # and runs their Node native↔wasm parity witness lanes against the real wasm over the
+      # materialized bundle — the "every gmeow surface proven native≡wasm" contract. The
+      # purrdf RDF/wasm engine ships + tests its own npm package on purrdf's CI.
+      - name: Native≡wasm parity — all three gmeow engines (make wasm-parity)
+        run: make wasm-parity
 
   # Aggregator gate. Branch protection requires the "quality" context; this job
   # keeps that single required check stable while the work runs in parallel
@@ -710,7 +665,7 @@ jobs:
   # and Java-free. Statements now run natively via the gmeow-rdf codec inside the
   # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
-    needs: [producer, bundle-validate, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs: [producer, lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -721,7 +676,6 @@ jobs:
       - name: Require all quality jobs to have succeeded
         env:
           PRODUCER: ${{ needs.producer.result }}
-          BUNDLE_VALIDATE: ${{ needs.bundle-validate.result }}
           LINT: ${{ needs.lint.result }}
           RUST: ${{ needs.rust.result }}
           WASM: ${{ needs.wasm.result }}
@@ -730,8 +684,8 @@ jobs:
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: producer=$PRODUCER bundle-validate=$BUNDLE_VALIDATE lint=$LINT rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$PRODUCER" "$BUNDLE_VALIDATE" "$LINT" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          echo "results: producer=$PRODUCER lint=$LINT rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$PRODUCER" "$LINT" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1

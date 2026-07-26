@@ -10,107 +10,83 @@
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqClasses044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Credential ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject schema:EducationalOccupationalCredential ;
+gmeow:Credential owl:equivalentClass schema:EducationalOccupationalCredential {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqClasses052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Skill ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject esco:Skill ;
+gmeow:Skill skos:closeMatch esco:Skill {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "ESCO skill — the European skills/competences framework" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "ESCO skill — the European skills/competences framework"
+|} .
 
-gmeow:eqClasses054 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Credential ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject ceterms:Credential ;
+gmeow:Credential owl:equivalentClass ceterms:Credential {|
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Credential Engine CTDL Credential — superset by reference" ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+    gmeow:comment "Credential Engine CTDL Credential — superset by reference"
+|} .
 
-gmeow:eqProperties033 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasOccupation ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:hasOccupation ;
+gmeow:hasOccupation owl:equivalentProperty schema:hasOccupation {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties068 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasSkill ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:skills ;
+gmeow:hasSkill skos:closeMatch schema:skills {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema.org skills — the leveled SkillProficiency relator collapses to a flat skill link" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "schema.org skills — the leveled SkillProficiency relator collapses to a flat skill link"
+|} .
 
-gmeow:eqProperties070 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:holdsCredential ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:hasCredential ;
+gmeow:holdsCredential owl:equivalentProperty schema:hasCredential {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:confidence 1.0
+|} .
 
-gmeow:eqProperties071 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:credentialFor ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:competencyRequired ;
+gmeow:credentialFor skos:closeMatch schema:competencyRequired {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema.org competencyRequired — the credential-to-skill/occupation link downcasts lossily" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "schema.org competencyRequired — the credential-to-skill/occupation link downcasts lossily"
+|} .
 
-gmeow:eqProperties072 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:credentialIssuer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:recognizedBy ;
+gmeow:credentialIssuer skos:closeMatch schema:recognizedBy {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema.org recognizedBy — the credential issuer" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "schema.org recognizedBy — the credential issuer"
+|} .
 
-gmeow:eqProperties073 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:credentialIssuer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:sourceOrganization ;
+gmeow:credentialIssuer skos:closeMatch schema:sourceOrganization {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema.org sourceOrganization — the organization that issued the credential" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "schema.org sourceOrganization — the organization that issued the credential"
+|} .
 
-gmeow:eqProperties074 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:credentialIssuer ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject ceterms:ownedBy ;
+gmeow:credentialIssuer skos:closeMatch ceterms:ownedBy {|
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CTDL ownedBy — the organization that owns/issued the credential" ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:comment "CTDL ownedBy — the organization that owns/issued the credential"
+|} .
 
-gmeow:eqWikidata046 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Credential ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q5158833 ;
+gmeow:Credential skos:closeMatch wd:Q5158833 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "credential" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "credential"
+|} .
 
-gmeow:eqWikidata052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Skill ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2242730 ;
+gmeow:Skill skos:closeMatch wd:Q2242730 {|
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:objectLabel "skill" ;
-    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+    gmeow:objectLabel "skill"
+|} .

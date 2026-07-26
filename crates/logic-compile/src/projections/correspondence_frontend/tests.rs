@@ -11,218 +11,45 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
 
-/// Build a representative `dsl/mappings/` fixture: two `gmeow:TermEquivalence` cells (an
-/// `exactMatch` and a `closeMatch`, so two distinct relation bands) plus one
+/// Build a representative `dsl/mappings/` fixture: two native alignment cells (an
+/// `exactMatch` and a grounding `closeMatch`, so two distinct relation bands) plus one
 /// `gmeow:ProjectionMapping` carrying a single per-profile binding.
 fn fixture_dsl() -> std::sync::Arc<purrdf::RdfDataset> {
-    use purrdf::{RdfDatasetBuilder, RdfLiteral};
+    let ttl = br#"
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:  <https://blackcatinformatics.ca/logic/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
 
-    let mut b = RdfDatasetBuilder::new();
-    let triple =
-        |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
-            let s = b.intern_iri(s);
-            let p = b.intern_iri(p);
-            let o = match (o_iri, o_lit) {
-                (Some(o), _) => b.intern_iri(o),
-                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
-                _ => unreachable!(),
-            };
-            b.push_quad(s, p, o, None);
-        };
+gmeow:Foo skos:exactMatch gmeow:Bar {|
+    gmeow:sssomFile     "demo.sssom.tsv" ;
+    gmeow:confidence    1.0 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
 
-    // ── Two TermEquivalence cells ──────────────────────────────────────────────────
-    let eq1 = format!("{GMEOW}eq1");
-    triple(
-        &mut b,
-        &eq1,
-        RDF_TYPE,
-        Some(&format!("{GMEOW}TermEquivalence")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq1,
-        &format!("{GMEOW}alignSubject"),
-        Some(&format!("{GMEOW}Foo")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq1,
-        &format!("{GMEOW}alignPredicate"),
-        Some(SKOS_EXACT_MATCH),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq1,
-        &format!("{GMEOW}alignObject"),
-        Some(&format!("{GMEOW}Bar")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq1,
-        &format!("{GMEOW}sssomFile"),
-        None,
-        Some("demo.sssom.tsv"),
-    );
-    triple(
-        &mut b,
-        &eq1,
-        &format!("{GMEOW}confidence"),
-        None,
-        Some("1.0"),
-    );
-    triple(
-        &mut b,
-        &eq1,
-        &format!("{GMEOW}justification"),
-        Some("https://w3id.org/semapv/vocab/ManualMappingCuration"),
-        None,
-    );
+gmeow:Baz skos:closeMatch gmeow:Qux {|
+    a                      logic:GroundingCorrespondence ;
+    gmeow:sssomFile        "demo.sssom.tsv" ;
+    gmeow:confidence       0.8 ;
+    gmeow:justification    semapv:ManualMappingCuration ;
+    logic:sourceEndpoint   gmeow:Baz ;
+    logic:targetEndpoint   gmeow:Qux ;
+    logic:morphismClass    logic:AffineCorrespondence ;
+    logic:morphismKind     logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
 
-    let eq2 = format!("{GMEOW}eq2");
-    triple(
-        &mut b,
-        &eq2,
-        RDF_TYPE,
-        Some(&format!("{GMEOW}TermEquivalence")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq2,
-        RDF_TYPE,
-        Some(&format!("{LOGIC}GroundingCorrespondence")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{GMEOW}alignSubject"),
-        Some(&format!("{GMEOW}Baz")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{GMEOW}alignPredicate"),
-        Some(SKOS_CLOSE_MATCH),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{GMEOW}alignObject"),
-        Some(&format!("{GMEOW}Qux")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{GMEOW}sssomFile"),
-        None,
-        Some("demo.sssom.tsv"),
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{GMEOW}confidence"),
-        None,
-        Some("0.8"),
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{GMEOW}justification"),
-        Some("https://w3id.org/semapv/vocab/ManualMappingCuration"),
-        None,
-    );
-    for (property, value) in [
-        ("sourceEndpoint", format!("{GMEOW}Baz")),
-        ("targetEndpoint", format!("{GMEOW}Qux")),
-    ] {
-        triple(
-            &mut b,
-            &eq2,
-            &format!("{LOGIC}{property}"),
-            Some(&value),
-            None,
-        );
-    }
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{LOGIC}morphismClass"),
-        Some(&format!("{LOGIC}AffineCorrespondence")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{LOGIC}morphismKind"),
-        Some(&format!("{LOGIC}InstitutionMorphism")),
-        None,
-    );
-    triple(
-        &mut b,
-        &eq2,
-        &format!("{LOGIC}preservationKind"),
-        Some(&format!("{LOGIC}ValidationOnly")),
-        None,
-    );
-
-    // ── One ProjectionMapping with one per-profile binding ─────────────────────────
-    let pm = format!("{GMEOW}pm1");
-    let pat = format!("{GMEOW}pm1/pattern");
-    let bind = format!("{GMEOW}pm1/binding/schema-org");
-    triple(
-        &mut b,
-        &pm,
-        RDF_TYPE,
-        Some(&format!("{GMEOW}ProjectionMapping")),
-        None,
-    );
-    triple(
-        &mut b,
-        &pm,
-        &format!("{GMEOW}hasMappingPattern"),
-        Some(&pat),
-        None,
-    );
-    triple(&mut b, &pat, &format!("{GMEOW}anchor"), None, Some("?s"));
-    triple(
-        &mut b,
-        &pm,
-        &format!("{GMEOW}hasBinding"),
-        Some(&bind),
-        None,
-    );
-    triple(
-        &mut b,
-        &bind,
-        &format!("{GMEOW}profile"),
-        None,
-        Some("schema-org"),
-    );
-    triple(&mut b, &bind, &format!("{GMEOW}relation"), None, Some("="));
-    triple(
-        &mut b,
-        &bind,
-        &format!("{GMEOW}toPredicate"),
-        Some("https://schema.org/name"),
-        None,
-    );
-    triple(
-        &mut b,
-        &bind,
-        &format!("{GMEOW}confidence"),
-        None,
-        Some("0.9"),
-    );
-
-    b.freeze().expect("freeze fixture dsl")
+gmeow:pm1 a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [ gmeow:anchor "?s" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ;
+        gmeow:relation "=" ;
+        gmeow:toPredicate schema:name ;
+        gmeow:confidence 0.9
+    ] .
+"#;
+    purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse fixture dsl")
 }
 
 fn parse_nt(nt: &str) -> std::sync::Arc<purrdf::RdfDataset> {
@@ -231,95 +58,34 @@ fn parse_nt(nt: &str) -> std::sync::Arc<purrdf::RdfDataset> {
 }
 
 /// A single term-level grounding bridge fixture. `metadata=false` deliberately omits the
-/// three required authored judgments so the fail-closed frontend can be tested directly.
+/// required authored judgments so the fail-closed frontend can be tested directly.
 fn term_grounding_dsl(predicate: &str, metadata: bool) -> std::sync::Arc<purrdf::RdfDataset> {
-    use purrdf::{RdfDatasetBuilder, RdfLiteral};
-
-    let mut b = RdfDatasetBuilder::new();
-    let triple =
-        |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
-            let s = b.intern_iri(s);
-            let p = b.intern_iri(p);
-            let o = match (o_iri, o_lit) {
-                (Some(o), _) => b.intern_iri(o),
-                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
-                _ => unreachable!(),
-            };
-            b.push_quad(s, p, o, None);
-        };
-    let cell = format!("{GMEOW}groundingBridge");
-    for ty in [
-        format!("{GMEOW}TermEquivalence"),
-        format!("{LOGIC}GroundingCorrespondence"),
-    ] {
-        triple(&mut b, &cell, RDF_TYPE, Some(&ty), None);
-    }
-    triple(
-        &mut b,
-        &cell,
-        &format!("{GMEOW}alignSubject"),
-        Some(&format!("{LOGIC}Object")),
-        None,
+    // The judgment block is authored only when `metadata` is set; otherwise the cell is a
+    // grounding alignment cell missing its required judgments (the fail-closed case).
+    let judgments = if metadata {
+        "    gmeow:justification    semapv:ManualMappingCuration ;\n\
+         \x20   logic:sourceEndpoint   logic:Object ;\n\
+         \x20   logic:targetEndpoint   obo:BFO_0000040 ;\n\
+         \x20   logic:morphismClass    logic:BridgeView ;\n\
+         \x20   logic:morphismKind     logic:CommitmentShiftingBridge ;\n\
+         \x20   logic:preservationKind logic:ValidationOnly ;\n"
+    } else {
+        ""
+    };
+    let ttl = format!(
+        "@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic:  <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix obo:    <http://purl.obolibrary.org/obo/> .\n\
+         @prefix semapv: <https://w3id.org/semapv/vocab/> .\n\
+         \n\
+         logic:Object <{predicate}> obo:BFO_0000040 {{|\n\
+         \x20   a               logic:GroundingCorrespondence ;\n\
+         {judgments}\
+         \x20   gmeow:sssomFile \"grounding.sssom.tsv\"\n\
+         |}} .\n"
     );
-    triple(
-        &mut b,
-        &cell,
-        &format!("{GMEOW}alignPredicate"),
-        Some(predicate),
-        None,
-    );
-    triple(
-        &mut b,
-        &cell,
-        &format!("{GMEOW}alignObject"),
-        Some("http://purl.obolibrary.org/obo/BFO_0000040"),
-        None,
-    );
-    triple(
-        &mut b,
-        &cell,
-        &format!("{GMEOW}sssomFile"),
-        None,
-        Some("grounding.sssom.tsv"),
-    );
-    if metadata {
-        triple(
-            &mut b,
-            &cell,
-            &format!("{GMEOW}justification"),
-            Some("https://w3id.org/semapv/vocab/ManualMappingCuration"),
-            None,
-        );
-        for (property, value) in [
-            ("sourceEndpoint", format!("{LOGIC}Object")),
-            (
-                "targetEndpoint",
-                "http://purl.obolibrary.org/obo/BFO_0000040".to_owned(),
-            ),
-        ] {
-            triple(
-                &mut b,
-                &cell,
-                &format!("{LOGIC}{property}"),
-                Some(&value),
-                None,
-            );
-        }
-        for (property, value) in [
-            ("morphismClass", "BridgeView"),
-            ("morphismKind", "CommitmentShiftingBridge"),
-            ("preservationKind", "ValidationOnly"),
-        ] {
-            triple(
-                &mut b,
-                &cell,
-                &format!("{LOGIC}{property}"),
-                Some(&format!("{LOGIC}{value}")),
-                None,
-            );
-        }
-    }
-    b.freeze().expect("freeze term grounding fixture")
+    purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .expect("parse term grounding fixture")
 }
 
 /// An executable grounding correspondence. `binding_count=1` is the accepted frontend;
@@ -506,7 +272,7 @@ fn transpile_round_trips_with_no_extract_errors() {
     let program =
         transpile_correspondences(&dsl_view, &onto_view).expect("transpile the fixture cells");
 
-    // Two TermEquivalence cells + one ProjectionMapping binding = three typed nodes.
+    // Two native alignment cells + one ProjectionMapping binding = three typed nodes.
     assert_eq!(
         program.correspondences.len(),
         3,
@@ -627,6 +393,69 @@ fn grounding_term_bridge_requires_explicit_judgments() {
     let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
         .expect_err("a grounding bridge with implicit defaults must fail closed");
     assert!(err.message().contains("must explicitly author"), "{err}");
+}
+
+#[test]
+fn divergent_duplicate_alignment_cell_fails_closed() {
+    // Two cells with the same (subject, predicate, object) but divergent provenance mint the
+    // SAME content-addressed correspondence identity. Silently keeping the last one would drop
+    // authored data (MAXIMAL INFORMATION FLOW); the frontend must fail closed instead.
+    let ttl = br#"
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "a.sssom.tsv" ;
+    gmeow:confidence    0.75 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "b.sssom.tsv" ;
+    gmeow:confidence    0.7 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+"#;
+    let dsl = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse divergent fixture");
+    let empty = parse_nt("");
+    let err = transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect_err("a divergent duplicate alignment cell must fail closed");
+    assert!(
+        err.message().contains("divergent duplicate alignment cell"),
+        "{err}"
+    );
+}
+
+#[test]
+fn same_fact_in_two_sssom_sets_collapses_not_conflicts() {
+    // The SAME alignment fact (same subject/predicate/object + confidence/justification) routed
+    // into two thematic SSSOM sets is legitimate multi-membership — the SSSOM projection emits a
+    // row into each file, while the typed correspondence collapses to one node. This must NOT
+    // trip the divergent-duplicate guard (a differing `sssom_file` alone is not a conflict).
+    let ttl = br#"
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "gmeow-foo.sssom.tsv" ;
+    gmeow:confidence    0.75 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+
+gmeow:Foo skos:closeMatch schema:Thing {|
+    gmeow:sssomFile     "gmeow-classes.sssom.tsv" ;
+    gmeow:confidence    0.75 ;
+    gmeow:justification semapv:ManualMappingCuration
+|} .
+"#;
+    let dsl = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse multi-set fixture");
+    let empty = parse_nt("");
+    transpile_correspondences(&DslView::new(&dsl), &DslView::new(&empty))
+        .expect("the same fact in two SSSOM sets must transpile cleanly, not conflict");
 }
 
 #[test]

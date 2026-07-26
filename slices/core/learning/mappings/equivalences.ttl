@@ -19,66 +19,54 @@ gmeow:mapsetLearning a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-learning.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/learning" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Learning-slice alignments to schema.org's action vocabulary and PROV-O. The match is deliberately loose (skos:closeMatch, not equivalentClass): schema:LearnAction / schema:TeachAction model the ACT of gaining / imparting knowledge, whereas gmeow:LearningEvent is the cognitive-STATE-transition event that raises a gmeow:KnowledgeProficiency or gmeow:SkillProficiency along the cognition / expertise spectrum — richer than a bare action, carrying trajectory (gmeow:fromLevel / gmeow:toLevel), variety (gmeow:learningType), and product (gmeow:produces). PROV-O is the activity / provenance face: a gmeow:LearningEvent is a prov:Activity that prov:generated a knowledge entity and whose acquired knowledge prov:wasDerivedFrom its gmeow:learnedFrom source. xAPI / the Experience API is the strongest external CONSUMER — learning records keyed by verbs such as <http://adlnet.gov/expapi/verbs/experienced> and <http://adlnet.gov/expapi/verbs/learned> — but it is a JSON Statement model with no stable OWL class IRIs for the event itself, so a gmeow:LearningEvent projects DOWN to an xAPI Statement at the projection layer (Actor=experiencer, Verb from gmeow:learningType, Object=gmeow:subjectTaught) and is referenced in prose rather than mapped as a TermEquivalence. The Dreyfus / knowledge-level value vocabularies have no stable external IRI counterpart and are intentionally left unmapped.".
+    gmeow:setComment "Learning-slice alignments to schema.org's action vocabulary and PROV-O. The match is deliberately loose (skos:closeMatch, not equivalentClass): schema:LearnAction / schema:TeachAction model the ACT of gaining / imparting knowledge, whereas gmeow:LearningEvent is the cognitive-STATE-transition event that raises a gmeow:KnowledgeProficiency or gmeow:SkillProficiency along the cognition / expertise spectrum — richer than a bare action, carrying trajectory (gmeow:fromLevel / gmeow:toLevel), variety (gmeow:learningType), and product (gmeow:produces). PROV-O is the activity / provenance face: a gmeow:LearningEvent is a prov:Activity that prov:generated a knowledge entity and whose acquired knowledge prov:wasDerivedFrom its gmeow:learnedFrom source. xAPI / the Experience API is the strongest external CONSUMER — learning records keyed by verbs such as <http://adlnet.gov/expapi/verbs/experienced> and <http://adlnet.gov/expapi/verbs/learned> — but it is a JSON Statement model with no stable OWL class IRIs for the event itself, so a gmeow:LearningEvent projects DOWN to an xAPI Statement at the projection layer (Actor=experiencer, Verb from gmeow:learningType, Object=gmeow:subjectTaught) and is referenced in prose rather than mapped as an alignment cell. The Dreyfus / knowledge-level value vocabularies have no stable external IRI counterpart and are intentionally left unmapped.".
 
 # --------------------------------------------------------------------------- #
 # schema.org — action vocabulary (LearnAction / TeachAction / teaches)
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLrn001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LearningEvent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:LearnAction ;
+gmeow:LearningEvent skos:closeMatch schema:LearnAction {|
+    gmeow:sssomFile "gmeow-learning.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "schema:LearnAction is the act of gaining knowledge; gmeow:LearningEvent is the cognitive-state-transition occurrent that raises a knowledge / skill proficiency, carrying trajectory, variety, and product. closeMatch, not equivalentClass." ;
-    gmeow:sssomFile "gmeow-learning.sssom.tsv" .
+    gmeow:comment "schema:LearnAction is the act of gaining knowledge; gmeow:LearningEvent is the cognitive-state-transition occurrent that raises a knowledge / skill proficiency, carrying trajectory, variety, and product. closeMatch, not equivalentClass."
+|} .
 
-gmeow:eqLrn002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Teaching ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:TeachAction ;
+gmeow:Teaching skos:closeMatch schema:TeachAction {|
+    gmeow:sssomFile "gmeow-learning.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "schema:TeachAction is the act of imparting knowledge; gmeow:Teaching is the reified gufo:Relator mediating one teacher, learners, and the subject taught — the endurant relation, not the act. closeMatch." ;
-    gmeow:sssomFile "gmeow-learning.sssom.tsv" .
+    gmeow:comment "schema:TeachAction is the act of imparting knowledge; gmeow:Teaching is the reified gufo:Relator mediating one teacher, learners, and the subject taught — the endurant relation, not the act. closeMatch."
+|} .
 
-gmeow:eqLrn003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:subjectTaught ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:teaches ;
+gmeow:subjectTaught skos:closeMatch schema:teaches {|
+    gmeow:sssomFile "gmeow-learning.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "schema:teaches links a learning resource / course to the competency it conveys; gmeow:subjectTaught links a gmeow:Teaching relator to its content. The gmeow domain is the reified relation, not the resource. closeMatch." ;
-    gmeow:sssomFile "gmeow-learning.sssom.tsv" .
+    gmeow:comment "schema:teaches links a learning resource / course to the competency it conveys; gmeow:subjectTaught links a gmeow:Teaching relator to its content. The gmeow domain is the reified relation, not the resource. closeMatch."
+|} .
 
 # --------------------------------------------------------------------------- #
 # PROV-O — activity / provenance face
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLrn004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:LearningEvent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:LearningEvent skos:closeMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-learning.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "A gmeow:LearningEvent is a prov:Activity that generates a knowledge entity; PROV models the activity / generation, gmeow adds the cognitive trajectory and the gufo occurrent / endurant split. Broad closeMatch." ;
-    gmeow:sssomFile "gmeow-learning.sssom.tsv" .
+    gmeow:comment "A gmeow:LearningEvent is a prov:Activity that generates a knowledge entity; PROV models the activity / generation, gmeow adds the cognitive trajectory and the gufo occurrent / endurant split. Broad closeMatch."
+|} .
 
-gmeow:eqLrn005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:learnedFrom ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+gmeow:learnedFrom skos:closeMatch prov:wasDerivedFrom {|
+    gmeow:sssomFile "gmeow-learning.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "prov:wasDerivedFrom relates an entity to a source it was derived from; gmeow:learnedFrom relates the learning EVENT to the source the knowledge was acquired from (the provenance of acquired knowledge). closeMatch across the entity / event shift." ;
-    gmeow:sssomFile "gmeow-learning.sssom.tsv" .
+    gmeow:comment "prov:wasDerivedFrom relates an entity to a source it was derived from; gmeow:learnedFrom relates the learning EVENT to the source the knowledge was acquired from (the provenance of acquired knowledge). closeMatch across the entity / event shift."
+|} .
 
-gmeow:eqLrn006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:produces ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:generated ;
+gmeow:produces skos:closeMatch prov:generated {|
+    gmeow:sssomFile "gmeow-learning.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "prov:generated relates an activity to an entity it produced; gmeow:produces relates a gmeow:LearningEvent to the enduring knowledge state (cognition / expertise proficiency, or a future gmeow:Concept) it settled. closeMatch." ;
-    gmeow:sssomFile "gmeow-learning.sssom.tsv" .
+    gmeow:comment "prov:generated relates an activity to an entity it produced; gmeow:produces relates a gmeow:LearningEvent to the enduring knowledge state (cognition / expertise proficiency, or a future gmeow:Concept) it settled. closeMatch."
+|} .

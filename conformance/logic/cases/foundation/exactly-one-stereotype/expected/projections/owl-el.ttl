@@ -8,5 +8,5 @@
 <https://example.org/foundation/exactly-one-stereotype/Anchor> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
 <https://example.org/foundation/exactly-one-stereotype/NoStereo> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/foundation/exactly-one-stereotype/Anchor> .
 <https://example.org/foundation/exactly-one-stereotype/TwoStereo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Kind> .
-<https://example.org/foundation/exactly-one-stereotype/TwoStereo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
 <https://example.org/foundation/exactly-one-stereotype/TwoStereo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Role> .
+<https://example.org/foundation/exactly-one-stereotype/TwoStereo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .

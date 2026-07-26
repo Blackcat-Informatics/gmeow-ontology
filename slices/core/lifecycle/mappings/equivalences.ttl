@@ -30,93 +30,75 @@ gmeow:mapsetLifecycle a gmeow:MappingSet ;
 # Properties — creation and destruction.
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLifecycle001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasCreationEvent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasGeneratedBy ;
+gmeow:hasCreationEvent skos:closeMatch prov:wasGeneratedBy {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "PROV-O wasGeneratedBy is entity-generation; GMEOW generalizes to any endurant's creation event" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "PROV-O wasGeneratedBy is entity-generation; GMEOW generalizes to any endurant's creation event"
+|} .
 
-gmeow:eqLifecycle002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasDestructionEvent ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasInvalidatedBy ;
+gmeow:hasDestructionEvent skos:closeMatch prov:wasInvalidatedBy {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "PROV-O wasInvalidatedBy is entity-invalidation; GMEOW generalizes to any endurant's destruction event" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "PROV-O wasInvalidatedBy is entity-invalidation; GMEOW generalizes to any endurant's destruction event"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Properties — supersession.
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLifecycle003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:supersedes ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1365 ;
+gmeow:supersedes skos:closeMatch wdt:P1365 {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata P1365 'replaces' — the predecessor→successor direction" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "Wikidata P1365 'replaces' — the predecessor→successor direction"
+|} .
 
-gmeow:eqLifecycle004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:supersededBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wdt:P1366 ;
+gmeow:supersededBy skos:closeMatch wdt:P1366 {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata P1366 'replaced by' — the successor←predecessor direction" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "Wikidata P1366 'replaced by' — the successor←predecessor direction"
+|} .
 
 # --------------------------------------------------------------------------- #
 # Event type values — aligned to CIDOC-CRM classes (value-to-class closeMatch).
 # --------------------------------------------------------------------------- #
 
-gmeow:eqLifecycle005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeCreation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E63_Beginning_of_Existence ;
+gmeow:eventTypeCreation skos:closeMatch crm:E63_Beginning_of_Existence {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "CIDOC-CRM E63 Beginning of Existence — a value-to-class alignment" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E63 Beginning of Existence — a value-to-class alignment"
+|} .
 
-gmeow:eqLifecycle006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDestruction ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E64_End_of_Existence ;
+gmeow:eventTypeDestruction skos:closeMatch crm:E64_End_of_Existence {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "CIDOC-CRM E64 End of Existence — a value-to-class alignment" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E64 End of Existence — a value-to-class alignment"
+|} .
 
-gmeow:eqLifecycle007 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeSupersession ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E81_Transformation ;
+gmeow:eventTypeSupersession skos:closeMatch crm:E81_Transformation {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "CIDOC-CRM E81 Transformation — one entity ceases and another begins" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E81 Transformation — one entity ceases and another begins"
+|} .
 
-gmeow:eqLifecycle008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:eventTypeDissolution ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E64_End_of_Existence ;
+gmeow:eventTypeDissolution skos:closeMatch crm:E64_End_of_Existence {|
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "CIDOC-CRM E64 End of Existence — dissolution as a specific kind of end-of-existence event type" ;
-    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+    gmeow:comment "CIDOC-CRM E64 End of Existence — dissolution as a specific kind of end-of-existence event type"
+|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:eqDcTerms020 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:supersededBy ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject dcterms:isReplacedBy ;
+gmeow:supersededBy skos:closeMatch dcterms:isReplacedBy {|
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "DCTerms isReplacedBy — a related resource that supersedes the described resource" ;
-    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+    gmeow:comment "DCTerms isReplacedBy — a related resource that supersedes the described resource"
+|} .

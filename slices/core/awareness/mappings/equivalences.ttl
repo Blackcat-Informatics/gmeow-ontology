@@ -46,45 +46,30 @@ gmeow:mapsetAwareness a gmeow:MappingSet ;
 # shared notion is the sleep state, hence a deliberately low-confidence relatedMatch (not
 # closeMatch). The object is the SNOMED CT "Asleep" finding; the NSWO / sleep-staging account
 # named in the set comment is the wider conceptual basis, by reference (Principle 5).
-gmeow:eqAwareness001 a gmeow:TermEquivalence ;
-    rdfs:label "modeAsleep ↔ SNOMED Asleep relatedMatch"@x-gmeow-english ;
-    skos:definition "Loose relatedMatch (confidence 0.3) between gmeow:modeAsleep — the general sleep awareness mode — and the SNOMED CT 'Asleep' finding (and, by reference, the NSWO / clinical sleep-staging account of the sleep state). The shared notion is the sleep state; the concepts are not co-extensional (one is a state-of-the-experiencer value, the other a clinical finding / physiological process-state classification)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
-    gmeow:alignSubject gmeow:modeAsleep ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject snomed:248218005 ;
+gmeow:modeAsleep skos:relatedMatch snomed:248218005 {|
+    gmeow:sssomFile "gmeow-awareness.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.3 ;
-    gmeow:comment "gmeow:modeAsleep is a state-of-the-experiencer awareness value; SNOMED CT 'Asleep' (248218005) is a clinical finding. Shared notion: the sleep state — loose relatedMatch only; the NSWO sleep-staging account is referenced in the set comment, not imported." ;
-    gmeow:sssomFile "gmeow-awareness.sssom.tsv" .
+    gmeow:comment "gmeow:modeAsleep is a state-of-the-experiencer awareness value; SNOMED CT 'Asleep' (248218005) is a clinical finding. Shared notion: the sleep state — loose relatedMatch only; the NSWO sleep-staging account is referenced in the set comment, not imported."
+|} .
 
 # Glasgow Coma Scale — gmeow:levelUnresponsive is the arousal floor of coma. The GCS is an
 # ordinal clinical arousal scale; gmeow:levelUnresponsive corresponds to its lowest range by
 # reference. The shared notion is unarousable unresponsiveness, hence a low-confidence relatedMatch.
-gmeow:eqAwareness002 a gmeow:TermEquivalence ;
-    rdfs:label "levelUnresponsive ↔ Glasgow Coma Scale low range relatedMatch"@x-gmeow-english ;
-    skos:definition "Loose relatedMatch (confidence 0.3) between gmeow:levelUnresponsive — the lowest arousal rung, the floor of coma — and the lowest range of the Glasgow Coma Scale. The shared notion is unarousable unresponsiveness; the GCS is a clinical scoring scale, gmeow:levelUnresponsive an ordinal arousal value, so the alignment is by reference and deliberately loose."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
-    gmeow:alignSubject gmeow:levelUnresponsive ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject snomed:371632003 ;
+gmeow:levelUnresponsive skos:relatedMatch snomed:371632003 {|
+    gmeow:sssomFile "gmeow-awareness.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.3 ;
-    gmeow:comment "gmeow:levelUnresponsive is the arousal floor; the object is a coma / Glasgow-Coma-Scale consciousness concept named by reference (SNOMED CT 'Coma'). Shared notion: unarousable unresponsiveness — loose relatedMatch only, no imported numeric scale." ;
-    gmeow:sssomFile "gmeow-awareness.sssom.tsv" .
+    gmeow:comment "gmeow:levelUnresponsive is the arousal floor; the object is a coma / Glasgow-Coma-Scale consciousness concept named by reference (SNOMED CT 'Coma'). Shared notion: unarousable unresponsiveness — loose relatedMatch only, no imported numeric scale."
+|} .
 
 # PROV-O 'Activity' — gmeow:modeOnlineInference is a machine operational state, also describable
 # as a prov:Activity (a serving run). PROV models the ACTIVITY by which entities are used and
 # generated; gmeow:modeOnlineInference is a state-of-the-experiencer awareness value. The overlap
 # is the running-process notion, hence a deliberately low-confidence relatedMatch.
-gmeow:eqAwareness003 a gmeow:TermEquivalence ;
-    rdfs:label "modeOnlineInference ↔ prov:Activity relatedMatch"@x-gmeow-english ;
-    skos:definition "Loose relatedMatch (confidence 0.4) between gmeow:modeOnlineInference — the live serving operational mode — and prov:Activity, the provenance notion of a process occurring over time. The shared notion is the running operational process; the concepts are not co-extensional (one is a state-of-the-experiencer awareness value, the other a provenance activity), so the alignment is deliberately loose."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
-    gmeow:alignSubject gmeow:modeOnlineInference ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject prov:Activity ;
+gmeow:modeOnlineInference skos:relatedMatch prov:Activity {|
+    gmeow:sssomFile "gmeow-awareness.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.4 ;
-    gmeow:comment "gmeow:modeOnlineInference is a state-of-the-experiencer awareness value; prov:Activity is a provenance process type. Shared notion: a running operational process — loose relatedMatch only, the awareness mode is not asserted to BE a prov:Activity." ;
-    gmeow:sssomFile "gmeow-awareness.sssom.tsv" .
+    gmeow:comment "gmeow:modeOnlineInference is a state-of-the-experiencer awareness value; prov:Activity is a provenance process type. Shared notion: a running operational process — loose relatedMatch only, the awareness mode is not asserted to BE a prov:Activity."
+|} .

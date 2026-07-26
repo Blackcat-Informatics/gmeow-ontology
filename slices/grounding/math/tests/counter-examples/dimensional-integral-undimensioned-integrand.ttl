@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IntegrandDimensionedConstraint: a DIMENSIONAL
+# math:Integral — it declares a result math:hasDimension, so it is subject to the
+# dimensional-composition law dim(result) = dim(integrand) ⊕ dim(measure) — whose
+# math:integrand (a math:MeasurableFunction, never a math:Quantity, so the
+# math:Quantity-scoped math:hasDimension min-1 restriction never reaches it) carries
+# no math:hasDimension. The conditional obligation
+# ∀f,I,dR: integrand(I,f) ∧ hasDimension(I,dR) → ∃d. hasDimension(f,d) then fails for
+# that integrand, so validation MUST emit shacl.SPARQLConstraintComponent
+# (math:UndimensionedQuantity). The measure IS dimensioned (no measure violation),
+# and the reasoner-derived integral-composition law never fires (its antecedent needs
+# the integrand's dimension bound), so no math:DimensionalInhomogeneity — isolating
+# the single violation. Contrast tests/conformance-fixtures/integral-framed.ttl, a
+# framed integral that declares NO result dimension and so carries no such obligation.
+# Bound by tests/example-conformance.ttl (ex:ecDimensionalIntegralUndimensionedIntegrand).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:dimensionalIntegral a math:Integral ;
+    math:integrand ex:undimensionedFn ;
+    math:integrationDomain ex:space ;
+    math:withRespectTo ex:dimensionedMeasure ;
+    math:boundVariable ex:integrationVarDecl ;
+    math:argumentSlot ex:dimensionalIntegralSlot0 ;
+    math:hasDimension math:timeDimension .
+
+ex:dimensionalIntegralSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:undimensionedFn .
+
+ex:integrationVarDecl a math:VariableDeclaration .
+
+ex:undimensionedFn a math:MeasurableFunction ;
+    math:domain ex:domainSet ;
+    math:codomain ex:codomainSet .
+
+ex:dimensionedMeasure a math:Measure ;
+    math:measureOn ex:space ;
+    math:totalMass 1 ;
+    math:hasDimension math:timeDimension .
+
+ex:space a math:MeasurableSpace .
+ex:domainSet a math:Set .
+ex:codomainSet a math:Set .

@@ -433,7 +433,8 @@ mod tests {
     /// generator's real output fragment, so a missing/incorrect A-Box annotation
     /// on a minted `CompilationUnit`/`ProcedureStep`/`Procedure`/`Execution`
     /// individual reds HERE — a fast `cargo nextest -p gmeow-pipeline` — rather
-    /// than only surfacing at the next expensive `make validate-gts`.
+    /// than only surfacing at the next expensive whole-bundle SHACL validation
+    /// (`make validate` / the pipeline stage-validate).
     #[test]
     fn minted_individuals_satisfy_the_assertional_abox_contract() {
         use gmeow_validate::lint::{LintConfig, structural_lint_dataset};

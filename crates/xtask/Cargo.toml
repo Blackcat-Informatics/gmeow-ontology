@@ -15,3 +15,4 @@ path = "src/main.rs"
 
 [dependencies]
 gmeow-errors = { path = "../errors" }
+gmeow-logic-compile = { path = "../logic-compile" }

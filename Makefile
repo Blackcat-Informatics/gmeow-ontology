@@ -70,20 +70,21 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 .PHONY: help \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate validate-gts gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
-	sync fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
+	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check check-full check-sync \
+	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
+	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
-	maint-extract maint-refresh-target-axioms maint-wikidata-live \
+	maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
 	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
-	maint-chasebench-corpus
+	maint-chasebench-corpus maint-gmn-cost-matrix
 
 ##@ Core Workflows
 
@@ -95,7 +96,7 @@ help: ## Show the task plan.
 
 install: ## Bootstrap a clean clone source-first: build ONLY the producer, materialize generated/ via sync, then build the consumer CLIs that embed the bundle.
 	$(MAKE) producer-build
-	$(MAKE) sync
+	$(MAKE) regen
 	$(MAKE) cli-build
 	$(MAKE) lsp-release
 
@@ -117,9 +118,6 @@ check-lint:
 
 validate: ## Validate syntax, term annotations, SHACL, and DSL SHACL.
 	$(GMEOW_DEV) validate
-
-validate-gts: ## Validate the materialized/staged generated/dist/gmeow.gts bundle.
-	$(GMEOW_DEV) validate --gts generated/dist/gmeow.gts
 
 reason: ## Run the native Docker-free EL/DL reasoning authority.
 	$(GMEOW_DEV) reason --mode native
@@ -157,7 +155,7 @@ producer-build: ## Build ONLY the gmeow-dev producer release binary and stage it
 	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
 	@echo "gmeow-dev producer release binary staged at dist/bin/gmeow-dev"
 
-cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — run 'make sync' first on a clean clone).
+cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — run 'make regen' first on a clean clone).
 	cargo build -p gmeow-cli -p gmeow-dev-cli --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
@@ -196,7 +194,21 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 
 ##@ Generated Artifacts And Outputs
 
-sync: ## Run one cached update/check pipeline and make all outputs (CI defaults read-only).
+regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessary — `make check` already syncs then gates. Scope via SYNC_OUTPUTS={generated,docs,all}, mode via SYNC_MODE. The standalone regenerate lane for build/release/commit/CI; the gate is `make check`.
+	@# Steering banner on DIRECT invocation only (MAKELEVEL=0). `make check`'s own
+	@# regeneration runs the `check-sync` target via xtask, NOT this `regen` target, so
+	@# this banner never fires inside `make check`; and the sub-make `regen` calls from
+	@# install/build/docs/recursion run at MAKELEVEL>=1, so they stay quiet too.
+	@if [ "$(MAKELEVEL)" = "0" ]; then \
+		printf '\033[1;33m%s\033[0m\n' \
+		  "──────────────────────────────────────────────────────────────────────" \
+		  "NOTE: 'make regen' only REGENERATES generated/ + the bundle — it does NOT" \
+		  "run any gate. You almost never need it directly: 'make check' ALREADY" \
+		  "syncs (CHECK_SYNC_MODE=update) and THEN runs the full gate, so 'make regen'" \
+		  "before 'make check' just regenerates twice. Run 'make regen' alone ONLY for" \
+		  "a clean-clone bootstrap or a regen-without-gate. To verify work: make check" \
+		  "──────────────────────────────────────────────────────────────────────" >&2; \
+	fi
 	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
 	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
 	@# cold checkout that build output must exist before this pipeline's docs fanout
@@ -205,7 +217,7 @@ sync: ## Run one cached update/check pipeline and make all outputs (CI defaults 
 	@# narrower `SYNC_OUTPUTS=docs` selection skips that pipeline-level dist/ write, so
 	@# it alone needs an explicit materialize-then-build prerequisite here.
 	@if [ "$(SYNC_OUTPUTS)" = "docs" ]; then \
-		$(MAKE) sync SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
+		$(MAKE) regen SYNC_MODE=$(SYNC_MODE) SYNC_OUTPUTS=generated SYNC_VERBOSE=$(SYNC_VERBOSE); \
 		$(MAKE) build; \
 	fi
 	$(GMEOW_DEV) sync $(if $(strip $(SYNC_MODE)),--mode $(SYNC_MODE),) --outputs $(SYNC_OUTPUTS) $(if $(filter 1 true yes on,$(strip $(SYNC_VERBOSE))),--verbose,)
@@ -213,7 +225,7 @@ sync: ## Run one cached update/check pipeline and make all outputs (CI defaults 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
-commit: sync ## Synchronize artifacts, stage generator-owned outputs, and commit.
+commit: regen ## Synchronize artifacts, stage generator-owned outputs, and commit.
 	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
 	for p in $${REGENERATED_PATHS}; do \
 	  if [ -e "$$p" ]; then git add "$$p"; fi; \
@@ -240,7 +252,7 @@ release: ## Materialize from source (update mode), native-reason, build, report,
 	# checkout has no pre-materialized tree; force SYNC_MODE=update (mirroring how `check`
 	# forces CHECK_SYNC_MODE=update) instead of inheriting gmeow-dev's CI default of Check,
 	# which would hard-fail the superset gate ("no carrier representative") on the absent tree.
-	$(MAKE) sync SYNC_MODE=update
+	$(MAKE) regen SYNC_MODE=update
 	$(GMEOW_DEV) reason --mode native --merge
 	$(MAKE) build
 	$(MAKE) lsp-release
@@ -290,7 +302,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	fi
 	$(MAKE) verify-release
 	$(MAKE) crossref
-	$(MAKE) sync SYNC_MODE=update SYNC_OUTPUTS=docs
+	$(MAKE) regen SYNC_MODE=update SYNC_OUTPUTS=docs
 	$(GMEOW_DEV) docs-package --out dist/gmeow-docs.tar
 	sha256sum "$(GTS_OUT)" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
@@ -404,13 +416,15 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 				exit 1; \
 			fi; \
 		done; \
-		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm build for wasm32 =="; \
+		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm (Tier-1 SHACL + the GMN-1 codec validator) build for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-validate --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate does not build for wasm32-unknown-unknown"; exit 1; }; \
+		: "gmeow-validate-wasm now also carries the GMN-1 validator (gmn_validate: gmn1_read against the embedded codebook). Its build pulls gmeow-lang-bridge's codec + dictionary; the codec path is reasoner-free and its tiktoken-rs glyph-cost analytics are cfg(not(wasm32))-gated off, so this same build proves the GMN path compiles wasm-clean."; \
 		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree =="; \
+		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree (incl. the GMN-1 codec path) =="; \
 		: "rayon is intentionally NOT forbidden — it cross-compiles to wasm32 and degrades to sequential when threads are unavailable (wasm-safe data-parallelism, not a reasoner/native-only crate); purrdf's RDF/SHACL core uses it and the wasm build links cleanly"; \
+		: "gmeow-logic is the native DL reasoning runtime — it must NEVER reach the GMN-1 (or Tier-1) wasm validator; tiktoken-rs is the native-only glyph-cost BPE vocabulary that gmn_validate does not use. Both are forbidden here so a future leak into the GMN path (e.g. an un-gated gmn_symbology import) hard-fails."; \
 		for vpkg in gmeow-validate gmeow-validate-wasm; do \
-			for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring; do \
+			for forbidden in gmeow-logic oxigraph oxrocksdb tokio pyo3 ureq duckdb ring tiktoken-rs; do \
 				if $(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
 					echo "FAIL: $$vpkg leaked $$forbidden into its wasm dependency tree:"; \
 					$(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
@@ -418,7 +432,26 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 				fi; \
 			done; \
 		done; \
-		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator build for wasm32 (dep trees are reasoning-runtime-free)"; \
+		echo "== reasoner proof: gmeow-reason-wasm (the native structured-DL chase) builds for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-reason-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-reason-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "== purity gate: no native-only crate may appear in the reasoner wasm dep tree (gmeow-logic + rayon ARE allowed — the reasoner runs serially on wasm) =="; \
+		for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer; do \
+			if $(WASM_CARGO) tree -p gmeow-reason-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+				echo "FAIL: gmeow-reason-wasm leaked $$forbidden into its wasm dependency tree:"; \
+				$(WASM_CARGO) tree -p gmeow-reason-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "== GMN codec proof: gmeow-gmn-wasm (GMN-0<->GMN-1 transcode) builds for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-gmn-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-gmn-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring; do \
+			if $(WASM_CARGO) tree -p gmeow-gmn-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+				echo "FAIL: gmeow-gmn-wasm leaked $$forbidden into its wasm dependency tree:"; \
+				$(WASM_CARGO) tree -p gmeow-gmn-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec build for wasm32 (dep trees are native-runtime-free)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — gmeow's wasm-clean criterion cannot be verified; CI must install it"; exit 1; \
 	else \
@@ -435,7 +468,7 @@ validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release was
 	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
 	@# hard dependency: a missing wasm-opt is a build failure, never a note.
 	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
 
@@ -446,6 +479,67 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 	@# bindings just built above.
 	cd crates/validate-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-validate-wasm Node round-trip lane passed"
+
+reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+	$(WASM_CARGO) build -p gmeow-reason-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_reason_wasm.wasm \
+		--out-dir crates/reason-wasm/js/pkg --target web
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
+	@echo "OK: gmeow-reason-wasm npm package built (crates/reason-wasm/js/, pkg/ generated)"
+
+maint-refresh-reason-asset: reason-wasm-pkg-test ## Re-vendor the gmeow-reason-wasm engine into crates/docs/assets/reason/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	mkdir -p crates/docs/assets/reason
+	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm.js            crates/docs/assets/reason/gmeow_reason_wasm.js
+	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm       crates/docs/assets/reason/gmeow_reason_wasm_bg.wasm
+	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm.d.ts          crates/docs/assets/reason/gmeow_reason_wasm.d.ts
+	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm.d.ts  crates/docs/assets/reason/gmeow_reason_wasm_bg.wasm.d.ts
+	GMEOW_REASON_BLESS=1 cargo test -p gmeow-docs --test reason_asset
+	@echo "OK: re-vendored gmeow-reason-wasm into crates/docs/assets/reason/ (DIGESTS.blake3 re-pinned)"
+
+reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
+	cd crates/reason-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
+
+gmn-wasm-pkg: ## Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+	$(WASM_CARGO) build -p gmeow-gmn-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_gmn_wasm.wasm \
+		--out-dir crates/gmn-wasm/js/pkg --target web
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
+	@echo "OK: gmeow-gmn-wasm npm package built (crates/gmn-wasm/js/, pkg/ generated)"
+
+maint-refresh-gmn-asset: gmn-wasm-pkg-test ## Re-vendor the gmeow-gmn-wasm engine into crates/docs/assets/gmn/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	mkdir -p crates/docs/assets/gmn
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.js            crates/docs/assets/gmn/gmeow_gmn_wasm.js
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm       crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.d.ts          crates/docs/assets/gmn/gmeow_gmn_wasm.d.ts
+	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm.d.ts  crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm.d.ts
+	GMEOW_GMN_BLESS=1 cargo test -p gmeow-docs --test gmn_asset
+	@echo "OK: re-vendored gmeow-gmn-wasm into crates/docs/assets/gmn/ (DIGESTS.blake3 re-pinned)"
+
+gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its Node native↔wasm parity witness lane.
+	cd crates/gmn-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-gmn-wasm Node native↔wasm parity witness lane passed"
+
+wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the three Node lanes that RUN the shipped wasm and assert byte-identity to native.
+	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the three `*-pkg-test`
+	@# lanes RUN the shipped wasm (validate/reason/gmn) and assert byte-identity to the
+	@# native engine — the "every gmeow surface proven native≡wasm" contract (#1406).
+	@# On-gate so the vendored digest that gates the shipped bytes is exactly the one a
+	@# parity run blessed (the `maint-refresh-*-asset` targets now depend on `*-pkg-test`,
+	@# so re-vendoring cannot re-pin bytes that never passed parity). Locally this SKIPs
+	@# when the wasm32 target or node is absent; CI hard-fails — the parity criterion is
+	@# never silently unverified on the gating path.
+	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
+		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test; \
+	elif [ -n "$${CI:-}" ]; then \
+		echo "FAIL: wasm32-unknown-unknown target or node absent in CI — the native≡wasm parity witnesses cannot run; CI must install both"; exit 1; \
+	else \
+		echo "SKIP: wasm32-unknown-unknown target or node not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' + install node to run the native≡wasm parity lanes"; \
+	fi
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
@@ -515,6 +609,18 @@ maint-extract: ## Run import/extract policy for TARGET.
 
 maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
+
+maint-refresh-validate-asset: validate-wasm-pkg-test ## Re-vendor the gmeow-validate-wasm engine into crates/docs/assets/validate/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	@# Rebuild the wasm package (validate-wasm-pkg above: cargo --target wasm32 --release,
+	@# wasm-bindgen --target web, then the REQUIRED wasm-opt -Oz), copy the four vendored
+	@# artifacts into the docs asset dir, and rewrite DIGESTS.blake3 from the exact copied
+	@# bytes via the bless path of crates/docs/tests/validate_asset.rs (GMEOW_VALIDATE_BLESS=1).
+	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm.js          crates/docs/assets/validate/gmeow_validate_wasm.js
+	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm     crates/docs/assets/validate/gmeow_validate_wasm_bg.wasm
+	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm.d.ts        crates/docs/assets/validate/gmeow_validate_wasm.d.ts
+	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm.d.ts crates/docs/assets/validate/gmeow_validate_wasm_bg.wasm.d.ts
+	GMEOW_VALIDATE_BLESS=1 cargo test -p gmeow-docs --test validate_asset
+	@echo "OK: re-vendored gmeow-validate-wasm into crates/docs/assets/validate/ (DIGESTS.blake3 re-pinned)"
 
 maint-wikidata-live: ## Verify Wikidata identifiers resolve over the network.
 	$(GMEOW_DEV) wikidata --existence
@@ -794,6 +900,54 @@ maint-chasebench-corpus: ## (maintainer) Fetch dbunibas/chasebench, check its li
 	  echo "  runnable bench corpus."; \
 	  echo "remediation: obtain an explicitly licensed upstream corpus before adding any runnable conversion."; \
 	  exit 1; \
+	'
+
+# The token-cost-matrix fetch sources. o200k/cl100k are embedded (tiktoken-rs) and Qwen is
+# vendored (Apache-2.0, blake3-pinned in-repo). Llama (Meta Llama 3 Community License) and
+# Gemma (Gemma Terms of Use) are AGPL-INCOMPATIBLE restricted licenses, so — exactly like
+# maint-tptp-corpus / maint-ontouml-corpus — their tokenizer.json assets are FETCHED here at
+# maint-time into the git-ignored .tmp/, blake3-verified against the committed pins, used
+# in-process, and NEVER committed. Defaults point at ungated faithful re-hosts of Meta's /
+# Google's exact tokenizers (identical bytes => identical pin). To fetch from the canonical
+# GATED repos (meta-llama / google) instead, override the URL and export HF_TOKEN (the fetched
+# bytes must still match the pinned blake3, or the lane HARD-FAILS).
+LLAMA_TOKENIZER_URL ?= https://huggingface.co/NousResearch/Meta-Llama-3-8B/resolve/main/tokenizer.json
+GEMMA_TOKENIZER_URL ?= https://huggingface.co/unsloth/gemma-2-2b/resolve/main/tokenizer.json
+
+maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix over the emitted GMN/Turtle/JSON-LD grounding serializations; flags byte-fragmenting glyphs per vocab. OFF-gate (INFORMS; never in `make check`).
+	@# Runs the five mandated tokenizer families (o200k_base + cl100k_base embedded via
+	@# tiktoken-rs; Qwen vendored + blake3-pinned; Llama + Gemma fetched-at-maint-time) over the
+	@# SAME emitted GMN / Turtle / JSON-LD serializations of the grounding corpus the on-gate
+	@# Task-7 byte-fallback estimator gates, and writes dist/bench/gmn-token-cost-matrix.md.
+	@# NOT a `make check` (CHECK_DAG) target: it INFORMS the S2-S4 glyph/tokenizer co-design; the
+	@# on-gate teeth remain `compute_token_metrics`. HARD-FAILS if ANY of the five families cannot
+	@# be fetched/verified (no silent three-family degrade), and re-checks byte-identity across two
+	@# runs like maint-bench-cost-baseline.
+	@#
+	@# Llama/Gemma license note: their licenses are non-free and AGPL-incompatible, so the assets
+	@# are NEVER committed — fetched here, verified, and discarded, mirroring the repo's other
+	@# restricted-license Lane-B corpora. See crates/gmn-cost-matrix/assets/vocab/PROVENANCE.md.
+	bash -euo pipefail -c '\
+	  dir=.tmp/gmn-cost-matrix; mkdir -p "$$dir"; \
+	  if [ -n "$${HF_TOKEN:-}" ]; then AUTH=(-H "Authorization: Bearer $$HF_TOKEN"); else AUTH=(); fi; \
+	  echo "-> fetching Llama tokenizer.json ($(LLAMA_TOKENIZER_URL))"; \
+	  curl -fsSL $${AUTH[@]+"$${AUTH[@]}"} "$(LLAMA_TOKENIZER_URL)" -o "$$dir/llama.json" || { \
+	    echo "ERROR: Llama tokenizer.json fetch failed. Override LLAMA_TOKENIZER_URL or (for the"; \
+	    echo "  gated meta-llama repo) export HF_TOKEN. The five families are mandatory — no partial matrix."; \
+	    exit 1; }; \
+	  echo "-> fetching Gemma tokenizer.json ($(GEMMA_TOKENIZER_URL))"; \
+	  curl -fsSL $${AUTH[@]+"$${AUTH[@]}"} "$(GEMMA_TOKENIZER_URL)" -o "$$dir/gemma.json" || { \
+	    echo "ERROR: Gemma tokenizer.json fetch failed. Gemma is gated:manual on google/gemma-2-2b —"; \
+	    echo "  accept its license and export HF_TOKEN, or override GEMMA_TOKENIZER_URL to an authorized"; \
+	    echo "  source. The five families are mandatory — no partial matrix."; \
+	    exit 1; }; \
+	  echo "-> running the full five-family matrix (blake3-verifies each fetched asset)"; \
+	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json"; \
+	  echo "-> determinism re-check (second run must be byte-identical)"; \
+	  cargo run -q -p gmeow-gmn-cost-matrix --bin gmn-cost-matrix -- --llama "$$dir/llama.json" --gemma "$$dir/gemma.json" --out "$$dir/recheck.md"; \
+	  if ! diff -q dist/bench/gmn-token-cost-matrix.md "$$dir/recheck.md" >/dev/null; then \
+	    echo "ERROR: the token-cost matrix drifted between two runs — non-deterministic render."; exit 1; fi; \
+	  echo "✓ wrote dist/bench/gmn-token-cost-matrix.md (five families, byte-identical across two runs)"; \
 	'
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
