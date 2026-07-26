@@ -1932,3 +1932,41 @@ suggestions/guidance.
   bundle correctly emits zero abductive advice (nothing to repair). No forward path — this is the
   correct behavior of a repair advisor, recorded to pre-empt a "the bundle shows zero abductive
   output" misreading.
+
+## 2026-07-25 — peerage-aware undeclared cross-slice usage gate
+
+- PROJECTION-CEILING RE-BASELINE OWED TO A MAINTAINER (blocking `make check`, not
+  self-resolvable). Five (slice, vocabulary) cells measure ungrounded rdfs/obi/pato residue
+  above their committed `gmeow:ProjectionCeilingCommitment`: `accounts` rdfs 5>4, `ai` rdfs
+  42>26, `logic` rdfs 69>68, `sensory` obi 1>0, `sensory` pato 1>0. Every one is a term this
+  branch RELOCATED to the slice that legitimately owns it, and each is matched one-for-one by
+  the source slice's residue falling: PaymentMethod from finance, the box-role cluster from
+  kernel, the vector/embedding primitives from graphrag, the OBI/PATO alignment cells from
+  observations. Corpus-wide ungrounded residue is unchanged and not one construct is freshly
+  authored — each pre-exists at the merge base under its old slice.
+  Grounding them is not available: a `logic:Formula` restating a named-class `rdfs:subClassOf`
+  is the redeclaration `counting::resolvable_grounding` explicitly rejects as a faked
+  migration, and `logic:subClassOf` projects only restriction-shaped axioms
+  (`logic-compile/src/projections/lift.rs`), so converting would drop the taxonomy from the
+  generated OWL view. Raising the ceilings is refused by three independent guards whose own
+  doctrine reserves it: "a maintainer-only decision authorized out-of-band by merging past this
+  red, never by a tool". FORWARD PATH: a maintainer either re-baselines the five ceilings
+  (recognising the transfer) or teaches the ratchet to net a relocation across its source and
+  destination cells; the latter is a governance-gate change and was deliberately not made by
+  this branch, since the gate guards this branch's own work.
+
+- AXIS-FLOOR RE-BASELINE, SAME OWNER (pre-existing, unchanged by this branch). 38 of 591
+  slices measure below a committed `gmeow:AxisFloorCommitment`, overwhelmingly
+  `axisDocMaturity` (slices short `dimExample` / `dimScopeNote` / `dimUsageAdvice` /
+  `dimCompetencyRationale` / `dimFixturePair` / `dimRealizedState`). No committed floor value
+  changed on this branch. Floors carry the identical doctrine to ceilings — "re-baselining a
+  floor downward is a maintainer-only decision, authorized out-of-band by merging past this
+  red — there is no in-repo permit". FORWARD PATH: the documentation uplift the advisor names,
+  per slice, as its own deliberate commit; the gate enforces non-regression, never automatic
+  ascent.
+
+- PURRDF PINNED BY REV, NOT TAG. `Cargo.toml` and `fuzz/Cargo.toml` pin purrdf at
+  `76f25955` — `rust-v0.8.3` plus two fixes this work required: ownership scoping by declared
+  term namespaces (without which every slice minting into `logic:`/`lang:`/`math:` is invisible
+  to the dependency analyzer) and the fix-deps comment-skip. FORWARD PATH: move both pin sites
+  back to a `tag =` pin once a purrdf release carries them.
