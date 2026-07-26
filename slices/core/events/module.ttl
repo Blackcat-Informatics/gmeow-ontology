@@ -1662,6 +1662,7 @@ gmeow:subEventOfTransitivity
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:subEventOf composes along chains; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when the relation must not compose — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:subEventOf, logic:characteristicSort logic:transitiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:subEventOf and nothing else. It is not a definition of gmeow:subEventOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:subEventOfTransitivity logic:characterizes gmeow:subEventOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:durationValueFunctionality
@@ -1676,6 +1677,7 @@ gmeow:durationValueFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:durationValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:durationValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:durationValue and nothing else. It is not a definition of gmeow:durationValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:durationValueFunctionality logic:characterizes gmeow:durationValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:eventTemporalFrameFunctionality
@@ -1690,6 +1692,7 @@ gmeow:eventTemporalFrameFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:eventTemporalFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:eventTemporalFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:eventTemporalFrame and nothing else. It is not a definition of gmeow:eventTemporalFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:eventTemporalFrameFunctionality logic:characterizes gmeow:eventTemporalFrame ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:participationEventFunctionality
@@ -1704,6 +1707,7 @@ gmeow:participationEventFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participationEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participationEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participationEvent and nothing else. It is not a definition of gmeow:participationEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:participationEventFunctionality logic:characterizes gmeow:participationEvent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:recurrenceRuleTextFunctionality
@@ -1718,5 +1722,6 @@ gmeow:recurrenceRuleTextFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:recurrenceRuleText names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:recurrenceRuleText, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:recurrenceRuleText and nothing else. It is not a definition of gmeow:recurrenceRuleText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:recurrenceRuleTextFunctionality logic:characterizes gmeow:recurrenceRuleText ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

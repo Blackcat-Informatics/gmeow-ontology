@@ -156,3 +156,27 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:t
 msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:tenuredContactPointFunctionality logic:characterizes gmeow:tenuredContactPoint ."
 msgstr "gmeow:tenuredContactPointFunctionality logic:characterizes gmeow:tenuredContactPoint ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressHolderFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:addressHolder and nothing else. It is not a definition of gmeow:addressHolder (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:addressHolder 的一项完整性义务，别无其他。它不是 gmeow:addressHolder 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/addressValueFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:addressValue and nothing else. It is not a definition of gmeow:addressValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:addressValue 的一项完整性义务，别无其他。它不是 gmeow:addressValue 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/domainPartFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:domainPart and nothing else. It is not a definition of gmeow:domainPart (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:domainPart 的一项完整性义务，别无其他。它不是 gmeow:domainPart 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/localPartFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:localPart and nothing else. It is not a definition of gmeow:localPart (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:localPart 的一项完整性义务，别无其他。它不是 gmeow:localPart 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/postalAddressFrameFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:postalAddressFrame and nothing else. It is not a definition of gmeow:postalAddressFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:postalAddressFrame 的一项完整性义务，别无其他。它不是 gmeow:postalAddressFrame 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenuredContactPointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tenuredContactPoint and nothing else. It is not a definition of gmeow:tenuredContactPoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:tenuredContactPoint 的一项完整性义务，别无其他。它不是 gmeow:tenuredContactPoint 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

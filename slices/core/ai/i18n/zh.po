@@ -324,3 +324,247 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:e
 msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:embeddingOfFunctionality logic:characterizes gmeow:embeddingOf ."
 msgstr "gmeow:embeddingOfFunctionality logic:characterizes gmeow:embeddingOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:chunkOf and nothing else. It is not a definition of gmeow:chunkOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:chunkOf 的一项完整性义务，别无其他。它不是 gmeow:chunkOf 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contradictionKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contradictionKind and nothing else. It is not a definition of gmeow:contradictionKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:contradictionKind 的一项完整性义务，别无其他。它不是 gmeow:contradictionKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/describesModelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:describesModel and nothing else. It is not a definition of gmeow:describesModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:describesModel 的一项完整性义务，别无其他。它不是 gmeow:describesModel 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/filledFromFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:filledFrom and nothing else. It is not a definition of gmeow:filledFrom (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:filledFrom 的一项完整性义务，别无其他。它不是 gmeow:filledFrom 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:memoryKind and nothing else. It is not a definition of gmeow:memoryKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:memoryKind 的一项完整性义务，别无其他。它不是 gmeow:memoryKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptRoleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:promptRole and nothing else. It is not a definition of gmeow:promptRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:promptRole 的一项完整性义务，别无其他。它不是 gmeow:promptRole 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spanOfChunkFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:spanOfChunk and nothing else. It is not a definition of gmeow:spanOfChunk (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:spanOfChunk 的一项完整性义务，别无其他。它不是 gmeow:spanOfChunk 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportPolarityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:supportPolarity and nothing else. It is not a definition of gmeow:supportPolarity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:supportPolarity 的一项完整性义务，别无其他。它不是 gmeow:supportPolarity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usedModelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:usedModel and nothing else. It is not a definition of gmeow:usedModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:usedModel 的一项完整性义务，别无其他。它不是 gmeow:usedModel 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:againstIndex and nothing else. It is not a definition of gmeow:againstIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:againstIndex 的一项完整性义务，别无其他。它不是 gmeow:againstIndex 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:distanceMetric and nothing else. It is not a definition of gmeow:distanceMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:distanceMetric 的一项完整性义务，别无其他。它不是 gmeow:distanceMetric 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:embeddingModel and nothing else. It is not a definition of gmeow:embeddingModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:embeddingModel 的一项完整性义务，别无其他。它不是 gmeow:embeddingModel 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:embeddingOf and nothing else. It is not a definition of gmeow:embeddingOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:embeddingOf 的一项完整性义务，别无其他。它不是 gmeow:embeddingOf 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the similarity function under which a vector space is meaningful."
+msgstr "用于命名使某个向量空间有意义的相似度函数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the metric as an implementation detail or defaulting it silently — cosine and euclidean disagree about what is near."
+msgstr "避免把度量当作实现细节或静默取默认值——余弦与欧氏对“接近”的判断并不一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one of gmeow:distanceMetricCosine / DotProduct / Euclidean with gmeow:distanceMetric; the vocabulary is open."
+msgstr "通过 gmeow:distanceMetric 关联 gmeow:distanceMetricCosine / DotProduct / Euclidean；该词汇是开放的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for one vector representation of one information object under one model."
+msgstr "用于表示某一模型下对某一信息对象的一个向量表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging two models' embeddings of the same chunk into one individual, and avoid using it for the source text itself."
+msgstr "避免把两个模型对同一分块的嵌入合并为一个个体，也不要用它表示源文本本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give it gmeow:embeddingOf, gmeow:embeddingModel, gmeow:embeddingDimensions and gmeow:distanceMetric; model and metric are provenance, not decoration."
+msgstr "为其赋予 gmeow:embeddingOf、gmeow:embeddingModel、gmeow:embeddingDimensions 与 gmeow:distanceMetric；模型与度量属于来源信息，而非点缀。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+msgstr "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record one retrieval against a vector index — the answer to why a model saw a passage."
+msgstr "用于记录一次针对向量索引的检索——即“模型为何看到该段落”的答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for the generation step that consumed the results, and avoid one event for a federated fan-out — that is several events under one parent activity."
+msgstr "不要用它表示消费检索结果的生成步骤，也不要用单个事件表示联邦扇出检索——那是同一父活动下的多个事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give it gmeow:againstIndex and the chunks returned; an agent-memory recall is a RetrievalEvent too."
+msgstr "为其赋予 gmeow:againstIndex 及返回的分块；智能体记忆召回同样是一次 RetrievalEvent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+msgstr "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a built retrieval structure over a corpus's embeddings — the artifact a retrieval queries."
+msgstr "用于表示在语料嵌入之上构建的检索结构——检索所查询的工件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid conflating it with the embeddings it indexes or with the corpus itself, and avoid omitting its metric."
+msgstr "避免将其与所索引的嵌入或语料本身混为一谈，也不要省略其度量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry its algorithm, its parameters verbatim for reproducibility, and gmeow:distanceMetric."
+msgstr "记录其算法、逐字保留的参数（以便复现）以及 gmeow:distanceMetric。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:index1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+msgstr "gmeow:index1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the one index a retrieval queried."
+msgstr "用于命名某次检索所查询的那一个索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for a federated fan-out; it is functional, so several indexes mean several RetrievalEvents."
+msgstr "不要用于联邦扇出；该属性是函数性的，多个索引意味着多个 RetrievalEvent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:VectorIndex to a gmeow:RetrievalEvent."
+msgstr "为一个 gmeow:RetrievalEvent 恰好关联一个 gmeow:VectorIndex。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+msgstr "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the similarity function under which an embedding or index is meaningful."
+msgstr "用于记录使某个嵌入或索引有意义的相似度函数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid leaving it implicit or assuming a default — the metric is provenance, and consumers cannot recover it."
+msgstr "避免将其隐含或假定默认值——度量属于来源信息，消费方无法自行还原。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Domain-free: carry it on gmeow:Embedding and gmeow:VectorIndex alike, with a gmeow:DistanceMetric value."
+msgstr "不限定域：可同样用于 gmeow:Embedding 与 gmeow:VectorIndex，取值为 gmeow:DistanceMetric。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+msgstr "gmeow:embedding1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when angle between vectors is what matters and magnitude should be ignored."
+msgstr "当关注向量夹角而应忽略模长时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."
+msgstr "避免在同一索引中混用不同度量，也不要在实际未配置度量之处断言它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."
+msgstr "通过 gmeow:distanceMetric 关联到 gmeow:Embedding 或 gmeow:VectorIndex。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when magnitude carries signal, as with normalized embeddings."
+msgstr "当模长本身携带信息（例如归一化嵌入）时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."
+msgstr "避免在同一索引中混用不同度量，也不要在实际未配置度量之处断言它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."
+msgstr "通过 gmeow:distanceMetric 关联到 gmeow:Embedding 或 gmeow:VectorIndex。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when straight-line L2 distance is the intended notion of near."
+msgstr "当以直线 L2 距离作为“接近”的定义时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."
+msgstr "避免在同一索引中混用不同度量，也不要在实际未配置度量之处断言它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."
+msgstr "通过 gmeow:distanceMetric 关联到 gmeow:Embedding 或 gmeow:VectorIndex。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the dimensionality of the embedding vector."
+msgstr "用于记录嵌入向量的维数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring it from the model name, and avoid recording it on the index instead of the embedding."
+msgstr "避免根据模型名称推断，也不要把它记在索引上而非嵌入上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "A plain integer literal on a gmeow:Embedding."
+msgstr "在 gmeow:Embedding 上以普通整数字面量表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingDimensions 1536 ."
+msgstr "gmeow:embedding1 gmeow:embeddingDimensions 1536 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to attribute an embedding to the model agent that produced it."
+msgstr "用于将嵌入归属于产生它的模型智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging two models' embeddings of one chunk — machine-derived values are attributed, so they are two individuals."
+msgstr "避免合并两个模型对同一分块的嵌入——机器派生值需标注归属，因此它们是两个个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the model agent on the gmeow:Embedding."
+msgstr "在 gmeow:Embedding 上命名该模型智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingModel gmeow:model1 ."
+msgstr "gmeow:embedding1 gmeow:embeddingModel gmeow:model1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the one information object an embedding represents."
+msgstr "用于命名某个嵌入所表示的那一个信息对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing it at a whole document when the embedding is of a chunk; it is functional, so one embedding represents exactly one object."
+msgstr "当嵌入对应的是分块时，不要指向整篇文档；该属性是函数性的，一个嵌入恰好表示一个对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the represented object — usually a gmeow:Chunk — to the gmeow:Embedding."
+msgstr "将被表示的对象（通常是 gmeow:Chunk）关联到该 gmeow:Embedding。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+msgstr "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."

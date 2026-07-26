@@ -84,3 +84,15 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:c
 msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:citingEntityFunctionality logic:characterizes gmeow:citingEntity ."
 msgstr "gmeow:citingEntityFunctionality logic:characterizes gmeow:citingEntity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citationIntentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:citationIntent and nothing else. It is not a definition of gmeow:citationIntent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:citationIntent 的一项完整性义务，别无其他。它不是 gmeow:citationIntent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citedEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:citedEntity and nothing else. It is not a definition of gmeow:citedEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:citedEntity 的一项完整性义务，别无其他。它不是 gmeow:citedEntity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/citingEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:citingEntity and nothing else. It is not a definition of gmeow:citingEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:citingEntity 的一项完整性义务，别无其他。它不是 gmeow:citingEntity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

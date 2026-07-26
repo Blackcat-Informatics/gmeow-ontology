@@ -112,3 +112,7 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:e
 msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:existenceEntityFunctionality logic:characterizes gmeow:existenceEntity ."
 msgstr "gmeow:existenceEntityFunctionality logic:characterizes gmeow:existenceEntity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:existenceEntity and nothing else. It is not a definition of gmeow:existenceEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:existenceEntity 的一项完整性义务，别无其他。它不是 gmeow:existenceEntity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

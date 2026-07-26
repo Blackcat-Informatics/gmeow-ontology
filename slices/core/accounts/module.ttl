@@ -53,6 +53,10 @@ gmeow:PaymentMethod
     rdfs:label "Payment Method"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "The method or instrument used to make a payment — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use to say HOW a payment was made, as a value on the payment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing it or minting a slice-local rival vocabulary; it is an open VALUE type, so add a new individual instead."@x-gmeow-english ;
+    gmeow:howToUse "Attach one of the gmeow:paymentMethod* individuals with gmeow:paymentMethod; the set is open, so consumers must tolerate values they do not know."@x-gmeow-english ;
+    skos:example "gmeow:paymentMethodCash a gmeow:PaymentMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ServiceStatus
@@ -199,6 +203,10 @@ gmeow:paymentMethodBankTransfer
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "bank transfer"@x-gmeow-english ;
     skos:definition "Payment made by bank transfer or wire."@x-gmeow-english ;
+    gmeow:useWhen "Use when a bank transfer or wire settles the payment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."@x-gmeow-english ;
+    gmeow:howToUse "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."@x-gmeow-english ;
+    skos:example "gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:paymentMethodCash
@@ -206,6 +214,10 @@ gmeow:paymentMethodCash
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "cash"@x-gmeow-english ;
     skos:definition "Payment made in physical currency."@x-gmeow-english ;
+    gmeow:useWhen "Use when physical currency changes hands."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."@x-gmeow-english ;
+    gmeow:howToUse "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."@x-gmeow-english ;
+    skos:example "gmeow:paymentMethodCash a gmeow:PaymentMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:paymentMethodCheque
@@ -213,6 +225,10 @@ gmeow:paymentMethodCheque
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "cheque"@x-gmeow-english ;
     skos:definition "Payment made by cheque."@x-gmeow-english ;
+    gmeow:useWhen "Use when a cheque is the instrument."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."@x-gmeow-english ;
+    gmeow:howToUse "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."@x-gmeow-english ;
+    skos:example "gmeow:paymentMethodCheque a gmeow:PaymentMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:paymentMethodCreditCard
@@ -220,6 +236,10 @@ gmeow:paymentMethodCreditCard
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "credit card"@x-gmeow-english ;
     skos:definition "Payment made by credit card."@x-gmeow-english ;
+    gmeow:useWhen "Use when a credit card settles the payment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."@x-gmeow-english ;
+    gmeow:howToUse "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."@x-gmeow-english ;
+    skos:example "gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:paymentMethodCrypto
@@ -227,6 +247,10 @@ gmeow:paymentMethodCrypto
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "cryptocurrency"@x-gmeow-english ;
     skos:definition "Payment made in cryptocurrency."@x-gmeow-english ;
+    gmeow:useWhen "Use when a cryptocurrency transfer settles the payment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."@x-gmeow-english ;
+    gmeow:howToUse "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."@x-gmeow-english ;
+    skos:example "gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:serviceShutdownDate
@@ -303,6 +327,7 @@ gmeow:accountServiceFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:accountService names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:accountService, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:accountService and nothing else. It is not a definition of gmeow:accountService (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:accountServiceFunctionality logic:characterizes gmeow:accountService ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:accountServiceHomepageFunctionality
@@ -317,6 +342,7 @@ gmeow:accountServiceHomepageFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:accountServiceHomepage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:accountServiceHomepage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:accountServiceHomepage and nothing else. It is not a definition of gmeow:accountServiceHomepage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:accountServiceHomepageFunctionality logic:characterizes gmeow:accountServiceHomepage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:serviceShutdownDateFunctionality
@@ -331,5 +357,6 @@ gmeow:serviceShutdownDateFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:serviceShutdownDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:serviceShutdownDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:serviceShutdownDate and nothing else. It is not a definition of gmeow:serviceShutdownDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:serviceShutdownDateFunctionality logic:characterizes gmeow:serviceShutdownDate ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

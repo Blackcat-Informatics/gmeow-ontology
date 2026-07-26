@@ -204,3 +204,35 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:r
 msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:realizationModeFunctionality logic:characterizes gmeow:realizationMode ."
 msgstr "gmeow:realizationModeFunctionality logic:characterizes gmeow:realizationMode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributionDegree and nothing else. It is not a definition of gmeow:contributionDegree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:contributionDegree 的一项完整性义务，别无其他。它不是 gmeow:contributionDegree 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributionRole and nothing else. It is not a definition of gmeow:contributionRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:contributionRole 的一项完整性义务，别无其他。它不是 gmeow:contributionRole 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributionTarget and nothing else. It is not a definition of gmeow:contributionTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:contributionTarget 的一项完整性义务，别无其他。它不是 gmeow:contributionTarget 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributor and nothing else. It is not a definition of gmeow:contributor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:contributor 的一项完整性义务，别无其他。它不是 gmeow:contributor 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:derivationProduct and nothing else. It is not a definition of gmeow:derivationProduct (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:derivationProduct 的一项完整性义务，别无其他。它不是 gmeow:derivationProduct 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:derivationSource and nothing else. It is not a definition of gmeow:derivationSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:derivationSource 的一项完整性义务，别无其他。它不是 gmeow:derivationSource 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:hasManifestationFormat and nothing else. It is not a definition of gmeow:hasManifestationFormat (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:hasManifestationFormat 的一项完整性义务，别无其他。它不是 gmeow:hasManifestationFormat 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:realizationMode and nothing else. It is not a definition of gmeow:realizationMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:realizationMode 的一项完整性义务，别无其他。它不是 gmeow:realizationMode 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

@@ -324,3 +324,247 @@ msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes g
 msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:embeddingOfFunctionality logic:characterizes gmeow:embeddingOf ."
 msgstr "gmeow:embeddingOfFunctionality logic:characterizes gmeow:embeddingOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:chunkOf and nothing else. It is not a definition of gmeow:chunkOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:chunkOf, et rien d'autre. Ce n'est pas une définition de gmeow:chunkOf (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contradictionKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contradictionKind and nothing else. It is not a definition of gmeow:contradictionKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:contradictionKind, et rien d'autre. Ce n'est pas une définition de gmeow:contradictionKind (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/describesModelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:describesModel and nothing else. It is not a definition of gmeow:describesModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:describesModel, et rien d'autre. Ce n'est pas une définition de gmeow:describesModel (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/filledFromFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:filledFrom and nothing else. It is not a definition of gmeow:filledFrom (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:filledFrom, et rien d'autre. Ce n'est pas une définition de gmeow:filledFrom (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memoryKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:memoryKind and nothing else. It is not a definition of gmeow:memoryKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:memoryKind, et rien d'autre. Ce n'est pas une définition de gmeow:memoryKind (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/promptRoleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:promptRole and nothing else. It is not a definition of gmeow:promptRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:promptRole, et rien d'autre. Ce n'est pas une définition de gmeow:promptRole (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spanOfChunkFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:spanOfChunk and nothing else. It is not a definition of gmeow:spanOfChunk (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:spanOfChunk, et rien d'autre. Ce n'est pas une définition de gmeow:spanOfChunk (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supportPolarityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:supportPolarity and nothing else. It is not a definition of gmeow:supportPolarity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:supportPolarity, et rien d'autre. Ce n'est pas une définition de gmeow:supportPolarity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usedModelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:usedModel and nothing else. It is not a definition of gmeow:usedModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:usedModel, et rien d'autre. Ce n'est pas une définition de gmeow:usedModel (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:againstIndex and nothing else. It is not a definition of gmeow:againstIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:againstIndex, et rien d'autre. Ce n'est pas une définition de gmeow:againstIndex (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:distanceMetric and nothing else. It is not a definition of gmeow:distanceMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:distanceMetric, et rien d'autre. Ce n'est pas une définition de gmeow:distanceMetric (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:embeddingModel and nothing else. It is not a definition of gmeow:embeddingModel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:embeddingModel, et rien d'autre. Ce n'est pas une définition de gmeow:embeddingModel (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:embeddingOf and nothing else. It is not a definition of gmeow:embeddingOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:embeddingOf, et rien d'autre. Ce n'est pas une définition de gmeow:embeddingOf (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the similarity function under which a vector space is meaningful."
+msgstr "À utiliser pour nommer la fonction de similarité sous laquelle un espace vectoriel a un sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the metric as an implementation detail or defaulting it silently — cosine and euclidean disagree about what is near."
+msgstr "Évitez de traiter la métrique comme un détail d'implémentation ou de la fixer implicitement — cosinus et euclidien ne s'accordent pas sur ce qui est « proche »."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one of gmeow:distanceMetricCosine / DotProduct / Euclidean with gmeow:distanceMetric; the vocabulary is open."
+msgstr "Attachez gmeow:distanceMetricCosine / DotProduct / Euclidean via gmeow:distanceMetric ; le vocabulaire est ouvert."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for one vector representation of one information object under one model."
+msgstr "À utiliser pour une représentation vectorielle d'un objet d'information sous un modèle donné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging two models' embeddings of the same chunk into one individual, and avoid using it for the source text itself."
+msgstr "Évitez de fusionner en un seul individu les plongements d'un même fragment par deux modèles, et ne l'employez pas pour le texte source lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give it gmeow:embeddingOf, gmeow:embeddingModel, gmeow:embeddingDimensions and gmeow:distanceMetric; model and metric are provenance, not decoration."
+msgstr "Donnez-lui gmeow:embeddingOf, gmeow:embeddingModel, gmeow:embeddingDimensions et gmeow:distanceMetric ; le modèle et la métrique sont de la provenance, non de l'ornement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+msgstr "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record one retrieval against a vector index — the answer to why a model saw a passage."
+msgstr "À utiliser pour consigner une recherche menée contre un index vectoriel — la réponse à « pourquoi le modèle a-t-il vu ce passage ? »."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for the generation step that consumed the results, and avoid one event for a federated fan-out — that is several events under one parent activity."
+msgstr "Ne l'employez pas pour l'étape de génération qui a consommé les résultats, ni comme événement unique pour un éventail fédéré — ce sont plusieurs événements sous une activité parente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give it gmeow:againstIndex and the chunks returned; an agent-memory recall is a RetrievalEvent too."
+msgstr "Donnez-lui gmeow:againstIndex et les fragments renvoyés ; un rappel de mémoire d'agent est également un RetrievalEvent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetrievalEvent|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+msgstr "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a built retrieval structure over a corpus's embeddings — the artifact a retrieval queries."
+msgstr "À utiliser pour une structure de recherche construite sur les plongements d'un corpus — l'artefact qu'une recherche interroge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid conflating it with the embeddings it indexes or with the corpus itself, and avoid omitting its metric."
+msgstr "Évitez de la confondre avec les plongements qu'elle indexe ou avec le corpus lui-même, et n'omettez pas sa métrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry its algorithm, its parameters verbatim for reproducibility, and gmeow:distanceMetric."
+msgstr "Portez son algorithme, ses paramètres tels quels pour la reproductibilité, et gmeow:distanceMetric."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:index1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+msgstr "gmeow:index1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the one index a retrieval queried."
+msgstr "À utiliser pour nommer l'unique index interrogé par une recherche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for a federated fan-out; it is functional, so several indexes mean several RetrievalEvents."
+msgstr "Ne l'employez pas pour un éventail fédéré ; la propriété est fonctionnelle, donc plusieurs index signifient plusieurs RetrievalEvents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:VectorIndex to a gmeow:RetrievalEvent."
+msgstr "Attachez exactement un gmeow:VectorIndex à un gmeow:RetrievalEvent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/againstIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+msgstr "gmeow:retrieval1 gmeow:againstIndex gmeow:index1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the similarity function under which an embedding or index is meaningful."
+msgstr "À utiliser pour consigner la fonction de similarité sous laquelle un plongement ou un index a un sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid leaving it implicit or assuming a default — the metric is provenance, and consumers cannot recover it."
+msgstr "Évitez de la laisser implicite ou de supposer une valeur par défaut — la métrique est de la provenance et les consommateurs ne peuvent pas la reconstituer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Domain-free: carry it on gmeow:Embedding and gmeow:VectorIndex alike, with a gmeow:DistanceMetric value."
+msgstr "Sans domaine imposé : portez-la aussi bien sur gmeow:Embedding que sur gmeow:VectorIndex, avec une valeur gmeow:DistanceMetric."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+msgstr "gmeow:embedding1 gmeow:distanceMetric gmeow:distanceMetricCosine ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when angle between vectors is what matters and magnitude should be ignored."
+msgstr "À utiliser lorsque l'angle entre vecteurs importe et la magnitude doit être ignorée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."
+msgstr "Évitez de la mélanger à une autre métrique au sein d'un même index, et ne l'affirmez pas là où la métrique n'a jamais été configurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."
+msgstr "Attachez-la via gmeow:distanceMetric à un gmeow:Embedding ou un gmeow:VectorIndex."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when magnitude carries signal, as with normalized embeddings."
+msgstr "À utiliser lorsque la magnitude porte du signal, comme avec des plongements normalisés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."
+msgstr "Évitez de la mélanger à une autre métrique au sein d'un même index, et ne l'affirmez pas là où la métrique n'a jamais été configurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."
+msgstr "Attachez-la via gmeow:distanceMetric à un gmeow:Embedding ou un gmeow:VectorIndex."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when straight-line L2 distance is the intended notion of near."
+msgstr "À utiliser lorsque la distance L2 en ligne droite est la notion de proximité visée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing it with another metric across one index, and avoid asserting it where the metric was never actually configured."
+msgstr "Évitez de la mélanger à une autre métrique au sein d'un même index, et ne l'affirmez pas là où la métrique n'a jamais été configurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with gmeow:distanceMetric to a gmeow:Embedding or a gmeow:VectorIndex."
+msgstr "Attachez-la via gmeow:distanceMetric à un gmeow:Embedding ou un gmeow:VectorIndex."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ."
+msgstr "gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the dimensionality of the embedding vector."
+msgstr "À utiliser pour consigner la dimensionnalité du vecteur de plongement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring it from the model name, and avoid recording it on the index instead of the embedding."
+msgstr "Évitez de la déduire du nom du modèle, et ne la portez pas sur l'index à la place du plongement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "A plain integer literal on a gmeow:Embedding."
+msgstr "Un littéral entier simple sur un gmeow:Embedding."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingDimensions 1536 ."
+msgstr "gmeow:embedding1 gmeow:embeddingDimensions 1536 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to attribute an embedding to the model agent that produced it."
+msgstr "À utiliser pour attribuer un plongement à l'agent-modèle qui l'a produit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging two models' embeddings of one chunk — machine-derived values are attributed, so they are two individuals."
+msgstr "Évitez de fusionner les plongements d'un même fragment par deux modèles — les valeurs dérivées par machine sont attribuées, ce sont donc deux individus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the model agent on the gmeow:Embedding."
+msgstr "Nommez l'agent-modèle sur le gmeow:Embedding."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingModel gmeow:model1 ."
+msgstr "gmeow:embedding1 gmeow:embeddingModel gmeow:model1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the one information object an embedding represents."
+msgstr "À utiliser pour nommer l'unique objet d'information que représente un plongement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing it at a whole document when the embedding is of a chunk; it is functional, so one embedding represents exactly one object."
+msgstr "Ne le faites pas pointer vers un document entier lorsque le plongement porte sur un fragment ; la propriété est fonctionnelle, un plongement représente exactement un objet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the represented object — usually a gmeow:Chunk — to the gmeow:Embedding."
+msgstr "Attachez l'objet représenté — généralement un gmeow:Chunk — au gmeow:Embedding."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+msgstr "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."

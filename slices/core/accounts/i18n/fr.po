@@ -84,3 +84,111 @@ msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes g
 msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:serviceShutdownDateFunctionality logic:characterizes gmeow:serviceShutdownDate ."
 msgstr "gmeow:serviceShutdownDateFunctionality logic:characterizes gmeow:serviceShutdownDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:accountService and nothing else. It is not a definition of gmeow:accountService (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:accountService, et rien d'autre. Ce n'est pas une définition de gmeow:accountService (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/accountServiceHomepageFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:accountServiceHomepage and nothing else. It is not a definition of gmeow:accountServiceHomepage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:accountServiceHomepage, et rien d'autre. Ce n'est pas une définition de gmeow:accountServiceHomepage (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/serviceShutdownDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:serviceShutdownDate and nothing else. It is not a definition of gmeow:serviceShutdownDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:serviceShutdownDate, et rien d'autre. Ce n'est pas une définition de gmeow:serviceShutdownDate (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say HOW a payment was made, as a value on the payment."
+msgstr "À utiliser pour indiquer COMMENT un paiement a été effectué, en tant que valeur portée par le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid subclassing it or minting a slice-local rival vocabulary; it is an open VALUE type, so add a new individual instead."
+msgstr "Évitez d'en dériver des sous-classes ou de créer un vocabulaire rival local à une tranche ; c'est un type de VALEUR ouvert, ajoutez donc plutôt un nouvel individu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one of the gmeow:paymentMethod* individuals with gmeow:paymentMethod; the set is open, so consumers must tolerate values they do not know."
+msgstr "Attachez l'un des individus gmeow:paymentMethod* via gmeow:paymentMethod ; l'ensemble est ouvert, les consommateurs doivent donc tolérer des valeurs inconnues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PaymentMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+msgstr "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bank transfer or wire settles the payment."
+msgstr "À utiliser lorsque un virement bancaire règle le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."
+msgstr "gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when physical currency changes hands."
+msgstr "À utiliser lorsque des espèces changent de mains."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCash|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+msgstr "gmeow:paymentMethodCash a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a cheque is the instrument."
+msgstr "À utiliser lorsque un chèque est l'instrument."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCheque|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCheque a gmeow:PaymentMethod ."
+msgstr "gmeow:paymentMethodCheque a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a credit card settles the payment."
+msgstr "À utiliser lorsque une carte de crédit règle le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."
+msgstr "gmeow:paymentMethodCreditCard a gmeow:PaymentMethod ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a cryptocurrency transfer settles the payment."
+msgstr "À utiliser lorsque un transfert de cryptomonnaie règle le paiement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it as a class to subclass, and avoid guessing it from an account type — record it only when the instrument is actually known."
+msgstr "Évitez de l'employer comme classe à spécialiser, et évitez de le déduire d'un type de compte — ne l'enregistrez que si l'instrument est réellement connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it to a payment with gmeow:paymentMethod; it is one value in the open gmeow:PaymentMethod vocabulary."
+msgstr "Attachez-le à un paiement via gmeow:paymentMethod ; c'est une valeur du vocabulaire ouvert gmeow:PaymentMethod."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/paymentMethodCrypto|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."
+msgstr "gmeow:paymentMethodCrypto a gmeow:PaymentMethod ."

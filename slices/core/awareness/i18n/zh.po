@@ -36,3 +36,7 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:a
 msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:awarenessSubjectFunctionality logic:characterizes gmeow:awarenessSubject ."
 msgstr "gmeow:awarenessSubjectFunctionality logic:characterizes gmeow:awarenessSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/awarenessSubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:awarenessSubject and nothing else. It is not a definition of gmeow:awarenessSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:awarenessSubject 的一项完整性义务，别无其他。它不是 gmeow:awarenessSubject 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

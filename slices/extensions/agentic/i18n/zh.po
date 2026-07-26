@@ -108,3 +108,19 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:u
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:usedToolFunctionality logic:characterizes gmeow:usedTool ."
 msgstr "gmeow:usedToolFunctionality logic:characterizes gmeow:usedTool ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calledByInvocationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:calledByInvocation and nothing else. It is not a definition of gmeow:calledByInvocation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:calledByInvocation 的一项完整性义务，别无其他。它不是 gmeow:calledByInvocation 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:toolArguments and nothing else. It is not a definition of gmeow:toolArguments (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:toolArguments 的一项完整性义务，别无其他。它不是 gmeow:toolArguments 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:toolResult and nothing else. It is not a definition of gmeow:toolResult (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:toolResult 的一项完整性义务，别无其他。它不是 gmeow:toolResult 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:usedTool and nothing else. It is not a definition of gmeow:usedTool (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:usedTool 的一项完整性义务，别无其他。它不是 gmeow:usedTool 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

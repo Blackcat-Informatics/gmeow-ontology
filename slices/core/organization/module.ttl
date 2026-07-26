@@ -1004,6 +1004,7 @@ gmeow:closesAtFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:closesAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:closesAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:closesAt and nothing else. It is not a definition of gmeow:closesAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:closesAtFunctionality logic:characterizes gmeow:closesAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:identifierSchemeFunctionality
@@ -1018,6 +1019,7 @@ gmeow:identifierSchemeFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:identifierScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:identifierScheme, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:identifierScheme and nothing else. It is not a definition of gmeow:identifierScheme (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:identifierSchemeFunctionality logic:characterizes gmeow:identifierScheme ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:identifierUrlFunctionality
@@ -1032,6 +1034,7 @@ gmeow:identifierUrlFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:identifierUrl names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:identifierUrl, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:identifierUrl and nothing else. It is not a definition of gmeow:identifierUrl (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:identifierUrlFunctionality logic:characterizes gmeow:identifierUrl ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:identifierValueFunctionality
@@ -1046,6 +1049,7 @@ gmeow:identifierValueFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:identifierValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:identifierValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:identifierValue and nothing else. It is not a definition of gmeow:identifierValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:identifierValueFunctionality logic:characterizes gmeow:identifierValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:membershipMemberFunctionality
@@ -1060,6 +1064,7 @@ gmeow:membershipMemberFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipMember names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipMember, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipMember and nothing else. It is not a definition of gmeow:membershipMember (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:membershipMemberFunctionality logic:characterizes gmeow:membershipMember ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:membershipOrganizationFunctionality
@@ -1074,6 +1079,7 @@ gmeow:membershipOrganizationFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipOrganization names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipOrganization, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipOrganization and nothing else. It is not a definition of gmeow:membershipOrganization (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:membershipOrganizationFunctionality logic:characterizes gmeow:membershipOrganization ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:opensAtFunctionality
@@ -1088,6 +1094,7 @@ gmeow:opensAtFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:opensAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opensAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:opensAt and nothing else. It is not a definition of gmeow:opensAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:opensAtFunctionality logic:characterizes gmeow:opensAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:postInFunctionality
@@ -1102,5 +1109,6 @@ gmeow:postInFunctionality
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:postIn names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postIn, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:postIn and nothing else. It is not a definition of gmeow:postIn (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:postInFunctionality logic:characterizes gmeow:postIn ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
