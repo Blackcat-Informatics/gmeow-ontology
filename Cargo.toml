@@ -65,6 +65,11 @@ members = [
     # native DL engine. Reasoner-free and wasm-clean; gmeow-logic and
     # gmeow-logic-compile depend on it.
     "crates/term-arena",
+    # The executable math: ingestion front-ends: R scripts, ONNX graphs, and TSTP proof
+    # derivations parsed into math: structures. It sits BESIDE crates/math rather than
+    # inside it because the in-bundle producers are pinned pure and no-disk-read, so a
+    # file-reading lifter cannot live among them — the same split as affect-ingest/affect.
+    "crates/math-lift",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
     # Reusable exact-rational geometry: an inner-product-space over a metric Gram

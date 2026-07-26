@@ -1811,6 +1811,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-math-lift"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-term-arena",
+ "purrdf",
+]
+
+[[package]]
 name = "gmeow-music"
 version = "0.2.0"
 dependencies = [
