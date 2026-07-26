@@ -54,7 +54,8 @@
 //! | `tff`/`thf`/`tcf` | [`ProofUnliftable`] | a typed or higher-order body is not a first-order formula, and reading it as one would misstate the step's conclusion and its sorts |
 //! | `include` | [`ProofUnliftable`] | the included document is not here; a missing dependency is a hard fail, never a licence to lift a partial proof |
 //! | a `<sources>` LIST | [`ProofUnliftable`] | it declares several independent provenances for one formula, and picking one would drop the others |
-//! | a nested `inference(…)` in a parent list | [`ProofUnliftable`] | an inline parent derivation is a second, anonymous step identity this AST does not mint |
+//! | a nested `inference(…)` in a parent list | [`ProofUnliftable`] | an inline sub-derivation is a second, anonymous step identity this AST does not mint |
+//! | an `<external_source>` in a parent list | LIFTED as [`Step::external_parents`] | `theory(equality)` rides on every E equality inference; it warrants the step without being one, and carries no sub-proof to flatten |
 //! | an unrecognised source functor | [`ProofUnliftable`] | a source form the TPTP grammar does not define is not provenance this reader may guess at |
 //!
 //! Malformed *syntax* — an unterminated quoted atom or block comment, a missing `.`, an
@@ -538,6 +539,14 @@ pub struct Step {
     /// (the single named formula). Held as a field rather than inside [`Source`] because
     /// the well-foundedness checks and the dependency walk read it uniformly.
     pub parents: Vec<String>,
+    /// The EXTERNAL references cited in the inference's parent list, in source order.
+    ///
+    /// TPTP's `<parent_info>` admits an `<external_source>`, and E writes one on every
+    /// equality-using inference (`rw`, `spm`, `sr`, `cn` all cite `theory(equality)`).
+    /// Such a citation names a warrant the derivation did not derive — it is NOT a step,
+    /// so it never enters [`Step::parents`], which must resolve against step names for the
+    /// well-foundedness walk.
+    pub external_parents: Vec<ExternalSource>,
     /// The rendered terms of the `<useful_info>` 5th field, in source order. Empty when
     /// the field is absent.
     pub useful_info: Vec<String>,
@@ -599,7 +608,13 @@ impl Step {
         match &self.source {
             Source::Asserted => {}
             Source::Inference { rule, status } => {
-                let parents: Vec<String> = self.parents.iter().map(|p| render_atom(p)).collect();
+                // Step citations first, then the external warrants — the order E writes
+                // them, and the order this reader split them apart in. Re-emitting the
+                // externals is what keeps render ∘ parse the identity: dropping them here
+                // would make the round-trip that defends the SectionRetraction rung a lie.
+                let mut parents: Vec<String> =
+                    self.parents.iter().map(|p| render_atom(p)).collect();
+                parents.extend(self.external_parents.iter().map(|x| x.rendered.clone()));
                 out.push_str(&format!(
                     ", inference({}, [{}], [{}])",
                     render_atom(rule),
@@ -1402,14 +1417,16 @@ impl Parser<'_> {
 
         let mut source = Source::Asserted;
         let mut parents = Vec::new();
+        let mut external_parents = Vec::new();
         let mut useful_info = Vec::new();
         if matches!(self.peek(), Some(Tok::Comma)) {
             self.bump()?;
             let (source_line, source_col) = self.here();
             let annotation = self.annotation()?;
-            let (s, p) = recognize_source(annotation, source_line, source_col)?;
+            let (s, p, xp) = recognize_source(annotation, source_line, source_col)?;
             source = s;
             parents = p;
+            external_parents = xp;
             if matches!(self.peek(), Some(Tok::Comma)) {
                 self.bump()?;
                 let (info_line, info_col) = self.here();
@@ -1433,6 +1450,7 @@ impl Parser<'_> {
             conclusion,
             source,
             parents,
+            external_parents,
             useful_info,
         })
     }
@@ -1716,7 +1734,7 @@ fn recognize_source(
     source: Annotation,
     line: u32,
     col: u32,
-) -> gmeow_errors::Result<(Source, Vec<String>)> {
+) -> gmeow_errors::Result<(Source, Vec<String>, Vec<ExternalSource>)> {
     match source {
         // `<source> ::= unknown` — the document declares that it does not know. That is a
         // stated absence, not a parent name, so it never becomes a dangling citation.
@@ -1726,9 +1744,10 @@ fn recognize_source(
                 rendered: "unknown".to_owned(),
             }),
             Vec::new(),
+            Vec::new(),
         )),
         // `<dag_source> ::= <name>` — the formula comes from the named formula.
-        Annotation::Name(name) => Ok((Source::Parent, vec![name])),
+        Annotation::Name(name) => Ok((Source::Parent, vec![name], Vec::new())),
         Annotation::List(items) => Err(unliftable(format!(
             "line {line}, column {col}: the step's source is a <sources> LIST of {} entries; it \
              declares several independent provenances for one formula, and this bridge will \
@@ -1743,6 +1762,7 @@ fn recognize_source(
                 let rendered = Annotation::Func(functor.clone(), args).render();
                 return Ok((
                     Source::External(ExternalSource { functor, rendered }),
+                    Vec::new(),
                     Vec::new(),
                 ));
             }
@@ -1762,7 +1782,7 @@ fn recognize_inference(
     args: Vec<Annotation>,
     line: u32,
     col: u32,
-) -> gmeow_errors::Result<(Source, Vec<String>)> {
+) -> gmeow_errors::Result<(Source, Vec<String>, Vec<ExternalSource>)> {
     let [rule, status, parents] = <[Annotation; 3]>::try_from(args).map_err(|a| {
         syntax(
             line,
@@ -1798,20 +1818,45 @@ fn recognize_inference(
 
     let status: Vec<String> = status.iter().map(Annotation::render).collect();
     let mut parents = Vec::with_capacity(parent_terms.len());
+    let mut external_parents = Vec::new();
     for parent in parent_terms {
         match parent {
+            // A bare name cites a step of THIS derivation. It must resolve, so it goes to
+            // the parent list the well-foundedness walk reads.
             Annotation::Name(name) => parents.push(name),
+            // An `<external_source>` in the parent position cites a warrant the derivation
+            // did not derive — `theory(equality)`, `file('SET001-1.p', ax7)`. E emits the
+            // first on every equality-using inference, so refusing it refused E's canonical
+            // output. It carries no sub-proof, so nothing is flattened by taking it as the
+            // reference it is; it is NOT a step and never becomes a citation to resolve.
+            Annotation::Func(ref functor, _)
+                if EXTERNAL_SOURCE_FUNCTORS.contains(&functor.as_str()) =>
+            {
+                external_parents.push(ExternalSource {
+                    functor: functor.clone(),
+                    rendered: parent.render(),
+                });
+            }
+            // A genuinely NESTED `inference(...)` is a second, anonymous step identity with
+            // its own sub-derivation. Minting a name for it would invent a step the document
+            // never named, and dropping it would lose that sub-proof — so this one is a
+            // real hard failure, and the message is now true of only this case.
             other => {
                 return Err(unliftable(format!(
-                    "line {line}, column {col}: the inference cites the nested parent `{}`; an \
-                     inline parent derivation is a second, anonymous step identity this bridge \
-                     does not mint, and flattening it would drop the sub-proof",
+                    "line {line}, column {col}: the inference cites the nested parent \
+                     derivation `{}`; an inline sub-derivation is a second, anonymous step \
+                     identity this bridge does not mint, and flattening it would drop the \
+                     sub-proof",
                     other.render()
                 )));
             }
         }
     }
-    Ok((Source::Inference { rule, status }, parents))
+    Ok((
+        Source::Inference { rule, status },
+        parents,
+        external_parents,
+    ))
 }
 
 #[cfg(test)]
@@ -2603,6 +2648,44 @@ mod tests {
             let text = err(source);
             assert!(text.contains(needle), "{source:?} → {text}");
         }
+    }
+
+    #[test]
+    fn an_external_source_in_a_parent_list_lifts_as_a_warrant() {
+        // E cites theory(equality) in the parent list of EVERY equality-using inference
+        // (rw, spm, sr, cn), so refusing it refused E's canonical output. It is a
+        // grammatical <parent_info> and carries no sub-proof, so there is nothing to
+        // flatten — it is a warrant, not a step.
+        let derivation = parse(
+            b"cnf(a1, axiom, (f(X) = g(X))).\n\
+             cnf(a2, axiom, (p(f(a)))).\n\
+             cnf(d1, plain, (p(g(a))), inference(rw,[status(thm)],[a2,a1,theory(equality)])).\n",
+        )
+        .expect("an E-shaped equality inference must lift");
+        let step = derivation.step("d1").expect("the derived step");
+        assert_eq!(
+            step.parents,
+            vec!["a2".to_owned(), "a1".to_owned()],
+            "an external citation is NOT a step and must never enter the parent list the \
+             well-foundedness walk resolves"
+        );
+        assert_eq!(step.external_parents.len(), 1);
+        assert_eq!(step.external_parents[0].functor, "theory");
+        assert_eq!(step.external_parents[0].rendered, "theory(equality)");
+    }
+
+    #[test]
+    fn a_file_reference_in_a_parent_list_lifts_too() {
+        // The other <external_source> form a prover writes in the parent position.
+        let derivation = parse(
+            b"cnf(a1, axiom, (p(a))).\n\
+             cnf(d1, plain, (q(a)), \
+             inference(res,[status(thm)],[a1,file('SET001-1.p',ax7)])).\n",
+        )
+        .expect("a file-referenced premise must lift");
+        let step = derivation.step("d1").expect("the derived step");
+        assert_eq!(step.parents, vec!["a1".to_owned()]);
+        assert_eq!(step.external_parents[0].rendered, "file('SET001-1.p', ax7)");
     }
 
     #[test]

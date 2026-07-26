@@ -35,6 +35,6 @@ cnf(c_0_5, plain, ~p(X1) | q(X1), inference(split_conjunct, [status(thm)], [c_0_
 cnf(c_0_6, plain, f(X1) = X1, inference(split_conjunct, [status(thm)], [c_0_1])).
 cnf(c_0_7, plain, p(f(esk1_0)), inference(split_conjunct, [status(thm)], [c_0_4])).
 cnf(c_0_8, plain, ~q(esk1_0), inference(split_conjunct, [status(thm)], [c_0_4])).
-cnf(c_0_9, plain, p(esk1_0), inference(rw, [status(thm)], [c_0_7, c_0_6])).
-cnf(c_0_10, plain, q(esk1_0), inference(spm, [status(thm)], [c_0_5, c_0_9])).
-cnf(c_0_11, plain, $false, inference(sr, [status(thm)], [c_0_10, c_0_8])).
+cnf(c_0_9, plain, p(esk1_0), inference(rw, [status(thm)], [c_0_7, c_0_6, theory(equality)])).
+cnf(c_0_10, plain, q(esk1_0), inference(spm, [status(thm)], [c_0_5, c_0_9, theory(equality)])).
+cnf(c_0_11, plain, $false, inference(sr, [status(thm)], [c_0_10, c_0_8, theory(equality)])).

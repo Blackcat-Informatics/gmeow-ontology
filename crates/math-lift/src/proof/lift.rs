@@ -538,6 +538,23 @@ impl Lift<'_> {
         self.sink
             .iri(&statement, &math("hasConclusion"), conclusion_iri);
 
+        // An `<external_source>` cited in the INFERENCE's parent list — `theory(equality)`
+        // on E's every equality step, `file('SET001-1.p', ax7)` on an imported premise. It
+        // warrants the step without being a step, so it rides as a warrant exactly as a
+        // source-position external does. A step's source is either an inference or an
+        // external, never both, so these can never be conflated with the arm below.
+        for external in &step.external_parents {
+            let rendered = external.rendered.clone();
+            let (warrant, fresh) = self.mint("warrant", &rendered);
+            if fresh {
+                self.sink.typed(&warrant, &math("MathematicalObject"));
+                self.label(&warrant, &rendered);
+                self.proof_structures += 1;
+            }
+            self.sink
+                .iri(&statement, &math("externalWarrant"), &warrant);
+        }
+
         if let Source::External(external) = &step.source {
             // The premise came from OUTSIDE this derivation. math:externalWarrant is exactly
             // "a declared external warrant that stands in for an in-graph math:Proof", and
@@ -1816,8 +1833,13 @@ mod tests {
                 "file('SYN075+1.p', ax_pq)".to_owned(),
                 "file('SYN075+1.p', ax_id)".to_owned(),
                 "file('SYN075+1.p', goal)".to_owned(),
+                // E cites theory(equality) in the PARENT list of every equality inference
+                // (rw / spm / sr here). It warrants those steps without being one, so it
+                // lands as a warrant alongside the imported leaves.
+                "theory(equality)".to_owned(),
             ]),
-            "each imported leaf names the file/name pair it came from"
+            "each imported leaf names the file/name pair it came from, and each equality \
+             inference names the theory that licensed it"
         );
         for warrant in graph
             .triples
