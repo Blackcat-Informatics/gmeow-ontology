@@ -821,11 +821,11 @@ fn total_math_conformance_matrix_is_discharged() {
             fixture_used.insert(name.clone());
         }
 
-        // The reasoned-graph channel: `math:StructuralKeyDrift`, `math:SurfaceLeakInNormalForm`,
-        // `math:StructuralKeyOnRejectedExpression`, and `math:DimensionalInhomogeneity` are each
-        // declared `rust-validator` in the charter and are credited there directly (no
-        // tier-selection ambiguity — unlike the native-lint fallback above, the charter names
-        // exactly one channel for each of these four).
+        // The reasoned-graph channel: `math:MalformedStructuralKey`, `math:StructuralKeyDrift`,
+        // `math:SurfaceLeakInNormalForm`, `math:StructuralKeyOnRejectedExpression`, and
+        // `math:DimensionalInhomogeneity` are each declared `rust-validator` in the charter and
+        // are credited there directly (no tier-selection ambiguity — unlike the native-lint
+        // fallback above, the charter names exactly one channel for each of these five).
         for class in reasoned_tripped(fixture, &conformance_modules) {
             class_channel_fixtures
                 .entry(class)

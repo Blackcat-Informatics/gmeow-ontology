@@ -1594,13 +1594,18 @@ ex:ecComputableExpressionStringOnly a gmeow:ExampleConformance ;
 # =========================================================================== #
 # Expression-identity native-gate carve-out: math:StringOnlyComputableExpression's
 # SOURCE-LINT half (above is its SHACL-Core-derived half, bound as a conformance cell
-# like every other logic:Constraint-tier class), math:StructuralKeyDrift,
-# math:SurfaceLeakInNormalForm, and math:StructuralKeyOnRejectedExpression are decided
-# by plain Rust computations over the frozen reasoned graph / the ONE math: expression
-# lowering — a digest recompute (crates/logic/src/math_expression.rs) or a source-lint
-# structural check (crates/validate/src/lint.rs) — never a flat relational join the
-# SHACL/Datalog fragment can express, so each is discharged by its own in-crate
-# isolation tests rather than a bound gmeow:ExampleConformance cell here, exactly as
+# like every other logic:Constraint-tier class), math:MalformedStructuralKey,
+# math:StructuralKeyDrift, math:SurfaceLeakInNormalForm, and
+# math:StructuralKeyOnRejectedExpression are decided by plain Rust computations over the
+# frozen reasoned graph / the ONE math: expression lowering — classifying a
+# math:structuralKey predicate's usage shape, a digest recompute
+# (crates/logic/src/math_expression.rs) or a source-lint structural check
+# (crates/validate/src/lint.rs) — never a flat relational join the SHACL/Datalog
+# fragment can express, so each is discharged by its own in-crate isolation tests
+# rather than a bound gmeow:ExampleConformance cell here (their shared counter-example
+# fixture, tests/counter-examples/malformed-structural-key.ttl, is discharged by the
+# whole-matrix reconciliation harness's reasoned-graph channel instead — see
+# crates/pipeline/tests/math_conformance_discharge.rs), exactly as
 # lang:SurfaceLeakInContentKey, lang:FabricatedEquivalence, and lang:AssertedRollup
 # carry no example-conformance cell in the lang: slice.
 #

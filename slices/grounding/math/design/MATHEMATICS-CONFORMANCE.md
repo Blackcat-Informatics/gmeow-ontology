@@ -77,16 +77,18 @@ declared, that a structural-strength claim is checked directly against the compu
 The structural-key digest itself is a computed projection of an expression's AST — never an
 independently authored value — so it may drift from its own recomputation, leak surface-stratum
 material into an identity computation that must stay structural, or be claimed for an expression the
-grammar rejects; the three Rust-validator rows below are the SAME architectural shape as
-`math:MalformedDimension` / `math:NonPositiveDefiniteNorm` / `math:AsymmetricGramMatrix` (a plain
-Rust computation over the frozen reasoned graph, never a divergent second source), so none of them
-carries a backing `logic:Constraint`.
+grammar rejects — or, before any of that is even decided, the authored `math:structuralKey` usage
+itself might not be a well-formed singleton literal in the first place; the four Rust-validator rows
+below are the SAME architectural shape as `math:MalformedDimension` / `math:NonPositiveDefiniteNorm` /
+`math:AsymmetricGramMatrix` (a plain Rust computation over the frozen reasoned graph, never a
+divergent second source), so none of them carries a backing `logic:Constraint`.
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | Every `math:normalForm` edge from a source expression to a target expression has a `math:NormalizationDeclaration` naming that same pair (`math:normalizes` the source, `math:normalizesTo` the target) — a normal-form claim is never a bare edge | SHACL-SPARQL (`math:UndeclaredNormalFormConstraint`, a closed-world conditional-existence rule) | `math:UndeclaredNormalForm` |
 | A `math:NormalizationDeclaration` held at `math:structuralNormalization` has a `math:normalizes` source and a `math:normalizesTo` target whose `math:structuralKey` digests agree (and neither is missing) — structural identity is decided directly against the computed digests, never asserted on faith | SHACL-SPARQL (`math:FalseStructuralNormalizationClaimConstraint`, a closed-world digest-equality rule) | `math:FalseStructuralNormalizationClaim` |
 | A `math:NormalizationDeclaration` held at any strength coarser than `math:structuralNormalization` carries a `math:normalizationProcedure`, is named by a `gmeow:Observation` (via `gmeow:observationResult`) that itself carries a `gmeow:vantage`, and carries a `logic:preservationKind` — a coarser-than-structural equivalence is a claim held by a vantage, attributed to a procedure, and preservation-judged, never asserted for free | SHACL-SPARQL (`math:UnattributedNormalizationConstraint`, a closed-world conditional-existence rule) | `math:UnattributedNormalization` |
+| A `math:MathematicalExpression`'s `math:structuralKey` usage, when asserted, is a well-formed singleton literal — never two or more asserted values (of any kind), nor a single non-literal value, either of which can never be safely read as "the first value found" without silently masking a contradictory or ill-typed second value | Rust validator | `math:MalformedStructuralKey` |
 | A `math:MathematicalExpression`'s authored `math:structuralKey` equals the digest recomputed from its own structure by the `math:` expression lowering — the key is a computed projection of the expression's α-equivalence class identity, never an independently authored value | Rust validator | `math:StructuralKeyDrift` |
 | A `math:NormalizationDeclaration`'s structural-identity computation is not contaminated by surface-stratum material — the declaration itself, its `math:normalizes` source, or its `math:normalizesTo` target carries no `math:rendersAs` edge crossing into the computation | Rust validator | `math:SurfaceLeakInNormalForm` |
 | A `math:MathematicalExpression` carries an authored `math:structuralKey` only when the `math:` expression lowering accepts its own AST as well-formed — a structural-identity claim cannot be made for an expression the grammar itself rejects | Rust validator | `math:StructuralKeyOnRejectedExpression` |

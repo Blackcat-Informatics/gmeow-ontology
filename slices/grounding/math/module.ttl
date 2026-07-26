@@ -485,6 +485,37 @@ math:structuralKey
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
+# α-equivalence class — the structural-key digest promoted to a joinable node.
+# math:structuralKey is a literal: two structurally-identical expressions carry
+# two EQUAL strings, comparable only by string equality. math:AlphaEquivalenceClass
+# promotes that same identity to a first-class individual — content-addressed on
+# the IDENTICAL digest — so a reasoner-facing consumer can JOIN two α-equivalent
+# expressions through one shared node rather than re-deriving equality from a
+# literal comparison every time. Minted, never hand-authored, by the SAME `math:`
+# expression-identity reasoned gate that recomputes math:structuralKey
+# (crates/logic/src/math_expression.rs, via
+# crates/logic/src/physical/lower.rs's alpha_class_iri_for_digest).
+# =========================================================================== #
+
+math:AlphaEquivalenceClass
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Alpha-Equivalence Class"@x-gmeow-english ;
+    skos:definition "The equivalence class of every math:MathematicalExpression identical up to bound-variable renaming — the SAME class of expressions math:structuralKey digests identify, promoted from a literal to a first-class, content-addressed individual. Two expressions related to the SAME math:AlphaEquivalenceClass individual (through math:alphaEquivalenceClass) are, by construction, structurally (α-)identical: the individual's IRI is minted directly from the expression's own math:structuralKey digest, so equal digests mint the IDENTICAL individual and unequal digests mint distinct ones. This is the joinable-node counterpart of the plain-literal math:structuralKey, not a competing identity: an math:AlphaEquivalenceClass individual carries no state of its own beyond being the shared target every α-equivalent expression's math:alphaEquivalenceClass edge resolves to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it when two or more expressions' shared structural identity needs to be a graph node a query can JOIN on — grouping every expression alpha-equivalent to a given one, or asserting that a family of authored expressions denotes ONE underlying form — rather than a per-pair string comparison of math:structuralKey values."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not hand-author a math:AlphaEquivalenceClass individual or its IRI: it is minted ONLY by the math: expression-identity reasoned gate from an expression's own recomputed math:structuralKey digest. Do not use it in place of math:structuralKey itself when only a per-expression digest string is needed (e.g. authoring or checking one expression's own key) — the class individual is for JOINING across expressions, the literal digest is for stating or verifying one."@x-gmeow-english ;
+    gmeow:howToUse "Read a math:MathematicalExpression's math:alphaEquivalenceClass edge to reach its class individual; two expressions sharing that same object are, by construction, α-equivalent. Never assert the class individual's IRI directly — it is a computed projection of math:structuralKey, materialized by the reasoned-graph gate exactly as the digest itself is."@x-gmeow-english ;
+    skos:example "exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 and exf:e2 share ONE α-equivalence-class individual because their digests agree"@x-gmeow-english .
+
+math:alphaEquivalenceClass
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "alpha-equivalence class"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to its math:AlphaEquivalenceClass — the content-addressed individual named directly by the SAME digest math:structuralKey carries as a literal. Domain math:MathematicalExpression, range math:AlphaEquivalenceClass (stated in prose). Single-valued, exactly as math:structuralKey is: an expression's α-equivalence class is a computed projection of its own recomputed digest, materialized by the math: expression-identity reasoned gate, never an independently authored edge. Two α-equivalent expressions' math:alphaEquivalenceClass edges resolve to the SAME individual by construction, giving a reasoner-facing consumer a graph node to JOIN on where math:structuralKey alone offers only a literal to compare."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
 # Sets and their construction
 # =========================================================================== #
 
@@ -3052,7 +3083,7 @@ math:UnattributedNormalization
 
 # --- math: expression-identity reasoned-gate failures (native, no logic:Constraint) --- #
 #
-# The three classes below are decided by the SAME architectural shape as
+# The four classes below are decided by the SAME architectural shape as
 # math:MalformedDimension / math:NonPositiveDefiniteNorm / math:AsymmetricGramMatrix: a
 # plain Rust computation over the frozen reasoned graph (crates/logic/src/math_expression.rs),
 # run alongside math_dimension's own sweep at reason-verify speed. Each recomputes or
@@ -3061,6 +3092,18 @@ math:UnattributedNormalization
 # carries a backing logic:Constraint/logic:Formula: the invariant is a genuine
 # computation (a content-addressed digest recompute, a lowering accept/reject verdict),
 # not a flat relational join the SHACL/Datalog fragment can express.
+
+math:MalformedStructuralKey
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Structural Key"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression's math:structuralKey usage is not a well-formed singleton literal: two or more asserted values (of any kind), or a single non-literal value. The key is a single computed digest string; a plural or wrongly-typed usage can never be safely read as \"the first value found\" without silently masking a contradictory or ill-typed second value, so it is reported once and excluded from the drift and rejected-expression populations rather than compared against an arbitrarily chosen candidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression's math:structuralKey predicate carries two or more asserted values (of any kind), or a single value that is not a literal — any usage that is not a clean singleton literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a single, well-formed literal value that merely disagrees with the recomputed digest — that is math:StructuralKeyDrift, the sibling drift failure; this failure is specific to a math:structuralKey usage that is not a well-formed singleton literal in the first place."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's classify_structural_key_usage / check_malformed_structural_key); there is no SHACL/Datalog derivation to point at it — classifying a predicate's usage shape across every object it carries is a whole-population computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:e math:structuralKey \"k1\" , \"k2\" . # exf:e carries TWO math:structuralKey values -> math:MalformedStructuralKey"@x-gmeow-english .
 
 math:StructuralKeyDrift
     a owl:Class ;
@@ -10668,11 +10711,20 @@ math:FreeVariableDeclaration logic:subClassOf
     gmeow:enforcesFailureClass math:UntypedFreeVariable .
 
 # math:structuralKey and math:normalizationStrength are each declared functional
-# (single-valued) in prose; the class-scoped max-qualified form below is the
-# reasoner-safe way to say so — never a global owl:FunctionalProperty claim,
-# which the math: profile forbids (see math:FiltrationStage's restriction
-# further down in this file for the same idiom over a bare owl:Thing range).
+# (single-valued WHEN ASSERTED — math:structuralKey itself stays OPTIONAL, since not
+# every math:MathematicalExpression declares one) in prose; the class-scoped
+# max-qualified form below is the reasoner-safe way to say so — never a global
+# owl:FunctionalProperty claim, which the math: profile forbids (see
+# math:FiltrationStage's restriction further down in this file for the same idiom over
+# a bare owl:Thing range). The sibling logic:allValuesFrom restriction on
+# math:structuralKey carries the xsd:string datatype constraint the native reasoned
+# gate's exactly-one-singleton-literal check (crates/logic/src/math_expression.rs,
+# classify_structural_key_usage / math:MalformedStructuralKey) enforces procedurally —
+# without it the derived shape carries an sh:maxCount with no sh:datatype at all,
+# exactly the same "no flat relational join" reasoning that idiom's own
+# math:manifoldDimension sibling further down in this file already follows.
 math:MathematicalExpression logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:allValuesFrom xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
 math:NormalizationDeclaration logic:subClassOf
@@ -15522,6 +15574,7 @@ math:MalformedArgumentSlot a logic:Situation .
 math:MalformedBindingExpression a logic:Situation .
 math:MalformedDimension a logic:Situation .
 math:MalformedExtendedReal a logic:Situation .
+math:MalformedStructuralKey a logic:Situation .
 math:MalformedTensorComputationGraph a logic:Situation .
 math:MathConformanceFailure a logic:Situation .
 math:MissingDistributionParameterization a logic:Situation .

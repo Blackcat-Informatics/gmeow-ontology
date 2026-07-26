@@ -12,11 +12,12 @@ const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
      @prefix math: <https://blackcatinformatics.ca/math/> .\n\
      @prefix ex: <https://example.org/> .\n";
 
-/// The three failure classes this gate decides.
-const ALL_CLASSES: [&str; 3] = [
+/// The four failure classes this gate decides.
+const ALL_CLASSES: [&str; 4] = [
     "math:StructuralKeyDrift",
     "math:SurfaceLeakInNormalForm",
     "math:StructuralKeyOnRejectedExpression",
+    "math:MalformedStructuralKey",
 ];
 
 fn dataset(turtle: &str) -> std::sync::Arc<RdfDataset> {
@@ -95,6 +96,89 @@ fn structural_key_on_a_rejected_expression_is_flagged() {
          ex:app a math:ApplicationExpression ; math:structuralKey \"whatever\" .\n"
     ));
     assert_exactly(&f, "math:StructuralKeyOnRejectedExpression");
+}
+
+// ── math:MalformedStructuralKey ──────────────────────────────────────────────
+
+#[test]
+fn two_structural_key_literals_are_flagged_as_malformed_not_drift() {
+    // ex:e1 carries TWO math:structuralKey literals — even though one of them happens
+    // to equal the real recomputed digest, a plural key is ambiguous by construction and
+    // must be reported as math:MalformedStructuralKey, never silently read as "the first
+    // one found" (which could paper over the second, contradictory value).
+    let unkeyed = format!("{PREFIXES}ex:e1 a math:NumberLiteral ; math:literalValue 1 .\n");
+    let ds = dataset(&unkeyed);
+    let keys = crate::physical::lower::math_expression_structural_keys(ds.as_ref());
+    let digest = keys
+        .get("https://example.org/e1")
+        .expect("ex:e1 is a recognized expression root")
+        .as_ref()
+        .expect("a well-formed math:NumberLiteral lowers cleanly")
+        .clone();
+
+    let f = findings(&format!(
+        "{PREFIXES}ex:e1 a math:NumberLiteral ; math:literalValue 1 ; \
+         math:structuralKey \"{digest}\" ; math:structuralKey \"also-not-the-digest\" .\n"
+    ));
+    assert_exactly(&f, "math:MalformedStructuralKey");
+}
+
+#[test]
+fn non_literal_structural_key_value_is_flagged_as_malformed() {
+    // ex:e1's math:structuralKey names an IRI, not a literal — structuralKey's range is
+    // xsd:string, so a bare IRI standing in its place is not a digest at all.
+    let f = findings(&format!(
+        "{PREFIXES}ex:e1 a math:NumberLiteral ; math:literalValue 1 ; \
+         math:structuralKey ex:notALiteral .\n\
+         ex:notALiteral a ex:Thing .\n"
+    ));
+    assert_exactly(&f, "math:MalformedStructuralKey");
+}
+
+// ── production entry point: α-equivalence-class join ─────────────────────────
+
+/// Two independently-named, alpha-equivalent `math:BindingExpression`s (∑ᵢ i and ∑ⱼ j —
+/// same operator, same slot-indexed binding shape, differing ONLY in the bound-variable
+/// declaration's IRI), each carrying a deliberately WRONG `math:structuralKey` so BOTH
+/// raise `math:StructuralKeyDrift`. Committed once and shared with
+/// `crates/logic/examples/alpha_class_join.rs` so the test and the runnable
+/// demonstration read the identical fixture.
+const ALPHA_EQUIVALENCE_DRIFT_JOIN: &str = include_str!(
+    "../../../../slices/grounding/math/tests/conformance-fixtures/alpha-equivalence-drift-join.ttl"
+);
+
+#[test]
+fn alpha_equivalent_drifted_expressions_cite_the_same_alpha_class_iri() {
+    // Drives ONLY the real production entry point, `check_math_expression_findings` —
+    // never `crate::physical::lower::alpha_class_iri` directly — over two
+    // independently-authored, alpha-equivalent expressions.
+    let f = findings(ALPHA_EQUIVALENCE_DRIFT_JOIN);
+
+    let drift: Vec<&Finding> = f
+        .iter()
+        .filter(|finding| finding.message.contains("math:StructuralKeyDrift"))
+        .collect();
+    assert_eq!(
+        drift.len(),
+        2,
+        "both alpha-equivalent binder expressions must drift: {f:?}"
+    );
+    for finding in &drift {
+        assert_eq!(
+            finding.cited_iris.len(),
+            1,
+            "each drift finding cites exactly one α-equivalence-class IRI: {finding:?}"
+        );
+        assert!(
+            finding.cited_iris[0].starts_with("https://blackcatinformatics.ca/math/alphaClass/"),
+            "the cited IRI is minted under the math: alpha-class namespace: {finding:?}"
+        );
+    }
+    assert_eq!(
+        drift[0].cited_iris[0], drift[1].cited_iris[0],
+        "two alpha-equivalent expressions' drift findings cite the SAME α-equivalence-class \
+         IRI — a consumer can join on it: {f:?}"
+    );
 }
 
 // ── Clean / positive control ─────────────────────────────────────────────────

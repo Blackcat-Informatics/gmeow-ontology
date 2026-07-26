@@ -923,16 +923,39 @@ pub(crate) fn structural_digest(dag: &TermDag, id: NodeId) -> String {
     hasher.finalize().to_hex().to_string()
 }
 
-/// Mint a content-stable IRI naming the α-equivalence class of the term DAG node `id`,
-/// keyed on its [`structural_digest`] — the identity a later reasoned-graph gate can
-/// attach findings/provenance to without re-deriving the digest itself.
-#[allow(dead_code)] // the reasoned-graph-gate call site is a later task's seam
-pub(crate) fn alpha_class_iri(dag: &TermDag, id: NodeId) -> Result<String> {
-    let digest = structural_digest(dag, id);
-    crate::provenance::mint_nary_reifier(
-        "https://blackcatinformatics.ca/math/alphaClass",
-        &[TermValue::simple_literal(digest)],
-    )
+/// Namespace segment under which [`alpha_class_iri`]/[`alpha_class_iri_for_digest`] mint
+/// one content-addressed IRI per distinct [`structural_digest`] — the individual every
+/// α-equivalent expression's authored `math:alphaEquivalenceClass` edge
+/// (`slices/grounding/math/module.ttl`) resolves to. Minted directly under the slice's
+/// OWN `math:` namespace (never the generic n-ary-reifier convention: `mint_nary_reifier`
+/// types its reifier as `logic:instanceOf(R, relation)`, a reified-TUPLE typing that is
+/// not what an α-equivalence-class individual is), mirroring how
+/// `crates/logic/src/entail.rs`'s `Minter::witness`/`complement` mint fresh individuals
+/// directly from a `blake3` digest under their own reserved namespace. Kept textually
+/// distinct from the `math:alphaEquivalenceClass` PROPERTY IRI itself (that IRI has no
+/// trailing path segment) so a class individual and the property that names it are never
+/// visually conflated.
+const ALPHA_CLASS_NS: &str = "https://blackcatinformatics.ca/math/alphaClass/";
+
+/// Mint the content-stable IRI naming the α-equivalence class identified by an
+/// already-computed [`structural_digest`] — the entry point
+/// [`crate::math_expression::check_math_expression_findings`] uses, since
+/// [`math_expression_structural_keys`] already folds each root down to its digest
+/// string before this is ever called (no [`TermDag`]/[`NodeId`] survives that far).
+/// Two equal digests (α-equivalent expressions, by [`structural_digest`]'s own
+/// contract) mint the IDENTICAL IRI — the whole point: a consumer of the reasoned
+/// graph can JOIN on it rather than compare opaque digest literals.
+pub(crate) fn alpha_class_iri_for_digest(digest: &str) -> String {
+    format!("{ALPHA_CLASS_NS}{digest}")
+}
+
+/// Mint the content-stable IRI naming the α-equivalence class of the term DAG node `id`,
+/// keyed on its [`structural_digest`]. A thin wrapper over
+/// [`alpha_class_iri_for_digest`] for a caller that still holds the `dag`/`id` pair
+/// (chiefly this module's own tests — production code goes through
+/// [`math_expression_structural_keys`]'s already-computed digest instead).
+pub(crate) fn alpha_class_iri(dag: &TermDag, id: NodeId) -> String {
+    alpha_class_iri_for_digest(&structural_digest(dag, id))
 }
 
 fn lower_math_node(
@@ -2079,13 +2102,18 @@ mod tests {
         assert_ne!(digest_a, digest_c, "p(a,b) and p(b,a) get distinct digests");
 
         // `alpha_class_iri` mints a content-stable IRI over the SAME digest.
-        let iri_a = alpha_class_iri(&dag_a, node_a).expect("mint alpha class IRI");
-        let iri_a_again = alpha_class_iri(&dag_a, node_a).expect("mint alpha class IRI again");
+        let iri_a = alpha_class_iri(&dag_a, node_a);
+        let iri_a_again = alpha_class_iri(&dag_a, node_a);
         assert_eq!(iri_a, iri_a_again, "minting is deterministic");
-        let iri_c = alpha_class_iri(&dag_c, node_c).expect("mint alpha class IRI for swapped");
+        let iri_c = alpha_class_iri(&dag_c, node_c);
         assert_ne!(
             iri_a, iri_c,
             "distinct digests mint distinct alpha-class IRIs"
+        );
+        assert_eq!(
+            iri_a,
+            alpha_class_iri_for_digest(&digest_a),
+            "alpha_class_iri agrees with alpha_class_iri_for_digest over the same digest"
         );
     }
 
