@@ -213,7 +213,7 @@ impl RetainedSource {
     }
 }
 
-//// The identity of one ingest run: its IRI and the IRIs of its four frame witnesses.
+/// The identity of one ingest run: its IRI and the IRIs of its four frame witnesses.
 ///
 /// Every IRI is a pure function of the bridge kind, the mint base, and the source bytes,
 /// so re-lifting the same artifact yields byte-identical Turtle. No clock, no counter, no
