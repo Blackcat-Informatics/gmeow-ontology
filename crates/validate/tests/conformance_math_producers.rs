@@ -238,10 +238,10 @@ fn executable_lifts_pin_their_codomain_sizes() {
     assert!(r.ingest_run.starts_with(PRODUCER_NS));
 
     let onnx = onnx_lift();
-    assert_eq!(onnx.codomain_nodes, 40);
+    assert_eq!(onnx.codomain_nodes, 55);
     assert!(onnx.ingest_run.starts_with(PRODUCER_NS));
 
     let proof = proof_lift();
-    assert_eq!(proof.codomain_nodes, 29);
+    assert_eq!(proof.codomain_nodes, 33);
     assert!(proof.ingest_run.starts_with(PRODUCER_NS));
 }

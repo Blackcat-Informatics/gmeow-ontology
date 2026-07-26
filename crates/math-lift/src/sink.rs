@@ -27,7 +27,7 @@
 
 use purrdf::{RdfDatasetBuilder, RdfLiteral, SerializeGraph, serialize_dataset};
 
-use crate::ns::{RDF_TYPE, XSD_BASE64, XSD_BOOLEAN, XSD_DECIMAL, XSD_INTEGER};
+use crate::ns::{RDF_TYPE, XSD_BOOLEAN, XSD_DECIMAL, XSD_INTEGER};
 
 /// A deterministic RDF accumulator.
 #[derive(Default)]
@@ -85,15 +85,6 @@ impl Sink {
             s,
             p,
             RdfLiteral::typed(value.to_string(), XSD_INTEGER.to_owned()),
-        );
-    }
-
-    /// An `xsd:base64Binary` literal — a binary source retained without lossy stringifying.
-    pub fn base64(&mut self, s: &str, p: &str, value: &str) {
-        self.lit(
-            s,
-            p,
-            RdfLiteral::typed(value.to_owned(), XSD_BASE64.to_owned()),
         );
     }
 

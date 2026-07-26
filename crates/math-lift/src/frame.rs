@@ -93,6 +93,10 @@ pub struct Rung {
     /// Whether the source witness is retained in band. A `false` value BARS any
     /// section/retraction claim (`logic:mnemomorphic`'s own definition), so the two are
     /// checked against each other in [`Rung::assert_coherent`].
+    ///
+    /// This is the value the bridge REQUESTS. [`RunFrame::emit`] ANDs it with whether the
+    /// witness genuinely retains the source, so a bridge cannot assert it over a witness
+    /// that only references the artifact.
     pub mnemomorphic: bool,
 }
 
@@ -165,15 +169,27 @@ impl Rung {
 
 /// How a retained source rides on the witness.
 ///
-/// Textual artifacts ride verbatim; a binary artifact rides as `xsd:base64Binary`, which is
-/// the same bytes in an RDF-legal lexical form. Either way the SOURCE is present, which is
-/// what `math:parseSource` requires and what `logic:mnemomorphic` asserts.
+/// A textual artifact IS its text, so it rides verbatim and the witness is genuinely
+/// mnemomorphic. A BINARY artifact is blob-scale by nature, so it rides as a content
+/// reference and the run may not claim mnemomorphic — enforced in [`RunFrame::emit`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RetainedSource {
-    /// A textual source, retained verbatim.
+    /// A textual source, retained verbatim. A script or a derivation IS its text, so
+    /// retaining it costs the size of the artifact and makes the witness genuinely
+    /// mnemomorphic.
     Text(String),
-    /// A binary source, retained as base64.
-    Binary(String),
+    /// A binary source, referenced by content digest — NEVER inlined.
+    ///
+    /// `MATHEMATICS-RUNTIME.md` is explicit that blob-scale inputs "are held by reference,
+    /// not inlined: the IR carries a blob reference and origin, never the payload bytes",
+    /// and an ONNX initializer's weights are exactly that case. Base64-inlining a 500 MB
+    /// model into one RDF literal would put the payload in the bundle while the lift's own
+    /// residue row says the bytes do not cross — a graph contradicting itself.
+    ///
+    /// A digest is therefore NOT a retained source, and a run carrying one must not claim
+    /// `logic:mnemomorphic`. [`RunFrame::emit`] enforces that rather than trusting the
+    /// caller.
+    Digest(String),
 }
 
 impl RetainedSource {
@@ -185,42 +201,19 @@ impl RetainedSource {
     pub fn of(bytes: &[u8]) -> Self {
         match std::str::from_utf8(bytes) {
             Ok(text) => Self::Text(text.to_owned()),
-            Err(_) => Self::Binary(base64(bytes)),
+            Err(_) => Self::Digest(fnv1a_hex(bytes)),
         }
     }
-}
 
-/// Standard base64 (RFC 4648, padded) — the `xsd:base64Binary` lexical form.
-///
-/// Hand-rolled rather than a dependency: the alphabet is fixed and the transform is 20
-/// lines, and this crate takes no dependency it can write correctly itself.
-fn base64(bytes: &[u8]) -> String {
-    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
-    for chunk in bytes.chunks(3) {
-        let b = [
-            chunk[0],
-            chunk.get(1).copied().unwrap_or(0),
-            chunk.get(2).copied().unwrap_or(0),
-        ];
-        let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
-        out.push(ALPHABET[(n >> 18) as usize & 63] as char);
-        out.push(ALPHABET[(n >> 12) as usize & 63] as char);
-        out.push(if chunk.len() > 1 {
-            ALPHABET[(n >> 6) as usize & 63] as char
-        } else {
-            '='
-        });
-        out.push(if chunk.len() > 2 {
-            ALPHABET[n as usize & 63] as char
-        } else {
-            '='
-        });
+    /// Whether this witness retains the source itself, and may therefore support a
+    /// `logic:mnemomorphic` claim.
+    #[must_use]
+    pub fn is_mnemomorphic(&self) -> bool {
+        matches!(self, Self::Text(_))
     }
-    out
 }
 
-/// The identity of one ingest run: its IRI and the IRIs of its four frame witnesses.
+//// The identity of one ingest run: its IRI and the IRIs of its four frame witnesses.
 ///
 /// Every IRI is a pure function of the bridge kind, the mint base, and the source bytes,
 /// so re-lifting the same artifact yields byte-identical Turtle. No clock, no counter, no
@@ -295,6 +288,15 @@ impl RunFrame {
     /// The caller then emits its own codomain, linking each produced node back with
     /// [`RunFrame::generated`].
     pub fn emit(&self, sink: &mut Sink, rung: Rung) {
+        // A run may only claim logic:mnemomorphic if its witness actually retains the
+        // source. A digest references the artifact; it does not retain it. Deriving the flag
+        // here rather than trusting the caller is the point: the previous version let a
+        // constructor assert mnemomorphic while the witness carried nothing, which is
+        // exactly how the empty-witness defect shipped.
+        let rung = Rung {
+            mnemomorphic: rung.mnemomorphic && self.source.is_mnemomorphic(),
+            ..rung
+        };
         rung.assert_coherent();
 
         let run = &self.run_iri;
@@ -321,8 +323,9 @@ impl RunFrame {
             RetainedSource::Text(text) => {
                 sink.string(&self.source_witness_iri, &math("retainedSource"), text);
             }
-            RetainedSource::Binary(b64) => {
-                sink.base64(&self.source_witness_iri, &math("retainedSource"), b64);
+            RetainedSource::Digest(digest) => {
+                // A REFERENCE, not the source: the bytes stay out of the bundle.
+                sink.string(&self.source_witness_iri, &math("sourceDigest"), digest);
             }
         }
         for construct in &self.unmapped {

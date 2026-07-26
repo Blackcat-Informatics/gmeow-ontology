@@ -5756,6 +5756,18 @@ math:retainedSource
     gmeow:useWhen "Use whenever a lift claims logic:mnemomorphic true — that flag is what discharges the section law, and it is only true if the source is actually retained."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+math:sourceDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "source digest"@x-gmeow-english ;
+    skos:definition "A content digest identifying the source artifact a math:parseSource witness refers to, for a source whose bytes are NOT retained. Domain the retained source witness, range a literal digest (stated in prose). It is the blob-by-reference complement of math:retainedSource: a binary artifact — an ONNX model's weight payload, a data matrix, an MCMC sample — is held by reference and never inlined, so the witness names the artifact instead of embedding it. A digest identifies; it does not retain, so a witness carrying only this one does NOT support a logic:mnemomorphic claim and cannot climb to a section/retraction rung."@x-gmeow-english ;
+    skos:example "exf:onnxSrc a math:MathematicalObject ; logic:loadBearing true ; math:sourceDigest \"7978a9f31743d3c2\" ."@x-gmeow-english ;
+    skos:scopeNote "Mutually exclusive with math:retainedSource in practice: a witness either retains the source or references it. A textual source is retained; a blob-scale binary is referenced."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to shrink a TEXTUAL source that could simply be retained — that would make the witness amnesic to save bytes, which is the trade math:parseSource's definition forbids."@x-gmeow-english ;
+    gmeow:howToUse "Pair it with a math:unmappedConstruct enumeration naming what the lift could not carry, so a consumer knows both which artifact this was and what did not cross."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a source is blob-scale binary, so inlining it would put a payload in the bundle that the lift's own residue says did not cross."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 math:unmappedConstruct
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -5800,7 +5812,7 @@ math:annotationKey
     skos:example "exf:onnxLicenceAnnotation math:annotationKey \"model_license\" ."@x-gmeow-english ;
     skos:scopeNote "A key, not an identifier scheme: it names a slot in the producer's own metadata block and resolves nothing. That is the distinction from gmeow:identifierScheme."@x-gmeow-english ;
     gmeow:avoidWhen "Do not normalize, lower-case, or namespace the key, and do not fold key and value into one string — the pair is reified precisely so the two stay separable."@x-gmeow-english ;
-    gmeow:howToUse "Emit exactly one per math:SourceAnnotation, verbatim from the source."@x-gmeow-english ;
+    gmeow:howToUse "Take the key exactly as the source spells it — an ONNX metadata_props key, a header field name — and do not normalize its case or punctuation; the key is how a consumer finds the entry again in the retained source."@x-gmeow-english ;
     gmeow:useWhen "Use on every math:SourceAnnotation; an annotation without a key is an unattributable string."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -5812,7 +5824,7 @@ math:annotationValue
     skos:example "exf:onnxLicenceAnnotation math:annotationValue \"AGPL-3.0-only\" ."@x-gmeow-english ;
     skos:scopeNote "A free-form value, not a member of a closed vocabulary: unlike logic:closureValue or lang:featureValue, nothing constrains what a producer may write here."@x-gmeow-english ;
     gmeow:avoidWhen "Do not coerce it to a typed literal by guessing (a version string is not thereby an integer) and do not drop an annotation whose value is empty."@x-gmeow-english ;
-    gmeow:howToUse "Emit exactly one per math:SourceAnnotation, verbatim from the source."@x-gmeow-english ;
+    gmeow:howToUse "Carry the value as an opaque literal — it is the source's own payload for that key, so it is never parsed into a number, a date, or an IRI here; a consumer that knows the key's schema interprets it."@x-gmeow-english ;
     gmeow:useWhen "Use on every math:SourceAnnotation, paired with its math:annotationKey."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

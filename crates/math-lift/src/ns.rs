@@ -24,8 +24,6 @@ pub const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 pub const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 /// `xsd:decimal`.
 pub const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
-/// `xsd:base64Binary` — the lexical form a retained binary source rides in.
-pub const XSD_BASE64: &str = "http://www.w3.org/2001/XMLSchema#base64Binary";
 
 /// A `math:` term IRI.
 #[must_use]

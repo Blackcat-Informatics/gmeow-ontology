@@ -329,6 +329,7 @@ pub fn r_bridge_lift() -> RBridgeLift {
     t.push_str("    math:ingestCorrespondence p:rCorr .\n\n");
     t.push_str("# The retained, load-bearing source witness (the R call, by reference).\n");
     t.push_str("p:rSrcWitness a math:MathematicalObject ;\n");
+    t.push_str("    math:retainedSource \"fit <- lm(mpg ~ wt + hp, data = mtcars)\" ;\n");
     t.push_str("    logic:loadBearing true .\n");
     // The schema/plan witnesses are bare in-band references: math:IngestRunShape requires
     // the logic:instantiatesSchema / logic:instantiatesPlan edges (min 1, no class), and
