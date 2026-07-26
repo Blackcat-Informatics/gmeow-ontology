@@ -89,28 +89,28 @@ gmeow:ingestionRawRootArtifact
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:stepIngestionRawRoot
-    a logic:ActionSchema ;
+    a logic:TransactionStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "raw root acquisition"@x-gmeow-english ;
     skos:definition "Acquire the raw root data source. The first step of the canonical ingestion plan; every later step's output traces back to what it staged."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:stepIngestionFileCopy
-    a logic:ActionSchema ;
+    a logic:TransactionStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "file copy / staging"@x-gmeow-english ;
     skos:definition "Copy and stage files from the raw root into working storage, leaving the root untouched so the ingestion is repeatable against the same origin."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:stepIngestionOcrExtract
-    a logic:ActionSchema ;
+    a logic:TransactionStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "OCR text extraction"@x-gmeow-english ;
     skos:definition "Extract text from the staged files. The step whose capability may be absent, in which case the plan blocks with a capability-gap proposal rather than substituting a weaker parser."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:stepIngestionDerivedClaims
-    a logic:ActionSchema ;
+    a logic:TransactionStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "derived claims and events generation"@x-gmeow-english ;
     skos:definition "Generate derived claims and events from the extracted text. Its outputs are attributed claims, never asserted truths, so a later standpoint may defeat them."@x-gmeow-english ;
@@ -118,14 +118,14 @@ gmeow:stepIngestionDerivedClaims
         gmeow:boxCBox .
 
 gmeow:stepIngestionUnresolvedLeads
-    a logic:ActionSchema ;
+    a logic:TransactionStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "unresolved leads capture"@x-gmeow-english ;
     skos:definition "Record what the ingestion could not resolve. Load-bearing rather than incidental: an ingestion that silently drops what it failed to understand cannot be audited for completeness."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:stepIngestionPrivacyPosture
-    a logic:ActionSchema ;
+    a logic:TransactionStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "privacy posture assessment"@x-gmeow-english ;
     skos:definition "Assess the privacy posture of the ingested material. The final step of the canonical ingestion plan; its verdict governs how the derived claims may subsequently be surfaced."@x-gmeow-english ;

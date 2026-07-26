@@ -155,12 +155,7 @@ pub fn project_provenance_graph(
     let mut out = String::new();
 
     // ── the Procedure + its Execution (the realized process vocab) ───────────────
-    triple_iri(
-        &mut out,
-        PROCEDURE_IRI,
-        RDF_TYPE,
-        &format!("{LOGIC}Plan"),
-    );
+    triple_iri(&mut out, PROCEDURE_IRI, RDF_TYPE, &format!("{LOGIC}Plan"));
     annotate_abox(
         &mut out,
         PROCEDURE_IRI,
@@ -347,9 +342,7 @@ mod tests {
     #[test]
     fn projection_carries_procedure_and_execution_nodes() {
         let nt = project_provenance_graph(&sample_projection());
-        assert!(nt.contains(&format!(
-            "<{PROCEDURE_IRI}> <{RDF_TYPE}> <{LOGIC}Plan> ."
-        )));
+        assert!(nt.contains(&format!("<{PROCEDURE_IRI}> <{RDF_TYPE}> <{LOGIC}Plan> .")));
         assert!(nt.contains(&format!(
             "<{EXECUTION_IRI}> <{RDF_TYPE}> <{LOGIC}Enactment> ."
         )));

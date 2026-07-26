@@ -153,4 +153,3 @@ ex:valvePositionResult a logic:ReconciliationResult ;
 ex:closeFeedValveAttempt a logic:CompensationAttempt ;
     rdfs:label "Compensating action: close FV-104"@x-gmeow-english ;
     logic:compensatesEffect ex:valvePositionResult .
-

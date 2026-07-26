@@ -126,4 +126,3 @@ ex:requiresIntroProof a logic:PriorEnactmentRequirement ;
 ex:amaraExtendedTime a logic:Deviation ;
     rdfs:label "Approved accommodation: extended time on assessments"@x-gmeow-english ;
     logic:deviationFromStep ex:discreteMathSyllabus .
-

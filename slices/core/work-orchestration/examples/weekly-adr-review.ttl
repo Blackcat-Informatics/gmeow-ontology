@@ -161,4 +161,3 @@ ex:draftSummaryWeek13 a logic:Advisory ;
 
 ex:adrReviewGuidanceV2 a gmeow:VersionMembership ;
     rdfs:label "ADR review guidance, revision 2 — the version governing weeks 12 and 13"@x-gmeow-english .
-

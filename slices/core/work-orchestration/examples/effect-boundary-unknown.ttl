@@ -144,4 +144,3 @@ ex:settlementProcessV5 a logic:PrescriptionVersion ;
 ex:invoiceBatchNightly a logic:InputSnapshot ;
     rdfs:label "Invoice batch frozen at settlement-run start"@x-gmeow-english ;
     logic:snapshotDigest "b3:9d720ba53e18cf46015a9c73be0d284f610ac539be8d2740f1a5c96b3e07d825" .
-

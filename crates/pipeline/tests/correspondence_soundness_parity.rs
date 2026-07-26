@@ -24,7 +24,24 @@ use gmeow_pipeline::stages::correspondence_soundness::lint_correspondence_soundn
 /// is the authority; this is a fast floor that fails with a readable count delta before the
 /// (larger) snapshot diff. A drift here is a coverage regression: investigate the snapshot,
 /// it is NOT a number to blindly re-bless.
-const EXPECTED_FINDING_COUNT: usize = 449;
+/// Lowered 449 -> 443 by the enactment-kernel supersession, and the six lost findings were
+/// identified individually rather than re-blessed on sight (the assertion below says not to).
+///
+/// They are exactly the six alignment cells that were keyed on the retired process-model
+/// properties: `gmeow:stepInput` -> `prov:used` / `schema:supply` / `schema:tool`,
+/// `gmeow:stepOutput` -> `prov:wasGeneratedBy` / `schema:result`, and
+/// `gmeow:hasProcedureStep` -> `schema:step`.
+///
+/// The MAPPINGS survive: all six targets are re-authored in
+/// `slices/core/work-orchestration/mappings/equivalences.ttl` onto the kernel spine
+/// (`logic:precondition`, `logic:planBody`), with their confidence and justification intact,
+/// so the alignment-target set is still a superset of the pre-branch one. What changed is the
+/// SUBJECT namespace, and `referenced_prefixes` scopes the domain-range check to
+/// `gmeow:`-subject mappings (correspondence_soundness.rs:289) — so the six cells are no
+/// longer domain-range checked.
+///
+/// That scope reduction is recorded in `.deficiencies` rather than treated as a non-event.
+const EXPECTED_FINDING_COUNT: usize = 443;
 
 fn repo_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

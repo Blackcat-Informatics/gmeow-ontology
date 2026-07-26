@@ -2042,3 +2042,42 @@ competency rationale and fixture pairs for the kernel vocabulary, and translate
 the usage-advice annotations. The burn-down is per-term and mechanical rather
 than design work, which is why it is recorded with exact per-axis numbers: the
 next pass can measure itself against them instead of re-deriving the baseline.
+
+## 2026-07-25 — prescription/enactment kernel (six alignment cells lose domain-range checking)
+
+**Six correspondence cells still ship, but are no longer soundness-checked.** The
+correspondence-soundness parity floor fell from 449 findings to 443. The six were
+identified individually rather than re-blessed, because the assertion itself says
+not to re-bless blindly:
+
+    gmeow:stepInput        -> prov:used, schema:supply, schema:tool
+    gmeow:stepOutput       -> prov:wasGeneratedBy, schema:result
+    gmeow:hasProcedureStep -> schema:step
+
+The mappings themselves are NOT lost. All six targets are re-authored in
+`slices/core/work-orchestration/mappings/equivalences.ttl` onto the kernel spine
+(`logic:precondition`, `logic:planBody`) with confidence and justification
+preserved, so the alignment-target set remains a strict superset of the
+pre-branch one and SUBSUME-EXTEND-ENHANCE holds.
+
+What is lost is CHECK coverage. `referenced_prefixes`
+(`crates/pipeline/src/stages/correspondence_soundness.rs:289`) scopes the
+domain-range pass to mappings whose subject is `gmeow:`-prefixed. Re-keying these
+cells onto `logic:` subjects — which the supersession required, since the
+process-model terms are deleted — moved them outside that scope. Six cells that
+were previously checked for domain/range coherence against their external target
+are now unchecked.
+
+There is a defensible reason for the scoping (many `logic:` terms state their
+domain and range in prose rather than as axioms, so an axiom-level domain-range
+check over them would emit noise rather than signal), and that is precisely why
+this is recorded rather than "fixed" by widening the filter: widening it would
+add a large number of vacuous "no domain/range to check against" findings and
+make the pass less informative, not more.
+
+**Forward path:** extend the soundness pass to handle `logic:`-subject mappings
+on their own terms — checking against the declared `rdfs:domain`/`rdfs:range`
+where the kernel does declare them axiomatically (the frontier and journal
+properties do), and emitting an explicit prose-signature record rather than a
+vacuous skip where it does not. That restores coverage for these six and extends
+it to the rest of the kernel's alignment surface.

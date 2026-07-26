@@ -133,7 +133,7 @@ use session_common::*;
 /// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
 /// changes (all additions are inert on it).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "3975aebcdfcea0425a765d972844451cf2437d90831a6c6f8063f471c2302aaf";
+    "51607dfeff8d949f49fc803bf05bfc754654f8e98db79e32015ce5d26e51fd99";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -195,7 +195,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// taking a side — taking a side here would pin a hash that no build actually produces, and the
 /// test would then fail for everyone on a value that looked deliberate.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "8aa639d65ad214533b37d09d424c4ba903df7dcdaa064d9269a1a0a164983f0e";
+    "be93cea88f8f98ac8ad3f67420e691b566e9daacb2baa912ebd19b95343e1575";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

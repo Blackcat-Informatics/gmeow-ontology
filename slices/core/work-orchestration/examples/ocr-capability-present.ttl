@@ -107,4 +107,3 @@ ex:storeReceiptEntry a logic:FrontierEntry ;
 ex:run78Saturation a logic:FrontierEntry ;
     rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
     logic:entryLabel logic:FrontierCompleted .
-
