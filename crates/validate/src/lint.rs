@@ -145,20 +145,6 @@ pub mod codes {
         "validate.lint.math.undeclared-unsupported-construct";
     pub const MATH_UNRECORDED_PROJECTION_LOSS: &str =
         "validate.lint.math.unrecorded-projection-loss";
-    pub const MATH_MALFORMED_EXTENDED_REAL: &str = "validate.lint.math.malformed-extended-real";
-    pub const MATH_UNBACKED_ANALYTIC_PROPERTY: &str =
-        "validate.lint.math.unbacked-analytic-property";
-    pub const MATH_UNBOUND_CLOSED_FORM: &str = "validate.lint.math.unbound-closed-form";
-    pub const MATH_UNDERSPECIFIED_COMPACTIFICATION: &str =
-        "validate.lint.math.underspecified-compactification";
-    pub const MATH_UNDERSPECIFIED_INTERVAL: &str = "validate.lint.math.underspecified-interval";
-    pub const MATH_UNDERSPECIFIED_LIMIT_RESULT: &str =
-        "validate.lint.math.underspecified-limit-result";
-    pub const MATH_UNDERSPECIFIED_MEASURE_EVALUATION: &str =
-        "validate.lint.math.underspecified-measure-evaluation";
-    pub const MATH_UNDERSPECIFIED_PIECEWISE_FUNCTION: &str =
-        "validate.lint.math.underspecified-piecewise-function";
-    pub const MATH_UNFRAMED_OPERATOR: &str = "validate.lint.math.unframed-operator";
     pub const MATH_UNGROUNDED_RESULT_CLAIM: &str = "validate.lint.math.ungrounded-result-claim";
     pub const NAMING_SELECTOR_TOKEN: &str = "validate.lint.naming.selector-token";
 }
@@ -1752,355 +1738,23 @@ fn check_string_only_computable_expression(ds: &RdfDataset, report: &mut LintRep
     }
 }
 
-/// The `math:` mathematical-core native cardinality/framing invariants: the native Rust
-/// twin of several SHACL-Core-derived class restrictions in `module.ttl`, run over the
-/// live dataset directly (the same architectural shape as
-/// [`check_string_only_computable_expression`]) rather than depending on a generated
-/// shape surface — the extended-real-slot value guard, the analytic-property law/boundary
-/// guard, the closed-form-function body/argument guard, the compactification four-role
-/// (and conformal-factor) guard, the interval four-field guard, the limit-result
-/// outcome/value-agreement guard, the measure-evaluation three-role (and non-negativity)
-/// guard, the piecewise-function at-least-one-piece guard, the arithmetic-operation
-/// domain/codomain guard, and the statistical-result-claim vantage-grounding guard.
+/// The `math:` mathematical-core native invariant that genuinely needs Rust execution
+/// rather than a declarative axiom: the statistical-result-claim vantage-grounding guard
+/// ([`check_ungrounded_result_claim`]). The extended-real-slot value guard
+/// (`math:ExtendedRealValueConstraint`), the analytic-property law/boundary guard
+/// (`math:AnalyticPropertyBackedConstraint`), the closed-form-function body/argument
+/// guard, the compactification four-role (and conformal-factor) guard, the interval
+/// four-field guard, the limit-result outcome/value-agreement guard
+/// (`math:LimitResultOutcomeValueConstraint`), the measure-evaluation three-role (and
+/// `math:MeasureResultNonNegativeConstraint` non-negativity) guard, the
+/// piecewise-function at-least-one-piece guard, and the arithmetic-operation
+/// domain/codomain guard are each fully owned by an EL-safe OWL/RDFS exact-one
+/// restriction (paired `owl:maxQualifiedCardinality`/`owl:minQualifiedCardinality`
+/// restrictions on the class in `module.ttl`, the derive-source for the generated SHACL)
+/// or a `logic:Constraint` SHACL-SPARQL twin already authored in `module.ttl` — the
+/// declarative tier decides them outright, so no Rust side-channel exists for them here.
 fn check_math_core_invariants(ds: &RdfDataset, report: &mut LintReport) {
-    check_malformed_extended_real(ds, report);
-    check_unbacked_analytic_property(ds, report);
-    check_unbound_closed_form(ds, report);
-    check_underspecified_compactification(ds, report);
-    check_underspecified_interval(ds, report);
-    check_underspecified_limit_result(ds, report);
-    check_underspecified_measure_evaluation(ds, report);
-    check_underspecified_piecewise_function(ds, report);
-    check_unframed_operator(ds, report);
     check_ungrounded_result_claim(ds, report);
-}
-
-/// `math:MalformedExtendedReal` — the object of `math:extendedRealValue` must be a
-/// literal (its finite numeric branch) or one of the two poles `math:PositiveInfinity` /
-/// `math:NegativeInfinity`; a non-literal object (an IRI or blank node) that is neither
-/// pole is not a point of the extended real line ℝ̄. Native Rust twin of
-/// `math:ExtendedRealValueConstraint`.
-fn check_malformed_extended_real(ds: &RdfDataset, report: &mut LintReport) {
-    let extended_real_value = math_iri("extendedRealValue");
-    let positive_infinity = math_iri("PositiveInfinity");
-    let negative_infinity = math_iri("NegativeInfinity");
-    let Some(p_id) = ds_iri_id(ds, &extended_real_value) else {
-        return;
-    };
-    let mut subjects: Vec<String> = Vec::new();
-    for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
-        if let TermRef::Iri(s) = ds.resolve(q.s) {
-            subjects.push(s.to_owned());
-        }
-    }
-    subjects.sort();
-    subjects.dedup();
-    for subject in subjects {
-        for obj in ds_object_iris_sorted(ds, &subject, &extended_real_value) {
-            if obj != positive_infinity && obj != negative_infinity {
-                report.push_error(
-                    codes::MATH_MALFORMED_EXTENDED_REAL,
-                    format!("{subject}\t{obj}"),
-                    format!(
-                        "math:MalformedExtendedReal: {subject}'s math:extendedRealValue names \
-                         {obj}, neither a literal nor one of the two poles \
-                         math:PositiveInfinity/math:NegativeInfinity — not a point of the \
-                         extended real line ℝ̄"
-                    ),
-                );
-            }
-        }
-    }
-}
-
-/// `math:UnbackedAnalyticProperty` — every `math:AnalyticProperty` individual must resolve
-/// through `math:definingLaw` to a real first-order `logic:Formula` or an honest
-/// `logic:expressivenessBoundary` record; a bare analytic-property claim backed by no law
-/// is ill-formed. Native Rust twin of `math:AnalyticPropertyBackedConstraint`.
-fn check_unbacked_analytic_property(ds: &RdfDataset, report: &mut LintReport) {
-    let defining_law = math_iri("definingLaw");
-    for prop in ds_subjects_of_type(ds, &math_iri("AnalyticProperty")) {
-        if !ds_has_predicate(ds, &prop, &defining_law) {
-            report.push_error(
-                codes::MATH_UNBACKED_ANALYTIC_PROPERTY,
-                prop.clone(),
-                format!(
-                    "math:UnbackedAnalyticProperty: analytic property {prop} carries no \
-                     math:definingLaw; an analytic-property claim must resolve to a real \
-                     first-order logic:Formula or an honest logic:expressivenessBoundary, never \
-                     a bare flag"
-                ),
-            );
-        }
-    }
-}
-
-/// `math:UnboundClosedForm` — a `math:ClosedFormFunction` missing its body
-/// (`math:definingExpression`) or its formal argument (`math:formalArgument`) does not say
-/// what it computes or over which variable it abstracts.
-fn check_unbound_closed_form(ds: &RdfDataset, report: &mut LintReport) {
-    let defining_expression = math_iri("definingExpression");
-    let formal_argument = math_iri("formalArgument");
-    for f in ds_subjects_of_type(ds, &math_iri("ClosedFormFunction")) {
-        let missing: Vec<&str> = [
-            (!ds_has_predicate(ds, &f, &defining_expression)).then_some("math:definingExpression"),
-            (!ds_has_predicate(ds, &f, &formal_argument)).then_some("math:formalArgument"),
-        ]
-        .into_iter()
-        .flatten()
-        .collect();
-        if !missing.is_empty() {
-            report.push_error(
-                codes::MATH_UNBOUND_CLOSED_FORM,
-                f.clone(),
-                format!(
-                    "math:UnboundClosedForm: closed-form function {f} is missing {}; a closed \
-                     form without its body or its formal argument does not say what it computes \
-                     or over which variable it abstracts",
-                    missing.join(" and ")
-                ),
-            );
-        }
-    }
-}
-
-/// `math:UnderspecifiedCompactification` — a `math:Compactification` must name all four
-/// roles (`math:originalSpace`, `math:compactifyingMap`, `math:compactifiedSpace`,
-/// `math:boundaryAtInfinity`); a `math:ConformalCompactification` additionally names its
-/// `math:conformalFactor`.
-fn check_underspecified_compactification(ds: &RdfDataset, report: &mut LintReport) {
-    let original_space = math_iri("originalSpace");
-    let compactifying_map = math_iri("compactifyingMap");
-    let compactified_space = math_iri("compactifiedSpace");
-    let boundary_at_infinity = math_iri("boundaryAtInfinity");
-    let conformal_factor = math_iri("conformalFactor");
-    let conformal_compactification = math_iri("ConformalCompactification");
-    let mut subjects = ds_subjects_of_type(ds, &math_iri("Compactification"));
-    subjects.extend(ds_subjects_of_type(ds, &conformal_compactification));
-    subjects.sort();
-    subjects.dedup();
-    for c in subjects {
-        let mut missing: Vec<&str> = Vec::new();
-        if !ds_has_predicate(ds, &c, &original_space) {
-            missing.push("math:originalSpace");
-        }
-        if !ds_has_predicate(ds, &c, &compactifying_map) {
-            missing.push("math:compactifyingMap");
-        }
-        if !ds_has_predicate(ds, &c, &compactified_space) {
-            missing.push("math:compactifiedSpace");
-        }
-        if !ds_has_predicate(ds, &c, &boundary_at_infinity) {
-            missing.push("math:boundaryAtInfinity");
-        }
-        if ds_has_type(ds, &c, &conformal_compactification)
-            && !ds_has_predicate(ds, &c, &conformal_factor)
-        {
-            missing.push("math:conformalFactor");
-        }
-        if !missing.is_empty() {
-            report.push_error(
-                codes::MATH_UNDERSPECIFIED_COMPACTIFICATION,
-                c.clone(),
-                format!(
-                    "math:UnderspecifiedCompactification: compactification {c} is missing {}; a \
-                     compactification must name all four roles (and a conformal one its \
-                     conformal factor)",
-                    missing.join(", ")
-                ),
-            );
-        }
-    }
-}
-
-/// `math:UnderspecifiedInterval` — a `math:Interval` must name both endpoints
-/// (`math:lowerEndpoint`, `math:upperEndpoint`) and both endpoint inclusions
-/// (`math:lowerInclusion`, `math:upperInclusion`); the inclusion is never silently
-/// omitted.
-fn check_underspecified_interval(ds: &RdfDataset, report: &mut LintReport) {
-    let lower_endpoint = math_iri("lowerEndpoint");
-    let upper_endpoint = math_iri("upperEndpoint");
-    let lower_inclusion = math_iri("lowerInclusion");
-    let upper_inclusion = math_iri("upperInclusion");
-    for i in ds_subjects_of_type(ds, &math_iri("Interval")) {
-        let mut missing: Vec<&str> = Vec::new();
-        if !ds_has_predicate(ds, &i, &lower_endpoint) {
-            missing.push("math:lowerEndpoint");
-        }
-        if !ds_has_predicate(ds, &i, &upper_endpoint) {
-            missing.push("math:upperEndpoint");
-        }
-        if !ds_has_predicate(ds, &i, &lower_inclusion) {
-            missing.push("math:lowerInclusion");
-        }
-        if !ds_has_predicate(ds, &i, &upper_inclusion) {
-            missing.push("math:upperInclusion");
-        }
-        if !missing.is_empty() {
-            report.push_error(
-                codes::MATH_UNDERSPECIFIED_INTERVAL,
-                i.clone(),
-                format!(
-                    "math:UnderspecifiedInterval: interval {i} is missing {}; an interval names \
-                     both endpoints and both endpoint inclusions, never silently omitted",
-                    missing.join(", ")
-                ),
-            );
-        }
-    }
-}
-
-/// `math:UnderspecifiedLimitResult` — a `math:LimitResult` must name its
-/// `math:limitOutcome`, and its `math:limitResultValue` must agree with that outcome (a
-/// finite value for `math:convergesFinitely`; the matching pole for a divergent-to-a-pole
-/// outcome; no value for `math:divergesWithoutLimit`). Native Rust twin of the
-/// `math:LimitResult` restriction and `math:LimitResultOutcomeValueConstraint`.
-fn check_underspecified_limit_result(ds: &RdfDataset, report: &mut LintReport) {
-    let limit_outcome = math_iri("limitOutcome");
-    let limit_result_value = math_iri("limitResultValue");
-    let converges_finitely = math_iri("convergesFinitely");
-    let diverges_to_positive_infinity = math_iri("divergesToPositiveInfinity");
-    let diverges_to_negative_infinity = math_iri("divergesToNegativeInfinity");
-    let diverges_without_limit = math_iri("divergesWithoutLimit");
-    let positive_infinity = math_iri("PositiveInfinity");
-    let negative_infinity = math_iri("NegativeInfinity");
-    for r in ds_subjects_of_type(ds, &math_iri("LimitResult")) {
-        let outcomes = ds_object_iris(ds, &r, &limit_outcome);
-        if outcomes.is_empty() {
-            report.push_error(
-                codes::MATH_UNDERSPECIFIED_LIMIT_RESULT,
-                r.clone(),
-                format!(
-                    "math:UnderspecifiedLimitResult: limit result {r} declares no \
-                     math:limitOutcome; every limit result must say which of convergence or the \
-                     three modes of divergence it is"
-                ),
-            );
-            continue;
-        }
-        let value_iris = ds_object_iris(ds, &r, &limit_result_value);
-        let has_value = ds_has_predicate(ds, &r, &limit_result_value);
-        let value_literals = ds_object_literals(ds, &r, &limit_result_value);
-        let mut outcomes_sorted: Vec<&String> = outcomes.iter().collect();
-        outcomes_sorted.sort();
-        for outcome in outcomes_sorted {
-            let agrees = if outcome == &converges_finitely {
-                !value_literals.is_empty() && value_iris.is_empty()
-            } else if outcome == &diverges_to_positive_infinity {
-                value_iris.contains(&positive_infinity)
-            } else if outcome == &diverges_to_negative_infinity {
-                value_iris.contains(&negative_infinity)
-            } else if outcome == &diverges_without_limit {
-                !has_value
-            } else {
-                // An unrecognized outcome individual is out of scope for the value-agreement
-                // check (a closed-value violation, if any, is a different gate's concern).
-                true
-            };
-            if !agrees {
-                report.push_error(
-                    codes::MATH_UNDERSPECIFIED_LIMIT_RESULT,
-                    r.clone(),
-                    format!(
-                        "math:UnderspecifiedLimitResult: limit result {r}'s \
-                         math:limitResultValue disagrees with its declared math:limitOutcome \
-                         {outcome}"
-                    ),
-                );
-            }
-        }
-    }
-}
-
-/// `math:UnderspecifiedMeasureEvaluation` — a `math:MeasureEvaluation` must name all
-/// three of its evaluated measure, measured subset, and result; and its
-/// `math:measureResult` must never be the negative pole `math:NegativeInfinity` (a
-/// measure is non-negative). Native Rust twin of the `math:MeasureEvaluation` restriction
-/// and `math:MeasureResultNonNegativeConstraint`.
-fn check_underspecified_measure_evaluation(ds: &RdfDataset, report: &mut LintReport) {
-    let evaluated_measure = math_iri("evaluatedMeasure");
-    let measured_subset = math_iri("measuredSubset");
-    let measure_result = math_iri("measureResult");
-    let negative_infinity = math_iri("NegativeInfinity");
-    for e in ds_subjects_of_type(ds, &math_iri("MeasureEvaluation")) {
-        let mut missing: Vec<&str> = Vec::new();
-        if !ds_has_predicate(ds, &e, &evaluated_measure) {
-            missing.push("math:evaluatedMeasure");
-        }
-        if !ds_has_predicate(ds, &e, &measured_subset) {
-            missing.push("math:measuredSubset");
-        }
-        if !ds_has_predicate(ds, &e, &measure_result) {
-            missing.push("math:measureResult");
-        }
-        if !missing.is_empty() {
-            report.push_error(
-                codes::MATH_UNDERSPECIFIED_MEASURE_EVALUATION,
-                e.clone(),
-                format!(
-                    "math:UnderspecifiedMeasureEvaluation: measure evaluation {e} is missing \
-                     {}; μ(A) must name its measure, its subset, and its result to be \
-                     comparable",
-                    missing.join(", ")
-                ),
-            );
-        } else if ds_object_iris(ds, &e, &measure_result).contains(&negative_infinity) {
-            report.push_error(
-                codes::MATH_UNDERSPECIFIED_MEASURE_EVALUATION,
-                e.clone(),
-                format!(
-                    "math:UnderspecifiedMeasureEvaluation: measure evaluation {e}'s \
-                     math:measureResult is math:NegativeInfinity; a measure is non-negative"
-                ),
-            );
-        }
-    }
-}
-
-/// `math:UnderspecifiedPiecewiseFunction` — a `math:PiecewiseFunction` declaring no
-/// `math:hasPiece` says nothing about what it computes.
-fn check_underspecified_piecewise_function(ds: &RdfDataset, report: &mut LintReport) {
-    let has_piece = math_iri("hasPiece");
-    for f in ds_subjects_of_type(ds, &math_iri("PiecewiseFunction")) {
-        if !ds_has_predicate(ds, &f, &has_piece) {
-            report.push_error(
-                codes::MATH_UNDERSPECIFIED_PIECEWISE_FUNCTION,
-                f.clone(),
-                format!(
-                    "math:UnderspecifiedPiecewiseFunction: piecewise function {f} declares no \
-                     math:hasPiece; a piecewise function is defined BY its pieces"
-                ),
-            );
-        }
-    }
-}
-
-/// `math:UnframedOperator` — every `math:ArithmeticOperation` individual must carry
-/// exactly one `math:operatorDomain` and one `math:operatorCodomain`; an unframed operator
-/// leaves its signature unstated.
-fn check_unframed_operator(ds: &RdfDataset, report: &mut LintReport) {
-    let operator_domain = math_iri("operatorDomain");
-    let operator_codomain = math_iri("operatorCodomain");
-    for op in ds_subjects_of_type(ds, &math_iri("ArithmeticOperation")) {
-        let mut missing: Vec<&str> = Vec::new();
-        if !ds_has_predicate(ds, &op, &operator_domain) {
-            missing.push("math:operatorDomain");
-        }
-        if !ds_has_predicate(ds, &op, &operator_codomain) {
-            missing.push("math:operatorCodomain");
-        }
-        if !missing.is_empty() {
-            report.push_error(
-                codes::MATH_UNFRAMED_OPERATOR,
-                op.clone(),
-                format!(
-                    "math:UnframedOperator: arithmetic operation {op} is missing {}; every \
-                     operator carries its signature over the number-system tower",
-                    missing.join(" and ")
-                ),
-            );
-        }
-    }
 }
 
 /// `math:UngroundedResultClaim` — a `gmeow:Observation` naming a result through
@@ -4997,6 +4651,54 @@ mod tests {
                 .any(|e| e.contains("math:StringOnlyComputableExpression")),
             "a math:MathematicalExpression with no trigger edge must NOT raise \
              math:StringOnlyComputableExpression; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn ungrounded_result_claim_fires_when_observation_names_a_result_with_no_vantage() {
+        // A gmeow:Observation naming a result through gmeow:observationResult but
+        // carrying no gmeow:vantage is an unconditional property claim, never a held
+        // observation: math:UngroundedResultClaim. This is a genuine cross-node
+        // obligation over gmeow:Observation/gmeow:observationResult/gmeow:vantage, none
+        // of which is math:-specific, so it carries no generated/-dependent SHACL twin
+        // (the sole gate is this native Rust check).
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:obs a gmeow:Observation ;\n\
+               gmeow:observationResult ex:result .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UngroundedResultClaim")
+                    && e.contains("https://example.org/obs")),
+            "an Observation naming a result with no vantage must raise \
+             math:UngroundedResultClaim; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn ungrounded_result_claim_clean_when_observation_carries_a_vantage() {
+        // The same result claim, but this time the Observation carries a gmeow:vantage:
+        // the claim is held BY that vantage, so the gate must stay clean.
+        let ds = dataset_from(&format!(
+            "{MATH_PREFIXES}\
+             ex:obs a gmeow:Observation ;\n\
+               gmeow:observationResult ex:result ;\n\
+               gmeow:vantage ex:analyst .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UngroundedResultClaim")),
+            "an Observation naming a result AND carrying a vantage must NOT raise \
+             math:UngroundedResultClaim; errors: {:?}",
             report.errors()
         );
     }
