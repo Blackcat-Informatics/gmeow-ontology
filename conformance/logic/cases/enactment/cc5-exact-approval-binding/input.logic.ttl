@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/cc5-exact-approval-binding
+# An approval authorizes ONE intent, identified by digest, and nothing else.
+# The commitment carries all six mandatory bindings: the exact intent digest, the
+# enactment, the authorized operator, the governing policy, the decision, and the
+# validity window.
+#
+# Binding by digest rather than by reference is what makes "approve this" mean
+# this and not its neighbour: a reference can be repointed after approval, a
+# digest cannot. The four ways this goes wrong — wrong intent, wrong enactment,
+# expired window, unauthorized operator — are four DISTINCT fault kinds rather
+# than one generic failure, because an operator debugging a refused dispatch
+# needs to know which of the four happened.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/enactment/> .
+
+e:process a logic:Plan ;
+    logic:planGoal e:published ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindBusinessProcess .
+e:published a gmeow:Goal ; rdfs:label "Report published"@x-gmeow-english .
+e:processV1 a logic:PrescriptionVersion ;
+    logic:prescriptionOf e:process ;
+    logic:prescriptionDigest "b3:18ae05c937b2d6401fa95c38be0d724f6c1a0539be72d840f5a6c19b37e0d24a" .
+e:snap a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:40c8a715be92d36f015c8a370be9d24f18a6c053be7d1940fa25c86b3e097d15" .
+e:run a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:processV1 ;
+    logic:enactmentInputSnapshot e:snap ;
+    logic:enactmentState logic:EnactmentRunning .
+
+e:publishStep a logic:TransactionStep ; rdfs:label "Publish the report"@x-gmeow-english .
+e:publishSchema a logic:ActionSchema ;
+    logic:capability e:publishEndpoint ;
+    logic:precondition e:reportApproved .
+e:publishEndpoint a logic:EngineCapability ; rdfs:label "Publication endpoint"@x-gmeow-english .
+e:reportApproved a logic:Constraint ; rdfs:label "Report content is final"@x-gmeow-english .
+e:args a logic:ArgumentNormalization ; rdfs:label "Normalized publish arguments"@x-gmeow-english .
+e:policy a logic:Constraint ; rdfs:label "Publication approval policy"@x-gmeow-english .
+
+e:intent a logic:DispatchIntent ;
+    logic:intentOfEnactment e:run ;
+    logic:intentOfStep e:publishStep ;
+    logic:intentActionSchemaVersion e:publishSchema ;
+    logic:intentNormalizedArguments e:args ;
+    logic:intentTarget e:publishEndpoint ;
+    logic:intentPolicy e:policy ;
+    logic:intentApprovalRequired true ;
+    logic:intentDigest "b3:7c30a95e18bd246f01c5a97b3e0d284f61ac0539be7d2840f1a5c96b30e2d748" ;
+    logic:intentIdempotency e:idem ;
+    logic:expectedJournalHead "b3:35c0a917be82d46f015a9c73be0d248f61ac0539be7d1840fa25c86b39e0d271" .
+
+e:idem a logic:IdempotencyContract ;
+    logic:idempotencyKey "report:2026-07:publish" ;
+    logic:idempotencyScope "publisher:main" ;
+    logic:idempotencyRetention "PT12H"^^xsd:duration ;
+    logic:idempotencyDuplicateSemantics "Repeated key within the window returns the original publication."@x-gmeow-english ;
+    logic:idempotencyProviderEvidence "Publisher idempotency conformance probe."@x-gmeow-english .
+
+# All six bindings. The digest is the load-bearing one.
+e:approval a logic:ApprovalCommitment ;
+    logic:approvalIntentDigest "b3:7c30a95e18bd246f01c5a97b3e0d284f61ac0539be7d2840f1a5c96b30e2d748" ;
+    logic:approvalEnactment e:run ;
+    logic:approvalOperator e:releaseManager ;
+    logic:approvalPolicy e:policy ;
+    logic:approvalDecision "granted"@x-gmeow-english ;
+    logic:approvalValidityWindow "2026-07-25T00:00:00Z/2026-07-25T23:59:59Z" ;
+    logic:approvalState logic:ApprovalDetached .
+
+e:releaseManager a gmeow:Entity ; rdfs:label "Release manager on duty"@x-gmeow-english .

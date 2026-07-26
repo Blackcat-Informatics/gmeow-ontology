@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/cc1-continuing-cluster
+# A CONTINUING cluster across two occurrences. Each week is a fresh immutable
+# enactment against its own closed input snapshot; a snapshot delta names what
+# changed between them; and the cluster's goal is a maintenance goal that a
+# successful week does NOT close. The last clause is the one that matters: a
+# system which marks "keep decisions reviewed" done after a good week has
+# misunderstood the goal, and this case pins the structure that prevents it.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/enactment/> .
+
+e:reviewProcess a logic:Plan ;
+    rdfs:label "ADR review process"@x-gmeow-english ;
+    logic:planGoal e:weekReviewed ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindRepeatableGuide .
+
+e:weekReviewed a gmeow:Goal ;
+    rdfs:label "This week's review is completed"@x-gmeow-english .
+
+# The CONTINUING goal, deliberately a different node from the per-week goal.
+e:decisionsStayReviewed a logic:MaintenanceGoal ;
+    rdfs:label "Architectural decisions stay reviewed"@x-gmeow-english .
+
+e:reviewProcessV4 a logic:PrescriptionVersion ;
+    rdfs:label "ADR review process, revision 4"@x-gmeow-english ;
+    logic:prescriptionOf e:reviewProcess ;
+    logic:prescriptionDigest "b3:4c8a03f7b25e91d6047ac35b8e1f20d9637b0ae514c92d87f30a6b15c8e04d29" .
+
+e:corpusW12 a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:1f70b8a4c2593de6018b4c7a05e2d93f86a0c1537be24d90f5c837a1e60b492d" .
+e:corpusW13 a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:93e5c1a70bd2f846015c8b3ae209df74c60b18a52d7e930f4a1c86b05e37d92a" .
+
+e:weekTwelve a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:reviewProcessV4 ;
+    logic:enactmentInputSnapshot e:corpusW12 ;
+    logic:enactmentState logic:EnactmentCompleted .
+
+e:weekThirteen a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:reviewProcessV4 ;
+    logic:enactmentInputSnapshot e:corpusW13 ;
+    logic:enactmentState logic:EnactmentRunning .
+
+# What changed between the two closed generations — derived, not eyeballed.
+e:w13Delta a logic:SnapshotDelta ;
+    rdfs:label "ADRs added or changed since week 12"@x-gmeow-english ;
+    logic:snapshotDigest "b3:7a209fc158b3e64d0179ac250e8b3df641c07a92be5d1380f6a4c98b17e250d3" .

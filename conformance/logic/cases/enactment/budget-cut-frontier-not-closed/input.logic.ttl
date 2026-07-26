@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/budget-cut-frontier-not-closed
+#
+# WHAT THIS PINS TODAY, stated exactly. The profile imposes a hard cut
+# (max_rule_firings: 2) over a kernel ABox and certifies the result. The golden
+# records budget_status "ok", saturated [], strata 1/1 — NOT because the budget
+# is generous but because no kernel derivation rules are compiled yet, so there
+# is nothing to fire and the run saturates trivially. The frontier in this case
+# is therefore authored rather than derived.
+#
+# This is a real regression guard despite that, and it is the reason the case is
+# committed rather than deferred: when the frontier derivation lands, the run
+# stops saturating trivially, this golden MOVES, and the move forces someone to
+# look at whether a cut roster is being reported as closed. A case that silently
+# kept passing through that change would be worse than no case.
+#
+# The property being guarded is that an incomplete roster must never present as
+# complete. An unwitnessed closure claim is exactly how a roster truncated by a
+# budget cut passes for exhaustive, after which the system confidently omits the
+# action it should have taken and reports no error, because from its own point of
+# view it finished.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/enactment/> .
+
+e:plan a logic:Plan ;
+    logic:planGoal e:allReviewed ;
+    logic:planSuccessMode logic:WeakPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindDataPipeline .
+e:allReviewed a gmeow:Goal ; rdfs:label "Every candidate action enumerated"@x-gmeow-english .
+e:planV1 a logic:PrescriptionVersion ;
+    logic:prescriptionOf e:plan ;
+    logic:prescriptionDigest "b3:62a1c0537be9d248015a9c37be0d284f61ac0539be7d1840fa25c86b39e0d275" .
+e:snap a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:8b03a915ce72d648015a9c37be0d284f61ac0539be7d1840fa25c86b39e0d273" .
+e:run a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:planV1 ;
+    logic:enactmentInputSnapshot e:snap ;
+    logic:enactmentState logic:EnactmentRunning .
+
+# The search was cut. The honest report is an INCOMPLETE outcome with a typed
+# cause, distinct from an out-of-fragment refusal, which is a different answer.
+e:cutOutcome a logic:OperationOutcome ;
+    rdfs:label "Incomplete — step budget exhausted before fixpoint"@x-gmeow-english .

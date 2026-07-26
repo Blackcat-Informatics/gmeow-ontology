@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: enactment/cc6-contextual-recommendation
+# Three policies over the same options: one orders them strictly, one leaves two
+# TIED, one leaves two INCOMPARABLE. The three are different facts and the case
+# pins that they stay different.
+#
+#   Tie          -> equally good; pick either.
+#   Incomparable -> the policy names no rule for trading these off; a human must
+#                   decide, and should know that is what they are doing.
+#
+# No global winner is asserted anywhere in this case. Flattening either relation
+# into a total order manufactures a winner no policy licensed, and the third
+# policy also yields a CONFLICTING frontier classification, not merely a
+# conflicting ranking — two standpoints disagreeing about what is actionable.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/enactment/> .
+
+e:runbook a logic:Plan ;
+    logic:planGoal e:serviceRestored ;
+    logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
+    logic:prescriptionKind logic:prescriptionKindRepeatableGuide .
+e:serviceRestored a gmeow:Goal ; rdfs:label "Service restored"@x-gmeow-english .
+e:runbookV3 a logic:PrescriptionVersion ;
+    logic:prescriptionOf e:runbook ;
+    logic:prescriptionDigest "b3:71ac05b93e2d846f015c7a90be3d247f186a0c53be9d1740fa26c85b39e0d217" .
+e:incidentState a logic:InputSnapshot ;
+    logic:snapshotDigest "b3:2fd80a95c17be643019a5c38be0d724f6c1a05397be2d840f5a6c19b37e0d248" .
+e:remediation a logic:Enactment ;
+    logic:enactsPrescriptionVersion e:runbookV3 ;
+    logic:enactmentInputSnapshot e:incidentState ;
+    logic:enactmentState logic:EnactmentRunning .
+
+e:rollback a gmeow:InformationObject ; rdfs:label "Roll back"@x-gmeow-english .
+e:hotfix a gmeow:InformationObject ; rdfs:label "Ship a hotfix"@x-gmeow-english .
+e:flag a gmeow:InformationObject ; rdfs:label "Disable by feature flag"@x-gmeow-english .
+e:options a gmeow:CandidateSet ; gmeow:hasCandidate e:rollback, e:hotfix, e:flag .
+
+e:fastest a gmeow:ComparisonContext ; rdfs:label "Restore fastest — strict order"@x-gmeow-english .
+e:leastImpact a gmeow:ComparisonContext ; rdfs:label "Least customer impact — rollback and flag TIE"@x-gmeow-english .
+e:leastExposure a gmeow:ComparisonContext ; rdfs:label "Least regulatory exposure — hotfix and rollback INCOMPARABLE"@x-gmeow-english .
+
+e:frontier a logic:ActionableFrontier ;
+    logic:frontierSaturationWitness e:sat ;
+    logic:frontierOfEnactment e:remediation ;
+    logic:hasFrontierEntry e:eRollback, e:eMutex .
+e:sat a logic:FrontierEntry ; logic:entryLabel logic:FrontierCompleted .
+e:eRollback a logic:FrontierEntry ;
+    logic:entryLabel logic:FrontierReadyAuthorized ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+# Under the exposure policy the same options are mutually exclusive: a derived
+# obstruction rather than a hand-asserted conflict.
+e:eMutex a logic:FrontierEntry ;
+    logic:entryLabel logic:FrontierMutuallyExclusive ;
+    logic:entryAxisWitness logic:StepReady .

@@ -1,0 +1,169 @@
+{
+  "canonical-rdf12": {
+    "complexity": "N/A (identity serialization)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
+  },
+  "cgif": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
+  },
+  "clif": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
+  },
+  "datalog": {
+    "complexity": "terminating/PTIME-data",
+    "lossy_drops": [
+      "OWL class expressions not representable as Datalog atoms are dropped",
+      "modal/world context flattened to predicate reification",
+      "no existential rule heads (skolemisation not emitted)"
+    ],
+    "preservation": "SoundUnderApproximation"
+  },
+  "gufo": {
+    "complexity": "PTIME",
+    "lossy_drops": [
+      "fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped",
+      "logic: world-modal/contextual structure has no gUFO equivalent",
+      "logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)",
+      "multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped",
+      "native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped",
+      "native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped",
+      "only gUFO-mapped sorts and structural predicates emitted",
+      "preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface",
+      "rules not representable in gUFO; only type/subtype declarations kept",
+      "scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped",
+      "strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped",
+      "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection",
+      "actual: logic:enactmentInputSnapshot on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no gUFO bridge equivalent",
+      "actual: logic:enactmentState on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no gUFO bridge equivalent",
+      "actual: logic:enactsPrescriptionVersion on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no gUFO bridge equivalent",
+      "actual: logic:planGoal on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no gUFO bridge equivalent",
+      "actual: logic:planSuccessMode on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no gUFO bridge equivalent",
+      "actual: logic:prescriptionDigest on <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> has no gUFO bridge equivalent",
+      "actual: logic:prescriptionKind on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no gUFO bridge equivalent",
+      "actual: logic:prescriptionOf on <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> has no gUFO bridge equivalent",
+      "actual: logic:snapshotDigest on <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> has no gUFO bridge equivalent",
+      "actual: rdf:type logic:Enactment on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no gUFO equivalent",
+      "actual: rdf:type logic:InputSnapshot on <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> has no gUFO equivalent",
+      "actual: rdf:type logic:OperationOutcome on <https://blackcatinformatics.ca/gmeow/conformance/enactment/cutOutcome> has no gUFO equivalent",
+      "actual: rdf:type logic:Plan on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no gUFO equivalent",
+      "actual: rdf:type logic:PrescriptionVersion on <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> has no gUFO equivalent"
+    ],
+    "preservation": "ValidationOnly"
+  },
+  "n3": {
+    "complexity": "semi-decidable",
+    "lossy_drops": [
+      "N3 builtins used for arithmetic/string predicates where available",
+      "modal context encoded as quoted graph arguments (may overgenerate)",
+      "negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent"
+    ],
+    "preservation": "CompleteOverApproximation"
+  },
+  "owl-dl": {
+    "complexity": "decidable/N2EXPTIME",
+    "lossy_drops": [
+      "contextual scope (standpoint, time, confidence) is dropped",
+      "modal/world context is erased",
+      "probabilistic profile not representable in OWL DL",
+      "rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped",
+      "transaction-path evolution has no faithful OWL DL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path",
+      "actual: logic:enactmentInputSnapshot on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no OWL DL equivalent",
+      "actual: logic:enactmentState on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no OWL DL equivalent",
+      "actual: logic:enactsPrescriptionVersion on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no OWL DL equivalent",
+      "actual: logic:planGoal on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no OWL DL equivalent",
+      "actual: logic:planSuccessMode on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no OWL DL equivalent",
+      "actual: logic:prescriptionDigest on <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> has no OWL DL equivalent",
+      "actual: logic:prescriptionKind on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no OWL DL equivalent",
+      "actual: logic:prescriptionOf on <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> has no OWL DL equivalent",
+      "actual: logic:snapshotDigest on <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> has no OWL DL equivalent"
+    ],
+    "preservation": "SoundUnderApproximation"
+  },
+  "owl-el": {
+    "complexity": "PTIME",
+    "lossy_drops": [
+      "contextual scope (standpoint, time, confidence) is dropped",
+      "modal/world context is erased",
+      "only EL-safe axioms emitted (no disjointness, no inverseOf, no cardinality restrictions, no nominals)",
+      "rules beyond EL expressivity are dropped",
+      "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path",
+      "actual: logic:enactmentInputSnapshot on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no EL equivalent",
+      "actual: logic:enactmentState on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no EL equivalent",
+      "actual: logic:enactsPrescriptionVersion on <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> has no EL equivalent",
+      "actual: logic:planGoal on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no EL equivalent",
+      "actual: logic:planSuccessMode on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no EL equivalent",
+      "actual: logic:prescriptionDigest on <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> has no EL equivalent",
+      "actual: logic:prescriptionKind on <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> has no EL equivalent",
+      "actual: logic:prescriptionOf on <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> has no EL equivalent",
+      "actual: logic:snapshotDigest on <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> has no EL equivalent"
+    ],
+    "preservation": "SoundUnderApproximation"
+  },
+  "procedural-constraint": {
+    "complexity": "closed-world SPARQL constraint (SHACL Core)",
+    "lossy_drops": [
+      "a hand-authored CLOSED-WORLD lint whose finding is SUPERSEDED by RDFS/OWL entailment is not projected as a logic:Constraint: e.g. gmeow:CoreObservationMethodShape flags a gmeow:TemporalMeasurement carrying only gmeow:measurementMethod for a missing gmeow:observationMethod, but gmeow:measurementMethod rdfs:subPropertyOf gmeow:observationMethod entails the method, so the canonical logic: reasoning layer proves the datum well-formed — a faithful closed-world projection cannot reproduce that finding without contradicting the entailment (it would over-claim), so the finding is a reasoning artifact carried in the canonical logic: layer and its hand-authored shape is retained as a closed-world lint (dating1 residue)",
+      "a sh:SPARQLConstraint has no ShEx form at all (logic:unsupported); every projected constraint is disclosed as a ShEx drop, carried in the canonical logic: layer",
+      "a sh:SPARQLConstraint surface validates but does not entail (ValidationOnly)",
+      "full-FOL, standpoint/world/time-indexed, and aggregate-comparison (COUNT/SUM threshold) integrity conditions exceed that fragment; there is no formula-level aggregate term, so an aggregate comparison cannot be expressed as a genuine GROUP BY sub-SELECT and is carried-and-flagged, not projected",
+      "the projectable fragment is a range-restricted, ∀-guarded integrity condition (guard(this) → φ(this)) whose per-focus condition φ is a Horn / NNF tree of binary atoms, existentials, disjunctions and (path-)universals: it lowers to a SELECT $this WHERE { guard ∧ ¬φ } via BGP + FILTER NOT EXISTS + UNION",
+      "the surface is emit-only: there is no parse-back from a sh:SPARQLConstraint into a logic:Constraint (the logic: canon is the authoring ground, Principle 4)"
+    ],
+    "preservation": "ValidationOnly"
+  },
+  "shacl-af": {
+    "complexity": "terminating/PTIME-data",
+    "lossy_drops": [
+      "ground class/property subsumption axioms are projected as cax-sco / prp-spo1 sh:SPARQLRule shapes; every other ground axiom (type / metamodel assertions, asserted relations, domain/range, modal or scoped axioms, literal-valued assertions) is not a derivation rule, has no SHACL-AF form, and is carried in the canonical RDF-1.2 layer (recorded as a drop)",
+      "modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop",
+      "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)",
+      "the stratified Horn-with-stratified-negation-and-aggregation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/allReviewed> <http://www.w3.org/2000/01/rdf-schema#label> \"Every candidate action enumerated\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/cutOutcome> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/OperationOutcome> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/cutOutcome> <http://www.w3.org/2000/01/rdf-schema#label> \"Incomplete — step budget exhausted before fixpoint\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Plan> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <https://blackcatinformatics.ca/logic/planGoal> <https://blackcatinformatics.ca/gmeow/conformance/enactment/allReviewed> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <https://blackcatinformatics.ca/logic/planSuccessMode> <https://blackcatinformatics.ca/logic/WeakPlanSuccess> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <https://blackcatinformatics.ca/logic/prescriptionKind> <https://blackcatinformatics.ca/logic/prescriptionKindDataPipeline> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/PrescriptionVersion> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <https://blackcatinformatics.ca/logic/prescriptionDigest> \"b3:62a1c0537be9d248015a9c37be0d284f61ac0539be7d1840fa25c86b39e0d275\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <https://blackcatinformatics.ca/logic/prescriptionOf> <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Enactment> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <https://blackcatinformatics.ca/logic/enactmentInputSnapshot> <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <https://blackcatinformatics.ca/logic/enactmentState> <https://blackcatinformatics.ca/logic/EnactmentRunning> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <https://blackcatinformatics.ca/logic/enactsPrescriptionVersion> <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/InputSnapshot> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> <https://blackcatinformatics.ca/logic/snapshotDigest> \"b3:8b03a915ce72d648015a9c37be0d284f61ac0539be7d1840fa25c86b39e0d273\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+    ],
+    "preservation": "SoundUnderApproximation"
+  },
+  "shacl-core": {
+    "complexity": "closed-world shape validation (SHACL Core)",
+    "lossy_drops": [
+      "a shape surface validates but does not entail (ValidationOnly)",
+      "an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer",
+      "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer",
+      "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape"
+    ],
+    "preservation": "ValidationOnly"
+  },
+  "shex": {
+    "complexity": "closed-world shape validation (ShEx, strictly narrower than SHACL Core)",
+    "lossy_drops": [
+      "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer",
+      "a shape surface validates but does not entail (ValidationOnly)",
+      "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)"
+    ],
+    "preservation": "ValidationOnly"
+  },
+  "xcl": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
+  }
+}

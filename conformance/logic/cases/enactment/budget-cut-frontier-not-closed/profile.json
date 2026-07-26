@@ -1,0 +1,10 @@
+{
+  "reasoning_contract": {"preset": "PositiveHornProfile"},
+  "world_types": [],
+  "mode": "native",
+  "expected_decidability_class": "terminating/PTIME-data",
+  "certify": true,
+  "budget_params": {
+    "max_rule_firings": 2
+  }
+}
