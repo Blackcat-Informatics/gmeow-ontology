@@ -35,6 +35,9 @@ pub mod mdbook;
 pub mod model;
 pub mod rdf;
 pub mod render;
+// The pure naming layer (slugs, display names, alignment facets), hoisted out of
+// `render` so the model half of this crate can use it without the renderer.
+pub mod slug;
 pub mod source_map;
 mod store;
 pub mod svg;
