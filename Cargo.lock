@@ -1565,6 +1565,7 @@ dependencies = [
  "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-math-lift",
  "gmeow-music",
  "gmeow-pipeline",
  "gmeow-slice-brief",
@@ -1807,6 +1808,7 @@ name = "gmeow-math"
 version = "0.2.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-math-lift",
  "purrdf",
 ]
 
