@@ -18,7 +18,7 @@ use ciborium::value::Value as CborValue;
 use gmeow_errors::{Report, render};
 use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::reader::read;
-use purrdf::gts_compose::{BlobRow, DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
 use purrdf::parse_dataset;
 use serde_json::Value;
 
@@ -58,10 +58,11 @@ pub fn build_feedback_bundle(report: &Report) -> gmeow_errors::Result<Vec<u8>> {
     let flat = render::to_json(&stamped)
         .map_err(|e| crate::error::feedback(format!("json render: {e}")))?;
 
-    emit_gts(
+    // The feedback bundle is authored GMEOW GTS output, so it goes through the
+    // one mandated door: the SARIF and findings blobs are small and must NOT
+    // fall back to the plain-`zstd` default `emit_gts` would otherwise apply.
+    gmeow_gts_profile::emit_gmeow_gts(
         &builder,
-        "dist",
-        None,
         Vec::new(),
         vec![
             BlobRow {
@@ -78,7 +79,6 @@ pub fn build_feedback_bundle(report: &Report) -> gmeow_errors::Result<Vec<u8>> {
         None,
         None,
         None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
     )
     .map_err(|e| crate::error::feedback(format!("emit feedback bundle: {e}")))
 }

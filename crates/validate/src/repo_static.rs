@@ -99,6 +99,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
+    check_gts_authorship_seals(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
     report
@@ -1307,58 +1308,114 @@ fn blank_regions(text: &str) -> (String, String) {
         i += 1;
     }
 
-    // On the skeleton, blank every `#[cfg(test)]`-attributed item body. After the attribute,
-    // the item's brace-delimited body is the region from the next `{` to its matching `}`
-    // (fn / mod / impl); items with no body before a `;` (a `use`/`const`) carry no read.
-    let marker: Vec<char> = "#[cfg(test)]".chars().collect();
+    // On the skeleton, blank every TEST-GATED item body. After the attribute, the item's
+    // brace-delimited body is the region from the next `{` to its matching `}` (fn / mod /
+    // impl); items with no body before a `;` (a `use`/`const`) carry no read.
+    //
+    // "Test-gated" is any `#[cfg(…)]` whose predicate names the `test` identifier — the bare
+    // `#[cfg(test)]` AND the composed forms real modules use, e.g.
+    // `#[cfg(all(test, not(target_arch = "wasm32")))]`. Matching only the literal
+    // `#[cfg(test)]` would leave a wasm-gated test module looking like production code to
+    // every gate built on this view. `not(test)` is excluded (it gates the NON-test build),
+    // and a `feature = "test"` cannot match because string contents are already blanked here.
+    let open_marker: Vec<char> = "#[cfg(".chars().collect();
     let mut m = 0;
-    while m + marker.len() <= skeleton.len() {
-        if skeleton[m..m + marker.len()] != marker[..] {
+    while m + open_marker.len() <= skeleton.len() {
+        if skeleton[m..m + open_marker.len()] != open_marker[..] {
             m += 1;
+            continue;
+        }
+        // Balanced-paren scan of the cfg predicate, then the closing `]`.
+        let predicate_start = m + open_marker.len();
+        let mut depth = 1i32;
+        let mut k = predicate_start;
+        while k < skeleton.len() && depth > 0 {
+            match skeleton[k] {
+                '(' => depth += 1,
+                ')' => depth -= 1,
+                _ => {}
+            }
+            k += 1;
+        }
+        let mut after = k;
+        while after < skeleton.len() && skeleton[after].is_whitespace() {
+            after += 1;
+        }
+        if depth != 0 || after >= skeleton.len() || skeleton[after] != ']' {
+            m += open_marker.len();
+            continue;
+        }
+        let predicate: String = skeleton[predicate_start..k - 1].iter().collect();
+        if !cfg_predicate_is_test_gated(&predicate) {
+            m += open_marker.len();
             continue;
         }
         // Find the item's opening brace, but stop at a `;` (a semicolon-terminated item has no
         // body to blank — e.g. `#[cfg(test)] use super::*;`).
-        let mut j = m + marker.len();
+        let mut j = after + 1;
         while j < skeleton.len() && skeleton[j] != '{' && skeleton[j] != ';' {
             j += 1;
         }
         if j >= skeleton.len() || skeleton[j] == ';' {
-            m += marker.len();
+            m += open_marker.len();
             continue;
         }
-        let mut depth = 0i32;
-        let mut k = j;
-        while k < skeleton.len() {
-            match skeleton[k] {
-                '{' => depth += 1,
+        let mut body_depth = 0i32;
+        let mut end = j;
+        while end < skeleton.len() {
+            match skeleton[end] {
+                '{' => body_depth += 1,
                 '}' => {
-                    depth -= 1;
-                    if depth == 0 {
-                        k += 1;
+                    body_depth -= 1;
+                    if body_depth == 0 {
+                        end += 1;
                         break;
                     }
                 }
                 _ => {}
             }
-            k += 1;
+            end += 1;
         }
-        for pos in j..k.min(out.len()) {
+        for pos in j..end.min(out.len()) {
             out[pos] = blank(src[pos]);
             skeleton[pos] = blank(src[pos]);
         }
-        m = k;
+        m = end;
     }
     (out.iter().collect(), skeleton.iter().collect())
 }
 
-/// Comments and `#[cfg(test)]` bodies blanked, string/char literal CONTENTS kept — the
+/// True when a `#[cfg(…)]` predicate gates its item to a TEST build: the `test` identifier
+/// appears as a whole word and is not negated by `not(test)`. Whitespace is stripped first so
+/// `not( test )` is recognised identically to `not(test)`.
+fn cfg_predicate_is_test_gated(predicate: &str) -> bool {
+    let compact: String = predicate.chars().filter(|c| !c.is_whitespace()).collect();
+    if compact.contains("not(test)") {
+        return false;
+    }
+    let bytes = compact.as_bytes();
+    let mut from = 0;
+    while let Some(rel) = compact[from..].find("test") {
+        let at = from + rel;
+        let end = at + 4;
+        let starts = at == 0 || !(bytes[at - 1].is_ascii_alphanumeric() || bytes[at - 1] == b'_');
+        let ends =
+            end >= compact.len() || !(bytes[end].is_ascii_alphanumeric() || bytes[end] == b'_');
+        if starts && ends {
+            return true;
+        }
+        from = end;
+    }
+    false
+}
+
+/// Comments and TEST-GATED bodies blanked, string/char literal CONTENTS kept — the
 /// generated/-read ban's view (it must still see `.join("generated"…)` string literals).
 fn blank_comments_and_cfg_test_modules(text: &str) -> String {
     blank_regions(text).0
 }
 
-/// Comments, string/char literals, AND `#[cfg(test)]` bodies all blanked — CODE ONLY. Used by
+/// Comments, string/char literals, AND TEST-GATED bodies all blanked — CODE ONLY. Used by
 /// the `Result<_, String>` honest-invariant scan: a `Result<_, String>` mention inside a
 /// string literal (a diagnostic message, a doc example, this very gate's own error text) is
 /// prose, not a type occurrence, and must never be flagged.
@@ -1846,6 +1903,396 @@ fn parse_version_triple(version: &str) -> Option<(u64, u64, u64)> {
     let minor = parts.next()?.parse().ok()?;
     let patch = parts.next()?.parse().ok()?;
     Some((major, minor, patch))
+}
+
+// ── GTS-authorship seals: one door to purrdf's writer surface ────────────────
+
+/// The crate that owns the mandated GTS authorship profile. It is the ONLY
+/// production caller of purrdf's GTS-authorship surface; everything else routes
+/// through `emit_gmeow_gts` / `dataset_to_gmeow_gts` / `GmeowGtsWriter`.
+const GTS_PROFILE_CRATE_SRC: &str = "crates/gts-profile/src/";
+
+/// A pinned purrdf public entry point that hands the caller a `Writer` or GTS
+/// bytes (returned, or authored into a caller-supplied `io::Write` sink). Each
+/// one mints a GTS header, so each one decides the transform chain of every frame
+/// that follows — which is exactly what the mandated profile fixes.
+///
+/// **Census method (verified against the pinned purrdf source, tag `rust-v0.8.3`,
+/// rev `64dda6c`, under `~/.cargo/git/checkouts/`).** Every `Writer::{new,
+/// deterministic, with_layout, with_options}` construction site in purrdf's
+/// non-test source was enumerated, and each was traced up to the nearest `pub`
+/// entry point. Two consequences worth recording, because a guessed list gets
+/// them wrong:
+///
+/// * `files::build_entries_v2_prefix` is PRIVATE (`fn`, not `pub fn`) at this
+///   pin, so it is not an entry point; its five public `pack_entries_v2*`
+///   wrappers are pinned in its place.
+/// * `agent_memory::Memory` exposes no `writer()` accessor at this pin. Its
+///   `store` / `revise` / `record_tool_call` methods DO mint a header internally,
+///   but they return a `Claim` / `()` and write to a path — they hand the caller
+///   neither a `Writer` nor GTS bytes, and the pinned revision exposes no
+///   transform hook on them, so they are outside this seal's stated subject. The
+///   segments GMEOW itself appends to those files (`build_audit_segment`,
+///   `build_nt_segment`) DO go through the profile crate and are audited by
+///   `gmeow-pipeline`'s own `validate_mandated_frames` tests.
+struct GtsEntryPoint {
+    /// The module path tail as written in a qualified call
+    /// (`purrdf::gts_compose::emit_gts` → `gts_compose`).
+    module: &'static str,
+    /// A free function's name, or the type owning `constructors`.
+    item: &'static str,
+    /// Associated constructor names for a TYPE entry point; empty for a free fn.
+    constructors: &'static [&'static str],
+}
+
+const PURRDF_GTS_ENTRY_POINTS: &[GtsEntryPoint] = &[
+    GtsEntryPoint {
+        module: "writer",
+        item: "Writer",
+        constructors: &["new", "deterministic", "with_layout", "with_options"],
+    },
+    GtsEntryPoint {
+        module: "writer",
+        item: "snapshot_from_graph",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "gts_write",
+        item: "to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "gts_write",
+        item: "to_gts",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "gts_compose",
+        item: "emit_gts",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "compact",
+        item: "compact_streamable",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_with_blob_bytes",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_with_blob_ranges",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_with_blob_paths",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_tar",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_tar_bytes",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_tar_to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_seekable_tar",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_seekable_tar_to_writer",
+        constructors: &[],
+    },
+];
+
+/// One production call of a pinned purrdf GTS-authorship entry point.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct GtsAuthorshipHit {
+    /// Repo-relative, slash-separated path of the calling file.
+    file: String,
+    /// 1-indexed line of the call.
+    line: usize,
+    /// The pinned entry point, as `module::item` (`gts_compose::emit_gts`).
+    entry_point: String,
+    /// The exact call token matched (`GtsWriter::new(`), so an alias is visible.
+    token: String,
+}
+
+/// Every occurrence of `needle` in `haystack` whose preceding character is not an
+/// identifier character — i.e. `needle` starts a fresh identifier. `Writer::new(`
+/// therefore matches inside `purrdf::gts::writer::Writer::new(` (preceded by `:`)
+/// but NOT inside `OkfWriter::new(` (preceded by `f`).
+fn identifier_starts(haystack: &str, needle: &str) -> usize {
+    let mut count = 0;
+    let bytes = haystack.as_bytes();
+    let mut from = 0;
+    while let Some(rel) = haystack[from..].find(needle) {
+        let at = from + rel;
+        let boundary = at == 0 || {
+            let prev = bytes[at - 1];
+            !(prev.is_ascii_alphanumeric() || prev == b'_')
+        };
+        if boundary {
+            count += 1;
+        }
+        from = at + needle.len();
+    }
+    count
+}
+
+/// The local names a purrdf `use` statement binds `item` to in `code`.
+///
+/// Always includes nothing when `item` is never imported: the qualified call form
+/// (`module::item(`) is scanned separately, so a file that neither imports nor
+/// qualifies cannot be calling the entry point at all. `use … as Alias` is
+/// followed, which is how `use purrdf::gts::writer::Writer as GtsWriter;` stays
+/// visible to the seal.
+fn purrdf_use_bindings(code: &str, item: &str) -> BTreeSet<String> {
+    let mut bindings = BTreeSet::new();
+    let mut rest = code;
+    while let Some(at) = rest.find("use ") {
+        let after = &rest[at + 4..];
+        let stmt_end = after.find(';').unwrap_or(after.len());
+        let stmt = &after[..stmt_end];
+        rest = &after[stmt_end..];
+        if !stmt.contains("purrdf") {
+            continue;
+        }
+        // Walk each identifier-start occurrence of `item` in the statement and
+        // read an `as Alias` rename directly after it.
+        let bytes = stmt.as_bytes();
+        let mut from = 0;
+        while let Some(rel) = stmt[from..].find(item) {
+            let at = from + rel;
+            let end = at + item.len();
+            let starts_ident = at == 0 || {
+                let prev = bytes[at - 1];
+                !(prev.is_ascii_alphanumeric() || prev == b'_')
+            };
+            let ends_ident = end >= stmt.len() || {
+                let next = bytes[end];
+                !(next.is_ascii_alphanumeric() || next == b'_')
+            };
+            from = end;
+            if !(starts_ident && ends_ident) {
+                continue;
+            }
+            let tail = stmt[end..].trim_start();
+            if let Some(alias) = tail.strip_prefix("as ") {
+                let alias: String = alias
+                    .trim_start()
+                    .chars()
+                    .take_while(|c| c.is_alphanumeric() || *c == '_')
+                    .collect();
+                if !alias.is_empty() {
+                    bindings.insert(alias);
+                    continue;
+                }
+            }
+            bindings.insert(item.to_string());
+        }
+    }
+    bindings
+}
+
+/// Census every PRODUCTION call of a pinned purrdf GTS-authorship entry point.
+///
+/// **Production** is `crates/*/src/**.rs` and nothing else. `crates/*/tests/**`
+/// integration tests are NOT production (they carry no `#[cfg(test)]` marker at
+/// all, so "the first `#[cfg(test)]` in the file" is not a valid classifier), and
+/// inside a scanned file every `#[cfg(test)]`-attributed body is blanked. Comments
+/// and string/char literal contents are blanked too, so a commented-out call, a
+/// doc mention, or a diagnostic message naming an entry point is never a hit.
+fn purrdf_gts_authorship_census(
+    root: &Path,
+    report: &mut RepoStaticReport,
+) -> Vec<GtsAuthorshipHit> {
+    let mut hits = Vec::new();
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return hits;
+    }
+    let mut crate_dirs: Vec<PathBuf> = match fs::read_dir(&crates_dir) {
+        Ok(entries) => entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect(),
+        Err(err) => {
+            report.error(format!(
+                "gts-authorship seal: {}: cannot read directory: {err}",
+                crates_dir.display()
+            ));
+            return hits;
+        }
+    };
+    crate_dirs.sort();
+
+    for crate_dir in crate_dirs {
+        let src = crate_dir.join("src");
+        if !src.is_dir() {
+            continue;
+        }
+        let mut files = Vec::new();
+        collect_rust_files(&src, report, &mut files);
+        files.sort();
+        for path in &files {
+            let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+            let text = match fs::read_to_string(path) {
+                Ok(text) => text,
+                Err(err) => {
+                    report.error(format!("gts-authorship seal: {rel}: cannot read: {err}"));
+                    continue;
+                }
+            };
+            let code = blank_comments_strings_and_cfg_test_modules(&text);
+            for entry in PURRDF_GTS_ENTRY_POINTS {
+                let bindings = purrdf_use_bindings(&code, entry.item);
+                let mut tokens: BTreeSet<String> = BTreeSet::new();
+                if entry.constructors.is_empty() {
+                    tokens.insert(format!("{}::{}(", entry.module, entry.item));
+                    for alias in &bindings {
+                        tokens.insert(format!("{alias}("));
+                    }
+                } else {
+                    for ctor in entry.constructors {
+                        tokens.insert(format!("{}::{}::{ctor}(", entry.module, entry.item));
+                        for alias in &bindings {
+                            tokens.insert(format!("{alias}::{ctor}("));
+                        }
+                    }
+                }
+                for (idx, line) in code.lines().enumerate() {
+                    for token in &tokens {
+                        for _ in 0..identifier_starts(line, token) {
+                            hits.push(GtsAuthorshipHit {
+                                file: rel.clone(),
+                                line: idx + 1,
+                                entry_point: format!("{}::{}", entry.module, entry.item),
+                                token: token.clone(),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    hits.sort();
+    hits.dedup();
+    hits
+}
+
+/// **Seal A** — `purrdf::gts_compose::emit_gts` has EXACTLY ONE production caller,
+/// and it is the profile crate's `emit_gmeow_gts`.
+///
+/// `emit_gts` is the only purrdf door that takes a transform chain as an argument,
+/// which is precisely why a second caller is dangerous: its `transform: None`
+/// default is plain `zstd`, so a bypassing call silently ships a bundle that
+/// violates the one-transform rule at every frame size.
+fn check_emit_gts_has_one_production_caller(
+    hits: &[GtsAuthorshipHit],
+    report: &mut RepoStaticReport,
+) {
+    let emitters: Vec<&GtsAuthorshipHit> = hits
+        .iter()
+        .filter(|hit| hit.entry_point == "gts_compose::emit_gts")
+        .collect();
+    if emitters.len() != 1 {
+        report.error(format!(
+            "gts-authorship Seal A: `purrdf::gts_compose::emit_gts` must have EXACTLY ONE \
+             production caller (`{GTS_PROFILE_CRATE_SRC}`, via `emit_gmeow_gts`); found {} — \
+             route the bypassing call through `gmeow_gts_profile::emit_gmeow_gts`, which pins \
+             the mandated `zstd-rsyncable` chain: {}",
+            emitters.len(),
+            render_authorship_hits(&emitters)
+        ));
+        return;
+    }
+    let hit = emitters[0];
+    if !hit.file.starts_with(GTS_PROFILE_CRATE_SRC) {
+        report.error(format!(
+            "gts-authorship Seal A: the single production `emit_gts` caller must live in \
+             `{GTS_PROFILE_CRATE_SRC}`; found {}:{}",
+            hit.file, hit.line
+        ));
+    }
+}
+
+/// **Seal B** — ZERO production callers, outside the profile crate, of ANY pinned
+/// purrdf entry point that hands back a `Writer` or GTS bytes.
+///
+/// Seal A alone is not enough: `gts_write::to_gts`, a bare `Writer::new`, and the
+/// `files`/`from_tar` packers all mint headers WITHOUT going near `emit_gts`, and
+/// each authors payload frames with no transform chain at all. Every one of them
+/// is invisible to an `emit_gts`-only seal.
+fn check_no_bypassing_gts_authorship(hits: &[GtsAuthorshipHit], report: &mut RepoStaticReport) {
+    let bypasses: Vec<&GtsAuthorshipHit> = hits
+        .iter()
+        .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+        .collect();
+    if bypasses.is_empty() {
+        return;
+    }
+    report.error(format!(
+        "gts-authorship Seal B: {} production call(s) of a purrdf GTS-authorship entry point \
+         outside `{GTS_PROFILE_CRATE_SRC}` — every GMEOW-authored payload frame must carry the \
+         one mandated transform, so author through `gmeow_gts_profile` \
+         (`emit_gmeow_gts` / `dataset_to_gmeow_gts` / `GmeowGtsWriter`) instead: {}",
+        bypasses.len(),
+        render_authorship_hits(&bypasses)
+    ));
+}
+
+fn render_authorship_hits(hits: &[&GtsAuthorshipHit]) -> String {
+    hits.iter()
+        .map(|hit| format!("{}:{} `{}`", hit.file, hit.line, hit.token))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+fn check_gts_authorship_seals(root: &Path, report: &mut RepoStaticReport) {
+    // The seals bind only where the profile crate exists. A synthetic minimal-repo
+    // fixture carries no `crates/` tree at all; the live repo always carries it,
+    // and `live_repo_static_passes` runs both seals over it on-gate.
+    if !root.join(GTS_PROFILE_CRATE_SRC).is_dir() {
+        return;
+    }
+    let hits = purrdf_gts_authorship_census(root, report);
+    check_emit_gts_has_one_production_caller(&hits, report);
+    check_no_bypassing_gts_authorship(&hits, report);
 }
 
 /// Honest invariant #2 (Phase-6 Diag-substrate epic): no first-party Rust source may use a
@@ -3256,5 +3703,381 @@ mod tests {
         let (args, end) = parse_top_level_generic_args(&text, 0).expect("balanced");
         assert_eq!(args, vec!["BTreeMap<String, String>", "Diag"]);
         assert_eq!(end, text.len());
+    }
+
+    // ── GTS-authorship seals (A: one emit_gts door; B: no bypassing writer) ────
+
+    /// The profile crate itself: the ONE permitted production `emit_gts` caller.
+    /// Every seal fixture writes it, because the seals are inert without it (a
+    /// synthetic minimal repo carries no `crates/` tree at all).
+    fn write_gts_profile_crate(root: &Path) {
+        crate_src(
+            root,
+            "gts-profile",
+            "lib.rs",
+            "pub fn emit_gmeow_gts(b: &SnapshotBuilder) -> Result<Vec<u8>, Diag> {\n\
+             \x20   purrdf::gts_compose::emit_gts(b, \"dist\", Some(chain()))\n}\n",
+        );
+    }
+
+    fn gts_hits(root: &Path) -> Vec<GtsAuthorshipHit> {
+        let mut report = RepoStaticReport::default();
+        let hits = purrdf_gts_authorship_census(root, &mut report);
+        assert!(report.ok(), "census must not error: {:?}", report.errors);
+        hits
+    }
+
+    fn gts_seal_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_gts_authorship_seals(root, &mut report);
+        report.errors
+    }
+
+    /// Seal A on the LIVE tree: the census is exactly 1, and it is the profile
+    /// crate. This is the positive, non-vacuous half — the detector demonstrably
+    /// finds the real call, so a later "0 hits" result cannot be a silent miss.
+    #[test]
+    fn live_repo_has_exactly_one_production_emit_gts_caller_in_the_profile_crate() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let hits = gts_hits(root);
+        let emitters: Vec<&GtsAuthorshipHit> = hits
+            .iter()
+            .filter(|hit| hit.entry_point == "gts_compose::emit_gts")
+            .collect();
+        assert_eq!(emitters.len(), 1, "{emitters:?}");
+        assert!(
+            emitters[0].file.starts_with(GTS_PROFILE_CRATE_SRC),
+            "{:?}",
+            emitters[0]
+        );
+    }
+
+    /// Seal B on the LIVE tree: zero production callers outside the profile crate,
+    /// across the WHOLE pinned entry-point surface.
+    #[test]
+    fn live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let bypasses: Vec<GtsAuthorshipHit> = gts_hits(root)
+            .into_iter()
+            .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+            .collect();
+        assert!(bypasses.is_empty(), "{bypasses:?}");
+    }
+
+    /// `crates/*/tests/**` integration tests are NOT production and carry no
+    /// `#[cfg(test)]` marker at all. Several of them legitimately call the pinned
+    /// entry points directly (codec-level fixtures); the seals must ignore every
+    /// one, and this test proves those files really do exist so the exemption is
+    /// exercised rather than hypothetical.
+    #[test]
+    fn integration_test_callers_exist_and_are_outside_the_production_census() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let mut report = RepoStaticReport::default();
+        let mut callers: BTreeSet<String> = BTreeSet::new();
+        let crates_dir = root.join("crates");
+        let mut crate_dirs: Vec<PathBuf> = fs::read_dir(&crates_dir)
+            .expect("read crates/")
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect();
+        crate_dirs.sort();
+        for crate_dir in crate_dirs {
+            let tests = crate_dir.join("tests");
+            if !tests.is_dir() {
+                continue;
+            }
+            let mut files = Vec::new();
+            collect_rust_files(&tests, &mut report, &mut files);
+            for path in files {
+                let text = fs::read_to_string(&path).expect("read integration test");
+                let code = blank_comments_strings_and_cfg_test_modules(&text);
+                let calls = PURRDF_GTS_ENTRY_POINTS.iter().any(|entry| {
+                    if entry.constructors.is_empty() {
+                        identifier_starts(&code, &format!("{}::{}(", entry.module, entry.item)) > 0
+                    } else {
+                        entry.constructors.iter().any(|ctor| {
+                            identifier_starts(
+                                &code,
+                                &format!("{}::{}::{ctor}(", entry.module, entry.item),
+                            ) > 0
+                        })
+                    }
+                });
+                if calls {
+                    callers.insert(slash_path(path.strip_prefix(root).unwrap_or(&path)));
+                }
+            }
+        }
+        assert!(
+            callers.len() >= 6,
+            "the crates/*/tests/** exemption must be exercised by real files; found {callers:?}"
+        );
+        let production: BTreeSet<String> = gts_hits(root).into_iter().map(|hit| hit.file).collect();
+        for caller in &callers {
+            assert!(
+                !production.contains(caller),
+                "{caller} is an integration test, not production"
+            );
+        }
+    }
+
+    #[test]
+    fn seals_pass_with_only_the_profile_crate_emitter() {
+        let temp = tempfile::tempdir().unwrap();
+        write_gts_profile_crate(temp.path());
+        assert!(gts_seal_errors(temp.path()).is_empty());
+    }
+
+    #[test]
+    fn seal_a_fails_on_a_second_production_emit_gts_caller() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-music",
+            "lib.rs",
+            "pub fn piece_to_gts_bytes() -> Vec<u8> {\n\
+             \x20   purrdf::gts_compose::emit_gts(&b, \"dist\", None).unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 2, "Seal A and Seal B both fire: {errs:?}");
+        assert!(errs[0].contains("Seal A"), "{errs:?}");
+        assert!(errs[0].contains("found 2"), "{errs:?}");
+    }
+
+    #[test]
+    fn seal_b_fails_on_a_writer_with_layout_caller() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "seg.rs",
+            "use purrdf::gts::writer::Writer;\n\
+             pub fn seg() -> Vec<u8> {\n\
+             \x20   let w = Writer::with_layout(\"ai-package\", Some(\"streamable\"));\n\
+             \x20   w.into_bytes()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("Seal B"), "{errs:?}");
+        assert!(errs[0].contains("Writer::with_layout("), "{errs:?}");
+    }
+
+    #[test]
+    fn seal_b_fails_on_a_compact_streamable_caller() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "compact.rs",
+            "pub fn c(data: &[u8]) -> Vec<u8> {\n\
+             \x20   purrdf::gts::compact::compact_streamable(data, false).unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("compact::compact_streamable("), "{errs:?}");
+    }
+
+    /// The three doors purrdf offers that mint a header WITHOUT touching
+    /// `emit_gts` — an `emit_gts`-only seal is blind to every one of them.
+    #[test]
+    fn seal_b_fails_on_to_gts_pack_entries_and_from_tar_callers() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "exit.rs",
+            "pub fn a(ds: &RdfDataset) -> Vec<u8> {\n\
+             \x20   purrdf::gts_write::to_gts(ds, &look, \"p\").unwrap()\n}\n\
+             pub fn b(e: &[FileEntry]) -> Vec<u8> {\n\
+             \x20   purrdf::gts::files::pack_entries_v2(e).unwrap()\n}\n\
+             pub fn c(d: &[u8]) -> Vec<u8> {\n\
+             \x20   purrdf::gts::from_tar::from_tar_bytes(d, &opts).unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("3 production call(s)"), "{errs:?}");
+        assert!(errs[0].contains("gts_write::to_gts("), "{errs:?}");
+        assert!(errs[0].contains("files::pack_entries_v2("), "{errs:?}");
+        assert!(errs[0].contains("from_tar::from_tar_bytes("), "{errs:?}");
+    }
+
+    /// A `use … as Alias` rename must not hide the call — the real pipeline
+    /// imported purrdf's `Writer` as `GtsWriter`, so a name-only scan would have
+    /// missed the very site this work had to fix.
+    #[test]
+    fn seal_b_follows_a_renamed_writer_import() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "mcp.rs",
+            "use purrdf::gts::writer::Writer as GtsWriter;\n\
+             pub fn seg() -> Vec<u8> {\n\
+             \x20   let mut w = GtsWriter::new(\"ai-package\");\n\
+             \x20   w.to_bytes()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("GtsWriter::new("), "{errs:?}");
+    }
+
+    /// A renamed FREE function is followed the same way.
+    #[test]
+    fn seal_b_follows_a_renamed_free_function_import() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-math",
+            "lib.rs",
+            "use purrdf::gts_write::to_gts as serialize;\n\
+             pub fn go(ds: &RdfDataset) -> Vec<u8> {\n\
+             \x20   serialize(ds, &look, \"p\").unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("serialize("), "{errs:?}");
+    }
+
+    /// NON-VACUITY guard #1: the detector must not fire on prose, on a
+    /// commented-out call, on a call inside a string literal, or on a
+    /// `#[cfg(test)]` / composed-`cfg` test module.
+    #[test]
+    fn seals_ignore_comments_strings_and_test_gated_modules() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "clean.rs",
+            "//! This used to call purrdf::gts_compose::emit_gts(&b) directly.\n\
+             // let _ = purrdf::gts_write::to_gts(ds, &look, \"p\");\n\
+             pub const HINT: &str = \"route through emit_gts( instead of Writer::new(\";\n\
+             pub fn ok() {}\n\
+             #[cfg(test)]\n\
+             mod tests {\n\
+             \x20   fn t() {\n\
+             \x20       let _ = purrdf::gts_compose::emit_gts(&b, \"dist\", None);\n\
+             \x20       let mut w = purrdf::gts::writer::Writer::new(\"generic\");\n\
+             \x20   }\n\
+             }\n\
+             #[cfg(all(test, not(target_arch = \"wasm32\")))]\n\
+             mod native_tests {\n\
+             \x20   fn t() {\n\
+             \x20       let _ = purrdf::gts::compact::compact_streamable(d, false);\n\
+             \x20   }\n\
+             }\n",
+        );
+        let hits = gts_hits(root);
+        let outside: Vec<&GtsAuthorshipHit> = hits
+            .iter()
+            .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+            .collect();
+        assert!(outside.is_empty(), "{outside:?}");
+        assert!(gts_seal_errors(root).is_empty());
+    }
+
+    /// NON-VACUITY guard #2: substring collisions must not fire. `OkfWriter::new`
+    /// and `csv::Writer::new` are not purrdf's `Writer`; `pack_to_writer` merely
+    /// CONTAINS `to_writer`; `emit_gts_report` merely contains `emit_gts`.
+    #[test]
+    fn seals_ignore_substring_collisions() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-docs",
+            "okf.rs",
+            "use crate::okf::OkfWriter;\n\
+             use csv::Writer;\n\
+             pub fn a() {\n\
+             \x20   let mut w = OkfWriter::new(config);\n\
+             \x20   let mut c = Writer::new(sink);\n\
+             \x20   let _ = local_pack_to_writer(&sources, out);\n\
+             \x20   let _ = emit_gts_report(&b);\n\
+             \x20   let _ = my_from_tar(d);\n}\n",
+        );
+        let hits = gts_hits(root);
+        let outside: Vec<&GtsAuthorshipHit> = hits
+            .iter()
+            .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+            .collect();
+        assert!(outside.is_empty(), "{outside:?}");
+    }
+
+    /// The `csv::Writer` above is a NON-purrdf import, so the alias machinery must
+    /// not bind it. A purrdf import of the SAME bare name must still bind — this
+    /// pins that the discrimination is on the `use` path, not on the name.
+    #[test]
+    fn only_a_purrdf_use_statement_binds_the_writer_name() {
+        assert!(purrdf_use_bindings("use csv::Writer;", "Writer").is_empty());
+        assert_eq!(
+            purrdf_use_bindings("use purrdf::gts::writer::Writer;", "Writer")
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec!["Writer".to_string()]
+        );
+        assert_eq!(
+            purrdf_use_bindings("use purrdf::gts::writer::Writer as GtsWriter;", "Writer")
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec!["GtsWriter".to_string()]
+        );
+        // A longer identifier that merely CONTAINS the item name binds nothing.
+        assert!(
+            purrdf_use_bindings("use purrdf::gts::native_codecs::okf::OkfWriter;", "Writer")
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn cfg_predicate_test_gating_is_recognised_in_composed_forms() {
+        assert!(cfg_predicate_is_test_gated("test"));
+        assert!(cfg_predicate_is_test_gated(
+            "all(test, not(target_arch = \"wasm32\"))"
+        ));
+        assert!(cfg_predicate_is_test_gated(
+            "any(test, feature = \"harness\")"
+        ));
+        assert!(!cfg_predicate_is_test_gated("not(test)"));
+        assert!(!cfg_predicate_is_test_gated("feature = \"testing\""));
+        assert!(!cfg_predicate_is_test_gated("target_arch = \"wasm32\""));
+    }
+
+    /// The blanker must blank a COMPOSED test-gate's body, not just the bare
+    /// `#[cfg(test)]` — that hole is what let a wasm-gated test module look like
+    /// production code to every gate built on this view.
+    #[test]
+    fn blank_pass_blanks_a_composed_cfg_test_module_body() {
+        let text = "fn prod() {}\n\
+                    #[cfg(all(test, not(target_arch = \"wasm32\")))]\n\
+                    mod tests {\n    fn t() { purrdf::gts_write::to_gts(x); }\n}\n";
+        let code = blank_comments_strings_and_cfg_test_modules(text);
+        assert!(code.contains("fn prod"), "{code}");
+        assert!(!code.contains("to_gts"), "{code}");
+        assert_eq!(code.lines().count(), text.lines().count());
     }
 }

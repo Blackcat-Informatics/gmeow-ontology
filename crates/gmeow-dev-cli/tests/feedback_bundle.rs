@@ -180,3 +180,25 @@ fn verify_returns_false_when_snapshot_id_is_tampered() {
         "a bundle with a forged snapshot content id does not verify"
     );
 }
+
+/// The feedback bundle is authored GMEOW GTS output, so EVERY payload frame it
+/// carries — the snapshot frame AND the two small report blobs — must use the one
+/// mandated transform (`zstd-rsyncable` @ level 12). The SARIF/findings blobs sit
+/// well under the rsyncable threshold, which is exactly where a raw `emit_gts`
+/// call silently falls back to plain `zstd`.
+#[test]
+fn bundle_uses_the_mandated_frame_profile() {
+    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    gmeow_gts_profile::validate_mandated_frames(&bundle)
+        .expect("feedback bundle uses the mandated zstd-rsyncable-L12 frame profile");
+}
+
+/// The same audit over the EMPTY report: an empty findings graph still emits a
+/// snapshot frame plus both (tiny) blob frames, so the no-size-threshold rule
+/// binds there too.
+#[test]
+fn empty_bundle_uses_the_mandated_frame_profile() {
+    let bundle = build_feedback_bundle(&Report::new("validate")).expect("build empty bundle");
+    gmeow_gts_profile::validate_mandated_frames(&bundle)
+        .expect("empty feedback bundle uses the mandated zstd-rsyncable-L12 frame profile");
+}

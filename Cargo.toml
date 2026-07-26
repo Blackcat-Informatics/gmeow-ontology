@@ -23,6 +23,11 @@ members = [
     # NEVER by gmeow-cli, since its #[global_allocator] is process-global.
     "crates/cost-measure",
     "crates/errors",
+    # The single mandatory GTS authorship profile (zstd-rsyncable @ level 12) and
+    # its wire-level validator. A LEAF by construction: gmeow-pipeline depends on
+    # gmeow-math and gmeow-music, so hosting the profile in gmeow-pipeline would
+    # put it out of reach of exactly the producers that must obey it.
+    "crates/gts-profile",
     # Rust-owned typed documentation model built from the slice catalog (#853).
     "crates/docs",
     # Deterministic Typst-source renderer + in-memory byte-reproducible PDF

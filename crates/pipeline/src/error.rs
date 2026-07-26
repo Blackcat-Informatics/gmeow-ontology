@@ -12,6 +12,14 @@
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
+/// The GTS-authorship transform defect, minted by the `gmeow-gts-profile` LEAF
+/// crate: both the mandated emitter and the wire-level frame validator raise it,
+/// and neither may depend back on `gmeow-pipeline`. Re-exported here so
+/// `crate::error::Transform` keeps naming the one registered kind (code
+/// `pipeline.transform`, unchanged), and enumerated in [`PIPELINE_DIAG_CODES`] /
+/// [`register_all`] below by its owning path.
+pub use gmeow_gts_profile::Transform;
+
 define_diag_kind! {
     /// An I/O error reading a source artifact or the cache.
     pub struct Io { message: String }
@@ -184,17 +192,6 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A hard defect raised inside the native MAXIMAL(G) transform (skolemization,
-    /// saturation, projection, GTS emission): a malformed cell, an unparsable
-    /// input graph, or a serialization failure. The RDF value is invalid or the
-    /// codec refused — a HARD FAIL, never papered over.
-    pub struct Transform { message: String }
-    code = "pipeline.transform";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "transform error: {}", message;
-}
-
-define_diag_kind! {
     /// A hard defect raised while assembling or evaluating a scoreboard / acceptance
     /// gate (dataset build, SPARQL projection, corpus glob, or gate arithmetic).
     pub struct Scoreboard { message: String }
@@ -353,7 +350,7 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     ExpectedOutputMissing::CODE,
     CacheMismatch::CODE,
     StageFailed::CODE,
-    Transform::CODE,
+    gmeow_gts_profile::Transform::CODE,
     Scoreboard::CODE,
     Mcp::CODE,
     McpAmbiguousTerm::CODE,
@@ -401,7 +398,7 @@ pub fn register_all() -> Vec<Code> {
         ExpectedOutputMissing::register(),
         CacheMismatch::register(),
         StageFailed::register(),
-        Transform::register(),
+        gmeow_gts_profile::Transform::register(),
         Scoreboard::register(),
         Mcp::register(),
         McpAmbiguousTerm::register(),

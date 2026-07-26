@@ -23,6 +23,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use serde_json::{Value, json};
 
+use crate::gts_profile::GmeowGtsWriter;
 use gmeow_errors::ResultExt;
 use gmeow_lang_bridge::{
     Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
@@ -44,7 +45,6 @@ use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
-use purrdf::gts::writer::Writer as GtsWriter;
 use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 use sha2::{Digest, Sha256};
 
@@ -3539,7 +3539,7 @@ impl McpServer {
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
                 "1970-01-01T00:00:00Z",
-            );
+            )?;
             append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
             Ok(json!({
                 "ok": true,
@@ -4154,7 +4154,7 @@ pub fn run_conjecture_test(
         MCP_PERSIST_CONJECTURE_SCHEMA,
         &obtains,
         "1970-01-01T00:00:00Z",
-    );
+    )?;
     with_conjecture_lock(&path, || {
         append_conjecture_segments(&path, &[verdict_segment, audit_segment])
     })?;
@@ -4361,7 +4361,7 @@ pub fn run_submit_candidate(
         MCP_SUBMIT_CANDIDATE_SCHEMA,
         obtains,
         "1970-01-01T00:00:00Z",
-    );
+    )?;
     with_conjecture_lock(&path, || {
         append_conjecture_segments(&path, &[verdict_segment, audit_segment])
     })?;
@@ -4443,7 +4443,7 @@ pub fn run_withdraw_candidate(
             MCP_WITHDRAW_CANDIDATE_SCHEMA,
             &[MCP_CANDIDATE_IN_LIBRARY],
             "1970-01-01T00:00:00Z",
-        );
+        )?;
         append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
         Ok(json!({
             "ok": true,
@@ -5744,7 +5744,7 @@ fn write_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
-    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time);
+    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time)?;
     let mut file = fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -5763,7 +5763,7 @@ fn build_audit_segment(
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
-) -> Vec<u8> {
+) -> gmeow_errors::Result<Vec<u8>> {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
@@ -5799,10 +5799,10 @@ fn build_audit_segment(
         quads.push((t_start, t_so, t_sit, None));
     }
 
-    let mut writer = GtsWriter::new("ai-package");
-    writer.add_terms(&terms);
-    writer.add_quads(&quads);
-    writer.to_bytes()
+    let mut writer = GmeowGtsWriter::new("ai-package");
+    writer.add_terms(&terms)?;
+    writer.add_quads(&quads)?;
+    Ok(writer.into_bytes())
 }
 
 // ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
@@ -5924,7 +5924,7 @@ fn intern_nt_term(
 /// serialized bytes — the PURE, side-effect-free segment builder shared by the conjecture and
 /// candidate libraries. The body is parsed into `(subject, predicate, object)` triples, interned
 /// as RDF-1.2-native GTS terms (IRIs, blank nodes, and typed literals with their datatype), and
-/// written via [`GtsWriter`] — no plain-RDF / quad shortcut, so the append-only libraries stay
+/// written via [`GmeowGtsWriter`] — no plain-RDF / quad shortcut, so the append-only libraries stay
 /// RDF-1.2-native. Building the bytes is separated from appending them so a caller can assemble
 /// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
 /// together as one atomic file replace — see [`append_conjecture_segments`].
@@ -5972,10 +5972,10 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
         quads.push((s, p, o, None));
     }
 
-    let mut writer = GtsWriter::new("ai-package");
-    writer.add_terms(&terms);
-    writer.add_quads(&quads);
-    Ok(writer.to_bytes())
+    let mut writer = GmeowGtsWriter::new("ai-package");
+    writer.add_terms(&terms)?;
+    writer.add_quads(&quads)?;
+    Ok(writer.into_bytes())
 }
 
 /// The sidecar advisory-lock path for the conjecture library at `library_path`: the library
@@ -6066,7 +6066,7 @@ fn append_conjecture_segments(path: &Path, segments: &[Vec<u8>]) -> gmeow_errors
 /// AND `ConjectureWithdrawn` — and `gmeow:atTime` cannot break the tie either, because every
 /// audit segment stamps the SAME fixed determinism epoch. The streaming reader
 /// (`read_to_sink` with `allow_segments = true`) is the one path that preserves per-segment
-/// identity: each appended `GtsWriter` blob reads back as its own segment, delivered in
+/// identity: each appended `GmeowGtsWriter` blob reads back as its own segment, delivered in
 /// append order, so folding the lifecycle assertions in that order makes the LAST one win.
 #[derive(Default)]
 struct ConjectureSegments {
@@ -6570,12 +6570,18 @@ mod tests {
     /// conjecture/candidate libraries are content-addressed, so the segment bytes (and thus this
     /// digest) MUST stay byte-identical across any change to how the body is parsed — this pins
     /// the delegation of N-Triples parsing to purrdf against the prior hand-rolled lexer.
+    ///
+    /// The digest was re-blessed ONCE, deliberately, when segment authorship moved from a bare
+    /// purrdf `Writer` (payload frames with NO transform chain) to [`GmeowGtsWriter`]: the frames
+    /// now carry the mandated `zstd-rsyncable` chain at level 12, so the compressed payload bytes
+    /// — and therefore the content-addressed segment — necessarily changed. The libraries are
+    /// user-scoped, on-demand files, so no committed artifact depends on the prior bytes.
     #[test]
     fn build_nt_segment_bytes_are_stable() {
         let bytes = build_nt_segment(BYTE_PARITY_NT_BODY).expect("representative body must parse");
         assert_eq!(
             sha256_hex(&bytes),
-            "8be75532bab466852c33fea79c803ba2a847c14c0a063db6435dcb63468e0405",
+            "9c4469857dd979770eab5288ea2ac7718e08ea801279fe40039b340fbe9cdbf8",
             "build_nt_segment output digest changed; segment bytes are append-only content-addressed",
         );
     }
@@ -6636,6 +6642,70 @@ mod tests {
             env::set_var("GMEOW_MEMORY_PATH", &path);
         }
         (dir, path)
+    }
+
+    // ── mandated GTS frame profile on every gmeow-authored segment ────────────
+    //
+    // The trajectory-audit segments and the append-only conjecture/candidate
+    // library segments are authored by GMEOW production code, so every payload
+    // frame they carry uses the one mandated transform (`zstd-rsyncable` @ L12).
+    // They are on-demand, user-scoped files that the Makefile's bundle gate never
+    // sees, so these crate-local audits are their on-gate coverage.
+
+    #[test]
+    fn audit_segment_bytes_use_the_mandated_frame_profile() {
+        let segment = build_audit_segment(
+            "urn:gmeow:conjecture-call:profile-audit",
+            MCP_PERSIST_CONJECTURE_SCHEMA,
+            &[MCP_CONJECTURE_IN_LIBRARY],
+            "1970-01-01T00:00:00Z",
+        )
+        .expect("build the audit segment");
+        crate::gts_profile::validate_mandated_frames(&segment)
+            .expect("audit segment uses the mandated zstd-rsyncable-L12 frame profile");
+    }
+
+    /// The file-level twin: the bytes [`write_audit_segment`] APPENDS for a
+    /// recorded claim/tool-call are the same mandated-profile segment on disk.
+    #[test]
+    fn written_audit_segment_on_disk_uses_the_mandated_frame_profile() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("memory.gts");
+        write_audit_segment(
+            &path,
+            "urn:gmeow:tool-call:profile-audit",
+            MCP_PERSIST_CONJECTURE_SCHEMA,
+            &[MCP_CONJECTURE_IN_LIBRARY],
+            "1970-01-01T00:00:00Z",
+        )
+        .expect("write the audit segment");
+        let bytes = fs::read(&path).expect("read the appended segment");
+        crate::gts_profile::validate_mandated_frames(&bytes)
+            .expect("appended audit segment uses the mandated frame profile");
+    }
+
+    /// A conjecture append commits BOTH the verdict segment and its audit segment
+    /// as one atomic replace. The whole append-only library is gmeow-authored, so
+    /// every payload frame in the committed file carries the mandated transform.
+    #[test]
+    fn conjecture_library_append_uses_the_mandated_frame_profile() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("conjectures.gts");
+        let verdict_segment = build_nt_segment(BYTE_PARITY_NT_BODY).expect("build the verdict");
+        let audit_segment = build_audit_segment(
+            "urn:gmeow:conjecture-call:profile-append",
+            MCP_PERSIST_CONJECTURE_SCHEMA,
+            &[MCP_CONJECTURE_IN_LIBRARY],
+            "1970-01-01T00:00:00Z",
+        )
+        .expect("build the audit segment");
+        with_conjecture_lock(&path, || {
+            append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+        })
+        .expect("commit the append");
+        let bytes = fs::read(&path).expect("read the committed library");
+        crate::gts_profile::validate_mandated_frames(&bytes)
+            .expect("conjecture library append uses the mandated frame profile");
     }
 
     #[test]
@@ -10237,7 +10307,8 @@ mod tests {
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
                 "1970-01-01T00:00:00Z",
-            );
+            )
+            .expect("build the audit segment");
             with_conjecture_lock(&path, || {
                 append_conjecture_segments(&path, &[lib_segment, audit_segment])
             })

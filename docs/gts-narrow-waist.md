@@ -59,9 +59,19 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    snapshot frame, transformed consumer output, and signed release bundles; no
    size threshold may fall back to plain `zstd`, `gzip`, or `identity`. The GTS
    header is not a frame, and a signed bundle's transport-key metadata frame has
-   no payload bytes to compress. `gts_profile` centralizes production authorship,
-   compile-time asserts the upstream dist level remains 12, and the Rust gate
-   inspects every payload frame in the committed bundle for the exact codec chain.
+   no payload bytes to compress. The `gmeow-gts-profile` LEAF crate centralizes
+   production authorship behind three doors — `emit_gmeow_gts` (snapshot
+   bundles), `dataset_to_gmeow_gts` (the `convert --to gts` exit), and
+   `GmeowGtsWriter` (append-only `ai-package` segments) — and compile-time
+   asserts the upstream dist level remains 12. `validate_mandated_frames` audits
+   every payload frame of a bundle OR of a multi-segment append-only file, and
+   each producer runs it over its own output on-gate. Two `gmeow-validate`
+   repo-static seals keep the crate the only door: `purrdf::gts_compose::emit_gts`
+   has exactly one production caller (the profile crate), and no production code
+   outside it calls any purrdf entry point that returns a `Writer` or GTS bytes —
+   the header-minting paths (`gts_write::to_gts`, a bare `Writer`, the
+   `files`/`from_tar` packers, `compact_streamable`) an `emit_gts`-only seal
+   cannot see.
 
 ## Box Roles In The Package
 

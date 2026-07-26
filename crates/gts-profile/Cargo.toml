@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-gts-profile"
+description = "The single mandatory GMEOW GTS authorship profile: every payload-bearing frame carries exactly one transform (zstd-rsyncable, level 12), plus the wire-level validator that proves it"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["gmeow", "gts", "zstd", "frame", "profile"]
+
+[lib]
+# LEAF rlib. Every GMEOW crate that authors GTS bytes depends on this one, so it
+# must never depend back on gmeow-pipeline (or on any producer crate) — routing
+# the profile through gmeow-pipeline would be a cargo cycle for gmeow-math and
+# gmeow-music, which gmeow-pipeline already depends on.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The GTS container + snapshot composition surface this crate is the sole
+# production gateway to.
+purrdf.workspace = true
+# The diagnostic substrate: the `Transform` kind lives here (it is raised by both
+# the emitter and the validator), so the profile crate owns it outright.
+gmeow-errors = { path = "../errors" }
+# The wire-level frame audit walks the raw CBOR item stream directly.
+ciborium = "0.2"

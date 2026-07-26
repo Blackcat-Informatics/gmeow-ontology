@@ -58,8 +58,12 @@ fn reasoning_graphs_source() -> String {
     read("crates/logic/src/reasoning_graphs.rs")
 }
 
+/// The mandated GTS frame profile now lives in the `gmeow-gts-profile` LEAF crate
+/// (`crates/pipeline/src/gts_profile.rs` is a re-export shim): `gmeow-pipeline`
+/// depends on `gmeow-math`/`gmeow-music`, so those producers could not have
+/// reached the profile from inside `gmeow-pipeline`.
 fn gts_profile_source() -> String {
-    read("crates/pipeline/src/gts_profile.rs")
+    read("crates/gts-profile/src/lib.rs")
 }
 
 // ── Makefile target parsing (mirrors make_gate_contract.rs) ────────────────────────

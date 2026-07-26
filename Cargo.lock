@@ -1624,6 +1624,7 @@ dependencies = [
  "gmeow-docs",
  "gmeow-errors",
  "gmeow-foundation-corpus",
+ "gmeow-gts-profile",
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",
@@ -1703,6 +1704,15 @@ dependencies = [
  "gmeow-lang-bridge",
  "purrdf",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "gmeow-gts-profile"
+version = "0.2.0"
+dependencies = [
+ "ciborium",
+ "gmeow-errors",
+ "purrdf",
 ]
 
 [[package]]
@@ -1805,6 +1815,7 @@ name = "gmeow-math"
 version = "0.2.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-gts-profile",
  "purrdf",
 ]
 
@@ -1813,6 +1824,7 @@ name = "gmeow-music"
 version = "0.2.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-gts-profile",
  "purrdf",
  "roxmltree",
 ]
@@ -1832,6 +1844,7 @@ dependencies = [
  "gmeow-conformance",
  "gmeow-docs",
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-lang-bridge",
  "gmeow-lang-form",
  "gmeow-logic",
@@ -1921,6 +1934,7 @@ dependencies = [
  "gmeow-affect-ingest",
  "gmeow-cost-measure",
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",

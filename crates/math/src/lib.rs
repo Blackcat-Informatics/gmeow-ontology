@@ -727,7 +727,18 @@ pub fn index_dataset(dataset: &purrdf::RdfDataset) -> TripleIndex {
 /// read a shipped `.gts` bundle — the conformance consumers exercise the same
 /// read substrate as production, not a divergent parser.
 pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex> {
-    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+    let gts = turtle_to_gts(turtle)?;
+    let graph = purrdf::gts::reader::read(&gts, false, None);
+    Ok(index_graph(&graph))
+}
+
+/// Compose `turtle` into a GMEOW GTS bundle under the mandated frame profile.
+///
+/// The byte-producing half of [`index_turtle`], separated so the emitted bundle
+/// can be audited directly: these are production GTS bytes, so every payload
+/// frame carries `zstd-rsyncable` at level 12 like the shipped bundle's.
+fn turtle_to_gts(turtle: &[u8]) -> Result<Vec<u8>> {
+    use purrdf::gts_compose::SnapshotBuilder;
     use purrdf::{NativeRdfFormat, parse_dataset};
 
     let dataset =
@@ -742,24 +753,13 @@ pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex> {
             detail: format!("cannot snapshot dataset: {err}"),
         })
     })?;
-    let gts = emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
+    gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None).map_err(
+        |err| {
+            Diag::of_kind(GraphRead {
+                detail: format!("cannot emit GTS: {err}"),
+            })
+        },
     )
-    .map_err(|err| {
-        Diag::of_kind(GraphRead {
-            detail: format!("cannot emit GTS: {err}"),
-        })
-    })?;
-    let graph = purrdf::gts::reader::read(&gts, false, None);
-    Ok(index_graph(&graph))
 }
 
 fn objects<'a>(index: &'a TripleIndex, subject: &str, predicate: &str) -> &'a [Node] {
@@ -929,6 +929,25 @@ pub fn load_vector(index: &TripleIndex, vector_iri: &str) -> Result<Vec<Rational
 mod tests {
     use super::*;
     use std::cmp::Ordering;
+
+    /// The `math` GTS bundle is authored GMEOW GTS output: every payload frame it
+    /// carries uses the one mandated transform (`zstd-rsyncable` @ L12), with no
+    /// size-threshold fallback to plain `zstd`. `index_turtle` is an on-demand
+    /// path that materializes no file, so this crate-local audit is the on-gate
+    /// coverage for it.
+    #[test]
+    fn math_bundle_uses_the_mandated_frame_profile() {
+        let bytes = turtle_to_gts(
+            concat!(
+                "@prefix math: <https://blackcatinformatics.ca/math/> .\n",
+                "<urn:gmeow:math:space> a math:InnerProductSpace ; math:dimension 2 .\n",
+            )
+            .as_bytes(),
+        )
+        .expect("emit the math bundle");
+        gmeow_gts_profile::validate_mandated_frames(&bytes)
+            .expect("math bundle uses the mandated zstd-rsyncable-L12 frame profile");
+    }
 
     fn r(num: i128, den: i128) -> Rational {
         Rational::new(num, den).expect("rational")

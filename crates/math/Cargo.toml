@@ -21,3 +21,7 @@ purrdf.workspace = true
 # typed `Diag` under the `math.*` code namespace, not a bare string. Non-optional —
 # the substrate is the standard error surface for this grounding crate.
 gmeow-errors = { path = "../errors" }
+# The single mandatory GTS authorship profile: `index_turtle` normalizes through
+# the GTS snapshot codec, so its bytes are production GTS bytes and must carry
+# `zstd-rsyncable` @ L12 like every other GMEOW-authored frame.
+gmeow-gts-profile = { path = "../gts-profile" }

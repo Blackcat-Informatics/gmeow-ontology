@@ -20,5 +20,9 @@ default = []
 
 [dependencies]
 gmeow-errors = { path = "../errors" }
+# The single mandatory GTS authorship profile: `piece_to_gts_bytes` ships a
+# music package as GTS bytes, so its frames obey the same one-transform rule as
+# the shipped bundle.
+gmeow-gts-profile = { path = "../gts-profile" }
 purrdf.workspace = true
 roxmltree = "0.20"

@@ -99,9 +99,16 @@ a merge.
 Every payload-bearing frame in any production-authored GMEOW GTS bundle MUST use
 exactly `zstd-rsyncable` at compression level 12. This is a hard distribution
 contract: never substitute gzip, plain zstd, identity, or a size-dependent
-fallback. The pipeline's `gts_profile` wrapper and committed-bundle frame audit
-enforce the transform, while a compile-time assertion pins purrdf's dist level to
-12. Header and payload-free transport metadata are not compression frames.
+fallback. The `gmeow-gts-profile` LEAF crate is the single production door to
+purrdf's GTS-authorship surface — `emit_gmeow_gts` (snapshot bundles),
+`dataset_to_gmeow_gts` (the `convert --to gts` exit), and `GmeowGtsWriter`
+(append-only segments) — and `validate_mandated_frames` is the wire-level audit
+each producer runs over its own output. Two `gmeow-validate` repo-static seals
+keep it the only door: `purrdf::gts_compose::emit_gts` has exactly one production
+caller, and no production code outside that crate calls ANY purrdf entry point
+that hands back a `Writer` or GTS bytes. A compile-time assertion pins purrdf's
+dist level to 12. Header and payload-free transport metadata are not compression
+frames.
 
 ### Validation & Compilation
 
