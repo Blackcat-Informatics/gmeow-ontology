@@ -115,7 +115,8 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
         "math::producers::r_lift" => {
             let out = producers::r_lift();
             assert_eq!(
-                out.codomain_nodes, 131,
+                out.codomain_nodes,
+                gmeow_math::producers::codomain::R_LIFT,
                 "the executable R lift must produce the pinned math: codomain size"
             );
             assert!(

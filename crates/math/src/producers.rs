@@ -988,6 +988,25 @@ const ONNX_LIFT_SOURCE: &[u8] = include_bytes!("../../math-lift/fixtures/mlp.onn
 /// `crates/math-lift/fixtures/theorem-subclass.tstp`, embedded at COMPILE TIME.
 const PROOF_LIFT_SOURCE: &str = include_str!("../../math-lift/fixtures/theorem-subclass.tstp");
 
+/// The codomain sizes the three executable lifts produce.
+///
+/// ONE source for a number that four surfaces assert: the two producer test binaries, the
+/// three dogfood fixture headers, and the drift gate. It was hard-coded in each, and a
+/// parser change updated some and not others TWICE — the gate that reds is not always the
+/// one you re-blessed, so the miss surfaced an hour later in a different crate.
+///
+/// The fixture headers stay independently written (they are prose a reader sees) and
+/// `lift_fixture_drift` proves them equal to the live producer, so the two mechanisms
+/// cross-check rather than duplicate.
+pub mod codomain {
+    /// [`super::r_lift`]'s codomain node count.
+    pub const R_LIFT: usize = 141;
+    /// [`super::onnx_lift`]'s codomain node count.
+    pub const ONNX_LIFT: usize = 55;
+    /// [`super::proof_lift`]'s codomain node count.
+    pub const PROOF_LIFT: usize = 33;
+}
+
 /// The pinned result of [`r_lift`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RLift {

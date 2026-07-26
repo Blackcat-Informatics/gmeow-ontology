@@ -223,14 +223,14 @@ fn executable_lifts_pin_their_codomain_sizes() {
     // `logic:Type` relation plus an indexed `logic:TermCarrier`) instead of a bare
     // `a logic:Formula`, which selected no constructor and violated
     // `logic:FormulaConstructorConstraint`.
-    assert_eq!(r.codomain_nodes, 141);
+    assert_eq!(r.codomain_nodes, producers::codomain::R_LIFT);
     assert!(r.ingest_run.starts_with(PRODUCER_NS));
 
     let onnx = onnx_lift();
-    assert_eq!(onnx.codomain_nodes, 55);
+    assert_eq!(onnx.codomain_nodes, producers::codomain::ONNX_LIFT);
     assert!(onnx.ingest_run.starts_with(PRODUCER_NS));
 
     let proof = proof_lift();
-    assert_eq!(proof.codomain_nodes, 33);
+    assert_eq!(proof.codomain_nodes, producers::codomain::PROOF_LIFT);
     assert!(proof.ingest_run.starts_with(PRODUCER_NS));
 }
