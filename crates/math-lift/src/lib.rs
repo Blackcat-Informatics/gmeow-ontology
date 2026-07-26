@@ -54,6 +54,7 @@
 pub mod error;
 pub mod frame;
 pub mod ns;
+pub mod r;
 pub mod sink;
 
 pub use error::{MATH_LIFT_DIAG_CODES, register_all};
