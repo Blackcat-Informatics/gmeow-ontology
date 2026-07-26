@@ -568,6 +568,7 @@ gmeow:pipeline-build
         gmeow:stage-export-agreement ,
         gmeow:stage-export-lpg ,
         gmeow:stage-export-yaml-ld ,
+        gmeow:stage-archive-blobs ,
         gmeow:stage-gts-sink .
 
 # ── Spine ──
@@ -1111,19 +1112,40 @@ gmeow:stage-export-yaml-ld
     gmeow:producesFormat "yaml-ld" ;
     gmeow:producesFormat "json-ld" .
 
+# ── The by-reference archive fold ──
+
+gmeow:stage-archive-blobs
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "archive blobs"@x-gmeow-english ;
+    skos:definition "Fold the eight by-reference TAR archives a repo-free consumer reads back out of gmeow.gts — mappings-archive (the compiled SSSOM lift maps), cells-archive (the mapping-DSL cell sources), queries-archive (the generated SPARQL surface), tests-archive (the slice test-DSL specs), schemas-archive (the SHACL-derived JSON Schema and OpenAPI plus the two hand-authored self-describing schemas), shapes-archive (the FULL SHACL shape surface: authored shapes, per-slice shapes, and the generated shape projections), axioms-archive (the small committed logic/DL projections), and models-python (the generated Pydantic package) — and attach each to this stage's product on its own blob-representation lane. It is the SINGLE authority on archive membership: every generated member is sourced from an in-memory producer product (gmeow:stage-compile-logic, gmeow:stage-mappings, gmeow:stage-export-json-schema, gmeow:stage-export-pydantic, and the three generated-shape export leaves), never from a committed generated/ file, which is not flushed until the post-run reconcile returns; only genuinely authored trees (dsl/mappings, the per-slice tests and shapes, and the top-level shapes directory) are read from source, and every one of them is declared as a raw cache input. The fold ran INSIDE the terminal sink before, so the archives did not exist as a product until the last node of the graph and any consumer of them would have closed a cycle; as its own stage they are available mid-graph, and the terminal now READS them instead of re-folding (the transform-once razor). A missing producer artifact or an archive that would fold empty is a HARD FAIL, never a degraded partial archive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "archive-blobs" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-json-schema ,
+        gmeow:stage-export-pydantic ,
+        gmeow:stage-export-result-shapes ,
+        gmeow:stage-mappings .
+
 # ── The single serialization exit (the gts narrow waist) ──
 
 gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
+    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once). The eight by-reference TAR archives are READ off the gmeow:stage-archive-blobs product, folded once by that stage and never re-folded here; the terminal staples only the blob channels it alone can see: the document-scale language surface blobs, the native reasoning reports (gmeow:stage-reason), the opaque generated/ fanout archive over THIS run's carrier, the typed SHACL/ShEx validation sidecars (gmeow:stage-compile-logic), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "gts_sink" ;
     gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:dataflowConsumes
+        gmeow:stage-archive-blobs ,
         gmeow:stage-snapshot ,
         gmeow:stage-source-load ,
         gmeow:stage-export-agreement ,
@@ -1131,17 +1153,12 @@ gmeow:stage-gts-sink
         gmeow:stage-export-bench ,
         gmeow:stage-export-cost-ledger ,
         gmeow:stage-export-evals ,
-        gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-glossary ,
-        gmeow:stage-export-json-schema ,
-        gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-references ,
         gmeow:stage-export-research-objects ,
-        gmeow:stage-export-result-shapes ,
         gmeow:stage-export-schemas ,
-        gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
         gmeow:stage-export-projection-ceilings ,
         gmeow:stage-compile-logic ,
@@ -1219,6 +1236,16 @@ gmeow:stage-reason
 
 gmeow:stage-goal-directed
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/goal-directed> .
+
+gmeow:stage-archive-blobs
+    gmeow:attachesBlobRep "axioms-archive" ,
+        "cells-archive" ,
+        "mappings-archive" ,
+        "models-python" ,
+        "queries-archive" ,
+        "schemas-archive" ,
+        "shapes-archive" ,
+        "tests-archive" .
 
 gmeow:stage-validate
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics>, <https://blackcatinformatics.ca/gmeow/graph/norm-claims> ;

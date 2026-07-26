@@ -31,9 +31,9 @@ pub struct GtsSinkStage {
 }
 
 impl GtsSinkStage {
-    /// Construct the sink. It consumes the assembled carrier (`stage-snapshot`) and the
-    /// by-reference blob sources it folds into the terminal `gmeow.gts` package:
-    /// the in-memory JSON-Schema/axiom/reasoning/SHACL-report products plus the
+    /// Construct the sink. It consumes the assembled carrier (`stage-snapshot`), the
+    /// already-folded by-reference TAR archives (`stage-archive-blobs`), and the blob
+    /// sources it staples itself: the in-memory reasoning/SHACL-report products plus the
     /// byte-decorated RDF 1.2 statement lanes (`stage-statements`).
     /// It holds [`SINK_CAPABILITY`] — the sole serialization exit the loader requires
     /// exactly one stage to hold (mirrored by the slice
@@ -42,11 +42,17 @@ impl GtsSinkStage {
         Self {
             consumes: vec![
                 "stage-snapshot".to_string(),
+                // THIS run's eight by-reference TAR archives (mappings / cells / queries
+                // / tests / schemas / shapes / axioms / models-python), folded once by
+                // their own producer — the terminal reads them off that product and
+                // re-folds nothing (PIPELINE_SPINE §3.2/§4). The edge also orders the
+                // sink after every archive-member producer transitively, so the
+                // JSON-Schema / Pydantic / generated-shape leaves need no direct edge.
+                "stage-archive-blobs".to_string(),
                 // The executable-docs "try it" surface reasons over the object-level EDB,
                 // whose authored / imports / alignments graphs ride on the source-load
                 // product (read, not re-loaded from disk).
                 "stage-source-load".to_string(),
-                "stage-export-json-schema".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
@@ -65,23 +71,8 @@ impl GtsSinkStage {
                 "stage-export-glossary".to_string(),
                 "stage-export-matrix".to_string(),
                 "stage-export-metadata".to_string(),
-                // The Pydantic model package, folded into REP_MODELS_PYTHON by
-                // build_archive_blobs from this run's fresh product.
-                "stage-export-pydantic".to_string(),
                 "stage-export-references".to_string(),
                 "stage-export-research-objects".to_string(),
-                // The generated shape surfaces (P11 frame shapes + the ResultShape
-                // SHACL projection): `serialize_carrier_snapshot` folds REP_SHAPES'
-                // generated members from THESE runs' in-memory products, never a
-                // stale disk read (the same freshness rule as validation-shapes.ttl).
-                // Without these edges a new competency ResultShape could never reach
-                // the bundle — the fanout would rewrite the stale committed
-                // generated/shapes bytes forever. constraint-shapes.ttl (the logic:
-                // FOL-axiom projection) folds the same way, and on a first run does not
-                // yet exist on disk, so only the fresh product can carry it (H8).
-                "stage-export-frame-shapes".to_string(),
-                "stage-export-result-shapes".to_string(),
-                "stage-export-constraint-shapes".to_string(),
                 // The LinkML/TypeScript/GraphQL developer schema surfaces: co-derived
                 // from the same fresh shape compilation as json-schema/pydantic, folded
                 // into REP_GENERATED from THIS run's fresh product (never re-derived
@@ -127,15 +118,19 @@ impl Stage for GtsSinkStage {
         // v5: REP_SHAPES' generated members (result-shapes.ttl + frame-shapes.ttl)
         // are folded from the consumed export-leaf products instead of a stale
         // disk read, matching the validation-shapes.ttl freshness rule.
-        "gts_sink.v5-fresh-generated-shape-surfaces"
+        // v6: the eight by-reference TAR archives are no longer folded here at all —
+        // they are READ off the `stage-archive-blobs` product (the fold moved to its
+        // own stage so the archives exist mid-DAG).
+        "gts_sink.v6-archives-read-from-their-own-stage"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
         // into the single `gmeow.gts` package. GTS is exit-only — produced HERE and
         // nowhere else; every internal export leaf reads the carrier dataset off the
         // snapshot product's bundle, never these bytes. The carrier is taken off the
-        // bundle (no re-assembly — the razor: transform transport→form once), and the
-        // by-reference blob archives are folded in alongside it.
+        // bundle (no re-assembly — the razor: transform transport→form once); the
+        // by-reference TAR archives are READ off the `stage-archive-blobs` product and
+        // stapled alongside it, never re-folded here.
         let carrier = crate::stages::carrier::snapshot_dataset(input.upstream)?;
         let gts = crate::stages::carrier::serialize_carrier_snapshot(
             input.root,
@@ -418,6 +413,20 @@ mod tests {
         for product in export_leaves {
             upstream.insert(product.stage_id.clone(), product);
         }
+        // The eight by-reference TAR archives arrive as their OWN stage's product now: fold
+        // them over this same fixture upstream and insert the result, exactly as the real
+        // DAG does. The sink then READS them (never re-folds), so this also pins that the
+        // sink's fail-closed archive wiring is the product read, not an inline build.
+        let archives = crate::stages::archive_blobs::ArchiveBlobsStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("the archive-blobs stage folds the fixture archives");
+        upstream.insert(
+            crate::stages::archive_blobs::STAGE_ID.to_string(),
+            archives.product,
+        );
         // Drive the docs-model-injectable serializer directly with an EMPTY DocsModel so the
         // OKF-coverage gate is scoped to the fixture (no documented terms → no dangling links),
         // exercising the sink's fail-closed blob/serialization wiring without paying for the
