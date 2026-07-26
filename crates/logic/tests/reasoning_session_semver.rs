@@ -134,26 +134,26 @@ use session_common::*;
 /// `include_str!` into `backward_source_hash()`, so the raw source-content digest moves.
 /// No lowering behavior changes (only an attribute), so no reasoning verdict on any
 /// input — including the fixed edge-only input below — changes.
-/// Re-blessed once more for the math: expressions hardening task's `structural_digest`/
-/// `lower_math_expression` property tests (`interning_tests`-shaped additions to the
-/// existing `physical::lower::tests` module — alpha-equivalence, injectivity, and
-/// interning coverage, plus the `reference-ast-act.ttl` `math:structuralKey` placeholder
-/// reconciliation): `physical/lower.rs` is a member of `BACKWARD_SOURCE`, folded via
-/// `include_str!` into `backward_source_hash()`, so the raw source-content digest moves
-/// even though only `#[cfg(test)]` content was added — no lowering behavior changes, so
-/// no reasoning verdict on any input, including the fixed edge-only input below, changes.
-/// Re-blessed once more for the whole-matrix conformance reconciliation task: widening
-/// `reason::math_gate`'s module visibility and `dimension_gate_markers`' fn visibility from
-/// `pub(crate)` to `pub` (so the completeness harness in `crates/pipeline` can call it
-/// directly) changes those files' raw bytes, and both are `BACKWARD_SOURCE` members folded
-/// into `backward_source_hash()`; a trivial `cargo fmt` rewrap of one test line in
-/// `physical/lower.rs` (also a `BACKWARD_SOURCE` member) moves it further. No reasoning
-/// behavior changes on any input — attribute/whitespace-only source moves.
+/// Re-blessed once more for new `structural_digest`/`lower_math_expression` property
+/// tests (`interning_tests`-shaped additions to the existing `physical::lower::tests`
+/// module — alpha-equivalence, injectivity, and interning coverage, plus the
+/// `reference-ast-act.ttl` `math:structuralKey` placeholder reconciliation):
+/// `physical/lower.rs` is a member of `BACKWARD_SOURCE`, folded via `include_str!` into
+/// `backward_source_hash()`, so the raw source-content digest moves even though only
+/// `#[cfg(test)]` content was added — no lowering behavior changes, so no reasoning
+/// verdict on any input, including the fixed edge-only input below, changes.
+/// Re-blessed once more for widening `reason::math_gate`'s module visibility and
+/// `dimension_gate_markers`' fn visibility from `pub(crate)` to `pub` (so a completeness
+/// harness in `crates/pipeline` can call it directly): this changes those files' raw
+/// bytes, and both are `BACKWARD_SOURCE` members folded into `backward_source_hash()`; a
+/// trivial `cargo fmt` rewrap of one test line in `physical/lower.rs` (also a
+/// `BACKWARD_SOURCE` member) moves it further. No reasoning behavior changes on any
+/// input — attribute/whitespace-only source moves.
 /// Re-blessed once more for removing a stray comment reference from `physical/lower.rs`
 /// (also a `BACKWARD_SOURCE` member, so its raw bytes move again): comment-only, no
 /// reasoning behavior change on any input.
-/// Re-blessed once more for the `math:` expressions hardening task's two lowering-
-/// correctness fixes in `physical/lower.rs` (a `BACKWARD_SOURCE` member): (1) the leaf
+/// Re-blessed once more for two lowering-correctness fixes in `physical/lower.rs` (a
+/// `BACKWARD_SOURCE` member): (1) the leaf
 /// fallback in `lower_math_node_dispatch` no longer silently accepts a named node
 /// carrying an unrecognized `math:` type as an opaque IRI leaf — it now HARD-FAILS with
 /// `MathLoweringError::UnrecognizedExpressionType` (which gained a `types: Vec<String>`
@@ -167,20 +167,19 @@ use session_common::*;
 /// (a previously-silently-accepted ill-typed leaf or rootless cycle is now soundly
 /// rejected), but NOT on this fixed edge-only input (which authors no `math:` expression
 /// graph at all), so the fixed-input session verdict is unchanged.
-/// Re-blessed once more for the `math:` expressions hardening task's phantom-variant
-/// removal (see the fixed-input golden below too): `physical/lower.rs`'s
-/// `intern_bound_checked_math` duplicate helper and its two `DeBruijnDistanceOverflow` /
-/// `DeBruijnSlotOverflow` variants (unreachable by construction — `lower_math_binding`
-/// pushes exactly one declaration per binder frame and every descent is depth-bounded by
-/// `MAX_MATH_EXPRESSION_DEPTH`) are deleted, and the call site now reuses the shared
-/// `intern_bound_checked` helper, panicking on the now-provably-unreachable error case
-/// instead of laundering it into a `math:` conformance failure. `physical/lower.rs` is a
-/// `BACKWARD_SOURCE` member, so this moves the native-contract source-content digest
-/// folded into this descriptor; the fixed edge-only input (authoring no `math:`
-/// expression graph) has an unchanged reasoning verdict.
-/// Re-blessed once more for the math: expressions hardening task's α-equivalence-class
-/// term (`math:alphaEquivalenceClass`) reaching a production call site:
-/// `physical/lower.rs` (a `BACKWARD_SOURCE` member) drops the `#[allow(dead_code)]` on
+/// Re-blessed once more for a phantom-variant removal (see the fixed-input golden below
+/// too): `physical/lower.rs`'s `intern_bound_checked_math` duplicate helper and its two
+/// `DeBruijnDistanceOverflow` / `DeBruijnSlotOverflow` variants (unreachable by
+/// construction — `lower_math_binding` pushes exactly one declaration per binder frame and
+/// every descent is depth-bounded by `MAX_MATH_EXPRESSION_DEPTH`) are deleted, and the
+/// call site now reuses the shared `intern_bound_checked` helper, panicking on the
+/// now-provably-unreachable error case instead of laundering it into a `math:` conformance
+/// failure. `physical/lower.rs` is a `BACKWARD_SOURCE` member, so this moves the
+/// native-contract source-content digest folded into this descriptor; the fixed edge-only
+/// input (authoring no `math:` expression graph) has an unchanged reasoning verdict.
+/// Re-blessed once more for the α-equivalence-class term (`math:alphaEquivalenceClass`)
+/// reaching a production call site: `physical/lower.rs` (a `BACKWARD_SOURCE` member) drops
+/// the `#[allow(dead_code)]` on
 /// `alpha_class_iri` / `alpha_class_iri_for_digest`, now called from
 /// `math_expression.rs`'s `check_structural_key_drift` (which is itself NOT a
 /// `BACKWARD_SOURCE` member, so its own new `classify_structural_key_usage` /
@@ -243,34 +242,31 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// identity axes and moves with the changed `physical/lower.rs` engine source
 /// (a dropped `#[allow(dead_code)]`, no behavior change), while the fixed edge-only
 /// input's reasoning verdict is unchanged.
-/// Re-blessed once more for the math: expressions hardening task's `structural_digest`/
-/// `lower_math_expression` property tests (see the engine-descriptor golden above): the
-/// native contract hash is one of the seven folded identity axes and moves with the
-/// changed `physical/lower.rs` engine source (test-only content), while the fixed
-/// edge-only input's reasoning verdict is unchanged.
-/// Re-blessed once more for the whole-matrix conformance reconciliation task (see the
-/// engine-descriptor golden above): the native contract hash folds the changed
-/// `reason/math_gate.rs`/`reason/mod.rs` (visibility widening) and `physical/lower.rs`
-/// (fmt rewrap) engine source, while the fixed edge-only input's reasoning verdict is
-/// unchanged.
+/// Re-blessed once more for new `structural_digest`/`lower_math_expression` property
+/// tests (see the engine-descriptor golden above): the native contract hash is one of the
+/// seven folded identity axes and moves with the changed `physical/lower.rs` engine source
+/// (test-only content), while the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for widening `reason::math_gate`'s module visibility and
+/// `dimension_gate_markers`'s fn visibility to `pub` (see the engine-descriptor golden
+/// above): the native contract hash folds the changed `reason/math_gate.rs`/`reason/mod.rs`
+/// (visibility widening) and `physical/lower.rs` (fmt rewrap) engine source, while the
+/// fixed edge-only input's reasoning verdict is unchanged.
 /// Re-blessed once more for removing a stray comment reference from `physical/lower.rs`
 /// (see the engine-descriptor golden above): comment-only source move, no reasoning
 /// verdict change.
-/// Re-blessed once more for the `math:` expressions hardening task's two lowering-
-/// correctness fixes (see the engine-descriptor golden above): the native contract hash
-/// is one of the seven folded identity axes and moves with the changed `physical/lower.rs`
-/// engine source, while the fixed edge-only input (authoring no `math:` expression graph)
-/// has an unchanged reasoning verdict.
-/// Re-blessed once more for the `math:` expressions hardening task's phantom-variant
-/// removal (see the engine-descriptor golden above for the mechanism): `physical/lower.rs`
-/// is a `BACKWARD_SOURCE` member, so deleting the unreachable `DeBruijnDistanceOverflow` /
-/// `DeBruijnSlotOverflow` variants and their duplicate `intern_bound_checked_math` helper
-/// moves the native contract hash, one of the seven folded identity axes, while the fixed
-/// edge-only input (authoring no `math:` expression graph) has an unchanged reasoning
-/// verdict.
-/// Re-blessed once more for the math: expressions hardening task's α-equivalence-class
-/// term reaching a production call site (see the engine-descriptor golden above for the
-/// mechanism): `physical/lower.rs`'s dropped `#[allow(dead_code)]` on `alpha_class_iri` /
+/// Re-blessed once more for two lowering-correctness fixes (see the engine-descriptor
+/// golden above): the native contract hash is one of the seven folded identity axes and
+/// moves with the changed `physical/lower.rs` engine source, while the fixed edge-only
+/// input (authoring no `math:` expression graph) has an unchanged reasoning verdict.
+/// Re-blessed once more for a phantom-variant removal (see the engine-descriptor golden
+/// above for the mechanism): `physical/lower.rs` is a `BACKWARD_SOURCE` member, so
+/// deleting the unreachable `DeBruijnDistanceOverflow` / `DeBruijnSlotOverflow` variants
+/// and their duplicate `intern_bound_checked_math` helper moves the native contract hash,
+/// one of the seven folded identity axes, while the fixed edge-only input (authoring no
+/// `math:` expression graph) has an unchanged reasoning verdict.
+/// Re-blessed once more for the α-equivalence-class term reaching a production call site
+/// (see the engine-descriptor golden above for the mechanism): `physical/lower.rs`'s
+/// dropped `#[allow(dead_code)]` on `alpha_class_iri` /
 /// `alpha_class_iri_for_digest` moves the native contract hash, one of the seven folded
 /// identity axes, while the fixed edge-only input (authoring no `math:` expression graph)
 /// has an unchanged reasoning verdict.

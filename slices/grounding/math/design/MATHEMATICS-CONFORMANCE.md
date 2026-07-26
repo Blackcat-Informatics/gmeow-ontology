@@ -375,12 +375,12 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| Every projection declares its unsupported constructs | projection test | `math:UndeclaredUnsupportedConstruct` |
-| Every projection declares a `logic:preservationKind` | projection test | `math:MissingPreservationKind` |
-| No projection silently converts confidence to probability | projection test | `math:ProjectionConfidenceAsProbability` |
-| No projection silently drops distribution parameterization | projection test | `math:ProjectionDroppedParameterization` |
-| No projection flattens an expression AST to a string without recording loss | projection test | `math:UnrecordedProjectionLoss` |
-| A declared-exact projection round-trips (section/retraction) on the conformance corpus | projection test | `math:ExactPreservationViolated` |
+| Every projection declares its unsupported constructs | projection test (`crates/pipeline/tests/support/math_projection_producer.rs`, all three producers) | `math:UndeclaredUnsupportedConstruct` |
+| Every projection declares a `logic:preservationKind` | projection test (`crates/pipeline/tests/support/math_projection_producer.rs`, all three producers) | `math:MissingPreservationKind` |
+| No projection silently converts confidence to probability | projection test (`crates/pipeline/tests/support/math_projection_producer.rs` `produce_confidence_probability_projection`) | `math:ProjectionConfidenceAsProbability` |
+| No projection silently drops distribution parameterization | projection test (`crates/pipeline/tests/support/math_projection_producer.rs` `produce_distribution_scipy_projection`) | `math:ProjectionDroppedParameterization` |
+| No projection flattens an expression AST to a string without recording loss | projection test (`crates/pipeline/tests/support/math_projection_producer.rs` `produce_expression_annotation_projection`) | `math:UnrecordedProjectionLoss` |
+| A declared-exact `math:JointProbabilityTable`/`math:MarkovKernel`/`math:BayesianNetwork`/`math:FactorGraph` actually has the outcome mass / completeness its declared `logic:ExactPreservation` claims | Rust validator (`check_math_probability_invariants`; arithmetic outcome-mass summation and dependency-graph completeness over the probability-model families, not a `math:ProjectionRecord` join) | `math:ExactPreservationViolated` |
 
 ### Bridges / ingestion rules
 
