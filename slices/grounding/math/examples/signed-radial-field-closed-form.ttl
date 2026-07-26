@@ -137,22 +137,25 @@ ex:xDecl a math:FreeVariableDeclaration ;
     math:variableDomain ex:radialFieldDomain ;
     rdfs:label "x — the formal argument (compactified radius)"@x-gmeow-english .
 
-# The five fitted parameters, each > 0 (stated in prose): A, B, C scale/offset,
-# p, q the two divergence exponents.
+# The five fitted parameters, each typed to ex:positiveReals — the SAME positive-reals
+# math:Set already declared above as the conformal factor's codomain (math:variableDomain's
+# own range is math:Set, "a number system or another set", so reusing that set here is
+# exactly on-contract) — so the A, B, C, p, q > 0 claim the labels state is carried by the
+# data itself, not only by prose: A, B, C scale/offset, p, q the two divergence exponents.
 ex:aDecl a math:FreeVariableDeclaration ;
-    math:variableDomain math:realNumbers ;
+    math:variableDomain ex:positiveReals ;
     rdfs:label "A — the central-well scale (> 0)"@x-gmeow-english .
 ex:bDecl a math:FreeVariableDeclaration ;
-    math:variableDomain math:realNumbers ;
+    math:variableDomain ex:positiveReals ;
     rdfs:label "B — the far-field barrier scale (> 0)"@x-gmeow-english .
 ex:cDecl a math:FreeVariableDeclaration ;
-    math:variableDomain math:realNumbers ;
+    math:variableDomain ex:positiveReals ;
     rdfs:label "C — the baseline offset (> 0)"@x-gmeow-english .
 ex:pDecl a math:FreeVariableDeclaration ;
-    math:variableDomain math:realNumbers ;
+    math:variableDomain ex:positiveReals ;
     rdfs:label "p — the centre divergence exponent (> 0)"@x-gmeow-english .
 ex:qDecl a math:FreeVariableDeclaration ;
-    math:variableDomain math:realNumbers ;
+    math:variableDomain ex:positiveReals ;
     rdfs:label "q — the infinity divergence exponent (> 0)"@x-gmeow-english .
 
 # --- The defining-expression AST — T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C -------------- #

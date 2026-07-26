@@ -3060,9 +3060,7 @@ math:coarserNormalizationThan
     a owl:ObjectProperty , owl:TransitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "coarser normalization than"@x-gmeow-english ;
-    rdfs:domain math:NormalizationStrength ;
-    rdfs:range math:NormalizationStrength ;
-    skos:definition "Orders the math:NormalizationStrength ladder: relates a normalization strength to the strictly finer strength it is layered on top of. Named after gmeow:coarserThan (the granularity-axis ordering relation over the differently-domained gmeow:GranularityLevel) as a naming precedent only — math:coarserNormalizationThan is not a sub-property of it and does not reuse its domain, since normalization strength and disclosure granularity are genuinely different axes. Transitive, so math:semanticNormalization math:coarserNormalizationThan math:structuralNormalization is entailed from the three adjacent links between the four rungs."@x-gmeow-english ;
+    skos:definition "Orders the math:NormalizationStrength ladder: relates a normalization strength to the strictly finer strength it is layered on top of. Domain math:NormalizationStrength, range math:NormalizationStrength (stated in prose, matching every sibling property in this slice — a named-class rdfs:domain/rdfs:range pair would make a reasoner INFER math:NormalizationStrength membership from any use of the edge). Named after gmeow:coarserThan (the granularity-axis ordering relation over the differently-domained gmeow:GranularityLevel) as a naming precedent only — math:coarserNormalizationThan is not a sub-property of it and does not reuse its domain, since normalization strength and disclosure granularity are genuinely different axes. Transitive, so math:semanticNormalization math:coarserNormalizationThan math:structuralNormalization is entailed from the three adjacent links between the four rungs."@x-gmeow-english ;
     skos:example "math:algebraicNormalization math:coarserNormalizationThan math:commutativeNormalization ."@x-gmeow-english .
 
 math:semanticNormalization math:coarserNormalizationThan math:algebraicNormalization .
@@ -15343,7 +15341,7 @@ math:NaturalNumber a logic:AbstractIndividualType .
 math:Neighbourhood a logic:AbstractIndividualType .
 math:NeuralLayer a logic:AbstractIndividualType .
 math:Norm a logic:AbstractIndividualType .
-math:NormalizationDeclaration a logic:Role .
+math:NormalizationDeclaration a logic:AbstractIndividualType .
 math:NormalizationProcedure a logic:AbstractIndividualType .
 math:NormalizationStrength a logic:AbstractIndividualType .
 math:NullHypothesis a logic:AbstractIndividualType .

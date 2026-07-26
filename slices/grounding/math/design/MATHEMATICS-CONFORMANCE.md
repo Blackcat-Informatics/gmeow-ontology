@@ -47,7 +47,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| A computable expression is not represented only by a string literal | source-lint + SHACL Core | `math:StringOnlyComputableExpression` |
+| A computable expression is not represented only by a string literal | source-lint + SHACL-SPARQL | `math:StringOnlyComputableExpression` |
 | An `ApplicationExpression` has exactly one operator | SHACL Core | `math:ApplicationOperatorCardinality` |
 | Each `ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
 | Slot indexes are unique per application | SHACL-SPARQL (`math:ArgumentSlotIndexUniquenessConstraint`) | `math:DuplicateArgumentSlotIndex` |
@@ -92,7 +92,6 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | A `math:MathematicalExpression`'s authored `math:structuralKey` equals the digest recomputed from its own structure by the `math:` expression lowering — the key is a computed projection of the expression's α-equivalence class identity, never an independently authored value | Rust validator | `math:StructuralKeyDrift` |
 | A `math:NormalizationDeclaration`'s structural-identity computation is not contaminated by surface-stratum material — the declaration itself, its `math:normalizes` source, or its `math:normalizesTo` target carries no `math:rendersAs` edge crossing into the computation | Rust validator | `math:SurfaceLeakInNormalForm` |
 | A `math:MathematicalExpression` carries an authored `math:structuralKey` only when the `math:` expression lowering accepts its own AST as well-formed — a structural-identity claim cannot be made for an expression the grammar itself rejects | Rust validator | `math:StructuralKeyOnRejectedExpression` |
-| No two `math:argumentSlot` cells of the same parent share the same `math:slotIndex` — operand order is carried by unique indexed slots, so a duplicated index makes that order ambiguous | SHACL-SPARQL (`math:ArgumentSlotIndexUniquenessConstraint`, a `logic:SelfJoinUniquenessConstraint`) | `math:DuplicateArgumentSlotIndex` |
 
 ### Numbers-and-sets rules
 
@@ -302,7 +301,7 @@ property of the vector.
 | **The meaning of a residual, component, or latent dimension is a `math:ResidualInterpretationClaim` — a `gmeow:Observation` with a `gmeow:vantage` and a result — never a property (no direct meaning property is minted)** | SHACL Core | `math:ResidualMeaningAsProperty` |
 | A `math:Embedding` names its source, target space, function, and model | SHACL Core | `math:UnderspecifiedEmbedding` |
 | A `math:DimensionalReduction` names its input, exact non-negative target dimension, and embedding output | SHACL Core derived from OWL restrictions | `math:IncompleteDimensionalityReductionAnalysis` |
-| A `math:TensorComputationGraph` declares its computation nodes, which are `math:ApplicationExpression`s reusing the argument-slot AST (so the inherited slot-uniqueness/well-formedness gates bite) | SHACL Core (+ inherited `math:SlotIndexUniquenessShape`) | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
+| A `math:TensorComputationGraph` declares its computation nodes, which are `math:ApplicationExpression`s reusing the argument-slot AST (so the inherited slot-uniqueness/well-formedness gates bite) | SHACL Core (`math:TensorComputationGraphShape`) + inherited SHACL-SPARQL (`math:SlotIndexUniquenessShape`) | `math:MalformedTensorComputationGraph` / `math:DuplicateArgumentSlotIndex` |
 | A `math:WeightTensor` names the `math:ParameterSpace` it lives in | SHACL Core | `math:UnframedWeightTensor` |
 | A `math:Filtration` declares at least one `math:FiltrationStage`, and every stage names its `math:filtrationThreshold` and `math:stageStructure` (structural presence only — monotonicity ε₁ ≤ ε₂ ⇒ containment is the first-order law `math:filtrationMonotonicityLaw`, not a shape) | SHACL Core | `math:UnderspecifiedFiltration` |
 | A `math:PersistenceLifetime` names its `math:overFiltration`, its `math:persistenceFeature`, its `math:bornAt`, and its `math:diesAt` — a finite `math:Quantity` or `math:PositiveInfinity` for an essential feature, never omitted | SHACL Core | `math:UnderspecifiedPersistenceLifetime` |

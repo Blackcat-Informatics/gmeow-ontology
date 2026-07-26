@@ -864,7 +864,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // compactification/interval/limit-result/measure-evaluation/piecewise function, an
     // unframed arithmetic operator, and an ungrounded statistical/probabilistic result
     // claim.
-    check_math_core_invariants(ds, &mut report);
+    check_math_core_invariants(ds, cfg, &mut report);
 
     // math: probability-layer reasoned gate — the closed-unit-interval bound, the
     // role-carried positivity/dimension constraints on distribution parameters, the
@@ -1753,8 +1753,8 @@ fn check_string_only_computable_expression(ds: &RdfDataset, report: &mut LintRep
 /// restrictions on the class in `module.ttl`, the derive-source for the generated SHACL)
 /// or a `logic:Constraint` SHACL-SPARQL twin already authored in `module.ttl` — the
 /// declarative tier decides them outright, so no Rust side-channel exists for them here.
-fn check_math_core_invariants(ds: &RdfDataset, report: &mut LintReport) {
-    check_ungrounded_result_claim(ds, report);
+fn check_math_core_invariants(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    check_ungrounded_result_claim(ds, cfg, report);
 }
 
 /// `math:UngroundedResultClaim` — a `gmeow:Observation` naming a result through
@@ -1765,11 +1765,10 @@ fn check_math_core_invariants(ds: &RdfDataset, report: &mut LintReport) {
 /// [`check_unliftable_ingest`]'s architecture: a genuine cross-node obligation over
 /// `gmeow:Observation`/`gmeow:observationResult`/`gmeow:vantage`, none of which is
 /// `math:`-specific.
-fn check_ungrounded_result_claim(ds: &RdfDataset, report: &mut LintReport) {
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    let observation_result = format!("{GMEOW_NS}observationResult");
-    let vantage = format!("{GMEOW_NS}vantage");
-    let observation = format!("{GMEOW_NS}Observation");
+fn check_ungrounded_result_claim(ds: &RdfDataset, cfg: &LintConfig, report: &mut LintReport) {
+    let observation_result = format!("{}observationResult", cfg.namespace);
+    let vantage = format!("{}vantage", cfg.namespace);
+    let observation = format!("{}Observation", cfg.namespace);
     for obs in ds_subjects_of_type(ds, &observation) {
         if ds_has_predicate(ds, &obs, &observation_result) && !ds_has_predicate(ds, &obs, &vantage)
         {
@@ -2352,7 +2351,8 @@ fn check_math_unrecorded_projection_loss(ds: &RdfDataset, report: &mut LintRepor
                             .any(|tok| tok == local)
                     }))
                 || drop_literals.iter().any(|d| {
-                    d.contains("expression") || d.contains("ast") || d.contains("structural")
+                    d.split(|c: char| !c.is_alphanumeric())
+                        .any(|tok| tok == "expression" || tok == "ast" || tok == "structural")
                 });
             if !recorded {
                 report.push_error(
@@ -4067,6 +4067,114 @@ mod tests {
         }
     }
 
+    /// Prefixes for inline math: projection-loss unit fixtures (G27 regression: the
+    /// discharge-by-mention check over `logic:unsupportedConstruct` must tokenize the
+    /// literal, never `str::contains` it — "ast" is a substring of many ordinary words).
+    const MATH_PROJECTION_LOSS_PREFIXES: &str = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix ex: <http://example.org/math/> .\n";
+
+    /// A lossy `math:ProjectionRecord` whose `math:projectionSource` is a
+    /// `math:MathematicalExpression`, with `unsupported_literal` as its ONLY
+    /// `logic:unsupportedConstruct` entry.
+    fn math_projection_loss_fixture(unsupported_literal: &str) -> String {
+        format!(
+            "{MATH_PROJECTION_LOSS_PREFIXES}\
+             ex:src a math:MathematicalExpression .\n\
+             ex:proj a math:ProjectionRecord ;\n\
+               math:projectionSource ex:src ;\n\
+               logic:preservationKind logic:Unsupported ;\n\
+               logic:unsupportedConstruct \"{unsupported_literal}\" .\n"
+        )
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_last_writer_wins() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("last-writer-wins")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"last-writer-wins\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_broadcast_fanout() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("broadcast-fanout")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"broadcast-fanout\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_forecast_dropped() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("forecast-dropped")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"forecast-dropped\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_not_discharged_by_drastic_simplification() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture("drastic-simplification")),
+            &cfg(),
+        );
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "\"drastic-simplification\" must NOT discharge the loss ledger via a bare \"ast\" \
+             substring match: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn unrecorded_projection_loss_discharged_by_genuine_ast_mention() {
+        let report = structural_lint_dataset(
+            &dataset_from(&math_projection_loss_fixture(
+                "flattened the AST to a string",
+            )),
+            &cfg(),
+        );
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UnrecordedProjectionLoss")),
+            "a genuine whole-word AST mention must discharge the loss ledger: {:?}",
+            report.errors()
+        );
+    }
+
     /// Prefixes for inline math: probability unit fixtures.
     const MATH_PROB_PREFIXES: &str = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
          @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -4699,6 +4807,41 @@ mod tests {
                 .any(|e| e.contains("math:UngroundedResultClaim")),
             "an Observation naming a result AND carrying a vantage must NOT raise \
              math:UngroundedResultClaim; errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn ungrounded_result_claim_fires_under_a_non_default_namespace() {
+        // G28 regression: `check_ungrounded_result_claim` must derive its
+        // gmeow:observationResult / gmeow:vantage / gmeow:Observation terms from
+        // `cfg.namespace`, exactly like every sibling lookup in
+        // `structural_lint_dataset` — never a hardcoded
+        // `https://blackcatinformatics.ca/gmeow/` constant. `cfg()`'s default
+        // namespace IS that constant, so a test built only against `cfg()` cannot
+        // distinguish "derived from cfg" from "hardcoded" — this test uses a
+        // DIFFERENT namespace for both the config and the data to prove the gate
+        // still fires.
+        let other_ns = "https://example.org/other-gmeow/";
+        let other_cfg = LintConfig {
+            namespace: other_ns.to_owned(),
+            ontology_iri: "https://example.org/other-gmeow".to_owned(),
+            ..cfg()
+        };
+        let ds = dataset_from(&format!(
+            "@prefix gmeow: <{other_ns}> .\n\
+             @prefix ex: <http://example.org/math/> .\n\
+             ex:obs a gmeow:Observation ;\n\
+               gmeow:observationResult ex:result .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &other_cfg);
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:UngroundedResultClaim")),
+            "an Observation naming a result with no vantage under a NON-default \
+             namespace must still raise math:UngroundedResultClaim; errors: {:?}",
             report.errors()
         );
     }
