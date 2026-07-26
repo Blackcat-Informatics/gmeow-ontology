@@ -755,23 +755,22 @@ impl Lift<'_> {
     /// are different operations and must not share an identity.
     fn emit_operator(
         &mut self,
-        index: usize,
+        _index: usize,
         node: &NodeProto,
         theory: &str,
     ) -> gmeow_errors::Result<String> {
-        for attribute in &node.attribute {
-            if let Some(kind) = attribute.unstructured {
-                return Err(unliftable(format!(
-                    "ONNX node `{}` carries the attribute `{}` in the `{kind}` arm, which this \
-                     bridge does not structure. An attribute is part of the operator's identity, \
-                     so lifting the node without reading it would misstate what the node \
-                     computes",
-                    node_label(index, node),
-                    attribute.name
-                )));
-            }
-        }
-
+        // An attribute arm this subset does not decode — an `If`/`Loop`/`Scan` control-flow
+        // subgraph — no longer refuses the node. Two facts made the old hard-fail
+        // indefensible: a `MyCustomOp` from a private domain, whose semantics the bridge
+        // cannot possibly know, already lifted cleanly as a `math:Operation`, so "we must
+        // read it to lift it" was not the operative rule; and the run already declares
+        // `LossyLens` / `ValidationOnly` / `mnemomorphic false` and already enumerates
+        // residue, so an undecoded attribute costs it no claim it was not already making.
+        //
+        // Identity is preserved instead of refused: `AttributeProto::render` emits the arm
+        // KIND for an undecoded attribute, so the attribute still keys the operator and two
+        // nodes differing in one cannot collapse. What does not cross — the subgraph's
+        // contents — is enumerated by `unmapped_constructs`.
         let domain = spelled_node_domain(node);
         let signature = attribute_signature(&node.attribute);
         let key = format!("{domain}|{}|{signature}", node.op_type);
@@ -1099,6 +1098,22 @@ fn unmapped_constructs(model: &ModelProto, graph: &GraphProto) -> Vec<String> {
              reference; the shape and element type cross, the bytes do not"
                 .to_owned(),
         );
+    }
+    // Attribute arms the decoder does not structure — chiefly the `g` / `graphs` control-flow
+    // subgraphs of `If` / `Loop` / `Scan`. The node itself lifts and the attribute keys the
+    // operator by kind, but the subgraph's own nodes do not become computation nodes here, so
+    // the loss is named per node+attribute rather than as one blanket row.
+    for (index, node) in graph.node.iter().enumerate() {
+        for attribute in &node.attribute {
+            if let Some(kind) = attribute.unstructured {
+                out.push(format!(
+                    "onnx.AttributeProto `{}` on node `{}`: the `{kind}` arm is not decoded, so \
+                     the attribute's presence and kind cross but its contents do not",
+                    attribute.name,
+                    node_label(index, node)
+                ));
+            }
+        }
     }
     if graph
         .node
@@ -1440,10 +1455,54 @@ mod tests {
         let mut model = varint_field(1, 8);
         model.extend(message_field(7, &graph));
         model.extend(message_field(8, &varint_field(2, 18)));
-        let err = lift(&model, BASE).expect_err("an unread attribute must not lift");
-        let text = format!("{err}");
-        assert!(text.contains("control-flow subgraph"), "{text}");
-        assert!(text.contains("`body`"), "{text}");
+        // A control-flow subgraph LIFTS. It used to refuse the whole model, which refused
+        // every scripted-PyTorch / decoder / RNN export — while a custom operator from a
+        // private domain, whose semantics the bridge cannot know, lifted cleanly. The run
+        // already declares LossyLens / mnemomorphic false and already enumerates residue,
+        // so an undecoded attribute costs it no claim it was not already making.
+        let lifted = lift(&model, BASE).expect("a control-flow subgraph must lift");
+        let ttl = &lifted.turtle;
+        assert!(
+            ttl.contains(&math("TensorComputationGraph")),
+            "the graph still lifts:\n{ttl}"
+        );
+        // Identity is preserved, not refused: the attribute's KIND keys the operator, so
+        // two Loops with different bodies cannot collapse onto one math:Operation.
+        assert!(
+            ttl.contains("Loop(body=<g (a control-flow subgraph)>)"),
+            "the undecoded arm still keys the operator:\n{ttl}"
+        );
+        // …and what does NOT cross is named on the witness.
+        assert!(
+            ttl.contains("the `g (a control-flow subgraph)` arm is not decoded"),
+            "the subgraph's contents are enumerated as residue:\n{ttl}"
+        );
+        assert!(ttl.contains("`body` on node `Loop#0`"), "{ttl}");
+    }
+
+    #[test]
+    fn two_loops_with_different_bodies_do_not_collapse() {
+        // The guarantee the old hard-fail was protecting, kept without the hard-fail.
+        let build = |body: &str| {
+            let mut attribute = string_field(1, "body");
+            attribute.extend(message_field(6, &string_field(2, body)));
+            let mut node = Vec::new();
+            node.extend(string_field(2, "Y"));
+            node.extend(string_field(4, "Loop"));
+            node.extend(message_field(5, &attribute));
+            let mut graph = Vec::new();
+            graph.extend(message_field(1, &node));
+            let mut model = varint_field(1, 8);
+            model.extend(message_field(7, &graph));
+            model.extend(message_field(8, &varint_field(2, 18)));
+            model
+        };
+        let a = lift(&build("body-one"), BASE).expect("lifts");
+        let b = lift(&build("body-two"), BASE).expect("lifts");
+        assert_ne!(
+            a.run_iri, b.run_iri,
+            "different sources are different runs (content-addressed)"
+        );
     }
 
     #[test]

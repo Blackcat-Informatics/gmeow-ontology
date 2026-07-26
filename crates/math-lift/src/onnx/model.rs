@@ -599,6 +599,14 @@ impl AttributeProto {
             format!("[{}]", items.join(","))
         } else if !self.strings.is_empty() {
             format!("[\"{}\"]", self.strings.join("\",\""))
+        } else if let Some(kind) = self.unstructured {
+            // An arm this subset does not decode still contributes its KIND to the
+            // operator signature. Without it, an `If` with one `then_branch` and an `If`
+            // with a different `then_branch` would render identically and collapse onto
+            // one `math:Operation` — two different computations sharing an identity. The
+            // subgraph's CONTENT does not cross (it is enumerated as residue), but the
+            // presence and kind of the attribute does.
+            format!("<{kind}>")
         } else {
             String::new()
         };

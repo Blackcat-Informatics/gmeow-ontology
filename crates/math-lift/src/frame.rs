@@ -64,6 +64,19 @@ impl BridgeKind {
         }
     }
 
+    /// Whether this bridge's source artifact is TEXT.
+    ///
+    /// A text source is retained verbatim on the witness; a binary one is referenced by
+    /// digest under the blob-by-reference doctrine. This is a property of the FORMAT, not
+    /// of a particular file's bytes.
+    #[must_use]
+    pub fn is_textual(self) -> bool {
+        match self {
+            Self::R | Self::Proof => true,
+            Self::Onnx => false,
+        }
+    }
+
     /// A short, stable slug used in minted IRIs.
     #[must_use]
     pub fn slug(self) -> &'static str {
@@ -197,10 +210,20 @@ impl RetainedSource {
     ///
     /// A textual format stays readable in the graph; a binary one is never lossily
     /// stringified, which would retain a corrupted source and make the witness a lie.
+    /// The choice is made by the bridge's SOURCE KIND, not by whether the bytes happen to
+    /// decode as UTF-8. An ONNX model is a blob-scale binary artifact whichever way its
+    /// bytes fall; a small one whose bytes are accidentally valid UTF-8 would otherwise
+    /// inline its weight payload into the graph and claim `logic:mnemomorphic true` — the
+    /// exact self-contradiction blob-by-reference exists to prevent, reappearing by luck.
     #[must_use]
-    pub fn of(bytes: &[u8]) -> Self {
+    pub fn of(kind: BridgeKind, bytes: &[u8]) -> Self {
+        if !kind.is_textual() {
+            return Self::Digest(fnv1a_hex(bytes));
+        }
         match std::str::from_utf8(bytes) {
             Ok(text) => Self::Text(text.to_owned()),
+            // A textual bridge handed non-UTF-8 bytes has no text to retain. The lift will
+            // hard-fail on the encoding anyway; referencing is the honest witness meanwhile.
             Err(_) => Self::Digest(fnv1a_hex(bytes)),
         }
     }
@@ -260,7 +283,7 @@ impl RunFrame {
             correspondence_iri: format!("{mint_base}{slug}-corr-{digest}"),
             mint_base: format!("{run_iri}/"),
             run_iri,
-            source: RetainedSource::of(source),
+            source: RetainedSource::of(kind, source),
             unmapped: Vec::new(),
         }
     }
