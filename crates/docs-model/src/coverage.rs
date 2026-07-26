@@ -5,7 +5,7 @@
 //! per-slice coverage predicates.
 //!
 //! Both the lint gate ([`crate::lint()`], which emits a `docs/missing-*` warning per
-//! absent dimension) and the rendered docs site ([`crate::render`], which surfaces
+//! absent dimension) and the rendered docs site ([`crate::slug`], which surfaces
 //! coverage on each term page and the documentation-health page) read coverage
 //! from here, and the self-hosting RDF projection ([`crate::rdf`]) emits the
 //! `gmeow:docCoversDimension` / `gmeow:docMissesDimension` incidence and the

@@ -25,9 +25,9 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 
-use gmeow_docs::maturity::{Dimension, MaturityAnchor};
-use gmeow_docs::model::DocsModel;
-use gmeow_docs::rdf::{DocSliceFacts, documentation_graph};
+use gmeow_docs_model::maturity::{Dimension, MaturityAnchor};
+use gmeow_docs_model::model::DocsModel;
+use gmeow_docs_model::rdf::{DocSliceFacts, documentation_graph};
 
 use crate::axes::repo_root_of;
 use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};

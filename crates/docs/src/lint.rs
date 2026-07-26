@@ -46,8 +46,8 @@ use std::collections::BTreeSet;
 
 use gmeow_errors::{Finding, Location, Report, Severity};
 
-use crate::coverage::{CoverageContext, DIMENSIONS, SLICE_DIMENSIONS, term_coverage};
-use crate::model::DocsModel;
+use gmeow_docs_model::coverage::{CoverageContext, DIMENSIONS, SLICE_DIMENSIONS, term_coverage};
+use gmeow_docs_model::model::DocsModel;
 use crate::render::{Site, slice_slug, term_slug};
 
 /// The diagnostics tool name for documentation findings.
@@ -109,7 +109,7 @@ fn lint_links(site: &Site, report: &mut Report) {
 
 /// WARNING coverage findings over the vocabulary surface only.
 ///
-/// The per-term coverage predicates live in [`crate::coverage`] — the single
+/// The per-term coverage predicates live in [`gmeow_docs_model::coverage`] — the single
 /// source shared with the rendered docs site — so a `docs/missing-*` warning fires
 /// exactly when the same dimension is shown absent on the term's page.
 fn lint_coverage(model: &DocsModel, report: &mut Report) {
@@ -261,7 +261,7 @@ fn resolve(dir: &str, href: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{
+    use gmeow_docs_model::model::{
         DocCompetency, DocExample, DocFixture, DocFixtureKind, DocLinkage, DocLossTarget, DocTerm,
         DocTermCategory,
     };
@@ -298,9 +298,9 @@ mod tests {
 
             available_languages: vec!["english".to_string()],
 
-            translations: crate::i18n::Translations::default(),
+            translations: gmeow_docs_model::i18n::Translations::default(),
 
-            ui_catalog: crate::i18n::UiCatalog::default(),
+            ui_catalog: gmeow_docs_model::i18n::UiCatalog::default(),
             reasoning: None,
             diagnostics: None,
             term_loss: None,

@@ -381,15 +381,15 @@ pub fn render_card(title: &str, card: &Card, detail: CardDetail) -> String {
 /// The importable dotted path `gmeow_models.<slice>.<Class>` of the generated
 /// Pydantic model for a class term — the explicit term→model link ([`Card`]'s
 /// `python_model`). Composed from the SAME routing the Pydantic emitter and the
-/// docs-site Python example tab use ([`crate::render::pydantic_module_slug`] +
-/// [`crate::render::pydantic_class_name`]), so the card link can never drift from
+/// docs-site Python example tab use ([`crate::slug::pydantic_module_slug`] +
+/// [`crate::slug::pydantic_class_name`]), so the card link can never drift from
 /// the generated module. Deterministic; callers gate it on a class term.
 #[must_use]
 pub fn python_model_path(slice_iri: &str, term_iri: &str) -> String {
     format!(
         "gmeow_models.{}.{}",
-        crate::render::pydantic_module_slug(slice_iri),
-        crate::render::pydantic_class_name(term_iri)
+        crate::slug::pydantic_module_slug(slice_iri),
+        crate::slug::pydantic_class_name(term_iri)
     )
 }
 
@@ -400,8 +400,8 @@ pub fn python_model_path(slice_iri: &str, term_iri: &str) -> String {
 /// [`python_model_path`], so import + class never drift from the generated model.
 #[must_use]
 pub fn python_model_snippet(slice_iri: &str, term_iri: &str, curie: &str) -> String {
-    let module = crate::render::pydantic_module_slug(slice_iri);
-    let class = crate::render::pydantic_class_name(term_iri);
+    let module = crate::slug::pydantic_module_slug(slice_iri);
+    let class = crate::slug::pydantic_class_name(term_iri);
     format!(
         "from gmeow_models.{module} import {class}\n\
          obj = {class}.model_validate({{\"@type\": \"{curie}\"}})"

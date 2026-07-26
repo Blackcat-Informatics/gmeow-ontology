@@ -26,13 +26,13 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::exec::ExecutableDocsData;
-use crate::model::{DocTerm, DocTermCategory, DocsModel};
+use gmeow_docs_model::exec::ExecutableDocsData;
+use gmeow_docs_model::model::{DocTerm, DocTermCategory, DocsModel};
 use crate::render::{
     Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug,
     to_markdown_exec_with_map,
 };
-use crate::source_map::SourceToPageMap;
+use gmeow_docs_model::source_map::SourceToPageMap;
 
 /// The book-root path of the `additional-js` boot shim. mdbook injects `additional-js`
 /// files as plain `<script>` tags (no `type="module"`), so this ONE classic script
@@ -96,7 +96,7 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     // The book packs the interactive engines when the render is exec-backed, so once
     // built it carries the SAME live SPARQL / reasoning / GMN transcode the site does
     // (its `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities in
-    // `crate::formats` are not a bare claim — the assets are shipped here).
+    // `gmeow_docs_model::formats` are not a bare claim — the assets are shipped here).
     let interactive = exec.has_bundle() || exec.has_playground();
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();

@@ -1647,6 +1647,7 @@ name = "gmeow-docs"
 version = "0.2.0"
 dependencies = [
  "blake3",
+ "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-logic-compile",
@@ -1654,6 +1655,23 @@ dependencies = [
  "insta",
  "minijinja",
  "pretty_assertions",
+ "pulldown-cmark",
+ "purrdf",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha1",
+]
+
+[[package]]
+name = "gmeow-docs-model"
+version = "0.2.0"
+dependencies = [
+ "blake3",
+ "gmeow-errors",
+ "gmeow-lang-bridge",
+ "gmeow-logic-compile",
+ "gmeow-validate",
  "pulldown-cmark",
  "purrdf",
  "regex",
@@ -1885,7 +1903,7 @@ dependencies = [
 name = "gmeow-slice-quality"
 version = "0.2.0"
 dependencies = [
- "gmeow-docs",
+ "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-logic",

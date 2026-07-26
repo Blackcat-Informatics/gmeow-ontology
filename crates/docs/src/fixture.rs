@@ -39,10 +39,10 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 
-use crate::exec::ExecutableDocsData;
-use crate::i18n::{ENGLISH, Translations, UiCatalog};
+use gmeow_docs_model::exec::ExecutableDocsData;
+use gmeow_docs_model::i18n::{ENGLISH, Translations, UiCatalog};
 use crate::mdbook::render_book;
-use crate::model::DocsModel;
+use gmeow_docs_model::model::DocsModel;
 use crate::render::{Site, render_site_lang};
 
 /// Load the live documentation model rooted at `root`, from the once-per-run

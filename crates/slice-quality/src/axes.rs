@@ -1181,7 +1181,7 @@ const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 
 /// Translation: per-language coverage of **every localizable literal** the slice
 /// authors — each `(term, predicate)` where `predicate` is one of
-/// [`gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES`] and the slice graph carries a
+/// [`gmeow_docs_model::i18n_compile::LOCALIZABLE_PREDICATES`] and the slice graph carries a
 /// literal — audited via the `i18n/<stem>.po` catalogs. A literal counts as covered
 /// for a language iff its catalog entry carries a real (non-empty) `msgstr`. Full
 /// coverage requires English (authored, always full) plus French and Mandarin on
@@ -1192,7 +1192,7 @@ const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     use std::collections::HashSet;
 
-    use gmeow_docs::i18n_compile::{
+    use gmeow_docs_model::i18n_compile::{
         LOCALIZABLE_PREDICATES, counts_as_reviewed_coverage, expand_predicate, language_from_po,
         parse_po,
     };

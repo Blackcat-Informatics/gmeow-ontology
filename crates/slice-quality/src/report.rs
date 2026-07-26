@@ -699,7 +699,7 @@ fn nq_iri(iri: &str) -> String {
     out
 }
 
-/// Escape a string literal for N-Triples/N-Quads (mirrors `gmeow_docs::rdf::nq_escape`).
+/// Escape a string literal for N-Triples/N-Quads (mirrors `gmeow_docs_model::rdf::nq_escape`).
 fn nq_escape(value: &str) -> String {
     let mut out = String::with_capacity(value.len() + 2);
     for ch in value.chars() {

@@ -30,6 +30,11 @@ blake3 = "1"
 purrdf.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 gmeow-errors = { path = "../errors" }
+# The documentation model: everything this crate is except the renderer itself.
+# Re-exported from lib.rs at the original module paths so external callers are
+# unchanged. The edge points this way because render.rs/vendored_asset.rs (the
+# include_bytes! files) consume the model, never the reverse.
+gmeow-docs-model = { path = "../docs-model" }
 # The wasm-clean logic compiler — the source of truth for the projection loss
 # ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products
 # documentation pages. Pure-Rust: it carries no reasoning-runtime dependencies.

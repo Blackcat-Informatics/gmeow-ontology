@@ -3,7 +3,7 @@
 
 //! The build-time **executable-docs** data: the reasoned + serialized inputs the
 //! "live" documentation surfaces need, computed by the pipeline from the carrier and
-//! handed to [`render_site_lang_exec`](crate::render::render_site_lang_exec).
+//! handed to [`render_site_lang_exec`](crate::slug::render_site_lang_exec).
 //!
 //! The docs crate cannot produce these on its own — they need the native reasoner and
 //! the assembled ontology carrier, both pipeline-only. So the crate defines the shape

@@ -733,7 +733,7 @@ impl DocSlice {
         // (hard-fails on invalid UTF-8 or a normalized-path collision). The slice
         // slug is derived from the IRI directly — the same slug the renderer and RDF
         // projection use for this slice's `slices/{slug}/…` page space.
-        let slice_slug = crate::render::slice_slug_of_iri(slice_iri);
+        let slice_slug = crate::slug::slice_slug_of_iri(slice_iri);
         let documents = DocMarkdownDocument::collect(record, slice_iri, &slice_slug)?;
 
         Ok(Self {
@@ -821,10 +821,10 @@ pub struct DocTerm {
     /// The INJECTIVE documentation-entry slug — the collision-free `{slug}` in this
     /// term's `documentation/term/{slug}` doc-entry IRI, page URL, and cross-page
     /// links. Resolved ONCE from the whole term set at model build (see
-    /// [`crate::render::resolve_term_slugs`]) so no two distinct term IRIs share a
+    /// [`crate::slug::resolve_term_slugs`]) so no two distinct term IRIs share a
     /// doc-entry subject (which would conflate their coverage incidence). Empty only
     /// on a hand-built term that never went through model resolution;
-    /// [`crate::render::term_slug`] then falls back to the base slug.
+    /// [`crate::slug::term_slug`] then falls back to the base slug.
     #[serde(default)]
     pub slug: String,
     /// The compact CURIE (`gmeow:Foo` for GMEOW-namespaced terms, else the IRI).
@@ -1534,7 +1534,7 @@ pub struct DocsModel {
     /// authored module, so it belongs in the model JSON). `None` only for a bare
     /// hand-built unit-test model whose catalog carries no pipeline module; the
     /// full `discover`/`from_catalog` path always populates it. Drives
-    /// [`Page::PipelineDag`](crate::render), the per-stage enriched term section,
+    /// [`Page::PipelineDag`](crate::slug), the per-stage enriched term section,
     /// and the per-page provenance footer.
     pub pipeline: Option<DocPipeline>,
     /// Available documentation languages: the English carrier (`"english"`)
@@ -1847,7 +1847,7 @@ impl DocsModel {
     /// English default (see [`i18n::ui_string`]).
     ///
     /// [`lang`]: DocsModel::lang
-    pub(crate) fn ui(&self, key: &str) -> &str {
+    pub fn ui(&self, key: &str) -> &str {
         i18n::ui_string(key, &self.lang, &self.ui_catalog)
     }
 }
@@ -2100,9 +2100,9 @@ impl DocsModel {
         // term, so no two distinct term IRIs collide onto one doc-entry subject
         // (which would conflate their projected coverage incidence and earned
         // maturity). A deterministic pure function of the IRI-sorted term set;
-        // see `crate::render::resolve_term_slugs`.
+        // see `crate::slug::resolve_term_slugs`.
         {
-            let slugs = crate::render::resolve_term_slugs(&terms);
+            let slugs = crate::slug::resolve_term_slugs(&terms);
             for t in &mut terms {
                 if let Some(slug) = slugs.get(&t.iri) {
                     t.slug = slug.clone();

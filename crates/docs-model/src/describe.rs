@@ -492,7 +492,7 @@ fn json_schema_namespaces() -> purrdf::Namespaces {
 /// Whether `term` (a documented CLASS IRI) names a `$defs` entry in
 /// `modeled_defs` — the "this class has a generated Pydantic model" existence
 /// signal EVERY term→model gate must share (§19 one-path): the docs-site card
-/// (`crate::render::doc_term_card`) and the folded/MCP card
+/// (`crate::slug::doc_term_card`) and the folded/MCP card
 /// (`gmeow_pipeline::stages::export::term_to_card`) key `$defs` the SAME way, so
 /// a term never disagrees on whether it carries a `python_model` link (issue:
 /// Pydantic model surface, finding F3).
@@ -594,7 +594,7 @@ pub fn build_card(
     // emitting the link (the pre-fix gate: `category == "Class" && defined_by.
     // is_some()`) fabricated an ImportError for a user who copied it (issue:
     // Pydantic model surface, finding F3). The slice defaults to "" (matching
-    // `crate::render::doc_term_card`'s `DocTerm::owner_slice: String`) so the two
+    // `crate::slug::doc_term_card`'s `DocTerm::owner_slice: String`) so the two
     // builders never disagree over a modeled class with no recovered slice.
     let (python_model, python_snippet) =
         if category == "Class" && class_is_modeled(term, modeled_defs) {

@@ -574,7 +574,7 @@ pub fn discover_slice_dirs(slices_root: &Path) -> Vec<PathBuf> {
 /// The generated `generated/catalog/constraint-catalog.nq` is DELIBERATELY NOT listed
 /// here anymore: the in-pipeline `DocMaturity` sweep now sources the constraint catalog
 /// from THIS run's freshly-rendered `stage-constraint-catalog` bytes
-/// ([`gmeow_docs::model::DocsModel::discover_with_catalog`]), never a disk read of the
+/// ([`gmeow_docs_model::model::DocsModel::discover_with_catalog`]), never a disk read of the
 /// not-yet-materialized `generated/` file (the cold-absence class this retires). Its
 /// SOURCE determinants — each slice's `module.ttl` (already listed via
 /// [`report::slice_ttl_paths`]) and the root ontology — bust the cache when the catalog
@@ -607,7 +607,7 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
 
 /// A slice's `i18n/*.po` translation catalogs (sorted; empty when the slice ships no
 /// `i18n/` directory) — the `DocMaturity` axis's `TranslationCoverage` dimension input
-/// ([`doc_maturity::DocMaturity`], via `gmeow_docs::i18n::Translations`).
+/// ([`doc_maturity::DocMaturity`], via `gmeow_docs_model::i18n::Translations`).
 fn doc_maturity_i18n_paths(slice_dir: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     if let Ok(rd) = std::fs::read_dir(slice_dir.join("i18n")) {

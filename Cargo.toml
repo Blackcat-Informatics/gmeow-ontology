@@ -82,6 +82,9 @@ members = [
     # The universal RDF-1.2 transcode hub. A LEAF (purrdf + logic-compile +
     # errors): both gmeow-pipeline and the MCP `convert` tool spoke through it,
     # so it must depend on neither.
+    # The documentation MODEL, split from gmeow-docs so consumers can use it
+    # without inheriting the renderer's 13.6 MB of embedded vendored wasm.
+    "crates/docs-model",
     "crates/transcode",
     "crates/pipeline",
 

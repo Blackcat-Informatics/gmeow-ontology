@@ -18,7 +18,7 @@ use crate::maturity::{
     Dimension, MaturityAnchor, anchor_table, coverage_fraction, earned_maturity,
 };
 use crate::model::DocsModel;
-use crate::render::{
+use crate::slug::{
     concern_display, concern_slug, precompute_alignment_facets, provenance_chain, slice_display,
     slice_slug, term_advice_facet, term_slug,
 };
@@ -161,7 +161,7 @@ pub fn to_gmeow_rdf(
 
     // The per-term crosswalk facets, computed ONCE in a single pass over the
     // linkages — the SAME producer the site `search-index.json` uses
-    // ([`crate::render::precompute_alignment_facets`]), so the RDF search facets and
+    // ([`crate::slug::precompute_alignment_facets`]), so the RDF search facets and
     // the site facets are byte-identical (single source of truth). Keyed by the real
     // term IRI; a term with no linkages is simply absent (honest, no empty facet).
     let alignment_facets = precompute_alignment_facets(model);

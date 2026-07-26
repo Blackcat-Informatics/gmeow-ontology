@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-docs-model"
+description = "GMEOW documentation model: term/slice/concern model, RDF projection, cards, coverage, i18n and naming — the docs surface without the renderer's embedded wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["documentation", "rdf", "model", "wasm"]
+
+[lib]
+# rlib-only, and a LEAF with respect to gmeow-docs: `render.rs` and
+# `vendored_asset.rs` are the only files in gmeow-docs carrying include_bytes!,
+# and they embed 13.6 MB of vendored wasm. Consumers that need the docs MODEL
+# (the MCP tool surface via card/gmn1_primer/llms; gmeow-slice-quality via
+# i18n/maturity/model/rdf) must not inherit those bytes.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+purrdf.workspace = true
+gmeow-errors = { path = "../errors" }
+gmeow-logic-compile = { path = "../logic-compile" }
+gmeow-validate = { path = "../validate" }
+gmeow-lang-bridge = { path = "../lang-bridge" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+sha1 = "0.10"
+blake3 = "1"
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }

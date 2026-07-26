@@ -975,7 +975,7 @@ impl UiCatalog {
 
 /// The English default (a `'static` table entry) for a UI-chrome key, or `""`
 /// when the key is unknown (unknown keys never reach the live renderer).
-pub(crate) fn ui_default(key: &str) -> &'static str {
+pub fn ui_default(key: &str) -> &'static str {
     UI_TEMPLATES
         .iter()
         .find(|(k, _)| *k == key)

@@ -30,7 +30,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use crate::formats::{Capability, DocFormat, format_capabilities};
+use gmeow_docs_model::formats::{Capability, DocFormat, format_capabilities};
 
 /// The digest-manifest filename pinning the vendored bytes, in every asset dir.
 pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";

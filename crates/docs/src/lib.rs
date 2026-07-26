@@ -17,30 +17,19 @@
 //! The crate is native Rust throughout; lint and i18n consumers share the same
 //! typed model directly.
 
-pub mod badge;
-pub mod card;
-pub mod coverage;
-pub mod describe;
-pub mod error;
-pub mod exec;
 pub mod fixture;
-pub mod formats;
-pub mod gmn1_primer;
-pub mod i18n;
-pub mod i18n_compile;
 pub mod lint;
-pub mod llms;
-pub mod maturity;
 pub mod mdbook;
-pub mod model;
-pub mod rdf;
+// The documentation model now lives in `gmeow-docs-model`, re-exported here at
+// its original paths so every `gmeow_docs::<module>` caller is unchanged.
+pub use gmeow_docs_model::{
+    badge, card, coverage, describe, error, exec, formats, gmn1_primer, i18n, i18n_compile, llms,
+    maturity, model, rdf, slug, source_map, svg,
+};
+
 pub mod render;
 // The pure naming layer (slugs, display names, alignment facets), hoisted out of
 // `render` so the model half of this crate can use it without the renderer.
-pub mod slug;
-pub mod source_map;
-mod store;
-pub mod svg;
 pub mod vendored_asset;
 
 pub use describe::{

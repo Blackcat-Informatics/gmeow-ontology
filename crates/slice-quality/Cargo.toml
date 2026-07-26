@@ -27,7 +27,11 @@ gmeow-errors = { path = "../errors" }
 gmeow-validate = { path = "../validate" }
 # The typed documentation model + coverage/i18n dimensions the documentation and
 # translation axes bind to.
-gmeow-docs = { path = "../docs" }
+# The docs MODEL only — this crate uses i18n/i18n_compile/maturity/model/rdf and
+# needs none of the renderer. Pointing at gmeow-docs would drag 13.6 MB of
+# embedded vendored wasm into every consumer of this crate, including the
+# wasm-clean MCP engine.
+gmeow-docs-model = { path = "../docs-model" }
 # The correspondence-calculus machinery the linkage axis binds: `extract_correspondences`
 # (the `logic:Correspondence` lens individuals — the calculus-routed set) and
 # `lint_dc_refinement` (names hand-authored `dc:` alignments the calculus should derive).

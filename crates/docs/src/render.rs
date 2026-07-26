@@ -26,15 +26,15 @@ use std::sync::OnceLock;
 use minijinja::{Environment, context};
 use pulldown_cmark::{Options, Parser, html as cmark_html};
 
-use crate::badge;
-use crate::exec::ExecutableDocsData;
-use crate::i18n::{self, ENGLISH};
-use crate::llms::{self, LlmsBullet, LlmsSection};
-use crate::model::{DocSlice, DocTerm, DocTermCategory, DocsModel};
-use crate::source_map::{
+use gmeow_docs_model::badge;
+use gmeow_docs_model::exec::ExecutableDocsData;
+use gmeow_docs_model::i18n::{self, ENGLISH};
+use gmeow_docs_model::llms::{self, LlmsBullet, LlmsSection};
+use gmeow_docs_model::model::{DocSlice, DocTerm, DocTermCategory, DocsModel};
+use gmeow_docs_model::source_map::{
     DocLinkResolution, LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open,
 };
-use crate::svg;
+use gmeow_docs_model::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -139,7 +139,7 @@ pub enum Page {
     /// other than the top-level `docs.md`) rendered as its own page. `slice` is
     /// the owning slice IRI and `path` is the document's normalized slice-relative
     /// source path (e.g. `design/ARCHITECTURE.md`); the page path is minted through
-    /// the single [`crate::source_map::page_for`] authority.
+    /// the single [`gmeow_docs_model::source_map::page_for`] authority.
     SliceDocument {
         /// The owning slice IRI.
         slice: String,
@@ -252,7 +252,7 @@ impl Page {
                 // (`slices/{slug}/documents/{stem}/`); `dir()` is that path without its
                 // trailing slash, so the site's `join(dir, "index.{md,html}")` matches
                 // the `Page::Slice` convention.
-                let page = crate::source_map::page_for(&slice_slug_of_iri(slice), path);
+                let page = gmeow_docs_model::source_map::page_for(&slice_slug_of_iri(slice), path);
                 page.strip_suffix('/').unwrap_or(&page).to_string()
             }
             Page::LinkageIndex => "linkages".to_string(),
@@ -398,8 +398,8 @@ pub fn render_site(model: &DocsModel) -> Site {
 /// present in [`DocsModel::available_languages`]. Every localizable string — term
 /// and slice labels / definitions, concern / recipe / learning-path text, and the
 /// UI-chrome nav — is resolved to its translation via
-/// [`Translations::lookup`](crate::i18n::Translations::lookup) /
-/// [`ui_string`](crate::i18n::ui_string), falling back to the English value the
+/// [`Translations::lookup`](gmeow_docs_model::i18n::Translations::lookup) /
+/// [`ui_string`](gmeow_docs_model::i18n::ui_string), falling back to the English value the
 /// model carries. The per-language tree is deterministic and preserves the
 /// no-dangling-link invariant (slugs / IRIs are language-independent).
 pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
@@ -639,7 +639,7 @@ pub fn render_site_lang_exec_with_diagrams(
             // serialized (the `Card` derives `Serialize` with a fixed field
             // order and every internal collection is already ordered).
             let standard = doc_term_card(term, &alignment_facets, model)
-                .projected(crate::card::CardDetail::Standard);
+                .projected(gmeow_docs_model::card::CardDetail::Standard);
             let json = serde_json::to_vec(&standard).unwrap_or_else(|e| {
                 // A pure-data `Card` of `String`/`Vec`/`Option` fields cannot fail
                 // to serialize; a failure here is a genuine invariant break.
@@ -651,7 +651,7 @@ pub fn render_site_lang_exec_with_diagrams(
             let title = format!("{}{}", term.curie, term_signature(term));
             files.insert(
                 format!("terms/{slug}/card-full.md"),
-                crate::card::render_card(&title, &full, crate::card::CardDetail::Full).into_bytes(),
+                gmeow_docs_model::card::render_card(&title, &full, gmeow_docs_model::card::CardDetail::Full).into_bytes(),
             );
         }
     }
@@ -1529,10 +1529,10 @@ fn md_landing(model: &DocsModel) -> String {
 }
 
 /// The number of PER-TERM coverage dimensions a projected term record covers —
-/// counted over the canonical [`crate::coverage::DIMENSIONS`] set so a stray
+/// counted over the canonical [`gmeow_docs_model::coverage::DIMENSIONS`] set so a stray
 /// local name in the read-back can never inflate the completeness distribution.
-fn present_dimension_count(term: &crate::rdf::DocTermFacts) -> usize {
-    crate::coverage::DIMENSIONS
+fn present_dimension_count(term: &gmeow_docs_model::rdf::DocTermFacts) -> usize {
+    gmeow_docs_model::coverage::DIMENSIONS
         .iter()
         .filter(|dim| term.covers.contains(dim.dimension.local_name()))
         .count()
@@ -1540,8 +1540,8 @@ fn present_dimension_count(term: &crate::rdf::DocTermFacts) -> usize {
 
 /// The short human title of a maturity anchor (`Minimal` / `Basic` / `Full` /
 /// `Maximal`) for the health dashboard.
-fn anchor_title(anchor: crate::maturity::MaturityAnchor) -> String {
-    use crate::maturity::MaturityAnchor::*;
+fn anchor_title(anchor: gmeow_docs_model::maturity::MaturityAnchor) -> String {
+    use gmeow_docs_model::maturity::MaturityAnchor::*;
     match anchor {
         Minimal => "Minimal",
         Basic => "Basic",
@@ -1556,10 +1556,10 @@ fn anchor_title(anchor: crate::maturity::MaturityAnchor) -> String {
 /// (`covers`, read back from `gmeow:docCoversDimension`) does not yet carry. At
 /// the ceiling (earns `Maximal`) there is no next tier.
 fn maturity_gap(
-    earned: Option<crate::maturity::MaturityAnchor>,
+    earned: Option<gmeow_docs_model::maturity::MaturityAnchor>,
     covers: &BTreeSet<String>,
 ) -> String {
-    use crate::maturity::MaturityAnchor;
+    use gmeow_docs_model::maturity::MaturityAnchor;
     // The next tier above the earned floor; when nothing is earned yet the first
     // rung (Minimal) is the target.
     let next = match earned {
@@ -1585,11 +1585,11 @@ fn maturity_gap(
 }
 
 /// The human display label for a coverage dimension, resolved from the single
-/// [`crate::coverage`] label authority (per-term and slice-scoped dimensions).
-fn dimension_label(dim: crate::maturity::Dimension) -> String {
-    crate::coverage::DIMENSIONS
+/// [`gmeow_docs_model::coverage`] label authority (per-term and slice-scoped dimensions).
+fn dimension_label(dim: gmeow_docs_model::maturity::Dimension) -> String {
+    gmeow_docs_model::coverage::DIMENSIONS
         .iter()
-        .chain(crate::coverage::SLICE_DIMENSIONS.iter())
+        .chain(gmeow_docs_model::coverage::SLICE_DIMENSIONS.iter())
         .find(|d| d.dimension == dim)
         .map_or_else(|| dim.local_name().to_owned(), |d| d.label.to_owned())
 }
@@ -1599,7 +1599,7 @@ fn dimension_label(dim: crate::maturity::Dimension) -> String {
 /// surface, a completeness distribution, and the per-slice earned-maturity floor
 /// with a gap-to-next-tier burn-down. Every coverage number is read back from
 /// `gmeow:docCoversDimension` / `gmeow:coverageFraction` / `gmeow:docEarnedMaturity`
-/// (never a second recompute from `crate::coverage`), so the dashboard and the
+/// (never a second recompute from `gmeow_docs_model::coverage`), so the dashboard and the
 /// reasoned graph cannot silently disagree.
 fn md_health(model: &DocsModel) -> String {
     let mut out = String::new();
@@ -1611,19 +1611,19 @@ fn md_health(model: &DocsModel) -> String {
              dimension mirrors a `docs/missing-*` lint code; the covered counts grow as source \
              prose, examples, scope notes, and external alignments land. Per-term detail lives \
              on each term page's *Documentation coverage* section.",
-            crate::coverage::TermCoverage::TOTAL,
+            gmeow_docs_model::coverage::TermCoverage::TOTAL,
             model.terms.len()
         ),
     );
 
-    let aligned = crate::coverage::alignment_subjects(model);
+    let aligned = gmeow_docs_model::coverage::alignment_subjects(model);
 
     // PURE PROJECTION: the health dashboard reads its coverage numbers back from
     // the emitted `graph/documentation` incidence (`gmeow:docCoversDimension` per
-    // record), NEVER a second recompute from `crate::coverage`. The page and the
+    // record), NEVER a second recompute from `gmeow_docs_model::coverage`. The page and the
     // reasoned graph are therefore the same bytes read two ways — they cannot
     // silently diverge.
-    let graph = crate::rdf::documentation_graph(model);
+    let graph = gmeow_docs_model::rdf::documentation_graph(model);
     let total = graph.terms.len();
 
     // Per-dimension coverage — covered count = the number of documented terms whose
@@ -1632,7 +1632,7 @@ fn md_health(model: &DocsModel) -> String {
     heading(&mut out, 2, model.ui("body_coverage_by_dimension"));
     push_line(&mut out, "| Dimension | Covered | Total | % |");
     push_line(&mut out, "| --- | --- | --- | --- |");
-    for dim in crate::coverage::DIMENSIONS.iter() {
+    for dim in gmeow_docs_model::coverage::DIMENSIONS.iter() {
         let local = dim.dimension.local_name();
         let covered = graph
             .terms
@@ -1652,7 +1652,7 @@ fn md_health(model: &DocsModel) -> String {
     heading(&mut out, 2, model.ui("body_completeness_distribution"));
     push_line(&mut out, "| Dimensions present | Terms |");
     push_line(&mut out, "| --- | --- |");
-    let dims_total = crate::coverage::TermCoverage::TOTAL;
+    let dims_total = gmeow_docs_model::coverage::TermCoverage::TOTAL;
     for k in (0..=dims_total).rev() {
         let count = graph
             .terms
@@ -1680,18 +1680,18 @@ fn md_health(model: &DocsModel) -> String {
             let earned = slice
                 .earned
                 .as_deref()
-                .and_then(crate::maturity::MaturityAnchor::from_local);
+                .and_then(gmeow_docs_model::maturity::MaturityAnchor::from_local);
             let asserted = slice
                 .asserted
                 .as_deref()
-                .and_then(crate::maturity::MaturityAnchor::from_local);
+                .and_then(gmeow_docs_model::maturity::MaturityAnchor::from_local);
             let earned_label = earned.map_or("—".to_owned(), anchor_title);
             // The claim column flags an over-claim inline: a slice that asserts a
             // tier above the earned floor trips the `asserted ⊄ earned` gate.
             let claim_label = match asserted {
                 None => "—".to_owned(),
                 Some(a) => {
-                    let over = crate::maturity::asserted_exceeds_earned(a, earned);
+                    let over = gmeow_docs_model::maturity::asserted_exceeds_earned(a, earned);
                     if over {
                         format!("⚠ {} (unsupported)", anchor_title(a))
                     } else {
@@ -1807,7 +1807,7 @@ fn md_health(model: &DocsModel) -> String {
     heading(&mut out, 2, model.ui("body_badge_legend"));
     push_line(&mut out, "| Family | What it encodes |");
     push_line(&mut out, "| --- | --- |");
-    for family in &crate::badge::FAMILIES {
+    for family in &gmeow_docs_model::badge::FAMILIES {
         push_line(
             &mut out,
             &format!("| **{}** | {} |", family.label, family.description),
@@ -2286,8 +2286,8 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     // emitted in `render_site_lang` from this same source (no dangling path); the
     // detailed, linkable surfaces follow in their own sections below.
     {
-        let ctx = crate::coverage::CoverageContext::new(model);
-        let badges = crate::badge::term_badges(term, &ctx, model.reasoning.as_ref());
+        let ctx = gmeow_docs_model::coverage::CoverageContext::new(model);
+        let badges = gmeow_docs_model::badge::term_badges(term, &ctx, model.reasoning.as_ref());
         let row = badges
             .iter()
             .map(|b| {
@@ -2295,7 +2295,7 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
                     "![{}]({}{})",
                     md_escape(&format!("{}: {}", b.family, b.label)),
                     root_href(&from),
-                    crate::badge::badge_path(b)
+                    gmeow_docs_model::badge::badge_path(b)
                 )
             })
             .collect::<Vec<_>>()
@@ -2436,7 +2436,7 @@ fn term_developer_surface(
     }
 
     // ── Conformance examples (Do/Don't fixtures referencing this term) ──────────
-    let mut term_fixtures: Vec<&crate::model::DocFixture> = model
+    let mut term_fixtures: Vec<&gmeow_docs_model::model::DocFixture> = model
         .fixtures
         .iter()
         .filter(|f| f.terms_referenced.iter().any(|c| c == &term.curie))
@@ -2450,8 +2450,8 @@ fn term_developer_surface(
         heading(&mut out, 2, model.ui("body_conformance_examples"));
         for fixture in &term_fixtures {
             let label = match fixture.kind {
-                crate::model::DocFixtureKind::Wellformed => model.ui("body_label_do"),
-                crate::model::DocFixtureKind::CounterExample => model.ui("body_label_dont"),
+                gmeow_docs_model::model::DocFixtureKind::Wellformed => model.ui("body_label_do"),
+                gmeow_docs_model::model::DocFixtureKind::CounterExample => model.ui("body_label_dont"),
             };
             push_line(
                 &mut out,
@@ -2465,7 +2465,7 @@ fn term_developer_surface(
             // validate asset + bundle ship (`has_bundle()`); the fixture Turtle rides
             // base64 in a data-attribute so its RDF never breaks the HTML.
             if exec.has_bundle()
-                && matches!(fixture.kind, crate::model::DocFixtureKind::CounterExample)
+                && matches!(fixture.kind, gmeow_docs_model::model::DocFixtureKind::CounterExample)
             {
                 blank(&mut out);
                 push_line(
@@ -2601,7 +2601,7 @@ fn term_developer_surface(
     }
 
     // ── Examples using this term (cross-links to the full source on slice pages) ─
-    let mut term_examples: Vec<&crate::model::DocExample> = model
+    let mut term_examples: Vec<&gmeow_docs_model::model::DocExample> = model
         .examples
         .iter()
         .filter(|e| e.terms_referenced.iter().any(|c| c == &term.curie))
@@ -2702,7 +2702,7 @@ fn term_academic_surface(
     }
 
     // ── Alignments (per-term cross-walks projected from the slice mappings) ──────
-    let mut aligns: Vec<&crate::model::DocLinkage> = model
+    let mut aligns: Vec<&gmeow_docs_model::model::DocLinkage> = model
         .linkages
         .iter()
         .filter(|l| l.subject == term.iri)
@@ -2828,7 +2828,7 @@ fn term_academic_surface(
     }
 
     // ── Tested by (competency questions that exercise this term) ─────────────────
-    let mut tested_by: Vec<&crate::model::DocCompetency> = model
+    let mut tested_by: Vec<&gmeow_docs_model::model::DocCompetency> = model
         .competencies
         .iter()
         .filter(|c| c.exercises.iter().any(|t| t == &term.iri))
@@ -2884,7 +2884,7 @@ fn term_academic_surface(
         // (yet) attached renders no extra lines here, rather than a fabricated
         // "because" claim.
         if unsatisfiable {
-            let because: Vec<&crate::exec::Entailment> = exec
+            let because: Vec<&gmeow_docs_model::exec::Entailment> = exec
                 .term_entailments
                 .get(&term.iri)
                 .map(|entries| {
@@ -2998,10 +2998,10 @@ fn term_academic_surface(
     // source — exactly the predicates behind the `docs/missing-*` lint, so the page
     // and the gate can never disagree about what a term is missing.
     {
-        let ctx = crate::coverage::CoverageContext::new(model);
-        let cov = crate::coverage::term_coverage(term, &ctx);
+        let ctx = gmeow_docs_model::coverage::CoverageContext::new(model);
+        let cov = gmeow_docs_model::coverage::term_coverage(term, &ctx);
         heading(&mut out, 2, model.ui("body_documentation_coverage"));
-        let badges = crate::coverage::DIMENSIONS
+        let badges = gmeow_docs_model::coverage::DIMENSIONS
             .iter()
             .zip(cov.flags())
             .map(|(dim, present)| format!("{} {}", if present { "✓" } else { "✗" }, dim.label))
@@ -3012,7 +3012,7 @@ fn term_academic_surface(
             &format!(
                 "- **{} of {} dimensions present.** {}",
                 cov.present_count(),
-                crate::coverage::TermCoverage::TOTAL,
+                gmeow_docs_model::coverage::TermCoverage::TOTAL,
                 badges
             ),
         );
@@ -3161,18 +3161,18 @@ const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
     rust_syntax_tab,
 ];
 
-// The pure naming layer now lives in `crate::slug` so `crates/docs-model` can
+// The pure naming layer now lives in `gmeow_docs_model::slug` so `crates/docs-model` can
 // use it without depending on this file (which embeds the vendored wasm via
 // `include_bytes!`). Re-exported here so every existing `render::<name>` caller
 // — inside this crate and out — is unchanged.
 // Already-public naming helpers, re-exported at their original path.
-pub use crate::slug::{
+pub use gmeow_docs_model::slug::{
     concern_slug, resolve_term_slugs, slice_slug, slice_slug_of_iri, term_slug,
 };
 // Crate-internal naming helpers. These are `pub` in `slug` because they cross a
 // crate boundary into `docs-model`, but stay `pub(crate)` here so this crate's
 // external surface is byte-for-byte what it was before the hoist.
-pub(crate) use crate::slug::{
+pub(crate) use gmeow_docs_model::slug::{
     AlignmentFacets, align_tag, concern_display, local_name, precompute_alignment_facets,
     provenance_chain, pydantic_class_name, pydantic_module_slug, slice_display, term_advice_facet,
 };
@@ -4090,7 +4090,7 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
         heading(&mut out, 2, model.ui("body_artifacts"));
         // Group by role-name; both the group order and the within-group order are
         // sorted for determinism.
-        let mut by_role: BTreeMap<String, Vec<&crate::model::DocArtifact>> = BTreeMap::new();
+        let mut by_role: BTreeMap<String, Vec<&gmeow_docs_model::model::DocArtifact>> = BTreeMap::new();
         for artifact in &slice.artifacts {
             by_role
                 .entry(role_name(&artifact.role))
@@ -4142,7 +4142,7 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
     }
 
     // Linkages whose subject is owned by this slice.
-    let mut slice_links: Vec<&crate::model::DocLinkage> = model
+    let mut slice_links: Vec<&gmeow_docs_model::model::DocLinkage> = model
         .linkages
         .iter()
         .filter(|l| l.owner_slice == slice.iri)
@@ -4176,7 +4176,7 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
     }
 
     // Worked examples owned by this slice — rendered IN FULL.
-    let mut slice_examples: Vec<&crate::model::DocExample> = model
+    let mut slice_examples: Vec<&gmeow_docs_model::model::DocExample> = model
         .examples
         .iter()
         .filter(|e| e.slice == slice.iri)
@@ -4271,7 +4271,7 @@ fn rewrite_doc_body(
 ) -> String {
     // The page-scoped heading anchors, in source order, for the id injection. Empty
     // when not injecting or when the document has no known page.
-    let anchors: &[crate::source_map::HeadingAnchor] = if inject_anchors {
+    let anchors: &[gmeow_docs_model::source_map::HeadingAnchor] = if inject_anchors {
         map.page_of(from_slice, from_path)
             .map(|page| map.heading_anchors(page))
             .unwrap_or(&[])
@@ -4623,7 +4623,7 @@ fn md_linkage_index(model: &DocsModel) -> String {
             line(&mut out, &md_escape(&one_line(comment)));
         }
 
-        let mut links: Vec<&crate::model::DocLinkage> = model
+        let mut links: Vec<&gmeow_docs_model::model::DocLinkage> = model
             .linkages
             .iter()
             .filter(|l| l.mapping_set.as_deref() == Some(set.iri.as_str()))
@@ -4661,7 +4661,7 @@ fn md_linkage_index(model: &DocsModel) -> String {
     }
 
     // Any linkages not attached to a known mapping set (defensive completeness).
-    let mut orphans: Vec<&crate::model::DocLinkage> = model
+    let mut orphans: Vec<&gmeow_docs_model::model::DocLinkage> = model
         .linkages
         .iter()
         .filter(|l| {
@@ -4716,7 +4716,7 @@ fn md_example_index(model: &DocsModel) -> String {
     );
 
     // Group examples by slice (model.examples is slice/path-sorted).
-    let mut by_slice: BTreeMap<String, Vec<&crate::model::DocExample>> = BTreeMap::new();
+    let mut by_slice: BTreeMap<String, Vec<&gmeow_docs_model::model::DocExample>> = BTreeMap::new();
     for example in &model.examples {
         by_slice
             .entry(example.slice.clone())
@@ -4864,7 +4864,7 @@ fn shared_prefix_tokens(a: &str, b: &str) -> usize {
 /// plain code span (never a dead link).
 fn fixture_violation_code_display(
     from: &str,
-    fixture: &crate::model::DocFixture,
+    fixture: &gmeow_docs_model::model::DocFixture,
 ) -> Option<String> {
     let code = fixture.violation_code.as_ref()?;
     Some(match &fixture.catalog_slug {
@@ -4883,7 +4883,7 @@ fn push_fixture_binding_bullets(
     out: &mut String,
     model: &DocsModel,
     from: &str,
-    fixture: &crate::model::DocFixture,
+    fixture: &gmeow_docs_model::model::DocFixture,
 ) {
     if let Some(code_display) = fixture_violation_code_display(from, fixture) {
         push_line(
@@ -4925,7 +4925,7 @@ fn md_fixture_index(model: &DocsModel) -> String {
         return out;
     }
 
-    let mut by_slice: BTreeMap<&str, Vec<&crate::model::DocFixture>> = BTreeMap::new();
+    let mut by_slice: BTreeMap<&str, Vec<&gmeow_docs_model::model::DocFixture>> = BTreeMap::new();
     for fixture in &model.fixtures {
         by_slice
             .entry(fixture.slice.as_str())
@@ -4936,15 +4936,15 @@ fn md_fixture_index(model: &DocsModel) -> String {
     for (slice_iri, fixtures) in by_slice {
         heading(&mut out, 2, &slice_name(model, slice_iri));
 
-        let wellformed: Vec<&crate::model::DocFixture> = fixtures
+        let wellformed: Vec<&gmeow_docs_model::model::DocFixture> = fixtures
             .iter()
             .copied()
-            .filter(|f| f.kind == crate::model::DocFixtureKind::Wellformed)
+            .filter(|f| f.kind == gmeow_docs_model::model::DocFixtureKind::Wellformed)
             .collect();
-        let counter_examples: Vec<&crate::model::DocFixture> = fixtures
+        let counter_examples: Vec<&gmeow_docs_model::model::DocFixture> = fixtures
             .iter()
             .copied()
-            .filter(|f| f.kind == crate::model::DocFixtureKind::CounterExample)
+            .filter(|f| f.kind == gmeow_docs_model::model::DocFixtureKind::CounterExample)
             .collect();
 
         let mut paired_wellformed: std::collections::BTreeSet<&str> =
@@ -5033,7 +5033,7 @@ fn md_competency_index(model: &DocsModel) -> String {
         return out;
     }
 
-    let mut by_slice: BTreeMap<&str, Vec<&crate::model::DocCompetency>> = BTreeMap::new();
+    let mut by_slice: BTreeMap<&str, Vec<&gmeow_docs_model::model::DocCompetency>> = BTreeMap::new();
     for cq in &model.competencies {
         by_slice
             .entry(cq.owner_slice.as_str())
@@ -5610,7 +5610,7 @@ fn md_external_index(model: &DocsModel) -> String {
     );
 
     // Group by namespace (deterministic: external_terms is IRI-sorted).
-    let mut by_ns: BTreeMap<String, Vec<&crate::model::DocExternalTerm>> = BTreeMap::new();
+    let mut by_ns: BTreeMap<String, Vec<&gmeow_docs_model::model::DocExternalTerm>> = BTreeMap::new();
     for term in &model.external_terms {
         by_ns.entry(term.namespace.clone()).or_default().push(term);
     }
@@ -5653,7 +5653,7 @@ fn md_integrity_index(model: &DocsModel) -> String {
 
     let mut any = false;
     for slice in &model.slices {
-        let mut queries: Vec<&crate::model::DocArtifact> = slice
+        let mut queries: Vec<&gmeow_docs_model::model::DocArtifact> = slice
             .artifacts
             .iter()
             .filter(|a| a.role == purrdf::slice::ArtifactRole::VerifyQuery)
@@ -5722,7 +5722,7 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
     // is a BTreeMap so category headings emit in sorted IRI order. The `advice.`
     // family rule is EXCLUDED here — it heads the distinct Advice section below and
     // carries the single `#advice-` anchor, which must appear exactly once.
-    let mut by_category: std::collections::BTreeMap<&str, Vec<&crate::model::ConstraintRule>> =
+    let mut by_category: std::collections::BTreeMap<&str, Vec<&gmeow_docs_model::model::ConstraintRule>> =
         std::collections::BTreeMap::new();
     for rule in &model.constraint_rules {
         if rule.code == gmeow_validate::codes::ADVICE_FAMILY {
@@ -5822,7 +5822,7 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
 /// Render the distinct "Advice" section: the non-gating recommendation tier. Headed
 /// by the `advice.` family rule's `#advice-` anchor (the single static target every
 /// advisory `advice.*` finding code resolves to), then one sub-entry per
-/// [`crate::model::AdviceEntry`] carrying the term's verbatim avoid/use/how-to prose.
+/// [`gmeow_docs_model::model::AdviceEntry`] carrying the term's verbatim avoid/use/how-to prose.
 fn md_advice_section(out: &mut String, model: &DocsModel, from: &str) {
     // The `#advice-` anchor is the advice family rule's own slug — the guaranteed
     // resolution target of every advice.* helpUri fragment.
@@ -5992,7 +5992,7 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
     }
 
     // Learning paths that fold this recipe in.
-    let mut hosting: Vec<&crate::model::DocLearningPath> = model
+    let mut hosting: Vec<&gmeow_docs_model::model::DocLearningPath> = model
         .learning_paths
         .iter()
         .filter(|p| p.recipe_slugs.iter().any(|s| s == slug))
@@ -6602,7 +6602,7 @@ fn curie_link(model: &DocsModel, from: &str, curie: &str) -> String {
 
 /// A link from a linkage's subject (its `subject_curie`/`subject` IRI) to the
 /// term page, falling back to the CURIE in a code span.
-fn subject_link(model: &DocsModel, from: &str, link: &crate::model::DocLinkage) -> String {
+fn subject_link(model: &DocsModel, from: &str, link: &gmeow_docs_model::model::DocLinkage) -> String {
     if let Some(term) = model.terms.iter().find(|t| t.iri == link.subject) {
         let href = rel(from, &Page::Term(term_slug(term)).dir());
         return format!("[`{}`]({}index.md)", code_escape(&link.subject_curie), href);
@@ -6664,7 +6664,7 @@ fn rel(from: &str, to: &str) -> String {
 
 
 /// The display name for a mapping set: its set-id tail / label, else local name.
-fn set_display(set: &crate::model::DocMappingSet) -> String {
+fn set_display(set: &gmeow_docs_model::model::DocMappingSet) -> String {
     local_name(&set.iri).to_string()
 }
 
@@ -6882,7 +6882,7 @@ fn code_escape(text: &str) -> String {
 
 /// Whether a B3 entailment's display-form conclusion (`s p o`, CURIE-compacted) is a
 /// class-unsatisfiability witness — `<class> rdfs:subClassOf owl:Nothing` — the same
-/// signal [`crate::model::ReasoningVerdict::unsatisfiable`] keys on, so the
+/// signal [`gmeow_docs_model::model::ReasoningVerdict::unsatisfiable`] keys on, so the
 /// "unsatisfiable because" derivation lines never surface an unrelated entailment.
 fn is_unsatisfiable_conclusion(conclusion: &str) -> bool {
     conclusion.contains(" rdfs:subClassOf ") && conclusion.ends_with(" owl:Nothing")
@@ -6913,11 +6913,11 @@ fn md_escape(text: &str) -> String {
 
 
 
-/// Maps each term CURIE to the [`crate::model::DocFixture`]s that reference it
+/// Maps each term CURIE to the [`gmeow_docs_model::model::DocFixture`]s that reference it
 /// (via `terms_referenced`). Borrows both the CURIE keys and the fixtures from
 /// the model, so it is lifetime-bound to it.
 pub(crate) type FixturesByCurie<'a> =
-    std::collections::HashMap<&'a str, Vec<&'a crate::model::DocFixture>>;
+    std::collections::HashMap<&'a str, Vec<&'a gmeow_docs_model::model::DocFixture>>;
 
 /// Precompute the fixture index for all terms in one pass: maps each term CURIE
 /// to the fixtures referencing it. Avoids the O(terms × fixtures) per-term
@@ -6974,7 +6974,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
 pub(crate) fn search_index_json_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
     let alignment_facets = precompute_alignment_facets(model);
-    let ctx = crate::coverage::CoverageContext::new(model);
+    let ctx = gmeow_docs_model::coverage::CoverageContext::new(model);
 
     for term in &model.terms {
         records.push(SearchRecord {
@@ -6988,7 +6988,7 @@ pub(crate) fn search_index_json_with_map(model: &DocsModel, doc_map: &SourceToPa
                 .get(term.iri.as_str())
                 .cloned()
                 .unwrap_or_default(),
-            missing_coverage: crate::coverage::term_coverage(term, &ctx).missing_keys(),
+            missing_coverage: gmeow_docs_model::coverage::term_coverage(term, &ctx).missing_keys(),
         });
     }
     for slice in &model.slices {
@@ -7325,7 +7325,7 @@ pub(crate) fn llms_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMap) ->
 /// shared [`llms`] module (the single definition both the docs site and the
 /// MCP/consumer surfaces reference) so this crate's existing
 /// `render::SNIPPETS_CORPUS_NOTE` path keeps working.
-pub use crate::llms::SNIPPETS_CORPUS_NOTE;
+pub use gmeow_docs_model::llms::SNIPPETS_CORPUS_NOTE;
 
 /// Map each of `llms::STANDING_REFERENCE_PAGES` (title, same order) to its
 /// docs-site page. The docs-site rendering of the shared standing-page list;
@@ -7458,21 +7458,21 @@ pub(crate) fn llms_full_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMa
 /// scan ONCE (not O(N²)), and `model` so the term→model link can be gated on the
 /// schema-fragment digest (see [`doc_term_card`]).
 fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets, model: &DocsModel) -> String {
-    crate::card::render_card_body(
+    gmeow_docs_model::card::render_card_body(
         &doc_term_card(term, alignment_facets, model),
-        crate::card::CardDetail::Standard,
+        gmeow_docs_model::card::CardDetail::Standard,
     )
 }
 
-/// Build the neutral [`crate::card::Card`] from a docs-site [`DocTerm`], resolving
+/// Build the neutral [`gmeow_docs_model::card::Card`] from a docs-site [`DocTerm`], resolving
 /// every IRI-bearing field to its display (local-name) form. The shared
-/// [`crate::card::render_card_body`] then renders it — the SAME renderer the
+/// [`gmeow_docs_model::card::render_card_body`] then renders it — the SAME renderer the
 /// folded-snapshot MCP card uses, so the two never diverge (§19 one-path).
 fn doc_term_card(
     term: &DocTerm,
     alignment_facets: &AlignmentFacets,
     model: &DocsModel,
-) -> crate::card::Card {
+) -> gmeow_docs_model::card::Card {
     let label = match &term.label {
         Some(l) if l != &term.curie => Some(l.clone()),
         _ => None,
@@ -7490,8 +7490,8 @@ fn doc_term_card(
             .is_some_and(|digest| digest.schema_by_term.contains_key(&term.iri));
     let (python_model, python_snippet) = if is_modeled {
         (
-            Some(crate::card::python_model_path(&term.owner_slice, &term.iri)),
-            Some(crate::card::python_model_snippet(
+            Some(gmeow_docs_model::card::python_model_path(&term.owner_slice, &term.iri)),
+            Some(gmeow_docs_model::card::python_model_snippet(
                 &term.owner_slice,
                 &term.iri,
                 &term.curie,
@@ -7500,7 +7500,7 @@ fn doc_term_card(
     } else {
         (None, None)
     };
-    crate::card::Card {
+    gmeow_docs_model::card::Card {
         category: category_singular(term.category).to_string(),
         iri: term.iri.clone(),
         label,
@@ -7528,15 +7528,15 @@ fn doc_term_card(
         python_model,
         python_snippet,
         // Full-tier rich panels: never populated on the docs-site path.
-        ..crate::card::Card::default()
+        ..gmeow_docs_model::card::Card::default()
     }
 }
 
-/// Build the FULL-tier [`crate::card::Card`] for a site term: the compact
+/// Build the FULL-tier [`gmeow_docs_model::card::Card`] for a site term: the compact
 /// [`doc_term_card`] enriched with the rich oracle panels drawn DIRECTLY from the
 /// site model + executable-docs data (`model` + `exec`) — the site twin of the MCP
 /// `doc_card` full tier. It carries the SAME `Card` field types and is rendered by
-/// the SAME [`crate::card::render_card`], so the two full-card surfaces never fork a
+/// the SAME [`gmeow_docs_model::card::render_card`], so the two full-card surfaces never fork a
 /// second renderer (§19 one-path).
 ///
 /// Panel provenance mirrors the term page's own sections:
@@ -7557,14 +7557,14 @@ fn full_card_for(
     term: &DocTerm,
     alignment_facets: &AlignmentFacets,
     fixtures_by_curie: &FixturesByCurie<'_>,
-) -> crate::card::Card {
+) -> gmeow_docs_model::card::Card {
     let mut card = doc_term_card(term, alignment_facets, model);
 
     // Entailments — the reasoner "why" derivations documenting the term.
     if let Some(entailments) = exec.term_entailments.get(&term.iri) {
         card.entailments = entailments
             .iter()
-            .map(|e| crate::card::CardEntailment {
+            .map(|e| gmeow_docs_model::card::CardEntailment {
                 rule: e.rule.clone(),
                 conclusion: e.conclusion.clone(),
                 premises: e.premises.clone(),
@@ -7577,7 +7577,7 @@ fn full_card_for(
     // and capped to a short snippet (the full Turtle stays available on the
     // fixtures index / `counter_examples` tool). Looked up from the precomputed
     // CURIE index (O(1)) rather than rescanning `model.fixtures` per term.
-    let mut term_fixtures: Vec<&crate::model::DocFixture> = fixtures_by_curie
+    let mut term_fixtures: Vec<&gmeow_docs_model::model::DocFixture> = fixtures_by_curie
         .get(term.curie.as_str())
         .cloned()
         .unwrap_or_default();
@@ -7587,13 +7587,13 @@ fn full_card_for(
             .then_with(|| a.logical_path.cmp(&b.logical_path))
     });
     for fixture in term_fixtures {
-        let entry = crate::card::CardFixture {
+        let entry = gmeow_docs_model::card::CardFixture {
             title: fixture.title.clone(),
-            body: crate::llms::cap_note(&one_line(&fixture.text)),
+            body: gmeow_docs_model::llms::cap_note(&one_line(&fixture.text)),
         };
         match fixture.kind {
-            crate::model::DocFixtureKind::Wellformed => card.fixtures_do.push(entry),
-            crate::model::DocFixtureKind::CounterExample => card.fixtures_dont.push(entry),
+            gmeow_docs_model::model::DocFixtureKind::Wellformed => card.fixtures_do.push(entry),
+            gmeow_docs_model::model::DocFixtureKind::CounterExample => card.fixtures_dont.push(entry),
         }
     }
 
@@ -7606,7 +7606,7 @@ fn full_card_for(
     {
         card.diagnostics = findings
             .iter()
-            .map(|f| crate::card::CardDiagnostic {
+            .map(|f| gmeow_docs_model::card::CardDiagnostic {
                 code: f.code.clone(),
                 note: f.message.clone(),
             })
@@ -7622,7 +7622,7 @@ fn full_card_for(
     {
         card.loss = rows
             .iter()
-            .map(|r| crate::card::CardLoss {
+            .map(|r| gmeow_docs_model::card::CardLoss {
                 target: r.target.clone(),
                 preservation: r.preservation_kind.clone(),
             })
@@ -7656,7 +7656,7 @@ pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
     term_card_md_inner(term, &alignment_facets, model)
 }
 
-/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`](crate::card::Card)
+/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`](gmeow_docs_model::card::Card)
 /// serialized byte-for-byte as `render_site_lang` emits `terms/{slug}/card.json`
 /// (and as the live MCP `doc_card format=json detail=standard` renders). The
 /// single-term counterpart of [`term_card_md`]: lets a caller obtain one term's
@@ -7664,7 +7664,7 @@ pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
 pub fn term_card_json(model: &DocsModel, term: &DocTerm) -> Vec<u8> {
     let alignment_facets = precompute_alignment_facets(model);
     let standard =
-        doc_term_card(term, &alignment_facets, model).projected(crate::card::CardDetail::Standard);
+        doc_term_card(term, &alignment_facets, model).projected(gmeow_docs_model::card::CardDetail::Standard);
     serde_json::to_vec(&standard).expect("a pure-data Card of String/Vec/Option fields serializes")
 }
 
@@ -7692,7 +7692,7 @@ fn local_name_vec(iris: &[String]) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::DocTermStability;
+    use gmeow_docs_model::model::DocTermStability;
 
     #[test]
     fn rel_computes_relative_dir_paths() {
@@ -7722,7 +7722,7 @@ mod tests {
     fn stage_page_self_explains_its_attached_graphs_and_blob_reps() {
         // docs-on <stage> surfaces the stage's declared carrier contribution: the
         // attached graph/documentation + the attached blob-rep lanes (Step 4 self-explain).
-        use crate::model::{DocPipeline, DocStage};
+        use gmeow_docs_model::model::{DocPipeline, DocStage};
         let stage_iri = "https://blackcatinformatics.ca/gmeow/stage-docs-render";
         let model = DocsModel {
             pipeline: Some(DocPipeline {
@@ -7969,7 +7969,7 @@ mod tests {
             ..Default::default()
         };
 
-        let translations = crate::i18n::Translations::from_entries(
+        let translations = gmeow_docs_model::i18n::Translations::from_entries(
             [
                 (
                     (
@@ -8017,7 +8017,7 @@ mod tests {
             pipeline: None,
             available_languages: vec!["english".to_string(), "fr".to_string()],
             translations,
-            ui_catalog: crate::i18n::UiCatalog::default(),
+            ui_catalog: gmeow_docs_model::i18n::UiCatalog::default(),
             reasoning: None,
             diagnostics: None,
             term_loss: None,
@@ -8033,7 +8033,7 @@ mod tests {
     /// production render function independently of a regenerated catalog `.nq`.
     #[test]
     fn constraint_catalog_renders_distinct_advice_section() {
-        use crate::model::{AdviceEntry, ConstraintRule};
+        use gmeow_docs_model::model::{AdviceEntry, ConstraintRule};
         let mut model = tiny_model();
         // The advice family rule — its slug is the `#advice-` section anchor.
         model.constraint_rules = vec![ConstraintRule {
@@ -8129,7 +8129,7 @@ mod tests {
 
     #[test]
     fn per_term_card_json_and_full_md_are_emitted() {
-        use crate::model::{
+        use gmeow_docs_model::model::{
             DiagnosticsDigest, DocDiagFinding, DocFixture, DocFixtureKind, TermLossDigest,
             TermLossRow,
         };
@@ -8200,7 +8200,7 @@ mod tests {
         let mut term_entailments = BTreeMap::new();
         term_entailments.insert(
             foo_iri.clone(),
-            vec![crate::exec::Entailment {
+            vec![gmeow_docs_model::exec::Entailment {
                 rule: "subClassOf-transitivity".to_string(),
                 conclusion: "gmeow:Foo rdfs:subClassOf owl:Thing".to_string(),
                 premises: vec!["gmeow:Foo rdfs:subClassOf gmeow:Bar".to_string()],
@@ -8240,7 +8240,7 @@ mod tests {
         assert!(parsed.get("entailments").is_none(), "standard omits panels");
         let facets = precompute_alignment_facets(&model);
         let expected =
-            doc_term_card(foo, &facets, &model).projected(crate::card::CardDetail::Standard);
+            doc_term_card(foo, &facets, &model).projected(gmeow_docs_model::card::CardDetail::Standard);
         let expected_bytes = serde_json::to_vec(&expected).expect("serialize standard card");
         assert_eq!(
             bytes, &expected_bytes,
@@ -8263,9 +8263,9 @@ mod tests {
             "{full_md}"
         );
         // The full body is a strict superset of the standard body (single renderer).
-        let standard_body = crate::card::render_card_body(
+        let standard_body = gmeow_docs_model::card::render_card_body(
             &doc_term_card(foo, &facets, &model),
-            crate::card::CardDetail::Standard,
+            gmeow_docs_model::card::CardDetail::Standard,
         );
         assert!(
             full_md.contains(standard_body.trim_end()),
@@ -8488,7 +8488,7 @@ mod tests {
         let slice_iri = format!("{GMEOW_NS}slices/demo");
         // tiny_model has no slice; add the one its terms are owned by so the slice
         // page (and its executable sections) render.
-        model.slices.push(crate::model::DocSlice {
+        model.slices.push(gmeow_docs_model::model::DocSlice {
             iri: slice_iri.clone(),
             label: Some("Demo".to_string()),
             title: None,
@@ -8504,7 +8504,7 @@ mod tests {
             realized_state_complete: false,
         });
         // Add a worked example so the "try it" surface has something to render.
-        model.examples.push(crate::model::DocExample {
+        model.examples.push(gmeow_docs_model::model::DocExample {
             slice: slice_iri.clone(),
             logical_path: "examples/demo.ttl".to_string(),
             title: "Demo example".to_string(),
@@ -8514,8 +8514,8 @@ mod tests {
 
         let mut example_inferences = std::collections::BTreeMap::new();
         example_inferences.insert(
-            crate::exec::example_key(&slice_iri, "examples/demo.ttl"),
-            crate::exec::InferenceDiff {
+            gmeow_docs_model::exec::example_key(&slice_iri, "examples/demo.ttl"),
+            gmeow_docs_model::exec::InferenceDiff {
                 asserted: vec!["ex:a rdf:type gmeow:Foo".to_string()],
                 inferred: vec!["ex:a rdf:type owl:Thing".to_string()],
             },
@@ -8639,7 +8639,7 @@ mod tests {
         foo.use_for_consumer = vec!["gmeow:Bar".to_string(), "ext:Other".to_string()];
 
         // One alignment cross-walk on Foo.
-        model.linkages.push(crate::model::DocLinkage {
+        model.linkages.push(gmeow_docs_model::model::DocLinkage {
             mapping_set: None,
             subject: format!("{GMEOW_NS}Foo"),
             subject_curie: "gmeow:Foo".to_string(),
@@ -8766,7 +8766,7 @@ mod tests {
 
     #[test]
     fn constraint_catalog_anchors_rule_by_helpuri_slug() {
-        use crate::model::ConstraintRule;
+        use gmeow_docs_model::model::ConstraintRule;
 
         let mut model = tiny_model();
         // `box-roles.invalid` → slug `box-roles-invalid` (the validator's transform:
