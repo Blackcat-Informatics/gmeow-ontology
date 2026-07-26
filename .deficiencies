@@ -1923,4 +1923,3 @@ suggestions/guidance.
   literal-object quads under an explicit profile) so the gate — and any future
   builtin-bound `logic:Constraint` gate — threads through the single `reason_program`
   path instead of a private chase.
-
