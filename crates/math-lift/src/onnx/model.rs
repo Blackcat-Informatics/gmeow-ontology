@@ -808,6 +808,17 @@ pub fn data_type_name(code: i32) -> Option<&'static str> {
     })
 }
 
+/// FNV-1a 64-bit hex of a byte slice — a content discriminator for an arm this subset does
+/// not decode. Not a semantic identity: it distinguishes, it does not interpret.
+fn digest_of(bytes: &[u8]) -> String {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in bytes {
+        h ^= u64::from(*b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("{h:016x}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1122,15 +1133,4 @@ mod tests {
         out.extend(wire_float(value));
         out
     }
-}
-
-/// FNV-1a 64-bit hex of a byte slice — a content discriminator for an arm this subset does
-/// not decode. Not a semantic identity: it distinguishes, it does not interpret.
-fn digest_of(bytes: &[u8]) -> String {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for b in bytes {
-        h ^= u64::from(*b);
-        h = h.wrapping_mul(0x0000_0100_0000_01b3);
-    }
-    format!("{h:016x}")
 }
