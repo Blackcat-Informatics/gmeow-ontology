@@ -531,6 +531,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "reference_resolver.rs",
         "declarative SLD/Datalog reference oracle — used only inside #[cfg(test)] cross-checks (dispatch.rs::tests, physical/magic.rs::tests), not the production dispatch decision path",
     ),
+    (
+        "conjecture_eval.rs",
+        "the conjecture-and-refutation evaluation ORCHESTRATION (parse a candidate logic:Formula, re-home the KB into the scenario world, run conjecture_test, project the verdict) — a high-level entry over conjecture.rs/result_rdf.rs, not a backward-dispatch decision source dispatch_query consults",
+    ),
 ];
 
 /// Frame `value` under `tag` into `hasher` with a domain tag and length prefixes, so

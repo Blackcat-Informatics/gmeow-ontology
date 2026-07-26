@@ -30,6 +30,88 @@ fn exec_with_playground() -> ExecutableDocsData {
     }
 }
 
+/// An `exec` that supplies a (non-empty) browser bundle, so the render packs the
+/// interactive engines + the bundle-explorer host chapter into the book. The bytes are
+/// opaque to the renderer (it checks non-emptiness via `has_bundle` and content-addresses
+/// them), so fixed sentinels suffice.
+fn exec_with_bundle() -> ExecutableDocsData {
+    ExecutableDocsData {
+        core_bundle_nquads: b"<http://ex/s> <http://ex/p> <http://ex/o> <http://ex/g> .\n".to_vec(),
+        full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
+        ..Default::default()
+    }
+}
+
+/// W3: a bundle-backed book PACKS the interactive engines, so its
+/// `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities are realized, not merely
+/// asserted. The book must carry the vendored wasm engines + the shared controller under
+/// `src/assets/`, the `additional-js` boot shim at the book root, the explorer host
+/// chapter, and `book.toml` must wire the shim.
+#[test]
+fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
+    let model = common::cached_model();
+    let site = render_book(&model, &exec_with_bundle());
+    let has = |p: &str| site.files.contains_key(p);
+
+    // The shared controller + every vendored engine, under src/ so mdbook copies them.
+    assert!(has("src/assets/gmeow-docs.js"), "controller not packed");
+    for engine in [
+        "src/assets/reason/gmeow_reason_wasm_bg.wasm",
+        "src/assets/gmn/gmeow_gmn_wasm_bg.wasm",
+        "src/assets/validate/gmeow_validate_wasm_bg.wasm",
+        "src/assets/purrdf/gmeow_rdf_wasm.js",
+    ] {
+        assert!(
+            has(engine),
+            "vendored engine not packed into the book: {engine}"
+        );
+    }
+    // The browser bundle the explorer queries + its integrity manifest.
+    assert!(has("src/assets/gmeow-core.nq"), "core bundle not packed");
+    assert!(
+        has("src/assets/bundle-manifest.json"),
+        "bundle manifest not packed"
+    );
+
+    // The additional-js boot shim rides at the book root and dynamic-imports the module.
+    let shim = site.files.get("mdbook-boot.js").expect("boot shim present");
+    let shim = String::from_utf8(shim.clone()).unwrap();
+    assert!(
+        shim.contains("import(new URL(\"assets/gmeow-docs.js\""),
+        "boot shim must dynamic-import the controller: {shim}"
+    );
+
+    // book.toml wires the shim; the explorer host chapter exists and is in the ToC.
+    let toml = String::from_utf8(site.files.get("book.toml").unwrap().clone()).unwrap();
+    assert!(
+        toml.contains("additional-js = [\"mdbook-boot.js\"]"),
+        "book.toml must wire the boot shim: {toml}"
+    );
+    assert!(
+        has("src/explorer/index.md"),
+        "explorer host chapter missing"
+    );
+    let summary = String::from_utf8(site.files.get("src/SUMMARY.md").unwrap().clone()).unwrap();
+    assert!(
+        summary.contains("(explorer/index.md)"),
+        "explorer chapter must be in the table of contents: {summary}"
+    );
+}
+
+/// Without a bundle/playground the book stays static — no engines packed, no shim wired.
+#[test]
+fn non_interactive_book_packs_no_engines() {
+    let model = common::cached_model();
+    let site = render_book(&model, &ExecutableDocsData::default());
+    assert!(!site.files.contains_key("mdbook-boot.js"));
+    assert!(!site.files.keys().any(|k| k.starts_with("src/assets/")));
+    let toml = String::from_utf8(site.files.get("book.toml").unwrap().clone()).unwrap();
+    assert!(
+        !toml.contains("additional-js"),
+        "static book must not wire additional-js"
+    );
+}
+
 /// The `src/`-relative chapter path of a page (mirrors the private helper).
 fn chapter_src_path(dir: &str) -> String {
     if dir.is_empty() {
@@ -251,12 +333,14 @@ fn book_bodies_are_rewrite_of_single_authority() {
     let site = render_book(&model, &exec);
     let pages = book_pages(&model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
+    let page_map = gmeow_docs::source_map::SourceToPageMap::build(&model).expect("map builds");
 
     for page in &pages {
         let expected = rewrite_book_links(
             &to_markdown_exec(&model, page, &exec),
             &page.dir(),
             &chapters,
+            &page_map,
         )
         .body;
         let actual = String::from_utf8(
@@ -315,6 +399,96 @@ fn link_targets(body: &str) -> Vec<String> {
     out
 }
 
+/// Resolve a page-relative link against a page directory into a canonical
+/// site-relative path (no `./` / `../`); `None` if it escapes the site root.
+/// Mirrors the renderer's own join, so the test resolves links the same way the
+/// book does.
+fn resolve_rel(page_dir: &str, path: &str) -> Option<String> {
+    let mut parts: Vec<&str> = if page_dir.is_empty() {
+        Vec::new()
+    } else {
+        page_dir.split('/').collect()
+    };
+    for seg in path.split('/') {
+        match seg {
+            "" | "." => {}
+            ".." => {
+                parts.pop()?;
+            }
+            other => parts.push(other),
+        }
+    }
+    Some(parts.join("/"))
+}
+
+#[test]
+fn book_cross_document_links_resolve_inside_the_book() {
+    // Task 3: every intra-book cross-document link (and its anchor) in an emitted
+    // slice/child-document chapter must resolve to a chapter the book actually
+    // emits — with `create-missing = false`, a dangling relative link would fail
+    // `mdbook build`. Off-corpus references are absolutized (external) upstream and
+    // are not relative, so they are skipped here. This asserts the single
+    // `SourceToPageMap` authority leaves NO dangling internal document link, and
+    // that at least one cross-document ANCHOR resolves to an injected `<a id>`.
+    let site = common::cached_book();
+    let mut checked_anchor = false;
+    for (path, bytes) in &site.files {
+        let is_doc_chapter = path.starts_with("src/slices/") && path.ends_with("/index.md");
+        if !is_doc_chapter {
+            continue;
+        }
+        let page_dir = path
+            .strip_prefix("src/")
+            .and_then(|p| p.strip_suffix("/index.md"))
+            .expect("doc chapter path shape");
+        let body = std::str::from_utf8(bytes).expect("chapter is UTF-8");
+        for target in link_targets(body) {
+            // Skip absolute / external / anchor-only / site-absolute links.
+            if target.is_empty()
+                || target.starts_with('#')
+                || target.starts_with('/')
+                || target.starts_with("mailto:")
+                || target.contains("://")
+            {
+                continue;
+            }
+            let (path_part, anchor) = match target.split_once('#') {
+                Some((p, a)) => (p, Some(a)),
+                None => (target.as_str(), None),
+            };
+            // Only relative links into another chapter are checked (images/assets
+            // in the book point at real chapter index.md files here).
+            let Some(canonical) = resolve_rel(page_dir, path_part) else {
+                continue;
+            };
+            if !canonical.ends_with("/index.md") {
+                continue;
+            }
+            let key = format!("src/{canonical}");
+            assert!(
+                site.files.contains_key(&key),
+                "chapter {path} links {target:?} → {key}, which is not an emitted chapter \
+                 (a dangling internal cross-document link)"
+            );
+            if let Some(anchor) = anchor
+                && !anchor.is_empty()
+            {
+                let tgt = std::str::from_utf8(&site.files[&key]).expect("target chapter is UTF-8");
+                assert!(
+                    tgt.contains(&format!("<a id=\"{anchor}\">")),
+                    "chapter {path} links {target:?} but the target chapter {key} has no \
+                     matching `<a id=\"{anchor}\">` anchor"
+                );
+                checked_anchor = true;
+            }
+        }
+    }
+    assert!(
+        checked_anchor,
+        "expected at least one resolved cross-document anchor link in the book to verify"
+    );
+}
+
 #[test]
 fn book_zero_term_slice_renders_valid_chapter() {
     // A11 — degenerate edge: a slice with zero terms must still yield a valid,
@@ -331,6 +505,7 @@ fn book_zero_term_slice_renders_valid_chapter() {
         profiles: Vec::new(),
         depends_on: Vec::new(),
         artifacts: Vec::new(),
+        documents: Vec::new(),
         has_thesis_sentence: false,
         realized_state_complete: false,
     };

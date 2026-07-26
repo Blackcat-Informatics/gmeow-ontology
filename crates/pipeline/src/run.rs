@@ -281,7 +281,9 @@ pub fn full_spec() -> PipelineSpec {
         // `generated/shapes/*.ttl` members are read off THIS run's producer products
         // (compile-logic + the three shape export leaves), never the stale committed
         // files (the stale-disk-fold class). The compile-logic edge is narrowed to
-        // the object-level graphs (see `st_validate`).
+        // the object-level graphs (see `st_validate`). It also consumes stage-reason,
+        // narrowed to graph/reasoning: the D5 abductive tier reads the reasoned closure
+        // (asserted OR entailed), so the validator is a DESCENDANT of the reasoner.
         st_validate(
             "stage-validate",
             "validate",
@@ -290,6 +292,7 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-export-constraint-shapes",
                 "stage-export-frame-shapes",
                 "stage-export-result-shapes",
+                "stage-reason",
                 "stage-source-load",
             ],
         ),
@@ -665,15 +668,24 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// — the program-level digest standing in for the validation-shape byte artifacts it
 /// reads off that product, and the narrowing that keeps its `graph/diagnostics`
 /// attachment a genuine delta (compile-logic's product carries a graph of the same
-/// name). Derives the SAME entity list as
+/// name). Its `stage-reason` dependency is narrowed to the single `graph/reasoning` named
+/// graph (mirroring `st_goal_directed`): the D5 abductive tier reads the reasoned closure,
+/// and that projection reifies every derived axiom, so its digest is a faithful key for the
+/// closure this stage folds. Derives the SAME entity list as
 /// [`crate::stages::validate::ValidateStage`]'s consumed_entities() so the
 /// dag_dogfood parity and the loader's bind-agreement both hold.
 fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
-    s.dataflow_entities = vec![(
-        "stage-compile-logic".to_string(),
-        crate::stages::compile_logic::carrier_entity_list(),
-    )];
+    s.dataflow_entities = vec![
+        (
+            "stage-compile-logic".to_string(),
+            crate::stages::compile_logic::carrier_entity_list(),
+        ),
+        (
+            "stage-reason".to_string(),
+            vec![gmeow_logic::result_rdf::GRAPH_REASONING.to_string()],
+        ),
+    ];
     s
 }
 
@@ -1871,6 +1883,13 @@ ex:RequiredShape a sh:NodeShape ;
                 "stage-export-result-shapes",
                 &[crate::stages::result_shapes::RESULT_SHAPES_PATH],
             ),
+        );
+        // The validate stage's D5 abductive tier consumes stage-reason's reasoned closure;
+        // an empty-EDB reason product yields an empty closure, so the reasoned union is the
+        // authored source graph alone (this harness drives SHACL/enrichment, not entailment).
+        upstream.insert(
+            "stage-reason".to_owned(),
+            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
         );
     }
 

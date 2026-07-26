@@ -28,7 +28,28 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::exec::ExecutableDocsData;
 use crate::model::{DocTerm, DocTermCategory, DocsModel};
-use crate::render::{Page, Site, book_pages, term_slug, to_markdown_exec};
+use crate::render::{
+    Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug,
+    to_markdown_exec_with_map,
+};
+use crate::source_map::SourceToPageMap;
+
+/// The book-root path of the `additional-js` boot shim. mdbook injects `additional-js`
+/// files as plain `<script>` tags (no `type="module"`), so this ONE classic script
+/// dynamically `import()`s the ES-module controller `assets/gmeow-docs.js` (resolved
+/// against the shim's own URL, so it is correct at any chapter depth). It is emitted at
+/// the book root (mdbook copies `additional-js` from there), NOT under `src/`.
+pub const MDBOOK_BOOT_JS_PATH: &str = "mdbook-boot.js";
+
+/// The `src/`-relative chapter path of the packed interactive host page (the bundle
+/// explorer: browser SPARQL/describe + live reasoning + GMN transcode). Emitted into the
+/// book only when the render is bundle-backed.
+const MDBOOK_EXPLORER_CHAPTER: &str = "explorer";
+
+/// The book chapter dir hosting the conjecture playground (the WASM-interactive docs W4 deliverable: browser
+/// symmetric proof / counterproof over the curated demo library). Emitted into the book
+/// only when the render is conjecture-backed (`has_conjectures()`).
+const MDBOOK_CONJECTURE_CHAPTER: &str = "conjectures";
 
 /// The absolute base URL of the published documentation site. The model carries
 /// no canonical site/base URL field, so this single constant defines it. Every
@@ -59,20 +80,32 @@ pub struct LinkRewrite {
 pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     let pages = book_pages(model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
+    // The single link-rewrite authority, rebuilt from the model (a pure function of
+    // its already-validated document set — the same total build the site render and
+    // the RDF projection perform). It is the ONE authority that decides whether a
+    // resolved cross-document link names a real corpus page, and it is what the
+    // `SliceDocument` child-chapter nesting in `summary_md` reads.
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
     // The SINGLE collision-resolution authority (see [`dir_winners`]): both the
     // chapter body writer below and `summary_md`'s table of contents consult
     // this SAME map, so a colliding chapter path is only ever body-written and
     // ToC-listed for its one winning page.
     let winners = dir_winners(&pages);
 
+    // The book packs the interactive engines when the render is exec-backed, so once
+    // built it carries the SAME live SPARQL / reasoning / GMN transcode the site does
+    // (its `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities in
+    // `crate::formats` are not a bare claim — the assets are shipped here).
+    let interactive = exec.has_bundle() || exec.has_playground();
+
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    files.insert("book.toml".to_string(), book_toml(model).into_bytes());
-    // mdbook resolves the table of contents at `<src>/SUMMARY.md` (src defaults to
-    // `src`), so the summary rides inside the source tree, not at the book root.
     files.insert(
-        "src/SUMMARY.md".to_string(),
-        summary_md(model, &pages, &winners).into_bytes(),
+        "book.toml".to_string(),
+        book_toml(model, interactive).into_bytes(),
     );
+
+    let mut summary = summary_md(model, &pages, &winners, &page_map);
 
     for (i, page) in pages.iter().enumerate() {
         if winners.get(&page.dir()) != Some(&i) {
@@ -81,13 +114,90 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
             // chapter's body, and `summary_md` only ever links the winner.
             continue;
         }
-        let body = to_markdown_exec(model, page, exec);
-        let rewritten = rewrite_book_links(&body, &page.dir(), &chapters);
+        let body = to_markdown_exec_with_map(model, page, exec, &page_map);
+        let rewritten = rewrite_book_links(&body, &page.dir(), &chapters, &page_map);
         let path = chapter_src_path(&page.dir());
         files.insert(path, rewritten.body.into_bytes());
     }
 
+    if interactive {
+        pack_interactive_book(&mut files, &mut summary, model, exec, &chapters, &page_map);
+    }
+
+    // mdbook resolves the table of contents at `<src>/SUMMARY.md` (src defaults to
+    // `src`), so the summary rides inside the source tree, not at the book root.
+    files.insert("src/SUMMARY.md".to_string(), summary.into_bytes());
+
     Site { files }
+}
+
+/// The `additional-js` boot shim: a classic script that dynamically imports the
+/// ES-module docs controller, resolving its URL against the shim's own `src` so it is
+/// correct at any chapter depth. Emitted at [`MDBOOK_BOOT_JS_PATH`].
+const MDBOOK_BOOT_JS: &str = "\
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>\n\
+// SPDX-License-Identifier: AGPL-3.0-only\n\
+\n\
+// mdbook injects additional-js as a plain <script> (no type=\"module\"), so this classic\n\
+// shim dynamic-imports the ES-module docs controller. The URL is resolved against THIS\n\
+// script's own src, so it is correct regardless of the chapter's depth in the book.\n\
+(function () {\n\
+  var self = document.currentScript;\n\
+  var base = (self && self.src) || window.location.href;\n\
+  import(new URL(\"assets/gmeow-docs.js\", base)).catch(function (e) {\n\
+    console.error(\"gmeow docs controller failed to load\", e);\n\
+  });\n\
+})();\n";
+
+/// Pack the interactive engines + the bundle-explorer host chapter into the book.
+///
+/// The shared [`interactive_asset_files`] set (the controller + vendored wasm engines +
+/// bundle/playground data — the byte-identical assets the site's witness lanes prove) is
+/// copied under `src/`, so mdbook copies them to the built book preserving the `assets/`
+/// prefix the controller resolves against. The boot shim rides at the book root (where
+/// mdbook copies `additional-js` from). When the bundle is present the explorer chapter
+/// (browser SPARQL/describe + live reasoning + GMN transcode) is emitted and appended to
+/// the table of contents, giving the book a concrete interactive host page.
+fn pack_interactive_book(
+    files: &mut BTreeMap<String, Vec<u8>>,
+    summary: &mut String,
+    model: &DocsModel,
+    exec: &ExecutableDocsData,
+    chapters: &BTreeSet<String>,
+    page_map: &SourceToPageMap,
+) {
+    for (path, bytes) in interactive_asset_files(exec) {
+        // The controller resolves `assets/…`; mdbook copies `src/assets/…` → `assets/…`.
+        files.insert(format!("src/{path}"), bytes);
+    }
+    files.insert(
+        MDBOOK_BOOT_JS_PATH.to_string(),
+        MDBOOK_BOOT_JS.as_bytes().to_vec(),
+    );
+
+    if exec.has_bundle() {
+        let page = Page::BundleExplorer;
+        let dir = page.dir();
+        debug_assert_eq!(dir, MDBOOK_EXPLORER_CHAPTER);
+        let body = to_markdown_exec_with_map(model, &page, exec, page_map);
+        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
+        files.insert(chapter_src_path(&dir), rewritten.body.into_bytes());
+        // A top-level table-of-contents entry so the chapter is reachable (mdbook's
+        // `create-missing = false` accepts it because the chapter file exists).
+        summary.push_str(&format!("\n- [{}]({}/index.md)\n", page.title(model), dir));
+    }
+
+    // The conjecture playground host chapter (browser symmetric proof / counterproof over
+    // the curated demo library + the live wasm conjecture engine).
+    if exec.has_conjectures() {
+        let page = Page::ConjecturePlayground;
+        let dir = page.dir();
+        debug_assert_eq!(dir, MDBOOK_CONJECTURE_CHAPTER);
+        let body = to_markdown_exec_with_map(model, &page, exec, page_map);
+        let rewritten = rewrite_book_links(&body, &dir, chapters, page_map);
+        files.insert(chapter_src_path(&dir), rewritten.body.into_bytes());
+        summary.push_str(&format!("\n- [{}]({}/index.md)\n", page.title(model), dir));
+    }
 }
 
 /// Compute the SINGLE deterministic winner for each colliding chapter
@@ -100,10 +210,42 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
 /// [`summary_md`] resolve a collision by consulting THIS map, so the ToC link
 /// label always names the exact page whose body is shipped at that path —
 /// there is no second, independently-dedup'd notion of "the winner".
+///
+/// The FIRST-wins fold is the LEGACY term-slug behavior and applies ONLY to
+/// term pages: two distinct term IRIs that lossily slugify to one path differ
+/// only in that slug, so collapsing them is not a silent capability loss.
+///
+/// The child-document namespace is NOT allowed a silent winner. Child-document
+/// page paths (`Page::SliceDocument`) are minted through
+/// [`SourceToPageMap::build`], which HARD-FAILS on any two distinct documents
+/// mapping to one generated page path, so every child-document chapter dir is
+/// unique by construction. A collision that involves a child-document page
+/// therefore signals a broken invariant, never a benign slug fold — it is a hard
+/// failure naming BOTH colliding pages, so the new namespace can never quietly
+/// drop a document behind a first-wins pick.
 fn dir_winners(pages: &[Page]) -> BTreeMap<String, usize> {
+    use std::collections::btree_map::Entry;
     let mut winners: BTreeMap<String, usize> = BTreeMap::new();
     for (i, page) in pages.iter().enumerate() {
-        winners.entry(page.dir()).or_insert(i);
+        match winners.entry(page.dir()) {
+            Entry::Vacant(slot) => {
+                slot.insert(i);
+            }
+            Entry::Occupied(slot) => {
+                let first = &pages[*slot.get()];
+                if matches!(page, Page::SliceDocument { .. })
+                    || matches!(first, Page::SliceDocument { .. })
+                {
+                    panic!(
+                        "chapter dir {:?} collides between {first:?} and {page:?} — child-document \
+                         page paths are minted through SourceToPageMap and MUST be unique; a \
+                         collision here means the page-path scheme was violated",
+                        page.dir()
+                    );
+                }
+                // Legacy term-slug fold: keep the first, the shared collision winner.
+            }
+        }
     }
     winners
 }
@@ -115,10 +257,12 @@ fn dir_winners(pages: &[Page]) -> BTreeMap<String, usize> {
 pub fn book_external_links(model: &DocsModel, exec: &ExecutableDocsData) -> BTreeSet<String> {
     let pages = book_pages(model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
+    let page_map = SourceToPageMap::build(model)
+        .expect("SourceToPageMap: model documents were already validated at discovery");
     let mut all: BTreeSet<String> = BTreeSet::new();
     for page in &pages {
-        let body = to_markdown_exec(model, page, exec);
-        all.extend(rewrite_book_links(&body, &page.dir(), &chapters).external);
+        let body = to_markdown_exec_with_map(model, page, exec, &page_map);
+        all.extend(rewrite_book_links(&body, &page.dir(), &chapters, &page_map).external);
     }
     all
 }
@@ -147,7 +291,18 @@ fn summary_target(dir: &str) -> String {
 /// (from `model.title`). `create-missing = false` makes a dangling chapter link
 /// a hard build failure — which is why [`rewrite_book_links`] externalizes every
 /// link to a page the book does not emit.
-fn book_toml(model: &DocsModel) -> String {
+///
+/// When `interactive`, the book packs the vendored wasm engines + the shared controller
+/// (see [`render_book`]) and wires them through the `additional-js` bootstrap
+/// [`MDBOOK_BOOT_JS_PATH`] — a classic script that dynamically `import()`s the ES-module
+/// controller (mdbook's `additional-js` injects plain `<script>` tags, so the module is
+/// loaded through this one-line boot shim rather than directly).
+fn book_toml(model: &DocsModel, interactive: bool) -> String {
+    let additional_js = if interactive {
+        format!("additional-js = [\"{MDBOOK_BOOT_JS_PATH}\"]\n")
+    } else {
+        String::new()
+    };
     format!(
         "[book]\n\
          title = \"{}\"\n\
@@ -160,8 +315,10 @@ fn book_toml(model: &DocsModel) -> String {
          [output.html]\n\
          default-theme = \"light\"\n\
          preferred-dark-theme = \"navy\"\n\
-         no-section-label = false\n",
-        toml_escape(&model.title)
+         no-section-label = false\n\
+         {}",
+        toml_escape(&model.title),
+        additional_js,
     )
 }
 
@@ -189,7 +346,12 @@ fn toml_escape(s: &str) -> String {
 /// category index, slices under the slice index, concerns under the concern
 /// index, recipes / learning-paths under their indexes, and the logic
 /// compiler-product pages under the logic index.
-fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usize>) -> String {
+fn summary_md(
+    model: &DocsModel,
+    pages: &[Page],
+    winners: &BTreeMap<String, usize>,
+    map: &SourceToPageMap,
+) -> String {
     // Bucket the child pages, preserving the book_pages order within each bucket.
     let mut slices: Vec<&Page> = Vec::new();
     let mut concerns: Vec<&Page> = Vec::new();
@@ -254,6 +416,7 @@ fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usiz
         match page {
             Page::Landing
             | Page::Slice(_)
+            | Page::SliceDocument { .. }
             | Page::Concern(_)
             | Page::Recipe(_)
             | Page::LearningPath(_)
@@ -282,10 +445,37 @@ fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usiz
         };
         for child in children {
             summary_entry(&mut out, model, child, 1);
+            // A slice's child documents (`Page::SliceDocument`) nest ONE level deeper
+            // under their slice, in the SAME path-sorted order the book emits their
+            // chapters (`SourceToPageMap::slice_children`). This is the single place
+            // the child-document table of contents is derived, so the ToC nesting can
+            // never disagree with the emitted chapter set.
+            if let Page::Slice(slug) = *child {
+                for doc_page in slice_document_pages(model, map, slug) {
+                    summary_entry(&mut out, model, &doc_page, 2);
+                }
+            }
         }
     }
 
     out
+}
+
+/// The `Page::SliceDocument` pages of the slice whose slug is `slug`, in the
+/// map's path-sorted child order (the SAME order [`crate::render::pages`] emits
+/// the child chapters, and the same set — every non-`docs.md` markdown source).
+/// Empty when the slug names no slice or the slice has no child documents.
+fn slice_document_pages(model: &DocsModel, map: &SourceToPageMap, slug: &str) -> Vec<Page> {
+    let Some(slice) = model.slices.iter().find(|s| slice_slug(s) == slug) else {
+        return Vec::new();
+    };
+    map.slice_children(&slice.iri)
+        .into_iter()
+        .map(|entry| Page::SliceDocument {
+            slice: slice.iri.clone(),
+            path: entry.source_path,
+        })
+        .collect()
 }
 
 /// Push one `SUMMARY.md` list entry at `depth` (2 spaces per level).
@@ -327,7 +517,22 @@ fn link_text(text: &str) -> String {
 ///   `mdbook build` from failing on a link to a page the book does not emit.
 ///
 /// Links inside fenced code blocks are left verbatim.
-pub fn rewrite_book_links(body: &str, page_dir: &str, chapters: &BTreeSet<String>) -> LinkRewrite {
+///
+/// `map` is the single [`SourceToPageMap`] link authority. For a resolved
+/// cross-document target that names a real corpus page, the map confirms it is a
+/// document chapter the book emits (so the link stays relative and resolves inside
+/// the book); a target the map recognizes as a corpus page but that is somehow NOT
+/// emitted as a chapter is a hard-fail dangling internal link, never a silent
+/// externalization. A link the upstream document rewrite already absolutized to
+/// [`PUBLISHED_SITE_BASE`] (an off-corpus document reference) is folded back into
+/// the SAME [`LinkRewrite::external`] ledger, so there is one — and only one —
+/// notion of "what the book points off-site to".
+pub fn rewrite_book_links(
+    body: &str,
+    page_dir: &str,
+    chapters: &BTreeSet<String>,
+    map: &SourceToPageMap,
+) -> LinkRewrite {
     let mut out = String::with_capacity(body.len());
     let mut external: BTreeSet<String> = BTreeSet::new();
     let mut in_fence = false;
@@ -344,7 +549,7 @@ pub fn rewrite_book_links(body: &str, page_dir: &str, chapters: &BTreeSet<String
             out.push_str(line);
             continue;
         }
-        rewrite_line(line, page_dir, chapters, &mut out, &mut external);
+        rewrite_line(line, page_dir, chapters, map, &mut out, &mut external);
     }
 
     LinkRewrite {
@@ -358,6 +563,7 @@ fn rewrite_line(
     line: &str,
     page_dir: &str,
     chapters: &BTreeSet<String>,
+    map: &SourceToPageMap,
     out: &mut String,
     external: &mut BTreeSet<String>,
 ) {
@@ -371,7 +577,7 @@ fn rewrite_line(
         let close = open + rel_close;
         let target = &line[open..close];
         out.push_str(&line[cursor..open]);
-        out.push_str(&rewrite_target(target, page_dir, chapters, external));
+        out.push_str(&rewrite_target(target, page_dir, chapters, map, external));
         // Keep the closing ')' with the following span.
         cursor = close;
     }
@@ -383,9 +589,19 @@ fn rewrite_target(
     target: &str,
     page_dir: &str,
     chapters: &BTreeSet<String>,
+    map: &SourceToPageMap,
     external: &mut BTreeSet<String>,
 ) -> String {
-    // Absolute / scheme-qualified / anchor-only / protocol-relative: leave as is.
+    // A link the upstream document rewrite already absolutized to the published
+    // site (an off-corpus cross-document reference) is recorded in the ONE external
+    // ledger — no second, parallel notion of "what the book drops" — then left as
+    // the absolute URL it already is (it can never dangle a chapter).
+    if let Some(rest) = target.strip_prefix(PUBLISHED_SITE_BASE) {
+        external.insert(rest.to_string());
+        return target.to_string();
+    }
+
+    // Other absolute / scheme-qualified / anchor-only / protocol-relative: leave as is.
     if target.is_empty()
         || target.starts_with('#')
         || target.starts_with('/')
@@ -405,16 +621,28 @@ fn rewrite_target(
         return target.to_string();
     };
 
-    if let Some(dir) = chapter_dir_of(&canonical)
-        && chapters.contains(&dir)
-    {
-        // A real chapter: keep the link relative, normalize the extension.
-        let md = if let Some(stem) = path_part.strip_suffix(".html") {
-            format!("{stem}.md")
-        } else {
-            path_part.to_string()
-        };
-        return format!("{md}{suffix}");
+    if let Some(dir) = chapter_dir_of(&canonical) {
+        if chapters.contains(&dir) {
+            // A real chapter: keep the link relative, normalize the extension.
+            let md = if let Some(stem) = path_part.strip_suffix(".html") {
+                format!("{stem}.md")
+            } else {
+                path_part.to_string()
+            };
+            return format!("{md}{suffix}");
+        }
+        // The single link authority: if the map recognizes this canonical path as a
+        // real corpus document page, it MUST have been emitted as a chapter above.
+        // A resolved cross-document link that lands on a known page which the book
+        // did not emit is a dangling internal link — a hard failure, never a quiet
+        // externalization that would hide a broken cross-reference.
+        if map.is_known_page(&format!("{dir}/")) {
+            panic!(
+                "book chapter link {target:?} on page {page_dir:?} resolves to the known corpus \
+                 document page {dir:?}/ but no chapter was emitted for it — a dangling internal \
+                 cross-document link"
+            );
+        }
     }
 
     // A dropped surface: externalize to the published site and record it.

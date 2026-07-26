@@ -27,6 +27,22 @@ use crate::{SyncMode, SyncOutput};
 const MANIFEST_VERSION: u32 = 3;
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
+/// Overrides the host-global gate-lock path (for CI runners or tests wanting a scoped
+/// lock instead of the machine-wide one). Must match the `xtask` copy.
+const HOST_LOCK_ENV: &str = "GMEOW_TASK_HOST_LOCK";
+
+/// The HOST-GLOBAL gate-lock path — one GMEOW gate (`make check` / `make regen`) runs on
+/// the entire host at a time, regardless of worktree, so sibling-worktree gates cannot
+/// interfere. Byte-identical to `crates/xtask/src/main.rs::host_lock_path` so both the
+/// `xtask` check runner and this `gmeow-dev sync` writer contend on the SAME file.
+fn host_lock_path() -> std::path::PathBuf {
+    if let Some(explicit) = std::env::var_os(HOST_LOCK_ENV)
+        && !explicit.is_empty()
+    {
+        return std::path::PathBuf::from(explicit);
+    }
+    std::path::PathBuf::from("/tmp/gmeow-task/host-runner.lock")
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct FileWitness {
@@ -71,18 +87,31 @@ impl TaskLock {
             return Ok(Self { file: None });
         }
 
-        let dir = root.join(".cache/gmeow-task");
-        std::fs::create_dir_all(&dir).map_err(|e| {
-            crate::error::sync(format!("create task-lock directory {}: {e}", dir.display()))
-        })?;
-        let path = dir.join("runner.lock");
+        // HOST-GLOBAL lock: at most one GMEOW gate runs on the whole host at a time, so a
+        // standalone `make regen` here cannot interfere with a `make check`/`make regen` in
+        // ANY sibling worktree. (Re-entrant descendants of a running check skip this via
+        // the token check above.)
+        use std::os::unix::fs::PermissionsExt;
+        let path = host_lock_path();
+        if let Some(dir) = path.parent() {
+            std::fs::create_dir_all(dir).map_err(|e| {
+                crate::error::sync(format!(
+                    "create host gate-lock directory {}: {e}",
+                    dir.display()
+                ))
+            })?;
+            let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o1777));
+        }
         let mut file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
             .truncate(false)
             .open(&path)
-            .map_err(|e| crate::error::sync(format!("open task lock {}: {e}", path.display())))?;
+            .map_err(|e| {
+                crate::error::sync(format!("open host gate lock {}: {e}", path.display()))
+            })?;
+        let _ = file.set_permissions(std::fs::Permissions::from_mode(0o0666));
         match file.try_lock() {
             Ok(()) => {
                 let owner = format!(
@@ -90,14 +119,14 @@ impl TaskLock {
                     std::process::id(),
                     root.display()
                 );
-                file.set_len(0)
-                    .map_err(|e| crate::error::sync(format!("truncate task lock: {e}")))?;
-                file.seek(SeekFrom::Start(0))
-                    .map_err(|e| crate::error::sync(format!("seek task lock: {e}")))?;
-                file.write_all(owner.as_bytes())
-                    .map_err(|e| crate::error::sync(format!("write task lock: {e}")))?;
-                file.flush()
-                    .map_err(|e| crate::error::sync(format!("flush task lock: {e}")))?;
+                // Owner line is diagnostic only (a cross-user pre-existing file may deny
+                // the write); the flock is what makes the gate host-atomic, so a failed
+                // owner write must NOT fail the acquire.
+                let _ = file
+                    .set_len(0)
+                    .and_then(|()| file.seek(SeekFrom::Start(0)).map(|_| ()))
+                    .and_then(|()| file.write_all(owner.as_bytes()))
+                    .and_then(|()| file.flush());
                 Ok(Self { file: Some(file) })
             }
             Err(TryLockError::WouldBlock) => {
@@ -105,7 +134,7 @@ impl TaskLock {
                 let _ = file.seek(SeekFrom::Start(0));
                 let _ = file.read_to_string(&mut owner);
                 Err(crate::error::sync(format!(
-                    "another GMEOW task owns this worktree{}",
+                    "another GMEOW gate is already running on this host{}",
                     if owner.trim().is_empty() {
                         String::new()
                     } else {
@@ -114,7 +143,7 @@ impl TaskLock {
                 )))
             }
             Err(TryLockError::Error(e)) => {
-                Err(crate::error::sync(format!("acquire task lock: {e}")))
+                Err(crate::error::sync(format!("acquire host gate lock: {e}")))
             }
         }
     }

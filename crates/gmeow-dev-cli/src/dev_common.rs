@@ -125,7 +125,7 @@ pub fn snapshot_bytes(root: &Path) -> Result<Vec<u8>, i32> {
     let path = root.join(GTS_SNAPSHOT_REL);
     std::fs::read(&path).map_err(|e| {
         fail(format!(
-            "cannot read {} ({e}); run `make sync` first",
+            "cannot read {} ({e}); run `make regen` first",
             path.display()
         ))
     })

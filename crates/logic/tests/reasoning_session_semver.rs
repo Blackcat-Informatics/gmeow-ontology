@@ -125,7 +125,7 @@ use session_common::*;
 /// raw source-content digest moves on both axes. The change only makes an already-malformed
 /// multi-valued cell decline instead of mis-decoding, so no reasoning verdict on any
 /// well-formed input — including this fixed edge-only input, which authors no dimension
-/// cell — changes. (Value below is the post-`cargo fmt` state of the branch.)
+/// cell — changes.
 /// Re-blessed once more for the `math:` expression-identity reasoned gate
 /// (`math_expression.rs`): `physical/lower.rs`'s `math_expression_structural_keys` and
 /// `structural_digest` lose their `#[allow(dead_code)]` now that a live caller
@@ -196,8 +196,14 @@ use session_common::*;
 /// test-only content moves the native-contract source-content digest folded into this
 /// descriptor; no lowering behavior changes, so the fixed edge-only input (authoring no
 /// `math:` expression graph) has an unchanged reasoning verdict.
+/// Re-blessed for the origin/main merge into this branch: this branch's ADDITIVE engine
+/// sources — the W4b browser reasoner `reason::reason_closure_dataset` (wrapping the
+/// unchanged native chase) and the W4 `conjecture_eval` orchestration module — combine with
+/// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
+/// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
+/// changes (all additions are inert on it).
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "e807d7cdfe6be7041253bf4eb1418b62e84858f3f729d0bac4dbce8fc668d50b";
+    "b40168ed6edec360a28630236543ed542a785f98e796dacce51c9ff13a9657d3";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -285,7 +291,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// one of the seven folded identity axes, while the fixed edge-only input (authoring no
 /// `math:` expression graph) has an unchanged reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "8d2fc81c7fd282142d29bb6f3aee8d9683d0032fd0b4a456ff2a961ff8b12f68";
+    "2ccc4bf00740cfe368ebc9fe616f70ee74fb94ca2fb55f9c2a7a22feea90bbc1";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

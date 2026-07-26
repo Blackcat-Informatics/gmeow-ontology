@@ -71,6 +71,20 @@ fn section_text<'a>(typ: &'a str, name: &str) -> &'a str {
 }
 
 #[test]
+fn real_model_typ_compiles_to_pdf() {
+    // The print projection inlines EVERY real slice's guide + child documents
+    // (`docs.md`, `design/*.md`, …) as Typst. Their authored markdown — tables,
+    // fenced code, lists, block-quotes, cross-document links, and hostile term
+    // text — must lower to a document that actually COMPILES, not merely render to
+    // a plausible-looking source. This is the whole-corpus compile gate: if the
+    // Markdown→Typst inliner ever emits invalid Typst for any real document, this
+    // reds here rather than only when the build stage compiles the PDF.
+    let typ = &print_projection().0;
+    let pdf = docs_print::compile_pdf(typ, &[]).expect("the real-model print Typst must compile");
+    assert!(pdf.starts_with(b"%PDF"), "compile_pdf must produce a PDF");
+}
+
+#[test]
 fn print_typ_carries_every_section_marker() {
     let typ = &print_projection().0;
     for name in [

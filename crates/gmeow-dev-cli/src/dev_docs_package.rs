@@ -12,7 +12,7 @@
 //! `dist/gmeow-docs/`, packages it via the single tar+blake3 authority
 //! ([`gmeow_pipeline::docs_distribution::package_docs_dir`]), and writes the tar +
 //! its `.blake3` sidecar plus a `.blake3` sidecar for the manifest file. `make
-//! release-publish` runs `make sync SYNC_OUTPUTS=docs` immediately before this
+//! release-publish` runs `make regen SYNC_OUTPUTS=docs` immediately before this
 //! command so the tree it packages is always freshly materialized.
 //!
 //! The manifest digest sidecar is written NEXT TO the output tar
@@ -77,7 +77,7 @@ pub fn docs_package(out: &std::path::Path) -> i32 {
         Err(e) => {
             return fail(format!(
                 "cannot read release manifest {} ({e}); materialize it first with \
-                 `make sync SYNC_MODE=update SYNC_OUTPUTS=docs`",
+                 `make regen SYNC_MODE=update SYNC_OUTPUTS=docs`",
                 manifest_path.display()
             ));
         }

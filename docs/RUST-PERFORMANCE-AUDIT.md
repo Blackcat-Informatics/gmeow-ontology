@@ -111,7 +111,7 @@ fall back to the full profile. This is proof-carrying DAG pruning, not a reduced
 correctness profile (Principles 4, 7, and 18).
 
 The local `make check` entry point also owns update-mode synchronization. This
-removes the developer-visible `make sync` / `make check` boundary without adding
+removes the developer-visible `make regen` / `make check` boundary without adding
 another cold pipeline: a clean manifest returns immediately, while a miss pays the
 same regeneration that previously had to be run as a separate command. The
 internal `make check-sync` target defaults to read-only mode for CI drift proof.
@@ -222,7 +222,7 @@ make fmt
 make reason-gate       # REMOVED; use make reason-verify
 make reason-verify
 make reason-crosscheck # REMOVED — the live native-vs-purrdf::entail oracle lane
-make sync SYNC_MODE=check SYNC_OUTPUTS=generated
+make check-sync
 make gts-frame-profile-gate
 make check
 make check-full

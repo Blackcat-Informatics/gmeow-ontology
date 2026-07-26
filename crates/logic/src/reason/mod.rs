@@ -217,6 +217,32 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
     Ok(inferred)
 }
 
+/// The reasoned closure of `edb` as a frozen [`RdfDataset`] of the INFERRED triples
+/// — the structured-DL closure ([`reason_closure_axioms`]) materialized into RDF.
+/// This is the browser reasoner's entry (`gmeow-reason-wasm` serializes it to
+/// N-Quads for the live entailment panel), running the SAME native chase — serially
+/// on wasm (single-threaded rayon fallback), byte-identical to the parallel path
+/// (proven by the rule-parallel evidence probe).
+///
+/// # Errors
+///
+/// Returns `Err` if reasoning fails or an inferred term cannot be lowered to RDF.
+pub fn reason_closure_dataset(
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    let inferred = reason_closure_axioms(edb)?;
+    let mut builder = RdfDatasetBuilder::new();
+    for ax in &inferred {
+        let subject = RdfTerm::iri(ax.subject.clone());
+        let object = term_value_to_rdf_term(&crate::rule_ir::surface_to_value(&ax.object)?)?;
+        let quad = RdfQuad::new(subject, ax.predicate.clone(), object);
+        builder.push_owned_quad(&quad);
+    }
+    builder
+        .freeze()
+        .map_err(|e| reason_err(format!("freeze reasoned closure dataset: {e}")))
+}
+
 /// One IRI-object axiom to probe through exact leave-one-out reasoning.
 ///
 /// The probe removes every occurrence of the triple from every RDF world, matching

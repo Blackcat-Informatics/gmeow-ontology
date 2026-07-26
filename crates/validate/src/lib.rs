@@ -57,6 +57,8 @@ pub mod store;
 // Tier-2 reasoner path all pull native-only crates (gmeow-logic, rayon, ureq,
 // gmeow-slice) and cannot cross-compile to wasm.
 #[cfg(not(target_arch = "wasm32"))]
+pub mod abductive;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod advisory;
 // The ontology-surface authoring gates (shape-IRI ownership, profile/catalog
 // closure, term-declaration + language-tag discipline, graft isolation, slice
