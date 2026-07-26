@@ -470,7 +470,7 @@ fn selected_single(
 ///
 /// This is [`gmeow_ns::gmeow_json_schema_namespaces`] — the SAME table
 /// `gmeow_pipeline::stages::export` keys `$defs` with, not a mirror of it. The
-/// four namespaces used to be re-declared here because `gmeow-pipeline` depends
+/// four namespaces used to be redeclared here because `gmeow-pipeline` depends
 /// on `gmeow-docs` and importing the table back would have been circular;
 /// `gmeow-ns` sits below both, so there is one table and it cannot drift.
 fn json_schema_namespaces() -> purrdf::Namespaces {

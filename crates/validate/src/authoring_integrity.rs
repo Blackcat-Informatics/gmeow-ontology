@@ -1314,7 +1314,7 @@ pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
 //
 // Both conditions keep the gate honest in the other direction:
 //
-// * a module that re-declares a FOREIGN term so it validates locally
+// * a module that redeclares a FOREIGN term so it validates locally
 //   (`dcterms:created a owl:AnnotationProperty`, `ontolex:LexicalEntry a
 //   owl:Class`) is describing someone else's vocabulary, not minting: purrdf
 //   never treats those as owned either, so flagging them would be a false report
@@ -1414,7 +1414,7 @@ fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
         });
 
         // Keep only GMEOW's OWN terms: minted under GMEOW's IRI authority, or
-        // claiming GMEOW ownership outright. A foreign term re-declared locally is
+        // claiming GMEOW ownership outright. A foreign term redeclared locally is
         // neither, and purrdf never treats it as owned either.
         let claimed: BTreeMap<String, BTreeSet<&'static str>> = declared_terms
             .into_iter()
@@ -1706,7 +1706,7 @@ struct PageSeamRow {
 ///
 /// Returns the rows keyed by seam name (a name rendered more than once keeps every
 /// row so the caller can report the ambiguity rather than silently picking one) plus
-/// a complaint per structurally unparseable row — a row whose column count is wrong,
+/// a complaint per structurally unparsable row — a row whose column count is wrong,
 /// whose name cell is empty, or whose Direction cell holds a leg with no `→`. A
 /// malformed row is never skipped quietly: the whole point of this gate is that an
 /// unreadable projection is drift, not a pass.
@@ -1821,7 +1821,7 @@ pub fn detect_seam_registry_drift(seams: &[SeamRecord], page_text: &str) -> Vec<
         findings.push(drift(
             format!(
                 "seam-registry drift: the generated seam-registry page \
-                 ({SEAM_REGISTRY_PAGE_PATH}) is unparseable — {complaint}"
+                 ({SEAM_REGISTRY_PAGE_PATH}) is unparsable — {complaint}"
             ),
             None,
         ));
@@ -2656,7 +2656,7 @@ mod tests {
         }
     }
 
-    /// R9 does NOT fire on a FOREIGN term re-declared locally so it validates
+    /// R9 does NOT fire on a FOREIGN term redeclared locally so it validates
     /// (`skos:definition a owl:AnnotationProperty`). GMEOW does not mint it,
     /// purrdf never treats it as owned, and reporting it would be a false claim
     /// about someone else's vocabulary.
@@ -2672,7 +2672,7 @@ mod tests {
         let findings = registered_minting_namespace_findings(tmp.path()).unwrap();
         assert!(
             findings.is_empty(),
-            "a re-declared foreign term is described, not minted: {findings:?}"
+            "a redeclared foreign term is described, not minted: {findings:?}"
         );
     }
 
@@ -3243,7 +3243,7 @@ mod tests {
         assert!(
             findings
                 .iter()
-                .any(|f| f.message.contains("unparseable") && f.message.contains("columns")),
+                .any(|f| f.message.contains("unparsable") && f.message.contains("columns")),
             "a row with the wrong column count must be reported, never skipped:\n{}",
             drift_messages(&findings)
         );

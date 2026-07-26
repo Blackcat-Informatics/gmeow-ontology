@@ -71,7 +71,7 @@ pub const TERM_NAMESPACES: [&str; 4] = [GMEOW_NS, LOGIC_NS, LANG_NS, MATH_NS];
 /// The IRI authority prefix every GMEOW-minted IRI shares.
 ///
 /// This is the test for "GMEOW minted this IRI" as opposed to "GMEOW is
-/// describing someone else's term": a `dcterms:` or `skos:` IRI re-declared in a
+/// describing someone else's term": a `dcterms:` or `skos:` IRI redeclared in a
 /// module is a foreign term GMEOW does not own, while an IRI under this authority
 /// is GMEOW's own even when its namespace is not (yet) registered. Exactly that
 /// second case is the invisible-slice defect, so it is what the authoring gate
