@@ -375,25 +375,11 @@ gmeow:AgreementName skos:broadMatch schema:name {|
     gmeow:comment "schema:name — broad: an AgreementName is a kind of name borne by an agreement"
 |} .
 
-gmeow:SoftwareName skos:broadMatch schema:name {|
-    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — broad: a SoftwareName is a kind of name borne by a software project"
-|} .
-
 gmeow:hasAgreementName skos:broadMatch schema:name {|
     gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "schema:name — downcast: an agreement's structured name objects flatten to the schema:name literal in projection"
-|} .
-
-gmeow:hasSoftwareName skos:broadMatch schema:name {|
-    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection"
 |} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).

@@ -42,7 +42,7 @@ use crate::registry::{
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers so every
 /// `lang:` local name resolves to the same IRI across bridges.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 /// The `gmeow:vantage` property: a sense emitted by this lift is HELD FROM its source
 /// lexicon through this edge, so the sense inventory stays the lexicon's perspectival claim

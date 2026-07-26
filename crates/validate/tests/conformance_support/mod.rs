@@ -1271,7 +1271,7 @@ pub const LOGIC_FUNCTIONAL_PROPERTY: &str =
 pub const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 /// The `gmeow:` namespace base — for local-name sweeps like
 /// [`GraphStore::primary_or_preferred_terms`].
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 /// `owl:onProperty` — the property a restriction constrains.
 pub const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";

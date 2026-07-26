@@ -1,0 +1,238 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: documents, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "feedPostingKind is functional"
+msgstr "feedPostingKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:feedPostingKind is functional: a feed posting has exactly one kind drawn from the open gmeow:FeedPostingKind vocabulary, and that single flavour deterministically drives the schema projection — a social posting to schema:SocialMediaPosting, a blog posting to schema:BlogPosting — which two competing flavours on one posting would leave ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:feedPostingKind 是函数性的：一条动态发布恰好具有一种取自开放词表 gmeow:FeedPostingKind 的类型，该唯一类型以确定的方式驱动模式投影——社交类发布投影到 schema:SocialMediaPosting，博客类发布投影到 schema:BlogPosting——若一条发布上存在两种相互竞争的类型，该投影就会变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "imageOrientation is functional"
+msgstr "imageOrientation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:imageOrientation is functional: a media object has exactly one clockwise rotation from its normal orientation — a single EXIF angle (0, 90, 180, or 270 degrees) the solver applies when rendering — because one manifestation cannot be displayed rotated by two conflicting amounts at once."
+msgstr "在规范载体上断言 gmeow:imageOrientation 是函数性的:一个媒体对象相对于其正常方向恰好有一个顺时针旋转量——渲染时求解器所应用的单一 EXIF 角度(0、90、180 或 270 度)——因为同一个体现物不能同时以两个相互冲突的角度旋转显示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mediaType is functional"
+msgstr "mediaType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mediaType is functional: a concrete content carrier — an email body part, a Manifestation, a Distribution — has exactly one IANA media (MIME) type, since one artifact is encoded in a single format and distinct encodings are modelled as distinct carrier objects rather than two media types on one."
+msgstr "在规范载体上断言 gmeow:mediaType 是函数式的:一个具体的内容载体——一个电子邮件正文部分、一个 Manifestation、一个 Distribution——恰好拥有一种 IANA 媒体(MIME)类型,因为一件工件以单一格式编码,不同的编码被建模为不同的载体对象,而不是在同一个对象上标注两种媒体类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pagePrincipalSubject is functional"
+msgstr "pagePrincipalSubject 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pagePrincipalSubject is functional: a web page is primarily about exactly one entity — the single principal subject it represents — even though it may mention many others through the broader gmeow:isAbout it specialises. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:pagePrincipalSubject 是函数性的:一个网页恰好主要关于一个实体——它所代表的唯一主要主题——即便它通过其所特化的更广泛的 gmeow:isAbout 可能提及许多其他实体。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pixelHeight is functional"
+msgstr "pixelHeight 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pixelHeight is functional: a media object has exactly one height in pixels, since a single raster manifestation has one vertical dimension and distinct renditions are distinct gmeow:MediaObject carriers rather than two heights on one."
+msgstr "在规范载体上断言 gmeow:pixelHeight 是函数性的:一个媒体对象恰好有一个像素高度,因为单一栅格呈现只有一个纵向尺寸,不同的呈现形式是不同的 gmeow:MediaObject 载体,而非在同一载体上有两个高度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pixelWidth is functional"
+msgstr "pixelWidth 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pixelWidth is functional: a media object has exactly one width in pixels, since a single raster manifestation has one horizontal dimension and distinct renditions are distinct gmeow:MediaObject carriers rather than two widths on one."
+msgstr "在规范载体上断言 gmeow:pixelWidth 是函数性的:一个媒体对象恰好有一个像素宽度,因为单一栅格呈现只有一个横向尺寸,不同的呈现形式是不同的 gmeow:MediaObject 载体,而非在同一载体上有两个宽度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentIndex is functional"
+msgstr "segmentIndex 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentIndex is functional: a content segment occupies exactly one structural position within its containing whole — a single 1-based index locating it in that one container's ordering — while perspectival reorderings ride a separate gmeow:ReadingOrder standpoint rather than a second index."
+msgstr "在规范载体上断言 gmeow:segmentIndex 是函数性的:一个内容片段在其所属整体中恰好占据一个结构位置——一个基于 1 的单一索引,用于在该容器的排序中定位它——而视角性的重新排序则依赖于独立的 gmeow:ReadingOrder 视点,而不是第二个索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentType is functional"
+msgstr "segmentType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentType is functional: a content segment is of exactly one structural kind — a single gmeow:ContentSegmentType value such as chapter, section, or scene — because the kind axis is carried as a property value rather than a subclass (Principle 9) and one segment cannot simultaneously be two structural kinds."
+msgstr "在规范载体上断言 gmeow:segmentType 是函数性的:一个内容段落恰好属于一种结构类型——单一的 gmeow:ContentSegmentType 值,例如 chapter、section 或 scene——因为该类型轴是作为属性值而非子类来承载的(原则 9),一个段落不能同时属于两种结构类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:feedPostingKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:feedPostingKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:feedPostingKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:feedPostingKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:feedPostingKindFunctionality logic:characterizes gmeow:feedPostingKind ."
+msgstr "gmeow:feedPostingKindFunctionality logic:characterizes gmeow:feedPostingKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:imageOrientation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:imageOrientation 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:imageOrientation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:imageOrientation, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrientation ."
+msgstr "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrientation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:mediaType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:mediaType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mediaType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:mediaType, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:mediaTypeFunctionality logic:characterizes gmeow:mediaType ."
+msgstr "gmeow:mediaTypeFunctionality logic:characterizes gmeow:mediaType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:pagePrincipalSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:pagePrincipalSubject 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pagePrincipalSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:pagePrincipalSubject, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pagePrincipalSubjectFunctionality logic:characterizes gmeow:pagePrincipalSubject ."
+msgstr "gmeow:pagePrincipalSubjectFunctionality logic:characterizes gmeow:pagePrincipalSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:pixelHeight names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:pixelHeight 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pixelHeight, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:pixelHeight, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pixelHeightFunctionality logic:characterizes gmeow:pixelHeight ."
+msgstr "gmeow:pixelHeightFunctionality logic:characterizes gmeow:pixelHeight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:pixelWidth names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:pixelWidth 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pixelWidth, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:pixelWidth, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pixelWidthFunctionality logic:characterizes gmeow:pixelWidth ."
+msgstr "gmeow:pixelWidthFunctionality logic:characterizes gmeow:pixelWidth ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:segmentIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:segmentIndex 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:segmentIndex, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:segmentIndexFunctionality logic:characterizes gmeow:segmentIndex ."
+msgstr "gmeow:segmentIndexFunctionality logic:characterizes gmeow:segmentIndex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:segmentType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:segmentType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:segmentType, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:segmentTypeFunctionality logic:characterizes gmeow:segmentType ."
+msgstr "gmeow:segmentTypeFunctionality logic:characterizes gmeow:segmentType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:feedPostingKind and nothing else. It is not a definition of gmeow:feedPostingKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:feedPostingKind 的一项完整性义务，别无其他。它不是 gmeow:feedPostingKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:imageOrientation and nothing else. It is not a definition of gmeow:imageOrientation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:imageOrientation 的一项完整性义务，别无其他。它不是 gmeow:imageOrientation 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:mediaType and nothing else. It is not a definition of gmeow:mediaType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:mediaType 的一项完整性义务，别无其他。它不是 gmeow:mediaType 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:pagePrincipalSubject and nothing else. It is not a definition of gmeow:pagePrincipalSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:pagePrincipalSubject 的一项完整性义务，别无其他。它不是 gmeow:pagePrincipalSubject 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:pixelHeight and nothing else. It is not a definition of gmeow:pixelHeight (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:pixelHeight 的一项完整性义务，别无其他。它不是 gmeow:pixelHeight 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:pixelWidth and nothing else. It is not a definition of gmeow:pixelWidth (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:pixelWidth 的一项完整性义务，别无其他。它不是 gmeow:pixelWidth 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:segmentIndex and nothing else. It is not a definition of gmeow:segmentIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:segmentIndex 的一项完整性义务，别无其他。它不是 gmeow:segmentIndex 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:segmentType and nothing else. It is not a definition of gmeow:segmentType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:segmentType 的一项完整性义务，别无其他。它不是 gmeow:segmentType 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

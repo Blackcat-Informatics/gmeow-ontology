@@ -1,0 +1,154 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: expertise, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "credentialIssuer is functional"
+msgstr "credentialIssuer 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:credentialIssuer is functional: one issuing organization is constitutive of a gmeow:Credential's identity, so a different issuer yields a different credential even for the same subject matter. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:credentialIssuer 是函数性的：唯一的颁发机构构成 gmeow:Credential 身份的组成部分，因此即便针对同一主题，不同的颁发机构也会产生不同的凭证。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyAgent is functional"
+msgstr "skillProficiencyAgent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyAgent is functional: a gmeow:SkillProficiency expresses the proficiency of exactly one agent, whose identity is constitutive of the reified proficiency. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyAgent 是函数性的:一个 gmeow:SkillProficiency 恰好表达一个主体的技能水平,该主体的身份是这个具化技能水平记录的构成性要素。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyLevel is functional"
+msgstr "skillProficiencyLevel 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyLevel is functional: a gmeow:SkillProficiency records exactly one attained level (a single gmeow:ProficiencyLevel such as dreyfusExpert or assessedCompetent), and a second level would be a separate assessment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyLevel 是函数性的:一个 gmeow:SkillProficiency 恰好记录一个已达到的等级(单一的 gmeow:ProficiencyLevel,例如 dreyfusExpert 或 assessedCompetent),第二个等级将构成一次独立的评估。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyOf is functional"
+msgstr "skillProficiencyOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyOf is functional: a gmeow:SkillProficiency concerns exactly one skill, constitutive of which proficiency it is. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyOf 是函数性的:一个 gmeow:SkillProficiency 恰好涉及一项技能,这正是它所记录之技能水平身份的构成性要素。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "skillProficiencyScale is functional"
+msgstr "skillProficiencyScale 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:skillProficiencyScale is functional: a gmeow:SkillProficiency's level is measured on exactly one scale (Dreyfus, NIH, assessed, or self-reported), so the same attainment read on another scale is a distinct proficiency record. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:skillProficiencyScale 是函数性的:一个 gmeow:SkillProficiency 的等级恰好按一种量表(Dreyfus、NIH、经评估或自我报告)来衡量,因此同一成就若按另一种量表解读,便构成一条不同的技能水平记录。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:credentialIssuer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:credentialIssuer 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:credentialIssuer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:credentialIssuer, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:credentialIssuerFunctionality logic:characterizes gmeow:credentialIssuer ."
+msgstr "gmeow:credentialIssuerFunctionality logic:characterizes gmeow:credentialIssuer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:skillProficiencyAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:skillProficiencyAgent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:skillProficiencyAgent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:skillProficiencyAgentFunctionality logic:characterizes gmeow:skillProficiencyAgent ."
+msgstr "gmeow:skillProficiencyAgentFunctionality logic:characterizes gmeow:skillProficiencyAgent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:skillProficiencyLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:skillProficiencyLevel 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:skillProficiencyLevel, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:skillProficiencyLevelFunctionality logic:characterizes gmeow:skillProficiencyLevel ."
+msgstr "gmeow:skillProficiencyLevelFunctionality logic:characterizes gmeow:skillProficiencyLevel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:skillProficiencyOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:skillProficiencyOf 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:skillProficiencyOf, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:skillProficiencyOfFunctionality logic:characterizes gmeow:skillProficiencyOf ."
+msgstr "gmeow:skillProficiencyOfFunctionality logic:characterizes gmeow:skillProficiencyOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:skillProficiencyScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:skillProficiencyScale 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:skillProficiencyScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:skillProficiencyScale, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:skillProficiencyScaleFunctionality logic:characterizes gmeow:skillProficiencyScale ."
+msgstr "gmeow:skillProficiencyScaleFunctionality logic:characterizes gmeow:skillProficiencyScale ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/credentialIssuerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:credentialIssuer and nothing else. It is not a definition of gmeow:credentialIssuer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:credentialIssuer 的一项完整性义务，别无其他。它不是 gmeow:credentialIssuer 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyAgentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyAgent and nothing else. It is not a definition of gmeow:skillProficiencyAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:skillProficiencyAgent 的一项完整性义务，别无其他。它不是 gmeow:skillProficiencyAgent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyLevelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyLevel and nothing else. It is not a definition of gmeow:skillProficiencyLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:skillProficiencyLevel 的一项完整性义务，别无其他。它不是 gmeow:skillProficiencyLevel 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyOf and nothing else. It is not a definition of gmeow:skillProficiencyOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:skillProficiencyOf 的一项完整性义务，别无其他。它不是 gmeow:skillProficiencyOf 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyScale and nothing else. It is not a definition of gmeow:skillProficiencyScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:skillProficiencyScale 的一项完整性义务，别无其他。它不是 gmeow:skillProficiencyScale 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

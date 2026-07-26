@@ -60,7 +60,7 @@ pub const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formali
 /// The `logic:` core namespace — every guarded vocab's `subsumed_by` witness, and
 /// (per [`resolvable_grounding`]) the namespace an appropriately-typed grounding
 /// target's `rdf:type` must fall in.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 /// `owl:AllDisjointClasses` — the one non-`logic:`-namespaced grounding-target type
 /// (a named disjointness axiom a shape may formalize).
 const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";

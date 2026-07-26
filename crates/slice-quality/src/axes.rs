@@ -80,7 +80,7 @@ pub const IMPLEMENTED: &[&str] = &[
 // ── Axis 1: Maximal grounding ─────────────────────────────────────────────
 
 /// The `logic:` foundation-stereotype types a grounded class may carry.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 /// The one slice whose owned `logic:` classes constitute the foundation itself.
 const LOGIC_SLICE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
 
@@ -529,7 +529,7 @@ fn external_alignment_surface(ctx: &ScoreContext) -> std::collections::BTreeSet<
 }
 
 /// The `gmeow:` super-vocabulary namespace (correspondence-cell vocabulary lives here).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 /// The `dc:` DCMI-elements-1.1 namespace whose alignments the dumb-down calculus derives.
 const DC_ELEMENTS_NS: &str = "http://purl.org/dc/elements/1.1/";
 /// The `dcterms:` namespace (the refinement source the elements alignments dumb down from).

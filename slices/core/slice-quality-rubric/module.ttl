@@ -2863,3 +2863,300 @@ This slice is its own self-application capstone: it must itself score Maximal on
     skos:definition "The GMEOW Slice-Quality Rubric Module — classes, properties, and individuals of the GMEOW super-vocabulary that make per-slice quality a queryable, reasoned, data-driven rubric."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:axisContextScopeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axisContextScope is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:axisContextScope is functional: each gmeow:QualityAxis is granted exactly one read-breadth coeffect — slice-local, dependency-closure, or merged-closure — so a second scope would leave the scope gate unable to decide how much graph the axis's primitive may read. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:axisContextScope ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:axisContextScope ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:axisContextScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisContextScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:axisContextScope and nothing else. It is not a definition of gmeow:axisContextScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:axisContextScopeFunctionality logic:characterizes gmeow:axisContextScope ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:axisWeightFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axisWeight is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:axisWeight is functional: each gmeow:QualityAxis carries exactly one advice-ranking priority, so a second weight would make the advisor's remediation ordering ambiguous — and because the weight only orders advice (never the unweighted lattice-meet roll-up), one value per axis is all the ranking can consume."@x-gmeow-english ;
+    logic:characterizes gmeow:axisWeight ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:axisWeight ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:axisWeight names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:axisWeight, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:axisWeight and nothing else. It is not a definition of gmeow:axisWeight (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:axisWeightFunctionality logic:characterizes gmeow:axisWeight ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ceilingCountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "ceilingCount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ceilingCount is functional: each per-(slice,vocabulary) gmeow:ProjectionCeilingCommitment pins exactly one committed maximum residue count, so a second count would make the lower-only regression ceiling the gate enforces ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ceilingCount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ceilingCount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ceilingCount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingCount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ceilingCount and nothing else. It is not a definition of gmeow:ceilingCount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ceilingCountFunctionality logic:characterizes gmeow:ceilingCount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ceilingSliceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "ceilingSlice is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ceilingSlice is functional: each gmeow:ProjectionCeilingCommitment names exactly one subject slice whose measured residue the ceiling guards, so a second slice would make the ratchet cell pin an ambiguous target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ceilingSlice ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ceilingSlice ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ceilingSlice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ceilingSlice and nothing else. It is not a definition of gmeow:ceilingSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ceilingSliceFunctionality logic:characterizes gmeow:ceilingSlice ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ceilingVocabularyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "ceilingVocabulary is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ceilingVocabulary is functional: each gmeow:ProjectionCeilingCommitment caps exactly one guarded gmeow:ProjectionVocabulary, so a second vocabulary would leave the ceiling applying to no single guarded surface. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ceilingVocabulary ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ceilingVocabulary ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ceilingVocabulary names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ceilingVocabulary, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ceilingVocabulary and nothing else. It is not a definition of gmeow:ceilingVocabulary (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ceilingVocabularyFunctionality logic:characterizes gmeow:ceilingVocabulary ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exemptionDateFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "exemptionDate is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exemptionDate is functional: each gmeow:AxisExemption was minted on exactly one date, so a second date would make the exemption's audit age — by which long-standing gaps are surfaced — ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:exemptionDate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exemptionDate ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exemptionDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exemptionDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exemptionDate and nothing else. It is not a definition of gmeow:exemptionDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDateFunctionality logic:characterizes gmeow:exemptionDate ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:floorAxisFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floorAxis is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorAxis is functional: each gmeow:AxisFloorCommitment guards exactly one measured gmeow:QualityAxis, so a second axis would make the per-axis regression floor apply to no single measured dimension. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:floorAxis ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:floorAxis ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:floorAxis names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorAxis, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:floorAxis and nothing else. It is not a definition of gmeow:floorAxis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:floorAxisFunctionality logic:characterizes gmeow:floorAxis ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:floorSliceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floorSlice is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorSlice is functional: each gmeow:AxisFloorCommitment or gmeow:SliceTierFloor is committed against exactly one subject slice, so a second slice would make the ratchet cell guard an ambiguous target. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:floorSlice ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:floorSlice ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:floorSlice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:floorSlice and nothing else. It is not a definition of gmeow:floorSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:floorSliceFunctionality logic:characterizes gmeow:floorSlice ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:floorTierFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floorTier is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorTier is functional: each gmeow:SliceTierFloor pins exactly one minimum roll-up rung over the lattice order, so a second tier would make the raise-only tier-regression bar ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:floorTier ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:floorTier ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:floorTier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:floorTier and nothing else. It is not a definition of gmeow:floorTier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:floorTierFunctionality logic:characterizes gmeow:floorTier ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:floorValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floorValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:floorValue is functional: each gmeow:AxisFloorCommitment pins exactly one committed minimum decimal score, so a second value would make the raise-only regression floor the gate enforces ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:floorValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:floorValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:floorValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:floorValue and nothing else. It is not a definition of gmeow:floorValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:floorValueFunctionality logic:characterizes gmeow:floorValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:thresholdFloorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "thresholdFloor is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:thresholdFloor is functional: each gmeow:AxisThreshold pairing pins exactly one normalized score floor for its tier, so a second floor would leave the scorer without a single bar to compare the measured axis score against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:thresholdFloor ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:thresholdFloor ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:thresholdFloor names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdFloor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:thresholdFloor and nothing else. It is not a definition of gmeow:thresholdFloor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:thresholdFloorFunctionality logic:characterizes gmeow:thresholdFloor ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:thresholdTierFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "thresholdTier is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:thresholdTier is functional: each gmeow:AxisThreshold pairing gates exactly one tier rung, so a second tier would dissolve the reified (tier, floor) cell into an ambiguous mapping. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:thresholdTier ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:thresholdTier ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:thresholdTier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:thresholdTier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:thresholdTier and nothing else. It is not a definition of gmeow:thresholdTier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:thresholdTierFunctionality logic:characterizes gmeow:thresholdTier ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tierRankFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "tierRank is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tierRank is functional: each gmeow:QualityTier occupies exactly one position in the ladder's total order, so a tier bearing two ranks would make that order ill-defined and break the lattice meet (least rank) the roll-up depends on. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:tierRank ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tierRank ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tierRank names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tierRank, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tierRank and nothing else. It is not a definition of gmeow:tierRank (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tierRankFunctionality logic:characterizes gmeow:tierRank ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vocabularyCountKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabularyCountKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyCountKind is functional: each gmeow:ProjectionVocabulary selects exactly one of the three closed construct-recognition strategies, so a second kind would leave the shared counter's Rust dispatch without a single enumeration path to resolve. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:vocabularyCountKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vocabularyCountKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vocabularyCountKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyCountKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularyCountKind and nothing else. It is not a definition of gmeow:vocabularyCountKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vocabularyCountKindFunctionality logic:characterizes gmeow:vocabularyCountKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vocabularyDefaultCeilingFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabularyDefaultCeiling is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyDefaultCeiling is functional: each gmeow:ProjectionVocabulary carries exactly one vacuous-case default ceiling for slices lacking an explicit commitment, so a second default would leave every unlisted slice held to an ambiguous fallback and reopen the net-new-vocab loophole. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:vocabularyDefaultCeiling ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vocabularyDefaultCeiling ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vocabularyDefaultCeiling names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyDefaultCeiling, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularyDefaultCeiling and nothing else. It is not a definition of gmeow:vocabularyDefaultCeiling (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vocabularyOwnerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabularyOwner is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyOwner is functional: each gmeow:ProjectionVocabulary has exactly one grounding slice (logic:, math:, or lang:) holding its external-authoring authority, so a second owner would give the external terms two authoring homes and defeat the very second-source ratchet the owner boundary exists to enforce. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:vocabularyOwner ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vocabularyOwner ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vocabularyOwner names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyOwner, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularyOwner and nothing else. It is not a definition of gmeow:vocabularyOwner (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vocabularyPrefixFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabularyPrefix is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyPrefix is functional: each gmeow:ProjectionVocabulary has exactly one short CURIE prefix serving as the join key ceiling commitments resolve against, so a second prefix would break the unique-key binding between a ceiling commitment and its vocabulary. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:vocabularyPrefix ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vocabularyPrefix ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vocabularyPrefix names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPrefix, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularyPrefix and nothing else. It is not a definition of gmeow:vocabularyPrefix (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vocabularyPrefixFunctionality logic:characterizes gmeow:vocabularyPrefix ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vocabularyPreservationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabularyPreservation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularyPreservation is functional: each gmeow:ProjectionVocabulary's lowering from logic: carries exactly one loss-ledger preservation polarity, so a second judgment would make the guarantee the projection advertises to the shared loss-ledger ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:vocabularyPreservation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vocabularyPreservation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vocabularyPreservation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularyPreservation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularyPreservation and nothing else. It is not a definition of gmeow:vocabularyPreservation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vocabularyPreservationFunctionality logic:characterizes gmeow:vocabularyPreservation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vocabularySubsumedByFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "vocabularySubsumedBy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vocabularySubsumedBy is functional: each guarded gmeow:ProjectionVocabulary is a generated lossy projection of exactly one logic: core, so a second subsumer would contradict Principle 17's premise that the surface projects from a single canonical source. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:vocabularySubsumedBy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vocabularySubsumedBy ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vocabularySubsumedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vocabularySubsumedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vocabularySubsumedBy and nothing else. It is not a definition of gmeow:vocabularySubsumedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vocabularySubsumedByFunctionality logic:characterizes gmeow:vocabularySubsumedBy ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

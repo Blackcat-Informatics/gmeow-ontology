@@ -365,7 +365,7 @@ mod tests {
     use super::*;
     use crate::gmn1_codec::GmnDictionary;
 
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
 
     fn empty_dict() -> GmnDictionary {
         GmnDictionary::default()

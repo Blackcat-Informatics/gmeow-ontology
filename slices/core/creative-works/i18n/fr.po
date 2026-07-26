@@ -1,0 +1,238 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: creative-works, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributionDegree is functional"
+msgstr "contributionDegree est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributionDegree is functional: a contribution carries at most one degree weight — lead, equal, or supporting — so the relator takes a single degree (or none when unknown) and disputed credit orderings live on the statement layer rather than as rival degrees on one Contribution."
+msgstr "Affirme sur le porteur canonique que gmeow:contributionDegree est fonctionnelle : une contribution porte au plus un poids de degré — lead, equal ou supporting — de sorte que le relateur prend un degré unique (ou aucun lorsqu'il est inconnu), et les classements de mérite contestés résident au niveau de l'énoncé plutôt que comme des degrés rivaux sur une même Contribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributionRole is functional"
+msgstr "contributionRole est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributionRole is functional: a Contribution relator names the one role the contributor played, so an agent acting in two roles is recorded as two Contributions rather than one relator bearing several roles."
+msgstr "Affirme sur le porteur canonique que gmeow:contributionRole est fonctionnelle : un relateur Contribution nomme le rôle unique joué par le contributeur, de sorte qu'un agent agissant dans deux rôles est enregistré comme deux Contributions plutôt que comme un seul relateur portant plusieurs rôles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributionTarget is functional"
+msgstr "contributionTarget est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributionTarget is functional: a Contribution relator credits exactly one WEMI entity at the tier that matches the credit, so a credit spanning two works is recorded as two Contributions rather than one relator pointing at several targets."
+msgstr "Affirme sur le porteur canonique que gmeow:contributionTarget est fonctionnelle : un relateur Contribution crédite exactement une entité WEMI au niveau correspondant au crédit, de sorte qu'un crédit portant sur deux œuvres est enregistré comme deux Contributions plutôt que comme un seul relateur pointant vers plusieurs cibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contributor is functional"
+msgstr "contributor est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contributor is functional: a Contribution relator names the single agent who contributed, so co-contributors each get their own Contribution rather than several agents being stacked on one relator role."
+msgstr "Affirme sur le porteur canonique que gmeow:contributor est fonctionnelle : un relateur Contribution nomme l'unique agent ayant contribué, de sorte que chaque co-contributeur reçoit sa propre Contribution plutôt que d'empiler plusieurs agents sur un seul rôle de relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivationProduct is functional"
+msgstr "derivationProduct est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:derivationProduct is functional: a CreativeDerivation relator names the one product work that resulted, at the honest tier, so it carries a single derived work rather than several products on one derivation."
+msgstr "Affirme sur le porteur canonique que gmeow:derivationProduct est fonctionnelle : un relateur CreativeDerivation nomme l'unique œuvre produit qui en a résulté, au niveau honnête, de sorte qu'il porte une seule œuvre dérivée plutôt que plusieurs produits sur une seule dérivation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derivationSource is functional"
+msgstr "derivationSource est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:derivationSource is functional: a CreativeDerivation relator names the one source work the product was derived from, so a mashup of two sources is recorded as two derivations or segment pins rather than several sources on one relator."
+msgstr "Affirme sur le porteur canonique que gmeow:derivationSource est fonctionnelle : un relateur CreativeDerivation nomme l'unique œuvre source dont le produit a été dérivé, de sorte qu'un mashup de deux sources est enregistré comme deux dérivations ou ancrages de segment plutôt que comme plusieurs sources sur un seul relateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasManifestationFormat is functional"
+msgstr "hasManifestationFormat est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasManifestationFormat is functional: a Manifestation is issued in one publishable form — paperback, EPUB, audiobook, vinyl — so a second format is a second Manifestation rather than a rival format value on one."
+msgstr "Affirme sur le porteur canonique que gmeow:hasManifestationFormat est fonctionnelle : une Manifestation est publiée sous une seule forme publiable — broché, EPUB, livre audio, vinyle — de sorte qu'un second format constitue une seconde Manifestation plutôt qu'une valeur de format concurrente sur une seule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "realizationMode is functional"
+msgstr "realizationMode est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:realizationMode is functional: an Expression realizes its Work in one mode — notated, performed, improvised, oral, or machine-generated — so a notated and a performed rendition of the same Work are two Expressions, each with its single mode, rather than one Expression bearing several modes."
+msgstr "Affirme sur le porteur canonique que gmeow:realizationMode est fonctionnelle : une Expression réalise son Œuvre selon un seul mode — noté, interprété, improvisé, oral ou généré par machine — de sorte qu'une version notée et une version interprétée de la même Œuvre constituent deux Expressions, chacune avec son mode unique, plutôt qu'une seule Expression portant plusieurs modes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:contributionDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:contributionDegree nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributionDegree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:contributionDegree, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:contributionDegreeFunctionality logic:characterizes gmeow:contributionDegree ."
+msgstr "gmeow:contributionDegreeFunctionality logic:characterizes gmeow:contributionDegree ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:contributionRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:contributionRole nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributionRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:contributionRole, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:contributionRoleFunctionality logic:characterizes gmeow:contributionRole ."
+msgstr "gmeow:contributionRoleFunctionality logic:characterizes gmeow:contributionRole ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:contributionTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:contributionTarget nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributionTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:contributionTarget, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:contributionTargetFunctionality logic:characterizes gmeow:contributionTarget ."
+msgstr "gmeow:contributionTargetFunctionality logic:characterizes gmeow:contributionTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:contributor names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:contributor nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contributor, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:contributor, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:contributorFunctionality logic:characterizes gmeow:contributor ."
+msgstr "gmeow:contributorFunctionality logic:characterizes gmeow:contributor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:derivationProduct names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:derivationProduct nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:derivationProduct, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:derivationProduct, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:derivationProductFunctionality logic:characterizes gmeow:derivationProduct ."
+msgstr "gmeow:derivationProductFunctionality logic:characterizes gmeow:derivationProduct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:derivationSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:derivationSource nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:derivationSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:derivationSource, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:derivationSourceFunctionality logic:characterizes gmeow:derivationSource ."
+msgstr "gmeow:derivationSourceFunctionality logic:characterizes gmeow:derivationSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:hasManifestationFormat names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:hasManifestationFormat nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasManifestationFormat, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:hasManifestationFormat, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hasManifestationFormatFunctionality logic:characterizes gmeow:hasManifestationFormat ."
+msgstr "gmeow:hasManifestationFormatFunctionality logic:characterizes gmeow:hasManifestationFormat ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:realizationMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:realizationMode nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:realizationMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:realizationMode, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:realizationModeFunctionality logic:characterizes gmeow:realizationMode ."
+msgstr "gmeow:realizationModeFunctionality logic:characterizes gmeow:realizationMode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionDegreeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributionDegree and nothing else. It is not a definition of gmeow:contributionDegree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:contributionDegree, et rien d'autre. Ce n'est pas une définition de gmeow:contributionDegree (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionRoleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributionRole and nothing else. It is not a definition of gmeow:contributionRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:contributionRole, et rien d'autre. Ce n'est pas une définition de gmeow:contributionRole (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributionTarget and nothing else. It is not a definition of gmeow:contributionTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:contributionTarget, et rien d'autre. Ce n'est pas une définition de gmeow:contributionTarget (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributorFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contributor and nothing else. It is not a definition of gmeow:contributor (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:contributor, et rien d'autre. Ce n'est pas une définition de gmeow:contributor (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationProductFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:derivationProduct and nothing else. It is not a definition of gmeow:derivationProduct (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:derivationProduct, et rien d'autre. Ce n'est pas une définition de gmeow:derivationProduct (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivationSourceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:derivationSource and nothing else. It is not a definition of gmeow:derivationSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:derivationSource, et rien d'autre. Ce n'est pas une définition de gmeow:derivationSource (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasManifestationFormatFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:hasManifestationFormat and nothing else. It is not a definition of gmeow:hasManifestationFormat (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:hasManifestationFormat, et rien d'autre. Ce n'est pas une définition de gmeow:hasManifestationFormat (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/realizationModeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:realizationMode and nothing else. It is not a definition of gmeow:realizationMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:realizationMode, et rien d'autre. Ce n'est pas une définition de gmeow:realizationMode (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

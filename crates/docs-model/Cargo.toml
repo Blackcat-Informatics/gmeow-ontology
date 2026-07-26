@@ -21,6 +21,9 @@ path = "src/lib.rs"
 
 [dependencies]
 purrdf.workspace = true
+# Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
+# `describe`, `i18n_compile` and `model` bind the slice vocabulary through it.
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }

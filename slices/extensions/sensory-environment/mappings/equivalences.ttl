@@ -7,6 +7,7 @@
 @prefix sosa:    <http://www.w3.org/ns/sosa/> .
 @prefix mfoem:   <http://purl.obolibrary.org/obo/MFOEM_> .
 @prefix obomf:      <http://purl.obolibrary.org/obo/MF_> .
+@prefix mls:     <http://www.w3.org/ns/mls#> .
 
 # Term equivalences for the sensory environment layer — GMEOW authoring source.
 # Compiled to mappings/gmeow-sensory-environment.sssom.tsv by `gmeow compile-mappings`.
@@ -94,6 +95,13 @@ gmeow:CoordinateMatrix skos:closeMatch sosa:Result {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:comment "sosa:Result is broader (any result); gmeow:CoordinateMatrix is specifically a multi-dimensional numeric result with frame, unit, and determinacy."
+|} .
+
+gmeow:CoordinateMatrix skos:closeMatch mls:Feature {|
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Feature"
 |} .
 
 gmeow:hasMeasuredCondition skos:closeMatch sosa:hasResult {|

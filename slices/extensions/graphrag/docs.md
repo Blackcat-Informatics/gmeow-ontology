@@ -16,17 +16,24 @@ Consumer: **Project Lillith** (manifest, P15).
 
 ```text
 Corpus ─corpusMember→ sources ─(core chunkOf)─ Chunk
-   │                                             │ embeddingOf⁻¹
-   │ indexesCorpus⁻¹                          Embedding (model, dims, metric,
-VectorIndex (algorithm, params,                vectorRef → outside the graph, P12)
-   wasGeneratedBy build run)
-   │ againstIndex⁻¹
-RetrievalEvent (forQuery; retrievedChunk + retrievalScore annotations)
+   │                                             │ (core ai) embeddingOf⁻¹
+   │ indexesCorpus⁻¹               (core ai) Embedding (model, dims, metric,
+(core ai) VectorIndex (algorithm,     vectorRef → outside the graph, P12)
+   params, wasGeneratedBy build run)
+   │ (core ai) againstIndex⁻¹
+(core ai) RetrievalEvent (forQuery; retrievedChunk + retrievalScore annotations)
    │ feeds (core) ModelInvocation
 ExtractedEntity / ExtractedRelationship  — descriptions, wasDerivedFrom chunks
    │ communityMember⁻¹
 Community (level) ─summarizesCommunity⁻¹─ CommunitySummary ⊑ Summary
 ```
+
+The vector/embedding/retrieval primitives (`Embedding`, `VectorIndex`,
+`DistanceMetric`, `RetrievalEvent`, and their properties) are core-tier
+infrastructure owned by the **ai** slice — any embedding consumer needs them,
+not only GraphRAG (see extensions/embedding-projection). This extension reuses
+them via its existing `gmeow:sliceDependsOn ai` edge and adds the
+GraphRAG-specific corpus/index-wiring and entity-graph machinery around them.
 
 ## Doctrine
 
@@ -51,36 +58,32 @@ the working document set, distinct from the documents slice's bibliographic
 Collection. `corpusMember` (⊑ `hasPart`) relates a corpus to a source it collects;
 non-functional, since a source may belong to many corpora.
 
-### gmeow:Embedding · gmeow:embeddingOf · gmeow:embeddingModel · gmeow:embeddingDimensions · gmeow:vectorRef
+### gmeow:Embedding · gmeow:embeddingOf · gmeow:embeddingModel · gmeow:embeddingDimensions · gmeow:DistanceMetric · gmeow:distanceMetric (core ai slice)
 
-A vector representation of an information object (usually a core Chunk) — the
-genuine vocabulary gap in the stack. `embeddingOf` (functional) names the
-represented object; `embeddingModel` (functional) the producing agent, so two
-models' embeddings are two individuals (P9); `embeddingDimensions` the
-dimensionality. `vectorRef` points to the payload, which stays OUTSIDE the graph
-(P12) — the graph holds the audit trail, not the floats.
+A vector representation of an information object (usually a core Chunk), the
+open distance-metric vocabulary it is compared under, and their properties are
+owned by the **core ai slice** (see slices/core/ai/docs.md) — shared
+vector/embedding primitives, not GraphRAG-specific. `vectorRef` (owned here)
+points to the vector payload, which stays OUTSIDE the graph (P12) — the graph
+holds the audit trail, not the floats.
 
-### gmeow:DistanceMetric · gmeow:distanceMetric
+### gmeow:VectorIndex (core ai slice) · gmeow:indexesCorpus · gmeow:IndexAlgorithm · gmeow:indexAlgorithm · gmeow:indexParameters
 
-An open value vocabulary of vector similarity/distance functions (cosine,
-euclidean, dot product). `distanceMetric` (functional, domain-free) carries the
-function under which an embedding or index is meaningful — cosine and euclidean
-disagree about what is 'near', so the metric is provenance, not a detail.
+`VectorIndex` — a built retrieval structure over a corpus's embeddings, the
+artifact a RetrievalEvent queries — is owned by the core ai slice; this
+extension's `indexesCorpus` ties it to the corpus served (non-functional, for
+federated indexes), and `indexAlgorithm` (functional) carries its ANN structure
+from the open `IndexAlgorithm` vocabulary (HNSW, IVF, flat) owned here, with
+`indexParameters` recording the build parameters verbatim as a JSON string for
+reproducibility.
 
-### gmeow:VectorIndex · gmeow:indexesCorpus · gmeow:IndexAlgorithm · gmeow:indexAlgorithm · gmeow:indexParameters
+### gmeow:RetrievalEvent (core ai slice) · gmeow:forQuery · gmeow:againstIndex (core ai slice) · gmeow:retrievedChunk · gmeow:retrievalScore
 
-A built retrieval structure over a corpus's embeddings — the artifact a
-RetrievalEvent queries. `indexesCorpus` ties it to the corpus served (non-functional,
-for federated indexes); `indexAlgorithm` (functional) carries its ANN structure from
-the open `IndexAlgorithm` vocabulary (HNSW, IVF, flat); `indexParameters` records the
-build parameters verbatim as a JSON string for reproducibility.
-
-### gmeow:RetrievalEvent · gmeow:forQuery · gmeow:againstIndex · gmeow:retrievedChunk · gmeow:retrievalScore
-
-One retrieval against a vector index — the answer to 'why did the model see this
-passage?'; an agent-memory recall is a RetrievalEvent too. `forQuery` records the
-query verbatim; `againstIndex` (functional) the index queried; `retrievedChunk` each
-chunk returned, with per-chunk relevance riding the `retrievalScore` statement
+`RetrievalEvent` — one retrieval against a vector index, the answer to 'why did
+the model see this passage?' — and its `againstIndex` edge are owned by the
+core ai slice (an agent-memory recall is a RetrievalEvent too). This
+extension's `forQuery` records the query verbatim; `retrievedChunk` each chunk
+returned, with per-chunk relevance riding the `retrievalScore` statement
 annotation so competing re-ranker scores coexist attributed (P9, P3).
 
 ### gmeow:ExtractedEntity · gmeow:ExtractedRelationship · gmeow:relationshipSource · gmeow:relationshipTarget

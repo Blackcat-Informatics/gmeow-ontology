@@ -37,7 +37,7 @@ use gmeow_docs_model::source_map::{
 use gmeow_docs_model::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 // Full predicate IRIs used to resolve translated label / definition / title
 // values (the `.po` msgctxt predicate, CURIE-expanded). Mirror `model.rs`.
@@ -218,6 +218,12 @@ pub enum Page {
     /// / OWL / SHACL vocabulary to the everyday software concepts they correspond
     /// to, a bridge for readers who do not know RDF.
     Glossary,
+    /// The grounding seam registry (`seams/index`) — every sanctioned
+    /// cross-grounding `gmeow:Seam` (direction, carrying terms, owning design
+    /// doc), projected from the canonical data authored in the grounding
+    /// slices' manifests (never a hand-authored table). See
+    /// [`crate::model::DocSeam`].
+    SeamRegistry,
     /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
     /// supplies a bundled query asset (never in a model-only render).
     SparqlPlayground,
@@ -278,6 +284,7 @@ impl Page {
             Page::FourBoxes => "four-boxes".to_string(),
             Page::PipelineDag => "pipeline".to_string(),
             Page::Glossary => "glossary".to_string(),
+            Page::SeamRegistry => "seams".to_string(),
             Page::SparqlPlayground => "sparql".to_string(),
             Page::BundleExplorer => "explorer".to_string(),
             Page::ConjecturePlayground => "conjectures".to_string(),
@@ -366,6 +373,7 @@ impl Page {
             Page::FourBoxes => "What is this?".to_string(),
             Page::PipelineDag => "Build pipeline".to_string(),
             Page::Glossary => "Glossary".to_string(),
+            Page::SeamRegistry => "Grounding seams".to_string(),
             Page::SparqlPlayground => "SPARQL playground".to_string(),
             Page::BundleExplorer => "Bundle explorer".to_string(),
             Page::ConjecturePlayground => "Conjecture playground".to_string(),
@@ -791,6 +799,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::RecipeIndex,
         Page::LearningPathIndex,
         Page::Glossary,
+        Page::SeamRegistry,
     ];
     // The curated "four boxes" doctrine page only when its prose is present.
     if model.four_boxes.is_some() {
@@ -946,6 +955,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page, page_map: &SourceToPageMap) 
         Page::FourBoxes => md_four_boxes(model),
         Page::PipelineDag => md_pipeline_dag(model),
         Page::Glossary => md_glossary(model),
+        Page::SeamRegistry => md_seam_registry(model),
         // Routed through `to_markdown_exec`; this arm keeps the match exhaustive.
         Page::SparqlPlayground => md_playground(model, &ExecutableDocsData::default()),
         Page::BundleExplorer => md_bundle_explorer(model, &ExecutableDocsData::default()),
@@ -3629,6 +3639,104 @@ fn md_glossary(model: &DocsModel) -> String {
     out
 }
 
+/// A link from a grounding-slice IRI (a `gmeow:seamFromSlice`/`seamToSlice`
+/// object) to its slice page, falling back to the IRI's local name in a code
+/// span when the slice is unresolvable (never happens for a well-formed
+/// registry, but this is a documentation READ, not a re-validation).
+fn seam_slice_link(model: &DocsModel, from: &str, slice_iri: &str) -> String {
+    if let Some(slice) = model.slices.iter().find(|s| s.iri == slice_iri) {
+        let href = rel(from, &Page::Slice(slice_slug(slice)).dir());
+        return format!("[{}]({}index.md)", md_escape(&slice_display(slice)), href);
+    }
+    md_escape(local_name(slice_iri))
+}
+
+/// The grounding seam registry: every sanctioned cross-grounding `gmeow:Seam`
+/// — the closed channel set that authorizes a term reference to cross a
+/// peered grounding-slice pair (Principle 19). Rendered directly from
+/// [`crate::model::DocsModel::seams`] — the canonical governance data authored
+/// in the grounding slices' `manifest.ttl` files — so this page is always a
+/// faithful projection of that data, never a hand-maintained duplicate (see
+/// `gmeow_validate`'s seam-registry drift gate). Deterministic: `model.seams`
+/// is already IRI-sorted, and every per-seam collection is sorted/deduped.
+fn md_seam_registry(model: &DocsModel) -> String {
+    let from = Page::SeamRegistry.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Grounding seams");
+    line(
+        &mut out,
+        &format!(
+            "The closed set of **{}** sanctioned cross-grounding reference channels among the \
+             `logic:`, `lang:`, and `math:` grounding slices (Principle 19). Every peered \
+             cross-slice term reference must land on one of these seams rather than riding free \
+             on the `gmeow:sliceCoFoundationalWith` peerage grant. Each row is a `gmeow:Seam` \
+             individual authored as canonical data in a grounding slice's `manifest.ttl`.",
+            model.seams.len(),
+        ),
+    );
+
+    if model.seams.is_empty() {
+        line(&mut out, "No grounding seams are declared in this model.");
+        return out;
+    }
+
+    push_line(
+        &mut out,
+        "| Seam | Direction | Carrying terms | Owning doc |",
+    );
+    push_line(&mut out, "| --- | --- | --- | --- |");
+    for seam in &model.seams {
+        let name = seam.label.clone().unwrap_or_else(|| to_curie(&seam.iri));
+        let directions = seam
+            .directions
+            .iter()
+            .map(|d| {
+                format!(
+                    "{} → {}",
+                    seam_slice_link(model, &from, &d.from),
+                    seam_slice_link(model, &from, &d.to)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("; ");
+        let carrying = seam
+            .carrying_terms
+            .iter()
+            .map(|iri| curie_link(model, &from, &to_curie(iri)))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let owning = seam
+            .owning_docs
+            .iter()
+            .map(|d| format!("`{}`", code_escape(d)))
+            .collect::<Vec<_>>()
+            .join(", ");
+        push_line(
+            &mut out,
+            &format!(
+                "| **{}** | {} | {} | {} |",
+                md_escape(&name),
+                directions,
+                carrying,
+                owning,
+            ),
+        );
+    }
+    blank(&mut out);
+
+    // A definitions section: the full prose each seam's `skos:definition`
+    // carries, keyed to the same seam name the table above uses.
+    heading(&mut out, 2, "Definitions");
+    for seam in &model.seams {
+        let name = seam.label.clone().unwrap_or_else(|| to_curie(&seam.iri));
+        heading(&mut out, 3, &name);
+        if let Some(definition) = &seam.definition {
+            line(&mut out, &md_escape(definition));
+        }
+    }
+    out
+}
+
 /// The short four-boxes label for a `gmeow:box*` role CURIE (`gmeow:boxTBox` →
 /// `TBox`); the CURIE unchanged when it does not match the expected shape.
 fn box_role_label(role: &str) -> String {
@@ -3693,6 +3801,19 @@ fn md_logic_index(model: &DocsModel) -> String {
         &format!(
             "- [Compiler diagnostics]({diag_href}index.md) — parse findings plus \
              lossy-drop notes, surfaced as SARIF."
+        ),
+    );
+    blank(&mut out);
+
+    // Cross-link to the grounding seam registry — the closed set of sanctioned
+    // cross-grounding reference channels among `logic:`/`lang:`/`math:`.
+    let seams_href = rel(&from, &Page::SeamRegistry.dir());
+    push_line(
+        &mut out,
+        &format!(
+            "See also the [grounding seam registry]({seams_href}index.md) — the sanctioned \
+             cross-grounding reference channels among the `logic:`/`lang:`/`math:` grounding \
+             slices."
         ),
     );
     blank(&mut out);
@@ -8008,6 +8129,7 @@ mod tests {
             worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
+            seams: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             constraint_rules: Vec::new(),
@@ -8024,6 +8146,222 @@ mod tests {
             schema_fragments: None,
             lang: String::new(),
         }
+    }
+
+    // ── seam-registry render ↔ drift-gate parser contract ────────────────────
+    //
+    // `gmeow_validate::authoring_integrity::detect_seam_registry_drift` reads this
+    // page BACK, per seam, to prove it never drifts from the authored `gmeow:Seam`
+    // registry. That gate parses the exact table shape `md_seam_registry` writes —
+    // bolded name cell, `;`-joined `from → to` legs whose slice identity is the slug
+    // in the rendered link's href, backticked (and possibly linked) carrying-term
+    // CURIEs, backticked owning-doc filenames. These tests pin that contract from
+    // the RENDERER's side, so a change to this function's markup that the gate
+    // cannot read fails here rather than turning the gate into a false positive (or,
+    // worse, a false negative) in production.
+
+    /// A two-slice, two-seam model whose seam registry exercises both rendered
+    /// forms: a resolvable slice (link) and a term with its own term page (link).
+    fn seam_model() -> DocsModel {
+        use crate::model::{DocSeam, DocSeamDirection, DocSlice};
+        fn slice(local: &str, title: &str) -> DocSlice {
+            DocSlice {
+                iri: format!("{GMEOW_NS}slices/{local}"),
+                label: Some(local.to_string()),
+                title: Some(title.to_string()),
+                tier: None,
+                identifier: None,
+                creators: Vec::new(),
+                consumers: Vec::new(),
+                profiles: Vec::new(),
+                depends_on: Vec::new(),
+                artifacts: Vec::new(),
+                documents: Vec::new(),
+                has_thesis_sentence: false,
+                realized_state_complete: false,
+            }
+        }
+        let mut model = tiny_model();
+        model.slices = vec![
+            slice("lang", "Language grounding"),
+            slice("logic", "Logic grounding"),
+            slice("math", "Mathematics grounding"),
+        ];
+        model.seams = vec![
+            DocSeam {
+                iri: format!("{GMEOW_NS}seam/compilation"),
+                label: Some("Compilation seam".to_string()),
+                definition: Some("The math → logic lowering seam.".to_string()),
+                directions: vec![DocSeamDirection {
+                    from: format!("{GMEOW_NS}slices/math"),
+                    to: format!("{GMEOW_NS}slices/logic"),
+                }],
+                carrying_terms: vec![
+                    "https://blackcatinformatics.ca/math/compilesToLogicTerm".to_string(),
+                ],
+                owning_docs: vec!["MATHEMATICS-EXPRESSIONS.md".to_string()],
+            },
+            DocSeam {
+                iri: format!("{GMEOW_NS}seam/denotation"),
+                label: Some("Denotation seam".to_string()),
+                definition: Some("The lang → logic meaning seam.".to_string()),
+                directions: vec![
+                    DocSeamDirection {
+                        from: format!("{GMEOW_NS}slices/lang"),
+                        to: format!("{GMEOW_NS}slices/logic"),
+                    },
+                    DocSeamDirection {
+                        from: format!("{GMEOW_NS}slices/math"),
+                        to: format!("{GMEOW_NS}slices/logic"),
+                    },
+                ],
+                carrying_terms: vec![
+                    "https://blackcatinformatics.ca/lang/denotationKind".to_string(),
+                    "https://blackcatinformatics.ca/lang/denotationTarget".to_string(),
+                ],
+                owning_docs: vec!["LANG-MEANING.md".to_string()],
+            },
+        ];
+        model
+    }
+
+    /// The `gmeow_validate` seam records the [`seam_model`] seams project to — the
+    /// authored side of the comparison, built by hand so this test needs no
+    /// repository (and no `generated/`) at all.
+    fn seam_model_records() -> Vec<gmeow_validate::slice_peerage::SeamRecord> {
+        use gmeow_validate::slice_peerage::SeamRecord;
+        seam_model()
+            .seams
+            .iter()
+            .map(|seam| SeamRecord {
+                iri: seam.iri.clone(),
+                name: seam.label.clone().expect("the fixture labels every seam"),
+                labels: vec![(
+                    seam.label.clone().expect("the fixture labels every seam"),
+                    Some("x-gmeow-english".to_string()),
+                )],
+                carrying_terms: seam.carrying_terms.iter().map(|t| to_curie(t)).collect(),
+                carrying_term_iris: seam.carrying_terms.iter().cloned().collect(),
+                directions: seam
+                    .directions
+                    .iter()
+                    .map(|d| (d.from.clone(), d.to.clone()))
+                    .collect(),
+                owning_docs: seam.owning_docs.iter().cloned().collect(),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn seam_registry_render_is_readable_by_the_drift_gate() {
+        let page = md_seam_registry(&seam_model());
+        // Non-vacuity: the render really produced the table and both seams.
+        assert!(
+            page.contains("| Seam | Direction | Carrying terms | Owning doc |"),
+            "{page}"
+        );
+        assert!(page.contains("**Denotation seam**"), "{page}");
+        assert!(page.contains("**Compilation seam**"), "{page}");
+        let findings = gmeow_validate::authoring_integrity::detect_seam_registry_drift(
+            &seam_model_records(),
+            &page,
+        );
+        assert!(
+            findings.is_empty(),
+            "the drift gate must read this render back with zero drift; markup and \
+             parser have diverged:\n{}\n--- page ---\n{page}",
+            findings
+                .iter()
+                .map(|f| f.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+    }
+
+    #[test]
+    fn seam_registry_render_parity_fails_when_a_seam_loses_a_direction_leg() {
+        // Teeth for the parity test above: the gate is genuinely reading the
+        // rendered legs, not passing whatever it is handed.
+        let mut model = seam_model();
+        model.seams[1].directions.remove(1);
+        let findings = gmeow_validate::authoring_integrity::detect_seam_registry_drift(
+            &seam_model_records(),
+            &md_seam_registry(&model),
+        );
+        assert!(
+            findings.iter().any(
+                |f| f.message.contains("Denotation seam") && f.message.contains("math → logic")
+            ),
+            "a leg dropped from the render must be caught: {findings:?}"
+        );
+    }
+
+    /// NON-VACUITY, over the REAL repository: the seams actually authored in the
+    /// grounding manifests render into a page the drift gate reads back with zero
+    /// drift. The two tests above prove the markup/parser contract on a hand-built
+    /// two-seam fixture; this one proves it over the live registry, so a newly
+    /// registered seam whose carrying terms or direction legs the renderer cannot
+    /// project (or the gate cannot parse) fails HERE, at authoring time, rather than
+    /// in a `make sync SYNC_OUTPUTS=docs` run nobody has done yet. It needs the
+    /// `slices/` tree but no `generated/` tree.
+    #[test]
+    fn the_real_seam_registry_renders_into_a_drift_free_page() {
+        use crate::model::{DocSeam, DocSeamDirection};
+
+        let slices_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../slices")
+            .canonicalize()
+            .expect("the real slices/ tree");
+        let records = gmeow_validate::authoring_integrity::seam_registry_of_slices(&slices_dir)
+            .expect("read the authored gmeow:Seam registry");
+        assert!(
+            records.len() >= 6,
+            "the authored registry must be non-vacuous; got {}",
+            records.len()
+        );
+
+        let mut model = seam_model();
+        model.seams = records
+            .iter()
+            .map(|r| {
+                let mut directions: Vec<DocSeamDirection> = r
+                    .directions
+                    .iter()
+                    .map(|(from, to)| DocSeamDirection {
+                        from: from.clone(),
+                        to: to.clone(),
+                    })
+                    .collect();
+                directions.sort_by(|a, b| (&a.from, &a.to).cmp(&(&b.from, &b.to)));
+                directions.dedup();
+                DocSeam {
+                    iri: r.iri.clone(),
+                    label: Some(r.name.clone()),
+                    definition: None,
+                    directions,
+                    carrying_terms: r.carrying_term_iris.iter().cloned().collect(),
+                    owning_docs: r.owning_docs.iter().cloned().collect(),
+                }
+            })
+            .collect();
+
+        let page = md_seam_registry(&model);
+        assert!(
+            page.contains("| Seam | Direction | Carrying terms | Owning doc |"),
+            "{page}"
+        );
+        let findings =
+            gmeow_validate::authoring_integrity::detect_seam_registry_drift(&records, &page);
+        assert!(
+            findings.is_empty(),
+            "the authored seam registry must render into a page the drift gate reads back \
+             cleanly:\n{}\n--- page ---\n{page}",
+            findings
+                .iter()
+                .map(|f| f.message.clone())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
     }
 
     /// The "What GMEOW enforces" page renders the advice

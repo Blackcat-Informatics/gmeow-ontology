@@ -50,7 +50,6 @@ This document covers **all phases** (A–D) of the design.
 | `PostingDirection` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
 | `LedgerAccountType` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
 | `Payment` | `gufo:EventType` | `FinancialTransaction` |
-| `PaymentMethod` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
 | `Invoice` | `gufo:SubKind` | `Document` |
 | `InvoiceStatus` | `gufo:AbstractIndividualType` | `gufo:QualityValue` |
 | `Order` | `gufo:SubKind` | `Agreement` |
@@ -202,12 +201,12 @@ A balanced double-entry event (`JournalEntry ⊑ Event`) composed of two or more
 account, `MonetaryAmount`, and direction; balance (Σ debits = Σ credits) is
 SHACL-enforced, never OWL.
 
-### gmeow:Payment · gmeow:paymentMethod · gmeow:PaymentMethod
+### gmeow:Payment · gmeow:paymentMethod
 
 A payment event — a thin subclass of `FinancialTransaction` distinguished by the
 `paymentMethod` facet, drawn from the open `PaymentMethod` value vocabulary
-(cash, cheque, credit card, bank transfer, cryptocurrency). Non-functional: split
-payments carry several methods.
+(cash, cheque, credit card, bank transfer, cryptocurrency) owned by the core
+`accounts` slice. Non-functional: split payments carry several methods.
 
 ### gmeow:Invoice · gmeow:invoiceAmount · gmeow:invoiceIssuer · gmeow:invoiceRecipient · gmeow:invoiceDueDate · gmeow:invoiceStatus · gmeow:InvoiceStatus
 

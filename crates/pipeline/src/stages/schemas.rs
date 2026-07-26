@@ -61,7 +61,7 @@ fn schema_error(message: impl Into<String>) -> gmeow_errors::Diag {
 }
 
 /// Every prefix a `$defs` property/class CURIE in the compiled schema can use:
-/// the gmeow-owned ecosystem prefixes ([`crate::gmeow_ns::gmeow_profile`] —
+/// the gmeow-owned ecosystem prefixes ([`gmeow_ns::gmeow_profile`] —
 /// `gmeow`/`logic`/`lang`/`math`) plus the W3C builtins
 /// `purrdf::shapes::json_schema::compile` ALWAYS merges in for CURIE compaction
 /// (`xsd`/`rdf`/`rdfs`/`owl`/`sh` — e.g. an annotation property compacts to
@@ -69,7 +69,7 @@ fn schema_error(message: impl Into<String>) -> gmeow_errors::Diag {
 /// A LinkML prefix map narrower than this set hard-fails `emit_linkml` on the
 /// first property/class from an unregistered namespace.
 fn linkml_prefixes() -> BTreeMap<String, String> {
-    let profile = crate::gmeow_ns::gmeow_profile();
+    let profile = gmeow_ns::gmeow_profile();
     let mut prefixes: BTreeMap<String, String> = profile.prefixes.into_iter().collect();
     prefixes.insert(profile.prefix, profile.namespace);
     prefixes.insert(

@@ -11,11 +11,11 @@
 # (logic:Kind, logic:SubKind, logic:AbstractIndividualType, logic:QualityValue,
 # logic:Relator), not gufo:.
 #
-# RETAINED in pytest (cross-slice subject):
-#   test_version_label_domain_is_entity — gmeow:versionLabel is defined in
-#   slices/extensions/languages/module.ttl, not here; a scopeModule cell would
-#   silently miss it.
-#
+# gmeow:versionLabel (domain gmeow:Entity, domain-general — any versioned
+# artifact, not only versions-slice types) is now defined here rather than in
+# slices/extensions/languages/module.ttl, so its domain is covered by a
+# scopeModule assertion below (assertion 17) instead of a cross-slice pytest
+# check.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/versions/tests/> .
@@ -342,3 +342,17 @@ ASK {
        owl:someValuesFrom gmeow:Agent .
 }""" ;
     gmeow:saRationale "gmeow:VersionMembership MUST have an EL someValuesFrom restriction on gmeow:membershipAuthority with filler gmeow:Agent — the existential ensures every membership claim is attributed to an asserting agent (Principle 9)." .
+
+# --- 17. versionLabel is a domain-general owl:DatatypeProperty on gmeow:Entity (MUST) ---
+ex:saVersionLabelDomainIsEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:versionLabel a owl:DatatypeProperty ;
+        rdfs:domain gmeow:Entity ;
+        rdfs:range rdfs:Literal .
+}""" ;
+    gmeow:saRationale "gmeow:versionLabel MUST be an owl:DatatypeProperty with domain gmeow:Entity and range rdfs:Literal — the version designation is domain-general so any versioned artifact (language, software release, book edition, dataset, email variant) may carry it, not only versions-slice types." .

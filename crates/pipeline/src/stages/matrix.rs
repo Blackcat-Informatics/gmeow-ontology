@@ -20,7 +20,7 @@ use crate::stages::source_load::module_files;
 pub const MATRIX_PATH: &str = "generated/module-status.md";
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL: &str = "http://www.w3.org/2002/07/owl#";
 

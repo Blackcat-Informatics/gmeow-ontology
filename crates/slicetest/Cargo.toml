@@ -22,6 +22,7 @@ gmeow-errors = { path = "../errors" }
 # canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen `RdfDataset`
 # (`gmeow-rdf-core`), then run the competency/structural/RDFS-closure SPARQL through
 # the native `NativeSparqlEngine` (`gmeow-sparql-eval`) — no oxigraph Store anywhere.
+gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 # The SHACL Finding bridge (finding_from_shacl -> shacl.<LocalName>) for the
 # example-conformance executor.

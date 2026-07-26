@@ -58,7 +58,7 @@ pub fn flagship_error(detail: impl Into<String>) -> Diag {
 /// The shared `gmeow:` namespace. The flagship-manifest PREDICATES (the acceptance-bar
 /// wiring) and the shape→failure-class annotation predicate live here; the failure-class
 /// VALUES they point at stay slice-namespaced (`lang:` / `math:` / `logic:`).
-pub const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+pub use gmeow_ns::GMEOW_NS;
 
 /// The identity of one grounding slice's discharge run.
 ///
@@ -242,7 +242,7 @@ pub fn load_scoped_shapes(spec: &SliceSpec) -> (purrdf::shapes::shapes::Shapes, 
 pub fn repo_catalog() -> purrdf::slice::SliceCatalog {
     purrdf::slice::SliceCatalog::discover(
         &repo_root().join("slices"),
-        gmeow_pipeline::gmeow_slice_vocab(),
+        gmeow_ns::gmeow_slice_vocab(),
     )
     .expect("discover slice catalog")
 }

@@ -22,7 +22,10 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.8.3" }
+# Must stay byte-identical to the root [workspace.dependencies] pin (repo-static gate):
+# a rev rather than a tag, because this is `rust-v0.8.3` plus the ownership analyzer's
+# term-namespace scoping fix, which is not yet in a tagged release.
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "76f2595528e5d64fd708aa1c24d9055db084870e" }
 gmeow-logic = { path = "../crates/logic" }
 gmeow-logic-compile = { path = "../crates/logic-compile" }
 

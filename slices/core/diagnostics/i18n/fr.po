@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: diagnostics, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "existentialOrdinal is functional"
+msgstr "existentialOrdinal est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:existentialOrdinal is functional: a chase-invented gmeow:InventedWitness discharges exactly one existential head-variable of its firing rule, so it carries a single 0-based ordinal that is one of the three components of its content-addressed identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:existentialOrdinal est fonctionnelle : un gmeow:InventedWitness inventé par la procédure de chase décharge exactement une variable de tête existentielle de sa règle de déclenchement, de sorte qu'il porte un unique ordinal à base zéro, l'une des trois composantes de son identité adressée par contenu. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingCode is functional"
+msgstr "findingCode est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingCode is functional: a gmeow:Finding carries exactly one stable rule identifier, serving as its SARIF ruleId and the single key by which findings are grouped and suppressed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:findingCode est fonctionnelle : un gmeow:Finding porte exactement un identifiant de règle stable, servant de ruleId SARIF et de clé unique permettant de regrouper et de supprimer les constats. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingMessage is functional"
+msgstr "findingMessage est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingMessage is functional: a gmeow:Finding carries exactly one human-readable message describing that occurrence, distinct from its single stable code."
+msgstr "Affirme sur le porteur canonique que gmeow:findingMessage est fonctionnelle : un gmeow:Finding porte exactement un message lisible par un humain décrivant cette occurrence, distinct de son unique code stable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingSeverity is functional"
+msgstr "findingSeverity est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:findingSeverity est fonctionnelle : un gmeow:Finding possède exactement un degré de verdict, un unique gmeow:DiagnosticSeverity qui constitue le résultat de son observation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:existentialOrdinal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:existentialOrdinal nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:existentialOrdinal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:existentialOrdinal, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:existentialOrdinalFunctionality logic:characterizes gmeow:existentialOrdinal ."
+msgstr "gmeow:existentialOrdinalFunctionality logic:characterizes gmeow:existentialOrdinal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:findingCode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:findingCode nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingCode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:findingCode, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:findingCodeFunctionality logic:characterizes gmeow:findingCode ."
+msgstr "gmeow:findingCodeFunctionality logic:characterizes gmeow:findingCode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:findingMessage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:findingMessage nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingMessage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:findingMessage, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:findingMessageFunctionality logic:characterizes gmeow:findingMessage ."
+msgstr "gmeow:findingMessageFunctionality logic:characterizes gmeow:findingMessage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:findingSeverity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:findingSeverity nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingSeverity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:findingSeverity, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:findingSeverityFunctionality logic:characterizes gmeow:findingSeverity ."
+msgstr "gmeow:findingSeverityFunctionality logic:characterizes gmeow:findingSeverity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:existentialOrdinal and nothing else. It is not a definition of gmeow:existentialOrdinal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:existentialOrdinal, et rien d'autre. Ce n'est pas une définition de gmeow:existentialOrdinal (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:findingCode and nothing else. It is not a definition of gmeow:findingCode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:findingCode, et rien d'autre. Ce n'est pas une définition de gmeow:findingCode (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:findingMessage and nothing else. It is not a definition of gmeow:findingMessage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:findingMessage, et rien d'autre. Ce n'est pas une définition de gmeow:findingMessage (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:findingSeverity and nothing else. It is not a definition of gmeow:findingSeverity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:findingSeverity, et rien d'autre. Ce n'est pas une définition de gmeow:findingSeverity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

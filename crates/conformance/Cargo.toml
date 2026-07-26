@@ -54,6 +54,7 @@ gmeow-cli-core = { path = "../cli-core" }
 # named graphs via `RdfDataset::project_named_graph` + `serialize_dataset` — all on the
 # native, oxigraph-free path (no `oxigraph` feature). `gmeow-logic` already
 # depends on this crate, so no new layering edge is created.
+gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 # Canonical-JSON comparison (sorted keys) for verdicts / ledger / certification /
 # budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
