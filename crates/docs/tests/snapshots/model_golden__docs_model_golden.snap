@@ -7,7 +7,7 @@ expression: summary
   "version": "17",
   "slice_count": 85,
   "term_count": 6488,
-  "dependency_edge_count": 1287,
+  "dependency_edge_count": 1336,
   "term_count_by_category": {
     "Class": 1812,
     "Datatype": 1,
@@ -116,7 +116,10 @@ expression: summary
     "profiles": [],
     "depends_on": [
       "https://blackcatinformatics.ca/gmeow/slices/kernel",
-      "https://blackcatinformatics.ca/gmeow/slices/places"
+      "https://blackcatinformatics.ca/gmeow/slices/logic",
+      "https://blackcatinformatics.ca/gmeow/slices/names",
+      "https://blackcatinformatics.ca/gmeow/slices/places",
+      "https://blackcatinformatics.ca/gmeow/slices/temporal"
     ],
     "artifacts": [
       {
@@ -134,11 +137,25 @@ expression: summary
         "semantic_digest": "87a52b5af427dc1ccacebe469cdcb5a192f47069d689a5aaa642c9b60101cc2e"
       },
       {
+        "role": "TranslationCatalog",
+        "logical_path": "i18n/fr.po",
+        "media_type": "application/octet-stream",
+        "raw_digest": "7202e69b266f4771c88603dd6a701e703221cca32b47b6601b4daadf12e5683c",
+        "semantic_digest": null
+      },
+      {
+        "role": "TranslationCatalog",
+        "logical_path": "i18n/zh.po",
+        "media_type": "application/octet-stream",
+        "raw_digest": "b15cbc98cb7bd89e82f28a72a253630121814369c46832d7e0e08195b43cc290",
+        "semantic_digest": null
+      },
+      {
         "role": "Manifest",
         "logical_path": "manifest.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "266cbc93bb4aea74310767bf20466d023c331ae3490c85cadd85308f39741541",
-        "semantic_digest": "1e58ec2a6358f4fc330a2ef751c73727fd8febc56f91c88c13a19b694ca6c198"
+        "raw_digest": "9b80c28a6ae4ebe1be8b58df5cbae6cb659ea26dba8b26119a403f04ae5033c6",
+        "semantic_digest": "c014edb06b8b1bfa60dc3666863fb5714b6c71e0fa92e269f94077183bb27001"
       },
       {
         "role": "Mapping",
@@ -151,8 +168,8 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "f16507ba35295331d9af45bbab99108caead1ad1e320d5de70057f71a7080a91",
-        "semantic_digest": "11f50c2a2992170914be4b588cc12970b10652f55dd29f4856a9f07263e3f0a2"
+        "raw_digest": "807ab997dee337c353d7b825a0af263e834068304b77b5bf7e9166a996ae4082",
+        "semantic_digest": "b2a4f44cfb90d0e1376b600629c17d3f06edeb1fabc8d7ed3fe562d56a15ab9d"
       },
       {
         "role": "TestDsl",
@@ -315,12 +332,17 @@ expression: summary
       "content_digest": "blake3:2975cace510b2098d48653aebfe8f0a966ecaf8cce2f23d18799f36912fafb19",
       "profiles": [
         "claims",
-        "full"
+        "dreaming",
+        "full",
+        "memory",
+        "music",
+        "narrative",
+        "purremb"
       ]
     }
   ],
   "mapping_set_count": 100,
-  "linkage_count": 2125,
+  "linkage_count": 2123,
   "example_count": 193,
   "concern_count": 7,
   "external_term_count": 1803,
