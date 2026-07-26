@@ -73,6 +73,21 @@ use crate::sink::Sink;
 /// PLAIN — [`Sink`] deliberately exposes no language-tagged constructor, because lifted
 /// graphs leave through the shipped CLI where no `x-gmeow-*` private-use tag may appear.
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+/// `xsd:double` — the datatype an R numeric literal is actually carried in.
+const XSD_DOUBLE: &str = "http://www.w3.org/2001/XMLSchema#double";
+
+/// Half an ULP of `value` at IEEE-754 double precision: the exact absolute bound by which
+/// the stored double may deviate from the decimal the source wrote.
+///
+/// This is a derived property of the representation, not a chosen tolerance. A subnormal or
+/// non-finite input has no meaningful ULP, so it reports zero rather than a fabricated bound.
+fn half_ulp(value: f64) -> f64 {
+    if !value.is_finite() {
+        return 0.0;
+    }
+    let next = f64::from_bits(value.abs().to_bits() + 1);
+    (next - value.abs()) / 2.0
+}
 
 /// Lift an R script into `math:` structures.
 ///
@@ -812,6 +827,15 @@ impl Lift<'_> {
             self.sink.iri(&approx, &math("approximates"), &number);
             if let Ok(value) = text.parse::<f64>() {
                 self.sink.decimal(&approx, &math("quantityValue"), value);
+                // math:ApproximateValue carries a min-1 math:approximationError: an
+                // approximation that does not say how far it may deviate is not an
+                // approximation, it is an unlabelled number. R numerics ARE IEEE-754
+                // doubles, so the bound is exactly half an ULP at this magnitude — a
+                // derived fact about the representation, not an invented tolerance.
+                self.sink
+                    .decimal(&approx, &math("approximationError"), half_ulp(value));
+                // …and the datatype that bound is relative to.
+                self.sink.iri(&approx, &math("numericDatatype"), XSD_DOUBLE);
             }
             self.label(&iri, text);
         }
