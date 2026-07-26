@@ -119,7 +119,11 @@ gmeow:indexAlgorithm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "index algorithm"@x-gmeow-english ;
     rdfs:range gmeow:IndexAlgorithm ;
-    skos:definition "The approximate-nearest-neighbour structure this index uses (open vocabulary)."@x-gmeow-english ;
+    skos:definition "The approximate-nearest-neighbour structure this index uses (open vocabulary). It is not the index itself and never its parameters — those are gmeow:indexParameters."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which algorithm built a vector index."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring it from the parameters or omitting it on a rebuilt index."@x-gmeow-english ;
+    gmeow:howToUse "Attach one gmeow:IndexAlgorithm value to the index; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:indexAlgorithmFlat
@@ -167,7 +171,11 @@ gmeow:relationshipSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship source"@x-gmeow-english ;
     rdfs:range gmeow:ExtractedEntity ;
-    skos:definition "The extracted-entity description at the tail of this extracted relationship."@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the tail of this extracted relationship. It is not the target, and never the relationship record itself."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the entity an extracted relationship points FROM."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid swapping it with gmeow:relationshipTarget on a symmetric-looking relation — direction is asserted, not inferred."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one gmeow:ExtractedEntity as the tail of the relationship; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
@@ -177,7 +185,11 @@ gmeow:relationshipTarget
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship target"@x-gmeow-english ;
     rdfs:range gmeow:ExtractedEntity ;
-    skos:definition "The extracted-entity description at the head of this extracted relationship."@x-gmeow-english ;
+    skos:definition "The extracted-entity description at the head of this extracted relationship. It is not the source, and never the relationship record itself."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the entity an extracted relationship points TO."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid swapping it with gmeow:relationshipSource — direction is asserted, not inferred."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one gmeow:ExtractedEntity as the head of the relationship; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:retrievalScore
@@ -202,7 +214,11 @@ gmeow:summarizesCommunity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "summarizes community"@x-gmeow-english ;
     rdfs:range gmeow:Community ;
-    skos:definition "The community this summary condenses."@x-gmeow-english ;
+    skos:definition "The community this summary condenses. It is not the summary text and never a second community for one summary."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which community a summary condenses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing one summary at several communities — that is several summaries."@x-gmeow-english ;
+    gmeow:howToUse "Attach exactly one gmeow:Community; it is functional."@x-gmeow-english ;
+    skos:example "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:vectorRef

@@ -124,3 +124,67 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:summarizesCommunity and nothing else. It is not a definition of gmeow:summarizesCommunity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:summarizesCommunity, et rien d'autre. Ce n'est pas une définition de gmeow:summarizesCommunity (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record which algorithm built a vector index."
+msgstr "À utiliser pour consigner l'algorithme ayant construit un index vectoriel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring it from the parameters or omitting it on a rebuilt index."
+msgstr "Évitez de le déduire des paramètres ou de l'omettre sur un index reconstruit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one gmeow:IndexAlgorithm value to the index; it is functional."
+msgstr "Attachez une valeur gmeow:IndexAlgorithm à l'index ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexAlgorithm|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."
+msgstr "gmeow:index1 gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the entity an extracted relationship points FROM."
+msgstr "À utiliser pour nommer l'entité d'où PART une relation extraite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping it with gmeow:relationshipTarget on a symmetric-looking relation — direction is asserted, not inferred."
+msgstr "Évitez de l'intervertir avec gmeow:relationshipTarget sur une relation d'apparence symétrique — la direction est affirmée, non déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:ExtractedEntity as the tail of the relationship; it is functional."
+msgstr "Attachez exactement une gmeow:ExtractedEntity comme queue de la relation ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."
+msgstr "gmeow:rel1 gmeow:relationshipSource gmeow:entity1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the entity an extracted relationship points TO."
+msgstr "À utiliser pour nommer l'entité VERS laquelle pointe une relation extraite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping it with gmeow:relationshipSource — direction is asserted, not inferred."
+msgstr "Évitez de l'intervertir avec gmeow:relationshipSource — la direction est affirmée, non déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:ExtractedEntity as the head of the relationship; it is functional."
+msgstr "Attachez exactement une gmeow:ExtractedEntity comme tête de la relation ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."
+msgstr "gmeow:rel1 gmeow:relationshipTarget gmeow:entity2 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to say which community a summary condenses."
+msgstr "À utiliser pour indiquer quelle communauté un résumé condense."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing one summary at several communities — that is several summaries."
+msgstr "Évitez de faire pointer un même résumé vers plusieurs communautés — ce sont alors plusieurs résumés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one gmeow:Community; it is functional."
+msgstr "Attachez exactement une gmeow:Community ; la propriété est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/summarizesCommunity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."
+msgstr "gmeow:summary1 gmeow:summarizesCommunity gmeow:community1 ."

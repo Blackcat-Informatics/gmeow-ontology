@@ -10519,8 +10519,8 @@ msgid "advice source field"
 msgstr "champ source de conseil"
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceField|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The soft-advice peer of logic:candidateSourceField, borne by a realized advice carrier — an advisory logic:Constraint (avoidWhen) or a logic:AdviceGuidance (useWhen) — rather than a governance candidate: names which annotation field of the carrier's logic:formalizes term (a logic:ProseField from the closed set) the carrier's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Deliberately domain-free — it is shared by both advice-carrier kinds, so it must not entail either type (an rdfs:domain would). Single-valued, range logic:ProseField."
-msgstr "Le pendant de conseil souple de logic:candidateSourceField, porté par un porteur de conseil réalisé — une logic:Constraint consultative (avoidWhen) ou une logic:AdviceGuidance (useWhen) — plutôt que par un candidat de gouvernance : indique quel champ d'annotation du terme logic:formalizes du porteur (un logic:ProseField issu de l'ensemble fermé) la logic:message du porteur doit faire apparaître VERBATIM. La porte de vérification native check_advice_message_prose_binding résout la prose @x-gmeow-english actuelle de ce champ et échoue durement en cas de divergence, de sorte que le conseil actif pour la machine ne peut jamais dériver silencieusement de la prose qu'il formalise. Une liaison de chaîne directe, non un condensé stocké, car le message EST la prose. Délibérément sans domaine — il est partagé par les deux sortes de porteurs de conseil, il ne doit donc entraîner aucun des deux types (ce que ferait un rdfs:domain). À valeur unique, de portée logic:ProseField."
+msgid "The soft-advice peer of logic:candidateSourceField, borne by a realized advice carrier — an advisory logic:Constraint (avoidWhen) or a logic:AdviceGuidance (useWhen) — rather than a governance candidate: names which annotation field of the carrier's logic:formalizes term (a logic:ProseField from the closed set) the carrier's logic:message must surface VERBATIM. The native verify gate check_advice_message_prose_binding resolves that field's current @x-gmeow-english prose and hard-fails on any divergence, so the machine-active advice can never silently drift from the prose it formalizes. A direct string binding, not a stored digest, because the message IS the prose. Deliberately domain-free — it is shared by both advice-carrier kinds, so it must not entail either type (an rdfs:domain would). Single-valued (functionality asserted on the canonical carrier logic:adviceSourceFieldFunctionality, not the deprecated owl:FunctionalProperty marker), range logic:ProseField."
+msgstr "Le pendant de conseil souple de logic:candidateSourceField, porté par un porteur de conseil réalisé — une logic:Constraint consultative (avoidWhen) ou une logic:AdviceGuidance (useWhen) — plutôt que par un candidat de gouvernance : indique quel champ d'annotation du terme logic:formalizes du porteur (un logic:ProseField issu de l'ensemble fermé) la logic:message du porteur doit faire apparaître VERBATIM. La porte de vérification native check_advice_message_prose_binding résout la prose @x-gmeow-english actuelle de ce champ et échoue durement en cas de divergence, de sorte que le conseil actif pour la machine ne peut jamais dériver silencieusement de la prose qu'il formalise. Une liaison de chaîne directe, non un condensé stocké, car le message EST la prose. Délibérément sans domaine — il est partagé par les deux sortes de porteurs de conseil, il ne doit donc entraîner aucun des deux types (ce que ferait un rdfs:domain). À valeur unique, de portée logic:ProseField. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/logic/EntityUniversalDomainAdvice|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "use gmeow:Entity as the universal domain"
@@ -12633,3 +12633,75 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about logic:adviceSourceField and nothing else. It is not a definition of logic:adviceSourceField (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de logic:adviceSourceField, et rien d'autre. Ce n'est pas une définition de logic:adviceSourceField (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/denotation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Denotation seam"
+msgstr "Couture de dénotation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/denotation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lang → logic seam through which a lang:Denotation names its meaning: lang:denotationKind fixes the kind of thing meant, and lang:denotationTarget names the logic:Formula/logic:Type/logic:Individual (or other resource) it points at; a composed denotation additionally names the lang:CompositionRule that lowers it into the logic Formula/Term IR."
+msgstr "The lang → logic seam through which a lang:Denotation names its meaning: lang:denotationKind fixes the kind of thing meant, and lang:denotationTarget names the logic:Formula/logic:Type/logic:Individual (or other resource) it points at; a composed denotation additionally names the lang:CompositionRule that lowers it into the logic Formula/Term IR. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/compilation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compilation seam"
+msgstr "Couture de compilation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/compilation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math → logic seam through which a math:MathematicalExpression lowers into the reasoning layer: math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType carry the lowering, gated by a declared math:denotationKind, and an intensional math:memberCondition on a math:SetBuilderExpression denotes a logic: formula rather than an opaque literal."
+msgstr "The math → logic seam through which a math:MathematicalExpression lowers into the reasoning layer: math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType carry the lowering, gated by a declared math:denotationKind, and an intensional math:memberCondition on a math:SetBuilderExpression denotes a logic: formula rather than an opaque literal. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/laws-and-boundaries|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Laws and boundaries seam"
+msgstr "Couture des lois et frontières"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/laws-and-boundaries|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math → logic seam through which mathematical laws (homogeneity, topology, algebra) are authored directly as logic:Formula, with logic:expressivenessBoundary the honest record of a defining statement that genuinely exceeds first-order logic rather than a fake first-order formula."
+msgstr "The math → logic seam through which mathematical laws (homogeneity, topology, algebra) are authored directly as logic:Formula, with logic:expressivenessBoundary the honest record of a defining statement that genuinely exceeds first-order logic rather than a fake first-order formula. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/correspondence-and-preservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Correspondence and preservation seam"
+msgstr "Couture de correspondance et de préservation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/correspondence-and-preservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lang → logic and math → logic seam through which both peers name a logic:Correspondence (translation, GMN dialect crossings, external alignments) and reuse logic:preservationKind verbatim as the single preservation surface, never shadowing it with a parallel enum."
+msgstr "The lang → logic and math → logic seam through which both peers name a logic:Correspondence (translation, GMN dialect crossings, external alignments) and reuse logic:preservationKind verbatim as the single preservation surface, never shadowing it with a parallel enum. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/rendering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rendering seam"
+msgstr "Couture de rendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/rendering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The math → lang seam through which math:ExpressionRendering is a lang:Relator grafted onto the general lang:Rendering theory: the rendering node reads lang:renderedContent, lang:renderingConvention, and lang:renderingPreservation directly off the math record rather than lang: re-implementing a parallel rendering vocabulary."
+msgstr "The math → lang seam through which math:ExpressionRendering is a lang:Relator grafted onto the general lang:Rendering theory: the rendering node reads lang:renderedContent, lang:renderingConvention, and lang:renderingPreservation directly off the math record rather than lang: re-implementing a parallel rendering vocabulary. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quantity seam"
+msgstr "Couture de quantité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lang → math seam through which math:Quantity individuals, carrying math:hasDimension and math:quantityValue, hold lang's declared and measured magnitudes — GMN codebook rates, glyph token costs — as dimensioned values rather than bare literals."
+msgstr "The lang → math seam through which math:Quantity individuals, carrying math:hasDimension and math:quantityValue, hold lang's declared and measured magnitudes — GMN codebook rates, glyph token costs — as dimensioned values rather than bare literals. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/gmn-mathematical-plane|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GMN mathematical-plane seam"
+msgstr "Couture du plan mathématique GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/gmn-mathematical-plane|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lang → math seam through which the @μ-scoped mathematical plane of the GMN glyph inventory names the math: terms it renders: gmeow:gmnCandidateTarget records the audited symbology ruling for a term, lang:denotationTarget carries the executable meaning of an adopted glyph, gmeow:gmnDictionaryEntryTerm binds a named-key alias where the measurement rejected the display sign, and the whole record is a notation of math:MathematicalExpression under the gmeow:eqLangGmnMathNotationAst lens. GMN names these terms and prices their rendering; it never re-mints them, and math: remains their sole authority. Declared and measured magnitudes are deliberately NOT on this seam — they cross on the quantity seam — so neither seam becomes a general licence to name anything in the peer."
+msgstr "The lang → math seam through which the @μ-scoped mathematical plane of the GMN glyph inventory names the math: terms it renders: gmeow:gmnCandidateTarget records the audited symbology ruling for a term, lang:denotationTarget carries the executable meaning of an adopted glyph, gmeow:gmnDictionaryEntryTerm binds a named-key alias where the measurement rejected the display sign, and the whole record is a notation of math:MathematicalExpression under the gmeow:eqLangGmnMathNotationAst lens. GMN names these terms and prices their rendering; it never re-mints them, and math: remains their sole authority. Declared and measured magnitudes are deliberately NOT on this seam — they cross on the quantity seam — so neither seam becomes a general licence to name anything in the peer. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity-boundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quantity boundary seam"
+msgstr "Couture de frontière de quantité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity-boundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer."
+msgstr "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logical grounding domain"
+msgstr "domaine de fondement logique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role."
+msgstr "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
