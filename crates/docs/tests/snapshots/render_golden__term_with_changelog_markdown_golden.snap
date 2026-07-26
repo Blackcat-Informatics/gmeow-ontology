@@ -2,29 +2,36 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Changelog Entry
+# Affect Scale Profile
 
-`gmeow:ChangelogEntry` · Class
+`gmeow:AffectScaleProfile` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:ChangelogEntry` |
-| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
+| CURIE | `gmeow:AffectScaleProfile` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AffectScaleProfile` |
 | Category | Class |
-| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
+| Slice | [GMEOW Affect Module](../../slices/affect/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 11/17](../../badges/completeness/11.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
+The declared reference frame a numeric affect reading is expressed against: its range \(gmeow:profileRangeMin/gmeow:profileRangeMax\), midpoint \(gmeow:profileMidpoint\), polarity \(gmeow:profilePolarity — bipolar/unipolar\), and normalization transform \(gmeow:profileTransform\)\. A magnitude on an affect axis is meaningless without one \(Principle 11: a value asserted without its frame is ill\-formed\)\. Scale arithmetic — normalization, cross\-scale conversion, and the metric under which magnitudes combine into an intensity — is solver work outside the logic \(Principle 12\); the profile DECLARES the frame, it does not compute in triples\. The affect\-domain analogue of the rubrics facility's gmeow:ScoreScale: a distinct declared frame for a numeric affect reading, not a rubric's judging scale, so the two axes stay separately identified\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:ChangelogEntry .
+<subject> a gmeow:AffectScaleProfile ;
+    gmeow:metricGram <...> ;  # math:GramMatrix
+    gmeow:profileMidpoint "..." ;  # xsd:decimal
+    gmeow:profilePolarity <...> ;  # gmeow:ScalePolarity
+    gmeow:profileRangeMax "..." ;  # xsd:decimal
+    gmeow:profileRangeMin "..." ;  # xsd:decimal
+    gmeow:profileTransform "..." ;  # xsd:string
+    gmeow:sparseAxisCompletion "..." .  # xsd:boolean
 ```
 
 ## Example in multiple syntaxes
@@ -32,7 +39,14 @@ A reified record of one change to a vocabulary term in a given release — a fir
 **Turtle**
 
 ```turtle
-<subject> a gmeow:ChangelogEntry .
+<subject> a gmeow:AffectScaleProfile ;
+    gmeow:metricGram <...> ;  # math:GramMatrix
+    gmeow:profileMidpoint "..." ;  # xsd:decimal
+    gmeow:profilePolarity <...> ;  # gmeow:ScalePolarity
+    gmeow:profileRangeMax "..." ;  # xsd:decimal
+    gmeow:profileRangeMin "..." ;  # xsd:decimal
+    gmeow:profileTransform "..." ;  # xsd:string
+    gmeow:sparseAxisCompletion "..." .  # xsd:boolean
 ```
 
 **JSON\-LD**
@@ -45,9 +59,30 @@ A reified record of one change to a vocabulary term in a given release — a fir
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
+          "@id": "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"
         }
-      ]
+      ],
+      "https://blackcatinformatics.ca/gmeow/metricGram": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      },
+      "https://blackcatinformatics.ca/gmeow/profileMidpoint": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/profilePolarity": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      },
+      "https://blackcatinformatics.ca/gmeow/profileRangeMax": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/profileRangeMin": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/profileTransform": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/sparseAxisCompletion": {
+        "@value": "..."
+      }
     }
   ]
 }
@@ -55,7 +90,7 @@ A reified record of one change to a vocabulary term in a given release — a fir
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+![Term neighborhood](../../diagrams/terms/affectscaleprofile.svg)
 
 ## Super\-classes
 
@@ -63,21 +98,28 @@ A reified record of one change to a vocabulary term in a given release — a fir
 
 ## Usage Advice
 
-- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
-- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
-- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
-- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
+- **Example:** ex:padUnitScale a gmeow:AffectScaleProfile ; gmeow:profileRangeMin \-1\.0 ; gmeow:profileRangeMax 1\.0 ; gmeow:profileMidpoint 0\.0 ; gmeow:profilePolarity gmeow:polarityBipolar \.
+- **Use when:** Use to declare the scale/frame a numeric affect magnitude is read against — range, midpoint, polarity, and normalization transform — so a reading carries its own interpretation\.
+- **Avoid when:** Avoid encoding normalization or cross\-scale conversion arithmetic in triples \(that is solver work — Principle 12\), and avoid a bare numeric reading with no profile — an unframed magnitude is ill\-formed, not a default\.
+- **How to use:** Mint the profile with gmeow:profileRangeMin / gmeow:profileRangeMax \(and gmeow:profileMidpoint / gmeow:profilePolarity / gmeow:profileTransform as the tradition declares\), then bind every gmeow:appraisalValue to it via gmeow:appraisalScaleProfile and name a vector reading's basis via gmeow:vectorProfile\.
+
+## Examples using this term
+
+- [the \(valence, arousal, dominance, unpredictability\) coordinate basis](../../slices/affect/index.md) — `examples/classify-canonical-prototype.ttl`
+- [PAD unit scale](../../slices/affect/index.md) — `examples/intensity-discriminating.ttl`
+- [PAD unit scale](../../slices/affect/index.md) — `examples/saudade.ttl`
+- [PAD unit scale](../../slices/affect/index.md) — `examples/two-critics.ttl`
 
 ## Profiles
 
-- `full` · `music` · `purremb`
+- `full` · `narrative`
 
 ## Formal & academic
 
 ## Description\-Logic axioms
 
 ```text
-gmeow:ChangelogEntry ⊑ gmeow:InformationObject
+gmeow:AffectScaleProfile ⊑ gmeow:InformationObject
 ```
 
 ## Logic stereotypes
@@ -88,24 +130,28 @@ gmeow:ChangelogEntry ⊑ gmeow:InformationObject
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
+## Formalized by
+
+- `gmeow:AffectScaleProfileRangeConstraint`
+
 ## Documentation coverage
 
-- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **11 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
 
-- **Status:** experimental
+- **Status:** stable
 
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
+- **0\.1\.0** — Definition changed
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AffectScaleProfile>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AffectScaleProfile@blake3:3ec8a220d41528579f2bd67d02e1c5ecea93fb3be8a2ed7412b8fdc419bfe9af`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

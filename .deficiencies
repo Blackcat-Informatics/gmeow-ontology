@@ -1999,3 +1999,46 @@ the shape of a silent capability gap.
   bundle correctly emits zero abductive advice (nothing to repair). No forward path — this is the
   correct behavior of a repair advisor, recorded to pre-empt a "the bundle shows zero abductive
   output" misreading.
+
+## 2026-07-25 — prescription/enactment kernel (doc-coverage ratchet rebaselined UPWARD)
+
+**The docs coverage ratchet moved the wrong way and is recorded here rather than
+concealed, which is what its own doc comment requires.** The baseline in
+`crates/docs/tests/snapshots/lint_regression__coverage_ratchet_baseline.snap`
+says the counts are EXPECTED to fall, and that an increase must be inspected and
+recorded. Ten axes rose:
+
+    missing-annotation-coat       4516 -> 4767   (+251)
+    missing-competency-rationale  6134 -> 6466   (+332)
+    missing-example               4515 -> 4766   (+251)
+    missing-fixture-pair          6145 -> 6472   (+327)
+    missing-prose-quality         6339 -> 6668   (+329)
+    missing-scope-note            6253 -> 6580   (+327)
+    missing-test-reach            5703 -> 6019   (+316)
+    missing-translation-coverage  4147 -> 4164   (+17)
+    missing-usage-advice          4504 -> 4755   (+251)
+    missing-worked-instance       5621 -> 5892   (+271)
+
+One axis fell: `missing-realized-state` 81 -> 79, because the new slice ships a
+realized-state table.
+
+CAUSE, stated plainly: the kernel adds roughly four hundred terms. Every one
+carries an `rdfs:label`, a `skos:definition` and complete fr/zh translations —
+`i18n lint` passes and translation coverage is 4805/4805 in both languages — but
+they are NOT documented across the fuller doc-quality axes. A term with a
+definition but no worked instance, no scope note and no fixture pair is usable
+and correct; it is not yet well documented. The +17 on translation-coverage is a
+different and smaller thing: it counts annotation-level surfaces
+(`gmeow:useWhen` / `howToUse` / `avoidWhen`) that are authored in English and not
+yet translated.
+
+These are report-only WARNING counts. The slice-quality gate holds its floors and
+the docs gate is green (287 tests), so this is a documentation-completeness
+shortfall rather than a capability or correctness one — the same class of entry,
+at larger scale, as the abductive-schema note recorded above for the same reason.
+
+**Forward path:** author `gmeow:example` worked instances, scope notes,
+competency rationale and fixture pairs for the kernel vocabulary, and translate
+the usage-advice annotations. The burn-down is per-term and mechanical rather
+than design work, which is why it is recorded with exact per-axis numbers: the
+next pass can measure itself against them instead of re-deriving the baseline.

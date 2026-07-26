@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "17",
   "slice_count": 85,
-  "term_count": 6488,
-  "dependency_edge_count": 1287,
+  "term_count": 6815,
+  "dependency_edge_count": 1310,
   "term_count_by_category": {
-    "Class": 1812,
+    "Class": 1873,
     "Datatype": 1,
-    "Individual": 1583,
-    "Property": 3092
+    "Individual": 1693,
+    "Property": 3248
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -98,7 +98,8 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/teleology",
     "https://blackcatinformatics.ca/gmeow/slices/temporal",
     "https://blackcatinformatics.ca/gmeow/slices/trust",
-    "https://blackcatinformatics.ca/gmeow/slices/versions"
+    "https://blackcatinformatics.ca/gmeow/slices/versions",
+    "https://blackcatinformatics.ca/gmeow/slices/work-orchestration"
   ],
   "sample_slice": {
     "iri": "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -319,10 +320,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 100,
-  "linkage_count": 2123,
-  "example_count": 193,
+  "linkage_count": 2121,
+  "example_count": 200,
   "concern_count": 7,
-  "external_term_count": 1803,
+  "external_term_count": 1802,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -438,7 +439,7 @@ expression: summary
     ]
   },
   "shape_count": 144,
-  "competency_count": 293,
+  "competency_count": 294,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",

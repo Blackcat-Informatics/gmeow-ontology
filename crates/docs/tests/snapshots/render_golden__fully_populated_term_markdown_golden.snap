@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 294
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # assessed entity

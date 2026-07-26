@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 358
 expression: head
 ---
 # What GMEOW enforces
