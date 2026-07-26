@@ -2000,3 +2000,41 @@ suggestions/guidance.
   term namespaces (without which every slice minting into `logic:`/`lang:`/`math:` is invisible
   to the dependency analyzer) and the fix-deps comment-skip. FORWARD PATH: move both pin sites
   back to a `tag =` pin once a purrdf release carries them.
+
+## 2026-07-26 — #1442 merged with the slice-quality gate RED (human-authorised)
+
+- MERGED WITH `make check` RED, ON EXPLICIT MAINTAINER OVERRIDE. The peerage-aware
+  dependency gate — issue #1442's own requirement — is at zero across all five codes and was
+  demonstrated on the production surface. `slice-quality-gate` was NOT green at merge: 4 slices
+  below a committed per-axis floor and 5 (slice,vocab) cells above their committed projection
+  ceiling. I recommended against merging and set out the alternatives; the maintainer overrode
+  that decision.
+  Decided-by: paudley, 2026-07-26, verbatim: "MERGE THE FUCKING BRANCH" — repeated four times
+  after being shown the red `make check`, the stage-3 blocking-gate rules, and the fact that
+  follow-up issue #1642 does not discharge these findings under those rules.
+
+- 4 AXIS-FLOOR SHORTFALLS SHIPPED (`kernel`, `finance`, `norms` axisProseQuality; `logic`
+  axisTranslationCoverage 0.999769 against a 1.0 floor). Caused by this branch's own term
+  relocations, which imported under-documented records into receiving slices — the doc-maturity
+  axis covers a dimension only when EVERY term a slice owns covers it. Reduced 38 -> 4 by real
+  authoring before merge. These are meetable in-repo (the doctrine reserves LOWERING a floor,
+  not failing one). FORWARD PATH: #1642 §A/§B — instrument the four prose conjuncts at
+  `crates/docs/src/coverage.rs:749` and the translation axis enumerator, then fix the named
+  conjunct per term.
+
+- 5 PROJECTION-CEILING CELLS SHIPPED ABOVE THEIR COMMITTED CEILING (`accounts` rdfs 5>4,
+  `ai` rdfs 42>26, `logic` rdfs 69>68, `sensory` obi 1>0, `sensory` pato 1>0). Verified
+  conservative transfers — corpus-wide ungrounded residue 3740 -> 3740, one-for-one, every
+  construct pre-existing at the merge base under its old slice. Grounding them is unavailable:
+  a `logic:Formula` restating a named-class `rdfs:subClassOf` is the redeclaration
+  `counting::resolvable_grounding` rejects as a faked migration, and `logic:subClassOf` projects
+  only restriction-shaped axioms, so converting would drop named-class taxonomy from the OWL
+  view. Three independent guards (monotonicity, grandfather, the frozen `migrated_ceilings`
+  golden) reserve the raise to a maintainer. FORWARD PATH: #1642 §C — re-baseline the five
+  ceilings, or teach the ratchet to net a relocation across source and destination cells.
+
+- PURRDF PINNED BY REV, NOT TAG. `Cargo.toml` and `fuzz/Cargo.toml` pin
+  `76f2595528e5d64fd708aa1c24d9055db084870e` — `rust-v0.8.3` plus the ownership term-namespace
+  scoping fix (without which every slice minting into `logic:`/`lang:`/`math:` is invisible to
+  the dependency analyzer) and the fix-deps comment-skip fix. FORWARD PATH: move both pin sites
+  back to a `tag =` pin once a purrdf release carries them.
