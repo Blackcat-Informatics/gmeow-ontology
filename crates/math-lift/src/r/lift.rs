@@ -165,6 +165,7 @@ pub fn lift(source: &[u8], mint_base: &str) -> gmeow_errors::Result<Lifted> {
         arena: TermArena::new(),
         emitted: BTreeSet::new(),
         env: BTreeMap::new(),
+        formula_env: BTreeMap::new(),
         unmapped: BTreeSet::new(),
         statistical: 0,
         lowerings: 0,
@@ -228,11 +229,11 @@ struct FitInfo {
 /// Which estimation procedure a model call names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Estimator {
-    /// `lm` — ordinary least squares.
+    /// `lm`, `aov` — ordinary least squares.
     OrdinaryLeastSquares,
     /// `gls` — generalized least squares.
     GeneralizedLeastSquares,
-    /// `glm`, `lmer`, `glmer`, `lme` — maximum likelihood.
+    /// `glm`, `lmer`, `glmer`, `lme`, `t.test` — maximum likelihood.
     MaximumLikelihood,
     /// `nls` — nonlinear least squares.
     NonlinearLeastSquares,
@@ -270,6 +271,10 @@ struct Lift<'f> {
     arena: TermArena,
     emitted: BTreeSet<String>,
     env: BTreeMap<String, Binding>,
+    /// Names bound to a model formula. `f <- y ~ x` then `lm(f, data = d)` is ordinary R,
+    /// and resolving `f` here is the difference between lifting that fit and refusing it
+    /// for "carrying no model formula" when the script plainly states one.
+    formula_env: BTreeMap<String, Formula>,
     /// R semantics the lowering did NOT carry, collected during the walk and replayed onto
     /// the frame's `math:parseSource` witness as `math:unmappedConstruct`. A `BTreeSet`
     /// because the residue is a SET — the same construct met twice is one loss — and
@@ -333,6 +338,10 @@ impl Lift<'_> {
             RStmtKind::Assign { target, value, .. } => {
                 let binding = self.value(value)?;
                 if let RExpr::Ident(name) = target.unparenthesized() {
+                    if let RExpr::Formula(formula) = value.unparenthesized() {
+                        self.formula_env
+                            .insert(name.clone(), formula.as_ref().clone());
+                    }
                     self.env.insert(name.clone(), binding);
                 }
                 Ok(())
@@ -427,6 +436,10 @@ impl Lift<'_> {
             RExpr::Assign { target, value, .. } => {
                 let binding = self.value(value)?;
                 if let RExpr::Ident(name) = target.unparenthesized() {
+                    if let RExpr::Formula(formula) = value.unparenthesized() {
+                        self.formula_env
+                            .insert(name.clone(), formula.as_ref().clone());
+                    }
                     self.env.insert(name.clone(), binding.clone());
                 }
                 Ok(binding)
@@ -579,6 +592,8 @@ impl Lift<'_> {
         let formula = named_or_positional(args, "formula", 0)
             .and_then(|e| match e.unparenthesized() {
                 RExpr::Formula(f) => Some(f.as_ref().clone()),
+                // A formula bound to a name earlier in the script — ordinary R.
+                RExpr::Ident(name) => self.formula_env.get(name).cloned(),
                 _ => None,
             })
             .ok_or_else(|| {
@@ -2587,7 +2602,11 @@ fn binary_operator_slug(op: BinaryOp) -> &'static str {
 
 fn model_estimator(name: &str) -> Option<Estimator> {
     match name {
-        "lm" => Some(Estimator::OrdinaryLeastSquares),
+        // `aov` IS a linear model: R fits it by least squares and `broom::tidy` gives the
+        // same estimate/residual surface as `lm`. `t.test` estimates a mean difference,
+        // which under its own normality assumption is the maximum-likelihood estimate.
+        "lm" | "aov" => Some(Estimator::OrdinaryLeastSquares),
+        "t.test" => Some(Estimator::MaximumLikelihood),
         "gls" => Some(Estimator::GeneralizedLeastSquares),
         "glm" | "lmer" | "glmer" | "lme" => Some(Estimator::MaximumLikelihood),
         "nls" => Some(Estimator::NonlinearLeastSquares),
@@ -3734,6 +3753,31 @@ mod tests {
         let a = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         let b = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         assert_eq!(a, b, "the lift is idempotent: no clock, no counter");
+    }
+
+    #[test]
+    fn the_core_stats_model_families_lift() {
+        // `aov` and `t.test` sit squarely on the broom tidy/glance/augment surface the
+        // issue names, and both are formula-based, so they reach the same codomain `lm`
+        // does. Refusing them narrowed "an R model/statistics script" to a handful of
+        // regression functions.
+        for src in [
+            "a <- aov(y ~ g, data = d)\n",
+            "t <- t.test(y ~ g, data = d)\n",
+        ] {
+            let ttl = turtle(src);
+            assert_eq!(typed(&ttl, "FittedModel"), 1, "{src} → {ttl}");
+            assert_eq!(typed(&ttl, "ModelFormula"), 1, "{src} → {ttl}");
+        }
+    }
+
+    #[test]
+    fn a_formula_bound_to_a_name_resolves_at_the_fit() {
+        // Ordinary R: build the specification, then fit it. The fit was refused for
+        // "carrying no model formula" while the script plainly stated one two lines up.
+        let ttl = turtle("f <- y ~ x\nm <- lm(f, data = d)\n");
+        assert_eq!(typed(&ttl, "FittedModel"), 1, "{ttl}");
+        assert_eq!(typed(&ttl, "ModelFormula"), 1, "{ttl}");
     }
 
     #[test]
