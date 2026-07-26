@@ -344,11 +344,79 @@ impl Lift<'_> {
         }
     }
 
+    /// Walk into a control-flow form's sub-expressions for statistical content.
+    ///
+    /// A model fit inside a function body, a loop body, or a branch is still a model fit.
+    /// Each sub-expression is lifted in statement position, so it reaches exactly the same
+    /// codomain it would at top level; anything with no `math:` image simply lowers to
+    /// `logic:` again, which is a no-op on an already-lowered node (the mint is idempotent
+    /// on its content key).
+    ///
+    /// Bindings made inside a body are NOT hoisted into the enclosing environment: R scopes
+    /// them to the call, and claiming otherwise would let a later top-level reference
+    /// resolve to a name that does not exist at that point.
+    fn scan_nested(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
+        match expr {
+            RExpr::Function { body, .. } | RExpr::Repeat { body } => self.scan_body(body),
+            RExpr::While { condition, body } => {
+                self.scan_body(condition)?;
+                self.scan_body(body)
+            }
+            RExpr::For { sequence, body, .. } => {
+                self.scan_body(sequence)?;
+                self.scan_body(body)
+            }
+            RExpr::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
+                self.scan_body(condition)?;
+                self.scan_body(then_branch)?;
+                match else_branch {
+                    Some(branch) => self.scan_body(branch),
+                    None => Ok(()),
+                }
+            }
+            RExpr::Block(statements) => {
+                for stmt in statements {
+                    match &stmt.kind {
+                        RStmtKind::Assign { value, .. } => self.scan_body(value)?,
+                        RStmtKind::Expr(inner) => self.scan_body(inner)?,
+                    }
+                }
+                Ok(())
+            }
+            _ => Ok(()),
+        }
+    }
+
+    /// Lift one sub-expression of a control-flow body, in statement position.
+    fn scan_body(&mut self, expr: &RExpr) -> gmeow_errors::Result<()> {
+        let expr = expr.unparenthesized();
+        if expr.is_control_flow() {
+            // Already lowered by the enclosing form's `lower_to_logic`; just keep descending.
+            return self.scan_nested(expr);
+        }
+        self.value(expr)?;
+        Ok(())
+    }
+
     /// Lift one expression in statement position and report what it binds to.
     fn value(&mut self, expr: &RExpr) -> gmeow_errors::Result<Binding> {
         let expr = expr.unparenthesized();
         if expr.is_control_flow() {
+            // The control flow itself has no math: image and lowers to logic: — that IS the
+            // math:/logic: split. But its BODY may hold statistical content, and the most
+            // common real-world shape puts the fit inside a function:
+            //
+            //     analyse <- function(d) { lm(mpg ~ wt, data = d) }
+            //
+            // Routing the whole form to logic: and stopping made that fit invisible, so a
+            // script whose every model lives in a function lifted NOTHING. Lower the form,
+            // then walk into it for the content that does have an image.
             self.lower_to_logic(expr);
+            self.scan_nested(expr)?;
             return Ok(Binding::Opaque);
         }
         match expr {
@@ -952,7 +1020,15 @@ impl Lift<'_> {
                 .iri(&slot_iri, &math("slotExpression"), &operand_iri);
             self.sink.iri(&iri, &math("argumentSlot"), &slot_iri);
         }
-        self.statistical += 1;
+        // An application does NOT count toward the "has statistical content" gate. Both
+        // `paste0(...)` and `remaining - 1L` are applications; neither is what the R bridge
+        // exists to lift. The gate is satisfied by genuinely statistical structure — a
+        // fitted model, a model formula, an estimate, a residual, a distribution, a dataset
+        // matrix — which the emitters for those count directly.
+        //
+        // Before the lift walked into function and loop bodies this was invisible: a
+        // string-munging script's incidental arithmetic sat inside a `while` body that was
+        // never reached, so the over-count never fired. Walking the bodies exposed it.
         iri
     }
 
@@ -3003,7 +3079,7 @@ mod tests {
 
     #[test]
     fn arithmetic_lifts_to_application_expressions() {
-        let ttl = turtle("z <- log(wt) * 2\n");
+        let ttl = turtle("fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt) * 2\n");
         assert!(ttl.contains("ApplicationExpression"));
         assert!(ttl.contains("Multiplication"), "* is math:Multiplication");
         assert!(ttl.contains("Logarithm"), "log is math:Logarithm");
@@ -3016,11 +3092,11 @@ mod tests {
         // math:compilesToLogicFormula edge without BOTH declarations is
         // math:UndeclaredLogicLowering.
         for src in [
-            "z <- log(wt)\nif (z > 0) {\n  z <- z\n}\n",
-            "z <- log(wt)\nfor (i in 1:3) print(i)\n",
-            "z <- log(wt)\nwhile (TRUE) break\n",
-            "z <- log(wt)\nf <- function(a) a\n",
-            "z <- log(wt)\nlabel <- paste0(\"a\", \"b\")\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (z > 0) {\n  z <- z\n}\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nfor (i in 1:3) print(i)\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nwhile (TRUE) break\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nf <- function(a) a\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nlabel <- paste0(\"a\", \"b\")\n",
             MTCARS,
         ] {
             let ttl = turtle(src);
@@ -3059,10 +3135,10 @@ mod tests {
             "relation",
         ];
         for src in [
-            "z <- log(wt)\nif (z > 0) {\n  z <- z\n}\n",
-            "z <- log(wt)\nfor (i in 1:3) print(i)\n",
-            "z <- log(wt)\nwhile (TRUE) break\n",
-            "z <- log(wt)\nf <- function(a) a\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (z > 0) {\n  z <- z\n}\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nfor (i in 1:3) print(i)\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nwhile (TRUE) break\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nf <- function(a) a\n",
             MTCARS,
         ] {
             let ttl = turtle(src);
@@ -3093,7 +3169,8 @@ mod tests {
         // logic:relation's range is a reified logic:Type; logic:TermCarrierIndexConstraint
         // requires an index on every carrier; logic:TermCarrierValueConstraint requires
         // exactly one term-value kind on it.
-        let ttl = turtle("z <- log(wt)\nfor (i in 1:3) print(i)\n");
+        let ttl =
+            turtle("fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nfor (i in 1:3) print(i)\n");
         assert!(ttl.contains(&format!("<{}> .", logic("Type"))), "{ttl}");
         assert!(
             ttl.contains(&format!("<{}> .", logic("TermCarrier"))),
@@ -3154,7 +3231,7 @@ mod tests {
         // The flagship: `if (c) t else e` is `(c → t) ∧ (¬c → e)`, not an opaque node
         // tagged `r-if` whose only content is a truncated label.
         let ttl = turtle(
-            "z <- log(wt)\nif (nrow(cars) > 10) {\n  message(\"plenty\")\n} else {\n  \
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (nrow(cars) > 10) {\n  message(\"plenty\")\n} else {\n  \
              warning(\"sparse\")\n}\n",
         );
         let implications = formulas_with_constructor(&ttl, "antecedent");
@@ -3233,7 +3310,9 @@ mod tests {
     fn distinct_callees_never_share_one_relation() {
         // `library(stats)` and `set.seed(20260725)` both used to predicate ONE `r-call`
         // relation, so the formula's predicate said nothing about which call it was.
-        let ttl = turtle("z <- log(wt)\nlibrary(stats)\nset.seed(20260725)\n");
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nlibrary(stats)\nset.seed(20260725)\n",
+        );
         let library = subjects_with(&ttl, &logic("relation"))
             .into_iter()
             .filter_map(|f| {
@@ -3263,7 +3342,9 @@ mod tests {
 
     #[test]
     fn a_nested_call_argument_is_a_real_term_application() {
-        let ttl = turtle("z <- log(wt)\nprint(paste0(toupper(label), \"!\"))\n");
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nprint(paste0(toupper(label), \"!\"))\n",
+        );
         assert!(ttl.contains("\"r-call:print\""));
         assert!(ttl.contains("\"r-call:paste0\""));
         assert!(ttl.contains("\"r-call:toupper\""));
@@ -3281,7 +3362,12 @@ mod tests {
 
     #[test]
     fn a_for_loop_lowers_to_a_guarded_universal_quantification() {
-        let ttl = turtle("z <- log(wt)\nfor (predictor in c(\"disp\", \"wt\")) cat(predictor)\n");
+        // Carries a real fit: arithmetic alone is not statistical content, so a script
+        // without one is an unliftable ingest and never reaches the lowering under test.
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\n\
+             for (predictor in c(\"disp\", \"wt\")) cat(predictor)\n",
+        );
         assert_eq!(
             formulas_with_constructor(&ttl, "forall").len(),
             1,
@@ -3302,7 +3388,9 @@ mod tests {
 
     #[test]
     fn a_while_loop_lowers_to_an_implication_over_its_guard() {
-        let ttl = turtle("z <- log(wt)\nwhile (remaining > 0) remaining <- remaining - 1\n");
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nwhile (remaining > 0) remaining <- remaining - 1\n",
+        );
         assert_eq!(formulas_with_constructor(&ttl, "antecedent").len(), 1);
         assert!(ttl.contains("\"r-greater\""), "the guard survives:\n{ttl}");
         assert!(
@@ -3314,7 +3402,9 @@ mod tests {
 
     #[test]
     fn a_function_literal_lowers_over_its_formals_and_its_body() {
-        let ttl = turtle("z <- log(wt)\nbanner <- function(text, width = 8) strrep(text, width)\n");
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nbanner <- function(text, width = 8) strrep(text, width)\n",
+        );
         assert!(ttl.contains("\"r-function\""), "{ttl}");
         assert!(
             ttl.contains("\"r-parameter-default\""),
@@ -3333,7 +3423,9 @@ mod tests {
 
     #[test]
     fn logical_connectives_lower_to_the_logic_connectives() {
-        let ttl = turtle("z <- log(wt)\nif (a > 1 && !(b < 2)) print(a)\n");
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (a > 1 && !(b < 2)) print(a)\n",
+        );
         assert_eq!(formulas_with_constructor(&ttl, "and").len(), 1, "{ttl}");
         assert_eq!(formulas_with_constructor(&ttl, "not").len(), 1, "{ttl}");
         assert!(ttl.contains("\"r-greater\"") && ttl.contains("\"r-less\""));
@@ -3352,9 +3444,9 @@ mod tests {
         ];
         for src in [
             MTCARS,
-            "z <- log(wt)\nf <- function(a, ...) a[[1]]\n",
-            "z <- log(wt)\nx <- d[, 1]\nplot(y ~ x)\n",
-            "z <- log(wt)\nif (is.null(v)) v <- NA else repeat break\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nf <- function(a, ...) a[[1]]\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nx <- d[, 1]\nplot(y ~ x)\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (is.null(v)) v <- NA else repeat break\n",
         ] {
             let ttl = turtle(src);
             let carriers = subjects_with(&ttl, &logic("termIndex"));
@@ -3386,9 +3478,9 @@ mod tests {
         // least one bound variable, an atom at least one argument.
         for src in [
             MTCARS,
-            "z <- log(wt)\nif (a) b else c\n",
-            "z <- log(wt)\nwhile (a && b) { p(); q() }\n",
-            "z <- log(wt)\nif (a || b) next\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (a) b else c\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nwhile (a && b) { p(); q() }\n",
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (a || b) next\n",
         ] {
             let ttl = turtle(src);
             for formula in subjects_with(&ttl, &logic("Formula")) {
@@ -3476,7 +3568,9 @@ mod tests {
 
     #[test]
     fn a_multi_statement_block_names_the_ordering_it_loses() {
-        let ttl = turtle("z <- log(wt)\nif (a) {\n  p(1)\n  q(2)\n}\n");
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nif (a) {\n  p(1)\n  q(2)\n}\n",
+        );
         assert_eq!(
             formulas_with_constructor(&ttl, "and").len(),
             1,
@@ -3498,7 +3592,9 @@ mod tests {
 
     #[test]
     fn an_r_language_constant_rides_as_a_named_individual_with_its_loss_named() {
-        let ttl = turtle("z <- log(wt)\nhandle <- ifelse(is.na(x), NULL, x)\n");
+        let ttl = turtle(
+            "fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\nhandle <- ifelse(is.na(x), NULL, x)\n",
+        );
         assert!(
             ttl.contains("\"NULL\"") && ttl.contains("\"r-call:is.na\""),
             "{ttl}"
@@ -3512,7 +3608,8 @@ mod tests {
 
     #[test]
     fn an_empty_subscript_argument_is_a_sequence_marker_rather_than_a_dropped_slot() {
-        let ttl = turtle("z <- log(wt)\ncolumn <- frame[, 2]\n");
+        let ttl =
+            turtle("fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt)\ncolumn <- frame[, 2]\n");
         assert!(
             ttl.contains(&format!("<{}>", logic("termSequenceMarker"))),
             "{ttl}"
@@ -3621,10 +3718,44 @@ mod tests {
     }
 
     #[test]
+    fn a_fit_inside_a_function_body_is_lifted() {
+        // The most common real-world shape, and previously INVISIBLE: the whole form was
+        // routed to logic: as control flow and its body was never walked, so a script whose
+        // every model lived in a function lifted nothing at all.
+        let ttl =
+            turtle("analyse <- function(d) { lm(mpg ~ wt, data = d) }\nres <- analyse(mtcars)\n");
+        assert_eq!(typed(&ttl, "FittedModel"), 1, "{ttl}");
+        assert_eq!(typed(&ttl, "ModelFormula"), 1, "{ttl}");
+        assert_eq!(typed(&ttl, "DatasetMatrix"), 1, "{ttl}");
+    }
+
+    #[test]
+    fn a_fit_inside_a_loop_body_is_lifted() {
+        let ttl = turtle("for (v in c(\"wt\", \"hp\")) { fit <- lm(mpg ~ wt, data = mtcars) }\n");
+        assert_eq!(typed(&ttl, "FittedModel"), 1, "{ttl}");
+    }
+
+    #[test]
+    fn incidental_arithmetic_is_not_statistical_content() {
+        // The gate asks whether the script has STATISTICAL content, not whether any
+        // math: node was emitted. `remaining - 1L` in a loop counter is arithmetic, and a
+        // string-munging script that happens to decrement an index is still an unliftable
+        // ingest — otherwise the gate would pass anything containing a minus sign.
+        let err = lift(
+            b"n <- 3\nwhile (n > 0) { writeLines(paste0(\"row \", n)); n <- n - 1L }\n",
+            BASE,
+        )
+        .expect_err("incidental arithmetic must not satisfy the statistical gate");
+        assert!(format!("{err}").contains("no statistical content"), "{err}");
+    }
+
+    #[test]
     fn a_repeated_subexpression_interns_to_one_node() {
         // `log(wt)` twice: one variable node, one log application, two distinct sums.
-        let shared = turtle("u <- log(wt) + 1\nv <- log(wt) + 2\n");
-        let distinct = turtle("u <- log(wt) + 1\nv <- log(hp) + 2\n");
+        let shared =
+            turtle("s <- rnorm(10, mean = 0, sd = 1)\nu <- log(wt) + 1\nv <- log(wt) + 2\n");
+        let distinct =
+            turtle("s <- rnorm(10, mean = 0, sd = 1)\nu <- log(wt) + 1\nv <- log(hp) + 2\n");
         assert_eq!(
             typed(&shared, "VariableExpression"),
             1,
@@ -3645,9 +3776,13 @@ mod tests {
 
     #[test]
     fn textual_repetition_alone_does_not_grow_the_graph() {
-        let once = lift(b"z <- log(wt) * 2\n", BASE).expect("lifts");
+        let once = lift(
+            b"fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt) * 2\n",
+            BASE,
+        )
+        .expect("lifts");
         let thrice = lift(
-            b"z <- log(wt) * 2\ny <- log(wt) * 2\nx <- log(wt) * 2\n",
+            b"fit <- lm(mpg ~ wt, data = mtcars)\nz <- log(wt) * 2\ny <- log(wt) * 2\nx <- log(wt) * 2\n",
             BASE,
         )
         .expect("lifts");
@@ -3668,7 +3803,7 @@ mod tests {
 
     #[test]
     fn every_lifted_number_is_a_valid_xsd_decimal() {
-        let ttl = turtle("z <- wt * 1e5\n");
+        let ttl = turtle("fit <- lm(mpg ~ wt, data = mtcars)\nz <- wt * 1e5\n");
         assert!(ttl.contains("100000.0"), "no exponent form in xsd:decimal");
     }
 

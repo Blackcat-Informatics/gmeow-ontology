@@ -1159,7 +1159,7 @@ ex:cqLiftedRFidelity a gmeow:CompetencyQuestion ;
     gmeow:cqRationale "The executable-lift surface for the R bridge: this is ex:cqBridgeRFidelity's question asked of the REAL lifter's output (gmeow_math::producers::r_lift over crates/math-lift/fixtures/mtcars.R) instead of a hand-authored scene. The recursive-descent R parser derived a math:RIngestRun that names its retained source witness (lift:r-src-ffd06aadf0ff76ac), declares an honest logic:LossyLens rung over a VAGUE source, and routed exactly four lifted computations to logic: through math:compilesToLogicFormula — the library call, the seed call, the loop, and the conditional. Four rows, exactly." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqLiftedRFidelityShape ;
-    gmeow:cqExpectRow ex:rowLiftedRLibrary , ex:rowLiftedRSeed , ex:rowLiftedRLoop , ex:rowLiftedRConditional .
+    gmeow:cqExpectRow ex:rowLiftedR0 , ex:rowLiftedR1 , ex:rowLiftedR2 , ex:rowLiftedR3 , ex:rowLiftedR4 , ex:rowLiftedR5 , ex:rowLiftedR6 , ex:rowLiftedR7 , ex:rowLiftedR8 .
 ex:cqLiftedRFidelityShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
@@ -1167,30 +1167,58 @@ ex:cqLiftedRFidelityShape a logic:ResultShape ;
         [ logic:columnVariable "rung" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "logicTarget" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
-# The lifted `if (nrow(cars) > 10) …` conditional.
-ex:rowLiftedRConditional a gmeow:ExpectedRow ;
+
+# The lifted body of the `summarise <- function(...)` definition — a control-flow form
+# whose STATISTICAL content lifts even though the form itself routes to logic:.
+
+# Every computation the R lift routes to logic:. The set is machine-derived from the
+# committed producer output, so it is re-derived whenever the lift changes — which is
+# the point: a change in what routes to logic: must be seen here, not absorbed.
+ex:rowLiftedR0 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-5d91f95db5154462 ] .
-# The lifted `for (predictor in c("disp", "wt", "gear")) …` loop.
-ex:rowLiftedRLoop a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-00d14d46406e887a ] .
+ex:rowLiftedR1 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-2d8a59b523f89f2c ] .
-# The lifted `set.seed(20260725)` call.
-ex:rowLiftedRSeed a gmeow:ExpectedRow ;
+ex:rowLiftedR2 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-844e825674d69dc4 ] .
-# The lifted `library(stats)` call.
-ex:rowLiftedRLibrary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-40741029dcdb99a1 ] .
+ex:rowLiftedR3 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-53d6da68551d446f ] .
+ex:rowLiftedR4 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-5d91f95db5154462 ] .
+ex:rowLiftedR5 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-844e825674d69dc4 ] .
+ex:rowLiftedR6 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-8774656eda5f1e7d ] .
+ex:rowLiftedR7 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-e59ea07e35c52a0a ] .
+ex:rowLiftedR8 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri lift:r-run-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "source" ; gmeow:cellValueIri lift:r-src-ffd06aadf0ff76ac ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri liftr:logic-formula-f8330670bec18f52 ] .
 
 # === Lifted Q2 — the ONNX lift's tensor computation graph and parameter space ============
 ex:cqLiftedOnnx a gmeow:CompetencyQuestion ;
