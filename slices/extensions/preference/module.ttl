@@ -258,7 +258,7 @@ gmeow:usesRubric
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "uses rubric"@x-gmeow-english ;
     rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — typed to the core gmeow:SocialObject (a rubric is a social object; norms gmeow:Rubric ⊑ gmeow:Norm ⊑ gmeow:SocialObject is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the rubric its judgment applies — typed to the core gmeow:SocialObject (a rubric is a social object; the observations gmeow:Rubric ⊑ gmeow:SocialObject (norms further declares gmeow:Rubric ⊑ gmeow:Norm) is reused only by-reference as an alignment cell, never a range axiom — Principle 16). It names the evaluative frame the comparison is under, so a rubric change is a comparison change."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:onCriterion
@@ -267,7 +267,7 @@ gmeow:onCriterion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "on criterion"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "Relates a gmeow:PreferenceObservation to the criterion its comparison is made along — typed to the core gmeow:InformationObject (a criterion is an information object; norms gmeow:Criterion ⊑ gmeow:InformationObject is reused only by-reference, never a range axiom — Principle 16). Two candidates preferred oppositely on two criteria are the Pareto-incomparability the slice records positively (gmeow:incomparableWith)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:PreferenceObservation to the criterion its comparison is made along — typed to the core gmeow:InformationObject (a criterion is an information object; the observations gmeow:Criterion ⊑ gmeow:InformationObject is reused only by-reference, never a range axiom — Principle 16). Two candidates preferred oppositely on two criteria are the Pareto-incomparability the slice records positively (gmeow:incomparableWith)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:PreferenceEvaluation
@@ -375,8 +375,12 @@ gmeow:strictlyOverIrreflexivity
     logic:characterizes gmeow:strictlyOver ;
     logic:characteristicSort logic:irreflexiveProperty ;
     logic:formalizes gmeow:strictlyOver ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:strictlyOver never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:strictlyOver, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:strictlyOver and nothing else. It is not a definition of gmeow:strictlyOver (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:strictlyOverIrreflexivity logic:characterizes gmeow:strictlyOver ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:equivalenceSymmetry
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -386,8 +390,12 @@ gmeow:equivalenceSymmetry
     logic:characterizes gmeow:preferentiallyEquivalentWith ;
     logic:characteristicSort logic:symmetricProperty ;
     logic:formalizes gmeow:preferentiallyEquivalentWith ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:preferentiallyEquivalentWith holds in both directions; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when the relation is genuinely one-way — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:preferentiallyEquivalentWith, logic:characteristicSort logic:symmetricProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:preferentiallyEquivalentWith and nothing else. It is not a definition of gmeow:preferentiallyEquivalentWith (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:equivalenceSymmetry logic:characterizes gmeow:preferentiallyEquivalentWith ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:equivalenceIrreflexivity
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -397,8 +405,12 @@ gmeow:equivalenceIrreflexivity
     logic:characterizes gmeow:preferentiallyEquivalentWith ;
     logic:characteristicSort logic:irreflexiveProperty ;
     logic:formalizes gmeow:preferentiallyEquivalentWith ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:preferentiallyEquivalentWith never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:preferentiallyEquivalentWith, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:preferentiallyEquivalentWith and nothing else. It is not a definition of gmeow:preferentiallyEquivalentWith (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:equivalenceIrreflexivity logic:characterizes gmeow:preferentiallyEquivalentWith ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:incomparabilitySymmetry
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -408,19 +420,27 @@ gmeow:incomparabilitySymmetry
     logic:characterizes gmeow:incomparableWith ;
     logic:characteristicSort logic:symmetricProperty ;
     logic:formalizes gmeow:incomparableWith ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:incomparableWith holds in both directions; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when the relation is genuinely one-way — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:incomparableWith, logic:characteristicSort logic:symmetricProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:incomparableWith and nothing else. It is not a definition of gmeow:incomparableWith (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:incomparabilitySymmetry logic:characterizes gmeow:incomparableWith ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 gmeow:incomparabilityIrreflexivity
     a owl:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "incomparableWith is irreflexive"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:incomparableWith is irreflexive: a candidate is always comparable with itself, so incomparability relates two DISTINCT candidates. The native coherence gate reads this to reject a reflexive incomparability edge."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:incomparableWith is irreflexive: a candidate is always comparable with itself, so incomparability relates two DISTINCT candidates. The native coherence gate reads this to reject a reflexive incomparability edge. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:incomparableWith ;
     logic:characteristicSort logic:irreflexiveProperty ;
     logic:formalizes gmeow:incomparableWith ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:incomparableWith never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:incomparableWith, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:incomparableWith and nothing else. It is not a definition of gmeow:incomparableWith (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:incomparabilityIrreflexivity logic:characterizes gmeow:incomparableWith ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
-
 # =========================================================================== #
 # TASK 3 — Sheaf-theoretic consensus core + the governing gate                 #
 # The comparison compiles into a math:CellComplex carried by a                 #
@@ -1170,11 +1190,11 @@ gmeow:VerifierVerdict
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "Verifier Verdict"@x-gmeow-english ;
     logic:subClassOf gmeow:Observation ;
-    skos:definition "A hard-or-soft verifier's verdict on a candidate under a contract: a gmeow:Observation carrying its hardness class (gmeow:hardConstraintClass → gmeow:ConstraintHardness {hard, soft}), the candidate it verifies (gmeow:verifiesCandidate), its contract (gmeow:verifierContract, typed to the core gmeow:InformationObject — a contract rides the norms gmeow:Condition + gmeow:formalizedAs by reference, never a range axiom), and its outcome value (gmeow:verifierOutcome, typed to the core logic:QualityValue — reusing the norms gmeow:EvaluationVerdict vocabulary gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined at the instance level). A HARD verdict of gmeow:verdictNotHeld is unrankable-as-winner within its contract's vantages (gmeow:HardFailureNotOverriddenConstraint), no matter how high the soft aggregate. It is NOT a gmeow:PreferenceObservation (a soft comparison): the two axes are structurally disjoint."@x-gmeow-english ;
+    skos:definition "A hard-or-soft verifier's verdict on a candidate under a contract: a gmeow:Observation carrying its hardness class (gmeow:hardConstraintClass → gmeow:ConstraintHardness {hard, soft}), the candidate it verifies (gmeow:verifiesCandidate), its contract (gmeow:verifierContract, typed to the core gmeow:InformationObject — a contract rides the observations gmeow:Condition + the norms gmeow:formalizedAs by reference, never a range axiom), and its outcome value (gmeow:verifierOutcome, typed to the core logic:QualityValue — reusing the observations gmeow:EvaluationVerdict vocabulary gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined at the instance level). A HARD verdict of gmeow:verdictNotHeld is unrankable-as-winner within its contract's vantages (gmeow:HardFailureNotOverriddenConstraint), no matter how high the soft aggregate. It is NOT a gmeow:PreferenceObservation (a soft comparison): the two axes are structurally disjoint."@x-gmeow-english ;
     skos:example "ex:vv1 a gmeow:VerifierVerdict ; gmeow:vantage ex:safetyChecker ; gmeow:verifiesCandidate ex:candA ; gmeow:hardConstraintClass gmeow:constraintHardnessHard ; gmeow:verifierContract ex:noPiiContract ; gmeow:verifierOutcome gmeow:verdictNotHeld ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding a verifier verdict into a gmeow:strictlyOver edge (the hard and soft axes are disjoint — gmeow:HardSoftDisjointnessConstraint) and avoid overriding a hard gmeow:verdictNotHeld with a high soft score."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the check gmeow:VerifierVerdict, attribute it with gmeow:vantage, bind the candidate (gmeow:verifiesCandidate) and contract (gmeow:verifierContract), classify its hardness (gmeow:hardConstraintClass), and carry the outcome value with gmeow:verifierOutcome reusing the norms verdict vocabulary."@x-gmeow-english ;
+    gmeow:howToUse "Type the check gmeow:VerifierVerdict, attribute it with gmeow:vantage, bind the candidate (gmeow:verifiesCandidate) and contract (gmeow:verifierContract), classify its hardness (gmeow:hardConstraintClass), and carry the outcome value with gmeow:verifierOutcome reusing the observations verdict vocabulary."@x-gmeow-english ;
     gmeow:useWhen "Use for a hard-or-soft verifier's contract verdict on a candidate — the structurally-disjoint check that a hard failure of makes a candidate unrankable-as-winner regardless of soft score."@x-gmeow-english .
 
 gmeow:ConstraintHardness
@@ -1230,7 +1250,7 @@ gmeow:verifierContract
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "verifier contract"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
-    skos:definition "Relates a gmeow:VerifierVerdict to the contract it verifies against — typed to the core gmeow:InformationObject (a contract rides the norms gmeow:Condition + gmeow:formalizedAs by reference at the instance level, never a range axiom — Principle 16). The hard-failure gate is scoped per (candidate, contract): a hard failure gates winner-eligibility only within the vantages under THAT contract (G5)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:VerifierVerdict to the contract it verifies against — typed to the core gmeow:InformationObject (a contract rides the observations gmeow:Condition + the norms gmeow:formalizedAs by reference at the instance level, never a range axiom — Principle 16). The hard-failure gate is scoped per (candidate, contract): a hard failure gates winner-eligibility only within the vantages under THAT contract (G5)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:verifierOutcome
@@ -1239,7 +1259,7 @@ gmeow:verifierOutcome
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "verifier outcome"@x-gmeow-english ;
     rdfs:range logic:QualityValue ;
-    skos:definition "Relates a gmeow:VerifierVerdict to its outcome value — typed to the core logic:QualityValue, REUSING the norms gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined) at the instance level rather than minting a parallel verdict axis. Functional: one verdict has one outcome. A hard gmeow:verdictNotHeld is what the hard-failure gate keys on."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:VerifierVerdict to its outcome value — typed to the core logic:QualityValue, REUSING the observations gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld / gmeow:verdictUndetermined) at the instance level rather than minting a parallel verdict axis. Functional: one verdict has one outcome. A hard gmeow:verdictNotHeld is what the hard-failure gate keys on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:selectedCandidate
@@ -2121,7 +2141,7 @@ gmeow:ModelConfigDelta
     rdfs:label "Model Config Delta"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ,
         [ a owl:Restriction ; owl:onProperty gmeow:contentDigest ; owl:allValuesFrom rdfs:Literal ] ;
-    skos:definition "The content-addressed record of a model/config change a preference learning run produced — its identity is the REUSED gmeow:contentDigest over the WHOLE identity tuple (AC5). Every leg is mandatory (gmeow:ModelConfigDeltaCompletenessConstraint): the base artifact (gmeow:deltaBaseArtifact, typed to the core gmeow:InformationObject — model-serving gmeow:ModelArtifact by reference), tokenizer (gmeow:deltaTokenizer), codebook (gmeow:deltaCodebook), dataset projection (gmeow:deltaDatasetProjection → own gmeow:ProjectionReceipt), selection query (gmeow:deltaSelectionQuery, stored-not-executed, Principle 12), prompt (gmeow:deltaPromptIdentity → ai gmeow:Prompt), rubric (gmeow:deltaRubricIdentity, typed to the core gmeow:SocialObject — norms gmeow:Rubric by reference), engine (gmeow:deltaEngine), optimizer (gmeow:deltaOptimizer), seed (gmeow:deltaSeed), and evaluation evidence (gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan). A delta missing any leg is not a reproducible identity. It is NOT the gmeow:PreferenceLearningEvent that produced it."@x-gmeow-english ;
+    skos:definition "The content-addressed record of a model/config change a preference learning run produced — its identity is the REUSED gmeow:contentDigest over the WHOLE identity tuple (AC5). Every leg is mandatory (gmeow:ModelConfigDeltaCompletenessConstraint): the base artifact (gmeow:deltaBaseArtifact, typed to the core gmeow:InformationObject — model-serving gmeow:ModelArtifact by reference), tokenizer (gmeow:deltaTokenizer), codebook (gmeow:deltaCodebook), dataset projection (gmeow:deltaDatasetProjection → own gmeow:ProjectionReceipt), selection query (gmeow:deltaSelectionQuery, stored-not-executed, Principle 12), prompt (gmeow:deltaPromptIdentity → ai gmeow:Prompt), rubric (gmeow:deltaRubricIdentity, typed to the core gmeow:SocialObject — the observations gmeow:Rubric by reference), engine (gmeow:deltaEngine), optimizer (gmeow:deltaOptimizer), seed (gmeow:deltaSeed), and evaluation evidence (gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan). A delta missing any leg is not a reproducible identity. It is NOT the gmeow:PreferenceLearningEvent that produced it."@x-gmeow-english ;
     skos:example "ex:delta1 a gmeow:ModelConfigDelta ; gmeow:deltaBaseArtifact ex:baseCkpt ; gmeow:deltaTokenizer ex:tok1 ; gmeow:deltaCodebook ex:cb1 ; gmeow:deltaDatasetProjection ex:rec1 ; gmeow:deltaSelectionQuery ex:sq1 ; gmeow:deltaPromptIdentity ex:sysPrompt ; gmeow:deltaRubricIdentity ex:rubric1 ; gmeow:deltaEngine ex:eng1 ; gmeow:deltaOptimizer ex:opt1 ; gmeow:deltaSeed 42 ; gmeow:deltaEvaluationEvidence ex:span1 ; gmeow:contentDigest \"blake3:c0de…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting any of the eleven legs (a partial delta is not a reproducible identity — gmeow:ModelConfigDeltaCompletenessConstraint) and avoid minting a separate delta id; the reused gmeow:contentDigest over the whole tuple IS the identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -2229,7 +2249,7 @@ gmeow:deltaRubricIdentity
     a owl:ObjectProperty ; rdfs:domain gmeow:ModelConfigDelta ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ; rdfs:label "delta rubric identity"@x-gmeow-english ;
     rdfs:range gmeow:SocialObject ;
-    skos:definition "Relates a gmeow:ModelConfigDelta to its rubric leg — typed to the core gmeow:SocialObject (norms gmeow:Rubric ⊑ gmeow:SocialObject is reused only by-reference, never a range axiom — Principle 16). The evaluative frame the training optimized under."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:ModelConfigDelta to its rubric leg — typed to the core gmeow:SocialObject (the observations gmeow:Rubric ⊑ gmeow:SocialObject is reused only by-reference, never a range axiom — Principle 16). The evaluative frame the training optimized under."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 gmeow:deltaEngine
     a owl:ObjectProperty ; rdfs:domain gmeow:ModelConfigDelta ;
@@ -2643,7 +2663,7 @@ gmeow:gateVerdict
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "gate verdict"@x-gmeow-english ;
     rdfs:range logic:QualityValue ;
-    skos:definition "Relates a gmeow:ConsumerImprovementGate to its verdict value — typed to the core logic:QualityValue, REUSING the norms gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld) at the instance level. Functional: one gate, one verdict. Only gmeow:verdictHeld authorizes activation (gmeow:ActivationAuthorityConstraint)."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:ConsumerImprovementGate to its verdict value — typed to the core logic:QualityValue, REUSING the observations gmeow:EvaluationVerdict vocabulary (gmeow:verdictHeld / gmeow:verdictNotHeld) at the instance level. Functional: one gate, one verdict. Only gmeow:verdictHeld authorizes activation (gmeow:ActivationAuthorityConstraint)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:grantsActivation
@@ -2918,3 +2938,105 @@ gmeow:GlobalWinnerWithoutConsensus a logic:Situation .
 gmeow:ProjectionObjectConflation a logic:Situation .
 gmeow:HardFailureOverridden a logic:Situation .
 gmeow:GeometryDimensionMismatch a logic:Situation .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:gateVerdictFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "gateVerdict is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:gateVerdict is functional: a gmeow:ConsumerImprovementGate carries exactly one verdict value, since that single held-or-not verdict is what decides whether the gate authorizes activation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:gateVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:gateVerdict ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:gateVerdict names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:gateVerdict, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:gateVerdict and nothing else. It is not a definition of gmeow:gateVerdict (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:gateVerdictFunctionality logic:characterizes gmeow:gateVerdict ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hardConstraintClassFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "hardConstraintClass is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hardConstraintClass is functional: a gmeow:VerifierVerdict has exactly one gmeow:ConstraintHardness — hard or soft — the single axis the orthogonality gates read to decide winner-eligibility. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:hardConstraintClass ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hardConstraintClass ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hardConstraintClass names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hardConstraintClass, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hardConstraintClass and nothing else. It is not a definition of gmeow:hardConstraintClass (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hardConstraintClassFunctionality logic:characterizes gmeow:hardConstraintClass ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:projectionDeterminismFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "projectionDeterminism is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionDeterminism is functional: a gmeow:ProjectionReceipt carries exactly one determinism declaration, positively asserted so that non-determinism is never left silent."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionDeterminism ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionDeterminism ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:projectionDeterminism names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:projectionDeterminism, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:projectionDeterminism and nothing else. It is not a definition of gmeow:projectionDeterminism (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:projectionDeterminismFunctionality logic:characterizes gmeow:projectionDeterminism ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:projectionKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "projectionKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionKind is functional: a gmeow:ProjectionReceipt is exactly one projection shape — the single kind that folds into the receipt's content digest and selects which disclosure gates bite. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:projectionKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:projectionKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:projectionKind and nothing else. It is not a definition of gmeow:projectionKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:projectionKindFunctionality logic:characterizes gmeow:projectionKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:receiptKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "receiptKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:receiptKind is functional: a gmeow:LifecycleReceipt records exactly one decision kind. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:receiptKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:receiptKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:receiptKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:receiptKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:receiptKind and nothing else. It is not a definition of gmeow:receiptKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:receiptKindFunctionality logic:characterizes gmeow:receiptKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:verifierOutcomeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
+    rdfs:label "verifierOutcome is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:verifierOutcome is functional: a gmeow:VerifierVerdict has exactly one outcome value — the single held / not-held / undetermined result the hard-failure gate keys on. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:verifierOutcome ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:verifierOutcome ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:verifierOutcome names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:verifierOutcome, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:verifierOutcome and nothing else. It is not a definition of gmeow:verifierOutcome (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:verifierOutcomeFunctionality logic:characterizes gmeow:verifierOutcome ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

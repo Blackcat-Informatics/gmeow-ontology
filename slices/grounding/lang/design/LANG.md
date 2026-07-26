@@ -218,7 +218,9 @@ carries exactly what `module.ttl`/`shapes.ttl` actually use — is `logic`, `ker
 `versions` dependencies this manifesto once sketched were trimmed by that computed graph: the slice
 reaches them through the observations and provenance spines rather than referencing their terms
 directly. The deliberate **absences** remain as load-bearing as the presences: `math` appears under
-peerage (the registered rendering and quantity seams), never under `sliceDependsOn`; and no
+peerage (the registered rendering, quantity, and GMN mathematical-plane seams — see
+[`LANG-GMN.md`](LANG-GMN.md), "The mathematical symbology plane"), never under `sliceDependsOn`;
+and no
 `language`/`notation`/`names`/`coreference` (those slices migrate to depend on `lang:`, never the
 reverse).
 

@@ -16,7 +16,9 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
-        <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
+        <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
+        <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     gmeow:sliceConsumer "The citation/credit dogfood (source/claim refactor): CITATION.cff and slice-manifest credit projection, CrossRef and CiTO/CRediT/PROV-O/PAV alignment by reference, genealogical evidence links (CitationAct via a Selector), and scholarly citation graphs."@x-gmeow-english.

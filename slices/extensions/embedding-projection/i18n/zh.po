@@ -1,0 +1,602 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: embedding-projection, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "comparesLeftTarget is functional"
+msgstr "comparesLeftTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:comparesLeftTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one left operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second left row would be a second, distinct observation, not one claim with two left operands."
+msgstr "在规范载体上断言 gmeow:comparesLeftTarget 是函数式的：一次成对相似度观测恰好为一对操作数评分，因此它恰好指定一行左操作数——即其 gmeow:similarityScore 所度量的邻近关系所针对向量的唯一 gmeow:VectorTarget；第二个左行将构成第二次、不同的观测，而不是一个带有两个左操作数的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "comparesRightTarget is functional"
+msgstr "comparesRightTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:comparesRightTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one right operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second right row would be a second, distinct observation, not one claim with two right operands."
+msgstr "在规范载体上断言 gmeow:comparesRightTarget 是函数式的：一次成对相似度观测恰好为一对操作数评分，因此它恰好指定一行右操作数——即其 gmeow:similarityScore 所度量的邻近关系所针对向量的唯一 gmeow:VectorTarget；第二个右行将构成第二次、不同的观测，而不是一个带有两个右操作数的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effectiveOfFamily is functional"
+msgstr "effectiveOfFamily 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:effectiveOfFamily is functional: an effective vector space is a space of exactly one embedding family, so its identity digest folds in exactly one family digest and a prefix space resolves to the single stored matrix it shares; two families would be two distinct effective spaces, never one contract bound to both."
+msgstr "在规范载体上断言 gmeow:effectiveOfFamily 是函数性的：一个有效向量空间恰好是一个嵌入族的空间，因此其身份摘要恰好折叠进一个族摘要，一个前缀空间会归结为其共享的唯一存储矩阵；两个族将构成两个不同的有效空间，绝不会是一个契约同时绑定两者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasTargetSet is functional"
+msgstr "hasTargetSet 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasTargetSet is functional: a projection's stored matrix realizes exactly one ordered target namespace, so its row mapping resolves to a single content-addressed gmeow:TargetSet; a different subject projection over the same source is a different projection with its own target set, never one projection matrix bearing two."
+msgstr "在规范载体上断言 gmeow:hasTargetSet 是函数性的:一个投影所存储的矩阵恰好实现一个有序的目标命名空间,因此其行映射解析为单一的、按内容寻址的 gmeow:TargetSet;在同一来源上以不同主体做的投影是拥有各自目标集的另一个投影,绝不是一个投影矩阵携带两个目标集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hasVectorSpaceContract is functional"
+msgstr "hasVectorSpaceContract 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hasVectorSpaceContract is functional: a projection commits to exactly one comparability contract, because vectors obeying two contracts cannot be compared under one metric and so are two projections, never one; the single contract's digest is the join key for cross-projection comparability."
+msgstr "在规范载体上断言 gmeow:hasVectorSpaceContract 是函数性的:一个投影恰好承诺一份可比性契约,因为遵循两份契约的向量无法在单一度量下比较,因而构成两个投影而绝非一个;这份单一契约的摘要即是跨投影可比性的连接键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "indexOfProjection is functional"
+msgstr "indexOfProjection 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:indexOfProjection is functional: a derived index is built over exactly one embedding projection, so it always resolves to the single authoritative source of the vectors it accelerates; a federated accelerator spanning several projections is several gmeow:DerivedVectorIndex individuals, never one index bound to two projections."
+msgstr "在规范载体上断言 gmeow:indexOfProjection 是函数性的:一个派生索引恰好建立在一个嵌入投影之上,因此它总是解析到其所加速向量的唯一权威来源;一个跨越多个投影的联邦式加速器对应多个 gmeow:DerivedVectorIndex 个体,而绝不是一个绑定到两个投影的索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "indexOverSpace is functional"
+msgstr "indexOverSpace 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:indexOverSpace is functional: a derived index is built over exactly one effective/prefix vector space, the single space it states what it approximates; an index over a 256-dim prefix and an index over the full family space are distinct gmeow:DerivedVectorIndex individuals even over one projection, never one index over two spaces."
+msgstr "在规范载体上断言 gmeow:indexOverSpace 是函数性的:一个派生索引恰好建立在一个有效/前缀向量空间之上,即它声明自己所近似的那个唯一空间;一个建立在 256 维前缀上的索引与一个建立在完整族空间上的索引,即便属于同一个投影,也是不同的 gmeow:DerivedVectorIndex 个体,绝不是一个跨两个空间的索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matryoshkaPolicy is functional"
+msgstr "matryoshkaPolicy 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:matryoshkaPolicy is functional: an effective vector space commits to exactly one prefix policy that folds into its identity digest, because the full-space (fixed) reading and a leading-prefix reading are distinct effective spaces with distinct digests; a single space cannot be both, so it fixes one gmeow:MatryoshkaPolicy."
+msgstr "在规范载体上断言 gmeow:matryoshkaPolicy 是函数式的:一个有效向量空间恰好确定一种前缀策略,并将其纳入身份摘要之中,因为完整空间(固定)读法与前导前缀读法是具有不同摘要的不同有效空间;单一空间不能同时是两者,因此它固定一个 gmeow:MatryoshkaPolicy。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "normalizationKind is functional"
+msgstr "normalizationKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:normalizationKind is functional: an effective vector space commits to exactly one postprocessing/normalization strategy that folds into its digest identity, because normalized and un-normalized vectors are not one comparable space; a single gmeow:VectorSpaceContract therefore fixes one gmeow:NormalizationKind, never two."
+msgstr "在规范载体上断言 gmeow:normalizationKind 是函数式的:一个有效向量空间恰好确定一种被纳入其摘要身份的后处理/归一化策略,因为已归一化与未归一化的向量并非同一个可比较的空间;因此单一的 gmeow:VectorSpaceContract 只固定一个 gmeow:NormalizationKind,绝不会是两个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overVectorSpace is functional"
+msgstr "overVectorSpace 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:overVectorSpace is functional: a similarity observation's proximity is meaningful only within a single vector space, since a proximity stated across two contracts is ill-formed; the observation therefore names exactly one gmeow:VectorSpaceContract its vectors share, never two."
+msgstr "在规范载体上断言 gmeow:overVectorSpace 是函数性的:相似度观察的邻近度只有在单一向量空间内才有意义,因为跨两份契约陈述的邻近度是不良形式的;因此该观察恰好指明其向量所共享的一个 gmeow:VectorSpaceContract,绝不指明两个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "poolingKind is functional"
+msgstr "poolingKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:poolingKind is functional: an embedding family commits to exactly one token-to-sequence pooling strategy as a generation-contract choice, because differently-pooled vectors are not one family even under one model; the family therefore fixes a single gmeow:PoolingKind that folds into its digest identity."
+msgstr "在规范载体上断言 gmeow:poolingKind 是函数性的:一个嵌入族作为生成契约的选择,恰好确定一种从词元到序列的池化策略,因为即便在同一模型下,以不同方式池化得到的向量也不属于同一个族;因此该族固定唯一一个 gmeow:PoolingKind,并将其纳入摘要身份之中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "profileSurfaceKind is functional"
+msgstr "profileSurfaceKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:profileSurfaceKind 是函数性的:一个配置文件表面恰好是一种视图类型——容器或清单——这样一致性约束才能明确地识别出投影的容器操作数和清单操作数;如果一个表面同时是两种类型,就会使容器/清单交叉检查所比较的操作数本身发生塌缩。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "profileSurfaceOf is functional"
+msgstr "profileSurfaceOf 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:profileSurfaceOf 是函数性的:一个配置文件表面恰好是某一个内嵌投影的视图,这样容器与清单的一致性约束才能通过它们共享的唯一投影精确地连接两个表面;若一个表面对应两个投影,就没有明确定义的投影可供交叉检查。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "projectionSource is functional"
+msgstr "projectionSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:projectionSource 是函数性的:一个投影恰好由一个源工件生成,因此「究竟来自哪个源?」这个问题会归结到唯一一个携带自身 gmeow:contentDigest 的内容寻址包;若一个投影绑定两个源,就没有可验证的来源锚点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reproducibilityLevel is functional"
+msgstr "reproducibilityLevel 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reproducibilityLevel is functional: a projection sits at exactly one point on the get-leg determinism axis — bit-exact, within-tolerance, or merely regenerable — drawn from a closed value set; regeneration cannot be simultaneously two of these, so a projection declares one level, not two."
+msgstr "在规范载体上断言 gmeow:reproducibilityLevel 是函数性的:一个投影在取值(get 端)确定性轴上恰好处于一个点——逐位精确、在容差范围内,或仅可重新生成——取自一个封闭取值集合;重新生成不能同时处于其中两种状态,因此一个投影只声明一个层级,而非两个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reproducibilityTolerance is functional"
+msgstr "reproducibilityTolerance 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:reproducibilityTolerance 是函数性的:一个「容差内」投影被认定为在恰好一个数值边界下得以重现,即使 gmeow:reproducibleWithinTolerance 可被核验的唯一 math:Quantity;两个相互竞争的容差会使「容差内」这一主张变得含糊,因此一个投影只携带一个容差。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "similarityScore is functional"
+msgstr "similarityScore 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:similarityScore is functional: a similarity observation carries exactly one magnitude — the graded proximity of its one operand pair under its one metric, grounded as a single math:Quantity; a second score would describe a different observation, not one claim with two proximities."
+msgstr "在规范载体上断言 gmeow:similarityScore 是函数性的:一次相似度观测恰好携带一个量值——即其唯一一对操作数在其唯一一种度量下的分级接近度,以单一的 math:Quantity 为基础;第二个分数将描述另一次不同的观测,而不是同一断言携带两种接近度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "targetsResource is functional"
+msgstr "targetsResource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:targetsResource is functional: one vector row embeds exactly one resource — the single term, document, chunk, summary, or statement reifier the row stands for, which is that row's identity; a row targeting two resources would be two distinct rows, never one slot bound to both."
+msgstr "在规范载体上断言 gmeow:targetsResource 是函数性的:一个向量行恰好嵌入一个资源——即该行所代表的唯一术语、文档、分块、摘要或语句具化体,这正是该行的身份;若一行指向两个资源,那将是两个不同的行,绝不是一个同时绑定二者的槽位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vectorByteOrder is functional"
+msgstr "vectorByteOrder 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vectorByteOrder is functional: an embedding family serializes its stored matrix under exactly one byte order that folds into its gmeow:contentDigest identity, so a byte-order difference is a family difference rather than a silent reinterpretation of the same stored bytes; the family therefore fixes a single gmeow:ByteOrder."
+msgstr "在规范载体上断言 gmeow:vectorByteOrder 是函数性的:一个嵌入族恰好以一种字节序序列化其所存储的矩阵,该字节序被折叠进其 gmeow:contentDigest 身份,因此字节序的差异构成族的差异,而非对同一存储字节的静默重新解读;该族因而固定为单一的 gmeow:ByteOrder。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vectorTargetKind is functional"
+msgstr "vectorTargetKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:vectorTargetKind is functional: a vector target embeds exactly one kind of resource — a row is a corpus, document, chunk, dataset, graph, statement, reifier, annotation, term, or summary, but one flavour, not two; the target therefore folds in a single gmeow:VectorTargetKind."
+msgstr "在规范载体上断言 gmeow:vectorTargetKind 是函数性的:一个向量目标恰好嵌入一种资源类型——一行可以是语料库、文档、分块、数据集、图、陈述、具象化元素、标注、术语或摘要,但只能是一种,不能是两种;因此该目标折入单一的 gmeow:VectorTargetKind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "withMetric is functional"
+msgstr "withMetric 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:withMetric is functional: a similarity observation's proximity was computed under exactly one distance metric, because a cosine 0.9 and a dot-product 0.9 are not the same claim; the observation therefore names the single metric its score was measured under, which must in turn agree with its gmeow:overVectorSpace contract's metric."
+msgstr "在规范载体上断言 gmeow:withMetric 是函数性的:一次相似度观察的接近程度恰好在一种距离度量下计算得出,因为余弦值 0.9 和点积值 0.9 并非同一种论断;因此该观察指明其分数据以测量的唯一度量,而该度量又必须与其 gmeow:overVectorSpace 契约的度量相一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:comparesLeftTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:comparesLeftTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:comparesLeftTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:comparesLeftTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:comparesLeftTargetFunctionality logic:characterizes gmeow:comparesLeftTarget ."
+msgstr "gmeow:comparesLeftTargetFunctionality logic:characterizes gmeow:comparesLeftTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:comparesRightTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:comparesRightTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:comparesRightTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:comparesRightTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:comparesRightTargetFunctionality logic:characterizes gmeow:comparesRightTarget ."
+msgstr "gmeow:comparesRightTargetFunctionality logic:characterizes gmeow:comparesRightTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:effectiveOfFamily names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:effectiveOfFamily 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:effectiveOfFamily, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:effectiveOfFamily, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:effectiveOfFamilyFunctionality logic:characterizes gmeow:effectiveOfFamily ."
+msgstr "gmeow:effectiveOfFamilyFunctionality logic:characterizes gmeow:effectiveOfFamily ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:hasTargetSet names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:hasTargetSet 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasTargetSet, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:hasTargetSet, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hasTargetSetFunctionality logic:characterizes gmeow:hasTargetSet ."
+msgstr "gmeow:hasTargetSetFunctionality logic:characterizes gmeow:hasTargetSet ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:hasVectorSpaceContract names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:hasVectorSpaceContract 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasVectorSpaceContract, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:hasVectorSpaceContract, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hasVectorSpaceContractFunctionality logic:characterizes gmeow:hasVectorSpaceContract ."
+msgstr "gmeow:hasVectorSpaceContractFunctionality logic:characterizes gmeow:hasVectorSpaceContract ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:indexOfProjection names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:indexOfProjection 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:indexOfProjection, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:indexOfProjection, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:indexOfProjectionFunctionality logic:characterizes gmeow:indexOfProjection ."
+msgstr "gmeow:indexOfProjectionFunctionality logic:characterizes gmeow:indexOfProjection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:indexOverSpace names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:indexOverSpace 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:indexOverSpace, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:indexOverSpace, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:indexOverSpaceFunctionality logic:characterizes gmeow:indexOverSpace ."
+msgstr "gmeow:indexOverSpaceFunctionality logic:characterizes gmeow:indexOverSpace ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:matryoshkaPolicy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:matryoshkaPolicy 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:matryoshkaPolicy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:matryoshkaPolicy, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:matryoshkaPolicyFunctionality logic:characterizes gmeow:matryoshkaPolicy ."
+msgstr "gmeow:matryoshkaPolicyFunctionality logic:characterizes gmeow:matryoshkaPolicy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:normalizationKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:normalizationKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:normalizationKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:normalizationKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:normalizationKindFunctionality logic:characterizes gmeow:normalizationKind ."
+msgstr "gmeow:normalizationKindFunctionality logic:characterizes gmeow:normalizationKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:overVectorSpace names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:overVectorSpace 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:overVectorSpace, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:overVectorSpace, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:overVectorSpaceFunctionality logic:characterizes gmeow:overVectorSpace ."
+msgstr "gmeow:overVectorSpaceFunctionality logic:characterizes gmeow:overVectorSpace ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:poolingKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:poolingKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:poolingKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:poolingKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:poolingKindFunctionality logic:characterizes gmeow:poolingKind ."
+msgstr "gmeow:poolingKindFunctionality logic:characterizes gmeow:poolingKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:profileSurfaceKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:profileSurfaceKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:profileSurfaceKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:profileSurfaceKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:profileSurfaceKindFunctionality logic:characterizes gmeow:profileSurfaceKind ."
+msgstr "gmeow:profileSurfaceKindFunctionality logic:characterizes gmeow:profileSurfaceKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:profileSurfaceOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:profileSurfaceOf 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:profileSurfaceOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:profileSurfaceOf, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:profileSurfaceOfFunctionality logic:characterizes gmeow:profileSurfaceOf ."
+msgstr "gmeow:profileSurfaceOfFunctionality logic:characterizes gmeow:profileSurfaceOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:projectionSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:projectionSource 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:projectionSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:projectionSource, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:projectionSourceFunctionality logic:characterizes gmeow:projectionSource ."
+msgstr "gmeow:projectionSourceFunctionality logic:characterizes gmeow:projectionSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:reproducibilityLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:reproducibilityLevel 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reproducibilityLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:reproducibilityLevel, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reproducibilityLevelFunctionality logic:characterizes gmeow:reproducibilityLevel ."
+msgstr "gmeow:reproducibilityLevelFunctionality logic:characterizes gmeow:reproducibilityLevel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:reproducibilityTolerance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:reproducibilityTolerance 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reproducibilityTolerance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:reproducibilityTolerance, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reproducibilityToleranceFunctionality logic:characterizes gmeow:reproducibilityTolerance ."
+msgstr "gmeow:reproducibilityToleranceFunctionality logic:characterizes gmeow:reproducibilityTolerance ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:similarityScore names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:similarityScore 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:similarityScore, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:similarityScore, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:similarityScoreFunctionality logic:characterizes gmeow:similarityScore ."
+msgstr "gmeow:similarityScoreFunctionality logic:characterizes gmeow:similarityScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:targetsResource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:targetsResource 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:targetsResource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:targetsResource, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:targetsResourceFunctionality logic:characterizes gmeow:targetsResource ."
+msgstr "gmeow:targetsResourceFunctionality logic:characterizes gmeow:targetsResource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vectorByteOrder names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vectorByteOrder 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vectorByteOrder, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vectorByteOrder, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vectorByteOrderFunctionality logic:characterizes gmeow:vectorByteOrder ."
+msgstr "gmeow:vectorByteOrderFunctionality logic:characterizes gmeow:vectorByteOrder ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:vectorTargetKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:vectorTargetKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vectorTargetKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:vectorTargetKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:vectorTargetKindFunctionality logic:characterizes gmeow:vectorTargetKind ."
+msgstr "gmeow:vectorTargetKindFunctionality logic:characterizes gmeow:vectorTargetKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:withMetric names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:withMetric 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:withMetric, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:withMetric, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:withMetricFunctionality logic:characterizes gmeow:withMetric ."
+msgstr "gmeow:withMetricFunctionality logic:characterizes gmeow:withMetric ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesLeftTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:comparesLeftTarget and nothing else. It is not a definition of gmeow:comparesLeftTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:comparesLeftTarget 的一项完整性义务，别无其他。它不是 gmeow:comparesLeftTarget 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/comparesRightTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:comparesRightTarget and nothing else. It is not a definition of gmeow:comparesRightTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:comparesRightTarget 的一项完整性义务，别无其他。它不是 gmeow:comparesRightTarget 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamilyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:effectiveOfFamily and nothing else. It is not a definition of gmeow:effectiveOfFamily (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:effectiveOfFamily 的一项完整性义务，别无其他。它不是 gmeow:effectiveOfFamily 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTargetSetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:hasTargetSet and nothing else. It is not a definition of gmeow:hasTargetSet (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:hasTargetSet 的一项完整性义务，别无其他。它不是 gmeow:hasTargetSet 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasVectorSpaceContractFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:hasVectorSpaceContract and nothing else. It is not a definition of gmeow:hasVectorSpaceContract (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:hasVectorSpaceContract 的一项完整性义务，别无其他。它不是 gmeow:hasVectorSpaceContract 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOfProjectionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:indexOfProjection and nothing else. It is not a definition of gmeow:indexOfProjection (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:indexOfProjection 的一项完整性义务，别无其他。它不是 gmeow:indexOfProjection 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexOverSpaceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:indexOverSpace and nothing else. It is not a definition of gmeow:indexOverSpace (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:indexOverSpace 的一项完整性义务，别无其他。它不是 gmeow:indexOverSpace 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matryoshkaPolicyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:matryoshkaPolicy and nothing else. It is not a definition of gmeow:matryoshkaPolicy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:matryoshkaPolicy 的一项完整性义务，别无其他。它不是 gmeow:matryoshkaPolicy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/normalizationKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:normalizationKind and nothing else. It is not a definition of gmeow:normalizationKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:normalizationKind 的一项完整性义务，别无其他。它不是 gmeow:normalizationKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/overVectorSpaceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:overVectorSpace and nothing else. It is not a definition of gmeow:overVectorSpace (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:overVectorSpace 的一项完整性义务，别无其他。它不是 gmeow:overVectorSpace 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/poolingKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:poolingKind and nothing else. It is not a definition of gmeow:poolingKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:poolingKind 的一项完整性义务，别无其他。它不是 gmeow:poolingKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:profileSurfaceKind and nothing else. It is not a definition of gmeow:profileSurfaceKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:profileSurfaceKind 的一项完整性义务，别无其他。它不是 gmeow:profileSurfaceKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/profileSurfaceOfFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:profileSurfaceOf and nothing else. It is not a definition of gmeow:profileSurfaceOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:profileSurfaceOf 的一项完整性义务，别无其他。它不是 gmeow:profileSurfaceOf 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:projectionSource and nothing else. It is not a definition of gmeow:projectionSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:projectionSource 的一项完整性义务，别无其他。它不是 gmeow:projectionSource 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityLevelFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:reproducibilityLevel and nothing else. It is not a definition of gmeow:reproducibilityLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:reproducibilityLevel 的一项完整性义务，别无其他。它不是 gmeow:reproducibilityLevel 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reproducibilityToleranceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:reproducibilityTolerance and nothing else. It is not a definition of gmeow:reproducibilityTolerance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:reproducibilityTolerance 的一项完整性义务，别无其他。它不是 gmeow:reproducibilityTolerance 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/similarityScoreFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:similarityScore and nothing else. It is not a definition of gmeow:similarityScore (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:similarityScore 的一项完整性义务，别无其他。它不是 gmeow:similarityScore 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetsResourceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:targetsResource and nothing else. It is not a definition of gmeow:targetsResource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:targetsResource 的一项完整性义务，别无其他。它不是 gmeow:targetsResource 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrderFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vectorByteOrder and nothing else. It is not a definition of gmeow:vectorByteOrder (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vectorByteOrder 的一项完整性义务，别无其他。它不是 gmeow:vectorByteOrder 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorTargetKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:vectorTargetKind and nothing else. It is not a definition of gmeow:vectorTargetKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:vectorTargetKind 的一项完整性义务，别无其他。它不是 gmeow:vectorTargetKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:withMetric and nothing else. It is not a definition of gmeow:withMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:withMetric 的一项完整性义务，别无其他。它不是 gmeow:withMetric 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

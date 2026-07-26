@@ -18,7 +18,6 @@
 @prefix pos: <http://purl.org/ieee1872-owl/pos#> .
 @prefix sf: <http://www.opengis.net/ont/sf#> .
 @prefix lgdo: <http://linkedgeodata.org/ontology/> .
-@prefix mls: <http://www.w3.org/ns/mls#> .
 @prefix pleiades: <http://pleiades.stoa.org/places/vocab#> .
 @prefix whg: <https://whgazetteer.org/> .
 @prefix mf: <http://www.opengis.net/ont/movingfeatures#> .
@@ -1113,13 +1112,6 @@ gmeow:referenceFrameLatentVectorSpace skos:closeMatch wd:Q107154297 {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "latent space"
-|} .
-
-gmeow:CoordinateMatrix skos:closeMatch mls:Feature {|
-    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:objectLabel "Feature"
 |} .
 
 # --------------------------------------------------------------------------- #

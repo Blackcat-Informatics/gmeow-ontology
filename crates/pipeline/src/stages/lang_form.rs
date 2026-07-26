@@ -57,8 +57,8 @@ use gmeow_logic_compile::ir::{Correspondence, PreservationKind};
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 /// The example-instance base every minted corpus IRI lives under — the same base the
@@ -724,11 +724,8 @@ mod tests {
     /// discovers it, so every test drives off the SAME composed-source universe the
     /// production `compile_mappings` path holds (never a fresh, independent disk walk).
     fn repo_catalog() -> SliceCatalog {
-        SliceCatalog::discover(
-            &repo_root().join("slices"),
-            crate::gmeow_ns::gmeow_slice_vocab(),
-        )
-        .expect("discover slice catalog")
+        SliceCatalog::discover(&repo_root().join("slices"), gmeow_ns::gmeow_slice_vocab())
+            .expect("discover slice catalog")
     }
 
     #[test]

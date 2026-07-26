@@ -101,9 +101,9 @@ GMEOW's canonical superset — FOAF-bound projections drop them as documented lo
 ## Dependencies
 
 Depends only on `kernel` — accounts sit near the bottom of the core stack so that contacts
-(`deliversToAccount`), the email extension, and finance can all build on them without
-cycles. Consumers: the mail corpus, email delivery, and finance (Principle 15, named in the
-manifest).
+(`deliversToAccount`), the email extension, finance, and organization can all build on them
+without cycles. Consumers: the mail corpus, email delivery, finance, and organization's
+`acceptsPaymentMethod` (Principle 15, named in the manifest).
 
 ## Online-presence history
 
@@ -121,3 +121,16 @@ recorded (→ `schema:dissolutionDate`). `gmeow:accountServiceHomepage` is FOAF'
 The holder's usage status of an account — an **open value vocabulary** (active /
 dormant / historical). A retired account is `accountStatusHistorical` with
 `validUntil` in the past, retained for the record (P10), never deleted.
+
+## Payment method vocabulary
+
+### gmeow:PaymentMethod
+
+The method or instrument used to make a payment — an **open value vocabulary**
+(cash, cheque, credit card, bank transfer, cryptocurrency), a VALUE never a
+subclass (Principle 9). Domain-general enough that both `finance` (`Payment` ⊑
+`FinancialTransaction`, via `gmeow:paymentMethod`) and `organization`
+(`gmeow:acceptsPaymentMethod`, a business's accepted methods) reuse the same
+individuals rather than each minting its own; `accounts` is its core home
+because it is a payment-instrument identity fact independent of any one
+transaction or organization.

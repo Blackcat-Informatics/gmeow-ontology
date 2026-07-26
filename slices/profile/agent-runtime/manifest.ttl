@@ -16,6 +16,13 @@
 # durable subject, the TransferManifest / MemoryView memory topology) and its
 # epistemics / standpoint dependencies (claims-as-observations); extensions/agentic
 # adds the tool-call / trajectory layer and core/awareness the serving modes.
+#
+# extensions/model-serving and extensions/agentic are SIBLING extensions and may
+# not depend on each other (Principle 16). Selecting both here is exactly what a
+# profile is for, and it is what makes the CQ5 capability-versus-delegation
+# question (queries/competency/tool-usage.rq) askable at all: its passive half
+# (gmeow:usedCapability) is model-serving's and its delegation half
+# (gmeow:ToolCall / gmeow:usedTool) is agentic's.
 
 <https://blackcatinformatics.ca/gmeow/slices/agent-runtime>
     a gmeow:Slice ;
@@ -29,5 +36,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ,
         <https://blackcatinformatics.ca/gmeow/slices/model-serving> ,
         <https://blackcatinformatics.ca/gmeow/slices/agentic> ,
-        <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "The AI-agent / MCP-developer audience (Principle 15): the GTS ai-package and the MCP store / recall / revise memory triad — a durable subject inhabiting a served model, tracing each output to the exact artifact·deployment·execution·session·invocation that produced it, with its tool calls, serving modes, and contestable claims, loaded as one dependency-closed unit."@x-gmeow-english .

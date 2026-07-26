@@ -15,6 +15,8 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
+        <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "PKM annotations (annotation target span) over core evidence spans; Web Annotation projection."@x-gmeow-english.

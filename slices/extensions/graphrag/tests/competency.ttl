@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions authored as slice-resident test-DSL data,
+# executed by the native Rust slice-test harness (crates/slicetest) over the
+# full merged ontology, asserted lane (gmeow:reasoningNone).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/graphrag/tests/> .
+
+ex:cqFunctionalObligations a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/extensions/graphrag/queries/competency/functional-obligations.rq" ;
+    gmeow:cqRationale "A retrieval substrate is reproducible only if its single-valued edges really are single-valued: an index is built with exactly one algorithm, an extracted relationship has exactly one source and exactly one target, and a community summary condenses exactly one community. GMEOW must be able to answer which of this slice's properties carry that obligation WITHOUT reading a shape surface, because the obligation is reasoned from a logic: carrier record and the shape is a generated projection of it. This query walks each carrier to the property it characterizes, so a carrier that is retired, mis-sorted, or pointed at the wrong property stops answering." ;
+    gmeow:cqResultShape ex:cqFunctionalObligationsShape ;
+    gmeow:cqExpectRow
+        ex:cqFoRowIndexAlgorithm ,
+        ex:cqFoRowRelationshipSource ,
+        ex:cqFoRowRelationshipTarget ,
+        ex:cqFoRowSummarizesCommunity .
+
+ex:cqFunctionalObligationsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "carrier" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "property" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqFoRowIndexAlgorithm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "carrier" ; gmeow:cellValueIri gmeow:indexAlgorithmFunctionality ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:indexAlgorithm ] .
+
+ex:cqFoRowRelationshipSource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "carrier" ; gmeow:cellValueIri gmeow:relationshipSourceFunctionality ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:relationshipSource ] .
+
+ex:cqFoRowRelationshipTarget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "carrier" ; gmeow:cellValueIri gmeow:relationshipTargetFunctionality ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:relationshipTarget ] .
+
+ex:cqFoRowSummarizesCommunity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "carrier" ; gmeow:cellValueIri gmeow:summarizesCommunityFunctionality ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:summarizesCommunity ] .

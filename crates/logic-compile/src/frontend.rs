@@ -2873,7 +2873,7 @@ pub fn derive_validation_shapes(
 pub fn functional_properties_missing_logic_carrier(
     store: &RdfDataset,
 ) -> std::collections::BTreeSet<String> {
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
     let owl_functional = Node::iri("http://www.w3.org/2002/07/owl#FunctionalProperty");
     // Every gmeow:-owned property carrying the deprecated OWL functional marker.
     let mut declared: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();

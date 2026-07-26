@@ -15,6 +15,7 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
         <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
@@ -22,5 +23,10 @@
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
-        <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+        <https://blackcatinformatics.ca/gmeow/slices/trust> ,
+        <https://blackcatinformatics.ca/gmeow/slices/citations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
+        <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     gmeow:sliceConsumer "The mail corpus: the dogfooded message model over core contacts/accounts."@x-gmeow-english.

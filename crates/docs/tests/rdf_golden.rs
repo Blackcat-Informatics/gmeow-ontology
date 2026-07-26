@@ -131,6 +131,7 @@ fn small_model() -> DocsModel {
             slices: Vec::new(),
         }],
         external_terms: Vec::new(),
+        seams: Vec::new(),
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         constraint_rules: Vec::new(),

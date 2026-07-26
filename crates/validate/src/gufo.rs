@@ -61,7 +61,7 @@ const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
 /// not). The local name is identical across the two namespaces for every sort
 /// except the perdurant down-projection renames (`gufo:EventType`→`logic:Event`,
 /// `gufo:SituationType`→`logic:Situation`).
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 /// Build a gUFO-namespaced IRI string for a local name.
 fn gufo(local: &str) -> String {

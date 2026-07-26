@@ -1954,3 +1954,49 @@ suggestions/guidance.
   bundle correctly emits zero abductive advice (nothing to repair). No forward path — this is the
   correct behavior of a repair advisor, recorded to pre-empt a "the bundle shows zero abductive
   output" misreading.
+
+## 2026-07-25 — peerage-aware undeclared cross-slice usage gate
+
+- PROJECTION-CEILING RE-BASELINE OWED TO A MAINTAINER (blocking `make check`, not
+  self-resolvable). Five (slice, vocabulary) cells measure ungrounded rdfs/obi/pato residue
+  above their committed `gmeow:ProjectionCeilingCommitment`: `accounts` rdfs 5>4, `ai` rdfs
+  42>26, `logic` rdfs 69>68, `sensory` obi 1>0, `sensory` pato 1>0. Every one is a term this
+  branch RELOCATED to the slice that legitimately owns it, and each is matched one-for-one by
+  the source slice's residue falling: PaymentMethod from finance, the box-role cluster from
+  kernel, the vector/embedding primitives from graphrag, the OBI/PATO alignment cells from
+  observations. Corpus-wide ungrounded residue is unchanged and not one construct is freshly
+  authored — each pre-exists at the merge base under its old slice.
+  Grounding them is not available: a `logic:Formula` restating a named-class `rdfs:subClassOf`
+  is the redeclaration `counting::resolvable_grounding` explicitly rejects as a faked
+  migration, and `logic:subClassOf` projects only restriction-shaped axioms
+  (`logic-compile/src/projections/lift.rs`), so converting would drop the taxonomy from the
+  generated OWL view. Raising the ceilings is refused by three independent guards whose own
+  doctrine reserves it: "a maintainer-only decision authorized out-of-band by merging past this
+  red, never by a tool". FORWARD PATH: a maintainer either re-baselines the five ceilings
+  (recognising the transfer) or teaches the ratchet to net a relocation across its source and
+  destination cells; the latter is a governance-gate change and was deliberately not made by
+  this branch, since the gate guards this branch's own work.
+
+- AXIS-FLOOR REGRESSIONS CAUSED BY THIS BRANCH (blocking `make check`; NOT pre-existing).
+  38 of 591 slices measure below a committed `gmeow:AxisFloorCommitment`, overwhelmingly
+  `axisDocMaturity`. An earlier revision of this entry claimed these were "pre-existing,
+  unchanged by this branch". That was FALSE and is retracted: running the same branch-built
+  `gmeow-dev slice-quality-gate` against `origin/main`'s `slices/` tree exits 0 with "591
+  slice(s) hold their committed per-axis floors", and against this branch's tree exits 1 with
+  "38 of 591 below". Bisected, the reds appear at `31f8b41e8` (promote shared vector/embedding
+  primitives to core ai) and grow at `0727cf359` (re-home 665 central records). No floor value
+  moved — the measures fell. The mechanism is mechanical: `axisDocMaturity` dimensions are
+  per-term structural predicates (`skos:example`, `skos:scopeNote`, `useWhen`, fixture pair,
+  competency rationale), so importing under-documented terms and carrier records into a slice
+  dilutes its coverage fraction.
+  These are self-inflicted and, unlike a ceiling raise, they are meetable in-repo: the
+  maintainer-only doctrine reserves LOWERING a floor, not failing one. FORWARD PATH: author the
+  missing documentation dimensions on the relocated terms in their new homes (the gate emits a
+  per-slice advisory naming each missing dimension). Escalated to the human as a scope question
+  rather than silently absorbed, because the volume changes the shape of this branch.
+
+- PURRDF PINNED BY REV, NOT TAG. `Cargo.toml` and `fuzz/Cargo.toml` pin purrdf at
+  `76f25955` — `rust-v0.8.3` plus two fixes this work required: ownership scoping by declared
+  term namespaces (without which every slice minting into `logic:`/`lang:`/`math:` is invisible
+  to the dependency analyzer) and the fix-deps comment-skip. FORWARD PATH: move both pin sites
+  back to a `tag =` pin once a purrdf release carries them.

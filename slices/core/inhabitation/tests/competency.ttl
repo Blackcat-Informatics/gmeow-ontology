@@ -13,13 +13,17 @@
 # Scope (INHABITED-COMPETENCY.md staggering): the four questions here are the
 # core-answerable set — CQ12 neutrality (the load-bearing base-graph-empty gate),
 # CQ1+CQ9 coexisting continuity verdicts, CQ13 determination-in-force, and CQ8
-# co-tenancy control. CQ3 (two-sessions), CQ5 (tool-usage), and CQ6
-# (provenance-chain) are answered in extensions/model-serving
-# (slices/extensions/model-serving/tests/competency.ttl), which mints the
-# gmeow:ModelArtifact / gmeow:ModelDeployment / gmeow:RuntimeExecution / gmeow:AgentSession
-# identities this core slice deliberately mints nothing for. The core slice keeps
-# only the core-answerable set; the runtime-stack questions live with the runtime
-# terms (Principle 15 — each question with its constructs).
+# co-tenancy control. CQ3 (two-sessions) and CQ6 (provenance-chain) are answered
+# in extensions/model-serving (slices/extensions/model-serving/tests/competency.ttl),
+# which mints the gmeow:ModelArtifact / gmeow:ModelDeployment /
+# gmeow:RuntimeExecution / gmeow:AgentSession identities this core slice
+# deliberately mints nothing for. CQ5 (tool-usage) is answered one level further
+# out, in slices/profile/agent-runtime: its discriminator needs model-serving's
+# gmeow:usedCapability AND agentic's gmeow:ToolCall / gmeow:usedTool, and two
+# sibling extensions may not depend on each other (Principle 16), so the profile
+# that selects both is the only legal home. The core slice keeps only the
+# core-answerable set; the runtime-stack questions live with the runtime terms
+# (Principle 15 — each question with its constructs).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .

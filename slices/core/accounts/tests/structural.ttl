@@ -83,3 +83,17 @@ ASK {
     ?rec logic:characterizes ?p ; logic:characteristicSort logic:functionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:accountStatus and gmeow:serviceStatus MUST NOT be owl:FunctionalProperty (Principle 9): competing source- or standpoint-asserted statuses coexist. A functional object property would force the distinct status values to be owl:sameAs and could drive a global OWL inconsistency that halts reasoning. VALUES here ranges over the two status object properties the slice declares — a closed, finite set, not a stand-in for an open universal." .
+
+# --- 6. Five PaymentMethod seed individuals exist (MUST) ----------------------
+ex:saPaymentMethodSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:paymentMethodCash         a gmeow:PaymentMethod .
+    gmeow:paymentMethodCheque       a gmeow:PaymentMethod .
+    gmeow:paymentMethodCreditCard   a gmeow:PaymentMethod .
+    gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod .
+    gmeow:paymentMethodCrypto       a gmeow:PaymentMethod .
+}""" ;
+    gmeow:saRationale "The five mandatory PaymentMethod seed individuals (cash, cheque, credit card, bank transfer, cryptocurrency) MUST exist as open-vocabulary values." .

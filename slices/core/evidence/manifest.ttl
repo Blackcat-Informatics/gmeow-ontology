@@ -16,6 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/citations> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     gmeow:sliceConsumer "The claim spine's EvidenceSpan (EvidenceSpan audit machinery); evidential warrant for citations and deception analyses."@x-gmeow-english.

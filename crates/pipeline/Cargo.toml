@@ -66,6 +66,7 @@ gmeow-math = { path = "../math" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The perf-gate merge binary surfaces progress through the shared Reporter.
 gmeow-cli-core = { path = "../cli-core" }
