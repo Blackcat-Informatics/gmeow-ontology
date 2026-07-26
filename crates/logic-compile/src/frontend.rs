@@ -1932,6 +1932,42 @@ pub fn derive_validation_shapes(
             .push(pc);
     }
 
+    // ── Node-kind sugar (logic:PathNodeKindConstraint) → declarative sh:nodeKind ──────────────
+    // A CLASS-SCOPED node-kind record (one carrying `logic:onClass`) grounds a `sh:nodeKind`
+    // facet DECLARATIVELY on that class's node shape, exactly as the unique-language sugar above
+    // grounds `sh:uniqueLang`: `sh:nodeKind` is a faithful SHACL-Core facet, so it belongs on the
+    // class node shape the declarative readers (JSON-Schema / Pydantic / ShEx) consume, not only
+    // in the record's procedural SPARQL twin. It is the ONLY authored form for an IRI-vs-blank
+    // obligation: `sh:class C` admits a blank node typed `C`, and OWL's universal fillers invert
+    // to at most `sh:BlankNodeOrIRI` (`owl:Thing`) — neither can say "IRI, not blank".
+    // A record with NO `logic:onClass` is PATH-scoped (its guard is the value path itself, and
+    // its target is `sh:targetSubjectsOf`, not a class), so it has no class node shape to ride
+    // and keeps its procedural projection alone.
+    let node_kind_ty = Node::iri(logic_iri("PathNodeKindConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &node_kind_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(kind)) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+            value(store, &rec, &nn(&logic_iri("nodeKind")))
+                .and_then(|t| shacl_node_kind_of(&term_str(&t))),
+        ) else {
+            continue;
+        };
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::NodeKindShacl(kind)],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
     let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
     for class in &classes {
@@ -5351,6 +5387,20 @@ fn node_kind_relation(kind: &str) -> Option<&'static str> {
         "IRI" | "iri" => Some("termIsIri"),
         "Literal" | "literal" => Some("termIsLiteral"),
         "BlankNodeOrIRI" | "BlankNodeOrIri" | "blankNodeOrIri" => Some("termIsBlankOrIri"),
+        _ => None,
+    }
+}
+
+/// The SHACL node-kind an authored `logic:nodeKind` token names — the DECLARATIVE peer of
+/// [`node_kind_relation`] (which names the same token's `logic:` term relation for the procedural
+/// lowering). Accepts exactly the same token spellings, so the two projections of one record can
+/// never disagree about which kinds are authorable; an unrecognized token yields `None` in both
+/// (the procedural reader then raises the authoritative `MALFORMED_CONSTRAINT`).
+fn shacl_node_kind_of(kind: &str) -> Option<ShaclNodeKind> {
+    match node_kind_relation(kind)? {
+        "termIsIri" => Some(ShaclNodeKind::Iri),
+        "termIsLiteral" => Some(ShaclNodeKind::Literal),
+        "termIsBlankOrIri" => Some(ShaclNodeKind::BlankNodeOrIri),
         _ => None,
     }
 }

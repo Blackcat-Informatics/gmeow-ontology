@@ -536,7 +536,6 @@ const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
     "slices/core/diagnostics/shapes.ttl",
     "slices/core/documentation/shapes.ttl",
     "slices/core/epistemics/shapes.ttl",
-    "slices/core/gts/shapes.ttl",
     "slices/core/inference/shapes.ttl",
     "slices/core/inhabitation/shapes.ttl",
     "slices/core/kernel/shapes.ttl",
@@ -2694,6 +2693,26 @@ mod tests {
         let mut report = RepoStaticReport::default();
         check_hand_authored_shapes_ratchet(root, &mut report);
         assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn gts_slice_ships_no_hand_authored_shapes_ttl() {
+        // The GTS transport slice is fully migrated: its four NodeShapes are now OWL restriction
+        // axioms + two logic:Constraints in slices/core/gts/module.ttl, and the equivalence is
+        // certified by crates/logic-compile/tests/shape_migration_equivalence.rs. The file must
+        // be GONE (not emptied) and its entry trimmed from the shrink-only pin — a re-appearance
+        // would be a second source of validation truth, and a lingering pin entry would silently
+        // re-license one.
+        const RETIRED: &str = "slices/core/gts/shapes.ttl";
+        assert!(
+            !live_repo_root().join(RETIRED).exists(),
+            "{RETIRED} is retired — its obligations live in slices/core/gts/module.ttl \
+             (docs/MIGRATING-SHAPES-TO-LOGIC.md); re-introducing it is a second source of truth"
+        );
+        assert!(
+            !PINNED_HAND_AUTHORED_SHAPES_TTL.contains(&RETIRED),
+            "{RETIRED} is retired and must not remain in PINNED_HAND_AUTHORED_SHAPES_TTL"
+        );
     }
 
     #[test]

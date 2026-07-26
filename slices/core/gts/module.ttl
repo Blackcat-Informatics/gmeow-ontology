@@ -461,15 +461,15 @@ REUSE (no parallel mechanisms — GTS transport design).
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Declarative constraint axioms (core slices) — the closed-world
-# cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
-# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both owl:*Cardinality and
-# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
-# sh:datatype property shape. The cross-node / value-range / disjunctive
-# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
-# antecedent and remain the procedural fragment .
+# Declarative constraint axioms — the closed-world cardinality / class /
+# datatype / pattern obligations of the slice, authored here ONCE as OWL
+# restriction axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
+# derive_validation_shapes (Principle 17). This module is the single source of
+# truth: the slice ships NO hand-authored shapes.ttl (docs/MIGRATING-SHAPES-TO-
+# LOGIC.md). A restriction carrying both owl:*Cardinality and owl:allValuesFrom
+# lowers to the paired sh:minCount/maxCount + sh:class / sh:datatype property
+# shape. The cross-node / disjunctive (sh:sparql) conditions have no OWL
+# antecedent and are authored as logic:Constraints below.
 # =========================================================================== #
 
 gmeow:OpaqueFrame rdfs:subClassOf
@@ -481,7 +481,29 @@ gmeow:GTSSegment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:gtsSegmentIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:gtsProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSProfile ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# A chain head is written 'blake3:<64 lowercase hex>' — the lexical form of the
+# content-id the whole segment history commits to. Authored as the closed-world
+# reading of the head's value space: a faceted xsd:string data range, which
+# derive_validation_shapes lowers to sh:datatype + sh:pattern on the
+# gmeow:GTSSegment node shape. A free-form head is indistinguishable from a
+# truncated or foreign digest, so the shape of the string is part of the claim.
+# Spelled in the CANONICAL logic: restriction vocabulary (not the rdfs:/owl:
+# projection the older blocks above still use): a fresh hand-authored
+# rdfs:subClassOf axiom would be ungrounded second-source residue against the
+# slice's projection-vocabulary ceiling. The facet cell and the datarange's
+# rdfs:Datatype typing stay in their own vocabularies — neither is a counted
+# structural axiom, and the datarange lift keys on that typing.
+gmeow:GTSSegment logic:subClassOf
+    [ a logic:Restriction ;
+        logic:onProperty gmeow:gtsHeadId ;
+        logic:allValuesFrom [
+            a rdfs:Datatype ;
+            logic:onDatatype xsd:string ;
+            logic:withRestrictions ( [ xsd:pattern "^blake3:[0-9a-f]{64}$" ] ) ;
+        ] ;
+    ] .
+
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/OpaqueFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/opacityReason> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/OpacityReason> ] .
 <https://blackcatinformatics.ca/gmeow/OpaqueFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/opaqueFrameIn> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/GTSSegment> ] .
@@ -490,9 +512,14 @@ gmeow:GTSSegment rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/gtsProfile> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
-# from slices/core/gts/shapes.ttl, re-expressed as canonical logic:Constraints #
-# (Principle 17). The authored shapes stay (additive).                         #
+# Procedural constraints — the two cross-node conditions with no OWL           #
+# antecedent, authored as canonical logic:Constraints (Principle 17) and       #
+# lowered to sh:SPARQLConstraint node shapes in                                #
+# generated/shapes/procedural-constraints.ttl. They are the SOLE authority for #
+# these checks: the hand-authored shapes.ttl that once carried them is retired #
+# (equivalence proved by crates/logic-compile/tests/shape_migration_           #
+# equivalence.rs, which validates a pass/fail witness pair against the real    #
+# projection of each record).                                                  #
 # =========================================================================== #
 
 logic:SealedFrameRecipientConstraint

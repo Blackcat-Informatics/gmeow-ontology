@@ -2956,7 +2956,8 @@ gmeow:gmnSecurityRing
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn security ring"@x-gmeow-english ;
-    skos:definition "Names the serialization boundary ring of a GMN envelope. Domain gmeow:GmnEnvelope, range gmeow:GmnSecurityRing (stated in prose). Exactly one per envelope: the ring is the admission class the serializer checked the payload against."@x-gmeow-english ;
+    rdfs:range gmeow:GmnSecurityRing ;
+    skos:definition "Names the serialization boundary ring of a GMN envelope. Domain gmeow:GmnEnvelope (stated in prose — asserting it would infer every ring-tagged subject an envelope), range gmeow:GmnSecurityRing (asserted, and read closed-world through lang:gmnSecurityRingRangeClosure so the derived envelope shape carries sh:class). Exactly one per envelope: the ring is the admission class the serializer checked the payload against."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid asserting two rings on one envelope — one admission class per carrier — and avoid using it on the payload's records; the ring classifies the envelope crossing, not each inner claim."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -3106,7 +3107,7 @@ gmeow:gmnDictionaryVersion
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn dictionary version"@x-gmeow-english ;
-    skos:definition "The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable."@x-gmeow-english ;
+    skos:definition "The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on the derived gmeow:GmnEnvelope-shape) — versions are never interchangeable."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid resolving aliases against any dictionary but the pinned version and avoid reusing a dictionary version after its alias table changes — a changed table is a new version."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -3436,7 +3437,8 @@ gmeow:gmnEnvelopeCorrespondence
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn envelope correspondence"@x-gmeow-english ;
-    skos:definition "Relates a GMN envelope to the single logic:Correspondence carrying its losslessness judgment — the law-spine of the envelope's crossing back to the narrow-waist normal form. Domain gmeow:GmnEnvelope, range logic:Correspondence (stated in prose). There is NO boolean lossless flag: whether the payload round-trips is the logic:preservationKind, logic:morphismClass, and logic:mnemomorphic witness on that Correspondence, exactly as lang:translationCorrespondence attaches a translation unit to its crossing."@x-gmeow-english ;
+    rdfs:range logic:Correspondence ;
+    skos:definition "Relates a GMN envelope to the single logic:Correspondence carrying its losslessness judgment — the law-spine of the envelope's crossing back to the narrow-waist normal form. Domain gmeow:GmnEnvelope (stated in prose), range logic:Correspondence (asserted, and read closed-world through lang:gmnEnvelopeCorrespondenceRangeClosure so the derived envelope shape carries sh:class). There is NO boolean lossless flag: whether the payload round-trips is the logic:preservationKind, logic:morphismClass, and logic:mnemomorphic witness on that Correspondence, exactly as lang:translationCorrespondence attaches a translation unit to its crossing."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid shadowing the correspondence's judgment with any envelope-level flag and avoid more than one correspondence per envelope — one crossing, one law-spine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -5487,7 +5489,7 @@ lang:GmnUncostedScriptGlyph
 # count is unchanged by this class. It is a separate cross-slice competency   #
 # check proving gmeow:processExport (mentation, core tier) binds to           #
 # gmeow:GmnSecurityRing (lang, this slice) through the gmeow:wasGeneratedBy   #
-# hook already in the envelope's eight-field contract, so mentation names no  #
+# hook already in the envelope's nine-field contract, so mentation names no  #
 # lang term and gains no gmeow:sliceDependsOn edge on lang — the reference    #
 # direction stays lang -> mentation (this slice's manifest declares the       #
 # dependency; docs/GROUNDING.md's tier rule permits a grounding slice to      #
@@ -9138,6 +9140,36 @@ lang:paraphraseSamenessClosure
     logic:closureKey "https://blackcatinformatics.ca/lang/paraphraseSamenessKind" ;
     logic:closureValue logic:ClosedWorldClosure .
 
+# The two PROPERTY-GLOBAL closed-world opt-ins of the GMN envelope contract (no
+# logic:onClass — an entry naming a class is class-scoped and feeds the required-path
+# reading instead). rdfs:range is an open-world INFERENCE axiom, so the derive keeps its
+# closed-world sh:class reading suppressed unless a ClosureEntry opts the property in.
+# Both envelope fields are named-class QUALIFIED (owl:onClass gmeow:GmnSecurityRing /
+# logic:Correspondence), and a qualified cardinality alone does NOT entail the universal
+# "every value is a …" — so without these entries the derived envelope shape would carry
+# only sh:qualifiedValueShape and would silently lose the sh:class obligation the retired
+# lang:GmnEnvelopeContractShape stated by hand.
+
+lang:gmnSecurityRingRangeClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn security-ring range closure"@x-gmeow-english ;
+    skos:definition "The property-global closed-world authority reading gmeow:gmnSecurityRing's rdfs:range gmeow:GmnSecurityRing as a validation obligation: every ring an envelope names is a declared gmeow:GmnSecurityRing, not merely inferable as one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/gmnSecurityRing" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField .
+
+lang:gmnEnvelopeCorrespondenceRangeClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn envelope-correspondence range closure"@x-gmeow-english ;
+    skos:definition "The property-global closed-world authority reading gmeow:gmnEnvelopeCorrespondence's rdfs:range logic:Correspondence as a validation obligation: the losslessness judgment an envelope points at is a declared logic:Correspondence, never an untyped node standing in for one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField .
+
 lang:Form logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:inSignSystem ; logic:allValuesFrom lang:SignSystem ] ,
     [ a logic:Restriction ; logic:onProperty lang:inSignSystem ; logic:maxQualifiedCardinality 1 ; logic:onClass lang:SignSystem ] .
@@ -9446,6 +9478,39 @@ lang:FormHeadNodeKindConstraint
     logic:formalizes lang:FormHeadStructuralShape ;
     gmeow:enforcesFailureClass lang:StringOnlyForm ;
     logic:message "A lang:formHead value must be a resource (a blank node or IRI), never a literal." .
+
+# The two NAMED-ADDRESS fields of the GMN envelope contract: a boundary ring and a
+# losslessness judgment are cited by IRI, never minted anonymously alongside the envelope.
+# sh:class alone would admit a blank node carrying the right rdf:type — an unaddressable
+# ring nobody else can reference or a correspondence that dies with its envelope — so the
+# node-kind obligation the retired lang:GmnEnvelopeContractShape stated by hand is carried
+# here, class-scoped, as its canonical logic: record.
+
+lang:GmnEnvelopeRingNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "GMN envelope ring node-kind constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:GmnEnvelope's gmeow:gmnSecurityRing is an IRI — the admission class is a citable ring individual of the shared lattice, not a blank node minted inside the envelope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:GmnEnvelope ;
+    logic:valuePath gmeow:gmnSecurityRing ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:GmnEnvelope ;
+    gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField ;
+    logic:message "A gmeow:GmnEnvelope must name its gmeow:gmnSecurityRing by IRI — a boundary ring is a citable individual of the shared lattice, never an anonymous node." .
+
+lang:GmnEnvelopeCorrespondenceNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "GMN envelope correspondence node-kind constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:GmnEnvelope's gmeow:gmnEnvelopeCorrespondence is an IRI — the losslessness judgment is a citable logic:Correspondence other claims can point at, not a blank node reachable only through this envelope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass gmeow:GmnEnvelope ;
+    logic:valuePath gmeow:gmnEnvelopeCorrespondence ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:GmnEnvelope ;
+    gmeow:enforcesFailureClass lang:GmnMissingEnvelopeField ;
+    logic:message "A gmeow:GmnEnvelope must name its gmeow:gmnEnvelopeCorrespondence by IRI — the losslessness judgment is a citable logic:Correspondence, never an anonymous node." .
 
 # A surface must carry its material either inline or by content-addressed blob.
 # The four remaining field obligations are ordinary OWL restrictions above; this
