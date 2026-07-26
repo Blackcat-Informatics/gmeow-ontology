@@ -3,18 +3,19 @@
 #
 # Single violation: a math:NormalizationDeclaration correctly naming its (source,
 # target) pair through math:normalizes/math:normalizesTo, but declaring NO
-# math:normalizationStrength at all — the bare, strength-less declaration the G11
-# hardening (module.ttl's math:normalizationStrength min-qualified-cardinality-1
-# restriction on math:NormalizationDeclaration) exists to forbid. Before that
-# restriction, this declaration satisfied NEITHER
-# math:FalseStructuralNormalizationClaimConstraint's structural-strength guard NOR
-# math:UnattributedNormalizationConstraint's coarser-than-structural guard (both are
-# gated on an ASSERTED math:normalizationStrength even engaging their existential
-# body), while math:UndeclaredNormalFormConstraint was ALREADY discharged by the mere
-# presence of the (normalizes, normalizesTo) pair — so a strength-less,
-# procedure-less, unattributed declaration satisfied the entire normal-form contract
-# for free. It no longer does: the new min-qualified-cardinality-1 restriction fires a
-# bare cardinality violation.
+# math:normalizationStrength at all — the bare, strength-less declaration the
+# module.ttl math:normalizationStrength min-qualified-cardinality-1 restriction on
+# math:NormalizationDeclaration exists to forbid. Before that restriction, this
+# declaration satisfied NEITHER math:FalseStructuralNormalizationClaimConstraint's
+# structural-strength guard NOR math:UnattributedNormalizationConstraint's
+# coarser-than-structural guard (both are gated on an ASSERTED
+# math:normalizationStrength before ever engaging their existential body), while
+# math:UndeclaredNormalFormConstraint was ALREADY discharged by the mere presence of
+# the (normalizes, normalizesTo) pair — so a strength-less, procedure-less,
+# unattributed declaration satisfied the entire normal-form contract for free. It no
+# longer does: the min-qualified-cardinality-1 restriction now fires a named, typed
+# math:UndeclaredNormalizationStrength violation, bound through the restriction's own
+# gmeow:enforcesFailureClass.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .

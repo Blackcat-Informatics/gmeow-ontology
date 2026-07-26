@@ -72,7 +72,8 @@ reason FOR that edge is the mediating `math:NormalizationDeclaration`, naming th
 names), the `math:NormalizationStrength` the claim is held at, and, for a claim coarser than
 structural, the `math:NormalizationProcedure` that licenses it. "These formulas are the same" is an
 inferential act, not a lexical fact, so the gates below enforce that a normal-form claim is always
-declared, that a structural-strength claim is checked directly against the computed
+declared, that every declaration commits to a named strength (rather than silently discharging the
+whole contract for free), that a structural-strength claim is checked directly against the computed
 `math:structuralKey` digests, and that a coarser claim is attributed to a vantage and a procedure.
 The structural-key digest itself is a computed projection of an expression's AST — never an
 independently authored value — so it may drift from its own recomputation, leak surface-stratum
@@ -86,6 +87,7 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | Every `math:normalForm` edge from a source expression to a target expression has a `math:NormalizationDeclaration` naming that same pair (`math:normalizes` the source, `math:normalizesTo` the target) — a normal-form claim is never a bare edge | SHACL-SPARQL (`math:UndeclaredNormalFormConstraint`, a closed-world conditional-existence rule) | `math:UndeclaredNormalForm` |
+| A `math:NormalizationDeclaration` names exactly one `math:normalizationStrength` — a strength-less declaration engages neither the structural guard below nor the coarser-than-structural guard below (both are gated on an ASSERTED strength before their existential body ever runs), so without this restriction it would silently satisfy the whole normal-form contract for free | SHACL Core (OWL-axiom tier — min-qualified-cardinality-1 restriction on `math:NormalizationDeclaration`'s `math:normalizationStrength` in `module.ttl`) | `math:UndeclaredNormalizationStrength` |
 | A `math:NormalizationDeclaration` held at `math:structuralNormalization` has a `math:normalizes` source and a `math:normalizesTo` target whose `math:structuralKey` digests agree (and neither is missing) — structural identity is decided directly against the computed digests, never asserted on faith | SHACL-SPARQL (`math:FalseStructuralNormalizationClaimConstraint`, a closed-world digest-equality rule) | `math:FalseStructuralNormalizationClaim` |
 | A `math:NormalizationDeclaration` held at any strength coarser than `math:structuralNormalization` carries a `math:normalizationProcedure`, is named by a `gmeow:Observation` (via `gmeow:observationResult`) that itself carries a `gmeow:vantage`, and carries a `logic:preservationKind` — a coarser-than-structural equivalence is a claim held by a vantage, attributed to a procedure, and preservation-judged, never asserted for free | SHACL-SPARQL (`math:UnattributedNormalizationConstraint`, a closed-world conditional-existence rule) | `math:UnattributedNormalization` |
 | A `math:MathematicalExpression`'s `math:structuralKey` usage, when asserted, is a well-formed singleton literal — never two or more asserted values (of any kind), nor a single non-literal value, either of which can never be safely read as "the first value found" without silently masking a contradictory or ill-typed second value | Rust validator | `math:MalformedStructuralKey` |

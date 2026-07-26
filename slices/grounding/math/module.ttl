@@ -3079,6 +3079,18 @@ math:UndeclaredNormalForm
     gmeow:howToUse "Point math:UndeclaredNormalFormConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
     skos:example "exf:e math:normalForm exf:nf . # no math:NormalizationDeclaration with math:normalizes exf:e / math:normalizesTo exf:nf -> math:UndeclaredNormalForm"@x-gmeow-english .
 
+math:UndeclaredNormalizationStrength
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Normalization Strength"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NormalizationDeclaration correctly names its (source, target) pair through math:normalizes/math:normalizesTo but carries NO math:normalizationStrength at all. Every declaration is held at exactly one of the four closed math:NormalizationStrength rungs; a strength-less declaration engages neither math:FalseStructuralNormalizationClaimConstraint's structural-strength guard nor math:UnattributedNormalizationConstraint's coarser-than-structural guard (both are gated on an ASSERTED math:normalizationStrength before their existential body ever runs), so without this restriction a bare, strength-less, procedure-less, unattributed declaration would silently satisfy the entire normal-form contract for free."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration omits math:normalizationStrength entirely — the mandatory rung every declaration must be held at, regardless of how well-formed its math:normalizes/math:normalizesTo pair is."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a declaration that DOES carry a math:normalizationStrength but fails the strength-specific guard: a structural claim with mismatched or missing math:structuralKey values is math:FalseStructuralNormalizationClaim, and a coarser claim missing its procedure/attribution/preservation is math:UnattributedNormalization. This failure is specific to a declaration naming NO strength at all — the antecedent both those guards need before they can even engage."@x-gmeow-english ;
+    gmeow:howToUse "Point the min-qualified-cardinality-1 restriction on math:NormalizationDeclaration's math:normalizationStrength at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf . # no math:normalizationStrength at all -> math:UndeclaredNormalizationStrength"@x-gmeow-english .
+
 math:FalseStructuralNormalizationClaim
     a owl:Class ;
     logic:subClassOf math:MathConformanceFailure ;
@@ -3133,7 +3145,11 @@ math:StructuralKeyDrift
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Structural Key Drift"@x-gmeow-english ;
     skos:definition "The failure raised when a math:MathematicalExpression's authored math:structuralKey does not equal the digest recomputed from its own structure by the math: expression lowering. The key is a computed projection of the expression's α-equivalence class identity — same operator, same slot-indexed operands, same binding structure up to bound-variable renaming — never an independent authored value; a divergent string is drift, exactly as a divergent math:dimensionVector string is math:MalformedDimension."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression carries a single, well-formed math:structuralKey literal whose value disagrees with the digest the math: expression lowering recomputes from that same expression's own structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an expression whose math: expression lowering rejects its own AST outright — no structural identity is even computable there, so an authored key on a rejected root is math:StructuralKeyOnRejectedExpression, never a drift. Do not raise it for a math:rendersAs predicate reaching a math:NormalizationDeclaration's structural-identity computation — that is the surface-stratum sibling, math:SurfaceLeakInNormalForm. And do not raise it for a math:structuralKey usage that is not a well-formed singleton literal in the first place — that is math:MalformedStructuralKey, excluded from this population before drift is even checked. This failure is specific to a well-formed, ACCEPTED expression whose single authored digest simply disagrees with the recomputed one."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_structural_key_drift); there is no SHACL/Datalog derivation to point at it — comparing an authored digest against a digest recomputed by the math: expression lowering over the expression's own structure is a content-addressed recomputation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:e math:structuralKey \"k1\" . # exf:e's math: expression lowering recomputes its structural digest as \"k2\" from exf:e's own structure, and k1 != k2 -> math:StructuralKeyDrift"@x-gmeow-english .
 
 math:SurfaceLeakInNormalForm
     a owl:Class ;
@@ -3141,7 +3157,11 @@ math:SurfaceLeakInNormalForm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Surface Leak In Normal Form"@x-gmeow-english ;
     skos:definition "The failure raised when a math:NormalizationDeclaration's structural-identity computation is contaminated by surface-stratum material: the declaration itself, its math:normalizes source, or its math:normalizesTo target directly carries math:rendersAs. Normal-form identity — like the math:structuralKey it is decided from — is computed over structural content alone, independent of rendering or notation; a crossing that lets a rendered surface into that computation has leaked the surface into identity, mirroring lang:SurfaceLeakInContentKey one stratum over."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration's structural-identity computation is reached by math:rendersAs — carried directly by the declaration itself, by its math:normalizes source, or by its math:normalizesTo target."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a declared math:structuralKey that merely disagrees with the recomputed digest on an otherwise clean, accepted expression — that is math:StructuralKeyDrift, the digest-mismatch sibling. Do not raise it for a math:structuralKey claimed on an expression the math: expression lowering rejects outright — that is math:StructuralKeyOnRejectedExpression, the grammar-refutation sibling. This failure is specific to a math:NormalizationDeclaration whose structural-identity computation is reached by math:rendersAs — a rendered-surface predicate contaminating an identity that must be computed over structural content alone."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_surface_leak_in_normal_form); there is no SHACL/Datalog derivation to point at it — tracing whether a rendered-surface predicate reaches a normalization declaration's own identity computation, through the declaration itself or either of its normalizes/normalizesTo endpoints, is a structural traversal, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf ; math:normalizationStrength math:structuralNormalization . exf:e math:rendersAs \"x^2\" . # exf:e, the normalizes source, directly carries math:rendersAs -> math:SurfaceLeakInNormalForm"@x-gmeow-english .
 
 math:StructuralKeyOnRejectedExpression
     a owl:Class ;
@@ -3149,7 +3169,11 @@ math:StructuralKeyOnRejectedExpression
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Structural Key On Rejected Expression"@x-gmeow-english ;
     skos:definition "The failure raised when a math:MathematicalExpression carries an authored math:structuralKey while the math: expression lowering rejects its own AST — a malformed argument-slot family, an unscoped variable occurrence, a cyclic or over-deep math:slotExpression graph, or another ill-formed construct the grammar refutes. A structural identity is a claim about a well-formed expression's shape; it cannot be claimed for an expression the grammar itself says is not one."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression carries an authored math:structuralKey but the math: expression lowering rejects its own AST as ill-formed — a malformed argument-slot family, an unscoped variable occurrence, a cyclic or over-deep math:slotExpression graph, or another construct the grammar refutes."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an ACCEPTED expression whose declared math:structuralKey simply disagrees with the recomputed digest — that is math:StructuralKeyDrift, the digest-mismatch sibling, which only ever reads expressions the lowering accepts. Do not raise it for a math:rendersAs predicate reaching a math:NormalizationDeclaration's structural-identity computation — that is math:SurfaceLeakInNormalForm, the surface-stratum sibling; a rejected expression's key is refuted by the grammar itself, not contaminated by a rendered surface. This failure is specific to a math:structuralKey asserted on an expression whose own AST the math: expression lowering refutes."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_structural_key_on_rejected_expression); there is no SHACL/Datalog derivation to point at it — deciding whether the math: expression lowering accepts or rejects an expression's own AST is a whole-expression grammar computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:a math:structuralKey \"k1\" ; math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression, so the lowering rejects exf:a, yet exf:a claims math:structuralKey \"k1\" -> math:StructuralKeyOnRejectedExpression"@x-gmeow-english .
 
 # --- Binder AST properties -------------------------------------------------- #
 
@@ -10757,10 +10781,18 @@ math:MathematicalExpression logic:subClassOf
 # shape gets an sh:class, not a bare sh:maxCount; the min-qualified sibling restoring
 # sh:minCount 1 for this exact-one antecedent lives in the raw-triple appendix block
 # below (module.ttl's "exact-one minCount restoration" idiom, matching
-# math:FunctionPiece/math:pieceDomain's identical two-block split).
+# math:FunctionPiece/math:pieceDomain's identical two-block split). The
+# gmeow:enforcesFailureClass binding below names the class-scoped failure the DERIVED
+# shape raises for EITHER half of the exact-one pair (the min-qualified restriction is
+# the one actually reachable in practice — a declaration cannot easily acquire two
+# strengths without first acquiring one — but the binding is class-scoped, exactly like
+# math:DimensionExponent's four restrictions sharing one math:MalformedDimension): a
+# strength-less declaration is math:UndeclaredNormalizationStrength, never a bare,
+# anonymous cardinality violation.
 math:NormalizationDeclaration logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:allValuesFrom math:NormalizationStrength ] ,
-    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxQualifiedCardinality 1 ; logic:onClass math:NormalizationStrength ] .
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxQualifiedCardinality 1 ; logic:onClass math:NormalizationStrength ] ;
+    gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
 
 math:ApplicationExpression rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:operator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
@@ -12974,9 +13006,11 @@ math:AnalyticPropertyBackedConstraint
 # math:pieceDomain antecedent (the max-qualified half is in the Turtle block above).
 <https://blackcatinformatics.ca/math/FunctionPiece> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/pieceDomain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Interval> ] .
 # math:NormalizationDeclaration — the min-qualified sibling restoring sh:minCount for the
-# exact-one math:normalizationStrength antecedent (the max-qualified half, plus the
-# logic:allValuesFrom math:NormalizationStrength class constraint, is in the Turtle block
-# above): a strength-less declaration is no longer satisfiable.
+# exact-one math:normalizationStrength antecedent (the max-qualified half, the
+# logic:allValuesFrom math:NormalizationStrength class constraint, and the
+# gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength binding are all in the
+# Turtle block above): a strength-less declaration is no longer satisfiable, and the
+# violation it raises is a named, typed math:UndeclaredNormalizationStrength.
 <https://blackcatinformatics.ca/math/NormalizationDeclaration> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/normalizationStrength> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/NormalizationStrength> ] .
 
 # A math:SetBuilderExpression's math:memberCondition must be a resource denoting a
@@ -15669,6 +15703,7 @@ math:UnboundClosedForm a logic:Situation .
 math:UnconditionedAssertion a logic:Situation .
 math:UndeclaredLogicLowering a logic:Situation .
 math:UndeclaredNormalForm a logic:Situation .
+math:UndeclaredNormalizationStrength a logic:Situation .
 math:UndeclaredTopologicalProperty a logic:Situation .
 math:UnderspecifiedChart a logic:Situation .
 math:UnderspecifiedCompactification a logic:Situation .
