@@ -5671,7 +5671,7 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
         );
     }
 
-    println!("{:<44}  {:<36}  {}", "ENTRY", "DERIVED LABEL", "AXIS TUPLE");
+    println!("{:<44}  {:<36}  AXIS TUPLE", "ENTRY", "DERIVED LABEL");
     for (entry, label) in &labels {
         let axes: Vec<&str> = witnesses
             .iter()
