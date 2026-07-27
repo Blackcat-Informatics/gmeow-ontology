@@ -2,29 +2,33 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Changelog Entry
+# Assessment
 
-`gmeow:ChangelogEntry` · Class
+`gmeow:Assessment` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:ChangelogEntry` |
-| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
+| CURIE | `gmeow:Assessment` |
+| IRI | `https://blackcatinformatics.ca/gmeow/Assessment` |
 | Category | Class |
-| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
+| Slice | [GMEOW Observations Module](../../slices/observations/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 11/17](../../badges/completeness/11.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
 
 ## Definition
 
-A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
+An observation that scores a target against a criterion \(or whole rubric\) — vantage = the judge, human or model: an LLM judge is just a vantage, and two models disagreeing are two coexisting cells with no winner \(Principle 9\)\. The judge model's identity and prompt digest travel as observation provenance\. gmeow:assessmentCriterion / gmeow:assessmentRubric play the observationMethod ROLE but are deliberately not subproperties of it \(observationMethod is functional with a QualityValue range; Criterion and Rubric are Entities — the claimModality axiom pattern\)\. Scoring\-density expectations by target granularity reuse kernel gmeow:hasGranularity on the target\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:ChangelogEntry .
+<subject> a gmeow:Assessment ;
+    gmeow:assessmentCriterion <...> ;  # gmeow:Criterion
+    gmeow:assessmentRubric <...> ;  # gmeow:Rubric
+    gmeow:assessmentScoreValue "..." ;  # xsd:decimal
+    gmeow:assessmentTarget "..." .
 ```
 
 ## Example in multiple syntaxes
@@ -32,7 +36,11 @@ A reified record of one change to a vocabulary term in a given release — a fir
 **Turtle**
 
 ```turtle
-<subject> a gmeow:ChangelogEntry .
+<subject> a gmeow:Assessment ;
+    gmeow:assessmentCriterion <...> ;  # gmeow:Criterion
+    gmeow:assessmentRubric <...> ;  # gmeow:Rubric
+    gmeow:assessmentScoreValue "..." ;  # xsd:decimal
+    gmeow:assessmentTarget "..." .
 ```
 
 **JSON\-LD**
@@ -45,9 +53,21 @@ A reified record of one change to a vocabulary term in a given release — a fir
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
+          "@id": "https://blackcatinformatics.ca/gmeow/Assessment"
         }
-      ]
+      ],
+      "https://blackcatinformatics.ca/gmeow/assessmentCriterion": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      },
+      "https://blackcatinformatics.ca/gmeow/assessmentRubric": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      },
+      "https://blackcatinformatics.ca/gmeow/assessmentScoreValue": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/assessmentTarget": {
+        "@value": "..."
+      }
     }
   ]
 }
@@ -55,18 +75,22 @@ A reified record of one change to a vocabulary term in a given release — a fir
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+![Term neighborhood](../../diagrams/terms/assessment.svg)
 
 ## Super\-classes
 
-- [`gmeow:InformationObject`](../informationobject/index.md)
+- [`gmeow:Observation`](../observation-class/index.md)
 
 ## Usage Advice
 
-- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
-- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
-- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
-- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
+- **Example:** ex:as1 a gmeow:Assessment ; gmeow:assessmentTarget ex:chapter3 ; gmeow:assessmentCriterion ex:agency ; gmeow:assessmentScoreValue 0\.9 \.
+- **Use when:** Use for a score of a target against a criterion or rubric — an observation whose vantage is the judge, human or model; disagreeing judges are coexisting cells with no winner\.
+- **Avoid when:** Avoid treating a model's score as ground truth \(an LLM judge is just a vantage — Principle 9\) and avoid omitting a zero score; a zero is a score, not an absence \(false positives are worse than zeros\)\.
+- **How to use:** Mint one Assessment per criterion \(a 21\-axis pass is 21 Assessments\), naming the target with gmeow:assessmentTarget, the criterion/rubric with gmeow:assessmentCriterion / gmeow:assessmentRubric, the score with gmeow:assessmentScoreValue, and the judge as observation vantage\.
+
+## Examples using this term
+
+- [HARD verdict on G: PII contract held](../../slices/preference/index.md) — `examples/hard-fails-soft-high.ttl`
 
 ## Profiles
 
@@ -77,35 +101,39 @@ A reified record of one change to a vocabulary term in a given release — a fir
 ## Description\-Logic axioms
 
 ```text
-gmeow:ChangelogEntry ⊑ gmeow:InformationObject
+gmeow:Assessment ⊑ gmeow:Observation
 ```
 
 ## Logic stereotypes
 
-`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
+## Formalized by
+
+- `gmeow:AssessmentMethodConstraint`
+
 ## Documentation coverage
 
-- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **11 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
 
-- **Status:** experimental
+- **Status:** stable
 
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
+- **0\.1\.0** — Definition changed
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/Assessment>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/Assessment@blake3:67d03555ac5b7e055f75bdd749432122c867244c85e2c8a4c9163f5113ea7268`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---
