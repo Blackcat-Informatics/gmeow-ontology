@@ -21,19 +21,46 @@ use crate::dev_common::{
     NAMESPACE, ONTOLOGY_IRI, emit_report, fail, project_root, write_timings_json,
 };
 
-/// Audit the mandatory wire-level compression profile of a GMEOW GTS bundle.
+/// Audit a distribution bundle's wire against BOTH halves of the codec rule.
+///
+/// The two halves are separate checks because they have different domains, and
+/// collapsing them would force one of them to lie:
+///
+/// * [`gmeow_pipeline::validate_mandated_frames`] is the UNIVERSAL Rule 6 rule — one
+///   `zstd-rsyncable` transform at level 12 on every payload-bearing frame — and it
+///   holds for every GMEOW-authored artifact, including the many that carry no medium
+///   registry at all (the feedback / music / math bundles, `convert --to gts` output,
+///   the runtime stores);
+/// * [`gmeow_pipeline::validate_dist_bundle_media`] is the DECLARED-MEDIA audit: it
+///   resolves the medium this bundle's own ontology says its producer writes through
+///   and holds the wire to it — every frame's rep primed with the dictionary its
+///   registered `gmeow:PayloadSchema` names, that dictionary pinned in band, and the
+///   fold free of opaque nodes.
+///
+/// Making the universal rule registry-dependent instead would leave two escapes — a
+/// red gate, or "a registry-less bundle skips the medium check" — and the second is
+/// the silent degradation the medium axis exists to forbid.
 pub fn gts_frame_profile(path: &Path) -> i32 {
     let bytes = match std::fs::read(path) {
         Ok(bytes) => bytes,
         Err(error) => return fail(format!("cannot read {}: {error}", path.display())),
     };
-    match gmeow_pipeline::validate_mandated_frames(&bytes) {
+    if let Err(message) = gmeow_pipeline::validate_mandated_frames(&bytes) {
+        return fail(format!(
+            "GTS frame profile failed for {}: {message}",
+            path.display()
+        ));
+    }
+    match gmeow_pipeline::validate_dist_bundle_media(&bytes) {
         Ok(()) => {
-            println!("GTS frame profile passed: {}", path.display());
+            println!(
+                "GTS frame profile and declared media passed: {}",
+                path.display()
+            );
             0
         }
         Err(message) => fail(format!(
-            "GTS frame profile failed for {}: {message}",
+            "GTS declared-media audit failed for {}: {message}",
             path.display()
         )),
     }

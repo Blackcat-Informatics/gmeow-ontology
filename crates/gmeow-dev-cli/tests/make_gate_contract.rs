@@ -263,9 +263,13 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
 
     assert!(target_recipe(&source, "reason-verify").contains("$(GMEOW_DEV) reason-verify"));
     assert!(target_recipe(&source, "bench-soak").contains("--soak 3"));
+    // The target's ARGUMENT is unchanged — the gate still audits the one shipped
+    // bundle. What moved is the rule it states: the universal Rule 6 codec check now
+    // runs beside the DECLARED-MEDIA audit, which holds each frame to the dictionary
+    // its rep's registered gmeow:PayloadSchema names.
     assert_eq!(
         target_header(&source, "gts-frame-profile-gate"),
-        "gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame."
+        "gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with."
     );
     assert!(
         target_recipe(&source, "gts-frame-profile-gate")

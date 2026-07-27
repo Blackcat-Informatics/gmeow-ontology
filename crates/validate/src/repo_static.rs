@@ -2309,6 +2309,317 @@ fn check_gts_authorship_seals(root: &Path, report: &mut RepoStaticReport) {
     let hits = purrdf_gts_authorship_census(root, report);
     check_emit_gts_has_one_production_caller(&hits, report);
     check_no_bypassing_gts_authorship(&hits, report);
+    check_every_gts_producer_declares_a_medium(root, report);
+}
+
+// ── Seal C: every production GTS producer declares exactly one medium ────────
+//
+// Seals A and B prove that every GMEOW-authored frame goes through ONE door. They
+// say nothing about which MEDIUM a producer writes through, and the medium check is
+// split in three (`gmeow_pipeline::medium::audit::validate_declared_media` dispatches
+// on `gmeow:mediumSourceKind`). A three-way split is a TOTAL FUNCTION over producers
+// only if every producer is in its domain — otherwise "a producer with no declared
+// kind is a hard fail" is a sentence that only ever fires on a fixture, and the split
+// is an exemption list with three named exceptions.
+//
+// So the domain is CENSUSED off the source, not asserted: every production call of a
+// `gmeow_gts_profile` door outside the profile crate is a producer, and every such
+// producer's file must be claimed by exactly one `gmeow:GtsProducer` individual whose
+// declared `gmeow:producerMedium` resolves to a `gmeow:Medium` carrying exactly one
+// `gmeow:mediumSourceKind`.
+
+/// The doors of the mandated authorship profile — the GMEOW-side entry points a
+/// production producer reaches for. Seal B already proves nothing bypasses them, so
+/// this list is the complete set of ways production code can author GTS bytes.
+///
+/// `GmeowGtsWriter` is a TYPE (its `new` constructor mints a segment); the rest are
+/// free functions. `validate_mandated_frames` / `segment_dictionaries` /
+/// `store_tail_pins` are deliberately absent: they READ an artifact rather than
+/// author one, so a caller of those is not a producer.
+const GMEOW_GTS_PRODUCER_DOORS: &[&str] = &[
+    "GmeowGtsWriter::new",
+    "compact_gmeow_gts",
+    "dataset_to_gmeow_gts",
+    "emit_gmeow_gts",
+    "emit_gmeow_gts_with_medium",
+    "open_store_segment",
+    "store_writer",
+];
+
+/// The shrink-only census of production GTS-producer files that carry NO
+/// `gmeow:GtsProducer` declaration.
+///
+/// EMPTY, and it must stay that way or shrink — it can only shrink from empty by
+/// staying empty, which is exactly the point: the split of the medium check into
+/// three branches is a total function over producers, so there is no producer the
+/// ontology may decline to classify. The constant exists (rather than a bare
+/// `is_empty()` assertion) so the failure message can name the idiom, and so the one
+/// legitimate way to add an entry — a human-signed-off descope recorded in
+/// `.deficiencies` — is visible in the same place the ratchet is read.
+const PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM: &[&str] = &[];
+
+/// The lower bound on the live producer census.
+///
+/// A census that silently returned nothing — an unreadable `crates/` tree, a renamed
+/// door, a scanner regression — is a SUBSET of any pin and would let this seal pass
+/// on a repo where it proved nothing. The live tree authors GTS bytes from the
+/// terminal sink, the release lane, the runtime stores, and the whole-artifact
+/// producers, so a healthy census is comfortably above this floor.
+const MIN_GTS_PRODUCER_FILES: usize = 6;
+
+/// One production file that authors GTS bytes through a profile door.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct GtsProducerFile {
+    /// Repo-relative, slash-separated path.
+    file: String,
+    /// The doors it calls, sorted — reported so a missing declaration names what to
+    /// classify rather than merely that something is unclassified.
+    doors: BTreeSet<String>,
+}
+
+/// Census every production file that calls a [`GMEOW_GTS_PRODUCER_DOORS`] door.
+///
+/// **Production** is `crates/*/src/**.rs` outside the profile crate itself, with
+/// comments, string/char literals and `#[cfg(test)]` bodies blanked — the same
+/// classifier [`purrdf_gts_authorship_census`] uses, so the two seals cannot disagree
+/// about what "production" means.
+fn gts_producer_census(root: &Path, report: &mut RepoStaticReport) -> Vec<GtsProducerFile> {
+    let mut out: Vec<GtsProducerFile> = Vec::new();
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return out;
+    }
+    let mut crate_dirs: Vec<PathBuf> = match fs::read_dir(&crates_dir) {
+        Ok(entries) => entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect(),
+        Err(err) => {
+            report.error(format!(
+                "gts-producer census: {}: cannot read directory: {err}",
+                crates_dir.display()
+            ));
+            return out;
+        }
+    };
+    crate_dirs.sort();
+
+    for crate_dir in crate_dirs {
+        let src = crate_dir.join("src");
+        if !src.is_dir() {
+            continue;
+        }
+        let mut files = Vec::new();
+        collect_rust_files(&src, report, &mut files);
+        files.sort();
+        for path in &files {
+            let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+            if rel.starts_with(GTS_PROFILE_CRATE_SRC) {
+                continue;
+            }
+            let text = match fs::read_to_string(path) {
+                Ok(text) => text,
+                Err(err) => {
+                    report.error(format!("gts-producer census: {rel}: cannot read: {err}"));
+                    continue;
+                }
+            };
+            let code = blank_comments_strings_and_cfg_test_modules(&text);
+            let doors: BTreeSet<String> = GMEOW_GTS_PRODUCER_DOORS
+                .iter()
+                .filter(|door| identifier_starts(&code, &format!("{door}(")) > 0)
+                .map(|door| (*door).to_string())
+                .collect();
+            if !doors.is_empty() {
+                out.push(GtsProducerFile { file: rel, doors });
+            }
+        }
+    }
+    out
+}
+
+/// One authored `gmeow:GtsProducer` individual, as the seal reads it off the slice.
+#[derive(Debug, Clone, Default)]
+struct DeclaredGtsProducer {
+    /// The declared `gmeow:mediumSourceKind` individuals its media resolve to.
+    source_kinds: BTreeSet<String>,
+    /// The declared `gmeow:producerMedium` IRIs.
+    media: BTreeSet<String>,
+}
+
+/// Read every authored `gmeow:GtsProducer` out of the slice trees, keyed by the
+/// repo-relative source file it claims through `gmeow:producerCallSite`, together with
+/// the `gmeow:mediumSourceKind` its `gmeow:producerMedium` resolves to.
+///
+/// The source kind is resolved THROUGH the medium rather than re-declared on the
+/// producer: a producer that carried its own copy of the resolution rule would be a
+/// second source of truth for a fact the medium already states (Principle 4), and the
+/// two could then disagree about the same artifact.
+fn declared_gts_producers(
+    root: &Path,
+    report: &mut RepoStaticReport,
+) -> BTreeMap<String, DeclaredGtsProducer> {
+    const CALL_SITE: &str = "https://blackcatinformatics.ca/gmeow/producerCallSite";
+    const PRODUCER_MEDIUM: &str = "https://blackcatinformatics.ca/gmeow/producerMedium";
+    const MEDIUM_SOURCE_KIND: &str = "https://blackcatinformatics.ca/gmeow/mediumSourceKind";
+
+    let mut out: BTreeMap<String, DeclaredGtsProducer> = BTreeMap::new();
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return out;
+    }
+    let mut ttl_files = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut ttl_files);
+    ttl_files.sort();
+    for path in &ttl_files {
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        if !text.contains("producerCallSite") {
+            continue;
+        }
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+        let (Some(call_site), Some(producer_medium), Some(source_kind)) = (
+            iri_id_static(&ds, CALL_SITE),
+            iri_id_static(&ds, PRODUCER_MEDIUM),
+            iri_id_static(&ds, MEDIUM_SOURCE_KIND),
+        ) else {
+            continue;
+        };
+        // subject -> the media it declares, and each medium -> its source kinds.
+        for quad in ds.quads_for_pattern(None, Some(call_site), None, GraphMatch::Any) {
+            let TermRef::Literal { lexical, .. } = ds.resolve(quad.o) else {
+                report.error(format!(
+                    "{rel}: a gmeow:producerCallSite object is not a literal source path"
+                ));
+                continue;
+            };
+            let entry = out.entry(lexical.to_string()).or_default();
+            for medium_quad in
+                ds.quads_for_pattern(Some(quad.s), Some(producer_medium), None, GraphMatch::Any)
+            {
+                let TermRef::Iri(medium) = ds.resolve(medium_quad.o) else {
+                    continue;
+                };
+                entry.media.insert(medium.to_string());
+                for kind_quad in ds.quads_for_pattern(
+                    Some(medium_quad.o),
+                    Some(source_kind),
+                    None,
+                    GraphMatch::Any,
+                ) {
+                    if let TermRef::Iri(kind) = ds.resolve(kind_quad.o) {
+                        entry.source_kinds.insert(kind.to_string());
+                    }
+                }
+            }
+        }
+    }
+    out
+}
+
+/// **Seal C** — the medium check's three-way split is TOTAL over production GTS
+/// producers.
+fn check_every_gts_producer_declares_a_medium(root: &Path, report: &mut RepoStaticReport) {
+    // The seal binds where the ontology it reads exists. A synthetic minimal-repo
+    // fixture carries a `crates/` tree and no `slices/` one; an absent `slices/` in a
+    // REAL repo is not silently tolerated here either — it is already a hard failure
+    // in `hand_authored_shapes_ttl_census`, which treats the tree as required.
+    if !root.join("slices").is_dir() {
+        return;
+    }
+    let census = gts_producer_census(root, report);
+    if census.len() < MIN_GTS_PRODUCER_FILES {
+        report.error(format!(
+            "gts-authorship Seal C: the production GTS-producer census found {} file(s), below \
+             the non-vacuity floor of {MIN_GTS_PRODUCER_FILES} — an empty or truncated census is \
+             a SUBSET of any pin, so the seal would pass while proving nothing",
+            census.len()
+        ));
+        return;
+    }
+    let declared = declared_gts_producers(root, report);
+    if declared.is_empty() {
+        report.error(
+            "gts-authorship Seal C: no gmeow:GtsProducer individual declares a \
+             gmeow:producerCallSite — the producer→medium map did not reach the slices, so every \
+             producer below would be reported unclassified for one shared reason",
+        );
+        return;
+    }
+    let pinned: BTreeSet<&str> = PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM
+        .iter()
+        .copied()
+        .collect();
+
+    for producer in &census {
+        let doors: Vec<&str> = producer.doors.iter().map(String::as_str).collect();
+        let Some(entry) = declared.get(&producer.file) else {
+            if pinned.contains(producer.file.as_str()) {
+                continue;
+            }
+            report.error(format!(
+                "gts-authorship Seal C: {} authors GTS bytes ({}) but no gmeow:GtsProducer \
+                 declares it through gmeow:producerCallSite, and it is outside the shrink-only \
+                 census (PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM in \
+                 crates/validate/src/repo_static.rs) — the medium audit dispatches on \
+                 gmeow:mediumSourceKind, so an undeclared producer has NO branch and would be \
+                 audited by nothing. Mint the gmeow:GtsProducer in slices/core/gts/module.ttl \
+                 rather than adding it here",
+                producer.file,
+                doors.join(", ")
+            ));
+            continue;
+        };
+        if entry.media.len() != 1 {
+            report.error(format!(
+                "gts-authorship Seal C: {} is declared with {} gmeow:producerMedium value(s) \
+                 {:?} — a producer writes through exactly one medium, so any other count leaves \
+                 its audit branch underivable",
+                producer.file,
+                entry.media.len(),
+                entry.media
+            ));
+            continue;
+        }
+        if entry.source_kinds.len() != 1 {
+            report.error(format!(
+                "gts-authorship Seal C: {} declares medium {:?}, which resolves to {} \
+                 gmeow:mediumSourceKind value(s) {:?} — exactly one is required, because the \
+                 kind IS the audit branch selector",
+                producer.file,
+                entry.media,
+                entry.source_kinds.len(),
+                entry.source_kinds
+            ));
+        }
+    }
+
+    // The reverse direction: a declared call site that names no production producer is
+    // a STALE declaration, and a stale declaration is how a real producer's classifying
+    // individual survives the file being renamed out from under it.
+    let censused: BTreeSet<&str> = census.iter().map(|p| p.file.as_str()).collect();
+    for call_site in declared.keys() {
+        if !censused.contains(call_site.as_str()) {
+            report.error(format!(
+                "gts-authorship Seal C: gmeow:producerCallSite {call_site:?} names no production \
+                 file that authors GTS bytes — a stale declaration classifies nothing while \
+                 making the map look complete"
+            ));
+        }
+    }
 }
 
 // ── the diagnostic-kind ↔ ontology failure-class binding ────────────────────
@@ -4294,6 +4605,234 @@ mod tests {
         let mut report = RepoStaticReport::default();
         check_gts_authorship_seals(root, &mut report);
         report.errors
+    }
+
+    // ── Seal C: the producer→medium map is TOTAL over production producers ────
+
+    /// A synthetic repo with six producer files (the non-vacuity floor) and a
+    /// `slices/` tree whose producer map is `declared` — spliced in verbatim so a
+    /// test can drop a row, duplicate a medium, or point at a medium with no source
+    /// kind, and watch exactly one clause fire.
+    fn producer_seal_repo(declared: &str, files: &[&str]) -> tempfile::TempDir {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        for (i, file) in files.iter().enumerate() {
+            crate_src(
+                root,
+                &format!("gmeow-p{i}"),
+                file,
+                "fn go() { let _ = emit_gmeow_gts(&b, v, v, None, None, None); }\n",
+            );
+        }
+        let slices = root.join("slices/core/gts");
+        fs::create_dir_all(&slices).unwrap();
+        fs::write(
+            slices.join("module.ttl"),
+            format!(
+                "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+                 gmeow:mediumFixture gmeow:mediumSourceKind gmeow:mediumSourceWholeArtifact .\n\
+                 gmeow:mediumNoKind a gmeow:Medium .\n\
+                 {declared}"
+            ),
+        )
+        .unwrap();
+        temp
+    }
+
+    /// The six synthetic producer files, and the repo-relative paths they land at.
+    const PRODUCER_FIXTURE_FILES: [&str; 6] = ["a.rs", "b.rs", "c.rs", "d.rs", "e.rs", "f.rs"];
+
+    fn producer_fixture_paths() -> Vec<String> {
+        PRODUCER_FIXTURE_FILES
+            .iter()
+            .enumerate()
+            .map(|(i, f)| format!("crates/gmeow-p{i}/src/{f}"))
+            .collect()
+    }
+
+    fn producer_seal_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_every_gts_producer_declares_a_medium(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn seal_c_passes_when_every_producer_is_declared() {
+        let rows: String = producer_fixture_paths()
+            .iter()
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    /// The clause the whole split rests on: a production producer the ontology does
+    /// not classify has NO audit branch, so it would be audited by nothing.
+    #[test]
+    fn seal_c_fails_on_a_producer_with_no_declared_medium_source_kind() {
+        let paths = producer_fixture_paths();
+        // Five rows; the sixth producer is left unclassified.
+        let rows: String = paths
+            .iter()
+            .take(5)
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains(&paths[5]), "{errs:?}");
+        assert!(
+            errs[0].contains("no gmeow:GtsProducer declares it"),
+            "{errs:?}"
+        );
+    }
+
+    /// A row whose medium declares NO `gmeow:mediumSourceKind` is equally unbranched
+    /// — being listed is not the same as being classified.
+    #[test]
+    fn seal_c_fails_when_a_declared_medium_carries_no_source_kind() {
+        let paths = producer_fixture_paths();
+        let mut rows: String = paths
+            .iter()
+            .take(5)
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        rows.push_str(&format!(
+            "gmeow:prod5 a gmeow:GtsProducer ; gmeow:producerCallSite {:?} ; \
+             gmeow:producerMedium gmeow:mediumNoKind .\n",
+            paths[5]
+        ));
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(
+            errs[0].contains("gmeow:mediumSourceKind value(s)"),
+            "{errs:?}"
+        );
+    }
+
+    /// A row claiming a file that authors nothing is STALE — the shape a real
+    /// producer's classifying row takes after its file is renamed out from under it.
+    #[test]
+    fn seal_c_fails_on_a_stale_call_site() {
+        let mut rows: String = producer_fixture_paths()
+            .iter()
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        rows.push_str(
+            "gmeow:prodStale a gmeow:GtsProducer ; \
+             gmeow:producerCallSite \"crates/gone/src/lib.rs\" ; \
+             gmeow:producerMedium gmeow:mediumFixture .\n",
+        );
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("names no production file"), "{errs:?}");
+    }
+
+    /// A truncated census is a SUBSET of any pin, so it must fail loudly rather than
+    /// pass while proving nothing.
+    #[test]
+    fn seal_c_fails_when_the_census_is_below_the_non_vacuity_floor() {
+        let temp = producer_seal_repo(
+            "gmeow:prod0 a gmeow:GtsProducer ; \
+             gmeow:producerCallSite \"crates/gmeow-p0/src/a.rs\" ; \
+             gmeow:producerMedium gmeow:mediumFixture .\n",
+            &["a.rs"],
+        );
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("non-vacuity floor"), "{errs:?}");
+    }
+
+    /// Seal C on the LIVE tree, positively: the census really does find the known
+    /// production producers, and every one of them resolves to exactly one declared
+    /// `gmeow:mediumSourceKind` — so a later "0 unclassified" result cannot be a
+    /// silent miss. The three source kinds are all exercised, which is what makes the
+    /// split a genuine partition rather than one live branch and two decorative ones.
+    #[test]
+    fn live_repo_producer_map_is_total_and_exercises_all_three_source_kinds() {
+        const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let mut report = RepoStaticReport::default();
+        let census = gts_producer_census(root, &mut report);
+        assert!(report.ok(), "census must not error: {:?}", report.errors);
+        let files: BTreeSet<&str> = census.iter().map(|p| p.file.as_str()).collect();
+        for known in [
+            "crates/gmeow-dev-cli/src/feedback_bundle.rs",
+            "crates/math/src/lib.rs",
+            "crates/music/src/lib.rs",
+            "crates/pipeline/src/mcp.rs",
+            "crates/pipeline/src/stages/carrier.rs",
+            "crates/pipeline/src/transcode.rs",
+        ] {
+            assert!(
+                files.contains(known),
+                "the live census must discover {known}; found {files:?}"
+            );
+        }
+
+        let declared = declared_gts_producers(root, &mut report);
+        assert!(report.ok(), "{:?}", report.errors);
+        let mut kinds: BTreeSet<String> = BTreeSet::new();
+        for file in &files {
+            let entry = declared
+                .get(*file)
+                .unwrap_or_else(|| panic!("{file} carries no gmeow:GtsProducer row"));
+            assert_eq!(entry.media.len(), 1, "{file}: {:?}", entry.media);
+            assert_eq!(
+                entry.source_kinds.len(),
+                1,
+                "{file}: {:?}",
+                entry.source_kinds
+            );
+            kinds.extend(entry.source_kinds.iter().cloned());
+        }
+        assert_eq!(
+            kinds,
+            [
+                format!("{GMEOW}mediumSourceHeaderDict"),
+                format!("{GMEOW}mediumSourcePerRep"),
+                format!("{GMEOW}mediumSourceWholeArtifact"),
+            ]
+            .into_iter()
+            .collect::<BTreeSet<String>>(),
+            "all three declared source kinds must be live, or a branch is decorative"
+        );
+        assert!(
+            PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM.is_empty(),
+            "the shrink-only producer census must stay empty — the medium audit's split is a \
+             total function over producers, so no producer may go unclassified"
+        );
     }
 
     /// Seal A on the LIVE tree: the census is exactly 1, and it is the profile

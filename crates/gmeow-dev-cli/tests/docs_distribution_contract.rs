@@ -514,7 +514,7 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     assert_eq!(
         header,
         "gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS \
-         payload frame.",
+         payload frame, and the declared medium each frame is primed with.",
         "AC4: the `gts-frame-profile-gate` Make target header changed"
     );
     let recipe = target_recipe(&source, "gts-frame-profile-gate");
@@ -535,10 +535,23 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
         "AC4: gts_profile.rs must keep `validate_mandated_frames`, the function that \
          positively validates every payload frame's zstd-rsyncable-L12 transform"
     );
+    // The UNIVERSAL rule stays in the leaf crate, applicable to every GMEOW-authored
+    // artifact including the many that carry no medium registry; the DECLARED-MEDIA
+    // half is a second, separately-callable check that lives with the registry it
+    // parses. Pin the split, so a later change cannot quietly make the universal rule
+    // registry-dependent and carve out "registry-less bundle ⇒ skip the medium check".
+    assert!(
+        !gts_profile.contains("MediumRegistry"),
+        "AC4: the universal Rule 6 check must stay registry-independent — the \
+         declared-media audit belongs in `gmeow_pipeline::medium::audit`, not the leaf"
+    );
 
-    // Positively RUN the mandated-frame validator over the shipped bundle — not merely
-    // assert the gate is wired. Every payload frame must carry the zstd-rsyncable-L12
-    // transform; a torn CBOR sequence or a non-conforming frame is a hard failure here.
+    // Positively RUN both validators over the shipped bundle — not merely assert the
+    // gate is wired. Every payload frame must carry the zstd-rsyncable-L12 transform,
+    // and each must be primed with the dictionary its rep's registered
+    // `gmeow:PayloadSchema` names. A torn CBOR sequence, a non-conforming frame, an
+    // unprimed frame under a primed rep, or a fold that degrades to an opaque node is
+    // a hard failure here.
     let bundle_path =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/dist/gmeow.gts");
     let bundle = std::fs::read(&bundle_path).unwrap_or_else(|e| {
@@ -551,6 +564,8 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     gmeow_pipeline::validate_mandated_frames(&bundle).unwrap_or_else(|e| {
         panic!("shipped bundle failed mandated zstd-rsyncable-L12 frame validation: {e}")
     });
+    gmeow_pipeline::validate_dist_bundle_media(&bundle)
+        .unwrap_or_else(|e| panic!("shipped bundle failed the declared-media audit: {e}"));
 }
 
 // ── F1 — the consumer verb is exercised end-to-end (RUNTIME, no bundle needed) ────

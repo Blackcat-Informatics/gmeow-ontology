@@ -1172,7 +1172,11 @@ mod tests {
                 ),
             }
         }
-        assert_eq!(registry.media().len(), 2, "baseline + dist");
+        // baseline + dist + store. The three are not decoration: each is the ONLY
+        // medium under which one of the three `gmeow:MediumSourceKind` branches is
+        // reachable, so a missing one would leave that branch with no live producer.
+        assert_eq!(registry.media().len(), 3, "baseline + dist + store");
+        let mut kinds: BTreeSet<MediumSourceKind> = BTreeSet::new();
         for medium in registry.media().values() {
             assert_eq!(
                 medium.zstd_level, 12,
@@ -1184,7 +1188,33 @@ mod tests {
                 "<{}> uses a non-baseline codec, so it must declare its reader contract",
                 medium.iri
             );
+            kinds.insert(medium.source_kind);
         }
+        assert_eq!(
+            kinds,
+            [
+                MediumSourceKind::PerRep,
+                MediumSourceKind::HeaderDict,
+                MediumSourceKind::WholeArtifact,
+            ]
+            .into_iter()
+            .collect::<BTreeSet<MediumSourceKind>>(),
+            "every declared gmeow:MediumSourceKind must be realized by a live medium"
+        );
+        // The store medium's bound is exactly the two memory dictionaries: a store
+        // primed with anything else could never be re-primed by a consumer holding only
+        // the shipped bundle.
+        let store = registry
+            .media()
+            .get(&gm("mediumProfileStoreL12"))
+            .expect("the store medium is declared");
+        assert_eq!(store.source_kind, MediumSourceKind::HeaderDict);
+        assert_eq!(
+            store.dictionaries,
+            [gm("dictGmeowMemoryCompactV1"), gm("dictGmeowMemoryHotV1")]
+                .into_iter()
+                .collect::<BTreeSet<String>>()
+        );
     }
 
     /// A selected dictionary with no trained bytes would emit frames citing a

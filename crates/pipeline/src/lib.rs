@@ -83,6 +83,10 @@ pub use generator_registry::{
 pub use graph::StageGraph;
 pub use gts_profile::validate_mandated_frames;
 pub use loader::{PipelineSpec, StageSpec, bind};
+pub use medium::audit::{
+    DIST_BUNDLE_PRODUCER, MediumDeclaration, declared_medium_of, validate_declared_media,
+    validate_dist_bundle_media,
+};
 pub use node::{
     CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
     StageProduct,

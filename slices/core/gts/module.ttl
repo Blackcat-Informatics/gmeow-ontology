@@ -742,6 +742,23 @@ gmeow:MediumSourceKind
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the value vocabulary for a medium's dictionary-resolution rule — the fact that turns 'which dictionary applies here' into a derivation rather than a lookup by convention."@x-gmeow-english .
 
+gmeow:GtsProducer
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS Producer"@x-gmeow-english ;
+    logic:subClassOf gmeow:SocialObject ;
+    skos:definition "A reified row of the producer-to-medium map: one production site that AUTHORS GMEOW GTS bytes, and the gmeow:Medium it writes through. It carries the production source file(s) it governs (gmeow:producerCallSite) and exactly one gmeow:producerMedium; the medium's own gmeow:mediumSourceKind then selects which declared-media audit branch applies to what that site emits. It exists because the medium audit is a three-way split, and a split is a TOTAL FUNCTION over producers only if every producer is in its domain — a producer with no row would have no branch, so it would be audited by nothing while the split still looked complete. A repo-static census enumerates every production call of a mandated-profile authorship door and HARD-fails on a call site no row claims, and on a row that claims no call site."@x-gmeow-english ;
+    skos:example "gmeow:gtsProducerDistBundle a gmeow:GtsProducer ; gmeow:producerCallSite \"crates/pipeline/src/stages/carrier.rs\" ; gmeow:producerMedium gmeow:mediumProfileDistL12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid re-declaring gmeow:mediumSourceKind on the producer (the medium already states it, and two copies could disagree about the same artifact), avoid a row with several gmeow:producerMedium values (a site writes through one medium), and avoid leaving a row in place after its file is renamed — a stale call site classifies nothing while making the map look complete."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one individual per production source file that calls a mandated-profile authorship door, list that file in gmeow:producerCallSite, and point gmeow:producerMedium at the medium it writes through; adding an authorship call in Rust means adding its row here in the same change."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare, as data, which medium a production GTS-authoring site writes through — the fact that makes the declared-media audit's branch selection derivable rather than assumed."@x-gmeow-english .
+
 gmeow:PayloadSchema
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -1092,6 +1109,40 @@ gmeow:mediumDictionary
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to bound which dictionaries a zstd medium is allowed to prime with."@x-gmeow-english .
 
+gmeow:producerCallSite
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "producer call site"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "A repo-relative production source path that authors GMEOW GTS bytes through a mandated-profile authorship door. A stable path string, not localizable prose. Non-functional: one producer may govern several files that write the same artifact through the same medium. The repo-static producer census reads exactly this literal, so a path that names no production authorship site is a stale row and HARD-fails."@x-gmeow-english ;
+    skos:example "gmeow:gtsProducerDistBundle gmeow:producerCallSite \"crates/pipeline/src/stages/carrier.rs\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid listing a test file (a producer is production code), avoid listing a file that only READS an artifact (validating or reading a header is not authorship), and avoid leaving a path in place after a rename."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "List the repo-relative path of each production file whose authorship calls this producer governs, exactly as the census spells it (slash-separated, from the repository root)."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bind a producer row to the production code it classifies, so the producer-to-medium map can be censused against the source rather than trusted."@x-gmeow-english .
+
+gmeow:producerMedium
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "producer medium"@x-gmeow-english ;
+    rdfs:range gmeow:Medium ;
+    skos:definition "The gmeow:Medium a production GTS-authoring site writes through. Exactly one per producer: a site that wrote through two media would leave its declared-media audit branch underivable, which is the per-call decision the medium axis removes. The audit branch is resolved THROUGH this medium's gmeow:mediumSourceKind rather than re-declared on the producer, so the resolution rule has exactly one source."@x-gmeow-english ;
+    skos:example "gmeow:gtsProducerRuntimeStores gmeow:producerMedium gmeow:mediumProfileStoreL12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid naming a medium the slice does not declare and avoid asserting several per producer — an artifact is written through one medium, and there is nothing to pick between two."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point each producer at exactly one declared medium; the audit branch follows from that medium's gmeow:mediumSourceKind."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare which medium a production authorship site writes through."@x-gmeow-english .
+
 gmeow:mediumSourceKind
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Medium ;
@@ -1374,6 +1425,130 @@ gmeow:mediumProfileDistL12
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
+gmeow:mediumProfileStoreL12
+    a gmeow:ZstdDictMedium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "store medium — zstd-rsyncable level 12, header-pinned dictionary"@x-gmeow-english ;
+    skos:definition "The medium the APPEND-ONLY RUNTIME STORES are written through: zstd-rsyncable at level 12, resolving its dictionary from the entry the SEGMENT HEADER pins (gmeow:mediumSourceHeaderDict) rather than per registered payload schema. A store carries no gmeow:PayloadSchema registry and no graph/medium-registry — it cites bundle dictionaries by id, obtained from the shipped pack's in-band \"dct\" map — so a per-rep rule would be unresolvable there and the dictionary-less gmeow:mediumProfileBaselineL12 would silently discard the priming an agent-memory record most benefits from (a few hundred bytes of claim against a shared vocabulary). Its gmeow:mediumDictionary bound is exactly the two memory dictionaries: a store primed with a dictionary the bundle does not ship could never be re-primed by a consumer holding only that bundle."@x-gmeow-english ;
+    gmeow:mediumCodec gmeow:codecZstdRsyncable ;
+    gmeow:mediumZstdLevel 12 ;
+    gmeow:mediumSourceKind gmeow:mediumSourceHeaderDict ;
+    gmeow:mediumCorrespondence gmeow:mediumCorrStoreL12 ;
+    gmeow:requiresReaderCapability "zstd-dictionary" ,
+        "zstd-rsyncable" ;
+    gmeow:mediumDictionary gmeow:dictGmeowMemoryCompactV1 ,
+        gmeow:dictGmeowMemoryHotV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+# --- The producer→medium map (one row per production authorship site) -------- #
+# The declared-media audit dispatches on gmeow:mediumSourceKind, so the split is a
+# TOTAL FUNCTION over producers only if every production site that authors GMEOW
+# GTS bytes has a row here. `crates/validate`'s Seal C censuses every production
+# call of a mandated-profile authorship door and HARD-fails a call site no row
+# claims — and a row that claims no call site. Without that census, "a producer
+# with no declared kind is a hard fail" would only ever fire on a fixture.
+
+gmeow:gtsProducerDistBundle
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the distribution bundle"@x-gmeow-english ;
+    skos:definition "The terminal carrier that emits generated/dist/gmeow.gts. It is the ONLY producer that writes through a per-rep medium, because it is the only one that carries a gmeow:PayloadSchema registry and a graph/medium-registry for a reader to resolve reps against."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/pipeline/src/stages/carrier.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileDistL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerRuntimeStores
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the append-only runtime stores"@x-gmeow-english ;
+    skos:definition "The MCP agent-memory, conjecture-library and compaction lanes. They carry no graph/medium-registry — they cite bundle dictionaries by id, read out of the shipped pack's in-band \"dct\" map — so they resolve their dictionary from the segment header, which is what gmeow:mediumProfileStoreL12 declares."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/pipeline/src/mcp.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileStoreL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerFeedbackBundle
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the feedback bundle"@x-gmeow-english ;
+    skos:definition "The gmeow-dev feedback bundle: a small, self-contained artifact assembled from a session's findings. It carries no payload-schema registry, so the whole artifact is written through one declared medium."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/gmeow-dev-cli/src/feedback_bundle.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerMathBundle
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the math bundle"@x-gmeow-english ;
+    skos:definition "The math producer's on-demand bundle. A whole-artifact deliverable with no rep registry of its own, so one declared medium governs every frame."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/math/src/lib.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerMusicBundle
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the music bundle"@x-gmeow-english ;
+    skos:definition "The music producer's on-demand bundle, the twin of the math one: a whole-artifact deliverable governed by a single declared medium."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/music/src/lib.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerConvertExit
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the convert --to gts exit"@x-gmeow-english ;
+    skos:definition "The transformed-consumer-output door: `gmeow convert --to gts` serializes a frozen carrier straight to GTS bytes. The output describes whatever the consumer handed in, so it carries no registry of its own and one declared medium governs the whole artifact."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/pipeline/src/transcode.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerTransformOutput
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the MAXIMAL(G) transform output"@x-gmeow-english ;
+    skos:definition "The native MAXIMAL(G) transform's GTS emission. Its output is a single saturated graph with no blob-rep registry, so one declared medium governs it end to end."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/pipeline/src/transform.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerCorrespondenceLowering
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the correspondence lowering"@x-gmeow-english ;
+    skos:definition "The correspondence-lowering stage's GTS emission of a single lowered alignment graph. A whole-artifact product with no rep registry."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/pipeline/src/stages/correspondence_lower.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerDocsMeasure
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the docs byte measurement"@x-gmeow-english ;
+    skos:definition "The docs-distribution byte measurement, which emits candidate bundles solely to weigh them. Its bytes are never shipped — but it is still a production authorship site, and a producer whose output is discarded is exactly the kind of site an exemption list would quietly swallow, so it declares its medium like any other."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/pipeline/src/docs_measure.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:gtsProducerReleaseBundle
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the signed release bundle"@x-gmeow-english ;
+    skos:definition "The release lane's signed re-emission. It re-authors an already-assembled carrier under a signing key rather than re-running the terminal's rep→medium assignment, so it is a whole-artifact producer: one medium governs the artifact it signs."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/pipeline/src/stages/release.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
 # --- The losslessness correspondences (meta-level; graph/correspondence-laws) - #
 # Each medium's dec ∘ enc = id claim is a judged crossing, never a boolean. The
 # rung is logic:SectionRetraction (put ∘ get = id_S on the declared content
@@ -1427,6 +1602,25 @@ gmeow:mediumCorrDistL12
     logic:getLeg gmeow:mediumCorrDistL12Get .
 
 gmeow:mediumCorrDistL12Get gmeow:path gmeow:mediumCorrDistL12Step .
+
+gmeow:mediumCorrStoreL12
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "store-L12 medium losslessness correspondence"@x-gmeow-english ;
+    skos:definition "The judged crossing realized by gmeow:mediumProfileStoreL12: decoding a payload primed with the dictionary the SEGMENT HEADER pins recovers the declared content domain exactly (dec ∘ enc = id). It differs from gmeow:mediumCorrDistL12 only in where the dictionary is resolved from — one entry per segment rather than one per registered payload schema — which is why it is a separate judged crossing rather than a caveat on that one: a store carries no gmeow:PayloadSchema registry, so its recovery claim is conditional on the segment header alone."@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint gmeow:PayloadSchema ;
+    logic:targetEndpoint gmeow:MediumEnvelope ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:mediumCorrStoreL12Get .
+
+gmeow:mediumCorrStoreL12Get gmeow:path gmeow:mediumCorrStoreL12Step .
 
 # --- The eight shipped dictionaries and their corpora ----------------------- #
 # EVERY corpus is BUNDLE-INTERNAL. The two memory dictionaries train on the
@@ -2234,6 +2428,15 @@ gmeow:Medium logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:mediumSourceKind ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:mediumCorrespondence ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:mediumCorrespondence ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] .
+
+# A producer writes through exactly one medium, and governs at least one call
+# site. "At least one" rather than "exactly one" is deliberate: a producer may
+# legitimately span several files that write the SAME artifact through the SAME
+# medium, while a row governing NO file classifies nothing.
+gmeow:GtsProducer logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:producerMedium ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Medium ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:producerMedium ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Medium ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:producerCallSite ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
 # The zstd level is declared on the medium, exactly once.
 gmeow:ZstdDictMedium logic:subClassOf

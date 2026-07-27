@@ -11,6 +11,11 @@
 //! representation the carrier can emit. This module is the executable twin of that
 //! declaration, split so each file has exactly ONE reason to change:
 //!
+//! * [`audit`] — the DECLARED-MEDIA check: does an emitted artifact's wire agree
+//!   with the `gmeow:Medium` its producer declared? The dictionary half of the
+//!   codec gate, split from the universal
+//!   [`gmeow_gts_profile::validate_mandated_frames`] rule so the latter stays
+//!   applicable to every GMEOW-authored artifact, registry or no registry;
 //! * [`registry`] — the carrier dataset → the typed registry (dictionaries,
 //!   corpora, payload schemas, media, and the TOTAL rep→medium assignment), plus
 //!   the [`purrdf::gts_compose::MediumPlan`] that assignment renders to;
@@ -47,6 +52,7 @@
 //! [`MEDIUM_GENERATED_PREFIX`] — statically where the selector says so, and by
 //! content inspection where only the selected material can tell.
 
+pub mod audit;
 pub mod corpus;
 pub mod envelope;
 pub mod rdf;

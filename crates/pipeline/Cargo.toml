@@ -169,6 +169,11 @@ tempfile = "3"
 ciborium = "0.2"
 blake3 = "1"
 gmeow-gts-profile = { path = "../gts-profile" }
+# The whole-artifact declared-media audit (tests/whole_artifact_media.rs) drives the
+# music producer's own GTS door and holds its output to the branch the ontology
+# routes it to. Music is not otherwise a dependency of this crate, so it is dev-only;
+# gmeow-math already is one and is deliberately NOT duplicated here.
+gmeow-music = { path = "../music" }
 # The medium-axis concurrency proof (`medium::train`): each worker thread PERTURBS
 # its own thread-local `fastrand` generator around the training call, so a
 # regression to an ambient-seeded trainer shows up as diverging dictionary bytes

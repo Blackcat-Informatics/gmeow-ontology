@@ -737,7 +737,16 @@ pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex> {
 /// The byte-producing half of [`index_turtle`], separated so the emitted bundle
 /// can be audited directly: these are production GTS bytes, so every payload
 /// frame carries `zstd-rsyncable` at level 12 like the shipped bundle's.
-fn turtle_to_gts(turtle: &[u8]) -> Result<Vec<u8>> {
+///
+/// Public because the audit the doc comment promises is TWO checks, not one: the
+/// universal Rule 6 frame profile (audited in this crate's own tests) and the
+/// declared-media audit, which lives in `gmeow-pipeline` — a crate this one cannot
+/// depend on. A private emitter would make the second half unreachable from anywhere,
+/// which is how a whole-artifact producer ends up governed by nothing.
+///
+/// # Errors
+/// Unparsable Turtle, a snapshot the composer refuses, or a codec failure.
+pub fn turtle_to_gts(turtle: &[u8]) -> Result<Vec<u8>> {
     use purrdf::gts_compose::SnapshotBuilder;
     use purrdf::{NativeRdfFormat, parse_dataset};
 

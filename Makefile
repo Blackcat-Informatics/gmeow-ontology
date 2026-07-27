@@ -135,7 +135,7 @@ rust-test: rust-build ## Run the Rust workspace tests and doctests.
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
-gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame.
+gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with.
 	$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.

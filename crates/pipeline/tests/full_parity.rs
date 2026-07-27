@@ -510,9 +510,10 @@ fn two_cold_generations_are_deterministic() {
             ));
         }
         for (label, bytes) in [("A", gts_a), ("B", gts_b)] {
-            if !mandated_frame_profile_ok(bytes) {
+            if let Err(why) = mandated_frame_profile_ok(bytes) {
                 bundle_diffs.push(format!(
-                    "bundle {label} does not satisfy the mandated GTS frame profile"
+                    "bundle {label} does not satisfy the mandated GTS frame profile and its \
+                     declared medium: {why}"
                 ));
             }
         }
@@ -546,71 +547,20 @@ fn run_all_products(root: &Path) -> BTreeMap<String, Vec<u8>> {
     out
 }
 
-/// Whether `bytes` satisfies the mandated GMEOW GTS frame profile — every payload-bearing
-/// frame carries exactly the one `zstd-rsyncable` transform. This is the SAME invariant
-/// `gmeow_pipeline::gts_profile`'s `assert_mandated_frames` pins as the single frame
-/// authority (a crate-private unit-test helper, unreachable from an integration test),
-/// mirrored here through purrdf's public `gts::wire` API so the two-generation fallback proves
-/// each bundle is a VALID mandated-profile bundle, not merely fold-equivalent to the other.
-fn mandated_frame_profile_ok(bytes: &[u8]) -> bool {
-    use ciborium::value::Value;
-    use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
-
-    fn as_map(v: &Value) -> Option<&[(Value, Value)]> {
-        match v {
-            Value::Map(entries) => Some(entries),
-            _ => None,
-        }
-    }
-    fn as_int(v: &Value) -> Option<i128> {
-        match v {
-            Value::Integer(i) => Some(i128::from(*i)),
-            _ => None,
-        }
-    }
-
-    let (items, torn) = iter_items(bytes);
-    if torn.is_some() {
-        return false;
-    }
-    let Some((_, header_item)) = items.first() else {
-        return false;
-    };
-    let Ok(header) = unwrap_header(header_item) else {
-        return false;
-    };
-    // The codec id of the mandated transform, resolved from the header catalog.
-    let Some(catalog) = map_get(header, "cat").and_then(as_map) else {
-        return false;
-    };
-    let Some(required) = catalog.iter().find_map(|(id, descriptor)| {
-        let descriptor = as_map(descriptor)?;
-        match map_get(descriptor, "name") {
-            Some(Value::Text(name)) if name == "zstd-rsyncable" => as_int(id),
-            _ => None,
-        }
-    }) else {
-        return false;
-    };
-    let mut payload_frames = 0usize;
-    for (_, item) in items.iter().skip(1) {
-        let Some(frame) = as_map(item) else {
-            return false;
-        };
-        if map_get(frame, "d").is_none() {
-            // A metadata-only transport-key frame carries no payload and no transform chain.
-            if map_get(frame, "x").is_some() {
-                return false;
-            }
-            continue;
-        }
-        payload_frames += 1;
-        let Some(Value::Array(transforms)) = map_get(frame, "x") else {
-            return false;
-        };
-        if transforms.len() != 1 || as_int(&transforms[0]) != Some(required) {
-            return false;
-        }
-    }
-    payload_frames > 0
+/// Whether `bytes` satisfies BOTH halves of the GMEOW GTS codec rule.
+///
+/// This used to be a hand-rolled mirror of the frame profile, and the mirror had
+/// drifted: it resolved THE `zstd-rsyncable` catalog id with `find_map` and required
+/// every frame to name exactly that one. A dictionary-primed pack legitimately declares
+/// several `zstd-rsyncable` entries — one unprimed plus one per pinned dictionary
+/// (spec §5) — so the mirror would have rejected a conforming bundle, and a mirror that
+/// can be wrong about the artifact is worse than no mirror at all.
+///
+/// It now calls the two SHIPPED checks instead, which is also what makes this
+/// determinism fallback meaningful: each bundle must be a valid mandated-profile bundle
+/// AND agree with the medium its own ontology says its producer writes through — not
+/// merely fold-equivalent to the other one.
+fn mandated_frame_profile_ok(bytes: &[u8]) -> gmeow_errors::Result<()> {
+    gmeow_pipeline::validate_mandated_frames(bytes)?;
+    gmeow_pipeline::validate_dist_bundle_media(bytes)
 }
