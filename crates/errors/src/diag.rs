@@ -350,6 +350,18 @@ pub trait DiagKind: StdError + Send + Sync + 'static {
             Standpoint::Binding,
         )
     }
+    /// The ontology failure-class IRI this kind is the Rust PRODUCER of — the
+    /// `gmeow:enforcesFailureClass` individual a raised diagnostic instantiates.
+    ///
+    /// `None` is the honest default: most kinds name a defect the ontology has
+    /// not (yet) minted a typed failure class for, and inventing an IRI for them
+    /// would be a second source of truth. A kind that DOES declare one is bound
+    /// to it bijectively — the repo-static bijection gate proves the IRI resolves
+    /// to a real failure-class individual and that no such individual is left
+    /// without a producer, so the annotation can never drift into decoration.
+    fn failure_class(&self) -> Option<&'static str> {
+        None
+    }
 }
 
 /// The boxed payload behind the one-word [`Diag`].
@@ -801,6 +813,26 @@ macro_rules! ensure {
 ///     message = "no impl `{}` for stage `{}`", impl_key, stage;
 /// }
 /// ```
+///
+/// # Binding a kind to its ontology failure class
+///
+/// An OPTIONAL trailing `failure_class = "<IRI>";` clause binds the kind to the
+/// `gmeow:enforcesFailureClass` individual it produces, generating a
+/// `FAILURE_CLASS: Option<&'static str>` constant and the matching
+/// [`DiagKind::failure_class`](crate::diag::DiagKind::failure_class) accessor.
+/// Omitting it yields `None` — the default, and the only honest answer for a kind
+/// whose defect the ontology names no failure class for.
+///
+/// ```ignore
+/// define_diag_kind! {
+///     /// A blob rep the payload-schema registry does not know.
+///     pub struct MediumUnknownSchema { message: String }
+///     code = "pipeline.medium.unknown-schema";
+///     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+///     message = "unknown payload schema: {}", message;
+///     failure_class = "https://blackcatinformatics.ca/gmeow/MediumUnknownSchema";
+/// }
+/// ```
 #[macro_export]
 macro_rules! define_diag_kind {
     (
@@ -809,6 +841,7 @@ macro_rules! define_diag_kind {
         code = $code:literal;
         grade = $grade:expr;
         message = $msg:literal $(, $marg:ident)* $(,)?;
+        $(failure_class = $failure_class:literal;)?
     ) => {
         $(#[$meta])*
         #[derive(::std::fmt::Debug, ::std::clone::Clone)]
@@ -821,6 +854,19 @@ macro_rules! define_diag_kind {
             /// generated API items carry `allow(dead_code)`.)
             #[allow(dead_code)]
             pub const CODE: &'static str = $code;
+
+            /// The ontology failure-class IRI this kind produces, or `None` when
+            /// the kind declares no `failure_class` clause. Materialized as a
+            /// CONSTANT (not merely a trait method) so a static census can read it
+            /// off the source without instantiating the kind.
+            #[allow(dead_code)]
+            pub const FAILURE_CLASS: ::core::option::Option<&'static str> = {
+                #[allow(unused_mut, unused_assignments)]
+                let mut declared: ::core::option::Option<&'static str> =
+                    ::core::option::Option::None;
+                $( declared = ::core::option::Option::Some($failure_class); )?
+                declared
+            };
 
             /// The registered [`Code`](crate::code::Code) handle for this kind,
             /// interned once on first use (idempotent). Call eagerly at startup
@@ -849,6 +895,9 @@ macro_rules! define_diag_kind {
             }
             fn grade(&self) -> $crate::grade::Grade {
                 $grade
+            }
+            fn failure_class(&self) -> ::core::option::Option<&'static str> {
+                $name::FAILURE_CLASS
             }
         }
     };
@@ -1037,6 +1086,52 @@ mod tests {
         assert_eq!(diag.code(), UnknownStageImpl::register());
         assert_eq!(diag.gate(), GateVerdict::Fatal);
         assert!(diag.downcast_ref::<UnknownStageImpl>().is_some());
+    }
+
+    crate::define_diag_kind! {
+        /// A generated kind carrying the OPTIONAL ontology failure-class binding.
+        pub struct FailureClassBound { detail: String }
+        code = "test.define.failure-class-bound";
+        grade = Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        );
+        message = "bound kind: {}", detail;
+        failure_class = "https://blackcatinformatics.ca/gmeow/TestFailureClass";
+    }
+
+    /// The `failure_class` clause is OPTIONAL and PURELY ADDITIVE: a kind that
+    /// declares one exposes the IRI through both the constant and the trait
+    /// accessor, and a kind that does not keeps the `None` default — so extending
+    /// the macro cannot have changed the meaning of any existing kind.
+    #[test]
+    fn define_diag_kind_binds_the_optional_failure_class() {
+        assert_eq!(
+            FailureClassBound::FAILURE_CLASS,
+            Some("https://blackcatinformatics.ca/gmeow/TestFailureClass")
+        );
+        let bound = FailureClassBound {
+            detail: "demo".to_owned(),
+        };
+        assert_eq!(
+            bound.failure_class(),
+            Some("https://blackcatinformatics.ca/gmeow/TestFailureClass")
+        );
+        // Everything else the macro generates is unchanged by the new clause.
+        assert_eq!(bound.to_string(), "bound kind: demo");
+        assert_eq!(bound.code(), FailureClassBound::register());
+
+        // A kind WITHOUT the clause keeps the honest `None` default.
+        assert_eq!(UnknownStageImpl::FAILURE_CLASS, None);
+        assert_eq!(
+            UnknownStageImpl {
+                stage: "reason".to_owned(),
+                impl_key: "demo".to_owned(),
+            }
+            .failure_class(),
+            None
+        );
     }
 
     #[test]

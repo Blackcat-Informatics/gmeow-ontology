@@ -100,6 +100,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
     check_gts_authorship_seals(root, &mut report);
+    check_diag_failure_class_binding(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
     report
@@ -2309,6 +2310,553 @@ fn check_gts_authorship_seals(root: &Path, report: &mut RepoStaticReport) {
     check_no_bypassing_gts_authorship(&hits, report);
 }
 
+// ── the diagnostic-kind ↔ ontology failure-class binding ────────────────────
+//
+// `gmeow_errors::define_diag_kind!` carries an OPTIONAL `failure_class = "<IRI>";`
+// clause binding a Rust kind to the `gmeow:enforcesFailureClass` individual it
+// produces. Two gates keep that binding honest, and NEITHER is redundant:
+//
+// * [`check_diag_failure_class_bijection`] proves every declared IRI resolves to a
+//   real failure-class individual and that every `gmeow:Medium*` failure class has
+//   exactly one Rust producer — the correctness of the links that EXIST;
+// * [`check_diag_failure_class_ratchet`] pins the census of kinds carrying NO
+//   failure class and lets it only SHRINK — without it the annotation stays
+//   permanently optional and the bijection is vacuous for every kind but the
+//   annotated few, since a new unannotated kind would simply never be looked at.
+
+/// The `gmeow:` term that links a gate to the failure class it raises.
+const ENFORCES_FAILURE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+
+/// The IRI stem of the medium axis's failure-class vocabulary. Every failure class
+/// under it must have exactly one Rust producer (the six `pipeline.medium.*` kinds).
+const MEDIUM_FAILURE_CLASS_STEM: &str = "https://blackcatinformatics.ca/gmeow/Medium";
+
+/// One `define_diag_kind!` invocation, as the static census reads it off the source.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct DiagKindDecl {
+    /// Repo-relative, forward-slash path of the declaring file.
+    file: String,
+    /// The `code = "…"` literal — the kind's stable registered code.
+    code: String,
+    /// The `failure_class = "…"` literal, when the invocation declares one.
+    failure_class: Option<String>,
+}
+
+/// Every `define_diag_kind!` invocation under `crates/*/src/`, in `(file, code)` order.
+///
+/// Production kinds only: the scan is restricted to `src/` trees (a `tests/` support
+/// harness mints throwaway kinds that must not enter the pin) and reads through
+/// [`blank_comments_and_cfg_test_modules`], so a doc-comment example and a
+/// `#[cfg(test)]`-gated kind are both invisible while the `code` / `failure_class`
+/// string literals the census actually needs stay readable.
+///
+/// The block scan is line-based and deliberately strict: an invocation is opened by a
+/// line ending in `define_diag_kind! {` and closed by the first line whose trimmed
+/// content is exactly `}`. Every production invocation is a top-level item written in
+/// that shape; an invocation the scanner cannot close before the file ends is reported
+/// as a HARD FAIL rather than silently dropped, because a silently dropped kind is one
+/// the ratchet would stop watching.
+fn diag_kind_census(root: &Path, report: &mut RepoStaticReport) -> Vec<DiagKindDecl> {
+    let mut found = Vec::new();
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return found;
+    }
+    let mut files = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    files.sort();
+    for path in &files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        // `crates/<crate>/src/…` only — a `tests/`/`benches/` helper is not a
+        // production kind and must not be pinned as one.
+        if !rel.contains("/src/") {
+            continue;
+        }
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        if !text.contains("define_diag_kind!") {
+            continue;
+        }
+        // Two views of the SAME text, blanked in place so their lines stay aligned:
+        // `literals` keeps the string contents the census reads, `code_only` blanks
+        // them so brace depth is counted over real delimiters and never over a `{}`
+        // inside a `message = "…"` format string.
+        let literals = blank_comments_and_cfg_test_modules(&text);
+        let code_only = blank_comments_strings_and_cfg_test_modules(&text);
+        scan_diag_kind_decls(&rel, &literals, &code_only, report, &mut found);
+    }
+    found.sort_by(|a, b| (&a.file, &a.code).cmp(&(&b.file, &b.code)));
+    found
+}
+
+/// Pull the `code` / `failure_class` literals out of every `define_diag_kind!` block
+/// in one already-blanked source text.
+///
+/// `literals` and `code_only` are the same text under the two blanking views (see
+/// [`diag_kind_census`]); they have identical line structure, so the scan walks them
+/// in lockstep and reads delimiters from one and string values from the other. The
+/// block is delimited by BRACE DEPTH, not by a bare closing line: an invocation whose
+/// struct body spans several lines closes its field list with a line that also trims
+/// to `}`, and treating that as the end of the block would silently drop the kind.
+fn scan_diag_kind_decls(
+    rel: &str,
+    literals: &str,
+    code_only: &str,
+    report: &mut RepoStaticReport,
+    out: &mut Vec<DiagKindDecl>,
+) {
+    struct Open {
+        line_no: usize,
+        depth: i32,
+        code: Option<String>,
+        failure_class: Option<String>,
+    }
+    let brace_delta = |line: &str| -> i32 {
+        line.chars().filter(|c| *c == '{').count() as i32
+            - line.chars().filter(|c| *c == '}').count() as i32
+    };
+
+    let mut open: Option<Open> = None;
+    for (index, (literal_line, code_line)) in literals.lines().zip(code_only.lines()).enumerate() {
+        let Some(state) = open.as_mut() else {
+            if code_line.trim().ends_with("define_diag_kind! {") {
+                open = Some(Open {
+                    line_no: index + 1,
+                    depth: brace_delta(code_line),
+                    code: None,
+                    failure_class: None,
+                });
+            }
+            continue;
+        };
+
+        let trimmed = literal_line.trim();
+        if let Some(value) = quoted_clause_value(trimmed, "code") {
+            state.code = Some(value);
+        } else if let Some(value) = quoted_clause_value(trimmed, "failure_class") {
+            state.failure_class = Some(value);
+        }
+
+        state.depth += brace_delta(code_line);
+        if state.depth > 0 {
+            continue;
+        }
+        let closed = open.take().expect("the block was open on this branch");
+        match closed.code {
+            Some(code) => out.push(DiagKindDecl {
+                file: rel.to_string(),
+                code,
+                failure_class: closed.failure_class,
+            }),
+            None => report.error(format!(
+                "{rel}:{}: a define_diag_kind! invocation declares no `code = \"…\";` literal — \
+                 every diagnostic kind carries a stable registered code",
+                closed.line_no
+            )),
+        }
+    }
+    if let Some(open) = open {
+        report.error(format!(
+            "{rel}:{}: a define_diag_kind! invocation is never closed — the diagnostic-kind \
+             census cannot read it, and an unreadable kind is one the shrink-only failure-class \
+             ratchet stops watching",
+            open.line_no
+        ));
+    }
+}
+
+/// The string value of a `<clause> = "<value>";` line, if the line is one.
+fn quoted_clause_value(trimmed: &str, clause: &str) -> Option<String> {
+    let rest = trimmed.strip_prefix(clause)?.trim_start();
+    let rest = rest.strip_prefix('=')?.trim_start();
+    let rest = rest.strip_prefix('"')?;
+    let end = rest.find('"')?;
+    Some(rest[..end].to_string())
+}
+
+/// Every failure-class IRI the ontology declares, as the object of a
+/// `gmeow:enforcesFailureClass` triple in any authored slice Turtle.
+///
+/// The gate-to-failure link is the ontology's OWN authority for "this is a failure
+/// class someone raises", so the census reads exactly that rather than re-deriving a
+/// class hierarchy: an `owl:Class` nobody points at through `enforcesFailureClass` is
+/// documentation, not a gate (`gmeow:GtsConformanceFailure`'s own `avoidWhen` says so).
+fn ontology_failure_classes(root: &Path, report: &mut RepoStaticReport) -> BTreeSet<String> {
+    let mut classes = BTreeSet::new();
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return classes;
+    }
+    let mut ttl_files = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut ttl_files);
+    ttl_files.sort();
+    for path in &ttl_files {
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        // Cheap pre-filter: only a file that mentions the term can bind it.
+        if !text.contains("enforcesFailureClass") {
+            continue;
+        }
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+        let Some(pid) = iri_id_static(&ds, ENFORCES_FAILURE_CLASS) else {
+            continue;
+        };
+        for quad in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+            if let TermRef::Iri(iri) = ds.resolve(quad.o) {
+                classes.insert(iri.to_string());
+            }
+        }
+    }
+    classes
+}
+
+/// The Rust-kind ↔ ontology failure-class BIJECTION, in both directions:
+///
+/// * every `failure_class = "<IRI>"` a Rust kind declares resolves to a real
+///   `gmeow:enforcesFailureClass` individual — an IRI typo, or a kind bound to a
+///   class the ontology never minted, is a claim about a gate that does not exist;
+/// * every `gmeow:Medium*` failure class has EXACTLY ONE Rust producer — a class with
+///   none is an unenforced failure (documentation, not a gate), and a class with two
+///   makes "which code did this raise" unanswerable.
+///
+/// The medium axis is the direction that is pinned to exactly-one because it is the
+/// axis whose producers this codebase owns end to end. The other direction (a
+/// declared IRI must exist) binds EVERY annotated kind, whatever its axis.
+fn check_diag_failure_class_bijection(
+    decls: &[DiagKindDecl],
+    root: &Path,
+    report: &mut RepoStaticReport,
+) {
+    let declared = ontology_failure_classes(root, report);
+    if declared.is_empty() {
+        // No slices tree (a synthetic minimal-repo fixture): nothing to bind against.
+        return;
+    }
+
+    let mut producers: BTreeMap<&str, Vec<&DiagKindDecl>> = BTreeMap::new();
+    for decl in decls {
+        let Some(iri) = decl.failure_class.as_deref() else {
+            continue;
+        };
+        if !declared.contains(iri) {
+            report.error(format!(
+                "{}: diagnostic kind `{}` declares failure_class <{iri}>, which is not a \
+                 gmeow:enforcesFailureClass individual in any slice — a Rust kind may only bind \
+                 to a failure class the ontology actually mints and a gate actually raises; \
+                 author the individual (and the logic: constraint that enforces it) or drop the \
+                 clause",
+                decl.file, decl.code
+            ));
+            continue;
+        }
+        producers.entry(iri).or_default().push(decl);
+    }
+
+    for iri in declared
+        .iter()
+        .filter(|i| i.starts_with(MEDIUM_FAILURE_CLASS_STEM))
+    {
+        match producers.get(iri.as_str()).map(Vec::as_slice) {
+            None => report.error(format!(
+                "<{iri}>: a gmeow:Medium* failure class with NO Rust producer — an unenforced \
+                 failure class is documentation, not a gate. Mint the diagnostic kind that \
+                 raises it with `failure_class = \"{iri}\";` in its define_diag_kind! block"
+            )),
+            Some([_]) => {}
+            Some(many) => report.error(format!(
+                "<{iri}>: {} Rust kinds declare this failure class ({}) — the producer must be \
+                 UNIQUE, or 'which code raised this failure' has no answer",
+                many.len(),
+                many.iter()
+                    .map(|d| format!("`{}` in {}", d.code, d.file))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )),
+        }
+    }
+}
+
+/// The shrink-only census of diagnostic kinds that carry NO `failure_class` clause.
+///
+/// Every entry is a kind whose defect the ontology names no typed failure class for.
+/// The set is **shrink-only**: as a failure class is minted in a slice and its
+/// producer annotated, the kind's code leaves this list (and the bijection gate above
+/// starts binding it). What must NEVER happen is GROWTH — a new unannotated kind means
+/// a new Rust-side defect with no ontological counterpart, which is exactly the
+/// structural disconnect the `failure_class` clause exists to close. Subset-or-equal
+/// (not strict equality) is deliberate, mirroring
+/// [`PINNED_HAND_AUTHORED_SHAPES_TTL`]: annotating a kind without trimming its entry
+/// here must still pass; only an unlisted ADDITION reds.
+const PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS: &[&str] = &[
+    "affect.classify.coincident-prototypes",
+    "affect.classify.dimension-mismatch",
+    "affect.classify.distance-failed",
+    "affect.classify.duplicate-axis",
+    "affect.classify.empty-prototype-set",
+    "affect.classify.value-out-of-range",
+    "affect.classify.vantage-not-pd",
+    "affect.classify.zero-norm-cosine",
+    "affect.crosscheck.definiteness-absent",
+    "affect.crosscheck.definiteness-mismatch",
+    "affect.crosscheck.gram-no-entries",
+    "affect.distance.metric-basis-mismatch",
+    "affect.graph.empty-basis",
+    "affect.graph.missing-property",
+    "affect.graph.no-observations",
+    "affect.graph.unrecognized-handle",
+    "cli-core.diagnostics.empty-artifact-selection",
+    "cli-core.diagnostics.unknown-artifact-kind",
+    "cli-core.diagnostics.unknown-console-mode",
+    "conformance.case.anatomy",
+    "conformance.cli.args",
+    "conformance.compare.json",
+    "conformance.compare.rdf",
+    "conformance.corpus.invalid",
+    "conformance.corpus.license-not-vendorable",
+    "conformance.io",
+    "conformance.lower.nquads",
+    "conformance.manifest.invalid",
+    "conformance.manifest.parse",
+    "conformance.profile.invalid",
+    "conformance.run.failed",
+    "conformance.serialize",
+    "conformance.szs.status",
+    "conformance.szs.unknown-status",
+    "conformance.vendor",
+    "docs-print.typst-render-failed",
+    "docs.describe.gts-read",
+    "docs.i18n.catalog-inconsistent",
+    "docs.i18n.file-io",
+    "docs.i18n.po-parse",
+    "docs.i18n.rdf-format",
+    "docs.i18n.rdf-parse",
+    "docs.i18n.turtle-unescape",
+    "docs.i18n.unsupported-source",
+    "errors.model.unknown-finding-category",
+    "errors.model.unknown-severity-label",
+    "gmeow-cli-core.docs-export.io",
+    "gmeow-cli.bundle.read-failed",
+    "gmeow-cli.describe.ambiguous",
+    "gmeow-cli.describe.unresolved",
+    "gmeow-cli.explain.unknown-target",
+    "gmeow-cli.explain.walk-failed",
+    "gmeow-cli.hybrid-query.purremb-selection",
+    "gmeow-cli.output.encoding-failed",
+    "gmeow-cli.rdf.pipeline-failed",
+    "gmeow-cli.source.read-failed",
+    "gmeow-dev-cli.bundle.read-failed",
+    "gmeow-dev-cli.feedback.bundle-failed",
+    "gmeow-dev-cli.gates.vendored-corpus-descriptor-invalid",
+    "gmeow-dev-cli.logic.query-failed",
+    "gmeow-dev-cli.output.encoding-failed",
+    "gmeow-dev-cli.project.target-refresh-failed",
+    "gmeow-dev-cli.rdf.pipeline-failed",
+    "gmeow-dev-cli.reason.failed",
+    "gmeow-dev-cli.shapes.clearance-ungrounded",
+    "gmeow-dev-cli.source.read-failed",
+    "gmeow-dev-cli.sync.failed",
+    "lang-bridge.emit.digest-collision",
+    "lang-bridge.gmn1.graph-out-of-domain",
+    "lang-bridge.gmn1.malformed-number",
+    "lang-bridge.gmn1.non-canonical-order",
+    "lang-bridge.gmn1.non-decodable-grammar",
+    "lang-bridge.gmn1.non-nfc-literal",
+    "lang-bridge.gmn1.uncovered-term",
+    "lang-bridge.gmn1.undeclared-dialect-version",
+    "lang-bridge.registry.class-not-listed",
+    "lang-bridge.registry.missing-targets",
+    "logic-compile.cgif",
+    "logic-compile.clif",
+    "logic-compile.compat",
+    "logic-compile.correspondence",
+    "logic-compile.edoal",
+    "logic-compile.fno",
+    "logic-compile.frontend",
+    "logic-compile.get-leg",
+    "logic-compile.graph",
+    "logic-compile.ir",
+    "logic-compile.opt-lift",
+    "logic-compile.projection",
+    "logic-compile.put",
+    "logic-compile.relational-core",
+    "logic-compile.roundtrip",
+    "logic-compile.sparql",
+    "logic-compile.sssom",
+    "logic-compile.text",
+    "logic-compile.validation",
+    "logic-compile.xcl",
+    "logic.certify",
+    "logic.contract-drift",
+    "logic.counterfactual",
+    "logic.engine",
+    "logic.foundation",
+    "logic.ir",
+    "logic.lower",
+    "logic.obligation",
+    "logic.oracle",
+    "logic.physical",
+    "logic.probabilistic",
+    "logic.provenance",
+    "logic.query",
+    "logic.reason",
+    "logic.reference",
+    "logic.relational-core",
+    "logic.result",
+    "logic.store",
+    "logic.teleology",
+    "logic.transaction",
+    "logic.transition",
+    "logic.verify",
+    "math.angle.bad-cosine",
+    "math.clifford.blade-out-of-range",
+    "math.clifford.grade-out-of-range",
+    "math.clifford.invalid-signature",
+    "math.decimal.parse",
+    "math.dimension.malformed",
+    "math.gram.non-square",
+    "math.gram.not-positive-definite",
+    "math.graph.missing-property",
+    "math.graph.no-cells",
+    "math.graph.read",
+    "math.index.out-of-range",
+    "math.rational.domain",
+    "math.rational.overflow",
+    "math.scale.degenerate",
+    "math.space.zero-dimensional",
+    "math.sqrt.negative",
+    "math.vector.zero",
+    "music.format.unsupported",
+    "music.fraction.invalid",
+    "music.gts.no-musical-entity",
+    "music.gts.rdf-pipeline",
+    "music.import.unsupported-suffix",
+    "music.musicxml.parse",
+    "music.musicxml.timeline-overflow",
+    "pipeline.bundle.decode",
+    "pipeline.bundle.json",
+    "pipeline.bundle.parse",
+    "pipeline.bundle.untar",
+    "pipeline.cache.decode",
+    "pipeline.cache.mismatch",
+    "pipeline.contract.attach-decl-mismatch",
+    "pipeline.contract.attach-drift",
+    "pipeline.contract.capability-mismatch",
+    "pipeline.contract.consumes-mismatch",
+    "pipeline.contract.dataflow-mismatch",
+    "pipeline.contract.expected-output",
+    "pipeline.contract.fanout-bijection",
+    "pipeline.contract.resource-mismatch",
+    "pipeline.dag.invalid",
+    "pipeline.dag.unknown-stage-impl",
+    "pipeline.declaration.invalid",
+    "pipeline.docs-distribution",
+    "pipeline.docs-measure",
+    "pipeline.eval.schema",
+    "pipeline.generator",
+    "pipeline.io",
+    "pipeline.mcp",
+    "pipeline.mcp.ambiguous-term",
+    "pipeline.meta-fold",
+    "pipeline.projection",
+    "pipeline.put",
+    "pipeline.rdf.parse",
+    "pipeline.release",
+    "pipeline.rule-severity.unknown",
+    "pipeline.scoreboard",
+    "pipeline.spans.consumed-after-drop",
+    "pipeline.stage.failed",
+    "pipeline.transcode.codec",
+    "pipeline.transcode.non-invertible-source",
+    "pipeline.transcode.undecodable-input",
+    "pipeline.transcode.unknown-codec",
+    "pipeline.transform",
+    "pipeline.up-projection",
+    "slice-brief.io",
+    "slice-brief.partition",
+    "slice-quality.gate",
+    "slice-quality.io",
+    "slice-quality.reason",
+    "slice-quality.report",
+    "slice-quality.rubric",
+    "slicetest.dataset.read",
+    "slicetest.exec.aggregate",
+    "slicetest.exec.competency",
+    "slicetest.exec.conformance",
+    "slicetest.exec.example-discovery",
+    "slicetest.exec.query-load",
+    "slicetest.exec.shape-validation",
+    "slicetest.exec.structural",
+    "slicetest.sparql.eval",
+    "slicetest.sparql.unexpected-form",
+    "slicetest.spec.cell",
+    "slicetest.spec.load",
+    "slicetest.spec.result-shape",
+    "slicetest.spec.typed-binding",
+    "slicetest.store.logic-reasoning",
+    "slicetest.store.merged-graph",
+    "slicetest.store.rdfs-closure",
+    "validate.argument",
+    "validate.catalog",
+    "validate.crossref",
+    "validate.dataset",
+    "validate.engine",
+    "validate.format",
+    "validate.io",
+    "validate.language-tag",
+    "validate.mapping",
+    "validate.parse",
+    "validate.self-description",
+    "validate.serialize",
+];
+
+/// The shrink-only failure-class ratchet: every kind the live census finds WITHOUT a
+/// `failure_class` must already be in [`PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS`].
+fn check_diag_failure_class_ratchet(decls: &[DiagKindDecl], report: &mut RepoStaticReport) {
+    let pinned: BTreeSet<&str> = PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS
+        .iter()
+        .copied()
+        .collect();
+    for decl in decls.iter().filter(|d| d.failure_class.is_none()) {
+        if !pinned.contains(decl.code.as_str()) {
+            report.error(format!(
+                "{}: diagnostic kind `{}` declares no `failure_class` and is outside the pinned \
+                 shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in \
+                 crates/validate/src/repo_static.rs) — the set of kinds with no ontological \
+                 failure class only ever SHRINKS. Mint the failure class in the owning slice and \
+                 bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here",
+                decl.file, decl.code
+            ));
+        }
+    }
+}
+
+fn check_diag_failure_class_binding(root: &Path, report: &mut RepoStaticReport) {
+    let decls = diag_kind_census(root, report);
+    if decls.is_empty() {
+        // No `crates/` tree (a synthetic minimal-repo fixture) — nothing to bind.
+        return;
+    }
+    check_diag_failure_class_bijection(&decls, root, report);
+    check_diag_failure_class_ratchet(&decls, report);
+}
+
 /// Honest invariant #2 (Phase-6 Diag-substrate epic): no first-party Rust source may use a
 /// two-argument `Result<T, String>` / `std::result::Result<T, String>` where `String` is the
 /// error type — in return-type position (`-> Result<_, String>`) or anywhere else the
@@ -4093,5 +4641,265 @@ mod tests {
         assert!(code.contains("fn prod"), "{code}");
         assert!(!code.contains("to_gts"), "{code}");
         assert_eq!(code.lines().count(), text.lines().count());
+    }
+
+    // ── the diagnostic-kind ↔ ontology failure-class binding ────────────────
+
+    /// A slice Turtle declaring exactly the failure classes `classes` are raised by,
+    /// wired through `gmeow:enforcesFailureClass` the way the live gts slice is.
+    fn write_failure_class_slice(root: &Path, classes: &[&str]) {
+        let mut ttl = String::from(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
+        );
+        for class in classes {
+            ttl.push_str(&format!(
+                "gmeow:{class} a logic:Category .\n\
+                 logic:{class}Constraint a logic:Constraint ; \
+                 gmeow:enforcesFailureClass gmeow:{class} .\n"
+            ));
+        }
+        write(&root.join("slices/core/gts/module.ttl"), &ttl);
+    }
+
+    /// A `define_diag_kind!` invocation in the exact shape the census reads.
+    fn diag_kind_source(name: &str, code: &str, failure_class: Option<&str>) -> String {
+        let clause = failure_class
+            .map(|iri| format!("    failure_class = \"{iri}\";\n"))
+            .unwrap_or_default();
+        format!(
+            "define_diag_kind! {{\n\
+             \x20   /// A kind.\n\
+             \x20   pub struct {name} {{ detail: String }}\n\
+             \x20   code = \"{code}\";\n\
+             \x20   grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);\n\
+             \x20   message = \"{{}}\", detail;\n\
+             {clause}}}\n"
+        )
+    }
+
+    fn failure_class_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_diag_failure_class_binding(root, &mut report);
+        report.errors
+    }
+
+    /// The census must read a MULTI-LINE struct body correctly: the field list's own
+    /// closing brace is not the end of the invocation, and treating it as one would
+    /// silently drop the kind from both gates.
+    #[test]
+    fn census_reads_code_and_failure_class_through_a_multiline_struct_body() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            "define_diag_kind! {\n\
+             \x20   /// A kind whose field list spans several lines.\n\
+             \x20   pub struct Wide {\n\
+             \x20       stage: String,\n\
+             \x20       rdf: Vec<String>,\n\
+             \x20   }\n\
+             \x20   code = \"pipeline.wide\";\n\
+             \x20   message = \"stage {}: rdf {:?}\", stage, rdf;\n\
+             \x20   failure_class = \"https://blackcatinformatics.ca/gmeow/MediumWide\";\n\
+             }\n",
+        );
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        assert!(report.errors.is_empty(), "{:?}", report.errors);
+        assert_eq!(
+            decls,
+            vec![DiagKindDecl {
+                file: "crates/gmeow-pipeline/src/error.rs".to_string(),
+                code: "pipeline.wide".to_string(),
+                failure_class: Some("https://blackcatinformatics.ca/gmeow/MediumWide".to_string()),
+            }]
+        );
+    }
+
+    /// A kind bound to an IRI the ontology never minted is a claim about a gate that
+    /// does not exist — the first half of the bijection.
+    #[test]
+    fn a_kind_bound_to_an_unminted_failure_class_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &format!(
+                "{}{}",
+                diag_kind_source(
+                    "UnknownSchema",
+                    "pipeline.medium.unknown-schema",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+                ),
+                diag_kind_source(
+                    "Invented",
+                    "pipeline.medium.invented",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumInvented"),
+                ),
+            ),
+        );
+        let errors = failure_class_errors(root);
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("pipeline.medium.invented") && e.contains("MediumInvented")),
+            "{errors:?}"
+        );
+    }
+
+    /// A `gmeow:Medium*` failure class nobody raises is documentation, not a gate —
+    /// the second half of the bijection, and the direction a pure Rust-side test
+    /// could never see.
+    #[test]
+    fn a_medium_failure_class_with_no_rust_producer_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema", "MediumOrphaned"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &diag_kind_source(
+                "UnknownSchema",
+                "pipeline.medium.unknown-schema",
+                Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+            ),
+        );
+        let errors = failure_class_errors(root);
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("MediumOrphaned") && e.contains("NO Rust producer")),
+            "{errors:?}"
+        );
+    }
+
+    /// Two producers for one failure class makes "which code raised this" unanswerable.
+    #[test]
+    fn two_rust_producers_for_one_medium_failure_class_fail() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &format!(
+                "{}{}",
+                diag_kind_source(
+                    "UnknownSchemaA",
+                    "pipeline.medium.unknown-schema",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+                ),
+                diag_kind_source(
+                    "UnknownSchemaB",
+                    "pipeline.medium.unknown-schema-again",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+                ),
+            ),
+        );
+        let errors = failure_class_errors(root);
+        assert!(
+            errors.iter().any(|e| e.contains("MediumUnknownSchema")
+                && e.contains("Rust kinds declare this failure class")),
+            "{errors:?}"
+        );
+    }
+
+    /// The shrink-only ratchet: a NEW kind carrying no `failure_class` and absent
+    /// from the pin reds. Without this the annotation stays permanently optional and
+    /// the bijection is vacuous for every kind but the annotated few.
+    #[test]
+    fn a_new_kind_without_a_failure_class_fails_the_ratchet() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &[]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &diag_kind_source("Freshly", "pipeline.freshly-invented", None),
+        );
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        check_diag_failure_class_ratchet(&decls, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("pipeline.freshly-invented")
+                    && e.contains("PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    /// SHRINKAGE never reds: annotating a pinned kind (so it leaves the live census)
+    /// without trimming its pin entry must still pass — subset-or-equal, exactly as
+    /// the `shapes.ttl` ratchet does it.
+    #[test]
+    fn annotating_a_pinned_kind_without_trimming_the_pin_still_passes() {
+        let pinned = PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS
+            .first()
+            .expect("the pin is non-empty on the live tree");
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &diag_kind_source(
+                "NowAnnotated",
+                pinned,
+                Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+            ),
+        );
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        check_diag_failure_class_ratchet(&decls, &mut report);
+        assert!(report.errors.is_empty(), "{:?}", report.errors);
+    }
+
+    /// The six medium kinds are bound on the LIVE tree: the census finds exactly the
+    /// six `pipeline.medium.*` codes carrying a failure class, and each names a real
+    /// `gmeow:Medium*` individual. A non-vacuity guard for the live-repo gate — if
+    /// the scanner silently stopped reading `crates/pipeline/src/error.rs`, every
+    /// assertion above would still pass on a synthetic fixture.
+    #[test]
+    fn the_live_medium_kinds_are_bound_to_their_ontology_classes() {
+        let root = live_repo_root();
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        assert!(report.errors.is_empty(), "{:?}", report.errors);
+        let bound: BTreeMap<&str, &str> = decls
+            .iter()
+            .filter_map(|d| Some((d.code.as_str(), d.failure_class.as_deref()?)))
+            .collect();
+        assert_eq!(
+            bound.keys().copied().collect::<Vec<_>>(),
+            vec![
+                "pipeline.medium.dictionary-regression",
+                "pipeline.medium.digest-mismatch",
+                "pipeline.medium.opaque-frame",
+                "pipeline.medium.undeclared-dictionary",
+                "pipeline.medium.unknown-dictionary",
+                "pipeline.medium.unknown-schema",
+            ],
+            "the six medium kinds are the only failure-class-bound kinds today"
+        );
+        let declared = ontology_failure_classes(root, &mut report);
+        for (code, iri) in bound {
+            assert!(
+                declared.contains(iri),
+                "{code} binds <{iri}>, which no slice raises through gmeow:enforcesFailureClass"
+            );
+        }
     }
 }
