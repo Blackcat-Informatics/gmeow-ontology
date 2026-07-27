@@ -6,6 +6,7 @@
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
 
 gmeow:CodecClass
     a logic:AbstractIndividualType ,
@@ -571,3 +572,1663 @@ logic:evcCompaction a logic:Formula ; logic:relation <http://www.w3.org/1999/02/
 <https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
 <https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opacityReason> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/OpacityReason> ] .
 <https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opaqueFrameIn> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSSegment> ] .
+
+# =========================================================================== #
+# THE MEDIUM AXIS — a medium is a lawful (encode, decode) PAIR                 #
+# =========================================================================== #
+#
+# A gmeow:Medium is NOT a zstd configuration record. It is a section/retraction
+# pair (enc, dec) with dec ∘ enc = id on a DECLARED content domain, and it
+# carries that claim as a logic:Correspondence (gmeow:mediumCorrespondence),
+# never as a boolean "lossless" flag. gmeow:ZstdDictMedium is the zstd
+# specialization; the medium's identity is the LAW, the codec/level/dictionary
+# are its coordinates.
+#
+# The medium axis and the GMN DIALECT axis share NO vocabulary: nothing here is
+# a gmeow:gmn* term, and nothing here re-mints a dialect coordinate. A medium
+# governs the bytes of a frame's payload; a dialect governs the notation of a
+# document.
+#
+# AUTHORED vs GENERATED is a deliberate class split. gmeow:CompressionDictionary
+# is the AUTHORED definition (id, version, strategy family, corpus);
+# gmeow:CompressionDictionaryRealization is the GENERATED realization (content
+# digest, byte length, zstd Dictionary_ID, measured strategy, measured target
+# length) and lives in the build-time graph/medium-registry, never authored by
+# hand. Requiring a content digest on an AUTHORED individual would be an
+# unsatisfiable obligation — the digest is a build product, and a definition that
+# cannot exist before its own realization is a modelling error, not a strict
+# contract.
+#
+# Every declarative obligation below is authored in the CANONICAL logic:
+# restriction vocabulary (logic:subClassOf / logic:Restriction / logic:onProperty
+# / logic:onClass / logic:allValuesFrom). The rdfs:/owl: spelling is the derived
+# PROJECTION of these axioms, not a second source: authoring it by hand here
+# would be ungrounded structural residue against this slice's projection-vocabulary
+# ceiling. The slice ships NO shapes.ttl (docs/MIGRATING-SHAPES-TO-LOGIC.md).
+
+gmeow:CompressionDictionary
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Compression Dictionary"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "The AUTHORED definition of a zstd compression dictionary: its stable id (gmeow:dictionaryId), its version (gmeow:dictionaryVersion), the strategy family it is built under (gmeow:dictionaryStrategy), the target dictionary size (gmeow:dictionaryTargetLength), and the gmeow:DictionaryCorpus it trains over (gmeow:trainsOverCorpus). AUTHORED FIELDS ONLY — deliberately no content digest, no byte length, and no zstd Dictionary_ID: those are build products and live on gmeow:CompressionDictionaryRealization. A cardinality obligation requiring a digest on an authored individual would be UNSATISFIABLE (the digest cannot exist before the dictionary is trained), so the definition/realization split is what keeps every declared obligation on both classes discharged rather than aspirational. A dictionary is version-pinned: a dictionary id without its version does not identify a decodable dictionary, because a zstd dictionary is a verbatim substring table of its training corpus and two versions of the same id share no guarantee."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 a gmeow:CompressionDictionary ; gmeow:dictionaryId \"gmeow-core-v1\" ; gmeow:trainsOverCorpus gmeow:corpusGmeowCoreV1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting a content digest, byte length, or zstd Dictionary_ID here (those are gmeow:CompressionDictionaryRealization fields, produced by the build) and avoid minting a dictionary with no gmeow:trainsOverCorpus — an untrained dictionary id names nothing a decoder can resolve."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one individual per (id, version) pair carrying exactly one gmeow:dictionaryId, one gmeow:dictionaryVersion, one gmeow:dictionaryStrategy, one gmeow:dictionaryTargetLength, and one gmeow:trainsOverCorpus; the build emits the matching gmeow:CompressionDictionaryRealization and links it back with gmeow:realizesDictionary."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare a dictionary the bundle ships — the authored half of the definition/realization split, the half a human writes and a review can read without running the build."@x-gmeow-english .
+
+gmeow:CompressionDictionaryRealization
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Compression Dictionary Realization"@x-gmeow-english ;
+    logic:subClassOf gmeow:Manifestation ;
+    skos:definition "The GENERATED realization of a gmeow:CompressionDictionary: the trained bytes and everything measurable only after training — gmeow:dictionaryContentDigest (byte-exact identity), gmeow:dictionaryByteLength, the zstd Dictionary_ID the frame header cites (gmeow:zstdDictionaryId), the MEASURED gmeow:dictionaryStrategy, and the MEASURED gmeow:dictionaryTargetLength. It lives in the build-time graph/medium-registry named graph and is NEVER hand-authored; a hand-written realization would be a second source of truth for bytes the build already owns. A Manifestation in the WEMI sense: the packaged, shippable embodiment of the authored definition it gmeow:realizesDictionary."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"blake3:9f2c…\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid authoring one by hand (it is a build product of the medium-registry pass) and avoid using it where the authored definition is meant — a realization is bytes, gmeow:CompressionDictionary is the declaration those bytes answer to."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Read it from graph/medium-registry; follow gmeow:realizesDictionary back to the authored gmeow:CompressionDictionary and compare gmeow:dictionaryVersion — a realization whose version its definition no longer declares is an orphaned emission (gmeow:MediumDictionaryRegression)."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to describe the trained bytes of a shipped dictionary — the measured half of the definition/realization split, the half only the build can fill in."@x-gmeow-english .
+
+gmeow:DictionaryCorpus
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Dictionary Corpus"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "The DECLARATIVE selector naming the sample set a gmeow:CompressionDictionary trains over: blob representations (gmeow:corpusSelectsBlobRep), named graphs (gmeow:corpusSelectsGraph), repository path prefixes (gmeow:corpusSelectsPathPrefix), and pipeline stage products (gmeow:corpusSelectsStageProduct). A selector, never a materialized file list: the corpus is re-resolved on every build, so a new archive member joins its dictionary's training set without an authoring edit. EVERY shipped corpus is BUNDLE-INTERNAL — it selects only material the bundle itself already carries."@x-gmeow-english ;
+    skos:example "gmeow:corpusGmeowCoreV1 a gmeow:DictionaryCorpus ; gmeow:corpusSelectsBlobRep \"cells-archive\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid selecting anything outside the bundle — most importantly a user's runtime store — and avoid enumerating concrete files: a corpus is a selector re-resolved per build, not a frozen manifest."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one corpus per dictionary and give it at least one selector; a dictionary points at it with gmeow:trainsOverCorpus, and the trainer resolves the selectors against the carrier at build time."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare, as data, WHICH bundle-internal material a dictionary is trained on — so the training set is reviewable, re-resolvable, and provably bundle-internal."@x-gmeow-english .
+
+gmeow:DictionaryStrategy
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Dictionary Strategy"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The family a compression dictionary is built under — trained (the zstd COVER/fastCover trainer), raw-content (a hand-chosen byte prefix used verbatim as the dictionary), or term-table (a dictionary synthesized from the ontology's own term vocabulary). An OPEN value vocabulary (individuals, never subclasses). The strategy is BOTH an authored intent on gmeow:CompressionDictionary and a MEASURED fact on gmeow:CompressionDictionaryRealization: a trainer that fell back to raw content must say so, because the two produce different decode-side expectations."@x-gmeow-english ;
+    skos:example "gmeow:dictStrategyTrained a gmeow:DictionaryStrategy ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting strategies as subclasses (they are individuals on an open axis) and avoid reading the authored strategy as the measured one — a realization states what the trainer ACTUALLY produced."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded strategy individual from a gmeow:CompressionDictionary (intent) and from its gmeow:CompressionDictionaryRealization (measurement) through gmeow:dictionaryStrategy."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the value vocabulary for how a dictionary was built, on both the authored declaration and the generated realization."@x-gmeow-english .
+
+gmeow:DigestStratum
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Digest Stratum"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The named sub-payload a gmeow:strataDigest is taken over. It exists because the snapshot frame's own medium envelope is SELF-REFERENTIAL: snapshot_content_id() is a BLAKE3 digest over the ENTIRE snapshot payload, which folds the very graph the envelope lives in, so writing that digest into the envelope changes the payload it digests. A naive iterate-until-stable fixpoint does NOT converge — BLAKE3 is not a contraction, so successive passes wander rather than settle. Stratifying the digest fixes it: the envelope's gmeow:strataDigest is taken over a stratum that EXCLUDES the medium-envelope subgraph, so pass one emits the payload without the envelope, pass two adds the envelope carrying the pass-one stratum digest, and the stratum digest is unchanged by that addition — the emission provably converges in exactly two passes. An OPEN value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
+    skos:example "gmeow:stratumPayloadExcludingMediumEnvelope a gmeow:DigestStratum ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating a stratum digest as the artifact's byte identity (that is gmeow:contentDigest, which the envelope projects verbatim from the frame) and avoid inventing a stratum that includes the medium-envelope subgraph — that is exactly the non-convergent self-reference the stratum exists to break."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Name the stratum on the envelope with gmeow:envelopeDigestStratum and put the digest of exactly that stratum in gmeow:strataDigest; keep gmeow:contentDigest carrying the frame's own in-band identity unchanged beside it."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to say WHICH region a stratum digest commits to — required whenever the digest-bearing record is itself inside the region a whole-payload digest would cover."@x-gmeow-english .
+
+gmeow:Medium
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium"@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    skos:definition "A lawful (encode, decode) PAIR — a section/retraction (enc, dec) with dec ∘ enc = id on a DECLARED content domain — not a codec configuration record. The law is the medium's identity; the codec (gmeow:mediumCodec), level, dictionary, and composition chain are its coordinates. The losslessness claim rides on gmeow:mediumCorrespondence as a logic:Correspondence carrying an identity preservation judgment (logic:SectionRetraction + logic:ExactPreservation), NEVER a boolean flag: 'this medium round-trips' is a judged crossing with named endpoints and an executed discharge, exactly as a translation crossing is. An OPEN value vocabulary: media are individuals, so a deployment adds a medium without touching this module (Principle 9). A medium also declares the reader capability it demands (gmeow:requiresReaderCapability), because raising the reader contract is a property of the deliverable (Principle 13), never a silent assumption."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 a gmeow:ZstdDictMedium ; gmeow:mediumCodec gmeow:codecZstdRsyncable ; gmeow:mediumCorrespondence gmeow:mediumCorrDistL12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid modelling a medium as a settings bag with a lossless boolean (the judgment is the gmeow:mediumCorrespondence), avoid minting media as subclasses (they are individuals on an open axis), and avoid letting a frame fall through to 'no medium' — absence of a dictionary is a NAMED medium (gmeow:mediumProfileBaselineL12), never an unstated default."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint a medium individual carrying exactly one gmeow:mediumCodec, one gmeow:mediumSourceKind, and one gmeow:mediumCorrespondence; declare every reader capability it demands with gmeow:requiresReaderCapability, and model a stacked codec chain with gmeow:mediumComposedOf rather than a flattened codec string."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use whenever bytes cross the encode/decode boundary and the round-trip must be a CLAIM someone can check — the named, judged pair a frame's payload was written through."@x-gmeow-english .
+
+gmeow:MediumEnvelope
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Envelope"@x-gmeow-english ;
+    logic:subClassOf gmeow:AttestationArtifact ;
+    skos:definition "The RDF PROJECTION of the medium facts a frame ALREADY carries in band — never a second copy, and never an independently recomputed one. An envelope names the dictionary the payload was primed with (gmeow:envelopeDictionary), the registered payload schema of the blob (gmeow:envelopeSchema), the byte-exact identity the frame itself states (gmeow:contentDigest, projected verbatim from the frame's in-band pub.digest / snapshot_content_id — reused from attestation, never recomputed and stored), the medium the bytes were written through (gmeow:envelopeMedium), the frame it describes (gmeow:envelopePayloadFrame), and the stratified digest pair (gmeow:envelopeDigestStratum + gmeow:strataDigest) that makes the SELF-REFERENTIAL snapshot envelope converge in exactly two passes. Every one of the seven fields is exactly-one: a projection missing a coordinate is not a weaker projection, it is a different claim. Its failure classes are HARD FAILS — an envelope that cannot resolve its dictionary, its schema, or its digest refuses, and never falls back to dictionary-less decode."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:MediumEnvelope ; gmeow:envelopeSchema gmeow:payloadSchemaCellsArchive ; gmeow:envelopeMedium gmeow:mediumProfileDistL12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid recomputing and storing a digest here (project the frame's in-band digest verbatim — an independently computed value is a second source that can silently disagree), avoid using it as a place to STORE medium settings the frame does not carry, and avoid omitting any of the seven fields."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Emit one envelope per medium-encoded frame, projecting each field off the frame; set gmeow:envelopeDigestStratum to the stratum the gmeow:strataDigest covers and keep gmeow:contentDigest carrying the frame's own identity, so the stratum digest is an ADDITION to the total witness rather than a replacement."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make a frame's medium facts QUERYABLE in the graph — so a consumer can ask which dictionary, schema, and medium a blob needs without decoding it first."@x-gmeow-english .
+
+gmeow:MediumSourceKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Source Kind"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "How a medium resolves the dictionary for a given payload: per-rep (each registered gmeow:PayloadSchema selects its own dictionary from the medium's declared set), header-dict (one dictionary declared in the segment header and used by every frame), or whole-artifact (the medium is applied to the finished artifact as a unit, with no per-frame dictionary selection). An OPEN value vocabulary (individuals, never subclasses). The source kind is what makes the rep-to-medium assignment TOTAL and derivable rather than a per-call decision."@x-gmeow-english ;
+    skos:example "gmeow:mediumSourcePerRep a gmeow:MediumSourceKind ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting source kinds as subclasses (they are individuals) and avoid leaving a medium without one — an unstated resolution rule is exactly the silent per-call decision the medium axis exists to remove."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded source-kind individual from a medium via gmeow:mediumSourceKind; a per-rep medium must also declare, through gmeow:mediumDictionary, the dictionary set its reps select from."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the value vocabulary for a medium's dictionary-resolution rule — the fact that turns 'which dictionary applies here' into a derivation rather than a lookup by convention."@x-gmeow-english .
+
+gmeow:PayloadSchema
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Payload Schema"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The REGISTERED schema-id vocabulary of the blob channel: exactly one individual per blob representation the carrier can emit, plus one for the snapshot wire schema. Its whole purpose is to make an UNREGISTERED rep a genuine production hard fail (gmeow:MediumUnknownSchema) rather than a value derivable from the frame — if the schema id were merely read back off the frame, a new archive would decode as 'some unknown blob' instead of refusing, and its medium assignment would be silently undefined. Each individual carries its stable wire label in gmeow:payloadSchemaId; that literal is the exact rep string the carrier writes, so the registry and the emitter cannot drift. An OPEN value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
+    skos:example "gmeow:payloadSchemaCellsArchive a gmeow:PayloadSchema ; gmeow:payloadSchemaId \"cells-archive\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid emitting a blob whose rep has no gmeow:PayloadSchema individual (that is gmeow:MediumUnknownSchema, a hard fail — register the schema first), avoid minting schemas as subclasses, and avoid reusing one schema individual for two distinct wire reps."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one individual per carrier rep, set gmeow:payloadSchemaId to the exact wire label, and reference it from a gmeow:MediumEnvelope through gmeow:envelopeSchema; adding a new archive to the carrier means adding its schema here in the same change."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the closed registry a payload rep must resolve against before it can be given a medium — the vocabulary that turns an unknown blob into a refusal instead of a guess."@x-gmeow-english .
+
+gmeow:ZstdDictMedium
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Zstd Dictionary Medium"@x-gmeow-english ;
+    logic:subClassOf gmeow:Medium ;
+    skos:definition "The zstd specialization of gmeow:Medium: a lawful (encode, decode) pair realized by a zstd-family codec at a declared compression level (gmeow:mediumZstdLevel) with an OPTIONAL dictionary set (gmeow:mediumDictionary). Optional means EXPLICITLY DECLARED, not absent: the dictionary-less medium is itself a named individual (gmeow:mediumProfileBaselineL12), so 'no dictionary' is a selection a frame makes, never a hole it falls into. The level is part of the declared medium because a level change is a byte-level change to every artifact the medium produces."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileBaselineL12 a gmeow:ZstdDictMedium ; gmeow:mediumZstdLevel 12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating an absent gmeow:mediumDictionary as 'unknown' (it is the declared no-dictionary selection of that medium) and avoid varying the level per call — the level is declared on the medium precisely so it cannot drift per invocation."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint the medium with one gmeow:mediumCodec from the zstd family, one gmeow:mediumZstdLevel, one gmeow:mediumSourceKind, and — for a per-rep medium — every gmeow:mediumDictionary its reps may select."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use for a zstd-realized medium, dictionary-primed or explicitly dictionary-less."@x-gmeow-english .
+
+# --- Medium properties ------------------------------------------------------ #
+
+gmeow:corpusSelectsBlobRep
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "corpus selects blob rep"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "A blob representation label whose members a dictionary corpus trains over — the exact wire rep string the carrier writes (matching a gmeow:payloadSchemaId). Non-functional: a corpus may draw on several archives. Bundle-internal by construction: a rep names material the bundle already carries."@x-gmeow-english ;
+    skos:example "gmeow:corpusGmeowCoreV1 gmeow:corpusSelectsBlobRep \"cells-archive\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a rep label with no registered gmeow:PayloadSchema (the corpus would select an archive nothing is allowed to emit) and avoid using it to name a single member — it selects the whole archive."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "List each archive rep the corpus draws samples from; the trainer resolves the label against the carrier's blob channel at build time."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use when a dictionary's training material is a whole blob archive the carrier already folds."@x-gmeow-english .
+
+gmeow:corpusSelectsGraph
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "corpus selects graph"@x-gmeow-english ;
+    skos:definition "A named-graph IRI whose serialized quads a dictionary corpus trains over. The range is the IRI of a carrier named graph, not a class (stated in prose, like gmeow:attachesGraph). Non-functional: a corpus may draw on several graphs."@x-gmeow-english ;
+    skos:example "gmeow:corpusGmeowClaimsV1 gmeow:corpusSelectsGraph <https://blackcatinformatics.ca/gmeow/graph/statements> ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid naming a graph the bundle does not carry, and avoid using it for a blob archive (that is gmeow:corpusSelectsBlobRep) — this selects RDF quads, not packed bytes."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "List each carrier named graph the corpus draws samples from; the trainer serializes the graph deterministically before sampling so the training input is reproducible."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use when a dictionary's training material is RDF the bundle carries as a named graph."@x-gmeow-english .
+
+gmeow:corpusSelectsPathPrefix
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "corpus selects path prefix"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "A repository-relative path prefix whose files a dictionary corpus trains over. Non-functional: a corpus may draw on several prefixes. A prefix, not a file list — a new file under the prefix joins the training set without an authoring edit."@x-gmeow-english ;
+    skos:example "gmeow:corpusGmeowCoreV1 gmeow:corpusSelectsPathPrefix \"slices/core/\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a prefix outside the repository tree the bundle is built from — most importantly a user home directory — and avoid enumerating individual files."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "List each source-tree prefix the corpus draws samples from, in sorted order, so the resolved training set is deterministic."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use when a dictionary's training material is a region of the authored source tree."@x-gmeow-english .
+
+gmeow:corpusSelectsStageProduct
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "corpus selects stage product"@x-gmeow-english ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "A gmeow:PipelineStage whose PRODUCT a dictionary corpus trains over — the routing used when the material a dictionary needs is not reachable as a standalone archive because the archive is SINK-FOLDED (assembled only at the terminal snapshot). The reasoning reports and the lang surface blob are exactly that case: gmeow:stage-archive-blobs owns the eight ordinary archive reps, but reasoning-archive and lang-surface-blob are folded by the sink, so their dictionaries select the producing stage's product instead of a rep label. Non-functional."@x-gmeow-english ;
+    skos:example "gmeow:corpusGmeowProoftraceV1 gmeow:corpusSelectsStageProduct gmeow:stage-reason ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it for material that IS reachable as an archive rep (prefer gmeow:corpusSelectsBlobRep — a rep label is the narrower, more checkable selector) and avoid naming a stage whose product the dictionary trainer does not run after."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Name the producing gmeow:PipelineStage; the trainer reads that stage's in-memory product rather than waiting for a folded archive that only exists at the sink."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use when the training material is sink-folded and therefore has no mid-DAG archive rep to select."@x-gmeow-english .
+
+gmeow:dictionaryByteLength
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dictionary byte length"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The MEASURED byte length of a trained dictionary — a realization field, never an authored one. Distinct from gmeow:dictionaryTargetLength, which on the authored definition is the size REQUESTED of the trainer: a trainer may return fewer bytes than asked for, and the gap between the two is the honest record of that."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:dictionaryByteLength 110592 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it on a gmeow:CompressionDictionary (the authored definition cannot know it) and avoid conflating it with the requested gmeow:dictionaryTargetLength."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Emit it from the medium-registry pass beside gmeow:dictionaryContentDigest; compare it against the definition's gmeow:dictionaryTargetLength to see what the trainer actually returned."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record how large a trained dictionary actually is."@x-gmeow-english .
+
+gmeow:dictionaryContentDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dictionary content digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The byte-exact identity of a TRAINED dictionary, written 'blake3:<hex>' — a realization field. It is deliberately NOT gmeow:contentDigest reused: gmeow:contentDigest identifies the artifact a record is ABOUT, while this identifies the dictionary the record's artifact was primed WITH, and collapsing them would make an envelope's own identity indistinguishable from its dictionary's. A decoder that holds a dictionary whose digest differs from the one the frame cites raises gmeow:MediumDigestMismatch and refuses; it never retries dictionary-less."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:dictionaryContentDigest \"blake3:9f2c4e…\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it on an authored gmeow:CompressionDictionary (an unsatisfiable obligation — the digest is a build product) and avoid substituting it for gmeow:contentDigest, which identifies the artifact rather than its priming dictionary."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Emit it from the medium-registry pass as 'blake3:<hex>'; a decoder compares it against the dictionary it holds before attempting a primed decode."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin exactly which trained dictionary bytes a primed decode requires."@x-gmeow-english .
+
+gmeow:dictionaryId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dictionary id"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The stable, human-readable id of an authored compression dictionary (e.g. \"gmeow-core-v1\"). Functional: one id per definition. An id alone does NOT identify decodable bytes — it must be read with gmeow:dictionaryVersion, because a zstd dictionary is a verbatim substring table of its corpus and two versions of one id share no compatibility guarantee."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryId \"gmeow-core-v1\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating the id as version-free identity (always pair it with gmeow:dictionaryVersion) and avoid the raw zstd Dictionary_ID here — that numeric header field is gmeow:zstdDictionaryId on the realization."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one id per authored dictionary and cite it with its version wherever a frame declares which dictionary it needs."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name an authored dictionary in a form a human reads and a decoder resolves."@x-gmeow-english .
+
+gmeow:dictionaryStrategy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dictionary strategy"@x-gmeow-english ;
+    rdfs:range gmeow:DictionaryStrategy ;
+    skos:definition "The strategy family a dictionary is built under. On a gmeow:CompressionDictionary it is the authored INTENT; on a gmeow:CompressionDictionaryRealization it is the MEASURED outcome (domain stated in prose, since asserting one would type both classes alike). Functional per subject. A realization whose measured strategy differs from its definition's intent is an honest record of a trainer fallback, not a silent success."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryStrategy gmeow:dictStrategyTrained ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting several strategies on one subject (it is functional) and avoid copying the authored intent onto the realization without measuring it — the point of carrying it twice is that the two can disagree."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the authored dictionary at the intended strategy and the emitted realization at the strategy the trainer actually used."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record how a dictionary is meant to be built, and separately how it actually was."@x-gmeow-english .
+
+gmeow:dictionaryTargetLength
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dictionary target length"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The dictionary size in bytes REQUESTED of the trainer on a gmeow:CompressionDictionary, and the size the trainer reports having targeted on a gmeow:CompressionDictionaryRealization (domain stated in prose). Functional per subject. It is a request, not a measurement: the achieved size is gmeow:dictionaryByteLength."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryTargetLength 112640 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid reading it as the achieved size (that is gmeow:dictionaryByteLength) and avoid asserting several per subject."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert the requested size on the authored dictionary; the medium-registry pass repeats the targeted size on the realization beside the achieved gmeow:dictionaryByteLength."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare how large a dictionary should be trained, so the request is reviewable independently of the result."@x-gmeow-english .
+
+gmeow:dictionaryVersion
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dictionary version"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The version coordinate of a compression dictionary, carried on BOTH the authored gmeow:CompressionDictionary and the generated gmeow:CompressionDictionaryRealization (domain stated in prose) so an emitted realization can be checked against the definition it claims to realize. Functional per subject. Versions are never interchangeable: a dictionary is a verbatim substring table of its training corpus, so decoding a frame primed with version N against version N+1 produces garbage, not degraded output — hence gmeow:MediumDictionaryRegression, which fires when an emitted version is no longer retained by any authored definition."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryVersion \"1\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid retiring a version any shipped realization still cites (that orphans every artifact primed with it) and avoid asserting several versions on one subject."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert one version per definition and repeat it on each realization; the retention constraint compares the two and hard-fails on a dropped version."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin which generation of a dictionary id a frame or a realization is bound to."@x-gmeow-english .
+
+gmeow:envelopeDictionary
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediumEnvelope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "envelope dictionary"@x-gmeow-english ;
+    rdfs:range gmeow:CompressionDictionary ;
+    skos:definition "The compression dictionary a medium envelope's payload was primed with — PROJECTED from the dict_id the frame already carries in band, never chosen at projection time. Exactly one per envelope: a payload primed with an unstated dictionary is undecodable, and a payload primed with two is incoherent. Its range is read closed-world through gmeow:envelopeDictionaryRangeClosure, so the derived envelope shape carries sh:class and an unregistered dictionary raises gmeow:MediumUnknownDictionary — a hard fail, never a fallback to dictionary-less decode."@x-gmeow-english ;
+    skos:example "ex:env gmeow:envelopeDictionary gmeow:dictGmeowCoreV1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid omitting it on a dictionary-primed envelope (that is gmeow:MediumUndeclaredDictionary) and avoid pointing it at anything but a registered gmeow:CompressionDictionary."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project the frame's in-band dict_id onto the matching gmeow:CompressionDictionary individual; a decoder resolves it before priming and refuses if it does not resolve."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make a frame's priming dictionary queryable in the graph without decoding the frame."@x-gmeow-english .
+
+gmeow:envelopeDigestStratum
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediumEnvelope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "envelope digest stratum"@x-gmeow-english ;
+    rdfs:range gmeow:DigestStratum ;
+    skos:definition "Names the sub-payload the envelope's gmeow:strataDigest is taken over. For the SNAPSHOT envelope that stratum is gmeow:stratumPayloadExcludingMediumEnvelope — the payload MINUS the medium-envelope subgraph — because snapshot_content_id() digests the entire payload including the graph the envelope lives in, so a whole-payload digest written into the envelope changes what it digests and an iterate-until-stable fixpoint does not converge (BLAKE3 is not a contraction). Stratifying makes the emission converge in EXACTLY two passes: pass one digests the stratum, pass two writes the envelope, and adding the envelope cannot change a digest taken over a region that excludes it. Exactly one per envelope: a digest whose region is unstated is uncheckable."@x-gmeow-english ;
+    skos:example "ex:env gmeow:envelopeDigestStratum gmeow:stratumPayloadExcludingMediumEnvelope ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid naming a stratum that includes the medium-envelope subgraph on a self-referential envelope (the emission would not converge) and avoid omitting it while asserting gmeow:strataDigest."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set it to the stratum the emitter actually digested and keep gmeow:contentDigest carrying the frame's own in-band identity — the stratum digest is an ADDITION to the total witness, never a replacement for it."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use whenever a digest-bearing record sits inside the region a whole-payload digest would cover."@x-gmeow-english .
+
+gmeow:envelopeMedium
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediumEnvelope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "envelope medium"@x-gmeow-english ;
+    rdfs:range gmeow:Medium ;
+    skos:definition "The gmeow:Medium the envelope's payload bytes were written through — the (encode, decode) pair whose law the payload relies on. Exactly one per envelope. Together with gmeow:envelopeSchema it makes the rep-to-medium assignment a FUNCTION: every registered payload schema resolves to exactly one declared medium (logic:MediumSchemaMediumFunctionalityConstraint), so 'which medium applies to this rep' is derivable rather than conventional."@x-gmeow-english ;
+    skos:example "ex:env gmeow:envelopeMedium gmeow:mediumProfileDistL12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid leaving it unstated (a payload with no declared medium has no round-trip claim at all) and avoid letting two envelopes over the same gmeow:envelopeSchema name different media — the rep-to-medium map is a function."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project the medium the emitter selected; readers follow it to gmeow:mediumCorrespondence for the losslessness judgment and to gmeow:requiresReaderCapability for the reader contract."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to state which lawful encode/decode pair a frame's bytes were produced by."@x-gmeow-english .
+
+gmeow:envelopePayloadFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediumEnvelope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "envelope payload frame"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    skos:definition "The GTS frame whose payload the envelope projects — the anchor that keeps the envelope a description OF something rather than a free-floating settings record. Exactly one per envelope. When the reader cannot decode that frame the envelope's claims stand as evidence about an opaque region: the frame is surfaced as a gmeow:OpaqueFrame carrying gmeow:opacityUnknownCodec, and the medium axis names that same situation gmeow:MediumOpaqueFrame rather than modelling a disjoint failure set."@x-gmeow-english ;
+    skos:example "ex:env gmeow:envelopePayloadFrame ex:frame7 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing one envelope at several frames (it is exactly-one — an envelope describes one payload) and avoid minting an envelope with no frame at all."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Anchor the envelope to the frame it was projected from; for an undecodable frame pair it with the existing gmeow:OpaqueFrame / gmeow:opacityReason vocabulary rather than inventing a medium-local opacity record."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bind a medium envelope to the single frame whose payload it describes."@x-gmeow-english .
+
+gmeow:envelopeSchema
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediumEnvelope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "envelope schema"@x-gmeow-english ;
+    rdfs:range gmeow:PayloadSchema ;
+    skos:definition "The registered gmeow:PayloadSchema of the blob the envelope describes — the wire rep, resolved against the closed registry rather than read back off the frame as an opaque string. Exactly one per envelope. Its range is read closed-world through gmeow:envelopeSchemaRangeClosure, so the derived envelope shape carries sh:class and an UNREGISTERED rep raises gmeow:MediumUnknownSchema: a hard production failure, never a decodable-but-unclassified blob."@x-gmeow-english ;
+    skos:example "ex:env gmeow:envelopeSchema gmeow:payloadSchemaCellsArchive ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a rep string with no registered individual (register the schema in the same change that adds the archive) and avoid asserting several schemas per envelope."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Resolve the frame's rep label against gmeow:payloadSchemaId and point at the matching individual; the rep-to-medium function is keyed on this value."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to state, against the closed registry, what KIND of payload a medium-encoded frame carries."@x-gmeow-english .
+
+gmeow:mediumCodec
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Medium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "medium codec"@x-gmeow-english ;
+    rdfs:range gmeow:TransformCodec ;
+    skos:definition "The gmeow:TransformCodec that REALIZES a medium's (encode, decode) pair. Exactly one per medium: a medium with two codecs is two media, and a stacked chain is modelled with gmeow:mediumComposedOf rather than by listing codecs. The codec is a coordinate of the medium, not its identity — the identity is the law on gmeow:mediumCorrespondence."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 gmeow:mediumCodec gmeow:codecZstdRsyncable ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid listing several codecs to express a chain (use gmeow:mediumComposedOf) and avoid treating the codec as the medium's identity — two media may share a codec and differ in level, dictionary set, or source kind."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point each medium at exactly one catalog codec; read the codec's gmeow:codecClass to anticipate the missing-capability degradation path."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the algorithm a medium's encode/decode pair is realized by."@x-gmeow-english .
+
+gmeow:mediumComposedOf
+    a owl:ObjectProperty ;
+    logic:subPropertyOf gmeow:hasPart ;
+    rdfs:domain gmeow:Medium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "medium composed of"@x-gmeow-english ;
+    rdfs:range gmeow:Medium ;
+    skos:definition "A component medium of a composite one — the ontological model of the GTS transform chain (spec §8's \"x\" composition). Composition is FIRST-CLASS: the chain is a graph of media, each carrying its own law, not a flattened codec string a reader has to re-parse. Composition of section/retraction pairs is itself a section/retraction pair, which is why the composite's gmeow:mediumCorrespondence is derivable rather than independently asserted. Non-functional and ordered by the underlying chain; a subproperty of gmeow:hasPart, so generic part/whole consumers walk it without extra assertion."@x-gmeow-english ;
+    skos:example "ex:mediumZstdThenBase64 gmeow:mediumComposedOf gmeow:mediumProfileBaselineL12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid flattening a chain into one codec string (the component laws stop being citable) and avoid composing media whose content domains do not meet — the composite's law is only as good as the join."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "List each component medium of a composite; derive the composite's preservation judgment by composing the components' rather than asserting a fresh one."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to model a stacked transform chain as media composed of media."@x-gmeow-english .
+
+gmeow:mediumCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Medium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "medium correspondence"@x-gmeow-english ;
+    rdfs:range logic:Correspondence ;
+    skos:definition "Relates a medium to the single logic:Correspondence carrying its losslessness judgment — the law-spine of dec ∘ enc = id on the declared content domain. There is NO boolean lossless flag: whether the medium round-trips is the logic:morphismClass (logic:SectionRetraction), the logic:preservationKind (logic:ExactPreservation — identity), and the executed lens-law discharge on that correspondence, exactly as gmeow:gmnEnvelopeCorrespondence attaches a GMN envelope to its crossing. Exactly one per medium; its range is read closed-world through gmeow:mediumCorrespondenceRangeClosure so the derived medium shape carries sh:class."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 gmeow:mediumCorrespondence gmeow:mediumCorrDistL12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid carrying a losslessness boolean on the medium (the judgment lives on the correspondence) and avoid pointing it at an untyped node standing in for a logic:Correspondence."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Mint one logic:Correspondence per medium with named logic:sourceEndpoint / logic:targetEndpoint and an explicit morphism class, morphism kind, and preservation kind, then point the medium at it."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to attach a medium's round-trip claim to a judged, dischargeable crossing instead of asserting it as a flag."@x-gmeow-english .
+
+gmeow:mediumDictionary
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ZstdDictMedium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "medium dictionary"@x-gmeow-english ;
+    rdfs:range gmeow:CompressionDictionary ;
+    skos:definition "A compression dictionary a zstd medium may prime with. Non-functional: a per-rep medium declares the whole SET its registered payload schemas select from, so the selection is bounded by declaration rather than open at call time. ABSENCE is meaningful and explicit: gmeow:mediumProfileBaselineL12 declares none, and that IS its selection — 'no dictionary' is a named medium, never an unstated default a frame falls into."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 gmeow:mediumDictionary gmeow:dictGmeowCoreV1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid priming a frame with a dictionary its medium does not declare (the medium's declared set is the bound) and avoid reading an absent value as 'unknown' rather than 'declared none'."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "List every dictionary a per-rep medium's schemas may select; leave it empty on a deliberately dictionary-less medium and say so in that medium's definition."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bound which dictionaries a zstd medium is allowed to prime with."@x-gmeow-english .
+
+gmeow:mediumSourceKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Medium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "medium source kind"@x-gmeow-english ;
+    rdfs:range gmeow:MediumSourceKind ;
+    skos:definition "How a medium resolves the dictionary for a given payload — per-rep, header-dict, or whole-artifact. Exactly one per medium: an unstated resolution rule is the silent per-call decision the medium axis exists to remove."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 gmeow:mediumSourceKind gmeow:mediumSourcePerRep ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid omitting it and avoid declaring several kinds on one medium — a medium resolves dictionaries exactly one way."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point each medium at exactly one seeded source-kind individual; a per-rep medium must also declare its gmeow:mediumDictionary set."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare a medium's dictionary-resolution rule as data."@x-gmeow-english .
+
+gmeow:mediumZstdLevel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ZstdDictMedium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "medium zstd level"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The declared zstd compression level of a zstd medium. Exactly one per medium, and xsd:integer rather than a non-negative type because the zstd level space includes negative fast levels. The level is DECLARED on the medium — not passed per call — because changing it changes every byte the medium produces, which would silently invalidate byte-comparison gates over the artifacts it wrote."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 gmeow:mediumZstdLevel 12 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid choosing a level per invocation (declare a new medium instead) and avoid asserting several levels on one medium."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one level per zstd medium; a producer reads it from the medium rather than holding its own default."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to pin the compression level a zstd medium encodes at."@x-gmeow-english .
+
+gmeow:payloadSchemaId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema id"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The stable wire label of a registered payload schema — the EXACT blob representation string the carrier writes (\"cells-archive\", \"diagnostics:nodes\", \"gmeow:report/shacl/sarif\", …). Functional: one label per schema, one schema per label. It is the join key between the ontology registry and the emitter's representation constants, so a rep added in Rust without a schema minted here is caught rather than shipped."@x-gmeow-english ;
+    skos:example "gmeow:payloadSchemaCellsArchive gmeow:payloadSchemaId \"cells-archive\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a decorated or abbreviated label (it must be byte-identical to the emitted rep) and avoid two schemas sharing one label."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set it to the emitter's representation constant verbatim; the registry-agreement test enumerates the carrier's constants against these literals."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bind a registered schema individual to the wire rep string it stands for."@x-gmeow-english .
+
+gmeow:realizesDictionary
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "realizes dictionary"@x-gmeow-english ;
+    rdfs:range gmeow:CompressionDictionary ;
+    skos:definition "Relates a generated gmeow:CompressionDictionaryRealization to the AUTHORED gmeow:CompressionDictionary it realizes — the join that keeps the definition/realization split from becoming two unrelated registries. Exactly one per realization. It is what makes the retention obligation checkable: a realization whose gmeow:dictionaryVersion its definition no longer declares is an ORPHANED emission (gmeow:MediumDictionaryRegression), because every artifact primed with that version is now undecodable."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid emitting a realization with no definition to point at (an unowned dictionary is undecodable by construction) and avoid pointing one realization at several definitions."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Emit it from the medium-registry pass alongside the measured fields; the retention constraint follows it back to compare versions."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bind trained dictionary bytes to the authored declaration they answer to."@x-gmeow-english .
+
+gmeow:requiresReaderCapability
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Medium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "requires reader capability"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "A capability a reader MUST hold to decode payloads written through this medium. Non-functional: a medium may raise the contract on several axes at once. GTS spec §8.4 makes zstd-rsyncable NON-baseline, so the shipped bundle already demands a non-baseline reader, and dictionary priming raises the contract again — a reader with a zstd library but no dictionary support cannot read a primed frame at all. Principle 13 makes that a DECLARED property of the deliverable rather than a discovery a consumer makes at decode time: a reader compares its own capabilities against this list before starting, and a missing capability surfaces as gmeow:MediumOpaqueFrame (the medium-axis name for the existing gmeow:opacityUnknownCodec situation), never as a silent degraded decode."@x-gmeow-english ;
+    skos:example "gmeow:mediumProfileDistL12 gmeow:requiresReaderCapability \"zstd-dictionary\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid leaving a non-baseline requirement undeclared (silently raising the reader contract is exactly what Principle 13 forbids) and avoid listing capabilities the medium does not actually need."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "List every non-baseline capability the medium demands, in sorted order; a consumer intersects the list with its own capabilities before decoding."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare, on the deliverable, exactly what a reader must be able to do to read it."@x-gmeow-english .
+
+gmeow:strataDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediumEnvelope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "strata digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The digest of the sub-payload named by gmeow:envelopeDigestStratum, written 'blake3:<hex>'. Exactly one per envelope. It is deliberately NOT a subproperty of gmeow:contentDigest: contentDigest is byte-exact identity of the WHOLE artifact, and a consumer that treated a stratum digest as whole-artifact identity would compare unequal things. The two coexist on every envelope — gmeow:contentDigest carries snapshot_content_id() verbatim, so the stratum digest is a strict ADDITION to the total witness, never a replacement for it. Without the stratum the snapshot envelope would be self-referential and its emission would not converge."@x-gmeow-english ;
+    skos:example "ex:env gmeow:strataDigest \"blake3:9f2c4e…\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it without gmeow:envelopeDigestStratum (a digest with no stated region is uncheckable) and avoid using it in place of gmeow:contentDigest for artifact identity."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Compute it over exactly the named stratum in the first emission pass and write it in the second; keep gmeow:contentDigest beside it carrying the frame's own in-band digest."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to commit to a sub-payload whose digest a whole-payload digest cannot stably express."@x-gmeow-english .
+
+gmeow:trainsOverCorpus
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "trains over corpus"@x-gmeow-english ;
+    rdfs:range gmeow:DictionaryCorpus ;
+    skos:definition "The gmeow:DictionaryCorpus a compression dictionary trains over. Exactly one per dictionary: a dictionary trained over two independently-declared corpora has no reviewable training set, and the corpus is where the bundle-internal guarantee is stated and checked. Its range is read closed-world through gmeow:trainsOverCorpusRangeClosure so the derived dictionary shape carries sh:class."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:trainsOverCorpus gmeow:corpusGmeowCoreV1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a dictionary with no corpus (its training set would be undeclared) and avoid attaching several corpora — widen the single corpus's selectors instead."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point each dictionary at exactly one corpus and put every selector on that corpus; the trainer resolves the selectors against the carrier at build time."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare which corpus a dictionary is trained from."@x-gmeow-english .
+
+gmeow:zstdDictionaryId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "zstd Dictionary_ID"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The numeric Dictionary_ID the trained dictionary carries in its own header and that a zstd frame cites (RFC 8878 §3.1.1) — a realization field, produced by the trainer. Distinct from gmeow:dictionaryId, which is the authored human-readable name: the wire cites the number, a reviewer reads the name, and only the realization can bind the two."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:zstdDictionaryId 2118436947 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it on an authored gmeow:CompressionDictionary (the trainer assigns it) and avoid conflating it with the human-readable gmeow:dictionaryId."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Emit it from the medium-registry pass; a decoder reading a frame's Dictionary_ID resolves it here to reach the authored definition and its corpus."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to bind the on-wire numeric dictionary identity to the ontology's named dictionary."@x-gmeow-english .
+
+# --- Value-vocabulary individuals ------------------------------------------- #
+
+gmeow:codecZstdRsyncable
+    a gmeow:TransformCodec ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "zstd-rsyncable codec"@x-gmeow-english ;
+    skos:definition "RFC 8878 Zstandard compression in rsyncable mode: content-defined block boundaries so a local edit perturbs only nearby blocks and delta transfer stays cheap. GTS spec §8.4 classifies it as NON-baseline, so a segment using it raises the reader contract (declared with gmeow:requiresReaderCapability, never assumed)."@x-gmeow-english ;
+    gmeow:codecClass gmeow:codecClassCompress ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictStrategyRawContent
+    a gmeow:DictionaryStrategy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "raw content"@x-gmeow-english ;
+    skos:definition "The dictionary is a chosen byte range used verbatim as content, with no trainer pass — the honest record when a corpus is too small for the COVER trainer to beat raw content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictStrategyTermTable
+    a gmeow:DictionaryStrategy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "term table"@x-gmeow-english ;
+    skos:definition "The dictionary is synthesized from the ontology's own term vocabulary — IRIs, prefixes, and predicate names in frequency order — rather than sampled from serialized payloads."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictStrategyTrained
+    a gmeow:DictionaryStrategy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "trained"@x-gmeow-english ;
+    skos:definition "The dictionary is produced by the zstd COVER / fastCover trainer over the declared corpus — the default strategy for a corpus large enough to train on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:mediumSourceHeaderDict
+    a gmeow:MediumSourceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "header dictionary"@x-gmeow-english ;
+    skos:definition "One dictionary is declared in the segment header and every frame of the segment primes with it — the whole-segment resolution rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:mediumSourcePerRep
+    a gmeow:MediumSourceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "per rep"@x-gmeow-english ;
+    skos:definition "Each registered gmeow:PayloadSchema selects its own dictionary from the medium's declared gmeow:mediumDictionary set — the resolution rule that makes the rep-to-dictionary map total and derivable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:mediumSourceWholeArtifact
+    a gmeow:MediumSourceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "whole artifact"@x-gmeow-english ;
+    skos:definition "The medium applies to the finished artifact as a unit with no per-frame dictionary selection — the rule a whole-artifact producer and the runtime store use."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:stratumPayloadExcludingMediumEnvelope
+    a gmeow:DigestStratum ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload excluding the medium-envelope subgraph"@x-gmeow-english ;
+    skos:definition "The snapshot payload MINUS the medium-envelope subgraph. The stratum the snapshot envelope's gmeow:strataDigest is taken over: because the digest's region excludes the envelope, adding the envelope cannot change the digest, so a two-pass emission (digest the stratum, then write the envelope) provably reaches a fixed point in exactly two passes — where a whole-payload digest would not converge at all."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:stratumWholePayload
+    a gmeow:DigestStratum ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "whole payload"@x-gmeow-english ;
+    skos:definition "The entire frame payload. Legal only for an envelope that is NOT itself carried inside the payload it digests — a non-self-referential frame, where no stratification is needed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+# --- The two declared media ------------------------------------------------- #
+
+gmeow:mediumProfileBaselineL12
+    a gmeow:ZstdDictMedium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "baseline medium — zstd-rsyncable level 12, no dictionary"@x-gmeow-english ;
+    skos:definition "The EXPLICITLY DECLARED no-dictionary medium: zstd-rsyncable at level 12 with an empty gmeow:mediumDictionary set. It exists to make the rep-to-medium assignment TOTAL — 'no dictionary' is a named selection a producer makes, not an absence a frame falls through into, so there is no state in which a payload has no declared medium. LEGAL for whole-artifact producers and for the runtime store, whose payloads are written once and never re-primed. ILLEGAL for the gmeow:gtsProfileDist profile: a distribution snapshot is the shipped deliverable, its reps are exactly the ones the eight shipped dictionaries were trained for, and emitting it unprimed silently discards the density the dictionaries exist to provide while still demanding the same non-baseline reader."@x-gmeow-english ;
+    gmeow:mediumCodec gmeow:codecZstdRsyncable ;
+    gmeow:mediumZstdLevel 12 ;
+    gmeow:mediumSourceKind gmeow:mediumSourceWholeArtifact ;
+    gmeow:mediumCorrespondence gmeow:mediumCorrBaselineL12 ;
+    gmeow:requiresReaderCapability "zstd-rsyncable" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:mediumProfileDistL12
+    a gmeow:ZstdDictMedium ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dist medium — zstd-rsyncable level 12, dictionary-primed"@x-gmeow-english ;
+    skos:definition "The MANDATED dictionary-primed production medium: zstd-rsyncable at level 12, resolving a dictionary per registered gmeow:PayloadSchema from the eight shipped dictionaries. It is the medium the gmeow:gtsProfileDist distribution snapshot is written through; gmeow:mediumProfileBaselineL12 is illegal there. It demands two non-baseline reader capabilities — rsyncable framing (GTS spec §8.4) and dictionary priming — and declares both, because raising the reader contract is a property of the deliverable (Principle 13), never a discovery a consumer makes mid-decode."@x-gmeow-english ;
+    gmeow:mediumCodec gmeow:codecZstdRsyncable ;
+    gmeow:mediumZstdLevel 12 ;
+    gmeow:mediumSourceKind gmeow:mediumSourcePerRep ;
+    gmeow:mediumCorrespondence gmeow:mediumCorrDistL12 ;
+    gmeow:requiresReaderCapability "zstd-dictionary" ,
+        "zstd-rsyncable" ;
+    gmeow:mediumDictionary gmeow:dictGmeowClaimsV1 ,
+        gmeow:dictGmeowCoreV1 ,
+        gmeow:dictGmeowLangAstV1 ,
+        gmeow:dictGmeowLogicV1 ,
+        gmeow:dictGmeowMathV1 ,
+        gmeow:dictGmeowMemoryCompactV1 ,
+        gmeow:dictGmeowMemoryHotV1 ,
+        gmeow:dictGmeowProoftraceV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+# --- The losslessness correspondences (meta-level; graph/correspondence-laws) - #
+# Each medium's dec ∘ enc = id claim is a judged crossing, never a boolean. The
+# rung is logic:SectionRetraction (put ∘ get = id_S on the declared content
+# domain — the encoded byte space need not be recovered pointwise, so the top
+# logic:Isomorphism rung would overclaim), the relation is logic:Subsumes, and
+# the preservation judgment is IDENTITY (logic:ExactPreservation). Each carries a
+# get-leg witness whose derived put is discharged by EXECUTION in the
+# authored-correspondence gate, so the rung is a checked witness rather than a
+# prose claim. These records are meta-level: the pipeline re-projects every
+# authored logic:Correspondence into the graph/correspondence-laws named graph
+# with its executed lens-law verdicts attached, OUTSIDE object-level closure.
+# Both endpoints are internal gmeow: terms — this is the medium's OWN round-trip
+# law, not a grounding to an external formalism (external grounding is owned by
+# logic:/lang:/math: alone, docs/GROUNDING.md), so no competing grounding is
+# minted here and the zstd/GTS-SPEC references stay prose citations.
+
+gmeow:mediumCorrBaselineL12
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "baseline-L12 medium losslessness correspondence"@x-gmeow-english ;
+    skos:definition "The judged crossing realized by gmeow:mediumProfileBaselineL12: decoding an unprimed zstd-rsyncable level-12 payload recovers the declared content domain exactly (dec ∘ enc = id). The preservation judgment is identity; the rung is a section/retraction because the recovery claim is over the CONTENT domain, not over every byte string the codec could emit."@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint gmeow:PayloadSchema ;
+    logic:targetEndpoint gmeow:MediumEnvelope ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:mediumCorrBaselineL12Get .
+
+gmeow:mediumCorrBaselineL12Get gmeow:path gmeow:mediumCorrBaselineL12Step .
+
+gmeow:mediumCorrDistL12
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dist-L12 medium losslessness correspondence"@x-gmeow-english ;
+    skos:definition "The judged crossing realized by gmeow:mediumProfileDistL12: decoding a dictionary-primed zstd-rsyncable level-12 payload, with the dictionary the frame declares, recovers the declared content domain exactly (dec ∘ enc = id). Priming changes the CODE, never the content: the same content domain is recovered, which is why the preservation judgment is identity and the dictionary appears as a coordinate of the crossing rather than as a caveat on it. The claim is conditional on holding the cited dictionary — a decoder that cannot resolve it raises gmeow:MediumUnknownDictionary and refuses, so the law is never silently weakened to a dictionary-less decode."@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint gmeow:PayloadSchema ;
+    logic:targetEndpoint gmeow:MediumEnvelope ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:mediumCorrDistL12Get .
+
+gmeow:mediumCorrDistL12Get gmeow:path gmeow:mediumCorrDistL12Step .
+
+# --- The eight shipped dictionaries and their corpora ----------------------- #
+# EVERY corpus is BUNDLE-INTERNAL. The two memory dictionaries train on the
+# BUNDLE-SHIPPED claim corpora (generated/statements/*, the authoring packets),
+# never on a user's runtime ~/.gmeow/memory.gts, for three independent reasons,
+# each sufficient on its own: (1) PRIVACY — a zstd dictionary contains VERBATIM
+# SUBSTRINGS of its training corpus, so training on live user memory would bake
+# private claim fragments into a published bundle; (2) AVAILABILITY — a fresh
+# install has an empty store, so a build that needed one would hard-fail on the
+# machine that most needs the dictionary; (3) PROJECTION PURITY — the bundle must
+# be a projection of the repository, and a dictionary trained on out-of-tree data
+# is not one. The memory dictionaries are therefore priming aids derived from the
+# SHAPE of shipped claims, not from any user's content.
+
+gmeow:corpusGmeowClaimsV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "claims corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal statement corpus: the RDF 1.2 statement layer as a named graph plus its committed projection. Bundle-internal — both selectors name material the carrier already folds."@x-gmeow-english ;
+    gmeow:corpusSelectsGraph <https://blackcatinformatics.ca/gmeow/graph/statements> ;
+    gmeow:corpusSelectsPathPrefix "generated/statements/" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:corpusGmeowCoreV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "core corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal core-tier corpus: the cell/projection TTL sources the carrier folds as cells-archive, plus the authored core slice tree. Bundle-internal — the archive rep is owned by gmeow:stage-archive-blobs and the prefix is in-repo."@x-gmeow-english ;
+    gmeow:corpusSelectsBlobRep "cells-archive" ;
+    gmeow:corpusSelectsPathPrefix "slices/core/" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:corpusGmeowLangAstV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "lang AST corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal linguistic-surface corpus. The lang surface blob (lang-surface-blob) is SINK-FOLDED — it exists as an archive only at the terminal snapshot — so this corpus selects gmeow:stage-mappings' product, which carries the same lifted surface mid-DAG where the trainer runs, plus the authored lang: slice tree."@x-gmeow-english ;
+    gmeow:corpusSelectsStageProduct gmeow:stage-mappings ;
+    gmeow:corpusSelectsPathPrefix "slices/grounding/lang/" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:corpusGmeowLogicV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "logic corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal logic corpus: the compiled logic/DL projection surface the carrier folds as axioms-archive, plus the authored logic: slice tree. Bundle-internal — the archive rep is owned by gmeow:stage-archive-blobs and the prefix is in-repo."@x-gmeow-english ;
+    gmeow:corpusSelectsBlobRep "axioms-archive" ;
+    gmeow:corpusSelectsPathPrefix "slices/grounding/logic/" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:corpusGmeowMathV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "math corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal mathematical corpus: the authored math: slice tree, whose expression, quantity, and unit surfaces dominate the byte profile of every math-bearing payload. Bundle-internal — the prefix is in-repo."@x-gmeow-english ;
+    gmeow:corpusSelectsPathPrefix "slices/grounding/math/" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:corpusGmeowMemoryCompactV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "compact memory corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal SMALL-STORE memory corpus: the shipped authoring-packet graph and its committed projection. It trains on BUNDLE-SHIPPED claim material, NEVER on a user's runtime ~/.gmeow/memory.gts — a zstd dictionary carries verbatim substrings of its corpus, so training on live user memory would publish private claim fragments in the bundle, would hard-fail on a fresh install whose store is empty, and would not be a projection of the repository. What the dictionary learns is the SHAPE of shipped claims, not anyone's content."@x-gmeow-english ;
+    gmeow:corpusSelectsGraph <https://blackcatinformatics.ca/gmeow/graph/authoring-briefs> ;
+    gmeow:corpusSelectsPathPrefix "generated/briefs/" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:corpusGmeowMemoryHotV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "hot memory corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal HOT-PATH memory corpus: the shipped statement projection plus the authoring-packet graph. It trains on BUNDLE-SHIPPED claim material, NEVER on a user's runtime ~/.gmeow/memory.gts — a zstd dictionary carries verbatim substrings of its corpus, so training on live user memory would publish private claim fragments in the bundle, would hard-fail on a fresh install whose store is empty, and would not be a projection of the repository. What the dictionary learns is the SHAPE of shipped claims, not anyone's content."@x-gmeow-english ;
+    gmeow:corpusSelectsGraph <https://blackcatinformatics.ca/gmeow/graph/authoring-briefs> ;
+    gmeow:corpusSelectsPathPrefix "generated/statements/" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:corpusGmeowProoftraceV1
+    a gmeow:DictionaryCorpus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "proof-trace corpus v1"@x-gmeow-english ;
+    skos:definition "The bundle-internal reasoning-report corpus. The reasoning archive (reasoning-archive) is SINK-FOLDED — it is assembled only at the terminal snapshot — so this corpus selects gmeow:stage-reason's product directly, which carries the explanations and the DL/EL ledger mid-DAG where the trainer runs."@x-gmeow-english ;
+    gmeow:corpusSelectsStageProduct gmeow:stage-reason ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowClaimsV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-claims-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped dictionary for statement-layer payloads: reifier IRIs, annotation-coat predicates, and standpoint qualifiers dominate their byte profile."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-claims-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength 65536 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowClaimsV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowCoreV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-core-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped dictionary for core-tier payloads: the gmeow: namespace stem, the SKOS/RDFS annotation predicates, and the core class and property names dominate their byte profile."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-core-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength 112640 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowCoreV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowLangAstV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-lang-ast-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped dictionary for linguistic-surface payloads: lang: form, grammar, and rendering structures plus the alias tables dominate their byte profile."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-lang-ast-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength 65536 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowLangAstV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowLogicV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-logic-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped dictionary for compiled logic payloads: logic: formula, restriction, and constraint structures plus the DL projection vocabulary dominate their byte profile."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-logic-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength 112640 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowLogicV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowMathV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-math-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped dictionary for mathematical payloads: math: expression, quantity, dimension, and unit structures dominate their byte profile."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-math-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength 65536 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowMathV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowMemoryCompactV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-memory-compact-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped SMALL-STORE memory dictionary, built as a term table rather than a trained sample because a compact store offers too few bytes for the COVER trainer to beat the ontology's own term vocabulary. Trained ONLY on bundle-shipped claim material (see gmeow:corpusGmeowMemoryCompactV1) — never on a user's runtime store."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-memory-compact-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTermTable ;
+    gmeow:dictionaryTargetLength 16384 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowMemoryCompactV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowMemoryHotV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-memory-hot-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped HOT-PATH memory dictionary for frequently rewritten agent-memory segments. Trained ONLY on bundle-shipped claim material (see gmeow:corpusGmeowMemoryHotV1) — never on a user's runtime store; what it learns is the SHAPE of shipped claims, not anyone's content."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-memory-hot-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength 32768 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowMemoryHotV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:dictGmeowProoftraceV1
+    a gmeow:CompressionDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "gmeow-prooftrace-v1 dictionary"@x-gmeow-english ;
+    skos:definition "The shipped dictionary for reasoning-report payloads: explanation step records, rule identifiers, and the DL/EL crosscheck ledger dominate their byte profile."@x-gmeow-english ;
+    gmeow:dictionaryId "gmeow-prooftrace-v1" ;
+    gmeow:dictionaryVersion "1" ;
+    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
+    gmeow:dictionaryTargetLength 32768 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowProoftraceV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+# --- The registered payload-schema vocabulary ------------------------------- #
+# ONE individual per blob representation the carrier can emit, plus one for the
+# snapshot wire schema. This registry is the reason an UNREGISTERED rep is a
+# genuine production hard fail (gmeow:MediumUnknownSchema) instead of a value a
+# reader derives from the frame: a rep read back as an opaque string would decode
+# as "some blob" and its medium assignment would be undefined, so the registry —
+# not the frame — is the authority. gmeow:payloadSchemaId carries the EXACT wire
+# label the emitter writes, and the registry-agreement test enumerates the
+# carrier's representation constants against these literals, so adding an archive
+# in Rust without registering its schema here reds.
+
+gmeow:payloadSchemaAxiomsArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — axioms archive"@x-gmeow-english ;
+    skos:definition "The compiled logic/DL projection surface, keyed by repo-relative path."@x-gmeow-english ;
+    gmeow:payloadSchemaId "axioms-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaCellsArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — cells archive"@x-gmeow-english ;
+    skos:definition "The cell/projection TTL sources, keyed by repo-relative path."@x-gmeow-english ;
+    gmeow:payloadSchemaId "cells-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaDiagnosticsNodes
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — diagnostics nodes"@x-gmeow-english ;
+    skos:definition "A diagnostics producer's forward-projected run-ledger nodes (raw JSON, not a tar). Build-time only: absent from a shipped gmeow.gts, but still a rep the carrier can emit and therefore a registered schema."@x-gmeow-english ;
+    gmeow:payloadSchemaId "diagnostics:nodes" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaDocsBook
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — docs book"@x-gmeow-english ;
+    skos:definition "The mdbook source tree, every member prefixed with the English internal tag."@x-gmeow-english ;
+    gmeow:payloadSchemaId "docs-book" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaDocsPrint
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — docs print"@x-gmeow-english ;
+    skos:definition "The print documentation projection: the byte-reproducible PDF and its deterministic Typst source."@x-gmeow-english ;
+    gmeow:payloadSchemaId "docs-print" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaGeneratedOpaqueArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — generated opaque archive"@x-gmeow-english ;
+    skos:definition "The opaque generated-fanout archive: the committed generated/ byte projections the superset gate reconstructs the tree from."@x-gmeow-english ;
+    gmeow:payloadSchemaId "generated-opaque-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaLangSurfaceBlob
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — lang surface blob"@x-gmeow-english ;
+    skos:definition "The lifted linguistic-surface blob. SINK-FOLDED: assembled only at the terminal snapshot, which is why gmeow:corpusGmeowLangAstV1 selects a stage product rather than this rep."@x-gmeow-english ;
+    gmeow:payloadSchemaId "lang-surface-blob" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaMappingsArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — mappings archive"@x-gmeow-english ;
+    skos:definition "The generated SSSOM lift maps."@x-gmeow-english ;
+    gmeow:payloadSchemaId "mappings-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaModelsPython
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — python models"@x-gmeow-english ;
+    skos:definition "The generated Pydantic model package, keyed by package-relative member path."@x-gmeow-english ;
+    gmeow:payloadSchemaId "models-python" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaOkfExport
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — OKF export"@x-gmeow-english ;
+    skos:definition "The Open Knowledge Format bundle."@x-gmeow-english ;
+    gmeow:payloadSchemaId "okf-export" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaOntologyDocs
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — ontology docs"@x-gmeow-english ;
+    skos:definition "The rendered ontology-docs static site, with per-language member paths."@x-gmeow-english ;
+    gmeow:payloadSchemaId "ontology-docs" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaQueriesArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — queries archive"@x-gmeow-english ;
+    skos:definition "The compiled projection queries."@x-gmeow-english ;
+    gmeow:payloadSchemaId "queries-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaReasoningArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — reasoning archive"@x-gmeow-english ;
+    skos:definition "The native reasoner's report artifacts — explanations plus the DL/EL ledger. SINK-FOLDED, which is why gmeow:corpusGmeowProoftraceV1 selects gmeow:stage-reason's product rather than this rep."@x-gmeow-english ;
+    gmeow:payloadSchemaId "reasoning-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaSchemasArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — schemas archive"@x-gmeow-english ;
+    skos:definition "The generated JSON Schema and OpenAPI documents."@x-gmeow-english ;
+    gmeow:payloadSchemaId "schemas-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaShaclFindings
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — SHACL findings"@x-gmeow-english ;
+    skos:definition "The SHACL validation findings report the carrier attaches beside the graph."@x-gmeow-english ;
+    gmeow:payloadSchemaId "gmeow:report/shacl/findings" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaShaclSarif
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — SHACL SARIF"@x-gmeow-english ;
+    skos:definition "The SHACL validation report in SARIF form."@x-gmeow-english ;
+    gmeow:payloadSchemaId "gmeow:report/shacl/sarif" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaShapesArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — shapes archive"@x-gmeow-english ;
+    skos:definition "The full derived SHACL shape surface, keyed by repo-relative path."@x-gmeow-english ;
+    gmeow:payloadSchemaId "shapes-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaSnapshotWire
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — snapshot wire"@x-gmeow-english ;
+    skos:definition "The snapshot wire schema: the structured multi-named-graph CBOR payload of the terminal gmeow.gts itself, as distinct from any blob it carries. This is the schema whose envelope is SELF-REFERENTIAL — its digest folds the graph the envelope lives in — and therefore the one that requires gmeow:stratumPayloadExcludingMediumEnvelope."@x-gmeow-english ;
+    gmeow:payloadSchemaId "gmeow:snapshot/wire" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaSpansSourceTable
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — source span table"@x-gmeow-english ;
+    skos:definition "The authored subject-to-source-position span index (raw JSON, not a tar). Build-time only: dropped before the carrier assembles, but still a rep the carrier can emit."@x-gmeow-english ;
+    gmeow:payloadSchemaId "spans:source-table" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaTestsArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — tests archive"@x-gmeow-english ;
+    skos:definition "The slice test-DSL specs, keyed by repo-relative path."@x-gmeow-english ;
+    gmeow:payloadSchemaId "tests-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaTransformDenied
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — transform denied"@x-gmeow-english ;
+    skos:definition "The saturation refusal set — the alignment-lint ERROR rows (raw JSON, not a tar)."@x-gmeow-english ;
+    gmeow:payloadSchemaId "transform:denied" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaYamlLdArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — YAML-LD archive"@x-gmeow-english ;
+    skos:definition "The JSON-LD-star and YAML-LD-star RDF 1.2 serializations."@x-gmeow-english ;
+    gmeow:payloadSchemaId "yaml-ld-archive" ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+# --- Named failure classes -------------------------------------------------- #
+# Each is a HARD FAIL. None of them ever authorizes a fallback to dictionary-less
+# decode: a payload written through a primed medium is not readable at lower
+# fidelity without its dictionary, it is not readable AT ALL, so "retry without
+# the dictionary" would produce garbage that passes as content. They are wired
+# from gmeow:MediumEnvelope through gmeow:enforcesFailureClass, and the opacity
+# case reuses the existing gmeow:OpaqueFrame / gmeow:opacityUnknownCodec
+# vocabulary rather than modelling a disjoint set — a medium a reader cannot
+# apply is exactly the vantage-relative opacity the transport module already
+# describes.
+
+gmeow:GtsConformanceFailure
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS Conformance Failure"@x-gmeow-english ;
+    skos:definition "The parent of the GTS transport well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each slice logic:Constraint points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces WELL-FORMEDNESS of the transport claims — that a declared dictionary resolves, that a payload rep is registered, that a digest matches — never the truth of the content the transport carries."@x-gmeow-english ;
+    skos:example "gmeow:MediumUnknownDictionary logic:subClassOf gmeow:GtsConformanceFailure ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it for a CONTENT claim being false (transport conformance is about bytes, order, and resolvability) and avoid minting a failure subclass with no constraint that raises it — an unenforced failure class is documentation, not a gate."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Subclass it for each named transport failure and point the raising logic:Constraint at the subclass with gmeow:enforcesFailureClass, so a query moves from gate to failure and back."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the root of the gts slice's typed conformance-failure vocabulary."@x-gmeow-english .
+
+gmeow:MediumDictionaryRegression
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Dictionary Regression"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when an EMITTED dictionary version is no longer retained by any authored gmeow:CompressionDictionary — a gmeow:CompressionDictionaryRealization whose gmeow:dictionaryVersion its gmeow:realizesDictionary definition does not declare. HARD FAIL: every artifact already primed with that version becomes undecodable the moment the version is dropped, so retiring a version is a data-destroying change, not a cleanup. There is no fallback to dictionary-less decode — a frame primed with version N cannot be read without version N."@x-gmeow-english ;
+    skos:example "ex:realCoreV0 a gmeow:MediumDictionaryRegression ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating it as a warning about tidiness (it names artifacts that have become unreadable) and avoid resolving it by deleting the realization — the shipped bytes it describes still exist."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by logic:MediumDictionaryRetentionConstraint; resolve it by restoring the dropped gmeow:dictionaryVersion to its authored definition, never by suppressing the check."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the loss of a dictionary version that shipped artifacts still depend on."@x-gmeow-english .
+
+gmeow:MediumDigestMismatch
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Digest Mismatch"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a digest a medium envelope carries does not match the bytes it describes — the frame's gmeow:contentDigest against the payload, the gmeow:strataDigest against its named gmeow:envelopeDigestStratum, or a dictionary's gmeow:dictionaryContentDigest against the dictionary the reader holds. HARD FAIL and never a fallback: decoding a primed payload against a DIFFERENT dictionary with the same id produces plausible-looking garbage rather than an error, so a digest mismatch must refuse before any decode is attempted."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:MediumDigestMismatch ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid downgrading it to a warning and avoid retrying the decode with a different dictionary — a mismatch means the reader's premises are wrong, not that it should search."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raise it before priming whenever a carried digest disagrees with the bytes at hand; pair it with the frame's gmeow:OpaqueFrame record when the region is surfaced rather than rejected wholesale."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name a byte-identity disagreement between a medium envelope's claims and the bytes it describes."@x-gmeow-english .
+
+gmeow:MediumOpaqueFrame
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Opaque Frame"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a reader lacks a capability the frame's medium declares through gmeow:requiresReaderCapability — rsyncable framing or dictionary priming (GTS spec §8.4 makes both non-baseline). It is DELIBERATELY not a disjoint new opacity model: the reader surfaces the region through the existing gmeow:OpaqueFrame vocabulary with gmeow:opacityReason gmeow:opacityUnknownCodec, and this class names the medium-axis reading of that same situation. HARD FAIL for a producer (emitting through a medium whose capabilities the target reader lacks is a mis-declared deliverable) and a surfaced, describable gap for a reader — never a silent dictionary-less decode."@x-gmeow-english ;
+    skos:example "ex:frame7 a gmeow:MediumOpaqueFrame ; gmeow:opacityReason gmeow:opacityUnknownCodec ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid modelling it as a new opacity axis (reuse gmeow:OpaqueFrame / gmeow:opacityReason) and avoid using it where the reader HAS the capability but the dictionary is missing — that is gmeow:MediumUnknownDictionary."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Surface the region as a gmeow:OpaqueFrame carrying gmeow:opacityUnknownCodec and type it with this class so the medium-axis cause is queryable; compare the reader's capabilities against gmeow:requiresReaderCapability to report exactly which one is missing."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name a frame a reader cannot decode because it lacks a capability the medium declares."@x-gmeow-english .
+
+gmeow:MediumUndeclaredDictionary
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Undeclared Dictionary"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a gmeow:MediumEnvelope does not declare its contract — canonically a payload primed with a dictionary whose frame declares none, and equally any of the seven exactly-one envelope fields being absent or duplicated, since a projection missing a coordinate is a different claim rather than a weaker one. HARD FAIL: an undeclared dictionary is undiscoverable, so the payload is permanently undecodable even though its bytes are intact. It is distinct from gmeow:MediumUnknownDictionary (a dictionary IS declared but does not resolve): here nothing was declared at all, and there is no fallback to dictionary-less decode because the bytes were not written that way. This is the failure the DERIVED gmeow:MediumEnvelope contract shape raises, which is why it is the class wired directly from gmeow:MediumEnvelope."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:MediumUndeclaredDictionary ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it for the explicitly dictionary-less gmeow:mediumProfileBaselineL12 (declaring no dictionary is that medium's SELECTION, not an omission) and avoid confusing it with an unresolvable declaration."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by the derived gmeow:MediumEnvelope contract shape whenever a field of the seven-field contract is absent or duplicated; the fix is to emit the declaration, never to decode without it."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name a primed payload whose priming dictionary was never written down."@x-gmeow-english .
+
+gmeow:MediumUnknownDictionary
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Unknown Dictionary"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a frame declares a dictionary that does not resolve to a registered gmeow:CompressionDictionary — an unknown id, an unknown version, or a dictionary the reader does not hold. HARD FAIL: there is NO fallback to dictionary-less decode, because zstd priming changes the code, not the framing — decoding without the dictionary the encoder used yields corrupt output that no checksum in the payload itself would catch."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:MediumUnknownDictionary ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid recovering from it by decoding unprimed (that produces garbage, not degraded content) and avoid using it for an undeclared dictionary — that is gmeow:MediumUndeclaredDictionary."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by logic:MediumDictionaryResolutionConstraint; a reader raises it before priming and refuses the frame, optionally surfacing it as a gmeow:OpaqueFrame so the gap is described rather than dropped."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name a declared dictionary that cannot be resolved to registered bytes."@x-gmeow-english .
+
+gmeow:MediumUnknownSchema
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Unknown Schema"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a blob's rep does not resolve to a registered gmeow:PayloadSchema. HARD FAIL, and the reason the registry exists at all: if the schema were merely derived from the frame, an unregistered rep would decode as an unclassified blob with an UNDEFINED medium assignment, which is exactly the silent capability degradation the no-optionality rule forbids. Adding an archive to the carrier without registering its schema raises this rather than shipping an unmediated payload."@x-gmeow-english ;
+    skos:example "ex:env a gmeow:MediumUnknownSchema ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid resolving it by inventing a default medium for the unknown rep (there is no defaultable answer) and avoid suppressing it while an archive ships unregistered."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raise it whenever a rep label has no gmeow:payloadSchemaId match; the fix is to mint the schema individual in the same change that adds the archive."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name an emitted payload representation that the schema registry does not know."@x-gmeow-english .
+
+# gmeow:enforcesFailureClass is a GATE-to-failure link, and a class carries at most
+# the ONE failure its own derived shape raises (the deriver hard-fails on distinct
+# values for a shape target, exactly as gmeow:GmnEnvelope carries exactly one). So
+# the envelope itself carries the failure of its own seven-field contract shape, and
+# each of the other five is wired from the gate that actually raises it — the two
+# range closures, the three procedural constraints, and the two constraints below.
+# Every one of them is reachable FROM gmeow:MediumEnvelope by following the gate's
+# logic:formalizes edge back, so the whole named set stays anchored to the envelope
+# without a class pretending to raise five different failures at once.
+gmeow:MediumEnvelope gmeow:enforcesFailureClass gmeow:MediumUndeclaredDictionary .
+
+# A digest that is not a canonical 'blake3:<64 lowercase hex>' literal is
+# indistinguishable from a truncated or foreign digest, so comparing it is a
+# guaranteed mismatch rather than a check — the shape of the string is part of the
+# claim, exactly as it is for gmeow:gtsHeadId.
+logic:MediumStrataDigestFormConstraint
+    a logic:StringPatternConstraint ;
+    rdfs:label "Medium strata-digest form constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:strataDigest is written 'blake3:<64 lowercase hex>'. A free-form digest cannot be compared against the bytes it claims to commit to, so a malformed one is a gmeow:MediumDigestMismatch by construction."@x-gmeow-english ;
+    logic:onClass gmeow:MediumEnvelope ;
+    logic:valuePath gmeow:strataDigest ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^blake3:[0-9a-f]{64}$" ;
+    logic:formalizes gmeow:MediumEnvelope ;
+    gmeow:enforcesFailureClass gmeow:MediumDigestMismatch ;
+    logic:message "A gmeow:strataDigest must be written 'blake3:<64 lowercase hex>' — a free-form digest cannot be compared against the bytes it commits to." .
+
+logic:MediumDictionaryDigestFormConstraint
+    a logic:StringPatternConstraint ;
+    rdfs:label "Medium dictionary-digest form constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:dictionaryContentDigest is written 'blake3:<64 lowercase hex>'. A decoder compares this literal against the dictionary bytes it holds before priming, so a malformed value makes the comparison meaningless and the primed decode unsafe."@x-gmeow-english ;
+    logic:onClass gmeow:CompressionDictionaryRealization ;
+    logic:valuePath gmeow:dictionaryContentDigest ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^blake3:[0-9a-f]{64}$" ;
+    logic:formalizes gmeow:CompressionDictionaryRealization ;
+    logic:message "A gmeow:dictionaryContentDigest must be written 'blake3:<64 lowercase hex>' — a decoder compares it against the dictionary it holds before priming." .
+
+# A medium realized by a NON-BASELINE codec must declare the reader capability it
+# demands. GTS spec §8.4 puts zstd-rsyncable outside the baseline reader contract,
+# so an undeclared requirement means readers discover the gap only at decode time —
+# which is exactly gmeow:MediumOpaqueFrame, and exactly what Principle 13 forbids.
+logic:MediumReaderCapabilityConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Medium reader-capability constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Medium whose gmeow:mediumCodec is the non-baseline gmeow:codecZstdRsyncable names at least one gmeow:requiresReaderCapability. Raising the reader contract is a declared property of the deliverable (Principle 13), never a discovery a consumer makes mid-decode."@x-gmeow-english ;
+    logic:onClass gmeow:Medium ;
+    logic:trigger gmeow:mediumCodec ;
+    logic:triggerValue gmeow:codecZstdRsyncable ;
+    logic:requires gmeow:requiresReaderCapability ;
+    logic:formalizes gmeow:Medium ;
+    gmeow:enforcesFailureClass gmeow:MediumOpaqueFrame ;
+    logic:message "A gmeow:Medium using the non-baseline gmeow:codecZstdRsyncable must declare at least one gmeow:requiresReaderCapability — an undeclared requirement surfaces as opacity at decode time." .
+
+# =========================================================================== #
+# Medium-axis declarative constraint axioms — authored ONCE in the CANONICAL   #
+# logic: restriction vocabulary and PROJECTED to                              #
+# generated/shapes/validation-shapes.ttl by derive_validation_shapes           #
+# (Principle 17). The rdfs:/owl: spelling is the derived projection, never a   #
+# hand-authored second source: an owl:Restriction written here would be        #
+# ungrounded structural residue against this slice's projection-vocabulary     #
+# ceiling, and the slice ships NO shapes.ttl.                                  #
+#                                                                             #
+# Two forms are used deliberately. A restriction qualified on owl:Thing is the #
+# VACUOUS-QUALIFIER form the deriver degrades to plain sh:minCount/sh:maxCount #
+# (and its owl:onDataRange twin degrades to sh:datatype + the same counts).    #
+# A restriction qualified on a NAMED class keeps its count inside              #
+# sh:qualifiedValueShape, and only earns a bare sh:class when a genuine        #
+# universal backs it — here a closed-world-opted-in rdfs:range, declared by the#
+# logic:ClosureEntry records below. rdfs:domain/range are open-world INFERENCE #
+# axioms, so without an explicit opt-in the derive keeps their closed-world    #
+# reading suppressed.                                                          #
+# =========================================================================== #
+
+gmeow:envelopeDictionaryRangeClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "envelope-dictionary range closure"@x-gmeow-english ;
+    skos:definition "The property-global closed-world authority reading gmeow:envelopeDictionary's rdfs:range gmeow:CompressionDictionary as a validation obligation: every dictionary an envelope names is a REGISTERED gmeow:CompressionDictionary, not merely inferable as one — an unregistered dictionary is gmeow:MediumUnknownDictionary, a hard fail."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/envelopeDictionary" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass gmeow:MediumUnknownDictionary .
+
+gmeow:envelopeSchemaRangeClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "envelope-schema range closure"@x-gmeow-english ;
+    skos:definition "The property-global closed-world authority reading gmeow:envelopeSchema's rdfs:range gmeow:PayloadSchema as a validation obligation: every payload rep an envelope names is a REGISTERED gmeow:PayloadSchema — an unregistered rep is gmeow:MediumUnknownSchema, a hard fail rather than an unclassified blob."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/envelopeSchema" ;
+    logic:closureValue logic:ClosedWorldClosure ;
+    gmeow:enforcesFailureClass gmeow:MediumUnknownSchema .
+
+gmeow:mediumCorrespondenceRangeClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "medium-correspondence range closure"@x-gmeow-english ;
+    skos:definition "The property-global closed-world authority reading gmeow:mediumCorrespondence's rdfs:range logic:Correspondence as a validation obligation: the losslessness judgment a medium points at is a declared logic:Correspondence, never an untyped node standing in for one — which is what keeps the round-trip claim a judged, dischargeable crossing instead of a flag."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/mediumCorrespondence" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+gmeow:trainsOverCorpusRangeClosure
+    a logic:ClosureEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "trains-over-corpus range closure"@x-gmeow-english ;
+    skos:definition "The property-global closed-world authority reading gmeow:trainsOverCorpus's rdfs:range gmeow:DictionaryCorpus as a validation obligation: the corpus a dictionary trains over is a declared gmeow:DictionaryCorpus, so the bundle-internal guarantee is stated somewhere a validator can reach."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/trainsOverCorpus" ;
+    logic:closureValue logic:ClosedWorldClosure .
+
+# The seven-field medium-envelope contract: every field exactly one. The two
+# registry-resolved fields are qualified on their named class (backed by the
+# closure entries above, so the derived shape carries sh:class); the rest use the
+# vacuous owl:Thing qualifier, which the deriver degrades to plain counts.
+gmeow:MediumEnvelope logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDictionary ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CompressionDictionary ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CompressionDictionary ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeSchema ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:PayloadSchema ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeSchema ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:PayloadSchema ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+
+# A medium is exactly one codec, one resolution rule, and one judged crossing.
+gmeow:Medium logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumCodec ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumCodec ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumSourceKind ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumSourceKind ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumCorrespondence ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumCorrespondence ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] .
+
+# The zstd level is declared on the medium, exactly once.
+gmeow:ZstdDictMedium logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumZstdLevel ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumZstdLevel ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+
+# The AUTHORED dictionary contract. Deliberately NO digest / byte-length /
+# Dictionary_ID obligation: those are build products, and requiring them on an
+# authored individual would be an UNSATISFIABLE axiom rather than a strict one.
+gmeow:CompressionDictionary logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryTargetLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryTargetLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:trainsOverCorpus ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:DictionaryCorpus ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:trainsOverCorpus ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DictionaryCorpus ] .
+
+# The GENERATED realization contract — where the measured fields ARE mandatory,
+# because the build can always supply them.
+gmeow:CompressionDictionaryRealization logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryByteLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryByteLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:zstdDictionaryId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:zstdDictionaryId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# A registered payload schema carries exactly one wire label — the join key the
+# carrier's representation constants are enumerated against.
+gmeow:PayloadSchema logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+
+# =========================================================================== #
+# Medium-axis procedural constraints — the cross-node conditions with no OWL   #
+# antecedent, authored as canonical logic: constraints and lowered to          #
+# sh:SPARQLConstraint node shapes. They are the SOLE authority for these       #
+# checks; no hand-authored shape restates them.                                #
+# =========================================================================== #
+
+# A corpus with no selector declares nothing: its dictionary's training set
+# would be undefined, so the bundle-internal guarantee could not be checked.
+# Disjunctive requiredness has no OWL antecedent (it is "at least one of four
+# DIFFERENT properties"), so it is a logic: constraint rather than a restriction.
+logic:DictionaryCorpusSelectorConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Dictionary-corpus selector constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:DictionaryCorpus declares at least one selector — a blob rep, a named graph, a path prefix, or a stage product. A corpus with no selector leaves its dictionary's training set undefined, so neither the reviewer nor the bundle-internal check has anything to read."@x-gmeow-english ;
+    logic:onClass gmeow:DictionaryCorpus ;
+    logic:anyOf gmeow:corpusSelectsBlobRep ,
+        gmeow:corpusSelectsGraph ,
+        gmeow:corpusSelectsPathPrefix ,
+        gmeow:corpusSelectsStageProduct ;
+    logic:formalizes gmeow:DictionaryCorpus ;
+    logic:message "A gmeow:DictionaryCorpus must declare at least one selector (gmeow:corpusSelectsBlobRep, gmeow:corpusSelectsGraph, gmeow:corpusSelectsPathPrefix, or gmeow:corpusSelectsStageProduct)." .
+
+# A declared dict_id must resolve to a REGISTERED dictionary. Cross-node: the
+# obligation is about the envelope's neighbour, not about the envelope's own
+# cardinality, so it has no OWL antecedent.
+logic:MediumDictionaryResolutionConstraint
+    a logic:Constraint ;
+    rdfs:label "Medium dictionary-resolution constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every dictionary a gmeow:MediumEnvelope declares resolves to a registered gmeow:CompressionDictionary. HARD FAIL — an unresolvable dictionary makes the payload undecodable, and decoding it unprimed would yield corrupt output rather than degraded output, so there is no fallback."@x-gmeow-english ;
+    logic:formalizes gmeow:MediumEnvelope ;
+    gmeow:enforcesFailureClass gmeow:MediumUnknownDictionary ;
+    logic:message "A gmeow:MediumEnvelope's gmeow:envelopeDictionary must resolve to a registered gmeow:CompressionDictionary — an unknown dictionary is a hard failure, never a fallback to dictionary-less decode." ;
+    logic:integrity logic:mdrForall .
+logic:mdrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mdrImpl .
+logic:mdrImpl a logic:Formula ; logic:antecedent logic:mdrGuard ; logic:consequent logic:mdrNot .
+logic:mdrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:MediumEnvelope ] .
+logic:mdrNot a logic:Formula ; logic:not logic:mdrEx .
+logic:mdrEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "dict" ] ;
+    logic:exists logic:mdrBody .
+logic:mdrBody a logic:Formula ; logic:and logic:mdrEdge , logic:mdrUnregistered .
+logic:mdrEdge a logic:Formula ; logic:relation gmeow:envelopeDictionary ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dict" ] .
+logic:mdrUnregistered a logic:Formula ; logic:not logic:mdrTyped .
+logic:mdrTyped a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dict" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompressionDictionary ] .
+
+# Every payload rep resolves to EXACTLY ONE declared medium. Combined with the
+# exactly-one gmeow:envelopeMedium restriction above, this makes the rep-to-medium
+# assignment a total FUNCTION: a schema two envelopes disagree about has no
+# derivable medium, which is precisely the silent per-call decision the medium
+# axis exists to remove.
+logic:MediumSchemaMediumFunctionalityConstraint
+    a logic:Constraint ;
+    rdfs:label "Payload-schema medium functionality constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: no two gmeow:MediumEnvelope records over the SAME gmeow:PayloadSchema may name different media. The rep-to-medium map is a function — 'which medium applies to this rep' must be derivable from the declaration, not decided per call."@x-gmeow-english ;
+    logic:formalizes gmeow:PayloadSchema ;
+    gmeow:enforcesFailureClass gmeow:MediumUnknownSchema ;
+    logic:message "A gmeow:PayloadSchema must resolve to exactly one declared gmeow:Medium — two envelopes over the same rep naming different media leave the rep's medium underivable." ;
+    logic:integrity logic:msmForall .
+logic:msmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:msmImpl .
+logic:msmImpl a logic:Formula ; logic:antecedent logic:msmGuard ; logic:consequent logic:msmNot .
+logic:msmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PayloadSchema ] .
+logic:msmNot a logic:Formula ; logic:not logic:msmEx .
+logic:msmEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "envA" ] , [ logic:termIndex 1 ; logic:termVariable "envB" ] , [ logic:termIndex 2 ; logic:termVariable "medA" ] , [ logic:termIndex 3 ; logic:termVariable "medB" ] ;
+    logic:exists logic:msmBody .
+logic:msmBody a logic:Formula ; logic:and logic:msmSchemaA , logic:msmSchemaB , logic:msmMediumA , logic:msmMediumB , logic:msmDistinct .
+logic:msmSchemaA a logic:Formula ; logic:relation gmeow:envelopeSchema ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "envA" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:msmSchemaB a logic:Formula ; logic:relation gmeow:envelopeSchema ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "envB" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:msmMediumA a logic:Formula ; logic:relation gmeow:envelopeMedium ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "envA" ] , [ logic:termIndex 1 ; logic:termVariable "medA" ] .
+logic:msmMediumB a logic:Formula ; logic:relation gmeow:envelopeMedium ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "envB" ] , [ logic:termIndex 1 ; logic:termVariable "medB" ] .
+logic:msmDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "medA" ] , [ logic:termIndex 1 ; logic:termVariable "medB" ] .
+
+# Every EMITTED dictionary version is retained by its authored definition.
+# Dropping a version orphans every artifact already primed with it — those bytes
+# become undecodable, so retention is a data-preservation obligation, not tidiness.
+logic:MediumDictionaryRetentionConstraint
+    a logic:Constraint ;
+    rdfs:label "Medium dictionary-retention constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:CompressionDictionaryRealization's gmeow:dictionaryVersion is still declared by the gmeow:CompressionDictionary it gmeow:realizesDictionary. A version present in an emitted realization but absent from its authored definition has been RETIRED underneath shipped artifacts, and every payload primed with it is now undecodable."@x-gmeow-english ;
+    logic:formalizes gmeow:CompressionDictionaryRealization ;
+    gmeow:enforcesFailureClass gmeow:MediumDictionaryRegression ;
+    logic:message "An emitted gmeow:CompressionDictionaryRealization's gmeow:dictionaryVersion must still be declared by the gmeow:CompressionDictionary it realizes — retiring a shipped version orphans every artifact primed with it." ;
+    logic:integrity logic:mdtForall .
+logic:mdtForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mdtImpl .
+logic:mdtImpl a logic:Formula ; logic:antecedent logic:mdtGuard ; logic:consequent logic:mdtNot .
+logic:mdtGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompressionDictionaryRealization ] .
+logic:mdtNot a logic:Formula ; logic:not logic:mdtEx .
+logic:mdtEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "def" ] , [ logic:termIndex 1 ; logic:termVariable "ver" ] ;
+    logic:exists logic:mdtBody .
+logic:mdtBody a logic:Formula ; logic:and logic:mdtRealizes , logic:mdtEmitted , logic:mdtDropped .
+logic:mdtRealizes a logic:Formula ; logic:relation gmeow:realizesDictionary ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "def" ] .
+logic:mdtEmitted a logic:Formula ; logic:relation gmeow:dictionaryVersion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ver" ] .
+logic:mdtDropped a logic:Formula ; logic:not logic:mdtDeclared .
+logic:mdtDeclared a logic:Formula ; logic:relation gmeow:dictionaryVersion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "def" ] , [ logic:termIndex 1 ; logic:termVariable "ver" ] .
