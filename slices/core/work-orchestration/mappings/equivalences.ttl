@@ -10,6 +10,7 @@
 @prefix opmw:    <https://www.opmw.org/ontology/> .
 @prefix bpmn:    <http://www.omg.org/spec/BPMN/20100524/MODEL#> .
 @prefix ro_crate: <https://w3id.org/ro/crate/#> .
+@prefix obi:     <http://purl.obolibrary.org/obo/OBI_> .
 # Prescription / enactment / step alignments — GMEOW authoring source.
 # Re-keyed from the retired process-model slice onto the canonical logic:
 # spine: every target, confidence, justification and comment is preserved,
@@ -433,4 +434,27 @@ logic:ActionSchema skos:relatedMatch <https://specifications.openehr.org/release
     gmeow:confidence 0.7 ;
     gmeow:comment "openEHR Task Planning TASK / TASK_ACTION (by reference): a procedure step is an openEHR task. A DLM-gated task maps to a guarded logic:Choice step (preserved, not unrolled); a manual-notification task maps to logic:NotificationWaitSchema (subsumed natively); a DLM currency-guarded task input maps to logic:FreshnessGuard (subsumed natively) — BOTH its axes: `currency` (max age) to logic:freshnessHorizon and `time_window` (an explicit valid-time interval) to logic:freshnessWindow / logic:freshnessWindowStart / logic:freshnessWindowEnd." ;
     gmeow:lossyDrop "TP-VML task scheduling annotations (planned time / wait windows) are not carried by a bare logic:ActionSchema; scheduling is a solver-layer concern (Principle 12)"
+|} .
+
+# --- OBI: the two alignments the retired process-model slice carried -----------
+# Restored onto the kernel spine rather than dropped. OBI is a guarded
+# upper-ontology family, so this residue is bounded by an explicit
+# ProjectionCeilingCommitment (slice-quality-rubric) that may only ever fall —
+# the same discipline the observations slice already carries for its own three
+# obi rows, and the reason the pair is authored here rather than quietly omitted.
+
+logic:Plan skos:closeMatch obi:0000272 {|
+    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OBI protocol (OBI_0000272): a plan of action a study or assay follows. A logic:Plan is the prescription — the program whose steps invoke action schemas and whose success criterion is a goal expression — so the correspondence is close rather than exact: OBI scopes protocol to investigation contexts, while logic:Plan is domain-neutral and also carries curricula, control recipes and organizational guides." ;
+    gmeow:lossyDrop "OBI's investigation-context scoping (a protocol is realized in an assay or study design) is not carried by logic:Plan, which is deliberately domain-neutral"
+|} .
+
+logic:Enactment skos:closeMatch obi:0000011 {|
+    gmeow:sssomFile "gmeow-work-orchestration.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OBI planned process (OBI_0000011): a process realizing a plan specification. A logic:Enactment is one immutable occurrence of a pinned prescription version against a closed input snapshot, so the alignment is close: OBI's planned process carries no commitment to version immutability or input closure, which are precisely what make one enactment comparable to its siblings." ;
+    gmeow:lossyDrop "OBI planned process carries no prescription-version pin and no closed input snapshot, so the two bindings that make a logic:Enactment reproducible are dropped in the projection"
 |} .

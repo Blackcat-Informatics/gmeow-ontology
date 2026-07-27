@@ -74,8 +74,12 @@ fn every_committed_projection_ceiling_is_reproduced_integer_exactly() {
     let rows = golden_rows("projection-ceilings.golden.tsv");
     assert_eq!(
         rows.len(),
-        140,
-        "the frozen projection-ceiling golden has 140 rows"
+        141,
+        // 141, not 140: the work-orchestration/obi row was ADDED when the two OBI
+        // alignments the retired process-model slice carried were re-authored onto the
+        // kernel spine rather than dropped. Extending the record is what a new bounded
+        // residue looks like; no committed historical value moved.
+        "the frozen projection-ceiling golden has 141 rows"
     );
     let live = live_rows(&rows);
     assert_eq!(
