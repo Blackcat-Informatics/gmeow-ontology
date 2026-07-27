@@ -1,0 +1,238 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: teleology, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a commitment's beneficiary is distinct from its committed agent"
+msgstr "le bénéficiaire d'un engagement est distinct de l'agent engagé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:Commitment's gmeow:committedAgent and gmeow:commitmentBeneficiary must be distinct: a resolution made purely to oneself is an Intention, not a Commitment. The native coherence gate raises a violation when they coincide."
+msgstr "Affirme que le gmeow:committedAgent et le gmeow:commitmentBeneficiary d'un gmeow:Commitment doivent être distincts : une résolution prise purement envers soi-même est une Intention, non un Commitment. La porte de cohérence native lève une violation lorsqu'ils coïncident."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "committedAgent is functional"
+msgstr "committedAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:committedAgent is functional: a gmeow:Commitment binds exactly one committed agent, mutual promises being modelled as two directed Commitments so that withdrawal, breach, and tenure stay independent per direction. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:committedAgent est fonctionnelle : un gmeow:Commitment lie exactement un agent engagé, les promesses mutuelles étant modélisées comme deux Commitments dirigés de sorte que le retrait, la rupture et la durée restent indépendants selon chaque direction. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counterGoal is irreflexive"
+msgstr "counterGoal est irréflexive"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:counterGoal is irreflexive: a goal is never its own shadow, as its skos:definition states. The native coherence gate reads this to raise a violation for a goal asserted to counter itself."
+msgstr "Affirme sur le porteur canonique que gmeow:counterGoal est irréflexive : un but n'est jamais sa propre ombre, comme l'énonce sa skos:definition. La barrière de cohérence native lit ceci pour lever une violation pour un but affirmé se contrer lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "counterGoal is symmetric"
+msgstr "counterGoal est symétrique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:counterGoal est symétrique : chaque pôle d'une opposition constitutive constitue l'autre, comme l'énonce sa skos:definition. La barrière de cohérence native lit ceci pour refléter l'opposition. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intentBearer is functional"
+msgstr "intentBearer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:intentBearer is functional: an intentional mode is an intrinsic moment that inheres in exactly one bearer, so two agents wanting the same outcome are two modes sharing a single gmeow:intentionGoal. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:intentBearer est fonctionnelle : un mode intentionnel est un moment intrinsèque qui inhère à exactement un porteur, de sorte que deux agents voulant le même résultat constituent deux modes partageant un unique gmeow:intentionGoal. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intentionGoal is functional"
+msgstr "intentionGoal est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:intentionGoal is functional: an intentional moment aims at exactly one goal, so an agent pursuing five goals bears five modes and sharing occurs at the Goal individual rather than the mode."
+msgstr "Affirme sur le porteur canonique que gmeow:intentionGoal est fonctionnelle : un moment intentionnel vise exactement un but, de sorte qu'un agent poursuivant cinq buts porte cinq modes, et le partage se produit au niveau de l'individu Goal plutôt qu'au niveau du mode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureAgent is functional"
+msgstr "tenureAgent est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureAgent is functional: a gmeow:IntentionTenure records the intentional mode of exactly one agent. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureAgent est fonctionnelle: une gmeow:IntentionTenure enregistre le mode intentionnel d'exactement un agent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tenureIntention is functional"
+msgstr "tenureIntention est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:tenureIntention is functional: a gmeow:IntentionTenure records exactly one intrinsic desire or intention over its interval, so adopting another mode opens a separate tenure. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:tenureIntention est fonctionnelle: une gmeow:IntentionTenure enregistre exactement un désir ou une intention intrinsèque sur son intervalle, de sorte que l'adoption d'un autre mode ouvre une tenure distincte. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:counterGoal holds in both directions; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:counterGoal vaut dans les deux sens ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when the relation is genuinely one-way — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque la relation est véritablement unidirectionnelle — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:counterGoal, logic:characteristicSort logic:symmetricProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:counterGoal, logic:characteristicSort logic:symmetricProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:counterGoalSymmetry logic:characterizes gmeow:counterGoal ."
+msgstr "gmeow:counterGoalSymmetry logic:characterizes gmeow:counterGoal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:counterGoal never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:counterGoal ne relie jamais un sujet à lui-même ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une boucle sur soi est significative — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:counterGoal, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:counterGoal, logic:characteristicSort logic:irreflexiveProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:counterGoalIrreflexivity logic:characterizes gmeow:counterGoal ."
+msgstr "gmeow:counterGoalIrreflexivity logic:characterizes gmeow:counterGoal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:committedAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:committedAgent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:committedAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:committedAgent, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:committedAgentFunctionality logic:characterizes gmeow:committedAgent ."
+msgstr "gmeow:committedAgentFunctionality logic:characterizes gmeow:committedAgent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:intentBearer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:intentBearer nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:intentBearer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:intentBearer, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:intentBearerFunctionality logic:characterizes gmeow:intentBearer ."
+msgstr "gmeow:intentBearerFunctionality logic:characterizes gmeow:intentBearer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:intentionGoal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:intentionGoal nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:intentionGoal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:intentionGoal, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:intentionGoalFunctionality logic:characterizes gmeow:intentionGoal ."
+msgstr "gmeow:intentionGoalFunctionality logic:characterizes gmeow:intentionGoal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureAgent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:tenureAgent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureAgent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:tenureAgent, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureAgentFunctionality logic:characterizes gmeow:tenureAgent ."
+msgstr "gmeow:tenureAgentFunctionality logic:characterizes gmeow:tenureAgent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:tenureIntention names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:tenureIntention nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tenureIntention, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:tenureIntention, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:tenureIntentionFunctionality logic:characterizes gmeow:tenureIntention ."
+msgstr "gmeow:tenureIntentionFunctionality logic:characterizes gmeow:tenureIntention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Commitment; the record is the canonical carrier the gate joins."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir la condition d'intégrité de cet enregistrement sur gmeow:Commitment ; l'enregistrement est le porteur canonique que le portail joint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:Commitment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque gmeow:Commitment ne porte plus la condition — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:Commitment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "Lisez ensemble les champs logic: de l'enregistrement : ils nomment gmeow:Commitment et la condition affirmée à son sujet, et la vue de fondement OWL en projette l'axiome correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:commitmentBeneficiaryDistinctness logic:characterizes gmeow:Commitment ."
+msgstr "gmeow:commitmentBeneficiaryDistinctness logic:characterizes gmeow:Commitment ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalSymmetry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:counterGoal and nothing else. It is not a definition of gmeow:counterGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:counterGoal, et rien d'autre. Ce n'est pas une définition de gmeow:counterGoal (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/counterGoalIrreflexivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:counterGoal and nothing else. It is not a definition of gmeow:counterGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:counterGoal, et rien d'autre. Ce n'est pas une définition de gmeow:counterGoal (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/committedAgentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:committedAgent and nothing else. It is not a definition of gmeow:committedAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:committedAgent, et rien d'autre. Ce n'est pas une définition de gmeow:committedAgent (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentBearerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:intentBearer and nothing else. It is not a definition of gmeow:intentBearer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:intentBearer, et rien d'autre. Ce n'est pas une définition de gmeow:intentBearer (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionGoalFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:intentionGoal and nothing else. It is not a definition of gmeow:intentionGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:intentionGoal, et rien d'autre. Ce n'est pas une définition de gmeow:intentionGoal (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureAgentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tenureAgent and nothing else. It is not a definition of gmeow:tenureAgent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:tenureAgent, et rien d'autre. Ce n'est pas une définition de gmeow:tenureAgent (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tenureIntentionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:tenureIntention and nothing else. It is not a definition of gmeow:tenureIntention (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:tenureIntention, et rien d'autre. Ce n'est pas une définition de gmeow:tenureIntention (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentBeneficiaryDistinctness|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:Commitment and nothing else. It is not a definition of gmeow:Commitment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:Commitment, et rien d'autre. Ce n'est pas une définition de gmeow:Commitment (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

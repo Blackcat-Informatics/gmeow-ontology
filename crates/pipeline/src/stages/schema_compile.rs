@@ -30,7 +30,7 @@ pub(crate) fn enriched_compiled_schema(
     root: &Path,
     shapes: &purrdf::shapes::shapes::Shapes,
 ) -> Result<purrdf::shapes::json_schema::CompiledSchema, gmeow_errors::Diag> {
-    let ns = crate::gmeow_ns::gmeow_json_schema_namespaces();
+    let ns = gmeow_ns::gmeow_json_schema_namespaces();
     let compiled = purrdf::shapes::json_schema::compile(shapes, &ns);
     let mut schema: serde_json::Value =
         serde_json::from_str(&compiled.schema_json).map_err(|e| {

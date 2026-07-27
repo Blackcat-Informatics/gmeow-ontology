@@ -15,6 +15,7 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
@@ -23,5 +24,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
-        <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+        <https://blackcatinformatics.ca/gmeow/slices/trust> ,
+        <https://blackcatinformatics.ca/gmeow/slices/names> ;
     gmeow:sliceConsumer "Accounts, transactions, REA double-entry over core MonetaryAmount; FIBO alignment."@x-gmeow-english .

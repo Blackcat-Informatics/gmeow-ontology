@@ -15,8 +15,9 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:sliceProfile "claims" ;
     gmeow:sliceConsumer "The Rust gmeow-diagnostics engine projects its canonical Report into this vocabulary as a gmeow:graph/diagnostics named graph embedded in the feedback .gts bundle, so a validation report rides with the data it describes and is SPARQL-queryable. The native↔oracle divergence ledger and logic:violation share this Finding shape; SARIF is the external code-scanning projection of the same findings."@x-gmeow-english .

@@ -1,0 +1,154 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: connectivity, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "connectionSource is functional"
+msgstr "connectionSource 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:connectionSource is functional: a reified Connection has exactly one source endpoint, so a link departing from several things is several Connections rather than one Connection with many sources."
+msgstr "在规范载体上断言 gmeow:connectionSource 是函数式的：一个具体化的 Connection 恰好有一个源端点，因此从多个事物出发的链接是多个 Connection，而不是一个具有多个来源的 Connection。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "connectionTarget is functional"
+msgstr "connectionTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:connectionTarget is functional: a reified Connection has exactly one target endpoint, so a link arriving at several things is several Connections rather than one Connection with many targets."
+msgstr "在规范载体上断言 gmeow:connectionTarget 是函数式的：一个具体化的 Connection 恰好有一个目标端点，因此到达多个事物的链接是多个 Connection，而不是一个具有多个目标的 Connection。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "routeEnd is functional"
+msgstr "routeEnd 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:routeEnd is functional: a route terminates at exactly one end node, the single destination that closes the path. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:routeEnd 是函数性的:一条路线恰好终止于一个终点节点——即封闭该路径的唯一目的地。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "routeKind is functional"
+msgstr "routeKind 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:routeKind is functional: a route is classified by exactly one RouteKind value, the single domain (transit, flight, citation, dependency, and so on) in which its path is traversed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:routeKind 是函数性的:一条路线恰好由一个 RouteKind 值分类——即其路径所遍历的唯一领域(交通、航班、引用、依赖等等)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "routeStart is functional"
+msgstr "routeStart 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:routeStart is functional: a route originates at exactly one start node, the single point from which the path departs. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:routeStart 是函数性的:一条路线恰好起始于一个起点节点——即该路径出发的唯一起点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:connectionSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:connectionSource 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:connectionSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:connectionSource, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:connectionSourceFunctionality logic:characterizes gmeow:connectionSource ."
+msgstr "gmeow:connectionSourceFunctionality logic:characterizes gmeow:connectionSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:connectionTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:connectionTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:connectionTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:connectionTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:connectionTargetFunctionality logic:characterizes gmeow:connectionTarget ."
+msgstr "gmeow:connectionTargetFunctionality logic:characterizes gmeow:connectionTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:routeEnd names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:routeEnd 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:routeEnd, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:routeEnd, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:routeEndFunctionality logic:characterizes gmeow:routeEnd ."
+msgstr "gmeow:routeEndFunctionality logic:characterizes gmeow:routeEnd ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:routeKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:routeKind 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:routeKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:routeKind, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:routeKindFunctionality logic:characterizes gmeow:routeKind ."
+msgstr "gmeow:routeKindFunctionality logic:characterizes gmeow:routeKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:routeStart names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:routeStart 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:routeStart, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:routeStart, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:routeStartFunctionality logic:characterizes gmeow:routeStart ."
+msgstr "gmeow:routeStartFunctionality logic:characterizes gmeow:routeStart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionSourceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:connectionSource and nothing else. It is not a definition of gmeow:connectionSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:connectionSource 的一项完整性义务，别无其他。它不是 gmeow:connectionSource 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:connectionTarget and nothing else. It is not a definition of gmeow:connectionTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:connectionTarget 的一项完整性义务，别无其他。它不是 gmeow:connectionTarget 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeEndFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:routeEnd and nothing else. It is not a definition of gmeow:routeEnd (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:routeEnd 的一项完整性义务，别无其他。它不是 gmeow:routeEnd 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:routeKind and nothing else. It is not a definition of gmeow:routeKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:routeKind 的一项完整性义务，别无其他。它不是 gmeow:routeKind 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/routeStartFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:routeStart and nothing else. It is not a definition of gmeow:routeStart (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:routeStart 的一项完整性义务，别无其他。它不是 gmeow:routeStart 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

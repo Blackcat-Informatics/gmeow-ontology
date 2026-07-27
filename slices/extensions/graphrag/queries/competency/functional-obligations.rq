@@ -1,0 +1,23 @@
+# Competency question: "Which graphrag properties carry a functional-property
+# obligation, and on which carrier record does that obligation live?"
+#
+# The retrieval substrate is only reproducible if its single-valued edges really
+# are single-valued: an index is built with ONE algorithm, an extracted
+# relationship has ONE source and ONE target, and a community summary condenses
+# ONE community. Each obligation is reasoned from its logic: carrier rather than
+# restated as a shape, so this query walks carrier -> characterized property.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?carrier ?property WHERE {
+    VALUES ?carrier {
+        gmeow:indexAlgorithmFunctionality
+        gmeow:relationshipSourceFunctionality
+        gmeow:relationshipTargetFunctionality
+        gmeow:summarizesCommunityFunctionality
+    }
+    ?carrier logic:characterizes ?property ;
+        logic:characteristicSort logic:functionalProperty .
+}
+ORDER BY ?carrier

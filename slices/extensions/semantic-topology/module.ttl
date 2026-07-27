@@ -909,3 +909,45 @@ gmeow:TopologyConformanceFailure a logic:Situation .
 gmeow:CompilationMissingContext a logic:Situation .
 gmeow:TopologyClaimMissingStatus a logic:Situation .
 gmeow:ResultObjectConflation a logic:Situation .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:claimResultFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "claimResult is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimResult is functional: a topology claim wraps exactly one computed topology result, the single TopologyResult it makes a standpoint-relative claim about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:claimResult ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimResult ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimResult and nothing else. It is not a definition of gmeow:claimResult (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:claimResultFunctionality logic:characterizes gmeow:claimResult ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:computationOverCompilationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
+    rdfs:label "computationOverCompilation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:computationOverCompilation is functional: a topology computation runs over exactly one complex compilation, since a federated computation spanning several compilations is several computations under a parent activity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:computationOverCompilation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:computationOverCompilation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:computationOverCompilation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:computationOverCompilation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:computationOverCompilation and nothing else. It is not a definition of gmeow:computationOverCompilation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:computationOverCompilationFunctionality logic:characterizes gmeow:computationOverCompilation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

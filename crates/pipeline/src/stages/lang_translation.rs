@@ -46,8 +46,8 @@ use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 /// The example-instance base every minted corpus IRI lives under — the same base the
@@ -95,14 +95,13 @@ struct Unit {
 /// [`parse_po`] (which keeps EVERY entry, including untranslated gaps), types each
 /// `msgctxt = "<term-iri>|<predicate-curie>"` entry as a `lang:TranslationUnit`.
 pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::Diag> {
-    let catalog =
-        SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!("lang-translation slice catalog: {e}"),
-                })
-            })?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!("lang-translation slice catalog: {e}"),
+            })
+        })?;
 
     let mut units: Vec<Unit> = Vec::new();
     for record in catalog.records() {
@@ -456,7 +455,7 @@ fn unit_ledger_row(unit: &Unit, loss: &mut LossLedger) -> ProjectionResult {
         .key
         .split_once('|')
         .map(|(term_iri, _)| term_iri)
-        .filter(|t| t.starts_with(crate::gmeow_ns::GMEOW_NS))
+        .filter(|t| t.starts_with(gmeow_ns::GMEOW_NS))
         .map(str::to_owned);
     let attributed: Vec<(String, Option<String>)> = actual_drops
         .into_iter()

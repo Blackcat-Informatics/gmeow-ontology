@@ -1954,3 +1954,87 @@ suggestions/guidance.
   bundle correctly emits zero abductive advice (nothing to repair). No forward path — this is the
   correct behavior of a repair advisor, recorded to pre-empt a "the bundle shows zero abductive
   output" misreading.
+
+## 2026-07-25 — peerage-aware undeclared cross-slice usage gate
+
+- PROJECTION-CEILING RE-BASELINE OWED TO A MAINTAINER (blocking `make check`, not
+  self-resolvable). Five (slice, vocabulary) cells measure ungrounded rdfs/obi/pato residue
+  above their committed `gmeow:ProjectionCeilingCommitment`: `accounts` rdfs 5>4, `ai` rdfs
+  42>26, `logic` rdfs 69>68, `sensory` obi 1>0, `sensory` pato 1>0. Every one is a term this
+  branch RELOCATED to the slice that legitimately owns it, and each is matched one-for-one by
+  the source slice's residue falling: PaymentMethod from finance, the box-role cluster from
+  kernel, the vector/embedding primitives from graphrag, the OBI/PATO alignment cells from
+  observations. Corpus-wide ungrounded residue is unchanged and not one construct is freshly
+  authored — each pre-exists at the merge base under its old slice.
+  Grounding them is not available: a `logic:Formula` restating a named-class `rdfs:subClassOf`
+  is the redeclaration `counting::resolvable_grounding` explicitly rejects as a faked
+  migration, and `logic:subClassOf` projects only restriction-shaped axioms
+  (`logic-compile/src/projections/lift.rs`), so converting would drop the taxonomy from the
+  generated OWL view. Raising the ceilings is refused by three independent guards whose own
+  doctrine reserves it: "a maintainer-only decision authorized out-of-band by merging past this
+  red, never by a tool". FORWARD PATH: a maintainer either re-baselines the five ceilings
+  (recognising the transfer) or teaches the ratchet to net a relocation across its source and
+  destination cells; the latter is a governance-gate change and was deliberately not made by
+  this branch, since the gate guards this branch's own work.
+
+- AXIS-FLOOR REGRESSIONS CAUSED BY THIS BRANCH (blocking `make check`; NOT pre-existing).
+  38 of 591 slices measure below a committed `gmeow:AxisFloorCommitment`, overwhelmingly
+  `axisDocMaturity`. An earlier revision of this entry claimed these were "pre-existing,
+  unchanged by this branch". That was FALSE and is retracted: running the same branch-built
+  `gmeow-dev slice-quality-gate` against `origin/main`'s `slices/` tree exits 0 with "591
+  slice(s) hold their committed per-axis floors", and against this branch's tree exits 1 with
+  "38 of 591 below". Bisected, the reds appear at `31f8b41e8` (promote shared vector/embedding
+  primitives to core ai) and grow at `0727cf359` (re-home 665 central records). No floor value
+  moved — the measures fell. The mechanism is mechanical: `axisDocMaturity` dimensions are
+  per-term structural predicates (`skos:example`, `skos:scopeNote`, `useWhen`, fixture pair,
+  competency rationale), so importing under-documented terms and carrier records into a slice
+  dilutes its coverage fraction.
+  These are self-inflicted and, unlike a ceiling raise, they are meetable in-repo: the
+  maintainer-only doctrine reserves LOWERING a floor, not failing one. FORWARD PATH: author the
+  missing documentation dimensions on the relocated terms in their new homes (the gate emits a
+  per-slice advisory naming each missing dimension). Escalated to the human as a scope question
+  rather than silently absorbed, because the volume changes the shape of this branch.
+
+- PURRDF PINNED BY REV, NOT TAG. `Cargo.toml` and `fuzz/Cargo.toml` pin purrdf at
+  `76f25955` — `rust-v0.8.3` plus two fixes this work required: ownership scoping by declared
+  term namespaces (without which every slice minting into `logic:`/`lang:`/`math:` is invisible
+  to the dependency analyzer) and the fix-deps comment-skip. FORWARD PATH: move both pin sites
+  back to a `tag =` pin once a purrdf release carries them.
+
+## 2026-07-26 — #1442 merged with the slice-quality gate RED (human-authorised)
+
+- MERGED WITH `make check` RED, ON EXPLICIT MAINTAINER OVERRIDE. The peerage-aware
+  dependency gate — issue #1442's own requirement — is at zero across all five codes and was
+  demonstrated on the production surface. `slice-quality-gate` was NOT green at merge: 4 slices
+  below a committed per-axis floor and 5 (slice,vocab) cells above their committed projection
+  ceiling. I recommended against merging and set out the alternatives; the maintainer overrode
+  that decision.
+  Decided-by: paudley, 2026-07-26, verbatim: "MERGE THE FUCKING BRANCH" — repeated four times
+  after being shown the red `make check`, the stage-3 blocking-gate rules, and the fact that
+  follow-up issue #1642 does not discharge these findings under those rules.
+
+- 4 AXIS-FLOOR SHORTFALLS SHIPPED (`kernel`, `finance`, `norms` axisProseQuality; `logic`
+  axisTranslationCoverage 0.999769 against a 1.0 floor). Caused by this branch's own term
+  relocations, which imported under-documented records into receiving slices — the doc-maturity
+  axis covers a dimension only when EVERY term a slice owns covers it. Reduced 38 -> 4 by real
+  authoring before merge. These are meetable in-repo (the doctrine reserves LOWERING a floor,
+  not failing one). FORWARD PATH: #1642 §A/§B — instrument the four prose conjuncts at
+  `crates/docs/src/coverage.rs:749` and the translation axis enumerator, then fix the named
+  conjunct per term.
+
+- 5 PROJECTION-CEILING CELLS SHIPPED ABOVE THEIR COMMITTED CEILING (`accounts` rdfs 5>4,
+  `ai` rdfs 42>26, `logic` rdfs 69>68, `sensory` obi 1>0, `sensory` pato 1>0). Verified
+  conservative transfers — corpus-wide ungrounded residue 3740 -> 3740, one-for-one, every
+  construct pre-existing at the merge base under its old slice. Grounding them is unavailable:
+  a `logic:Formula` restating a named-class `rdfs:subClassOf` is the redeclaration
+  `counting::resolvable_grounding` rejects as a faked migration, and `logic:subClassOf` projects
+  only restriction-shaped axioms, so converting would drop named-class taxonomy from the OWL
+  view. Three independent guards (monotonicity, grandfather, the frozen `migrated_ceilings`
+  golden) reserve the raise to a maintainer. FORWARD PATH: #1642 §C — re-baseline the five
+  ceilings, or teach the ratchet to net a relocation across source and destination cells.
+
+- PURRDF PINNED BY REV, NOT TAG. `Cargo.toml` and `fuzz/Cargo.toml` pin
+  `76f2595528e5d64fd708aa1c24d9055db084870e` — `rust-v0.8.3` plus the ownership term-namespace
+  scoping fix (without which every slice minting into `logic:`/`lang:`/`math:` is invisible to
+  the dependency analyzer) and the fix-deps comment-skip fix. FORWARD PATH: move both pin sites
+  back to a `tag =` pin once a purrdf release carries them.

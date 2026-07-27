@@ -15,6 +15,7 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceConsumer "The transpiler's expertise up-projection: schema:knowsAbout lifts to the asserted gmeow:knowsAbout level of the knowledge spectrum, preserving the QID-anchored subject (the agent-memory flagship records what an agent knows across sessions — Principle 14). The reified tier — gmeow:KnowledgeProficiency (a gufo:Relator mirroring SkillProficiency) over the gmeow:KnowledgeLevel ordinal axis, grounded in the gmeow:CognitiveState mode under the kernel gmeow:MentalMoment umbrella — lets the flagship record graded, scaled, time-scoped, standpoint-indexed knowing; attention, interest, and objectual memory-of round it out. Belief/justification epistemics land in the sibling epistemics slice."@x-gmeow-english .

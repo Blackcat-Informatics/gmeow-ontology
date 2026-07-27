@@ -28,8 +28,8 @@ four-way separation, stated in prose):
    classification everything downstream inherits. It is upstream, exact, and
    canonical.
 2. **The generated lossy projection** — `gmeow:EmbeddingProjection`
-   (`ex:bookshelfProjA`). A whole `.purremb` pack that AGGREGATES graphrag's
-   per-object `gmeow:Embedding` rows (via `gmeow:aggregatesEmbedding`) under one
+   (`ex:bookshelfProjA`). A whole `.purremb` pack that AGGREGATES the core ai
+   slice's per-object `gmeow:Embedding` rows (via `gmeow:aggregatesEmbedding`) under one
    `gmeow:VectorSpaceContract`. It is deliberately NOT a subclass of
    `gmeow:Embedding` — an embedding is one object's vector; a projection is the
    pack that gathers many — so the two constructs are non-duplicative. It is
@@ -40,7 +40,7 @@ four-way separation, stated in prose):
    (`ex:crossObs`, `ex:inObs`). A standalone, attributable, pairwise proximity
    CLAIM over one effective space under one metric — `logic:Vague`, never
    equivalence, never entailment, never a truth judgment. It is `owl:disjointWith`
-   graphrag's `gmeow:RetrievalEvent`: a weighable claim about two resources'
+   the core ai slice's `gmeow:RetrievalEvent`: a weighable claim about two resources'
    vector proximity is not a per-triple score riding a retrieval activity.
 4. **The derived rebuildable index** — `gmeow:DerivedVectorIndex`
    (`ex:annIndexA`). A non-authoritative accelerator over one exact projection
@@ -123,11 +123,13 @@ invent structure the source does not carry. The fibration over
 The slice mints only what carries genuinely new meaning, and reuses everything
 already shipped:
 
-- **graphrag** — `gmeow:Embedding`, `gmeow:embeddingModel`,
+- **ai** (core) — `gmeow:Embedding`, `gmeow:embeddingModel`,
   `gmeow:embeddingDimensions`, `gmeow:DistanceMetric` / `gmeow:distanceMetric`,
-  `gmeow:VectorIndex`, `gmeow:indexAlgorithm` / `gmeow:indexParameters`,
-  `gmeow:RetrievalEvent`. The projection aggregates the per-object rows rather
-  than redefining them.
+  `gmeow:VectorIndex`, `gmeow:RetrievalEvent` — the shared vector/embedding/
+  retrieval primitives (extensions/graphrag is the other consumer). The
+  projection aggregates the per-object rows rather than redefining them.
+- **graphrag** — `gmeow:indexAlgorithm` / `gmeow:indexParameters` for the
+  derived index's algorithm/parameters.
 - **kernel** — `gmeow:SensitivityLevel`, `gmeow:hasSensitivity`,
   `gmeow:hasDisclosurePolicy` for disclosure control (the slice only adds a
   `gmeow:sensitivityRank` total order over the existing levels, so monotonicity

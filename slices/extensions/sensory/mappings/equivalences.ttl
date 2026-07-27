@@ -5,6 +5,13 @@
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix afo: <https://w3id.org/afo/onto/1.1#> .
 @prefix afv: <https://w3id.org/afo/vocab/1.1#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix oboe: <http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#> .
+@prefix pato: <http://purl.obolibrary.org/obo/PATO_> .
+@prefix obi: <http://purl.obolibrary.org/obo/OBI_> .
+@prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
+@prefix loinc: <http://loinc.org/rdf/> .
 
 # Sensory slice alignments.
 # Compiled to mappings/gmeow-sensory.sssom.tsv by `gmeow compile-mappings`.
@@ -55,4 +62,104 @@ gmeow:observablePropertyTimingDeviation skos:relatedMatch afv:Onset {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:comment "AFV Onset is an onset detection function; timing deviation is a derived perceptual/computational property relative to a reference grid."
+|} .
+
+# --------------------------------------------------------------------------- #
+# SOSA/SSN — precise sensor / platform / observable property / result alignments
+# (relocated from observations/mappings/equivalences.ttl — these subjects are
+# owned by this slice, not observations)
+# --------------------------------------------------------------------------- #
+
+gmeow:Sensor skos:closeMatch sosa:Sensor {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Precise alignment: a GMEOW Sensor is a more specific kind of Agent that acts as vantage in a SensoryObservation. Supersedes the broader Agent → sosa:Sensor broadMatch (eqObs018)."
+|} .
+
+gmeow:SensorPlatform skos:closeMatch sosa:Platform {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Precise alignment: a GMEOW SensorPlatform hosts sensors and is situated at a place. Supersedes the broader Agent → sosa:Platform relatedMatch (eqObs031)."
+|} .
+
+gmeow:ObservableProperty skos:closeMatch sosa:ObservableProperty {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "A property that can be observed or measured by a sensor. GMEOW models it as a gufo:QualityValue vocabulary (individuals); SOSA as a class."
+|} .
+
+gmeow:SensoryQuantity skos:closeMatch sosa:Result {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a sensory-produced scalar numeric and specializes the sole math:Quantity authority."
+|} .
+
+gmeow:sensoryProperty skos:closeMatch sosa:observedProperty {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "The observable property that a sensory observation measures."
+|} .
+
+gmeow:platformLocation skos:closeMatch geo:location {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "SOSA core has no direct platform-location property; bridge via GeoSPARQL geo:location by reference."
+|} .
+
+# OBOE — Extensible Observation Ontology
+
+gmeow:ObservableProperty skos:closeMatch oboe:Characteristic {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OBOE Characteristic is the property being measured; GMEOW ObservableProperty is a value vocabulary (individuals)."
+|} .
+
+# PATO — Phenotype And Trait Ontology
+
+gmeow:ObservableProperty skos:closeMatch pato:0000001 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "PATO quality (PATO:0000001) is the broadest quality class; GMEOW ObservableProperty is a value vocabulary of specific observable properties."
+|} .
+
+# OBI — Ontology for Biomedical Investigations
+
+gmeow:Sensor skos:closeMatch obi:0000968 {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OBI device (OBI:0000968) is a material entity that is designed to perform a function. A GMEOW Sensor is an Agent (observer) that may be realised by a device."
+|} .
+
+# IVOA ObsCore — astronomical facility/instrument alignment
+
+gmeow:Sensor skos:relatedMatch obscore:facility {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "IVOA ObsCore facility identifies the telescope or observatory that produced the observation."
+|} .
+
+gmeow:Sensor skos:relatedMatch obscore:instrument {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument."
+|} .
+
+# LOINC — clinical observable-property alignment
+
+gmeow:ObservableProperty skos:relatedMatch loinc:Component {|
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "LOINC Component identifies what is being measured (glucose, WBC, etc.)."
 |} .

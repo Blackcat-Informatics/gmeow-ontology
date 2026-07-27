@@ -62,11 +62,8 @@ fn merge_slice_artifacts(root: &Path, role: ArtifactRole, b: &mut RdfDatasetBuil
     if !slices_dir.is_dir() {
         return;
     }
-    let catalog = SliceCatalog::discover(
-        &slices_dir,
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )
-    .expect("discover slices");
+    let catalog = SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+        .expect("discover slices");
     let mut artifacts: Vec<(PathBuf, Vec<u8>)> = Vec::new();
     for record in catalog.records() {
         for artifact in &record.artifacts {

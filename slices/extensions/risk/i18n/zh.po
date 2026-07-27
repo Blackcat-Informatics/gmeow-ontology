@@ -1,0 +1,210 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: risk, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cascadeFirstLink is functional"
+msgstr "cascadeFirstLink 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:cascadeFirstLink is functional: a cascade has exactly one entry link, the single causal link at which a walk of the named failure chain begins. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:cascadeFirstLink 是函数式的：一个级联恰好有一个入口链接，即该命名故障链的遍历开始所在的唯一因果链接。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a causal link's antecedent and consequent are distinct"
+msgstr "因果联系的前件与后件各不相同"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "断言一个 gmeow:CausalLink 的 gmeow:linkAntecedent 与 gmeow:linkConsequent 必须相异:没有任何东西在类型层面导致自身。当二者重合时,原生一致性门会抛出一项违背。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "causalModality is functional"
+msgstr "causalModality 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:causalModality is functional: a causal link claims exactly one force — necessitates, promotes, enables, or prevents — the single modality that is the very reason the link was reified. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:causalModality 是函数式的：一个因果链接恰好宣称一种作用力——必然导致、促进、使能或阻止——这唯一的模态正是该链接被具体化的根本原因。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hazardBearer is functional"
+msgstr "hazardBearer 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:hazardBearer is functional: a hazard inheres in exactly one bearer, per gUFO inherence — the same danger borne by two systems is two hazards, not one shared between them."
+msgstr "在规范载体上断言 gmeow:hazardBearer 是函数性的:按照 gUFO 的内在依存关系,一个危害恰好内在于一个承载者——同一种危险由两个系统承载即是两个危害,而不是二者共享的一个危害。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linkAntecedent is functional"
+msgstr "linkAntecedent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:linkAntecedent is functional: a causal link has exactly one causing kind, the single antecedent event type, held distinct from the consequent so that nothing type-causes itself."
+msgstr "在规范载体上断言 gmeow:linkAntecedent 是函数式的:一个因果链接恰好有一个致因种类,即唯一的前因事件类型,它与后果保持区分,以确保没有任何类型在类型层面上导致其自身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linkConsequent is functional"
+msgstr "linkConsequent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:linkConsequent is functional: a causal link has exactly one caused kind, the single consequent event type that the antecedent kind brings about. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:linkConsequent 是函数式的:一个因果链接恰好有一个被致因的种类,即前因种类所导致的唯一后果事件类型。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linkNext is acyclic"
+msgstr "linkNext 无环"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:linkNext is acyclic: a causal-cascade walk never reaches itself through gmeow:linkNext, as the Cascade prose states. linkNext is deliberately NOT transitive (it names the immediate next link, not every downstream one), so the native coherence gate enforces this with an internal reachability walk that raises a violation on any cycle, never by materialising the closure; the generated SHACL constraint surface is its projection."
+msgstr "在规范载体上断言 gmeow:linkNext 是无环的：一次因果级联行走绝不经由 gmeow:linkNext 到达自身，正如 Cascade 散文所述。linkNext 有意并非传递（它命名紧邻的下一个链接，而非每一个下游链接），故原生一致性门以一次内部可达性行走来强制此点，对任何环抛出违反，绝不物化闭包；所生成的 SHACL 约束面是其投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:cascadeFirstLink names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:cascadeFirstLink 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:cascadeFirstLink, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:cascadeFirstLink, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:cascadeFirstLinkFunctionality logic:characterizes gmeow:cascadeFirstLink ."
+msgstr "gmeow:cascadeFirstLinkFunctionality logic:characterizes gmeow:cascadeFirstLink ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:causalModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:causalModality 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:causalModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:causalModality, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:causalModalityFunctionality logic:characterizes gmeow:causalModality ."
+msgstr "gmeow:causalModalityFunctionality logic:characterizes gmeow:causalModality ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:hazardBearer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:hazardBearer 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hazardBearer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:hazardBearer, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:hazardBearerFunctionality logic:characterizes gmeow:hazardBearer ."
+msgstr "gmeow:hazardBearerFunctionality logic:characterizes gmeow:hazardBearer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:linkAntecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:linkAntecedent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkAntecedent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:linkAntecedent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:linkAntecedentFunctionality logic:characterizes gmeow:linkAntecedent ."
+msgstr "gmeow:linkAntecedentFunctionality logic:characterizes gmeow:linkAntecedent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:linkConsequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:linkConsequent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkConsequent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:linkConsequent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:linkConsequentFunctionality logic:characterizes gmeow:linkConsequent ."
+msgstr "gmeow:linkConsequentFunctionality logic:characterizes gmeow:linkConsequent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:linkNext admits no cycle; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:linkNext 不允许任何环 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a cycle is a legitimate shape — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当环是一种合法结构时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:linkNext, logic:characteristicSort logic:acyclicProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:linkNext, logic:characteristicSort logic:acyclicProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:linkNextAcyclicity logic:characterizes gmeow:linkNext ."
+msgstr "gmeow:linkNextAcyclicity logic:characterizes gmeow:linkNext ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce this record's integrity condition over gmeow:CausalLink; the record is the canonical carrier the gate joins."
+msgstr "当原生一致性门必须在 gmeow:CausalLink 上强制该记录的完整性条件时使用；该记录是门所连接的规范载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when gmeow:CausalLink no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当 gmeow:CausalLink 不再承载该条件时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the record's own logic: fields together: they name gmeow:CausalLink and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."
+msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 gmeow:CausalLink 以及对其断言的条件，OWL 基础视图据此投影出相应公理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:causalLinkDistinctness logic:characterizes gmeow:CausalLink ."
+msgstr "gmeow:causalLinkDistinctness logic:characterizes gmeow:CausalLink ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cascadeFirstLinkFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:cascadeFirstLink and nothing else. It is not a definition of gmeow:cascadeFirstLink (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:cascadeFirstLink 的一项完整性义务，别无其他。它不是 gmeow:cascadeFirstLink 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalModalityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:causalModality and nothing else. It is not a definition of gmeow:causalModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:causalModality 的一项完整性义务，别无其他。它不是 gmeow:causalModality 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hazardBearerFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:hazardBearer and nothing else. It is not a definition of gmeow:hazardBearer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:hazardBearer 的一项完整性义务，别无其他。它不是 gmeow:hazardBearer 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkAntecedentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:linkAntecedent and nothing else. It is not a definition of gmeow:linkAntecedent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:linkAntecedent 的一项完整性义务，别无其他。它不是 gmeow:linkAntecedent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkConsequentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:linkConsequent and nothing else. It is not a definition of gmeow:linkConsequent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:linkConsequent 的一项完整性义务，别无其他。它不是 gmeow:linkConsequent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linkNextAcyclicity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:linkNext and nothing else. It is not a definition of gmeow:linkNext (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:linkNext 的一项完整性义务，别无其他。它不是 gmeow:linkNext 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/causalLinkDistinctness|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:CausalLink and nothing else. It is not a definition of gmeow:CausalLink (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:CausalLink 的一项完整性义务，别无其他。它不是 gmeow:CausalLink 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

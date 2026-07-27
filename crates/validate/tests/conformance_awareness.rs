@@ -14,8 +14,8 @@
 //!   ranks are EXACTLY `{0,1,2,3,4,5}` (high arousal → low). Hardened beyond the Python
 //!   original: exactly those six subjects carry `gmeow:levelRank` in the whole merged
 //!   ontology, so a stray future rank on another subject is caught.
-//! * `slice_depends_on_is_exactly_kernel_and_temporal` — the awareness `manifest.ttl`
-//!   declares `gmeow:sliceDependsOn` EXACTLY `{kernel, temporal}` (dependency hygiene:
+//! * `slice_depends_on_is_exactly_kernel_logic_and_temporal` — the awareness `manifest.ttl`
+//!   declares `gmeow:sliceDependsOn` EXACTLY `{kernel, logic, temporal}` (dependency hygiene:
 //!   mentation / metacognition / imagination are consumed by reference, never declared).
 
 mod conformance_support;
@@ -91,18 +91,28 @@ fn level_ranks_are_exactly_zero_through_five() {
 }
 
 /// Twin of `test_manifest_depends_only_on_kernel_and_temporal`: the awareness
-/// `manifest.ttl` declares `gmeow:sliceDependsOn` EXACTLY `{kernel, temporal}`.
+/// `manifest.ttl` declares `gmeow:sliceDependsOn` EXACTLY `{kernel, logic, temporal}`.
+///
+/// `logic` is the grounding vocabulary the slice's own `logic:PropertyCharacteristicAssertion`
+/// carriers are written in (`gmeow:awarenessScalarFunctionality`): a characteristic of one of
+/// THIS slice's properties is authored in THIS slice, so the slice consumes the `logic:`
+/// assertion vocabulary. Domain → grounding is the sanctioned direction; the reverse
+/// (a grounding slice carrying the record) is what `docs/GROUNDING.md`'s tier rule forbids.
 #[test]
-fn slice_depends_on_is_exactly_kernel_and_temporal() {
+fn slice_depends_on_is_exactly_kernel_logic_and_temporal() {
     let manifest = repo_root().join("slices/core/awareness/manifest.ttl");
     let m = GraphStore::parse_ttl_file(&manifest);
 
     let deps = m.objects(&gm("slices/awareness"), &gm("sliceDependsOn"));
-    let expected: BTreeSet<String> = [gm("slices/kernel"), gm("slices/temporal")]
-        .into_iter()
-        .collect();
+    let expected: BTreeSet<String> = [
+        gm("slices/kernel"),
+        gm("slices/logic"),
+        gm("slices/temporal"),
+    ]
+    .into_iter()
+    .collect();
     assert_eq!(
         deps, expected,
-        "awareness sliceDependsOn must be exactly {{kernel, temporal}}, got {deps:?}"
+        "awareness sliceDependsOn must be exactly {{kernel, logic, temporal}}, got {deps:?}"
     );
 }

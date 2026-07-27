@@ -36,7 +36,7 @@ use support::flagship_discharge::{
 
 /// The `math:` grounding namespace — used for the SCANNED failure classes (`math:<Class>`),
 /// which stay slice-namespaced.
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+use gmeow_ns::MATH_NS;
 
 /// The `math:` slice's discharge identity: base IRI, short prefix, on-disk root, and the
 /// acceptance-manifest path relative to that root.

@@ -1,16 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Namespace constants, the packet turtle prefix set, and CURIE / local-name
-//! helpers. The prefix set is replicated here (rather than depending on
-//! `crates/pipeline`) so the crate stays a leaf library; it is the minimal set the
-//! packet graph uses, and every binding the canonical serializer does not need is
-//! dropped from the rendered header by `canonical_turtle` itself.
+//! The packet turtle prefix set and CURIE / local-name helpers.
+//!
+//! GMEOW's own namespaces are NOT restated here — they are re-exported from
+//! `gmeow-ns`, the single declaration site — because a second copy is exactly how
+//! the ownership analyzer's namespace assumption drifted unnoticed. The
+//! third-party prefixes below are the minimal set the packet graph uses; every
+//! binding the canonical serializer does not need is dropped from the rendered
+//! header by `canonical_turtle` itself.
 
 /// The `gmeow:` namespace.
-pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+pub use gmeow_ns::GMEOW_NS as GMEOW;
 /// The `logic:` namespace.
-pub const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+pub use gmeow_ns::LOGIC_NS as LOGIC;
 /// The `rdf:` namespace.
 pub const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 /// The `rdfs:` namespace.

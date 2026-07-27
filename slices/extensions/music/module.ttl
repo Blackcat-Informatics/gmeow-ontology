@@ -7610,3 +7610,1425 @@ gmeow:OrnamentProfileApplicationConstraint
 <https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/frameRealm> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/requiresHost> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
 <https://blackcatinformatics.ca/gmeow/TuningSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/tuningKind> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:analysisFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "analysisFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisFrame is functional: a single music-analysis claim expresses its result within exactly one music-theory reference frame, so an analysis stated against two frames is two distinct claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:analysisFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:analysisFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:analysisFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:analysisFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:analysisFrame and nothing else. It is not a definition of gmeow:analysisFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:analysisFrameFunctionality logic:characterizes gmeow:analysisFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:analysisPropertyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "analysisProperty is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisProperty is functional: each music-analysis claim asserts exactly one analytical dimension (key, harmony, meter, form function, motif identity, mode, tuning, groove, or schema), so a claim ranging over two dimensions is two claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:analysisProperty ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:analysisProperty ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:analysisProperty names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:analysisProperty, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:analysisProperty and nothing else. It is not a definition of gmeow:analysisProperty (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:analysisPropertyFunctionality logic:characterizes gmeow:analysisProperty ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:analysisResultFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "analysisResult is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisResult is functional: a music-analysis claim carries exactly one result value for its asserted dimension, so a second result value is a second claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:analysisResult ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:analysisResult ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:analysisResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:analysisResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:analysisResult and nothing else. It is not a definition of gmeow:analysisResult (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:analysisResultFunctionality logic:characterizes gmeow:analysisResult ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:analysisTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "analysisTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:analysisTarget is functional: a music-analysis claim is directed at exactly one musical target — one analysis, one target — so analysing a second entity is a separate claim. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:analysisTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:analysisTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:analysisTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:analysisTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:analysisTarget and nothing else. It is not a definition of gmeow:analysisTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:analysisTargetFunctionality logic:characterizes gmeow:analysisTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:anchorDegreeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "anchorDegree is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorDegree is functional: a PitchAnchor binds exactly one tuning-system degree to its frequency, so the degree it pins is single-valued per anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:anchorDegree ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:anchorDegree ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:anchorDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:anchorDegree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:anchorDegree and nothing else. It is not a definition of gmeow:anchorDegree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:anchorDegreeFunctionality logic:characterizes gmeow:anchorDegree ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:anchorFrequencyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "anchorFrequency is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorFrequency is functional: a PitchAnchor assigns exactly one physical frequency to its degree, so a degree pinned to two frequencies would be two anchors, not one."@x-gmeow-english ;
+    logic:characterizes gmeow:anchorFrequency ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:anchorFrequency ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:anchorFrequency names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:anchorFrequency, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:anchorFrequency and nothing else. It is not a definition of gmeow:anchorFrequency (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:anchorFrequencyFunctionality logic:characterizes gmeow:anchorFrequency ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:assignedMeterFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "assignedMeter is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assignedMeter is functional: a MeterAssignment relator ties its carrier to exactly one MetricStructure over its span, so the assigned meter is single-valued per assignment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:assignedMeter ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assignedMeter ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:assignedMeter names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assignedMeter, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:assignedMeter and nothing else. It is not a definition of gmeow:assignedMeter (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:assignedMeterFunctionality logic:characterizes gmeow:assignedMeter ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:assignmentSpanFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "assignmentSpan is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assignmentSpan is functional: a MeterAssignment holds over exactly one MusicalTimeSpan, so a meter applying across two disjoint spans is two assignments. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:assignmentSpan ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assignmentSpan ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:assignmentSpan names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assignmentSpan, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:assignmentSpan and nothing else. It is not a definition of gmeow:assignmentSpan (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:assignmentSpanFunctionality logic:characterizes gmeow:assignmentSpan ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:centsFromOriginFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "centsFromOrigin is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:centsFromOrigin is functional: a PitchExpression has exactly one cents value, generated by fnRatioToCents from its single canonical ratio, so the derived cents measure is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:centsFromOrigin ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:centsFromOrigin ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:centsFromOrigin names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:centsFromOrigin, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:centsFromOrigin and nothing else. It is not a definition of gmeow:centsFromOrigin (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:centsFromOriginFunctionality logic:characterizes gmeow:centsFromOrigin ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:collectionKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "collectionKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:collectionKind is functional: a PitchCollection is of exactly one kind (scale, mode, maqam, raga, pitch-class set, etc.), with contested or hybrid categorisations modelled as coexisting standpoints rather than as multiple kinds on one collection."@x-gmeow-english ;
+    logic:characterizes gmeow:collectionKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:collectionKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:collectionKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:collectionKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:collectionKind and nothing else. It is not a definition of gmeow:collectionKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:collectionKindFunctionality logic:characterizes gmeow:collectionKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:collectionPartOrderFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "collectionPartOrder is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:collectionPartOrder is functional: a pitch collection occupies exactly one zero-based position within its primary parent collection, so its part order is single-valued, and reuse under other parents at different orders uses per-parent part individuals. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:collectionPartOrder ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:collectionPartOrder ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:collectionPartOrder names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:collectionPartOrder, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:collectionPartOrder and nothing else. It is not a definition of gmeow:collectionPartOrder (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:collectionPartOrderFunctionality logic:characterizes gmeow:collectionPartOrder ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:configurationInstrumentTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "configurationInstrumentType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationInstrumentType is functional: an InstrumentConfiguration relator applies to exactly one kind of instrument, so the instrument type it targets is single-valued per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationInstrumentType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationInstrumentType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:configurationInstrumentType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationInstrumentType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:configurationInstrumentType and nothing else. It is not a definition of gmeow:configurationInstrumentType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:configurationInstrumentTypeFunctionality logic:characterizes gmeow:configurationInstrumentType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:configurationIntervalFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "configurationInterval is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationInterval is functional: an InstrumentConfiguration is described by at most one characterising interval, so the interval it names is single-valued per relator (optional, since some modifications alter timbre without a named interval). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationInterval ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationInterval ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:configurationInterval names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationInterval, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:configurationInterval and nothing else. It is not a definition of gmeow:configurationInterval (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:configurationIntervalFunctionality logic:characterizes gmeow:configurationInterval ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:configurationOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "configurationOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationOf is functional: an InstrumentConfiguration relator applies to exactly one specific instrument item, so the item it configures is single-valued per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:configurationOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:configurationOf and nothing else. It is not a definition of gmeow:configurationOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:configurationOfFunctionality logic:characterizes gmeow:configurationOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:configurationTuningFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "configurationTuningFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:configurationTuningFrame is functional: an InstrumentConfiguration is expressed relative to exactly one tuning frame, so its reference frame is single-valued per relator (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:configurationTuningFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:configurationTuningFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:configurationTuningFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:configurationTuningFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:configurationTuningFrame and nothing else. It is not a definition of gmeow:configurationTuningFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:configurationTuningFrameFunctionality logic:characterizes gmeow:configurationTuningFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:constraintAppliesToFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "constraintAppliesTo is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:constraintAppliesTo is functional: a TraversalConstraint applies to exactly one work, expression, or performance, so the entity it constrains is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:constraintAppliesTo ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:constraintAppliesTo ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:constraintAppliesTo names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:constraintAppliesTo, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:constraintAppliesTo and nothing else. It is not a definition of gmeow:constraintAppliesTo (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:constraintAppliesToFunctionality logic:characterizes gmeow:constraintAppliesTo ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:controlPointOfTrajectoryFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "controlPointOfTrajectory is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointOfTrajectory is functional: a PitchTrajectoryControlPoint belongs to exactly one PitchTrajectory, so its owning trajectory is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:controlPointOfTrajectory ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:controlPointOfTrajectory ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:controlPointOfTrajectory names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:controlPointOfTrajectory, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:controlPointOfTrajectory and nothing else. It is not a definition of gmeow:controlPointOfTrajectory (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:controlPointOfTrajectoryFunctionality logic:characterizes gmeow:controlPointOfTrajectory ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:controlPointOrderFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "controlPointOrder is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointOrder is functional: a control point occupies exactly one zero-based ordinal position within its PitchTrajectory, so its order index is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:controlPointOrder ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:controlPointOrder ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:controlPointOrder names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:controlPointOrder, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:controlPointOrder and nothing else. It is not a definition of gmeow:controlPointOrder (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:controlPointOrderFunctionality logic:characterizes gmeow:controlPointOrder ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:controlPointPitchFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "controlPointPitch is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointPitch is functional: a control point carries exactly one frame-relative PitchValue, so the pitch it fixes is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:controlPointPitch ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:controlPointPitch ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:controlPointPitch names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:controlPointPitch, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:controlPointPitch and nothing else. It is not a definition of gmeow:controlPointPitch (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:controlPointPitchFunctionality logic:characterizes gmeow:controlPointPitch ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:controlPointTimeFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "controlPointTimeFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimeFrame is functional: a control point's time position is expressed in exactly one MusicalTimeFrame, so the time frame it is read against is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:controlPointTimeFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:controlPointTimeFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:controlPointTimeFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:controlPointTimeFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:controlPointTimeFrame and nothing else. It is not a definition of gmeow:controlPointTimeFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:controlPointTimeFrameFunctionality logic:characterizes gmeow:controlPointTimeFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:controlPointTimePositionDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "controlPointTimePositionDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimePositionDenominator is functional: the rational time position of a control point has exactly one denominator, so this component of its position is single-valued per control point. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:controlPointTimePositionDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:controlPointTimePositionDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:controlPointTimePositionDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:controlPointTimePositionDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:controlPointTimePositionDenominator and nothing else. It is not a definition of gmeow:controlPointTimePositionDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:controlPointTimePositionDenominatorFunctionality logic:characterizes gmeow:controlPointTimePositionDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:controlPointTimePositionNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "controlPointTimePositionNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:controlPointTimePositionNumerator is functional: the rational time position of a control point has exactly one numerator, so this component of its position is single-valued per control point. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:controlPointTimePositionNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:controlPointTimePositionNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:controlPointTimePositionNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:controlPointTimePositionNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:controlPointTimePositionNumerator and nothing else. It is not a definition of gmeow:controlPointTimePositionNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:controlPointTimePositionNumeratorFunctionality logic:characterizes gmeow:controlPointTimePositionNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:decisionConstraintFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "decisionConstraint is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:decisionConstraint is functional: a PerformanceDecision satisfies the rules of exactly one TraversalConstraint, so the constraint it answers is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:decisionConstraint ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:decisionConstraint ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:decisionConstraint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:decisionConstraint, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:decisionConstraint and nothing else. It is not a definition of gmeow:decisionConstraint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:decisionConstraintFunctionality logic:characterizes gmeow:decisionConstraint ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:decisionPerformanceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "decisionPerformance is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:decisionPerformance is functional: a PerformanceDecision is made within exactly one performance event, so the performance in which it occurred is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:decisionPerformance ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:decisionPerformance ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:decisionPerformance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:decisionPerformance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:decisionPerformance and nothing else. It is not a definition of gmeow:decisionPerformance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:decisionPerformanceFunctionality logic:characterizes gmeow:decisionPerformance ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:decisionSequenceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "decisionSequence is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:decisionSequence is functional: a PerformanceDecision records exactly one chosen fragment-traversal order for one performance, so its sequence record is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:decisionSequence ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:decisionSequence ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:decisionSequence names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:decisionSequence, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:decisionSequence and nothing else. It is not a definition of gmeow:decisionSequence (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:decisionSequenceFunctionality logic:characterizes gmeow:decisionSequence ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:degreeCountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "degreeCount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:degreeCount is functional: a TuningSystem has exactly one count of pitch degrees available per period, so its degree count is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:degreeCount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:degreeCount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:degreeCount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:degreeCount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:degreeCount and nothing else. It is not a definition of gmeow:degreeCount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:degreeCountFunctionality logic:characterizes gmeow:degreeCount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dividedIntervalDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "dividedIntervalDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dividedIntervalDenominator is functional: the interval that an equal-division tuning divides has exactly one denominator, so this component of the divided interval is single-valued per tuning system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:dividedIntervalDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:dividedIntervalDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:dividedIntervalDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:dividedIntervalDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:dividedIntervalDenominator and nothing else. It is not a definition of gmeow:dividedIntervalDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:dividedIntervalDenominatorFunctionality logic:characterizes gmeow:dividedIntervalDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dividedIntervalNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "dividedIntervalNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dividedIntervalNumerator is functional: the interval that an equal-division tuning divides has exactly one numerator, so this component of the divided interval is single-valued per tuning system. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:dividedIntervalNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:dividedIntervalNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:dividedIntervalNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:dividedIntervalNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:dividedIntervalNumerator and nothing else. It is not a definition of gmeow:dividedIntervalNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:dividedIntervalNumeratorFunctionality logic:characterizes gmeow:dividedIntervalNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:divisionCountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "divisionCount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:divisionCount is functional: an equal-division tuning makes exactly one count of equal divisions of its period, so its division count is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:divisionCount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:divisionCount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:divisionCount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:divisionCount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:divisionCount and nothing else. It is not a definition of gmeow:divisionCount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:divisionCountFunctionality logic:characterizes gmeow:divisionCount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dofExpressionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "dofExpression is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofExpression is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Expression, so the expression it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:dofExpression ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:dofExpression ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:dofExpression names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:dofExpression, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:dofExpression and nothing else. It is not a definition of gmeow:dofExpression (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:dofExpressionFunctionality logic:characterizes gmeow:dofExpression ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dofParameterFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "dofParameter is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofParameter is functional: a DegreeOfFreedom declares the determination status of exactly one musical parameter (pitch, duration, order, tempo, dynamics, timbre, etc.), so the parameter it scopes is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:dofParameter ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:dofParameter ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:dofParameter names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:dofParameter, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:dofParameter and nothing else. It is not a definition of gmeow:dofParameter (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:dofParameterFunctionality logic:characterizes gmeow:dofParameter ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dofStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "dofStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofStatus is functional: a DegreeOfFreedom relator carries exactly one determination status for its parameter, so its status is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:dofStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:dofStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:dofStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:dofStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:dofStatus and nothing else. It is not a definition of gmeow:dofStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:dofStatusFunctionality logic:characterizes gmeow:dofStatus ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dofWorkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "dofWork is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:dofWork is functional: a DegreeOfFreedom relator declares the parameter determination of at most one Work, so the work it scopes is single-valued (exactly one of dofWork or dofExpression holds per relator, Principle 4). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:dofWork ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:dofWork ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:dofWork names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:dofWork, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:dofWork and nothing else. It is not a definition of gmeow:dofWork (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:dofWorkFunctionality logic:characterizes gmeow:dofWork ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:grooveGridUnitFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "grooveGridUnit is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:grooveGridUnit is functional: a GrooveProfile applies to exactly one metric grid unit, so the grid unit it targets is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:grooveGridUnit ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:grooveGridUnit ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:grooveGridUnit names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:grooveGridUnit, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:grooveGridUnit and nothing else. It is not a definition of gmeow:grooveGridUnit (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:grooveGridUnitFunctionality logic:characterizes gmeow:grooveGridUnit ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:grooveKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "grooveKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:grooveKind is functional: a GrooveProfile is of exactly one kind (swing ratio, position offsets, or measured), so its groove kind is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:grooveKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:grooveKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:grooveKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:grooveKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:grooveKind and nothing else. It is not a definition of gmeow:grooveKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:grooveKindFunctionality logic:characterizes gmeow:grooveKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:groupLengthDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "groupLengthDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:groupLengthDenominator is functional: the rational length of a MetricGroup has exactly one denominator, so this component of its length is single-valued per group. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:groupLengthDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:groupLengthDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:groupLengthDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:groupLengthDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:groupLengthDenominator and nothing else. It is not a definition of gmeow:groupLengthDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:groupLengthDenominatorFunctionality logic:characterizes gmeow:groupLengthDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:groupLengthNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "groupLengthNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:groupLengthNumerator is functional: the rational length of a MetricGroup has exactly one numerator, so this component of its length is single-valued per group. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:groupLengthNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:groupLengthNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:groupLengthNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:groupLengthNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:groupLengthNumerator and nothing else. It is not a definition of gmeow:groupLengthNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:groupLengthNumeratorFunctionality logic:characterizes gmeow:groupLengthNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hsNumberFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "hsNumber is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hsNumber is functional: an InstrumentType carries at most one Hornbostel-Sachs classification number, so its HS code is single-valued (optional, since not every instrument type is assigned one)."@x-gmeow-english ;
+    logic:characterizes gmeow:hsNumber ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hsNumber ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hsNumber names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hsNumber, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hsNumber and nothing else. It is not a definition of gmeow:hsNumber (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hsNumberFunctionality logic:characterizes gmeow:hsNumber ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:interpolationKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "interpolationKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:interpolationKind is functional: a PitchTrajectory uses exactly one interpolation mode between its control points (linearCents, exponential, or stochasticByReference), so its interpolation kind is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:interpolationKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:interpolationKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:interpolationKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:interpolationKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:interpolationKind and nothing else. It is not a definition of gmeow:interpolationKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:interpolationKindFunctionality logic:characterizes gmeow:interpolationKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:mapRatioDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "mapRatioDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mapRatioDenominator is functional: the rational ratio carried by a TimeMapping has exactly one denominator, so this component of the ratio is single-valued per mapping. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:mapRatioDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mapRatioDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:mapRatioDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mapRatioDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:mapRatioDenominator and nothing else. It is not a definition of gmeow:mapRatioDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:mapRatioDenominatorFunctionality logic:characterizes gmeow:mapRatioDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:mapRatioNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "mapRatioNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mapRatioNumerator is functional: the rational ratio carried by a TimeMapping has exactly one numerator, so this component of the ratio is single-valued per mapping. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:mapRatioNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mapRatioNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:mapRatioNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mapRatioNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:mapRatioNumerator and nothing else. It is not a definition of gmeow:mapRatioNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:mapRatioNumeratorFunctionality logic:characterizes gmeow:mapRatioNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:membershipCollectionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "membershipCollection is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipCollection is functional: a PitchCollectionMembership relator belongs to exactly one PitchCollection — one collection per membership — so the collection it joins is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipCollection ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipCollection ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipCollection names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipCollection, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipCollection and nothing else. It is not a definition of gmeow:membershipCollection (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:membershipCollectionFunctionality logic:characterizes gmeow:membershipCollection ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:membershipDegreeIndexFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "membershipDegreeIndex is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipDegreeIndex is functional: a membership pins its member pitch to at most one zero-based degree index within the collection, so the degree index is single-valued (optional, present only when the collection has a conventional ordering). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipDegreeIndex ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipDegreeIndex ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipDegreeIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipDegreeIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipDegreeIndex and nothing else. It is not a definition of gmeow:membershipDegreeIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:membershipDegreeIndexFunctionality logic:characterizes gmeow:membershipDegreeIndex ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:membershipPitchFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "membershipPitch is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipPitch is functional: a PitchCollectionMembership carries exactly one member pitch — one pitch per membership — so the pitch it admits is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipPitch ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipPitch ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipPitch names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipPitch, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipPitch and nothing else. It is not a definition of gmeow:membershipPitch (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:membershipPitchFunctionality logic:characterizes gmeow:membershipPitch ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:membershipRoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "membershipRole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipRole is functional: a PitchCollectionMembership assigns exactly one role to its pitch (tonic/finalis, vadi, samvadi, ghammaz, ascent-only, descent-only, ornamental, or generic member) — one role per membership — so the role is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipRole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipRole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipRole and nothing else. It is not a definition of gmeow:membershipRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:membershipRoleFunctionality logic:characterizes gmeow:membershipRole ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:meterCarrierFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "meterCarrier is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:meterCarrier is functional: a MeterAssignment names exactly one carrying entity (voice, performer, or part) for its meter, so the carrier is single-valued per assignment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:meterCarrier ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:meterCarrier ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:meterCarrier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:meterCarrier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:meterCarrier and nothing else. It is not a definition of gmeow:meterCarrier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:meterCarrierFunctionality logic:characterizes gmeow:meterCarrier ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:metricGroupOrderFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "metricGroupOrder is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:metricGroupOrder is functional: a MetricGroup occupies exactly one zero-based position within its MetricStructure, so its order index is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:metricGroupOrder ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:metricGroupOrder ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:metricGroupOrder names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:metricGroupOrder, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:metricGroupOrder and nothing else. It is not a definition of gmeow:metricGroupOrder (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:metricGroupOrderFunctionality logic:characterizes gmeow:metricGroupOrder ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:metricStructureOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "metricStructureOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:metricStructureOf is functional: a MetricStructure defines the metric cycle of exactly one entity (a work, section, or voice), so the entity it structures is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:metricStructureOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:metricStructureOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:metricStructureOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:metricStructureOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:metricStructureOf and nothing else. It is not a definition of gmeow:metricStructureOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:metricStructureOfFunctionality logic:characterizes gmeow:metricStructureOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modulationFromFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "modulationFromFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:modulationFromFrame is functional: a MetricModulation pivots away from exactly one source MusicalTimeFrame, so its origin frame is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:modulationFromFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:modulationFromFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:modulationFromFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modulationFromFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:modulationFromFrame and nothing else. It is not a definition of gmeow:modulationFromFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:modulationFromFrameFunctionality logic:characterizes gmeow:modulationFromFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modulationToFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "modulationToFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:modulationToFrame is functional: a MetricModulation resolves into exactly one target MusicalTimeFrame, so its destination frame is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:modulationToFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:modulationToFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:modulationToFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modulationToFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:modulationToFrame and nothing else. It is not a definition of gmeow:modulationToFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:modulationToFrameFunctionality logic:characterizes gmeow:modulationToFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ornamentProfileKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "ornamentProfileKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ornamentProfileKind is functional: an OrnamentProfile is classified under exactly one ornament-profile kind, so a single kind fixes its gestural family (gamaka, baroque agrément, and the like). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ornamentProfileKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ornamentProfileKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ornamentProfileKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ornamentProfileKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ornamentProfileKind and nothing else. It is not a definition of gmeow:ornamentProfileKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ornamentProfileKindFunctionality logic:characterizes gmeow:ornamentProfileKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ornamentReferenceFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "ornamentReferenceFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ornamentReferenceFrame is functional: an OrnamentProfile's pitch gestures are expressed relative to exactly one TuningSystem reference frame, so a single frame anchors them (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ornamentReferenceFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ornamentReferenceFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ornamentReferenceFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ornamentReferenceFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ornamentReferenceFrame and nothing else. It is not a definition of gmeow:ornamentReferenceFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ornamentReferenceFrameFunctionality logic:characterizes gmeow:ornamentReferenceFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participationConfigurationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "participationConfiguration is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationConfiguration is functional: a single PerformanceParticipation relator records exactly one InstrumentConfiguration, so the configuration used is uniquely determined per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participationConfiguration ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participationConfiguration ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participationConfiguration names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participationConfiguration, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participationConfiguration and nothing else. It is not a definition of gmeow:participationConfiguration (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participationConfigurationFunctionality logic:characterizes gmeow:participationConfiguration ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participationInstrumentItemFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "participationInstrumentItem is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationInstrumentItem is functional: each PerformanceParticipation relator names exactly one specific instrument item — the particular instrument, plugin, or kit played — so the item is uniquely fixed per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participationInstrumentItem ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participationInstrumentItem ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participationInstrumentItem names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participationInstrumentItem, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participationInstrumentItem and nothing else. It is not a definition of gmeow:participationInstrumentItem (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participationInstrumentItemFunctionality logic:characterizes gmeow:participationInstrumentItem ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participationPartFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "participationPart is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationPart is functional: a PerformanceParticipation relator captures exactly one part or role the participant performed, so the part is uniquely fixed per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participationPart ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participationPart ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participationPart names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participationPart, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participationPart and nothing else. It is not a definition of gmeow:participationPart (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participationPartFunctionality logic:characterizes gmeow:participationPart ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participationTechniqueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "participationTechnique is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participationTechnique is functional: a PerformanceParticipation relator records exactly one PlayingTechnique, so the technique used is uniquely fixed per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participationTechnique ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participationTechnique ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participationTechnique names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participationTechnique, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participationTechnique and nothing else. It is not a definition of gmeow:participationTechnique (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participationTechniqueFunctionality logic:characterizes gmeow:participationTechnique ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:pitchAnchorOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "pitchAnchorOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pitchAnchorOf is functional: a PitchAnchor is defined for exactly one TuningSystem, so its owning system is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:pitchAnchorOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pitchAnchorOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:pitchAnchorOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pitchAnchorOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:pitchAnchorOf and nothing else. It is not a definition of gmeow:pitchAnchorOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:pitchAnchorOfFunctionality logic:characterizes gmeow:pitchAnchorOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:pitchDegreeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "pitchDegree is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pitchDegree is functional: a PitchValue carries at most one tuning-system degree index, so its degree is a single integer (degree 0 origin, degree 7 the fifth in 12-EDO). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:pitchDegree ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pitchDegree ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:pitchDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pitchDegree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:pitchDegree and nothing else. It is not a definition of gmeow:pitchDegree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:pitchDegreeFunctionality logic:characterizes gmeow:pitchDegree ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:pivotSourceValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "pivotSourceValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pivotSourceValue is functional: a MetricModulation's pivot equivalence has exactly one source-side rational value, so its source string is single. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:pivotSourceValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pivotSourceValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:pivotSourceValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pivotSourceValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:pivotSourceValue and nothing else. It is not a definition of gmeow:pivotSourceValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:pivotSourceValueFunctionality logic:characterizes gmeow:pivotSourceValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:pivotTargetValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "pivotTargetValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pivotTargetValue is functional: a MetricModulation's pivot equivalence has exactly one target-side rational value, so its target string is single. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:pivotTargetValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pivotTargetValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:pivotTargetValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pivotTargetValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:pivotTargetValue and nothing else. It is not a definition of gmeow:pivotTargetValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:pivotTargetValueFunctionality logic:characterizes gmeow:pivotTargetValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:primeLimitFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "primeLimit is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:primeLimit is functional: a just-intonation TuningSystem admits exactly one largest prime factor bounding its interval ratios, so its prime limit is a single integer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:primeLimit ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:primeLimit ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:primeLimit names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:primeLimit, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:primeLimit and nothing else. It is not a definition of gmeow:primeLimit (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:primeLimitFunctionality logic:characterizes gmeow:primeLimit ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:processKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "processKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:processKind is functional: a GenerativeProcess is of exactly one process kind, so a single kind classifies it as phasing, stochastic, verbal-score, rule-based, or algorithmic. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:processKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:processKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:processKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:processKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:processKind and nothing else. It is not a definition of gmeow:processKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:processKindFunctionality logic:characterizes gmeow:processKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ratioDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "ratioDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ratioDenominator is functional: an exact pitch or interval ratio has exactly one denominator, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ratioDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ratioDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ratioDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ratioDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ratioDenominator and nothing else. It is not a definition of gmeow:ratioDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ratioDenominatorFunctionality logic:characterizes gmeow:ratioDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ratioNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "ratioNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ratioNumerator is functional: an exact pitch or interval ratio has exactly one numerator, so a single integer fixes it in the canonical rational form paired with ratioDenominator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:ratioNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ratioNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ratioNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ratioNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ratioNumerator and nothing else. It is not a definition of gmeow:ratioNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ratioNumeratorFunctionality logic:characterizes gmeow:ratioNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "segmentKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentKind is functional: a MusicalSegment is of exactly one kind (riff, motif, phrase, section, talea, color), with contested categorisations modelled as coexisting standpoints rather than multiple values (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:segmentKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:segmentKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:segmentKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentKind and nothing else. It is not a definition of gmeow:segmentKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:segmentKindFunctionality logic:characterizes gmeow:segmentKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentMapRatioDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "segmentMapRatioDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentMapRatioDenominator is functional: a TempoMapSegment's constant mapping ratio has exactly one denominator, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:segmentMapRatioDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:segmentMapRatioDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:segmentMapRatioDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentMapRatioDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentMapRatioDenominator and nothing else. It is not a definition of gmeow:segmentMapRatioDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:segmentMapRatioDenominatorFunctionality logic:characterizes gmeow:segmentMapRatioDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentMapRatioNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "segmentMapRatioNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentMapRatioNumerator is functional: a TempoMapSegment's constant mapping ratio has exactly one numerator of musical units per clock unit, so a single integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:segmentMapRatioNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:segmentMapRatioNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:segmentMapRatioNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentMapRatioNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentMapRatioNumerator and nothing else. It is not a definition of gmeow:segmentMapRatioNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:segmentMapRatioNumeratorFunctionality logic:characterizes gmeow:segmentMapRatioNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentSpanFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "segmentSpan is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentSpan is functional: a segment applies over exactly one MusicalTimeSpan, so the span it covers is uniquely determined whether the subject is a TempoMapSegment or a MusicalSegment. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:segmentSpan ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:segmentSpan ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:segmentSpan names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentSpan, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentSpan and nothing else. It is not a definition of gmeow:segmentSpan (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:segmentSpanFunctionality logic:characterizes gmeow:segmentSpan ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentTempoMapKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "segmentTempoMapKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentTempoMapKind is functional: a TempoMapSegment follows exactly one curve kind, so a single kind fixes its tempo shape as constant, linear ramp, curve, or measured. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:segmentTempoMapKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:segmentTempoMapKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:segmentTempoMapKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentTempoMapKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentTempoMapKind and nothing else. It is not a definition of gmeow:segmentTempoMapKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:segmentTempoMapKindFunctionality logic:characterizes gmeow:segmentTempoMapKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:spelledNameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "spelledName is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spelledName is functional: a PitchSpelling produces exactly one note-name string, so its spelled name is single per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:spelledName ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:spelledName ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:spelledName names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:spelledName, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:spelledName and nothing else. It is not a definition of gmeow:spelledName (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:spelledNameFunctionality logic:characterizes gmeow:spelledName ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:spellingPitchFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "spellingPitch is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spellingPitch is functional: a PitchSpelling names exactly one frame-relative pitch value, so its pitch is single per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:spellingPitch ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:spellingPitch ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:spellingPitch names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:spellingPitch, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:spellingPitch and nothing else. It is not a definition of gmeow:spellingPitch (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:spellingPitchFunctionality logic:characterizes gmeow:spellingPitch ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:spellingSystemFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "spellingSystem is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spellingSystem is functional: a PitchSpelling expresses its name in exactly one spelling system (CMN staff, sargam, Johnston), so its system is single per relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:spellingSystem ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:spellingSystem ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:spellingSystem names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:spellingSystem, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:spellingSystem and nothing else. It is not a definition of gmeow:spellingSystem (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:spellingSystemFunctionality logic:characterizes gmeow:spellingSystem ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tempoMapSegmentOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "tempoMapSegmentOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tempoMapSegmentOf is functional: a TempoMapSegment belongs to exactly one parent TempoMap, so its owning map is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:tempoMapSegmentOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tempoMapSegmentOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tempoMapSegmentOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tempoMapSegmentOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tempoMapSegmentOf and nothing else. It is not a definition of gmeow:tempoMapSegmentOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tempoMapSegmentOfFunctionality logic:characterizes gmeow:tempoMapSegmentOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tempoRatioExpressionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "tempoRatioExpression is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tempoRatioExpression is functional: a TimeMapping's irrational tempo ratio has exactly one canonical symbolic expression, so its stored literal is single and never reasoner-parsed."@x-gmeow-english ;
+    logic:characterizes gmeow:tempoRatioExpression ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tempoRatioExpression ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tempoRatioExpression names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tempoRatioExpression, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tempoRatioExpression and nothing else. It is not a definition of gmeow:tempoRatioExpression (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tempoRatioExpressionFunctionality logic:characterizes gmeow:tempoRatioExpression ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timbreObservationResultFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "timbreObservationResult is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timbreObservationResult is functional: a single Observation assigns exactly one timbre descriptor to the ToneEvent it observes, so its result is uniquely determined per observation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:timbreObservationResult ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:timbreObservationResult ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:timbreObservationResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timbreObservationResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timbreObservationResult and nothing else. It is not a definition of gmeow:timbreObservationResult (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:timbreObservationResultFunctionality logic:characterizes gmeow:timbreObservationResult ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeDurationDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "timeDurationDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeDurationDenominator is functional: a MusicalTimeSpan's rational duration has exactly one denominator in its frame, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:timeDurationDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:timeDurationDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:timeDurationDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timeDurationDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timeDurationDenominator and nothing else. It is not a definition of gmeow:timeDurationDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:timeDurationDenominatorFunctionality logic:characterizes gmeow:timeDurationDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeDurationNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "timeDurationNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeDurationNumerator is functional: a MusicalTimeSpan's rational duration has exactly one numerator in its frame, so a single integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:timeDurationNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:timeDurationNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:timeDurationNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timeDurationNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timeDurationNumerator and nothing else. It is not a definition of gmeow:timeDurationNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:timeDurationNumeratorFunctionality logic:characterizes gmeow:timeDurationNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeMappingKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "timeMappingKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeMappingKind is functional: a TimeMapping is of exactly one kind (tuplet, tempo canon, metric modulation, groove), so a single kind classifies it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:timeMappingKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:timeMappingKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:timeMappingKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timeMappingKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timeMappingKind and nothing else. It is not a definition of gmeow:timeMappingKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:timeMappingKindFunctionality logic:characterizes gmeow:timeMappingKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeStartDenominatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "timeStartDenominator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeStartDenominator is functional: a MusicalTimeSpan's rational start position has exactly one denominator in its frame, so a single positive integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:timeStartDenominator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:timeStartDenominator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:timeStartDenominator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timeStartDenominator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timeStartDenominator and nothing else. It is not a definition of gmeow:timeStartDenominator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:timeStartDenominatorFunctionality logic:characterizes gmeow:timeStartDenominator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeStartNumeratorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "timeStartNumerator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:timeStartNumerator is functional: a MusicalTimeSpan's rational start position has exactly one numerator in its frame, so a single integer fixes it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:timeStartNumerator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:timeStartNumerator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:timeStartNumerator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timeStartNumerator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:timeStartNumerator and nothing else. It is not a definition of gmeow:timeStartNumerator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:timeStartNumeratorFunctionality logic:characterizes gmeow:timeStartNumerator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toneEventArticulationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "toneEventArticulation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventArticulation is functional: a ToneEvent carries exactly one articulation or attack quality, so its articulation is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:toneEventArticulation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toneEventArticulation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toneEventArticulation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toneEventArticulation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toneEventArticulation and nothing else. It is not a definition of gmeow:toneEventArticulation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toneEventArticulationFunctionality logic:characterizes gmeow:toneEventArticulation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toneEventDynamicsFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "toneEventDynamics is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventDynamics is functional: a ToneEvent has exactly one symbolic dynamic level from ppp to fff, so its dynamics marking is single-valued while measured decibels go to the observation layer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:toneEventDynamics ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toneEventDynamics ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toneEventDynamics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toneEventDynamics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toneEventDynamics and nothing else. It is not a definition of gmeow:toneEventDynamics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toneEventDynamicsFunctionality logic:characterizes gmeow:toneEventDynamics ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toneEventIsUnpitchedFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "toneEventIsUnpitched is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventIsUnpitched is functional: a ToneEvent is either unpitched or not, a single boolean flag that takes exactly one truth value and is mutually exclusive with pitch value and pitch trajectory."@x-gmeow-english ;
+    logic:characterizes gmeow:toneEventIsUnpitched ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toneEventIsUnpitched ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toneEventIsUnpitched names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toneEventIsUnpitched, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toneEventIsUnpitched and nothing else. It is not a definition of gmeow:toneEventIsUnpitched (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toneEventIsUnpitchedFunctionality logic:characterizes gmeow:toneEventIsUnpitched ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toneEventPitchTrajectoryFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "toneEventPitchTrajectory is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventPitchTrajectory is functional: a ToneEvent sounds at most one continuous pitch trajectory, exclusive of a discrete pitch value or the unpitched flag, so its trajectory is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:toneEventPitchTrajectory ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toneEventPitchTrajectory ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toneEventPitchTrajectory names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toneEventPitchTrajectory, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toneEventPitchTrajectory and nothing else. It is not a definition of gmeow:toneEventPitchTrajectory (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toneEventPitchTrajectoryFunctionality logic:characterizes gmeow:toneEventPitchTrajectory ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toneEventPitchValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "toneEventPitchValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventPitchValue is functional: a ToneEvent sounds at most one frame-relative pitch value, exclusive of a trajectory or the unpitched flag under the single pitch-content mode, so its pitch value is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:toneEventPitchValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toneEventPitchValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toneEventPitchValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toneEventPitchValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toneEventPitchValue and nothing else. It is not a definition of gmeow:toneEventPitchValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toneEventPitchValueFunctionality logic:characterizes gmeow:toneEventPitchValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:toneEventTimbreFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "toneEventTimbre is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:toneEventTimbre is functional: this shortcut asserts exactly one timbre descriptor on a ToneEvent, with contested or attributed descriptors deferred to coexisting observations rather than multiple values (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:toneEventTimbre ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:toneEventTimbre ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toneEventTimbre names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toneEventTimbre, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toneEventTimbre and nothing else. It is not a definition of gmeow:toneEventTimbre (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:toneEventTimbreFunctionality logic:characterizes gmeow:toneEventTimbre ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:transformationParameterFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "transformationParameter is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationParameter is functional: a SegmentTransformation carries at most one qualifying parameter — a PitchInterval, a MetricStructure, or another entity — so its parameter is single-valued and type-dependently interpreted. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:transformationParameter ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transformationParameter ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:transformationParameter names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transformationParameter, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:transformationParameter and nothing else. It is not a definition of gmeow:transformationParameter (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:transformationParameterFunctionality logic:characterizes gmeow:transformationParameter ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:transformationSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "transformationSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationSource is functional: a SegmentTransformation has exactly one source MusicalSegment, so its input segment is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:transformationSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transformationSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:transformationSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transformationSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:transformationSource and nothing else. It is not a definition of gmeow:transformationSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:transformationSourceFunctionality logic:characterizes gmeow:transformationSource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:transformationTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "transformationTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationTarget is functional: a SegmentTransformation produces exactly one target MusicalSegment, so its output segment is uniquely determined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:transformationTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transformationTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:transformationTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transformationTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:transformationTarget and nothing else. It is not a definition of gmeow:transformationTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:transformationTargetFunctionality logic:characterizes gmeow:transformationTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:transformationTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "transformationType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:transformationType is functional: a SegmentTransformation is of exactly one type relating its source and target (transposition, inversion, retrograde), so a single type classifies it. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:transformationType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transformationType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:transformationType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transformationType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:transformationType and nothing else. It is not a definition of gmeow:transformationType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:transformationTypeFunctionality logic:characterizes gmeow:transformationType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:tuningKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "tuningKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:tuningKind is functional: a TuningSystem is of exactly one kind (equal division, just intonation, well temperament), with hybrid systems modelled as multiple coexisting standpoints rather than multiple values (Principle 9)."@x-gmeow-english ;
+    logic:characterizes gmeow:tuningKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:tuningKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:tuningKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:tuningKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tuningKind and nothing else. It is not a definition of gmeow:tuningKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:tuningKindFunctionality logic:characterizes gmeow:tuningKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:voiceMetricStructureFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "voiceMetricStructure is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:voiceMetricStructure is functional: a Voice hosts exactly one MetricStructure under its closed-world shape, with coexisting meters deferred to statement-layer claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:voiceMetricStructure ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:voiceMetricStructure ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:voiceMetricStructure names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:voiceMetricStructure, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:voiceMetricStructure and nothing else. It is not a definition of gmeow:voiceMetricStructure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:voiceMetricStructureFunctionality logic:characterizes gmeow:voiceMetricStructure ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:voiceTimeFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "voiceTimeFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:voiceTimeFrame is functional: a Voice hosts exactly one MusicalTimeFrame under its closed-world shape, with coexisting frames deferred to statement-layer claims (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:voiceTimeFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:voiceTimeFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:voiceTimeFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:voiceTimeFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:voiceTimeFrame and nothing else. It is not a definition of gmeow:voiceTimeFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:voiceTimeFrameFunctionality logic:characterizes gmeow:voiceTimeFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:voiceTuningFrameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "voiceTuningFrame is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:voiceTuningFrame is functional: a Voice hosts exactly one TuningSystem under its closed-world shape, with coexisting tunings deferred to statement-layer claims (Principle 11). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:voiceTuningFrame ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:voiceTuningFrame ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:voiceTuningFrame names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:voiceTuningFrame, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:voiceTuningFrame and nothing else. It is not a definition of gmeow:voiceTuningFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:voiceTuningFrameFunctionality logic:characterizes gmeow:voiceTuningFrame ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

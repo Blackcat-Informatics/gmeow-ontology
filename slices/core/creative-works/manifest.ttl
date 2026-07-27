@@ -15,8 +15,12 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/citations> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
-        <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/places> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "The foundational WEMI 4-tier spine (Work/Expression/Manifestation/Item) plus the universal Contribution and CreativeDerivation relators, consumed by the documents, software-products, citations, narrative, and music slices; projects to FRBR/LRMoo/CIDOC/schema.org by reference (Principle 5)."@x-gmeow-english.

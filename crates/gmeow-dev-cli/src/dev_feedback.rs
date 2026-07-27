@@ -443,18 +443,23 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
         ("slice-ownership", |root| {
             // The FULL native slice-ownership report: ownership defects (Conflict /
             // Mismatch / Unowned) as errors PLUS the dependency observations the
-            // focused `validate` gate keeps out, folded here as structured warnings.
+            // focused `validate` gate keeps out, folded here as structured findings.
+            // Peerage-aware (`slice_peerage::peerage_aware_ownership_findings`), not
+            // the base `slice_ownership::ownership_findings`, so a legitimately
+            // COVERED co-foundational grounding crossing (peered + on a registered
+            // seam) is suppressed here exactly as it is at the gate sites, rather
+            // than surfacing as a spurious undeclared-dependency Error.
             let slices = root.join("slices");
-            let catalog = purrdf::slice::SliceCatalog::discover(
-                &slices,
-                purrdf::SliceVocab::for_namespace(NAMESPACE),
-            )
-            .map_err(error::feedback)?;
+            let catalog =
+                purrdf::slice::SliceCatalog::discover(&slices, gmeow_ns::gmeow_slice_vocab())
+                    .map_err(error::feedback)?;
             let analysis = purrdf::slice::OwnershipAnalyzer::new(&catalog)
                 .analyze()
                 .map_err(error::feedback)?;
             let mut r = Report::new("slice-ownership");
-            for finding in gmeow_validate::slice_ownership::ownership_findings(&analysis) {
+            for finding in gmeow_validate::slice_peerage::peerage_aware_ownership_findings(
+                &analysis, &catalog,
+            )? {
                 r.add_finding(finding);
             }
             Ok(r)
@@ -527,13 +532,14 @@ pub fn slice_fix_deps(apply: bool, slices_dir: Option<&Path>) -> i32 {
         return fail(format!("slices directory not found: {}", slices.display()));
     }
 
-    let vocab = purrdf::OntologyProfile::for_namespace(NAMESPACE)
-        .with_prefix("gmeow")
-        .slice_vocab();
-    let catalog = match purrdf::slice::SliceCatalog::discover(&slices, vocab) {
-        Ok(c) => c,
-        Err(e) => return fail(format!("slice catalog discovery failed: {e}")),
-    };
+    // The SAME vocab the gate reads with. `fix-deps` writes the declarations the
+    // gate then judges, so a vocab that saw fewer term namespaces here would
+    // author manifests the gate immediately reds.
+    let catalog =
+        match purrdf::slice::SliceCatalog::discover(&slices, gmeow_ns::gmeow_slice_vocab()) {
+            Ok(c) => c,
+            Err(e) => return fail(format!("slice catalog discovery failed: {e}")),
+        };
     let patches = match purrdf::slice::compute_fix_deps(&catalog) {
         Ok(p) => p,
         Err(e) => return fail(format!("slice fix-deps failed: {e}")),

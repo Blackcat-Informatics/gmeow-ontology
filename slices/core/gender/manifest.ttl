@@ -15,9 +15,11 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
+        <https://blackcatinformatics.ca/gmeow/slices/sexuality> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceConsumer "Identity facets on persons (P16: core by commitment); the 7-axis orthogonality matrix."@x-gmeow-english .

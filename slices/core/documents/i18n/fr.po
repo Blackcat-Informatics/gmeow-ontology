@@ -1,0 +1,238 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: documents, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "feedPostingKind is functional"
+msgstr "feedPostingKind est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:feedPostingKind is functional: a feed posting has exactly one kind drawn from the open gmeow:FeedPostingKind vocabulary, and that single flavour deterministically drives the schema projection — a social posting to schema:SocialMediaPosting, a blog posting to schema:BlogPosting — which two competing flavours on one posting would leave ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:feedPostingKind est fonctionnelle : une publication de flux possède exactement un type tiré du vocabulaire ouvert gmeow:FeedPostingKind, et cette unique variété détermine de façon déterministe la projection de schéma — une publication sociale vers schema:SocialMediaPosting, une publication de blog vers schema:BlogPosting — ce que deux variétés concurrentes sur une même publication laisseraient ambigu. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "imageOrientation is functional"
+msgstr "imageOrientation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:imageOrientation is functional: a media object has exactly one clockwise rotation from its normal orientation — a single EXIF angle (0, 90, 180, or 270 degrees) the solver applies when rendering — because one manifestation cannot be displayed rotated by two conflicting amounts at once."
+msgstr "Affirme sur le porteur canonique que gmeow:imageOrientation est fonctionnelle : un objet média possède exactement une rotation horaire par rapport à son orientation normale — un unique angle EXIF (0, 90, 180 ou 270 degrés) que le solveur applique lors du rendu — car une même manifestation ne peut être affichée avec deux rotations contradictoires à la fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mediaType is functional"
+msgstr "mediaType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:mediaType is functional: a concrete content carrier — an email body part, a Manifestation, a Distribution — has exactly one IANA media (MIME) type, since one artifact is encoded in a single format and distinct encodings are modelled as distinct carrier objects rather than two media types on one."
+msgstr "Affirme sur le porteur canonique que gmeow:mediaType est fonctionnelle : un porteur de contenu concret — une partie de corps de courriel, une Manifestation, une Distribution — possède exactement un type de média IANA (MIME), puisqu'un artefact est encodé dans un seul format et que des encodages distincts sont modélisés comme des objets porteurs distincts plutôt que comme deux types de média sur un seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pagePrincipalSubject is functional"
+msgstr "pagePrincipalSubject est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pagePrincipalSubject is functional: a web page is primarily about exactly one entity — the single principal subject it represents — even though it may mention many others through the broader gmeow:isAbout it specialises. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:pagePrincipalSubject est fonctionnelle : une page web porte principalement sur exactement une entité — l'unique sujet principal qu'elle représente — même si elle peut en mentionner beaucoup d'autres via le gmeow:isAbout plus large qu'elle spécialise. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pixelHeight is functional"
+msgstr "pixelHeight est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pixelHeight is functional: a media object has exactly one height in pixels, since a single raster manifestation has one vertical dimension and distinct renditions are distinct gmeow:MediaObject carriers rather than two heights on one."
+msgstr "Affirme sur le porteur canonique que gmeow:pixelHeight est fonctionnelle : un objet média a exactement une hauteur en pixels, puisqu'une manifestation matricielle unique a une seule dimension verticale et que des rendus distincts sont des porteurs gmeow:MediaObject distincts plutôt que deux hauteurs sur un seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pixelWidth is functional"
+msgstr "pixelWidth est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:pixelWidth is functional: a media object has exactly one width in pixels, since a single raster manifestation has one horizontal dimension and distinct renditions are distinct gmeow:MediaObject carriers rather than two widths on one."
+msgstr "Affirme sur le porteur canonique que gmeow:pixelWidth est fonctionnelle : un objet média a exactement une largeur en pixels, puisqu'une manifestation matricielle unique a une seule dimension horizontale et que des rendus distincts sont des porteurs gmeow:MediaObject distincts plutôt que deux largeurs sur un seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentIndex is functional"
+msgstr "segmentIndex est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentIndex is functional: a content segment occupies exactly one structural position within its containing whole — a single 1-based index locating it in that one container's ordering — while perspectival reorderings ride a separate gmeow:ReadingOrder standpoint rather than a second index."
+msgstr "Affirme sur le porteur canonique que gmeow:segmentIndex est fonctionnelle : un segment de contenu occupe exactement une position structurelle au sein du tout qui le contient — un unique indice basé sur 1 le situant dans l'ordonnancement de ce conteneur — tandis que les réordonnancements perspectifs reposent sur un point de vue gmeow:ReadingOrder distinct plutôt que sur un second indice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "segmentType is functional"
+msgstr "segmentType est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:segmentType is functional: a content segment is of exactly one structural kind — a single gmeow:ContentSegmentType value such as chapter, section, or scene — because the kind axis is carried as a property value rather than a subclass (Principle 9) and one segment cannot simultaneously be two structural kinds."
+msgstr "Affirme sur le porteur canonique que gmeow:segmentType est fonctionnelle: un segment de contenu est d'exactement un type structurel — une seule valeur gmeow:ContentSegmentType telle que chapter, section ou scene — car l'axe du type est porté comme une valeur de propriété plutôt que comme une sous-classe (Principe 9), et un segment ne peut pas être simultanément de deux types structurels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:feedPostingKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:feedPostingKind nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:feedPostingKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:feedPostingKind, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:feedPostingKindFunctionality logic:characterizes gmeow:feedPostingKind ."
+msgstr "gmeow:feedPostingKindFunctionality logic:characterizes gmeow:feedPostingKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:imageOrientation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:imageOrientation nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:imageOrientation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:imageOrientation, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrientation ."
+msgstr "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrientation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:mediaType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:mediaType nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mediaType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:mediaType, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:mediaTypeFunctionality logic:characterizes gmeow:mediaType ."
+msgstr "gmeow:mediaTypeFunctionality logic:characterizes gmeow:mediaType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:pagePrincipalSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:pagePrincipalSubject nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pagePrincipalSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:pagePrincipalSubject, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pagePrincipalSubjectFunctionality logic:characterizes gmeow:pagePrincipalSubject ."
+msgstr "gmeow:pagePrincipalSubjectFunctionality logic:characterizes gmeow:pagePrincipalSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:pixelHeight names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:pixelHeight nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pixelHeight, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:pixelHeight, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pixelHeightFunctionality logic:characterizes gmeow:pixelHeight ."
+msgstr "gmeow:pixelHeightFunctionality logic:characterizes gmeow:pixelHeight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:pixelWidth names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:pixelWidth nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pixelWidth, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:pixelWidth, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:pixelWidthFunctionality logic:characterizes gmeow:pixelWidth ."
+msgstr "gmeow:pixelWidthFunctionality logic:characterizes gmeow:pixelWidth ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:segmentIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:segmentIndex nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:segmentIndex, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:segmentIndexFunctionality logic:characterizes gmeow:segmentIndex ."
+msgstr "gmeow:segmentIndexFunctionality logic:characterizes gmeow:segmentIndex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:segmentType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:segmentType nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:segmentType, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:segmentTypeFunctionality logic:characterizes gmeow:segmentType ."
+msgstr "gmeow:segmentTypeFunctionality logic:characterizes gmeow:segmentType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:feedPostingKind and nothing else. It is not a definition of gmeow:feedPostingKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:feedPostingKind, et rien d'autre. Ce n'est pas une définition de gmeow:feedPostingKind (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/imageOrientationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:imageOrientation and nothing else. It is not a definition of gmeow:imageOrientation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:imageOrientation, et rien d'autre. Ce n'est pas une définition de gmeow:imageOrientation (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:mediaType and nothing else. It is not a definition of gmeow:mediaType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:mediaType, et rien d'autre. Ce n'est pas une définition de gmeow:mediaType (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:pagePrincipalSubject and nothing else. It is not a definition of gmeow:pagePrincipalSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:pagePrincipalSubject, et rien d'autre. Ce n'est pas une définition de gmeow:pagePrincipalSubject (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelHeightFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:pixelHeight and nothing else. It is not a definition of gmeow:pixelHeight (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:pixelHeight, et rien d'autre. Ce n'est pas une définition de gmeow:pixelHeight (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pixelWidthFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:pixelWidth and nothing else. It is not a definition of gmeow:pixelWidth (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:pixelWidth, et rien d'autre. Ce n'est pas une définition de gmeow:pixelWidth (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:segmentIndex and nothing else. It is not a definition of gmeow:segmentIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:segmentIndex, et rien d'autre. Ce n'est pas une définition de gmeow:segmentIndex (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:segmentType and nothing else. It is not a definition of gmeow:segmentType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:segmentType, et rien d'autre. Ce n'est pas une définition de gmeow:segmentType (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

@@ -1505,3 +1505,390 @@ gmeow:MessageParticipant logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:participantMessage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:participantAddress ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:participantRole ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:authMethodFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "authMethod is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authMethod is functional: an AuthenticationResult reifies a single RFC 8601 authentication check, and each such check tests exactly one method — dkim, spf, dmarc, arc, iprev, or auth — so the reified result names that one method. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:authMethod ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:authMethod ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:authMethod names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:authMethod, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:authMethod and nothing else. It is not a definition of gmeow:authMethod (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:authMethodFunctionality logic:characterizes gmeow:authMethod ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:authResultFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "authResult is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authResult is functional: the single method an AuthenticationResult evaluates yields exactly one verdict — pass, fail, none, softfail, neutral, temperror, or permerror — so the reified check carries one result. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:authResult ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:authResult ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:authResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:authResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:authResult and nothing else. It is not a definition of gmeow:authResult (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:authResultFunctionality logic:characterizes gmeow:authResult ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:authServerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "authServer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:authServer is functional: each AuthenticationResult records its check as stamped by a single authserv-id — the one authentication-serv-id that performed it — so the verifying server is one value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:authServer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:authServer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:authServer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:authServer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:authServer and nothing else. It is not a definition of gmeow:authServer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:authServerFunctionality logic:characterizes gmeow:authServer ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:bodyStructureFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "bodyStructure is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:bodyStructure is functional: the serialized JMAP EmailBodyStructure object is a single raw round-trip projection of a message's one MIME tree, so each message preserves exactly one such structure literal. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:bodyStructure ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:bodyStructure ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:bodyStructure names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:bodyStructure, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:bodyStructure and nothing else. It is not a definition of gmeow:bodyStructure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:bodyStructureFunctionality logic:characterizes gmeow:bodyStructure ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:filenameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "filename is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:filename is functional: an Attachment is a single non-inline body part whose Content-Disposition names one file, so it bears exactly one filename. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:filename ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:filename ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:filename names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:filename, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:filename and nothing else. It is not a definition of gmeow:filename (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:filenameFunctionality logic:characterizes gmeow:filename ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasContentDispositionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "hasContentDisposition is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasContentDisposition is functional: a body part's Content-Disposition resolves to exactly one presentation value — inline or attachment, never both — so the part points to a single ContentDisposition individual."@x-gmeow-english ;
+    logic:characterizes gmeow:hasContentDisposition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasContentDisposition ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hasContentDisposition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasContentDisposition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hasContentDisposition and nothing else. It is not a definition of gmeow:hasContentDisposition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hasContentDispositionFunctionality logic:characterizes gmeow:hasContentDisposition ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasContentTransferEncodingFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "hasContentTransferEncoding is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasContentTransferEncoding is functional: a MIME body part is encoded for transport by exactly one mechanism — base64, quoted-printable, 7bit, 8bit, or binary — so it points to a single ContentTransferEncoding value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:hasContentTransferEncoding ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasContentTransferEncoding ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hasContentTransferEncoding names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasContentTransferEncoding, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hasContentTransferEncoding and nothing else. It is not a definition of gmeow:hasContentTransferEncoding (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hasContentTransferEncodingFunctionality logic:characterizes gmeow:hasContentTransferEncoding ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasMultipartTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "hasMultipartType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasMultipartType is functional: a MultipartBodyPart's Content-Type declares exactly one multipart subtype (alternative, mixed, related, signed, encrypted, …), so the container points to a single MultipartType value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:hasMultipartType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasMultipartType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hasMultipartType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasMultipartType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hasMultipartType and nothing else. It is not a definition of gmeow:hasMultipartType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hasMultipartTypeFunctionality logic:characterizes gmeow:hasMultipartType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:headerNameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "headerName is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:headerName is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field name, so the header's name is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:headerName ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:headerName ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:headerName names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:headerName, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:headerName and nothing else. It is not a definition of gmeow:headerName (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:headerNameFunctionality logic:characterizes gmeow:headerName ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:headerValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "headerValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:headerValue is functional: a reified MessageHeader models one RFC 5322 header field, and a field has exactly one field value, so the header's value is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:headerValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:headerValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:headerValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:headerValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:headerValue and nothing else. It is not a definition of gmeow:headerValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:headerValueFunctionality logic:characterizes gmeow:headerValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hopOrdinalFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "hopOrdinal is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hopOrdinal is functional: a RelayHop occupies one position within a message's delivery path (1 = closest to the origin), so its ordinal is a single integer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:hopOrdinal ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hopOrdinal ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hopOrdinal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hopOrdinal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hopOrdinal and nothing else. It is not a definition of gmeow:hopOrdinal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hopOrdinalFunctionality logic:characterizes gmeow:hopOrdinal ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:mailboxOfAccountFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "mailboxOfAccount is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mailboxOfAccount is functional: a mailbox is a container held within exactly one online account, so the account that holds it is a single value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:mailboxOfAccount ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mailboxOfAccount ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:mailboxOfAccount names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mailboxOfAccount, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:mailboxOfAccount and nothing else. It is not a definition of gmeow:mailboxOfAccount (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:mailboxOfAccountFunctionality logic:characterizes gmeow:mailboxOfAccount ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:mailboxRoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "mailboxRole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mailboxRole is functional: JMAP assigns a mailbox at most one special-use role (inbox, archive, drafts, sent, trash, junk, templates), so the role is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:mailboxRole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mailboxRole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:mailboxRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mailboxRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:mailboxRole and nothing else. It is not a definition of gmeow:mailboxRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:mailboxRoleFunctionality logic:characterizes gmeow:mailboxRole ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participantAddressFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "participantAddress is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantAddress is functional: a MessageParticipant reifies a single occurrence of one address in a header or envelope context, so the normalized address that appears in that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participantAddress ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participantAddress ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participantAddress names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participantAddress, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participantAddress and nothing else. It is not a definition of gmeow:participantAddress (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participantAddressFunctionality logic:characterizes gmeow:participantAddress ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participantHeaderFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "participantHeader is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantHeader is functional: a MessageParticipant reifies one address occurrence parsed from a single RFC 5322 header field, so the source header of that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participantHeader ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participantHeader ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participantHeader names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participantHeader, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participantHeader and nothing else. It is not a definition of gmeow:participantHeader (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participantHeaderFunctionality logic:characterizes gmeow:participantHeader ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participantMessageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "participantMessage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantMessage is functional: a MessageParticipant reifies an address occurrence that belongs to exactly one message, so the message the occurrence belongs to is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participantMessage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participantMessage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participantMessage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participantMessage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participantMessage and nothing else. It is not a definition of gmeow:participantMessage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participantMessageFunctionality logic:characterizes gmeow:participantMessage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participantOrdinalFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "participantOrdinal is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantOrdinal is functional: a MessageParticipant occupies one zero-based position among the address occurrences of its header, so its ordinal is a single value. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participantOrdinal ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participantOrdinal ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participantOrdinal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participantOrdinal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participantOrdinal and nothing else. It is not a definition of gmeow:participantOrdinal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participantOrdinalFunctionality logic:characterizes gmeow:participantOrdinal ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:participantRoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "participantRole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:participantRole is functional: a MessageParticipant reifies one address occurrence that plays exactly one header or envelope role, so the role of that occurrence is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:participantRole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:participantRole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:participantRole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:participantRole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:participantRole and nothing else. It is not a definition of gmeow:participantRole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:participantRoleFunctionality logic:characterizes gmeow:participantRole ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relayAtFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "relayAt is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayAt is functional: a RelayHop is recorded by one Received header carrying a single server timestamp, so the time recorded for the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relayAt ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relayAt ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relayAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relayAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relayAt and nothing else. It is not a definition of gmeow:relayAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relayAtFunctionality logic:characterizes gmeow:relayAt ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relayByFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "relayBy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayBy is functional: a RelayHop is the delivery action of a single relaying server, so the server that performed the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relayBy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relayBy ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relayBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relayBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relayBy and nothing else. It is not a definition of gmeow:relayBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relayByFunctionality logic:characterizes gmeow:relayBy ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relayFromFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "relayFrom is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayFrom is functional: a RelayHop received the message from exactly one host, so the from-host it records is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relayFrom ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relayFrom ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relayFrom names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relayFrom, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relayFrom and nothing else. It is not a definition of gmeow:relayFrom (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relayFromFunctionality logic:characterizes gmeow:relayFrom ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relayProtocolFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "relayProtocol is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relayProtocol is functional: a RelayHop transported the message over one protocol (e.g. ESMTP, ESMTPS), so the protocol used for the hop is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relayProtocol ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relayProtocol ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relayProtocol names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relayProtocol, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relayProtocol and nothing else. It is not a definition of gmeow:relayProtocol (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relayProtocolFunctionality logic:characterizes gmeow:relayProtocol ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:residenceMailboxFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "residenceMailbox is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:residenceMailbox is functional: a MailboxResidence reifies the time-scoped membership of a message in exactly one mailbox, so the mailbox the residence concerns is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:residenceMailbox ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:residenceMailbox ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:residenceMailbox names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:residenceMailbox, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:residenceMailbox and nothing else. It is not a definition of gmeow:residenceMailbox (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:residenceMailboxFunctionality logic:characterizes gmeow:residenceMailbox ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:residentMessageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "residentMessage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:residentMessage is functional: a MailboxResidence reifies the time-scoped residence of exactly one message, so the message the residence concerns is single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:residentMessage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:residentMessage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:residentMessage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:residentMessage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:residentMessage and nothing else. It is not a definition of gmeow:residentMessage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:residentMessageFunctionality logic:characterizes gmeow:residentMessage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:rfcMessageIdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    rdfs:label "rfcMessageId is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:rfcMessageId is functional: a message bears exactly one canonical RFC 5322 Message-ID (generated by gmeow when the original lacks one), so its Message-ID is single-valued even where distinct bodies collide on the same identifier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:rfcMessageId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:rfcMessageId ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:rfcMessageId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:rfcMessageId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:rfcMessageId and nothing else. It is not a definition of gmeow:rfcMessageId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:rfcMessageIdFunctionality logic:characterizes gmeow:rfcMessageId ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

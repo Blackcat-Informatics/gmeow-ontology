@@ -69,11 +69,8 @@ fn merge_sssom_sources(root: &Path) -> Arc<RdfDataset> {
 
     let slices_dir = root.join("slices");
     if slices_dir.is_dir() {
-        let catalog = SliceCatalog::discover(
-            &slices_dir,
-            purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-        )
-        .expect("discover slices");
+        let catalog = SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+            .expect("discover slices");
         let mut slice_mappings: Vec<(PathBuf, Vec<u8>)> = Vec::new();
         for record in catalog.records() {
             for artifact in &record.artifacts {

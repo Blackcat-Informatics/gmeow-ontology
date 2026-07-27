@@ -40,7 +40,7 @@ use crate::emit::{digest16, ntriples_sorted};
 use crate::grammar::{Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr};
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 /// The base a modeled common-noun / transitive-verb predicate IRI is minted under: a
 /// documented `lang:`-adjacent namespace, joined to the constituent's lemma. `cat` becomes

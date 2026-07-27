@@ -15,8 +15,8 @@
 > vocabulary in [`../module.ttl`](../module.ttl) and exercised in its passing
 > direction by the worked scene in
 > [`../examples/purremb-bookshelf.ttl`](../examples/purremb-bookshelf.ttl). Every
-> term named below is a shipped term of that module or a reused kernel / graphrag
-> / `logic:` / `math:` term. It is not a claim that any implementation realizes
+> term named below is a shipped term of that module or a reused kernel / ai
+> / graphrag / `logic:` / `math:` term. It is not a claim that any implementation realizes
 > more than the module and its competency corpus demonstrate.
 
 ## 1. Purpose and boundary
@@ -195,12 +195,12 @@ content:
 
 A conforming `gmeow:EmbeddingProjection` carries, as **optional** content:
 `gmeow:hasTargetSet` (the ordered row namespace, functional when present),
-`gmeow:aggregatesEmbedding` (the graphrag `gmeow:Embedding` rows it gathers),
+`gmeow:aggregatesEmbedding` (the core ai slice's `gmeow:Embedding` rows it gathers),
 `gmeow:bindsExternal` (each `gmeow:ExternalBinding` it references), and the
 standard `gmeow:wasGeneratedBy` / `gmeow:wasDerivedFrom` provenance.
 
 Each `gmeow:EmbeddingFamily` **represents** its full generation contract:
-`gmeow:embeddingModel` (reused graphrag), `gmeow:inferenceEngine`,
+`gmeow:embeddingModel` (reused from the core ai slice), `gmeow:inferenceEngine`,
 `gmeow:executionContract` (precision mode / deterministic-inference settings),
 `gmeow:tokenizerContract`, `gmeow:subjectProjectionContract` (the always-applied
 text-serialization step), `gmeow:preprocessingContract`, `gmeow:chunkingContract`,
@@ -380,7 +380,7 @@ To build the bookshelf projection, a producer:
    and content-addresses the ordered membership.
 4. Emits the `gmeow:EmbeddingProjection` (`ex:bookshelfProjA`): binds
    `gmeow:hasVectorSpaceContract` to `ex:vscA`, `gmeow:hasTargetSet` to
-   `ex:targetSetA`, aggregates its graphrag `gmeow:Embedding` rows, records
+   `ex:targetSetA`, aggregates its core ai slice `gmeow:Embedding` rows, records
    `gmeow:projectionSourceDigest` equal to `ex:bookshelfPack`'s digest, propagates
    `gmeow:projectionSourceGtsHeadId` equal to its head id, sets
    `gmeow:hasSensitivity` (inheriting the source's unless declassified),

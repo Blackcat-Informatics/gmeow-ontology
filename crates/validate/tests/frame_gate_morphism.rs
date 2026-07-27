@@ -25,7 +25,7 @@ use gmeow_validate::findings::diag_from_shacl;
 use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
 use purrdf::shapes::term::{NamedNode, Term};
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 const SHACL_MIN_COUNT: &str = "http://www.w3.org/ns/shacl#MinCountConstraintComponent";
 
 /// A frame MinCount `ValidationResult` at the given severity — the exact shape of a

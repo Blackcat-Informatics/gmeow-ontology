@@ -62,5 +62,11 @@ mod tests {
         assert!(!is_object_level_named_graph(
             "https://blackcatinformatics.ca/gmeow/graph/correspondence-laws"
         ));
+        // The grounding seam registry asserts governance/policy data (which
+        // cross-grounding reference channels are sanctioned), not object-level
+        // axioms — excluded exactly like the correspondence-laws graph.
+        assert!(!is_object_level_named_graph(
+            "https://blackcatinformatics.ca/gmeow/graph/grounding-seams"
+        ));
     }
 }

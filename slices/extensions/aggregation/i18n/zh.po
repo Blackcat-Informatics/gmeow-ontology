@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: aggregation, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "aggregationFunction is functional"
+msgstr "aggregationFunction 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:aggregationFunction is functional: a spatial aggregation applies exactly one statistical function — count, sum, average, density, minimum, maximum, or centroid — so computing a different function over the same region is a different aggregation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:aggregationFunction 是函数性的:一次空间聚合恰好应用一种统计函数——计数、求和、平均值、密度、最小值、最大值或质心——因此在同一区域上计算不同的函数即构成不同的聚合。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimumPopulation is functional"
+msgstr "minimumPopulation 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:minimumPopulation 是函数式的:一个空间聚合恰好携带一个 k-匿名阈值,即在投影时若结果所涉人口规模低于该单一最小值便会被抑制的那个数值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:aggregationFunction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:aggregationFunction 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:aggregationFunction, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:aggregationFunction, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:aggregationFunctionFunctionality logic:characterizes gmeow:aggregationFunction ."
+msgstr "gmeow:aggregationFunctionFunctionality logic:characterizes gmeow:aggregationFunction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:minimumPopulation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:minimumPopulation 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:minimumPopulation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:minimumPopulation, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:minimumPopulationFunctionality logic:characterizes gmeow:minimumPopulation ."
+msgstr "gmeow:minimumPopulationFunctionality logic:characterizes gmeow:minimumPopulation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:aggregationFunction and nothing else. It is not a definition of gmeow:aggregationFunction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:aggregationFunction 的一项完整性义务，别无其他。它不是 gmeow:aggregationFunction 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:minimumPopulation and nothing else. It is not a definition of gmeow:minimumPopulation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:minimumPopulation 的一项完整性义务，别无其他。它不是 gmeow:minimumPopulation 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
