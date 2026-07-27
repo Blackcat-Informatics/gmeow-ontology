@@ -156,6 +156,13 @@ sha2 = "0.10"
 
 [dev-dependencies]
 tempfile = "3"
+# The medium-axis concurrency proof (`medium::train`): each worker thread PERTURBS
+# its own thread-local `fastrand` generator around the training call, so a
+# regression to an ambient-seeded trainer shows up as diverging dictionary bytes
+# instead of passing by luck. Same generator purrdf's `gts::dict` seeds explicitly
+# and round-trips, so this pins the property that actually matters rather than a
+# proxy for it.
+fastrand = "2"
 # The diagnostic substrate is a normal dependency; integration tests build typed
 # `gmeow_errors::Diag` values off the `error::*` DiagKinds, so it is also a
 # dev-dependency (integration-test crates do not inherit normal dependencies).

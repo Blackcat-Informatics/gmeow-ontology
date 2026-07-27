@@ -1839,6 +1839,7 @@ dependencies = [
  "ciborium",
  "docs-print",
  "ed25519-dalek",
+ "fastrand",
  "gmeow-affect",
  "gmeow-cli-core",
  "gmeow-conformance",

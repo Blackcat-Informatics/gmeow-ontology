@@ -22,6 +22,9 @@
 //! * [`stages`] — the concrete production stages (P3–P5).
 //! * [`docs_measure`] — measured, deterministic per-format documentation byte
 //!   sizes and the three external-distribution design totals.
+//! * [`medium`] — the MEDIUM axis: the typed registry read off the carrier, the
+//!   corpus selectors, dictionary training, envelope seal/open, and the
+//!   `graph/medium-registry` projection.
 //!
 //! Invariants the [`loader`] proves before any stage runs (no-optionality): the
 //! DAG is acyclic and complete, there is exactly one `Sink` (the gts narrow
@@ -52,6 +55,7 @@ pub(crate) mod gts_profile;
 pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
+pub mod medium;
 pub mod node;
 pub mod projections;
 pub mod provenance;
