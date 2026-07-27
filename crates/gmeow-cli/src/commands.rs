@@ -5798,3 +5798,69 @@ pub fn logic_refine(
     }
     0
 }
+
+/// `gmeow logic explain` — R3.5's five elements for one action.
+pub fn logic_explain(reporter: &dyn Reporter, input: &Path, action: &str) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-explain";
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    let rows = match logic_derive(reporter, input, CODE) {
+        Ok(r) => r,
+        Err(rc) => return rc,
+    };
+
+    // The action may be named directly or through the entry that positions it.
+    let entries: Vec<String> = iri_pairs(&rows, &format!("{LOGIC_NS}entryAction"))
+        .into_iter()
+        .filter(|(_, step)| step == action)
+        .map(|(e, _)| e)
+        .chain(std::iter::once(action.to_owned()))
+        .collect();
+
+    let explains = iri_pairs(&rows, &format!("{GMEOW_NS}explainsEntry"));
+    let mut found = false;
+    for (explanation, entry) in &explains {
+        if !entries.contains(entry) {
+            continue;
+        }
+        found = true;
+        println!("action:      {action}");
+        println!("entry:       {entry}");
+        if let Some((_, label)) = iri_pairs(&rows, &format!("{LOGIC_NS}entryLabel"))
+            .into_iter()
+            .find(|(e, _)| e == entry)
+        {
+            println!("label:       {}   (derived)", short(&label));
+        }
+        // R3.5's five elements, each named so a missing one is visible as missing
+        // rather than silently absent from an otherwise plausible-looking report.
+        for (field, heading) in [
+            ("explanationProof", "proof"),
+            ("explanationEvidence", "evidence"),
+            ("explanationPolicy", "policy"),
+            ("explanationCriterion", "criterion"),
+            ("explanationDissent", "dissent"),
+        ] {
+            let vals: Vec<String> = rows
+                .iter()
+                .filter(|(s, p, _)| s == explanation && *p == format!("{GMEOW_NS}{field}"))
+                .map(|(_, _, o)| o.clone())
+                .collect();
+            if vals.is_empty() {
+                println!("{heading:<12} <none recorded>");
+            } else {
+                for v in vals {
+                    println!("{heading:<12} {v}");
+                }
+            }
+        }
+    }
+
+    if !found {
+        return fail(
+            reporter,
+            CODE,
+            format!("no gmeow:FrontierExplanation explains <{action}>"),
+        );
+    }
+    0
+}

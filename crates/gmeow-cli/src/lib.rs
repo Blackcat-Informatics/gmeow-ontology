@@ -769,6 +769,18 @@ pub enum LogicCommands {
         #[arg(long = "why-not")]
         why_not: Option<String>,
     },
+    /// Explain a recommended or blocked action: the proof it rests on, its evidence, the
+    /// governing policy, the cost/risk/benefit criteria weighed, and any recorded dissent.
+    ///
+    /// Dissent is printed rather than averaged away. A recommendation that has quietly
+    /// discarded the objection to it is not one an operator can properly weigh.
+    Explain {
+        /// An RDF file carrying the frontier entries and their explanations.
+        input: PathBuf,
+        /// The action (or frontier entry) IRI to explain.
+        #[arg(long = "action")]
+        action: String,
+    },
     /// Run a BOUNDED means-end search over the authored logic:DecompositionMethod set
     /// and print the candidate decompositions with an honest completeness status.
     ///
@@ -1284,6 +1296,9 @@ pub fn run() -> i32 {
         Commands::Logic { command } => match command {
             LogicCommands::Frontier { input, why_not } => {
                 commands::logic_frontier(reporter, &input, why_not.as_deref())
+            }
+            LogicCommands::Explain { input, action } => {
+                commands::logic_explain(reporter, &input, &action)
             }
             LogicCommands::Refine {
                 input,

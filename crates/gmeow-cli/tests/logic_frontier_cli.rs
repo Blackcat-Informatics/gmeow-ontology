@@ -239,3 +239,50 @@ e:b a logic:DecompositionMethod ; logic:methodDecomposes e:u ; logic:methodYield
         // The remedy must be named: a budget increase cannot fix a cycle.
         .stderr(predicate::str::contains("No budget increase would help"));
 }
+
+#[test]
+fn explain_prints_all_five_elements_including_dissent() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(
+        &dir,
+        "explain.ttl",
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:rollbackEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepReady , logic:ApprovalNull ;
+    logic:entryAction e:rollback .
+e:rollback a logic:TransactionStep .
+e:exp a gmeow:FrontierExplanation ;
+    gmeow:explainsEntry e:rollbackEntry ;
+    gmeow:explanationProof e:proofTerm ;
+    gmeow:explanationEvidence e:incidentTimeline ;
+    gmeow:explanationPolicy e:fastestRestore ;
+    gmeow:explanationCriterion e:timeToRestore ;
+    gmeow:explanationDissent e:onCallObjection .
+"#,
+    );
+    gmeow()
+        .args([
+            "logic",
+            "explain",
+            p.to_str().expect("utf-8"),
+            "--action",
+            "https://blackcatinformatics.ca/gmeow/clitest/rollback",
+        ])
+        .assert()
+        .success()
+        // R3.5's five elements, each asserted by name: a report missing one silently
+        // would still look complete.
+        .stdout(predicate::str::contains("proof"))
+        .stdout(predicate::str::contains("evidence"))
+        .stdout(predicate::str::contains("policy"))
+        .stdout(predicate::str::contains("criterion"))
+        // Dissent is the one most easily dropped, and the one whose absence most changes
+        // what an operator would decide.
+        .stdout(predicate::str::contains("onCallObjection"))
+        // The label is re-derived here too, so an explanation cannot disagree with the
+        // frontier it explains.
+        .stdout(predicate::str::contains("(derived)"));
+}
