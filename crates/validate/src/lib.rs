@@ -56,9 +56,14 @@ pub mod store;
 // Native-only: the slice-authoring dev gate, repo-lint guards, DSL phases, and the
 // Tier-2 reasoner path all pull native-only crates (gmeow-logic, rayon, ureq,
 // gmeow-slice) and cannot cross-compile to wasm.
-#[cfg(not(target_arch = "wasm32"))]
+// The constructive "what to ADD" tier. Wasm-clean: `gmeow_errors` + `purrdf` +
+// `gmeow_logic_compile`'s formula frontend + `sha2`, all of which cross-compile. Gated
+// only by its former block; the consumer advisory surface carries it on both targets.
 pub mod abductive;
-#[cfg(not(target_arch = "wasm32"))]
+// The advisory-tier emission seam. Wasm-clean: its whole dependency set is
+// `gmeow_errors` + `purrdf`'s SHACL report model + `sha2`. It was gated only by sitting
+// inside the native-only block; the browser-runnable MCP `validate_local` / `advise`
+// surface applies the very same advisory split, so it belongs on both targets.
 pub mod advisory;
 // The ontology-surface authoring gates (shape-IRI ownership, profile/catalog
 // closure, term-declaration + language-tag discipline, graft isolation, slice
@@ -92,13 +97,19 @@ pub mod dsl_shacl;
 // consumer Report — attaches rule identity + registry-authored remediation. Reused by
 // the CLI validate/verify path and the pipeline validate stage so the two
 // surfaces cannot drift.
-#[cfg(not(target_arch = "wasm32"))]
+// The single proof-carrying enrichment entry point (`enrich_findings`) over a
+// consumer Report — attaches rule identity + registry-authored remediation. Wasm-clean
+// (its imports are `gmeow_errors` + `purrdf` + `rule_catalog`), and required by the
+// browser-runnable `validate_local`, so it is compiled on every target.
 pub mod enrich;
 // The per-term usage-guidance reader (Part 3): joins a finding onto the
 // `gmeow:howToUse`/`gmeow:useWhen`/`gmeow:avoidWhen` prose authored on ontology
 // terms, from both the finding's rule-governing term(s) and its own
 // `documented_terms`. Reads an `RdfDataset` directly (native-only, like `enrich`).
-#[cfg(not(target_arch = "wasm32"))]
+// The per-term usage-guidance reader: joins a finding onto the
+// `gmeow:howToUse`/`gmeow:useWhen`/`gmeow:avoidWhen` prose authored on ontology terms.
+// Wasm-clean (`gmeow_errors` + `purrdf` only) and read by `enrich`, so it is compiled
+// on every target.
 pub mod guidance;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod instance;
@@ -112,7 +123,8 @@ pub mod language_tags;
 pub mod lint;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod mapping_eval;
-#[cfg(not(target_arch = "wasm32"))]
+// The registry-authored remediation attachment. Wasm-clean (`gmeow_errors` +
+// `rule_catalog`) and read by `enrich`, so it is compiled on every target.
 pub mod remediation;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod repo_static;

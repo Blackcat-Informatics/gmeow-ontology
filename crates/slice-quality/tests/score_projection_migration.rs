@@ -48,6 +48,18 @@ impl Fixture {
         dir.push(format!("gmeow-proj-{name}-{}-{nanos}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
 
+        // A real slice directory declares its identity in a manifest; the scorer reads
+        // the fixture through the same `slice_files_from_dir` entry point production
+        // uses, so the fixture ships one rather than being a manifest-less stand-in.
+        std::fs::write(
+            dir.join("manifest.ttl"),
+            format!(
+                "{PREFIXES}\n\
+                 <https://blackcatinformatics.ca/gmeow/slices/fixture> a gmeow:Slice .\n"
+            ),
+        )
+        .unwrap();
+
         let external = if with_external_link {
             "gmeow:Widget rdfs:seeAlso <http://example.org/external-vocab/Widget> .\n"
         } else {
@@ -85,11 +97,14 @@ impl Fixture {
     fn score(&self) -> View {
         let module = self.dir.join("module.ttl");
         let ds = gmeow_slice_quality::dataset_from_paths(&[module.as_path()]).unwrap();
+        let files = gmeow_slice_quality::report::slice_files_from_dir(&self.dir).unwrap();
         let ctx = ScoreContext::new(
             "https://blackcatinformatics.ca/gmeow/slices/fixture".to_owned(),
-            self.dir.clone(),
+            &files,
             &ds,
-            ScoringEnv::Repo,
+            ScoringEnv::Repo {
+                slice_dir: self.dir.clone(),
+            },
         );
         let s = axes::resolve("projection_axis").unwrap()(&ctx);
         View {

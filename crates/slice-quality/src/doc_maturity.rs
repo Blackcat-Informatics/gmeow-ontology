@@ -51,21 +51,23 @@ impl DocMaturity {
     /// The documentation model's SOURCE branches on the scoring environment:
     /// [`ScoringEnv::Repo`] reads the memoized repo-wide model ([`Self::axis_repo`]);
     /// [`ScoringEnv::Bundle`] builds a fresh single-slice model from the slice's own
-    /// directory ([`Self::axis_external`]). The `Bundle` payload (the gmn1 dictionary)
-    /// is irrelevant to documentation maturity, so it is ignored here.
+    /// carried files ([`Self::axis_external`]). The `Bundle` payload (the gmn1
+    /// dictionary) is irrelevant to documentation maturity, so it is ignored here.
     #[must_use]
     pub fn axis(ctx: &ScoreContext) -> AxisScore {
         match &ctx.env {
-            ScoringEnv::Repo => Self::axis_repo(ctx),
+            ScoringEnv::Repo { slice_dir } => Self::axis_repo(ctx, slice_dir),
             ScoringEnv::Bundle(_) => Self::axis_external(ctx),
         }
     }
 
     /// Repo-mode documentation maturity: read the memoized repo-wide documentation
     /// model (built once per repo root by [`DocsModel::discover`]) and look the slice
-    /// up by its IRI. This is the verbatim pre-seam behaviour.
-    fn axis_repo(ctx: &ScoreContext) -> AxisScore {
-        let Some(root) = repo_root_of(&ctx.slice_dir) else {
+    /// up by its IRI. This is the verbatim pre-seam behaviour — the repo root is
+    /// resolved from the CHECKOUT anchor the [`ScoringEnv::Repo`] environment carries,
+    /// the only path any axis is allowed to read.
+    fn axis_repo(ctx: &ScoreContext, slice_dir: &Path) -> AxisScore {
+        let Some(root) = repo_root_of(slice_dir) else {
             return AxisScore {
                 score: 1.0,
                 findings: vec![advisory(
@@ -76,74 +78,171 @@ impl DocMaturity {
         };
         let facts = repo_facts(&root);
         match &*facts {
-            RepoFacts::Failed(err) => AxisScore {
-                score: 1.0,
-                findings: vec![advisory(
-                    "slice-quality.doc-maturity.model-unavailable",
-                    format!(
-                        "the documentation model could not be built ({err}) — documentation maturity cannot be measured (vacuous 1.0)."
-                    ),
-                )],
-            },
+            RepoFacts::Failed(err) => model_unavailable(err),
             RepoFacts::Ready(by_slice) => match by_slice.get(&ctx.slice_iri) {
                 Some(fact) => score_and_advice(fact),
-                None => AxisScore {
-                    score: 1.0,
-                    findings: vec![advisory(
-                        "slice-quality.doc-maturity.slice-untracked",
-                        format!(
-                            "{} carries no record in the documentation model (no documented terms) — documentation maturity is vacuously 1.0.",
-                            ctx.slice_iri
-                        ),
-                    )],
-                },
+                None => slice_untracked(&ctx.slice_iri),
             },
         }
     }
 
     /// External-mode documentation maturity for a foreign slice pulled in on its own:
-    /// build a FRESH single-slice documentation model from the slice's OWN directory
-    /// ([`DocsModel::from_slice_dir`]), read back that one slice's [`DocSliceFacts`] via
-    /// [`documentation_graph`], and hand them to the SAME [`score_and_advice`] the repo
-    /// arm uses — so an off-repo slice and an in-repo slice earn the score by the very
-    /// same measure. On a model that will not build → the existing `model-unavailable`
-    /// advisory; on the slice carrying no record in its own model → the existing
-    /// `slice-untracked` advisory.
+    /// build a FRESH single-slice documentation model from the slice's OWN carried
+    /// files ([`DocsModel::from_slice_dir`]), read back that one slice's
+    /// [`DocSliceFacts`] via [`documentation_graph`], and hand them to the SAME
+    /// [`score_and_advice`] the repo arm uses — so an off-repo slice and an in-repo
+    /// slice earn the score by the very same measure. On a model that will not build →
+    /// the existing `model-unavailable` advisory; on the slice carrying no record in
+    /// its own model → the existing `slice-untracked` advisory.
     ///
     /// The single-slice model's `term_loss` is deliberately `None` (see
     /// [`DocsModel::from_slice_dir`]): a foreign slice was never compiled through the
     /// pipeline's stage-mappings, so it has no dynamic projection-loss ledger. That is
     /// the correct off-repo scope boundary — a not-applicable fact, never a failed join.
+    ///
+    /// # Why this one axis materializes the file map back to a directory
+    ///
+    /// Every other axis reads `ctx.files` directly. This one cannot: the documentation
+    /// model is built by `gmeow_docs_model` on top of `purrdf`'s `SliceCatalog`, whose
+    /// `records`/`vocab` fields are PRIVATE and whose only constructors are
+    /// `SliceCatalog::discover(root, vocab)` and `SliceCatalog::from_slice_dir(dir,
+    /// vocab)` — both of which take a `&Path` and walk it with `std::fs`. There is no
+    /// in-memory constructor to hand a byte map to. Rather than fork a second,
+    /// silently-divergent documentation model here (a forbidden second source of
+    /// truth), the native arm writes the map back out to a temp directory and calls the
+    /// SAME real loader, so the off-repo score stays byte-for-byte what it was before
+    /// the map existed. See [`Self::axis_external`]'s `wasm32` twin for what happens
+    /// where no filesystem exists at all.
+    #[cfg(not(target_arch = "wasm32"))]
     fn axis_external(ctx: &ScoreContext) -> AxisScore {
-        let model = match DocsModel::from_slice_dir(&ctx.slice_dir) {
+        let staged = match stage_slice_files(ctx.files) {
+            Ok(staged) => staged,
+            // A temp-dir or write failure is a real inability to measure, surfaced with
+            // the SAME advisory a failed model build carries — never a silent pass.
+            Err(err) => return model_unavailable(&err.to_string()),
+        };
+        let model = match DocsModel::from_slice_dir(staged.path()) {
             Ok(model) => model,
-            Err(err) => {
-                return AxisScore {
-                    score: 1.0,
-                    findings: vec![advisory(
-                        "slice-quality.doc-maturity.model-unavailable",
-                        format!(
-                            "the documentation model could not be built ({err}) — documentation maturity cannot be measured (vacuous 1.0)."
-                        ),
-                    )],
-                };
-            }
+            Err(err) => return model_unavailable(&err.to_string()),
         };
         let graph = documentation_graph(&model);
         match graph.slices.iter().find(|s| s.documents == ctx.slice_iri) {
             Some(fact) => score_and_advice(fact),
-            None => AxisScore {
-                score: 1.0,
-                findings: vec![advisory(
-                    "slice-quality.doc-maturity.slice-untracked",
-                    format!(
-                        "{} carries no record in the documentation model (no documented terms) — documentation maturity is vacuously 1.0.",
-                        ctx.slice_iri
-                    ),
-                )],
-            },
+            None => slice_untracked(&ctx.slice_iri),
         }
     }
+
+    /// External-mode documentation maturity on a target with NO FILESYSTEM.
+    ///
+    /// The documentation model cannot be built here, and the reason is a precise,
+    /// nameable upstream gap rather than a local shortcut: `purrdf`'s `SliceCatalog`
+    /// keeps its `records` and `vocab` fields private and exposes exactly two
+    /// constructors — `SliceCatalog::discover(&Path, SliceVocab)` and
+    /// `SliceCatalog::from_slice_dir(&Path, &SliceVocab)` — both of which read the
+    /// tree with `std::fs`. `gmeow_docs_model::model::DocsModel::from_slice_dir` is a
+    /// thin wrapper over the first of those, so with no `SliceCatalog` constructor
+    /// that accepts already-loaded artifact bytes there is no way to build a
+    /// documentation model from `ctx.files` on `wasm32`.
+    ///
+    /// The unblocking upstream capability is therefore exactly one thing: a
+    /// `purrdf::slice::SliceCatalog` constructor taking pre-read
+    /// `(logical_path, bytes)` artifacts (equivalently, a public `SliceRecord`
+    /// constructor). The moment that lands, this arm becomes the same three lines as
+    /// the native one with the staging step deleted, and the advisory disappears.
+    /// Until then the axis reports the vacuous `1.0` WITH the reason named — never a
+    /// silent false-positive "fully documented".
+    #[cfg(target_arch = "wasm32")]
+    fn axis_external(_ctx: &ScoreContext) -> AxisScore {
+        model_unavailable(
+            "purrdf's SliceCatalog has no in-memory constructor (its fields are private and \
+             SliceCatalog::discover / SliceCatalog::from_slice_dir are the only entries, both \
+             std::fs path readers), so a documentation model cannot be built from bytes on a \
+             target with no filesystem",
+        )
+    }
+}
+
+/// The `slice-quality.doc-maturity.model-unavailable` advisory at the crate's neutral
+/// vacuous `1.0` — one construction site shared by every reason the documentation
+/// model cannot be built, so the wording can never drift between arms.
+fn model_unavailable(reason: &str) -> AxisScore {
+    AxisScore {
+        score: 1.0,
+        findings: vec![advisory(
+            "slice-quality.doc-maturity.model-unavailable",
+            format!(
+                "the documentation model could not be built ({reason}) — documentation maturity cannot be measured (vacuous 1.0)."
+            ),
+        )],
+    }
+}
+
+/// The `slice-quality.doc-maturity.slice-untracked` advisory: the model built, but
+/// carries no record for this slice (it documents no terms).
+fn slice_untracked(slice_iri: &str) -> AxisScore {
+    AxisScore {
+        score: 1.0,
+        findings: vec![advisory(
+            "slice-quality.doc-maturity.slice-untracked",
+            format!(
+                "{slice_iri} carries no record in the documentation model (no documented terms) — documentation maturity is vacuously 1.0."
+            ),
+        )],
+    }
+}
+
+/// Write an in-memory slice file map back out to a fresh temp directory, preserving
+/// the key paths verbatim, and return the owning [`TempDir`] (deleted on drop).
+///
+/// Only [`DocMaturity::axis_external`] needs this, and only because the upstream
+/// documentation-model loader is path-shaped (see that function's doc comment). Keys
+/// are slice-relative forward-slash paths produced by
+/// [`crate::report::slice_files_from_dir`] or an equivalent in-memory author; a key
+/// that escapes the staging root (an absolute path or a `..` component) is REJECTED
+/// rather than written, because materializing attacker-influenced bytes outside the
+/// temp dir is a real write-outside-root hazard, not a scoring concern.
+///
+/// # Errors
+/// A [`crate::error::Io`] diagnostic naming the failure when the temp directory cannot
+/// be created, a key is not a safe relative path, or a file cannot be written.
+#[cfg(not(target_arch = "wasm32"))]
+fn stage_slice_files(
+    files: &std::collections::BTreeMap<String, Vec<u8>>,
+) -> gmeow_errors::Result<tempfile::TempDir> {
+    /// Raise a staging failure as the crate's typed I/O diagnostic — `Diag` is the sole
+    /// first-party error type, so this path carries no bare `String` error.
+    fn io(detail: String) -> gmeow_errors::Diag {
+        gmeow_errors::Diag::of_kind(crate::error::Io { detail })
+    }
+
+    let dir = tempfile::Builder::new()
+        .prefix("gmeow-slice-quality-docs-")
+        .tempdir()
+        .map_err(|e| io(format!("cannot create a staging directory for the slice files: {e}")))?;
+    for (key, bytes) in files {
+        let rel = Path::new(key);
+        if rel
+            .components()
+            .any(|c| !matches!(c, std::path::Component::Normal(_)))
+        {
+            return Err(io(format!(
+                "slice file key {key:?} is not a safe slice-relative path (absolute or \
+                 parent-directory components are rejected)"
+            )));
+        }
+        let target = dir.path().join(rel);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| {
+                io(format!(
+                    "cannot create staging directory {}: {e}",
+                    parent.display()
+                ))
+            })?;
+        }
+        std::fs::write(&target, bytes)
+            .map_err(|e| io(format!("cannot stage slice file {}: {e}", target.display())))?;
+    }
+    Ok(dir)
 }
 
 /// Turn one slice's documentation facts into the axis score + uplift advisories.
@@ -381,10 +480,21 @@ mod tests {
             .expect("empty dataset");
         let slice_iri = "https://blackcatinformatics.ca/gmeow/slices/fixture-single".to_owned();
 
+        // The repo arm reads only the documentation model and the checkout anchor, so
+        // the slice's own file map is irrelevant here — an empty map is the honest input.
+        let files = std::collections::BTreeMap::new();
+
         // COLD tree: no generated/ on disk, catalog primed from LIVE bytes.
         let (live_root, live_slice) = scaffold_single_slice_root(line!());
         prime_repo_facts(&live_root, Some(&catalog));
-        let live_ctx = ScoreContext::new(slice_iri.clone(), live_slice, &empty, ScoringEnv::Repo);
+        let live_ctx = ScoreContext::new(
+            slice_iri.clone(),
+            &files,
+            &empty,
+            ScoringEnv::Repo {
+                slice_dir: live_slice,
+            },
+        );
         let live = DocMaturity::axis(&live_ctx);
 
         // WARM tree: the SAME catalog bytes on disk, sourced by the disk path (None).
@@ -400,7 +510,14 @@ mod tests {
         )
         .expect("write catalog");
         prime_repo_facts(&warm_root, None);
-        let warm_ctx = ScoreContext::new(slice_iri, warm_slice, &empty, ScoringEnv::Repo);
+        let warm_ctx = ScoreContext::new(
+            slice_iri,
+            &files,
+            &empty,
+            ScoringEnv::Repo {
+                slice_dir: warm_slice,
+            },
+        );
         let warm = DocMaturity::axis(&warm_ctx);
 
         assert_eq!(

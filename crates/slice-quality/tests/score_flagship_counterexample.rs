@@ -31,7 +31,13 @@ fn slice_graph(slice_dir: &Path) -> std::sync::Arc<purrdf::RdfDataset> {
 fn score(slice: &str, iri: &str) -> gmeow_slice_quality::score::AxisScore {
     let dir = repo_root().join(slice);
     let ds = slice_graph(&dir);
-    let ctx = ScoreContext::new(iri.to_owned(), dir, &ds, ScoringEnv::Repo);
+    let files = gmeow_slice_quality::report::slice_files_from_dir(&dir).expect("slice files read");
+    let ctx = ScoreContext::new(
+        iri.to_owned(),
+        &files,
+        &ds,
+        ScoringEnv::Repo { slice_dir: dir },
+    );
     axes::resolve("flagship_counterexample_depth_axis").unwrap()(&ctx)
 }
 

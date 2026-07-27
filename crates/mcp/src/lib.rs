@@ -31,22 +31,29 @@
 //!   depends on THIS crate and registers them through [`extension`]. That inversion
 //!   is what breaks the cycle: the only pipeline-coupled symbols were `run_full` /
 //!   `RunMode`, and they now sit on the dev side of the seam.
-//! * **wasm-clean at the dependency level.** Nothing in the dependency tree pulls in
-//!   rayon, process spawning, or an embedded-asset crate. The crate still calls
-//!   `std::fs` / `std::env` directly (the grounded-memory store, the query overlay,
-//!   `GMEOW_LANG` / `GMEOW_MEMORY_PATH`, the stdio loop); routing those through a
-//!   cfg-selected storage seam is separate, later work.
-//! * **Bundle-only.** No tool here reads a checkout. `slice_quality` scores an
-//!   arbitrary external directory against the rubric carried IN the bundle bytes;
-//!   the grounded-memory triad writes to `GMEOW_MEMORY_PATH`, not the repo.
+//! * **wasm-clean, and not merely at the dependency level.** Nothing in the
+//!   dependency tree pulls in rayon or process spawning, AND no module outside
+//!   [`storage`]'s native half calls `std::fs` or `std::env`. Persistence and
+//!   configuration go through the [`storage`] seam, which is `cfg`-selected: a real
+//!   filesystem + environment natively, a real in-process store in a browser. The one
+//!   surface that is not seamed is [`McpServer::run_stdio`], the blocking process-stdio
+//!   line loop, which is `cfg`-gated OUT of wasm — a browser drives the identical
+//!   protocol through `handle_message`, a frame at a time.
+//! * **Bundle-only, and byte-only.** No tool here reads a checkout, and none reads a
+//!   FILE: `validate_local`, `advise`, `query_local`, and `verify_graph` all take
+//!   inline `data` plus an EXPLICIT `format`, and `slice_quality` takes an in-memory
+//!   `files` map. The grounded-memory triad writes to the storage backend's claim
+//!   package, never the repo.
 //! * **One surface, total dispatch.** Tools and resources are `(descriptor,
 //!   handler)` pairs in an assembled [`extension::Surface`]; see that module for the
 //!   totality and duplicate-registration contract.
 //!
 //! # Direct dependencies
 //!
-//! The list below is the crate's complete direct dependency set (it must set-equal
-//! `cargo tree -p gmeow-mcp --depth 1`), each with the reason it is here:
+//! The list below is the crate's complete direct dependency set — it must set-equal
+//! `cargo tree -p gmeow-mcp --depth 1 -e normal`, and the `documented_dependencies`
+//! gate in `crates/mcp/tests/` asserts exactly that, naming the symmetric difference in
+//! both directions when it drifts. Each entry carries the reason it is here:
 //!
 //! * `purrdf` — the RDF 1.2 kernel: the snapshot imports to an `RdfDataset`, every
 //!   query surface evaluates SPARQL over one, and the memory / conjecture / candidate
@@ -69,23 +76,21 @@
 //!   and the local oracle's finding schema / entailment / fixture views.
 //! * `gmeow-lang-bridge` — the GMN-1 codec behind `gmn_validate`, `gmn_expand`, and
 //!   `gmn_explain`.
-//! * `gmeow-slice-quality` — the advisor kernel `slice_quality` scores an external
-//!   slice directory with, against the bundle-carried rubric.
+//! * `gmeow-slice-quality` — the advisor kernel `slice_quality` scores an in-memory
+//!   slice file map with, against the bundle-carried rubric.
 //! * `serde_json` — the MCP wire format: every tool envelope and JSON-RPC frame.
-//! * `sha2` — SHA-256 content addressing for the append-only library segments and
-//!   the claim fingerprints.
-//! * `tempfile` — atomic write-then-rename for the append-only library commit path.
+//! * `sha2` — SHA-256 content addressing for the append-only library segments, the
+//!   claim fingerprints, and the browser backend's record ids.
+//! * `tempfile` — atomic write-then-rename for the NATIVE library commit path
+//!   (`cfg(not(target_arch = "wasm32"))`; the browser backend needs none).
 
 pub mod error;
 pub mod extension;
 pub mod fold_arena;
+pub mod storage;
 
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::env;
-use std::fs;
-use std::io::{self, BufRead, Write};
-use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 
 use serde_json::{Value, json};
@@ -108,7 +113,7 @@ use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result}
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
 use purrdf::gts::examples::agent_memory::{
-    Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
+    RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
 use purrdf::gts::writer::Writer as GtsWriter;
@@ -120,6 +125,7 @@ use gmeow_bundle_view::export::{self, ConsumerResolution, FoldView, Term};
 use crate::extension::{
     Extension, ResourceHandler, Surface, ToolHandler, zip_resources, zip_tools,
 };
+use crate::storage::{ClaimStore, LibraryLock, SegmentLibrary, storage};
 
 // The internal→BCP-47 display-language map is carried on the lang: carrier
 // varieties: each lang:LanguageVariety bears its internal tag through
@@ -191,17 +197,18 @@ const LANG_GMN_UNCOVERED_TERM: &str = "https://blackcatinformatics.ca/lang/GmnUn
 /// path), never a silently truncated graph.
 const MAX_VERIFY_OVERLAY_QUADS: usize = 100_000;
 
-/// The pre-*read* hard ceiling on the `verify_graph` overlay file size (raw bytes on
-/// disk), checked via [`std::fs::metadata`] BEFORE the file is ever `fs::read` into
-/// memory. [`MAX_VERIFY_OVERLAY_QUADS`] alone bounds the PARSED quad count, but that
-/// check only runs AFTER the whole file has already been loaded and parsed — so an
-/// agent-supplied overlay path pointing at a huge file (or a file with a single
-/// enormous literal that parses to very few quads) could exhaust memory before the
-/// quad ceiling ever gets a chance to refuse it. 16 MiB is generous — the existing
-/// 100,000-quad ceiling, serialized as short synthetic IRIs/literals, tops out around
-/// ~4 MiB, and no hand-authored local annex plausibly approaches this — yet it bounds
-/// the raw bytes read into memory to a fixed, small multiple of that. Exceeding it is
-/// a HARD FAIL BEFORE the read (the bounded agent path), never a truncated read.
+/// The pre-*parse* hard ceiling on the `query_local` / `verify_graph` overlay payload
+/// (raw bytes of the caller's inline `data`), checked BEFORE the bytes are handed to
+/// the parser. [`MAX_VERIFY_OVERLAY_QUADS`] alone bounds the PARSED quad count, but
+/// that check only runs AFTER the whole payload has been parsed into a dataset — so a
+/// huge annex (or one with a single enormous literal that parses to very few quads)
+/// could exhaust memory before the quad ceiling ever gets a chance to refuse it. A
+/// payload's byte length is known without inspecting its content, so this gate is O(1).
+/// 16 MiB is generous — the existing 100,000-quad ceiling, serialized as short
+/// synthetic IRIs/literals, tops out around ~4 MiB, and no hand-authored local annex
+/// plausibly approaches this — yet it bounds the bytes the parser ever sees to a fixed,
+/// small multiple of that. Exceeding it is a HARD FAIL BEFORE the parse (the bounded
+/// agent path), never a truncated graph.
 const MAX_VERIFY_OVERLAY_BYTES: u64 = 16 * 1024 * 1024;
 
 /// The forward-chase derivation-step budget every agent-facing reasoning tool
@@ -1385,23 +1392,27 @@ impl McpView {
     }
 
     /// Run a SELECT / ASK SPARQL query over the bundle canon UNIONED with a
-    /// READ-ONLY external overlay loaded from `overlay_path`, returning a standard
-    /// SPARQL-1.1 JSON-results envelope under `"ok"`. See [`Self::run_local_query`]
-    /// for the read-only / external-provenance contract.
-    fn query_local_json(&self, overlay_path: &str, sparql: &str) -> String {
-        match self.run_local_query(overlay_path, sparql) {
+    /// READ-ONLY external overlay parsed from the caller's inline `data` in the
+    /// EXPLICITLY declared `format`, returning a standard SPARQL-1.1 JSON-results
+    /// envelope under `"ok"`. See [`Self::run_local_query`] for the read-only /
+    /// external-provenance contract.
+    fn query_local_json(&self, data: &str, format: &str, sparql: &str) -> String {
+        match self.run_local_query(data, format, sparql) {
             Ok(value) => value.to_string(),
             Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
         }
     }
 
-    /// Query `bundle ∪ overlay` where `overlay` is the user's LOCAL lower-tier
-    /// graph file, loaded as a READ-ONLY external annex.
+    /// Query `bundle ∪ overlay` where `overlay` is the caller's INLINE lower-tier
+    /// graph text, loaded as a READ-ONLY external annex.
     ///
     /// CONTRACT (enforced here, not just documented):
-    /// * the overlay is loaded into its own transient dataset from `overlay_path`
-    ///   — the signed canon (`self.dataset`) is pushed VERBATIM and is NEVER
-    ///   mutated;
+    /// * the overlay arrives as BYTES plus an EXPLICIT `format`. There is no file
+    ///   path and no extension sniffing: a missing or unrecognized `format` is a HARD
+    ///   FAIL naming the accepted set ([`rdf_media_type`]), never a guess at Turtle
+    ///   that would mis-parse an N-Quads document into a different graph;
+    /// * the overlay is loaded into its own transient dataset — the signed canon
+    ///   (`self.dataset`) is pushed VERBATIM and is NEVER mutated;
     /// * every overlay triple is re-homed under the distinct external-provenance
     ///   graph [`EXTERNAL_OVERLAY_GRAPH`] (the origin marker), so external content
     ///   stays isolable via a `GRAPH` clause and is NEVER unioned into the signed
@@ -1411,18 +1422,26 @@ impl McpView {
     ///   NEVER folded into `gmeow.gts`, and NEVER written back to the canon or the
     ///   overlay file (the memory-write triad only ever touches `memory.gts`);
     /// * only SELECT / ASK are accepted (CONSTRUCT / DESCRIBE are rejected).
-    fn run_local_query(&self, overlay_path: &str, sparql: &str) -> gmeow_errors::Result<Value> {
-        let path = Path::new(overlay_path);
-        // The media type is the file extension (ttl/nt/nq/trig/rdf/owl/xml/…); an
-        // unknown extension HARD-FAILS in `parse_dataset` (no silent fallback).
-        let media = path
-            .extension()
-            .and_then(|ext| ext.to_str())
-            .map(str::to_ascii_lowercase)
-            .unwrap_or_else(|| "text/turtle".to_string());
-        let bytes = fs::read(path).with_ctx(|| format!("read overlay {overlay_path}"))?;
-        let overlay = purrdf::parse_dataset(&bytes, &media, None)
-            .with_ctx(|| format!("parse overlay {overlay_path}"))?;
+    fn run_local_query(
+        &self,
+        data: &str,
+        format: &str,
+        sparql: &str,
+    ) -> gmeow_errors::Result<Value> {
+        // The media type comes from the DECLARED format, never from a filename: an
+        // unrecognized token hard-fails here naming the accepted set.
+        let media = rdf_media_type("query_local", format)?;
+        if data.len() > MAX_VERIFY_OVERLAY_BYTES as usize {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "query_local: overlay data is {} bytes, exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte \
+                     ceiling; split the annex and query the parts (no silent truncation)",
+                    data.len()
+                ),
+            }));
+        }
+        let overlay = purrdf::parse_dataset(data.as_bytes(), media, None)
+            .with_ctx(|| format!("parse query_local overlay ({format})"))?;
 
         let mut builder = purrdf::RdfDatasetBuilder::new();
         // The signed canon — verbatim, never mutated.
@@ -1444,26 +1463,30 @@ impl McpView {
     }
 
     /// Run the native reasoned-graph verify over the bundle canon UNIONED with a
-    /// READ-ONLY external overlay loaded from `overlay_path`, returning the
-    /// proof-carrying JSON envelope under `"ok"`. See [`Self::run_verify_graph`] for
-    /// the read-only / external-annex contract and the completeness-gate judgment.
-    fn verify_graph_json(&self, overlay_path: &str, budget: &Budget) -> String {
-        match self.run_verify_graph(overlay_path, budget) {
+    /// READ-ONLY external overlay parsed from the caller's inline `data` in the
+    /// EXPLICITLY declared `format`, returning the proof-carrying JSON envelope under
+    /// `"ok"`. See [`Self::run_verify_graph`] for the read-only / external-annex
+    /// contract and the completeness-gate judgment.
+    fn verify_graph_json(&self, data: &str, format: &str, budget: &Budget) -> String {
+        match self.run_verify_graph(data, format, budget) {
             Ok(value) => value.to_string(),
             Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
         }
     }
 
-    /// Reason-and-verify `bundle ∪ overlay`, where `overlay` is the user's LOCAL
-    /// lower-tier graph file, loaded as a READ-ONLY external annex, then return a
+    /// Reason-and-verify `bundle ∪ overlay`, where `overlay` is the caller's INLINE
+    /// lower-tier graph text, loaded as a READ-ONLY external annex, then return a
     /// PROOF-CARRYING judgment: the completeness-gated coherence class, the two
     /// completeness/evaluation axes, the reasoned-graph verify findings, the cited
     /// IRIs, and the grounded `logic:ReasoningResult` N-Quads.
     ///
     /// CONTRACT (enforced here, not just documented) — the SAME overlay discipline as
     /// [`Self::run_local_query`]:
-    /// * the overlay is loaded into its own transient dataset from `overlay_path`;
-    ///   the signed canon (`self.dataset`) is pushed VERBATIM and is NEVER mutated;
+    /// * the overlay arrives as BYTES plus an EXPLICIT `format` — no path, no
+    ///   extension sniffing, and a missing/unrecognized `format` is a HARD FAIL naming
+    ///   the accepted set;
+    /// * the overlay is loaded into its own transient dataset; the signed canon
+    ///   (`self.dataset`) is pushed VERBATIM and is NEVER mutated;
     /// * every overlay quad is dual-copied — one into the default graph (so the DL
     ///   calculus and the flat verify queries read `bundle ∪ overlay`) and one
     ///   re-homed under the external-provenance graph [`EXTERNAL_OVERLAY_GRAPH`] — but
@@ -1472,10 +1495,10 @@ impl McpView {
     /// * the forward closure runs THROUGH [`reason_all_budgeted`] (the mid-chase step
     ///   governor), never the unbudgeted [`gmeow_logic::reason::reason_all`], so an
     ///   agent-influenced union can never run an unbounded Turing-complete closure;
-    /// * an overlay whose file size exceeds [`MAX_VERIFY_OVERLAY_BYTES`] is a HARD FAIL
-    ///   BEFORE it is even `fs::read` into memory — a stat, not a read, refuses an
-    ///   oversized file (or a file with one enormous literal) before the bytes ever
-    ///   land in the process;
+    /// * an overlay whose byte length exceeds [`MAX_VERIFY_OVERLAY_BYTES`] is a HARD
+    ///   FAIL BEFORE it is parsed — the length of the inline payload is known without
+    ///   touching its content, so an oversized annex (or one with a single enormous
+    ///   literal) is refused before the parser ever builds a dataset from it;
     /// * an overlay exceeding [`MAX_VERIFY_OVERLAY_QUADS`] is a HARD FAIL BEFORE any
     ///   reasoning (the bounded agent path), never a truncated graph.
     ///
@@ -1505,44 +1528,40 @@ impl McpView {
     /// makes `coherent:true` alongside `class_local_name:"Refused"` unrepresentable.
     ///
     /// [`ReasoningResult::is_conclusive`]: gmeow_logic::result::ReasoningResult::is_conclusive
-    fn run_verify_graph(&self, overlay_path: &str, budget: &Budget) -> gmeow_errors::Result<Value> {
-        let path = Path::new(overlay_path);
-        // Media from the file extension (ttl/nt/nq/trig/rdf/…); an unknown extension
-        // HARD-FAILS in `parse_dataset` (no silent fallback), exactly as query_local.
-        let media = path
-            .extension()
-            .and_then(|ext| ext.to_str())
-            .map(str::to_ascii_lowercase)
-            .unwrap_or_else(|| "text/turtle".to_string());
+    fn run_verify_graph(
+        &self,
+        data: &str,
+        format: &str,
+        budget: &Budget,
+    ) -> gmeow_errors::Result<Value> {
+        // Media from the DECLARED format; an unrecognized token HARD-FAILS naming the
+        // accepted set (no silent fallback), exactly as query_local.
+        let media = rdf_media_type("verify_graph", format)?;
 
-        // Pre-READ hard bound: stat (not read) the file and refuse an oversized
-        // overlay BEFORE it is ever loaded into memory. Statting is O(1) — it never
-        // touches the file's contents — so a huge file (or one enormous literal) is
-        // refused without the multi-megabyte `fs::read` + parse the quad ceiling below
-        // would otherwise require to even measure it.
-        let overlay_bytes = fs::metadata(path)
-            .with_ctx(|| format!("stat overlay {overlay_path}"))?
-            .len();
+        // Pre-PARSE hard bound: refuse an oversized overlay before a dataset is ever
+        // built from it. The payload's byte length is known without inspecting its
+        // content, so a huge annex (or one with a single enormous literal that parses to
+        // very few quads) is refused before the quad ceiling below could measure it.
+        let overlay_bytes = data.len() as u64;
         if overlay_bytes > MAX_VERIFY_OVERLAY_BYTES {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!(
-                    "verify_graph: overlay {overlay_path} is {overlay_bytes} bytes, \
-                     exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte ceiling BEFORE any read; \
+                    "verify_graph: overlay data is {overlay_bytes} bytes, \
+                     exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte ceiling BEFORE any parse; \
                      split the annex and verify the parts (no silent truncation)"
                 ),
             }));
         }
 
-        let bytes = fs::read(path).with_ctx(|| format!("read overlay {overlay_path}"))?;
-        let overlay = purrdf::parse_dataset(&bytes, &media, None)
-            .with_ctx(|| format!("parse overlay {overlay_path}"))?;
+        let overlay = purrdf::parse_dataset(data.as_bytes(), media, None)
+            .with_ctx(|| format!("parse verify_graph overlay ({format})"))?;
 
         // Pre-reasoning hard bound: refuse an oversized overlay before reasoning.
         let overlay_quads = overlay.quad_count();
         if overlay_quads > MAX_VERIFY_OVERLAY_QUADS {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!(
-                    "verify_graph: overlay {overlay_path} carries {overlay_quads} quads, \
+                    "verify_graph: overlay carries {overlay_quads} quads, \
                      exceeding the {MAX_VERIFY_OVERLAY_QUADS} quad ceiling; split the annex \
                      and verify the parts (no silent truncation)"
                 ),
@@ -2071,8 +2090,11 @@ impl McpServer {
         let mut available: BTreeSet<String> =
             tag_map.values().map(|v| v.to_ascii_lowercase()).collect();
         available.insert("en".to_string());
-        let startup_requested =
-            resolve_lang(env::var("GMEOW_LANG").ok().as_deref(), &tag_map, &available)?;
+        let startup_requested = resolve_lang(
+            storage().env_var("GMEOW_LANG").as_deref(),
+            &tag_map,
+            &available,
+        )?;
         Ok(Self {
             view: McpView::from_dataset(dataset, Arc::from(snapshot))?,
             surface: Surface::assemble(builtin_extension()?, extension)?,
@@ -2173,22 +2195,28 @@ fn builtin_tool_descriptors() -> Vec<Value> {
         tool(
             "query_local",
             "Run a SELECT or ASK SPARQL query over the bundle UNIONED with a READ-ONLY \
-                 local overlay graph file (path). The overlay is loaded as an EXTERNAL, \
-                 read-only annex: its triples are visible to reads (bundle \u{222a} overlay, \
-                 also isolable via GRAPH <urn:gmeow:mcp:overlay:external>) but are NEVER merged \
-                 into the signed gmeow: canon and NEVER written back to disk. Accepts Turtle / \
-                 TriG / N-Triples / N-Quads / RDF-XML by file extension.",
-            &[("path", "string"), ("query", "string")],
+                 overlay graph you paste inline. `data` is the RDF text and `format` DECLARES \
+                 how to read it — one of turtle|ttl|text/turtle, ntriples|nt|n-triples, \
+                 nquads|nq|n-quads, trig, rdfxml|rdf+xml|xml|rdf, jsonld|json-ld. The overlay \
+                 is loaded as an EXTERNAL, read-only annex: its triples are visible to reads \
+                 (bundle \u{222a} overlay, also isolable via GRAPH \
+                 <urn:gmeow:mcp:overlay:external>) but are NEVER merged into the signed gmeow: \
+                 canon and NEVER written anywhere. A missing or unrecognized `format`, or an \
+                 oversized payload, is a hard error — the format is never guessed.",
+            &[("data", "string"), ("format", "string"), ("query", "string")],
         ),
         tool(
             "verify_graph",
-            "Reason over the bundle UNIONED with a READ-ONLY local overlay graph file \
-                 (path), then run the native reasoned-graph verify (the bad-example negative \
+            "Reason over the bundle UNIONED with a READ-ONLY overlay graph you paste \
+                 inline, then run the native reasoned-graph verify (the bad-example negative \
                  tests + non-entailment obligations) and return a PROOF-CARRYING judgment. \
-                 The overlay is loaded as an EXTERNAL, read-only annex exactly like \
-                 query_local: its triples join the reasoning default world (bundle \u{222a} \
-                 overlay, also isolable via GRAPH <urn:gmeow:mcp:overlay:external>) but are \
-                 NEVER merged into the signed gmeow: canon and NEVER written back to disk; the \
+                 `data` is the RDF text and `format` DECLARES how to read it — one of \
+                 turtle|ttl|text/turtle, ntriples|nt|n-triples, nquads|nq|n-quads, trig, \
+                 rdfxml|rdf+xml|xml|rdf, jsonld|json-ld. The overlay is loaded as an EXTERNAL, \
+                 read-only annex exactly like query_local: its triples join the reasoning \
+                 default world (bundle \u{222a} overlay, also isolable via GRAPH \
+                 <urn:gmeow:mcp:overlay:external>) but are NEVER merged into the signed gmeow: \
+                 canon and NEVER written anywhere; the \
                  whole union is transient and discarded after the call. The forward closure \
                  runs under a mid-chase step governor: max_steps bounds the derivation budget \
                  and max_answers the answer cap. The response carries class_local_name \
@@ -2196,11 +2224,11 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  CoherenceCheckAttestation for a budget-cut closure, Refused for a witnessed \
                  forbidden contradiction), the completeness/evaluation axes, the verify \
                  findings, the cited IRIs, and judgment_nquads (the grounded \
-                 logic:ReasoningResult). An overlay exceeding the size ceiling or an unknown \
-                 file extension is a hard error. Accepts Turtle / TriG / N-Triples / N-Quads / \
-                 RDF-XML by file extension.",
+                 logic:ReasoningResult). An overlay exceeding the size ceiling, and a missing \
+                 or unrecognized `format`, is a hard error — the format is never guessed.",
             &[
-                ("path", "string"),
+                ("data", "string"),
+                ("format", "string"),
                 ("max_steps", "integer"),
                 ("max_answers", "integer"),
             ],
@@ -2453,11 +2481,16 @@ fn builtin_tool_descriptors() -> Vec<Value> {
         ),
         tool(
             "slice_quality",
-            "Score an external slice directory against the bundle-carried slice-quality rubric \
-                 and return its per-axis grades and ranked uplift advice. `path` is a slice \
-                 directory on disk; scoring is checkout-free (the rubric ships in gmeow.gts). A \
-                 missing or malformed slice directory is a hard error.",
-            &[("path", "string")],
+            "Score a slice against the bundle-carried slice-quality rubric and return its \
+                 per-axis grades and ranked uplift advice. `files` is a JSON OBJECT mapping each \
+                 slice-relative path to that file\u{2019}s text \
+                 ({\"manifest.ttl\": \"\u{2026}\", \"module.ttl\": \"\u{2026}\", \
+                 \"examples/x.ttl\": \"\u{2026}\", \"i18n/fr.po\": \"\u{2026}\", \
+                 \"docs.md\": \"\u{2026}\"}) \u{2014} the slice is scored from those bytes \
+                 alone, so it needs no directory and no checkout (the rubric ships in \
+                 gmeow.gts). A map with no `manifest.ttl` entry, or a malformed one, is a hard \
+                 error naming what is missing.",
+            &[("files", "object")],
         ),
         tool(
             "slice_brief",
@@ -2681,7 +2714,7 @@ impl McpServer {
         }
     }
 
-    fn handle_message(&self, message: &str) -> String {
+    pub fn handle_message(&self, message: &str) -> String {
         let parsed: Value = match serde_json::from_str(message) {
             Ok(value) => value,
             Err(err) => {
@@ -2732,9 +2765,19 @@ impl McpServer {
     /// Serve the stdio JSON-RPC 2.0 MCP loop: one request per line on stdin, one
     /// response per line on stdout, until EOF. Blocking; the native `gmeow mcp` /
     /// `gmeow-dev mcp` launchers call this directly.
+    ///
+    /// Native-only, and deliberately NOT routed through a transport seam. A browser has
+    /// no stdin, no stdout, and no blocking read loop to give one: the wasm host drives
+    /// the very same surface a frame at a time through [`Self::handle_message`], which
+    /// is the whole protocol implementation and is compiled on every target. Abstracting
+    /// "a blocking line loop over process stdio" would produce an interface with exactly
+    /// one implementation and one caller.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn run_stdio(&self) -> gmeow_errors::Result<()> {
-        let stdin = io::stdin();
-        let mut stdout = io::stdout();
+        use std::io::{BufRead as _, Write as _};
+
+        let stdin = std::io::stdin();
+        let mut stdout = std::io::stdout();
         for line in stdin.lock().lines() {
             let line = line?;
             if line.trim().is_empty() {
@@ -2863,24 +2906,27 @@ impl McpServer {
     }
 
     fn tool_query_local(&self, args: &Value) -> gmeow_errors::Result<String> {
-        let path = required_str(args, "path")?;
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
         let query = required_str(args, "query")?;
-        Ok(self.view.query_local_json(path, query))
+        Ok(self.view.query_local_json(data, format, query))
     }
 
-    /// Reason-and-verify the bundle UNIONED with a READ-ONLY local overlay graph file,
+    /// Reason-and-verify the bundle UNIONED with a READ-ONLY inline overlay graph,
     /// returning the proof-carrying judgment envelope. A thin wrapper over
-    /// [`McpView::run_verify_graph`]: it reads the `path` and the `max_steps` /
-    /// `max_answers` budget off the args and delegates the whole overlay/union/govern/
-    /// verify/judge discipline to the view core (one implementation).
+    /// [`McpView::run_verify_graph`]: it reads the `data` + `format` overlay and the
+    /// `max_steps` / `max_answers` budget off the args and delegates the whole
+    /// overlay/union/govern/verify/judge discipline to the view core (one
+    /// implementation).
     fn tool_verify_graph(&self, args: &Value) -> gmeow_errors::Result<String> {
-        let path = required_str(args, "path")?;
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
         let max_steps = optional_step_count(args, "max_steps")?;
         let max_answers = optional_limit(args, "max_answers")?;
         // R4: NEVER build an unbudgeted `Budget{None,None}` from omitted
         // agent args — `governed_budget` defaults+clamps to a finite server-side ceiling.
         let budget = governed_budget(max_steps, max_answers);
-        Ok(self.view.verify_graph_json(path, &budget))
+        Ok(self.view.verify_graph_json(data, format, &budget))
     }
 
     /// Reconstruct the FAITHFUL cited-IRI derivation skeleton for one quad in the
@@ -2936,7 +2982,7 @@ impl McpServer {
     fn tool_validate_local(&self, args: &Value) -> gmeow_errors::Result<String> {
         let data = required_str(args, "data")?;
         let format = required_str(args, "format")?;
-        let canonical = canonical_rdf_format(format)?;
+        let canonical = canonical_rdf_format("validate_local", format)?;
 
         if data.len() > MAX_VALIDATE_DATA_BYTES {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -3158,7 +3204,7 @@ impl McpServer {
     fn tool_advise(&self, args: &Value) -> gmeow_errors::Result<String> {
         let data = required_str(args, "data")?;
         let format = required_str(args, "format")?;
-        let canonical = canonical_rdf_format(format)?;
+        let canonical = canonical_rdf_format("advise", format)?;
 
         if data.len() > MAX_VALIDATE_DATA_BYTES {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -3275,8 +3321,8 @@ impl McpServer {
             TxReceipt::CommittedSuccess { .. } => {}
         }
 
-        let memory = self.memory()?;
-        let claim = memory.store(
+        let memory = self.claim_store()?;
+        let claim = memory.store_claim(
             text,
             StoreOptions {
                 source: optional_str(args, "source"),
@@ -3307,7 +3353,7 @@ impl McpServer {
             })
         })?;
         write_audit_segment(
-            memory.path(),
+            memory.as_ref(),
             &call.id,
             MCP_STORE_CLAIM_SCHEMA,
             &obtains,
@@ -3317,24 +3363,13 @@ impl McpServer {
     }
 
     fn tool_recall(&self, args: &Value) -> gmeow_errors::Result<String> {
-        let limit = optional_limit(args, "limit")?.unwrap_or(10);
-        let claims = self.memory()?.recall(RecallOptions {
-            query: optional_str(args, "query").unwrap_or(""),
-            min_confidence: optional_f64(args, "min_confidence")?,
-            limit,
-            include_suppressed: optional_bool(args, "include_suppressed").unwrap_or(false),
-        })?;
-        Ok(json!({
-            "ok": true,
-            "claims": claims.iter().map(claim_json).collect::<Vec<_>>(),
-        })
-        .to_string())
+        recall_json(self.claim_store()?.as_ref(), args)
     }
 
     fn tool_revise_belief(&self, args: &Value) -> gmeow_errors::Result<String> {
         let claim_id = required_str(args, "claim_id")?;
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
-        let memory = self.memory()?;
+        let memory = self.claim_store()?;
         let claims = memory.claims()?;
         let known: BTreeSet<&str> = claims.iter().map(|claim| claim.id.as_str()).collect();
         let active: BTreeSet<&str> = claims
@@ -3386,7 +3421,7 @@ impl McpServer {
             TxReceipt::CommittedSuccess { .. } => {}
         }
 
-        memory.revise(
+        memory.revise_claim(
             claim_id,
             RevisionOptions {
                 reason: optional_str(args, "reason"),
@@ -3418,7 +3453,7 @@ impl McpServer {
             })
         })?;
         write_audit_segment(
-            memory.path(),
+            memory.as_ref(),
             &call.id,
             MCP_REVISE_BELIEF_SCHEMA,
             &obtains,
@@ -3592,7 +3627,7 @@ impl McpServer {
     ///
     /// The write is a REAL TR gate on the `withdrawConjecture` schema, whose precondition —
     /// the conjecture is still in the library and NOT already withdrawn — is DERIVED from the
-    /// live library state read back by SEGMENT ORDER ([`read_conjecture_library`], R3): the
+    /// live library state read back by SEGMENT ORDER ([`read_library`], R3): the
     /// `conjectureInLibrary` situation obtains iff the node exists and its effective state is
     /// not yet `Withdrawn`. An unknown id or an already-withdrawn node yields an empty start
     /// state, so the executional-entailment run FAILS the commit and the tool returns
@@ -3602,20 +3637,21 @@ impl McpServer {
         let conjecture_id = required_str(args, "conjecture_id")?;
         let reason = optional_str(args, "reason").unwrap_or("");
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
-        let path = conjecture_path()?;
+        let library_handle = conjecture_library()?;
+        let library_ref = library_handle.as_ref();
 
         // The read (library's EFFECTIVE state, by segment order) → precondition-check → (on a
         // real commit) library-append → audit-append sequence runs ENTIRELY inside ONE held
-        // exclusive lock (`with_conjecture_lock`): without it, two concurrent
+        // exclusive lock (`with_library_lock`): without it, two concurrent
         // `refute_conjecture` calls against the same id could both read "not yet withdrawn",
         // both pass the precondition, and both commit a withdrawal segment (lost-update). The
         // lock forces the second caller to observe the FIRST caller's already-committed
         // `ConjectureWithdrawn` state before it decides anything.
-        with_conjecture_lock(&path, || {
+        with_library_lock(library_ref, || {
             // Read the library's EFFECTIVE state by segment order (last-writer-wins). The node
             // is withdrawable iff it is a stored conjecture whose effective state is not already
             // Withdrawn — the `del(conjectureInLibrary)` of a prior withdrawal retired it.
-            let library = read_conjecture_library(&path)?;
+            let library = read_library(library_ref)?;
             let effective = library.get(conjecture_id).copied();
             let exists = effective.is_some();
             let in_library = matches!(
@@ -3686,7 +3722,7 @@ impl McpServer {
                 &[MCP_CONJECTURE_IN_LIBRARY],
                 "1970-01-01T00:00:00Z",
             );
-            append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
+            append_library_segments(library_ref, &[withdrawal_segment, audit_segment])?;
             Ok(json!({
                 "ok": true,
                 "conjecture": conjecture_id,
@@ -3706,15 +3742,19 @@ impl McpServer {
     /// tool never mutates the bundle.
     ///
     /// The rubric standard is sourced from the embedded bundle bytes
-    /// ([`McpView::gts_bytes`]) via [`gmeow_slice_quality::score_external_slice_bytes`]
+    /// ([`McpView::gts_bytes`]) via [`gmeow_slice_quality::score_external_slice_files`]
     /// — the wheel-shippable `ScoringEnv::Bundle` path the `gmeow slice quality` CLI
-    /// uses — so the tool is checkout-free and available on the Consumer surface. The
-    /// `path` is an arbitrary external slice directory scored directly (no repo-`slices/`
-    /// containment guard); a missing/invalid directory is a hard error.
+    /// uses — so the tool is checkout-free and available on the Consumer surface.
+    ///
+    /// The slice arrives as an IN-MEMORY FILE MAP (`files`: slice-relative path -> file
+    /// text), not a directory. That is what makes the tool servable by an engine with no
+    /// filesystem at all, and it is also the honest surface for an agent that HAS the
+    /// slice as text (a paste, an upload, a git blob) and no place to put it. A map with
+    /// no `manifest.ttl` entry is a hard error naming it.
     fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
-        let rel = required_str(args, "path")?;
+        let files = required_file_map("slice_quality", args, "files")?;
         let report =
-            gmeow_slice_quality::score_external_slice_bytes(self.view.gts_bytes(), Path::new(rel))
+            gmeow_slice_quality::score_external_slice_files(self.view.gts_bytes(), &files)
                 .map_err(|e| {
                     gmeow_errors::Diag::of_kind(crate::error::Mcp {
                         message: format!("slice_quality: {e}"),
@@ -3889,15 +3929,13 @@ impl McpServer {
         self.surface.read_resource(self, base, &requested)
     }
 
-    fn memory(&self) -> gmeow_errors::Result<Memory> {
-        let path = memory_path()?;
-        if let Some(parent) = path
-            .parent()
-            .filter(|parent| !parent.as_os_str().is_empty())
-        {
-            fs::create_dir_all(parent)?;
-        }
-        Ok(Memory::new(path))
+    /// The grounded-memory claim package this server's memory triad reads and writes.
+    ///
+    /// Resolved through the [`storage`] seam, so a native host gets its real
+    /// `memory.gts` (at `GMEOW_MEMORY_PATH`, else `~/.gmeow/memory.gts`) and a browser
+    /// host gets the in-process store — the tools themselves never learn which.
+    fn claim_store(&self) -> gmeow_errors::Result<Arc<dyn ClaimStore>> {
+        storage().claim_store()
     }
 }
 
@@ -4235,7 +4273,7 @@ pub fn run_conjecture_test(
     //     (keyed to a content-addressed call id) to the append-only library — TOGETHER, as ONE
     //     atomic file replace under ONE held lock, so a failure building or committing either
     //     segment can never leave the library holding the verdict without its audit record.
-    let path = conjecture_path()?;
+    let library = conjecture_library()?;
     let verdict_segment = build_nt_segment(&out.verdict_nt)?;
     let call_id = format!(
         "urn:gmeow:conjecture-call:{}",
@@ -4247,8 +4285,8 @@ pub fn run_conjecture_test(
         &obtains,
         "1970-01-01T00:00:00Z",
     );
-    with_conjecture_lock(&path, || {
-        append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+    with_library_lock(library.as_ref(), || {
+        append_library_segments(library.as_ref(), &[verdict_segment, audit_segment])
     })?;
     out.committed = true;
     Ok(out)
@@ -4437,7 +4475,7 @@ pub fn run_submit_candidate(
     // authoring-role/provenance lines on the same node) plus its cold-auditable trajectory
     // segment to the append-only candidate library — TOGETHER, as ONE atomic file replace under
     // ONE held lock (reusing the same GTS-library primitives the conjecture library uses).
-    let path = candidate_path()?;
+    let library = candidate_library()?;
     let body = format!(
         "{}\n{}",
         out.verdict_nt.trim_end(),
@@ -4454,8 +4492,8 @@ pub fn run_submit_candidate(
         obtains,
         "1970-01-01T00:00:00Z",
     );
-    with_conjecture_lock(&path, || {
-        append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+    with_library_lock(library.as_ref(), || {
+        append_library_segments(library.as_ref(), &[verdict_segment, audit_segment])
     })?;
     out.committed = true;
     Ok(out)
@@ -4478,12 +4516,13 @@ pub fn run_withdraw_candidate(
     reason: &str,
     dry_run: bool,
 ) -> gmeow_errors::Result<String> {
-    let path = candidate_path()?;
+    let library_handle = candidate_library()?;
+    let library_ref = library_handle.as_ref();
     // The read → precondition-check → (on a real commit) append sequence runs entirely inside ONE
     // held exclusive lock, so two concurrent withdrawals cannot both observe "not yet withdrawn"
     // and both commit (lost-update).
-    with_conjecture_lock(&path, || {
-        let library = read_conjecture_library(&path)?;
+    with_library_lock(library_ref, || {
+        let library = read_library(library_ref)?;
         let effective = library.get(candidate_id).copied();
         let exists = effective.is_some();
         let in_library = matches!(
@@ -4536,7 +4575,7 @@ pub fn run_withdraw_candidate(
             &[MCP_CANDIDATE_IN_LIBRARY],
             "1970-01-01T00:00:00Z",
         );
-        append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
+        append_library_segments(library_ref, &[withdrawal_segment, audit_segment])?;
         Ok(json!({
             "ok": true,
             "candidate": candidate_id,
@@ -4562,18 +4601,38 @@ pub fn run_list_candidates(
     filter_slice: Option<&str>,
     filter_disposition: Option<&str>,
 ) -> gmeow_errors::Result<String> {
-    let path = candidate_path()?;
+    run_list_candidates_in(
+        candidate_library()?.as_ref(),
+        filter_slice,
+        filter_disposition,
+    )
+}
 
+/// [`run_list_candidates`] against an EXPLICIT library rather than the process backend's.
+///
+/// The listing logic lives here, once, so it can be exercised against any
+/// [`SegmentLibrary`] — in particular against the browser backend's in-process library,
+/// which has no path to point [`run_list_candidates`] at.
+///
+/// # Errors
+///
+/// Returns an error if the library read fails.
+pub fn run_list_candidates_in(
+    library: &dyn SegmentLibrary,
+    filter_slice: Option<&str>,
+    filter_disposition: Option<&str>,
+) -> gmeow_errors::Result<String> {
     // Effective, segment-order-resolved lifecycle per stored node (last-writer-wins).
-    let lifecycles = read_conjecture_library(&path)?;
+    let lifecycles = read_library(library)?;
 
     // Immutable type + provenance from the unioned dataset (set once at submit, never superseded,
     // so the union is sound for these fields).
     let mut for_slice: BTreeMap<String, String> = BTreeMap::new();
     let mut for_packet: BTreeMap<String, String> = BTreeMap::new();
     let mut is_candidate: BTreeSet<String> = BTreeSet::new();
-    match fs::read(&path) {
-        Ok(bytes) => {
+    let bytes = library.read_bytes()?;
+    if !bytes.is_empty() {
+        {
             let bundle = purrdf::import_gts_events(&bytes)
                 .with_ctx(|| "read candidate library".to_string())?;
             for quad in bundle.dataset.owned_quads() {
@@ -4594,8 +4653,6 @@ pub fn run_list_candidates(
                 }
             }
         }
-        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
-        Err(e) => return Err(e.into()),
     }
 
     let mut candidates: Vec<Value> = Vec::new();
@@ -4759,46 +4816,6 @@ fn lang_from_query(query: &str) -> Option<&str> {
     })
 }
 
-fn memory_path() -> gmeow_errors::Result<PathBuf> {
-    if let Ok(path) = env::var("GMEOW_MEMORY_PATH")
-        && !path.trim().is_empty()
-    {
-        return Ok(PathBuf::from(path).expand_home());
-    }
-    let home = home_dir().ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: "neither HOME nor USERPROFILE is set and GMEOW_MEMORY_PATH is empty"
-                .to_string(),
-        })
-    })?;
-    Ok(Path::new(&home).join(".gmeow").join("memory.gts"))
-}
-
-fn home_dir() -> Option<String> {
-    env::var("HOME").or_else(|_| env::var("USERPROFILE")).ok()
-}
-
-trait ExpandHome {
-    fn expand_home(self) -> PathBuf;
-}
-
-impl ExpandHome for PathBuf {
-    fn expand_home(self) -> PathBuf {
-        let Some(raw) = self.to_str() else {
-            return self;
-        };
-        if raw == "~" {
-            return home_dir().map(PathBuf::from).unwrap_or(self);
-        }
-        if let Some(rest) = raw.strip_prefix("~/")
-            && let Some(home) = home_dir()
-        {
-            return Path::new(&home).join(rest);
-        }
-        self
-    }
-}
-
 pub fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
@@ -4810,7 +4827,10 @@ pub fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value
                     | "claim_id"
                     | "conjecture_id"
                     | "candidate_id"
-                    | "path"
+                    // `slice_quality`'s in-memory slice: a JSON object of
+                    // slice-relative path -> file text. Enforced by `required_object`
+                    // in the handler, so the advertised schema must match.
+                    | "files"
                     | "slice"
                     | "target_iri"
                     | "data"
@@ -4860,11 +4880,17 @@ pub fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value
     })
 }
 
+/// The accepted `format` tokens, in one place, so every tool that takes RDF bytes
+/// names the SAME set in its error and its descriptor.
+const ACCEPTED_RDF_FORMATS: &str = "turtle|ttl|text/turtle, ntriples|nt|n-triples, \
+     nquads|nq|n-quads, trig, rdfxml|rdf+xml|xml|rdf, jsonld|json-ld";
+
 /// Canonicalize a caller-supplied RDF `format` token to the exact id
 /// `gmeow_validate::data_validate` accepts. Accepts the common aliases per family;
 /// an UNRECOGNIZED format is a HARD FAIL (the accepted set is listed in the error)
-/// so a mistyped format can never silently mis-parse.
-fn canonical_rdf_format(format: &str) -> gmeow_errors::Result<&'static str> {
+/// so a mistyped format can never silently mis-parse. `tool` names the caller so the
+/// message points at the argument the agent actually passed.
+fn canonical_rdf_format(tool: &str, format: &str) -> gmeow_errors::Result<&'static str> {
     let normalized = format.trim().to_ascii_lowercase();
     let token = match normalized.as_str() {
         "turtle" | "ttl" | "text/turtle" => "turtle",
@@ -4876,14 +4902,32 @@ fn canonical_rdf_format(format: &str) -> gmeow_errors::Result<&'static str> {
         other => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!(
-                    "validate_local: unrecognized RDF format `{other}`; accepted: \
-                     turtle|ttl|text/turtle, ntriples|nt|n-triples, nquads|nq|n-quads, trig, \
-                     rdfxml|rdf+xml|xml|rdf, jsonld|json-ld"
+                    "{tool}: unrecognized RDF format `{other}`; accepted: {ACCEPTED_RDF_FORMATS}"
                 ),
             }));
         }
     };
     Ok(token)
+}
+
+/// The media type `purrdf::parse_dataset` reads for a canonical format token.
+///
+/// The two surfaces differ by design: the validator core addresses formats by its own
+/// short ids, the RDF parser by media type. Routing BOTH through
+/// [`canonical_rdf_format`] means one accepted-alias table and one error message, so
+/// `query_local` and `validate_local` can never disagree about what `nq` means.
+fn rdf_media_type(tool: &str, format: &str) -> gmeow_errors::Result<&'static str> {
+    Ok(match canonical_rdf_format(tool, format)? {
+        "turtle" => "text/turtle",
+        "n-triples" => "application/n-triples",
+        "n-quads" => "application/n-quads",
+        "trig" => "application/trig",
+        "rdf+xml" => "application/rdf+xml",
+        "json-ld" => "application/ld+json",
+        // `canonical_rdf_format` is total over the six tokens above; a seventh would be
+        // a code change here, not a runtime input.
+        other => unreachable!("unmapped canonical RDF format token: {other}"),
+    })
 }
 
 pub fn resource(uri: &str, name: &str, description: &str, mime: &str) -> Value {
@@ -5531,6 +5575,48 @@ fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str>
     })
 }
 
+/// Read a REQUIRED JSON-object argument as an in-memory file map: each key is a
+/// slice-relative forward-slash path, each value that file's text.
+///
+/// The whole point of the argument is that the caller has FILES, not a directory, so
+/// every defect is named precisely rather than collapsed into "bad input": a missing
+/// argument, an argument that is not an object, and a value that is not a string are
+/// three different authoring mistakes and get three different messages.
+fn required_file_map(
+    tool: &str,
+    args: &Value,
+    key: &str,
+) -> gmeow_errors::Result<BTreeMap<String, Vec<u8>>> {
+    let Some(value) = args.get(key) else {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "{tool}: missing required argument `{key}` (a JSON object mapping each \
+                 slice-relative path to that file's text)"
+            ),
+        }));
+    };
+    let Some(object) = value.as_object() else {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "{tool}: argument `{key}` must be a JSON object mapping each slice-relative \
+                 path to that file's text"
+            ),
+        }));
+    };
+    let mut files = BTreeMap::new();
+    for (path, contents) in object {
+        let Some(text) = contents.as_str() else {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "{tool}: argument `{key}` entry `{path}` must be a string (the file's text)"
+                ),
+            }));
+        };
+        files.insert(path.clone(), text.as_bytes().to_vec());
+    }
+    Ok(files)
+}
+
 fn optional_str<'a>(args: &'a Value, key: &str) -> Option<&'a str> {
     args.get(key).and_then(Value::as_str)
 }
@@ -5830,25 +5916,19 @@ fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
 /// obtaining situations. This is exactly the shape `emit_trajectory_audits` reads, so a cold trajectory
 /// audit of `memory.gts` (unioned with the canonical action theory) verifies the executed turn.
 fn write_audit_segment(
-    memory_path: &Path,
+    store: &dyn ClaimStore,
     call_id: &str,
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
-    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time);
-    let mut file = fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(memory_path)?;
-    file.write_all(&segment)?;
-    Ok(())
+    store.append_audit_segment(&build_audit_segment(call_id, schema_iri, obtains, at_time))
 }
 
 /// Build one trajectory-audit context segment's serialized bytes — the PURE, side-effect-free
 /// half of [`write_audit_segment`], factored out so the conjecture-library commit path can
 /// build the verdict segment AND its audit segment in memory and commit both together via
-/// [`append_conjecture_segments`] (one atomic replace), rather than two separate appends where
+/// [`append_library_segments`] (one atomic replace), rather than two separate appends where
 /// the second can fail after the first has already landed.
 fn build_audit_segment(
     call_id: &str,
@@ -5906,40 +5986,22 @@ fn build_audit_segment(
 // It is NEVER folded into the base KB reasoning graph (R2): the reasoner reads
 // `graph_dataset()` / the caller's KB, never `conjectures.gts`.
 
-/// The conjecture-library path: `GMEOW_CONJECTURE_PATH` (home-expanded) when set, else
-/// `~/.gmeow/conjectures.gts`. Mirrors [`memory_path`].
-fn conjecture_path() -> gmeow_errors::Result<PathBuf> {
-    if let Ok(path) = env::var("GMEOW_CONJECTURE_PATH")
-        && !path.trim().is_empty()
-    {
-        return Ok(PathBuf::from(path).expand_home());
-    }
-    let home = home_dir().ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: "neither HOME nor USERPROFILE is set and GMEOW_CONJECTURE_PATH is empty"
-                .to_string(),
-        })
-    })?;
-    Ok(Path::new(&home).join(".gmeow").join("conjectures.gts"))
+/// The conjecture library, resolved through the [`storage`] seam: natively the GTS
+/// file at `GMEOW_CONJECTURE_PATH` (home-expanded) or `~/.gmeow/conjectures.gts`, in a
+/// browser the in-process segment collection.
+fn conjecture_library() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>> {
+    storage().conjecture_library()
 }
 
-/// The candidate-library path: `GMEOW_CANDIDATE_PATH` (home-expanded) when set, else
-/// `~/.gmeow/candidates.gts`. The candidate library is a SEPARATE, append-only GTS collection
-/// — the read-only twin of the conjecture library — holding admissibility-gated authoring
-/// candidates. It is NEVER folded into base-KB reasoning (R2). Mirrors [`conjecture_path`].
-fn candidate_path() -> gmeow_errors::Result<PathBuf> {
-    if let Ok(path) = env::var("GMEOW_CANDIDATE_PATH")
-        && !path.trim().is_empty()
-    {
-        return Ok(PathBuf::from(path).expand_home());
-    }
-    let home = home_dir().ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: "neither HOME nor USERPROFILE is set and GMEOW_CANDIDATE_PATH is empty"
-                .to_string(),
-        })
-    })?;
-    Ok(Path::new(&home).join(".gmeow").join("candidates.gts"))
+/// The candidate library, resolved through the [`storage`] seam: natively the GTS file
+/// at `GMEOW_CANDIDATE_PATH` (home-expanded) or `~/.gmeow/candidates.gts`, in a browser
+/// the in-process segment collection.
+///
+/// The candidate library is a SEPARATE, append-only GTS collection — the read-only twin
+/// of the conjecture library — holding admissibility-gated authoring candidates. It is
+/// NEVER folded into base-KB reasoning (R2). Mirrors [`conjecture_library`].
+fn candidate_library() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>> {
+    storage().candidate_library()
 }
 
 /// A deterministic lowercase-hex SHA-256 of `bytes` (the KB-world content address seed).
@@ -6019,7 +6081,7 @@ fn intern_nt_term(
 /// written via [`GtsWriter`] — no plain-RDF / quad shortcut, so the append-only libraries stay
 /// RDF-1.2-native. Building the bytes is separated from appending them so a caller can assemble
 /// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
-/// together as one atomic file replace — see [`append_conjecture_segments`].
+/// together as one atomic file replace — see [`append_library_segments`].
 fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
@@ -6070,85 +6132,50 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     Ok(writer.to_bytes())
 }
 
-/// The sidecar advisory-lock path for the conjecture library at `library_path`: the library
-/// path with a literal `.lock` suffix appended (e.g. `conjectures.gts` → `conjectures.gts.lock`).
-/// The lock file's own bytes are never read; it exists solely as a stable `flock`/`LockFileEx`
-/// target that survives the library file being replaced out from under it by
-/// [`append_conjecture_segments`]'s atomic rename (an `flock` on the DATA file itself would be
-/// silently dropped by a rename-replace, since the lock is bound to the inode, not the path).
-fn conjecture_lock_path(library_path: &Path) -> PathBuf {
-    let mut os = library_path.as_os_str().to_owned();
-    os.push(".lock");
-    PathBuf::from(os)
-}
-
-/// Acquire ONE exclusive, cross-process advisory lock on `library_path`'s sidecar `.lock` file
-/// for the duration of `f`, serializing every conjecture-library operation — reads, precondition
-/// checks, and appends alike — against every other process/thread doing the same. Callers that
-/// must read-then-decide-then-write (e.g. `refute_conjecture`'s "is this id still in the library
-/// and not yet withdrawn?" precondition) run the ENTIRE read → check → append sequence inside
-/// `f`, so two concurrent callers can no longer both observe the pre-write state and both commit
-/// (the lost-update / double-write race). The lock is released when the guard
-/// file handle drops at the end of this call, regardless of whether `f` succeeded.
-fn with_conjecture_lock<T>(
-    library_path: &Path,
+/// Hold the library's exclusive lock for the duration of `f`, serializing every
+/// library operation — reads, precondition checks, and commits alike — against every
+/// other holder. Callers that must read-then-decide-then-write (e.g.
+/// `refute_conjecture`'s "is this id still in the library and not yet withdrawn?"
+/// precondition) run the ENTIRE read → check → append sequence inside `f`, so two
+/// concurrent callers can no longer both observe the pre-write state and both commit
+/// (the lost-update / double-write race). The lock is released when the guard drops at
+/// the end of this call, regardless of whether `f` succeeded.
+///
+/// What "exclusive" means is the backend's business ([`SegmentLibrary::lock`]): natively
+/// a cross-process `flock` on a sidecar file, in a browser a mutex over the one
+/// in-process library.
+fn with_library_lock<T>(
+    library: &dyn SegmentLibrary,
     f: impl FnOnce() -> gmeow_errors::Result<T>,
 ) -> gmeow_errors::Result<T> {
-    if let Some(parent) = library_path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-    {
-        fs::create_dir_all(parent)?;
-    }
-    let lock_path = conjecture_lock_path(library_path);
-    let lock_file = fs::OpenOptions::new()
-        .create(true)
-        .truncate(false)
-        .write(true)
-        .open(&lock_path)?;
-    // Blocking exclusive lock (`flock(LOCK_EX)` / `LockFileEx` exclusive) — a concurrent
-    // holder blocks here rather than racing past a TOCTOU window.
-    lock_file.lock()?;
+    let guard: Box<dyn LibraryLock + '_> = library.lock()?;
     let result = f();
-    let _ = lock_file.unlock();
+    drop(guard);
     result
 }
 
 /// Atomically commit `segments` (each an already-serialized GTS `ai-package` segment, in order)
-/// to the conjecture library at `path`, ALL-OR-NOTHING: the new file contents — the library's
-/// current bytes (if any) followed by every segment in `segments`, in order — are assembled
-/// ENTIRELY in memory, then committed via a same-directory temp file + `fsync` + atomic rename.
-/// A rename either lands the WHOLE new file or leaves the PRIOR file completely untouched — so
-/// if anything fails partway (e.g. the audit segment's bytes can't be built, or the temp write
-/// fails), the library is never left holding some but not all of `segments` (closing the "audit
-/// append fails, library append is left applied" failure mode). The caller MUST
-/// already hold the conjecture-library lock (see [`with_conjecture_lock`]) — this function does
-/// not lock by itself, so it can be called once per commit even when it writes >1 segment.
-fn append_conjecture_segments(path: &Path, segments: &[Vec<u8>]) -> gmeow_errors::Result<()> {
-    let mut bytes = match fs::read(path) {
-        Ok(bytes) => bytes,
-        Err(e) if e.kind() == io::ErrorKind::NotFound => Vec::new(),
-        Err(e) => return Err(e.into()),
-    };
+/// to `library`, ALL-OR-NOTHING: the new contents — the library's current bytes (if any)
+/// followed by every segment in `segments`, in order — are assembled ENTIRELY in memory, then
+/// handed to [`SegmentLibrary::replace_bytes`], which either lands the WHOLE new content or
+/// leaves the PRIOR content completely untouched. So if anything fails partway (e.g. the audit
+/// segment's bytes can't be built, or the commit fails), the library is never left holding some
+/// but not all of `segments` (closing the "audit append fails, library append is left applied"
+/// failure mode). The caller MUST already hold the library lock (see [`with_library_lock`]) —
+/// this function does not lock by itself, so it can be called once per commit even when it
+/// writes more than one segment.
+fn append_library_segments(
+    library: &dyn SegmentLibrary,
+    segments: &[Vec<u8>],
+) -> gmeow_errors::Result<()> {
+    let mut bytes = library.read_bytes()?;
     for segment in segments {
         bytes.extend_from_slice(segment);
     }
-
-    let dir = path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .map_or_else(|| PathBuf::from("."), PathBuf::from);
-    let mut tmp = tempfile::Builder::new()
-        .prefix(".conjectures-")
-        .suffix(".tmp")
-        .tempfile_in(&dir)?;
-    tmp.write_all(&bytes)?;
-    tmp.as_file().sync_all()?;
-    tmp.persist(path)?;
-    Ok(())
+    library.replace_bytes(&bytes)
 }
 
-/// A per-segment collector for [`read_conjecture_library`]: it captures each GTS segment's
+/// A per-segment collector for [`read_library`]: it captures each GTS segment's
 /// term table and quads IN FILE (append) ORDER, so a `logic:conjectureLifecycleState`
 /// supersession can be resolved as last-writer-wins by SEGMENT ORDER.
 ///
@@ -6221,14 +6248,15 @@ impl purrdf::gts::reader::StreamingSink for ConjectureSegments {
 /// in the library; its effective state is the object of the LAST lifecycle assertion for it
 /// in append order. A missing library file is an EMPTY library (a first-ever refute of an
 /// unknown id), not an error; any reader diagnostic or a torn trailing item is a HARD FAIL.
-fn read_conjecture_library(
-    path: &Path,
+fn read_library(
+    library: &dyn SegmentLibrary,
 ) -> gmeow_errors::Result<BTreeMap<String, ConjectureLifecycleState>> {
-    let bytes = match fs::read(path) {
-        Ok(bytes) => bytes,
-        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
-        Err(e) => return Err(e.into()),
-    };
+    let bytes = library.read_bytes()?;
+    if bytes.is_empty() {
+        // A library that has never been written is an EMPTY library (a first-ever
+        // refute of an unknown id), not an error.
+        return Ok(BTreeMap::new());
+    }
 
     let mut sink = ConjectureSegments::default();
     let result = purrdf::gts::reader::read_to_sink(&bytes, true, None, &mut sink);
@@ -6304,6 +6332,30 @@ fn tool_arguments(args: &Value, keys: &[&str]) -> String {
         }
     }
     Value::Object(out).to_string()
+}
+
+/// The `recall` tool body against an EXPLICIT claim store.
+///
+/// The shaping lives here, once, so it can be exercised against any [`ClaimStore`] —
+/// in particular the browser backend's in-process store, which no environment variable
+/// can point [`McpServer::claim_store`] at.
+///
+/// # Errors
+///
+/// A malformed `limit` / `min_confidence` argument, or a store read failure.
+pub fn recall_json(store: &dyn ClaimStore, args: &Value) -> gmeow_errors::Result<String> {
+    let limit = optional_limit(args, "limit")?.unwrap_or(10);
+    let claims = store.recall(RecallOptions {
+        query: optional_str(args, "query").unwrap_or(""),
+        min_confidence: optional_f64(args, "min_confidence")?,
+        limit,
+        include_suppressed: optional_bool(args, "include_suppressed").unwrap_or(false),
+    })?;
+    Ok(json!({
+        "ok": true,
+        "claims": claims.iter().map(claim_json).collect::<Vec<_>>(),
+    })
+    .to_string())
 }
 
 fn claim_json(claim: &purrdf::gts::examples::agent_memory::Claim) -> Value {
@@ -6624,23 +6676,71 @@ pub fn slice_brief_from_bundle(
     extract_authoring_packets(&briefs, &slice_iri, axis, batch)
 }
 
-#[cfg(test)]
+/// The native tool-surface suite.
+///
+/// Gated `not(target_arch = "wasm32")` as well as `test`, and that is not incidental:
+/// these tests ARE the native storage backend's tests. They mutate the process
+/// environment, create temp directories, take `flock`s across threads, and assert on
+/// the bytes a `memory.gts` ends up holding — every one of which is a native-host fact.
+/// The browser backend has its own suite in [`browser_storage_tests`], which runs on
+/// every target including this one.
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use super::*;
     use std::ffi::OsString;
+    use std::fs;
+    use std::path::{Path, PathBuf};
     use std::sync::{Mutex, OnceLock};
+
+    use purrdf::gts::examples::agent_memory::Memory;
+
+    /// The `env` module the environment-mutating helpers below use. Named here rather
+    /// than at the crate root so the production surface carries no `std::env` import at
+    /// all — the seam is the only production path to a configuration value.
+    use std::env;
+
+    /// Read a real on-disk slice into the JSON `files` argument the `slice_quality`
+    /// tool takes. The READING is the test's job — the tool is handed bytes, which is
+    /// exactly the point of the argument. Delegates to the scorer's own directory
+    /// reader so the test and the CLI agree on which files make up a slice.
+    fn slice_files_arg(slice_dir: &Path) -> Value {
+        let files = gmeow_slice_quality::report::slice_files_from_dir(slice_dir)
+            .expect("the in-repo slice reads");
+        Value::Object(
+            files
+                .into_iter()
+                .map(|(path, bytes)| {
+                    (
+                        path,
+                        Value::String(
+                            String::from_utf8(bytes).expect("slice files are UTF-8 text"),
+                        ),
+                    )
+                })
+                .collect(),
+        )
+    }
+
+    /// A native conjecture/candidate library at an explicit path — the handle the
+    /// library-level tests drive instead of the process backend's env-resolved one.
+    fn library_at(path: &Path) -> Arc<dyn SegmentLibrary> {
+        crate::storage::fs_segment_library(path.to_path_buf())
+    }
 
     /// Append one hand-built conjecture-verdict segment to the append-only library at `path`,
     /// as a GTS `ai-package` segment, via the SAME locked/atomic commit path production code
-    /// uses ([`with_conjecture_lock`] + [`append_conjecture_segments`]). Test-only: it seeds a
+    /// uses ([`with_library_lock`] + [`append_library_segments`]). Test-only: it seeds a
     /// library file with a single segment so segment-order-resolution tests
-    /// ([`read_conjecture_library`]) can be driven without going through a full `store_conjecture`
+    /// ([`read_library`]) can be driven without going through a full `store_conjecture`
     /// engine run. Production call sites build BOTH the verdict segment and its audit segment
-    /// and commit them together via [`append_conjecture_segments`] directly (one atomic replace
+    /// and commit them together via [`append_library_segments`] directly (one atomic replace
     /// covering both), rather than through this single-segment helper.
     fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
         let segment = build_nt_segment(nt_body)?;
-        with_conjecture_lock(path, || append_conjecture_segments(path, &[segment]))
+        let library = library_at(path);
+        with_library_lock(library.as_ref(), || {
+            append_library_segments(library.as_ref(), &[segment])
+        })
     }
 
     /// A representative N-Triples body mirroring what `project_conjecture_verdict` /
@@ -7111,7 +7211,7 @@ mod tests {
         // read with `optional_*`. The advertised `required` array must equal the enforced set —
         // no more (a client would get a runtime error omitting a merely-optional arg), no less.
         let expected_required: &[(&str, &[&str])] = &[
-            ("slice_quality", &["path"]),
+            ("slice_quality", &["files"]),
             ("slice_brief", &["slice"]),
             ("submit_candidate", &["formula", "kb", "standpoint"]),
             ("withdraw_candidate", &["candidate_id"]),
@@ -7141,16 +7241,16 @@ mod tests {
         }
         let bytes = snapshot();
         // Positive CONSUMER-mode dispatch (AC3): a server built with `root: None`
-        // scores an external slice directory purely off the embedded bundle rubric.
+        // scores a slice handed to it as BYTES, purely off the embedded bundle rubric.
+        // The bytes here come from a real in-repo slice read off disk BY THE TEST — the
+        // tool itself never touches a filesystem.
         let server = McpServer::from_snapshot(&bytes).unwrap();
         let slice_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices/core/ai");
+        let files = slice_files_arg(&slice_dir);
 
         // Functional dispatch: the tool returns the documented JSON shape — grades as
         // {axis, tier, score} and advice as {code, message}.
-        let out = text_payload(server.call_tool_result(
-            "slice_quality",
-            &json!({"path": slice_dir.to_str().expect("utf8 slice path")}),
-        ));
+        let out = text_payload(server.call_tool_result("slice_quality", &json!({"files": files})));
         assert!(
             out.get("ok").is_none(),
             "a successful score carries no error envelope: {out}"
@@ -7173,8 +7273,10 @@ mod tests {
         }
     }
 
+    /// Every way the `files` map can fail to describe a slice is a NAMED hard error —
+    /// never a panic, never a silent pass, and never a vacuous clean score.
     #[test]
-    fn slice_quality_tool_errors_on_invalid_dir() {
+    fn slice_quality_tool_errors_on_a_map_that_is_not_a_slice() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
@@ -7184,23 +7286,53 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        // The `slices/` containment guard is gone (external scoring is the feature);
-        // an absent directory is now a clean hard error (a `slice_quality:` diagnostic),
-        // never a panic and never a silent pass.
-        let missing = text_payload(
-            server.call_tool_result("slice_quality", &json!({"path": "/nonexistent/slice/dir"})),
-        );
+        // The `files` argument is missing entirely.
+        let absent = text_payload(server.call_tool_result("slice_quality", &json!({})));
         assert_eq!(
-            missing["ok"], false,
-            "a missing slice directory must hard-fail: {missing}"
+            absent["ok"], false,
+            "an omitted `files` map must hard-fail: {absent}"
+        );
+        assert!(
+            absent["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("files"),
+            "the error must name the missing argument: {absent}"
         );
 
-        // A real directory that is not a slice (no manifest.ttl) also errors cleanly.
-        let not_a_slice =
-            text_payload(server.call_tool_result("slice_quality", &json!({"path": "/etc"})));
+        // A map that carries files but no `manifest.ttl` — the slice IRI cannot be
+        // resolved, so there is nothing to score.
+        let no_manifest = text_payload(server.call_tool_result(
+            "slice_quality",
+            &json!({"files": {"module.ttl": "# nothing here\n"}}),
+        ));
         assert_eq!(
-            not_a_slice["ok"], false,
-            "a non-slice directory must hard-fail: {not_a_slice}"
+            no_manifest["ok"], false,
+            "a map with no manifest.ttl must hard-fail: {no_manifest}"
+        );
+        assert!(
+            no_manifest["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("manifest.ttl"),
+            "the error must NAME manifest.ttl so the caller knows what to add: {no_manifest}"
+        );
+
+        // A `files` value that is not a string is a distinct, separately-named defect.
+        let bad_value = text_payload(server.call_tool_result(
+            "slice_quality",
+            &json!({"files": {"manifest.ttl": 42}}),
+        ));
+        assert_eq!(
+            bad_value["ok"], false,
+            "a non-string file body must hard-fail: {bad_value}"
+        );
+        assert!(
+            bad_value["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("manifest.ttl"),
+            "the error must name the offending entry: {bad_value}"
         );
     }
 
@@ -7937,18 +8069,14 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
         // A local lower-tier vocab file the agent supplies (not part of the canon).
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("local-vocab.ttl");
         let overlay_ttl = "<urn:ex:widget> <urn:ex:label> \"Local Widget\" .\n<urn:ex:widget> a <urn:ex:Thing> .\n";
-        fs::write(&overlay_path, overlay_ttl).unwrap();
-        let overlay_before = fs::read(&overlay_path).unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = overlay_ttl;
 
         // Reads see the overlay unioned into the default graph.
         let seen = text_payload(server.call_tool_result(
             "query_local",
             &json!({
-                "path": path_str,
+                "data": overlay_data, "format": "turtle",
                 "query": "SELECT ?o WHERE { <urn:ex:widget> <urn:ex:label> ?o }",
             }),
         ));
@@ -7959,7 +8087,7 @@ mod tests {
         // replacement): a plain triple pattern still matches the signed ontology.
         let canon = text_payload(server.call_tool_result(
             "query_local",
-            &json!({"path": path_str, "query": "ASK { ?s ?p ?o }"}),
+            &json!({"data": overlay_data, "format": "turtle", "query": "ASK { ?s ?p ?o }"}),
         ));
         assert_eq!(canon["ok"], true);
         assert_eq!(canon["boolean"], true);
@@ -7969,7 +8097,7 @@ mod tests {
         let isolated = text_payload(server.call_tool_result(
             "query_local",
             &json!({
-                "path": path_str,
+                "data": overlay_data, "format": "turtle",
                 "query": "SELECT ?o WHERE { GRAPH <urn:gmeow:mcp:overlay:external> \
                           { <urn:ex:widget> <urn:ex:label> ?o } }",
             }),
@@ -7986,7 +8114,7 @@ mod tests {
         // CONSTRUCT/DESCRIBE are rejected — the tool serves bindings or a boolean.
         let construct = text_payload(server.call_tool_result(
             "query_local",
-            &json!({"path": path_str, "query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
+            &json!({"data": overlay_data, "format": "turtle", "query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
         ));
         assert_eq!(construct["ok"], false);
         assert!(
@@ -7998,11 +8126,9 @@ mod tests {
 
         // Read-only: the overlay file is byte-for-byte unchanged and NOTHING was
         // written to memory (the write triad never touches the overlay or canon).
-        assert_eq!(fs::read(&overlay_path).unwrap(), overlay_before);
         assert!(Memory::new(&memory_path).claims().unwrap().is_empty());
         assert!(!memory_path.exists());
         drop(mem_dir);
-        drop(overlay_dir);
     }
 
     /// verify_graph fires the matching `verify.<stem>` finding on a known bad-example
@@ -8021,19 +8147,16 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("bad-credence.ttl");
         // A credence out of [0,1] is the credence-out-of-range bad example. `5` is
         // numeric and > 1, so the negative test returns an offending row.
         let overlay_ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              <urn:ex:bad-credence-state> gmeow:credence 5 .\n";
-        fs::write(&overlay_path, overlay_ttl).unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = overlay_ttl;
 
         // A tiny step budget: the credence negative test fires from the ASSERTED union
         // graph regardless of closure depth, so the budget keeps the test fast.
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 8})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 8})),
         );
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         let codes: Vec<String> = out["findings"]
@@ -8050,7 +8173,6 @@ mod tests {
             out["error_count"].as_u64().unwrap_or(0) >= 1,
             "the violation must count as an error finding: {out}"
         );
-        drop(overlay_dir);
     }
 
     /// Proof faithfulness: `cited_iris` must be derived ONLY from structured RDF
@@ -8074,18 +8196,15 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("forge-cited-iris.ttl");
         // `!isNumeric("see <urn:fake>")` is true, so this is a credence-out-of-range
         // bad example exactly like the sibling test above — but the credence VALUE
         // is a string literal carrying forged-looking angle-bracket text.
         let overlay_ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              <urn:ex:forge-cited-iris-state> gmeow:credence \"see <urn:fake>\" .\n";
-        fs::write(&overlay_path, overlay_ttl).unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = overlay_ttl;
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 8})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 8})),
         );
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         let codes: Vec<String> = out["findings"]
@@ -8112,7 +8231,6 @@ mod tests {
             cited.iter().any(|c| c == "urn:ex:forge-cited-iris-state"),
             "the finding's genuinely-cited subject IRI must still appear: {out}"
         );
-        drop(overlay_dir);
     }
 
     /// Overlay isolation: verify_graph builds a TRANSIENT union and drops it — the signed
@@ -8130,18 +8248,14 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("probe.ttl");
         let overlay_ttl = "<urn:ex:probe-s> <urn:ex:probe-p> <urn:ex:probe-o> .\n";
-        fs::write(&overlay_path, overlay_ttl).unwrap();
-        let overlay_before = fs::read(&overlay_path).unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = overlay_ttl;
 
         let before_ptr = Arc::as_ptr(&server.view.dataset);
         let before_count = server.view.dataset.quad_count();
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 4})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 4})),
         );
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
 
@@ -8167,8 +8281,6 @@ mod tests {
             "overlay triple must not appear in the signed canon"
         );
         // Read-only: the overlay file is byte-for-byte unchanged.
-        assert_eq!(fs::read(&overlay_path).unwrap(), overlay_before);
-        drop(overlay_dir);
     }
 
     /// A budget-cut closure yields the strictly-weaker ATTESTATION, never a certificate:
@@ -8187,13 +8299,10 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("probe.ttl");
-        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
         );
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         assert_eq!(
@@ -8208,7 +8317,6 @@ mod tests {
         // computation axis records the budget exhaustion.
         assert_eq!(out["completeness"], "incomplete", "{out}");
         assert_eq!(out["evaluation"], "budget-exhausted", "{out}");
-        drop(overlay_dir);
     }
 
     /// R4: OMITTING `max_steps`/`max_answers` entirely must NEVER run an
@@ -8231,14 +8339,11 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("probe.ttl");
-        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
         // The exact agent-omission shape R4 forbids treating as unbounded: no `max_steps`,
         // no `max_answers` key at all in the call args.
-        let out = text_payload(server.call_tool_result("verify_graph", &json!({"path": path_str})));
+        let out = text_payload(server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle"})));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         assert_eq!(
             out["class_local_name"], "CoherenceCheckAttestation",
@@ -8279,7 +8384,6 @@ mod tests {
             parsed.provenance.consumed_budget.consumed <= DEFAULT_MAX_STEPS,
             "consumed steps must never exceed the declared default allowance: {judgment}"
         );
-        drop(overlay_dir);
     }
 
     /// An overlay exceeding `MAX_VERIFY_OVERLAY_QUADS` is a HARD FAIL — the bounded agent
@@ -8295,18 +8399,15 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("oversized.ttl");
         // One distinct triple over the ceiling — the smallest overlay that trips it.
         let mut body = String::with_capacity((MAX_VERIFY_OVERLAY_QUADS + 1) * 40);
         for i in 0..=MAX_VERIFY_OVERLAY_QUADS {
             body.push_str(&format!("<urn:ex:s{i}> <urn:ex:p> <urn:ex:o{i}> .\n"));
         }
-        fs::write(&overlay_path, &body).unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = body.as_str();
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
         );
         assert_eq!(
             out["ok"], false,
@@ -8319,19 +8420,18 @@ mod tests {
                 .contains("exceeding"),
             "the error must name the ceiling breach: {out}"
         );
-        drop(overlay_dir);
     }
 
-    /// The R4 byte gate: an overlay FILE exceeding `MAX_VERIFY_OVERLAY_BYTES` is
-    /// refused via `fs::metadata` (a stat) BEFORE it is ever `fs::read` into memory or
-    /// handed to the parser — so a huge file can never exhaust memory before the
-    /// post-parse `MAX_VERIFY_OVERLAY_QUADS` ceiling gets a chance to run. The filler
-    /// here is a single deliberately-oversized comment line, NOT well-formed RDF that
-    /// would parse into many quads: if the byte gate did not run before the read/parse
-    /// (i.e. this fix regressed), the file would still parse successfully (as an
-    /// empty, all-comment document) and `verify_graph` would return `ok:true` instead
-    /// of hard-failing on the byte ceiling, so this test would catch the regression
-    /// either way — and it must never OOM proving it.
+    /// The R4 byte gate: an inline overlay whose LENGTH exceeds
+    /// `MAX_VERIFY_OVERLAY_BYTES` is refused BEFORE it is handed to the parser — so a
+    /// huge payload can never exhaust memory building a dataset before the post-parse
+    /// `MAX_VERIFY_OVERLAY_QUADS` ceiling gets a chance to run. The filler here is a
+    /// single deliberately-oversized comment line, NOT well-formed RDF that would parse
+    /// into many quads: if the byte gate did not run before the parse (i.e. this fix
+    /// regressed), the payload would still parse successfully (as an empty, all-comment
+    /// document) and `verify_graph` would return `ok:true` instead of hard-failing on
+    /// the byte ceiling, so this test would catch the regression either way — and it
+    /// must never OOM proving it.
     #[test]
     fn verify_graph_rejects_an_overlay_over_the_byte_ceiling_before_read() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
@@ -8343,17 +8443,14 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("oversized-bytes.ttl");
         // One byte over the ceiling — the smallest overlay that trips it. A single
         // `#`-prefixed line is cheap to build (one allocation, no per-quad
         // formatting) and never parses into any quads.
-        let filler = vec![b'#'; (MAX_VERIFY_OVERLAY_BYTES + 1) as usize];
-        fs::write(&overlay_path, &filler).unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let filler = "#".repeat((MAX_VERIFY_OVERLAY_BYTES + 1) as usize);
+        let overlay_data = filler.as_str();
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
         );
         assert_eq!(
             out["ok"], false,
@@ -8364,7 +8461,178 @@ mod tests {
             error.contains(&MAX_VERIFY_OVERLAY_BYTES.to_string()) && error.contains("byte"),
             "the error must name the byte limit: {out}"
         );
-        drop(overlay_dir);
+    }
+
+    /// The two overlay tools take BYTES plus an EXPLICIT `format`. A pasted Turtle
+    /// string with `{"format":"turtle"}` is accepted by both — the positive half of the
+    /// contract the two negative tests below pin.
+    #[test]
+    fn overlay_tools_accept_pasted_turtle_with_an_explicit_format() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
+
+        let pasted = "<urn:ex:pasted> <urn:ex:label> \"Pasted Widget\" .\n";
+
+        let queried = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({
+                "data": pasted,
+                "format": "turtle",
+                "query": "SELECT ?o WHERE { <urn:ex:pasted> <urn:ex:label> ?o }",
+            }),
+        ));
+        assert_eq!(
+            queried["ok"], true,
+            "pasted Turtle with an explicit format must query cleanly: {queried}"
+        );
+        assert_eq!(
+            queried["results"]["bindings"][0]["o"]["value"], "Pasted Widget",
+            "the pasted overlay must be visible to the query: {queried}"
+        );
+
+        let verified = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": pasted, "format": "turtle", "max_steps": 1}),
+        ));
+        assert_eq!(
+            verified["ok"], true,
+            "pasted Turtle with an explicit format must verify cleanly: {verified}"
+        );
+    }
+
+    /// A MISSING `format` is a hard error on both overlay tools — never a guess at
+    /// Turtle. The two tools also ADVERTISE `format` as required, so a client can see
+    /// the obligation before it calls.
+    #[test]
+    fn overlay_tools_hard_fail_without_a_format() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
+
+        let pasted = "<urn:ex:pasted> <urn:ex:p> <urn:ex:o> .\n";
+
+        let queried = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({"data": pasted, "query": "ASK { ?s ?p ?o }"}),
+        ));
+        assert_eq!(
+            queried["ok"], false,
+            "query_local without a format must hard-fail: {queried}"
+        );
+        assert!(
+            queried["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("format"),
+            "the error must name the missing argument: {queried}"
+        );
+
+        let verified = text_payload(
+            server.call_tool_result("verify_graph", &json!({"data": pasted, "max_steps": 1})),
+        );
+        assert_eq!(
+            verified["ok"], false,
+            "verify_graph without a format must hard-fail: {verified}"
+        );
+        assert!(
+            verified["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("format"),
+            "the error must name the missing argument: {verified}"
+        );
+
+        // The advertised schema agrees with the enforcement.
+        for name in ["query_local", "verify_graph"] {
+            let descriptor = server
+                .surface
+                .tool_descriptors()
+                .into_iter()
+                .find(|t| t["name"] == name)
+                .unwrap_or_else(|| panic!("{name} is advertised"));
+            let required: Vec<String> = descriptor["inputSchema"]["required"]
+                .as_array()
+                .expect("required array")
+                .iter()
+                .map(|v| v.as_str().expect("required entries are strings").to_owned())
+                .collect();
+            for arg in ["data", "format"] {
+                assert!(
+                    required.iter().any(|r| r == arg),
+                    "{name} enforces `{arg}` at call time and must advertise it as required: \
+                     {required:?}"
+                );
+            }
+        }
+    }
+
+    /// An UNKNOWN `format` is a hard error NAMING THE ACCEPTED SET on both overlay
+    /// tools — the caller is told what to pass, and no fallback parse ever runs.
+    #[test]
+    fn overlay_tools_hard_fail_on_an_unknown_format_naming_the_accepted_set() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes).unwrap();
+
+        // Well-formed Turtle: the ONLY thing wrong is the declared format, so a
+        // fallback-to-Turtle regression would return `ok:true` and fail this test.
+        let pasted = "<urn:ex:pasted> <urn:ex:p> <urn:ex:o> .\n";
+
+        let queried = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({"data": pasted, "format": "yaml-ld", "query": "ASK { ?s ?p ?o }"}),
+        ));
+        assert_eq!(
+            queried["ok"], false,
+            "an unknown format must hard-fail rather than fall back to Turtle: {queried}"
+        );
+        let error = queried["error"].as_str().unwrap_or_default();
+        assert!(
+            error.contains("query_local") && error.contains("yaml-ld"),
+            "the error must name the tool and the rejected token: {queried}"
+        );
+        for accepted in ["turtle", "n-triples", "n-quads", "trig", "rdf+xml", "json-ld"] {
+            assert!(
+                error.contains(accepted),
+                "the error must name the accepted format `{accepted}`: {queried}"
+            );
+        }
+
+        let verified = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": pasted, "format": "yaml-ld", "max_steps": 1}),
+        ));
+        assert_eq!(
+            verified["ok"], false,
+            "an unknown format must hard-fail rather than fall back to Turtle: {verified}"
+        );
+        let error = verified["error"].as_str().unwrap_or_default();
+        assert!(
+            error.contains("verify_graph") && error.contains("yaml-ld"),
+            "the error must name the tool and the rejected token: {verified}"
+        );
+        for accepted in ["turtle", "n-triples", "n-quads", "trig", "rdf+xml", "json-ld"] {
+            assert!(
+                error.contains(accepted),
+                "the error must name the accepted format `{accepted}`: {verified}"
+            );
+        }
     }
 
     /// A normal, well-under-ceiling overlay still succeeds through both the byte gate
@@ -8380,19 +8648,15 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("small.ttl");
-        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
         );
         assert_eq!(
             out["ok"], true,
             "a normal small overlay must succeed: {out}"
         );
-        drop(overlay_dir);
     }
 
     /// The grounded RDF judgment: `judgment_nquads` carries the `logic:ReasoningResult`
@@ -8409,13 +8673,10 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("probe.ttl");
-        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+        let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
         );
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         let judgment = out["judgment_nquads"]
@@ -8434,7 +8695,6 @@ mod tests {
             out["evaluation"].as_str().unwrap(),
             "the grounded judgment's evaluation axis must match the envelope: {out}"
         );
-        drop(overlay_dir);
     }
 
     // ── explain_quad ──────────────────────────────────────────────────────────
@@ -8880,9 +9140,7 @@ mod tests {
         assert!(!memory_path.exists());
 
         // Every advertised tool is dispatch-callable (recognized by tools/call).
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("probe.ttl");
-        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
         let mut call_args: HashMap<&str, Value> = HashMap::new();
         call_args.insert("lookup_term", json!({"term": "gmeow:Entity"}));
         call_args.insert("doc_card", json!({"term": "gmeow:Entity"}));
@@ -8890,7 +9148,7 @@ mod tests {
         call_args.insert("docs_search", json!({"query": "entity"}));
         call_args.insert(
             "query_local",
-            json!({"path": overlay_path.to_str().unwrap(), "query": "ASK { ?s ?p ?o }"}),
+            json!({"data": overlay_data, "format": "turtle", "query": "ASK { ?s ?p ?o }"}),
         );
         // The default (Tier-1) `validate_local` path is fast, so a valid tiny graph
         // dispatches and returns a well-formed EnrichedReport. (Tier-2 `deep` is opt-in
@@ -8950,7 +9208,6 @@ mod tests {
                 "advertised tool {name} is not dispatch-callable: {content}"
             );
         }
-        drop(overlay_dir);
     }
 
     /// Build a consumer server over the shipped bundle with a clean language env.
@@ -9836,9 +10093,7 @@ mod tests {
 
         // query_local requires an overlay path; a trivial annex suffices — the query
         // itself targets the bundle's graph/diagnostics named graph directly.
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("probe.ttl");
-        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
         let query = "SELECT ?s ?code WHERE { \
                      GRAPH <https://blackcatinformatics.ca/gmeow/graph/diagnostics> { \
@@ -9846,7 +10101,7 @@ mod tests {
                      <https://blackcatinformatics.ca/gmeow/findingCode> ?code } } LIMIT 1";
         let res = text_payload(server.call_tool_result(
             "query_local",
-            &json!({"path": overlay_path.to_str().unwrap(), "query": query}),
+            &json!({"data": overlay_data, "format": "turtle", "query": query}),
         ));
         assert_eq!(
             res["ok"], true,
@@ -9863,7 +10118,6 @@ mod tests {
             bindings[0]["code"]["value"].as_str().is_some(),
             "the Finding binding must carry a findingCode literal: {res}"
         );
-        drop(overlay_dir);
     }
 
     // ── Conjecture-library persistence ───────────────────────────────────────
@@ -10269,7 +10523,7 @@ mod tests {
 
         let node = store_one_conjecture(&server, "B");
         // Before withdrawal the effective state is the engine verdict (Open), never Withdrawn.
-        let before = read_conjecture_library(&path).unwrap();
+        let before = read_library(library_at(&path).as_ref()).unwrap();
         assert_eq!(
             before.get(&node).copied(),
             Some(ConjectureLifecycleState::Open)
@@ -10295,7 +10549,7 @@ mod tests {
         );
 
         // The EFFECTIVE lifecycle (segment order) is now Withdrawn.
-        let after = read_conjecture_library(&path).unwrap();
+        let after = read_library(library_at(&path).as_ref()).unwrap();
         assert_eq!(
             after.get(&node).copied(),
             Some(ConjectureLifecycleState::Withdrawn),
@@ -10451,7 +10705,7 @@ mod tests {
         // Nothing appended: bytes unchanged AND the effective lifecycle is still Open.
         let after = fs::read(&path).expect("library bytes after dry run");
         assert_eq!(before, after, "a dry run must write nothing to the library");
-        let library = read_conjecture_library(&path).unwrap();
+        let library = read_library(library_at(&path).as_ref()).unwrap();
         assert_eq!(
             library.get(&node).copied(),
             Some(ConjectureLifecycleState::Open),
@@ -10495,7 +10749,7 @@ mod tests {
         assert_eq!(refute["ok"], true, "the withdrawal must commit: {refute}");
 
         let after_refute = read_conjectures(&path);
-        let library = read_conjecture_library(&path).unwrap();
+        let library = read_library(library_at(&path).as_ref()).unwrap();
         assert_eq!(
             library.get(&node).copied(),
             Some(ConjectureLifecycleState::Withdrawn),
@@ -10565,8 +10819,9 @@ mod tests {
                 &[MCP_CONJECTURE_IN_LIBRARY],
                 "1970-01-01T00:00:00Z",
             );
-            with_conjecture_lock(&path, || {
-                append_conjecture_segments(&path, &[lib_segment, audit_segment])
+            let library = library_at(&path);
+            with_library_lock(library.as_ref(), || {
+                append_library_segments(library.as_ref(), &[lib_segment, audit_segment])
             })
         })();
 
@@ -10585,7 +10840,7 @@ mod tests {
             "a failed combined library+audit commit must leave the library BYTE-UNCHANGED \
              (all-or-nothing) — never holding one segment without the other"
         );
-        let library = read_conjecture_library(&path).unwrap();
+        let library = read_library(library_at(&path).as_ref()).unwrap();
         assert_eq!(
             library.get(seed_node).copied(),
             Some(ConjectureLifecycleState::Open),
@@ -10610,7 +10865,7 @@ mod tests {
         let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
         let holder_path = path.clone();
         let holder = std::thread::spawn(move || {
-            with_conjecture_lock(&holder_path, || {
+            with_library_lock(library_at(&holder_path).as_ref(), || {
                 started_tx.send(()).expect("signal lock acquired");
                 release_rx.recv().expect("wait for release signal");
                 Ok(())
@@ -10625,7 +10880,7 @@ mod tests {
         let waiter_done_writer = waiter_done.clone();
         let waiter_path = path.clone();
         let waiter = std::thread::spawn(move || {
-            with_conjecture_lock(&waiter_path, || {
+            with_library_lock(library_at(&waiter_path).as_ref(), || {
                 waiter_done_writer.store(true, std::sync::atomic::Ordering::SeqCst);
                 Ok(())
             })
@@ -10682,7 +10937,7 @@ mod tests {
         write_conjecture_segment(&path, &lc(&reopened, "ConjectureOpen")).unwrap();
         write_conjecture_segment(&path, &lc(&retired, "ConjectureWithdrawn")).unwrap();
 
-        let library = read_conjecture_library(&path).unwrap();
+        let library = read_library(library_at(&path).as_ref()).unwrap();
         assert_eq!(
             library.get(&reopened).copied(),
             Some(ConjectureLifecycleState::Open),
@@ -12583,20 +12838,14 @@ mod tests {
         // x : A forces x into owl:Nothing. Un-graphed triples reason under the single
         // default world, and the whole tiny canon+overlay union closes well under the
         // governed step ceiling — CONCLUSIVE, never budget-cut.
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("contradiction.ttl");
-        fs::write(
-            &overlay_path,
+        let overlay_data =
             "<http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/B> .\n\
              <http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/C> .\n\
              <http://gmeowtest.example/B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/C> .\n\
-             <http://gmeowtest.example/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/A> .\n",
-        )
-        .unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+             <http://gmeowtest.example/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/A> .\n";
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 64})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 64})),
         );
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
 
@@ -12621,7 +12870,6 @@ mod tests {
             "a witnessed forbidden violation in a CONCLUSIVE closure is a flat refusal, per \
              the SAME CoherenceOutcome gate the bundle-level coherence certifier uses: {out}"
         );
-        drop(overlay_dir);
     }
 
     /// `verify_graph`'s `coherent` field MUST agree with
@@ -12701,20 +12949,14 @@ mod tests {
         // orthogonality matrix above — so neither `axis-not-disjoint.rq` (satisfied
         // by the matrix) nor `class-in-two-disjoint-axes.rq` (requires
         // `owl:AllDisjointClasses` membership, which g4B/g4C never join) can match.
-        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
-        let overlay_path = overlay_dir.path().join("glut-no-bad-example-match.ttl");
-        fs::write(
-            &overlay_path,
+        let overlay_data =
             "<http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4B> .\n\
              <http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4C> .\n\
              <http://gmeowtest.example/g4B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/g4C> .\n\
-             <http://gmeowtest.example/g4x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/g4A> .\n",
-        )
-        .unwrap();
-        let path_str = overlay_path.to_str().unwrap();
+             <http://gmeowtest.example/g4x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/g4A> .\n";
 
         let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 64})),
+            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 64})),
         );
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         assert_eq!(
@@ -12736,7 +12978,6 @@ mod tests {
             "coherent must be false whenever class_local_name is Refused, regardless of \
              whether any bad-example verify query matched: {out}"
         );
-        drop(overlay_dir);
     }
 
     // ── GMN verifier tools: gmn_validate / gmn_expand / gmn_explain ─────────────────
@@ -13000,5 +13241,268 @@ mod tests {
     /// The primer heading constant, re-exposed for the resource test (the shared docs const).
     fn gmn1_primer_heading() -> &'static str {
         gmeow_docs_model::gmn1_primer::PRIMER_HEADING
+    }
+}
+
+/// The BROWSER backend's suite: the in-process storage the wasm build runs on.
+///
+/// Compiled on every target, `wasm32` gate deliberately absent. The whole claim of
+/// [`crate::storage::InMemoryStorage`] is that it is a real store rather than a
+/// refusal, and a claim nobody executes is a claim nobody has checked — so the store
+/// the browser uses is exercised by the NATIVE suite, which is the one that actually
+/// runs. Nothing here touches a filesystem, an environment variable, or a clock.
+#[cfg(test)]
+mod browser_storage_tests {
+    use serde_json::{Value, json};
+
+    use purrdf::gts::examples::agent_memory::{RevisionOptions, StoreOptions};
+
+    use crate::storage::{
+        ClaimStore, InMemoryClaimStore, InMemorySegmentLibrary, InMemoryStorage, Storage,
+    };
+    use crate::{
+        append_library_segments, build_nt_segment, recall_json, run_list_candidates_in,
+        with_library_lock,
+    };
+
+    /// Store three claims and recall them: the browser store returns REAL, non-error
+    /// results, ranked by the same token-overlap relevance the native package uses, and
+    /// a suppressed claim drops out of the default recall.
+    #[test]
+    fn recall_returns_real_results_against_the_browser_claim_store() {
+        let store = InMemoryClaimStore::default();
+
+        let widgets = store
+            .store_claim(
+                "widgets are blue",
+                StoreOptions {
+                    source: Some("mcp:test"),
+                    confidence: Some(0.9),
+                    according_to: None,
+                },
+            )
+            .expect("the browser store accepts a well-formed claim");
+        store
+            .store_claim(
+                "gadgets are red",
+                StoreOptions {
+                    source: None,
+                    confidence: None,
+                    according_to: None,
+                },
+            )
+            .expect("the browser store accepts a second claim");
+        let retired = store
+            .store_claim(
+                "widgets are green",
+                StoreOptions {
+                    source: None,
+                    confidence: None,
+                    according_to: None,
+                },
+            )
+            .expect("the browser store accepts a third claim");
+
+        // The tool body itself, driven against the browser store.
+        let hit: Value = serde_json::from_str(
+            &recall_json(&store, &json!({"query": "widgets"})).expect("recall runs"),
+        )
+        .expect("recall returns JSON");
+        assert_eq!(
+            hit["ok"], true,
+            "recall against the browser store must return a REAL non-error result: {hit}"
+        );
+        let texts: Vec<&str> = hit["claims"]
+            .as_array()
+            .expect("claims array")
+            .iter()
+            .map(|c| c["text"].as_str().unwrap_or_default())
+            .collect();
+        assert_eq!(
+            texts,
+            vec!["widgets are green", "widgets are blue"],
+            "both widget claims must be recalled, most recent first among equal scores, \
+             and the non-matching gadget claim must not: {hit}"
+        );
+
+        // A revision retires a claim: the default recall stops returning it, and asking
+        // for suppressed claims brings it back — the store REMEMBERS the suppression
+        // rather than deleting the record.
+        store
+            .revise_claim(
+                &retired.id,
+                RevisionOptions {
+                    reason: Some("superseded by the blue measurement"),
+                    superseded_by: Some(&widgets.id),
+                },
+            )
+            .expect("the browser store accepts a revision");
+
+        let after: Value = serde_json::from_str(
+            &recall_json(&store, &json!({"query": "widgets"})).expect("recall runs"),
+        )
+        .expect("recall returns JSON");
+        let texts: Vec<&str> = after["claims"]
+            .as_array()
+            .expect("claims array")
+            .iter()
+            .map(|c| c["text"].as_str().unwrap_or_default())
+            .collect();
+        assert_eq!(
+            texts,
+            vec!["widgets are blue"],
+            "a suppressed claim must drop out of the default recall: {after}"
+        );
+
+        let with_suppressed: Value = serde_json::from_str(
+            &recall_json(&store, &json!({"query": "widgets", "include_suppressed": true}))
+                .expect("recall runs"),
+        )
+        .expect("recall returns JSON");
+        assert_eq!(
+            with_suppressed["claims"]
+                .as_array()
+                .expect("claims array")
+                .len(),
+            2,
+            "the suppressed claim is retained and returned on request: {with_suppressed}"
+        );
+        assert_eq!(
+            store.revisions().len(),
+            1,
+            "the revision itself is recorded, reason and successor included"
+        );
+
+        // The store's two input rules are enforced, not merely documented.
+        assert!(
+            store
+                .store_claim(
+                    "   ",
+                    StoreOptions {
+                        source: None,
+                        confidence: None,
+                        according_to: None
+                    }
+                )
+                .is_err(),
+            "an empty claim must be refused"
+        );
+        assert!(
+            store
+                .store_claim(
+                    "out of range",
+                    StoreOptions {
+                        source: None,
+                        confidence: Some(1.5),
+                        according_to: None
+                    }
+                )
+                .is_err(),
+            "a confidence outside 0.0..=1.0 must be refused"
+        );
+    }
+
+    /// `list_candidates` returns REAL, non-error results against the browser library:
+    /// an untouched library lists nothing, and a committed candidate segment lists the
+    /// candidate with its disposition and target provenance.
+    #[test]
+    fn list_candidates_returns_real_results_against_the_browser_library() {
+        let library = InMemorySegmentLibrary::default();
+
+        // An untouched library is EMPTY, not an error — the same answer the native
+        // backend gives for a file that does not exist yet.
+        let empty: Value =
+            serde_json::from_str(&run_list_candidates_in(&library, None, None).expect("lists"))
+                .expect("list_candidates returns JSON");
+        assert_eq!(
+            empty["ok"], true,
+            "an untouched browser library must list cleanly: {empty}"
+        );
+        assert_eq!(empty["candidate_count"], 0, "…and list nothing: {empty}");
+
+        // Commit one admitted candidate through the very same locked, all-or-nothing
+        // path the `submit_candidate` tool uses.
+        let node = "urn:gmeow:candidate:browser-test";
+        // Every IRI is built from the ONE declaration site — the shared `logic:`
+        // namespace and the crate's own candidate-vocabulary constants — so a namespace
+        // change cannot leave this fixture asserting a term nothing else recognizes.
+        let logic_ns = gmeow_logic_compile::ir::LOGIC_NAMESPACE;
+        let rdf_type = crate::RDF_TYPE;
+        let candidate_class = crate::GMEOW_AUTHORING_CANDIDATE;
+        let for_slice = crate::GMEOW_CANDIDATE_FOR_SLICE;
+        let body = format!(
+            "<{node}> <{rdf_type}> <{candidate_class}> .\n\
+             <{node}> <{rdf_type}> <{logic_ns}Conjecture> .\n\
+             <{node}> <{logic_ns}conjectureLifecycleState> <{logic_ns}ConjectureOpen> .\n\
+             <{node}> <{for_slice}> <urn:gmeow:slice:demo> .\n"
+        );
+        let segment = build_nt_segment(&body).expect("the candidate body parses");
+        with_library_lock(&library, || append_library_segments(&library, &[segment]))
+            .expect("the browser library commits under its own lock");
+
+        let listed: Value =
+            serde_json::from_str(&run_list_candidates_in(&library, None, None).expect("lists"))
+                .expect("list_candidates returns JSON");
+        assert_eq!(
+            listed["ok"], true,
+            "list_candidates against the browser library must return a REAL non-error \
+             result: {listed}"
+        );
+        assert_eq!(
+            listed["candidate_count"], 1,
+            "the committed candidate must be listed: {listed}"
+        );
+        assert_eq!(listed["candidates"][0]["candidate"], node);
+        assert_eq!(listed["candidates"][0]["disposition"], "in-library");
+        assert_eq!(
+            listed["candidates"][0]["for_slice"], "urn:gmeow:slice:demo",
+            "the candidate's target provenance survives the round trip: {listed}"
+        );
+
+        // The filters are real filters, not decoration.
+        let filtered: Value = serde_json::from_str(
+            &run_list_candidates_in(&library, Some("urn:gmeow:slice:other"), None).expect("lists"),
+        )
+        .expect("list_candidates returns JSON");
+        assert_eq!(
+            filtered["candidate_count"], 0,
+            "a slice filter that matches nothing lists nothing: {filtered}"
+        );
+    }
+
+    /// The browser backend hands out ONE store per kind, so a claim written by one tool
+    /// call is visible to the next — a per-call store would be a store that forgets.
+    #[test]
+    fn the_browser_backend_shares_one_store_across_calls() {
+        let backend = InMemoryStorage::new();
+        backend
+            .claim_store()
+            .expect("the browser backend always has a claim store")
+            .store_claim(
+                "persisted across calls",
+                StoreOptions {
+                    source: None,
+                    confidence: None,
+                    according_to: None,
+                },
+            )
+            .expect("stores");
+
+        let seen = backend
+            .claim_store()
+            .expect("the browser backend always has a claim store")
+            .claims()
+            .expect("reads");
+        assert_eq!(
+            seen.len(),
+            1,
+            "a second handle must see the first handle's claim"
+        );
+        assert_eq!(seen[0].text, "persisted across calls");
+
+        // Configuration behaves like an environment: unset is unset, set is readable.
+        assert!(backend.env_var("GMEOW_LANG").is_none());
+        backend.set_env("GMEOW_LANG", "fr");
+        assert_eq!(backend.env_var("GMEOW_LANG").as_deref(), Some("fr"));
     }
 }

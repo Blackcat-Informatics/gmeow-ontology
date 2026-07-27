@@ -100,6 +100,36 @@ pub fn dataset_from_paths(paths: &[&Path]) -> gmeow_errors::Result<Arc<RdfDatase
     })
 }
 
+/// Parse and UNION N LABELLED in-memory Turtle documents into one dataset, in the
+/// order given — the byte-level counterpart to [`dataset_from_paths`].
+///
+/// This is what the file-map scoring path uses in place of a path list: the label is
+/// the document's slice-relative key (`"module.ttl"`, `"mappings/equivalences.ttl"`,
+/// …), so a parse failure names the offending file exactly as the path-based reader
+/// did with `Path::display`. Bytes (not `&str`) because Turtle is a byte grammar and
+/// a non-UTF-8 document must surface as a parse failure naming its file, never be
+/// silently dropped on a lossy decode.
+///
+/// # Errors
+/// Returns a message naming the document's label if any document fails to parse or
+/// the union cannot be frozen.
+pub fn dataset_from_documents(docs: &[(&str, &[u8])]) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for (label, bytes) in docs {
+        let ds = purrdf::parse_dataset(bytes, "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("{label}: {e}"),
+            })
+        })?;
+        builder.push_dataset(&ds);
+    }
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("dataset freeze failed: {e}"),
+        })
+    })
+}
+
 /// Parse and UNION N in-memory Turtle documents into one dataset — the in-memory
 /// counterpart to [`dataset_from_paths`]. Used to reconstruct a rubric from bytes read
 /// out of git history (`git show <base>:<path>`) rather than the working tree, so the
@@ -726,7 +756,13 @@ fn score_slices_with_rubric_timed(
     doc_maturity::prime_repo_facts(repo_root, catalog_bytes);
     let score = |dir: &PathBuf| {
         let started = std::time::Instant::now();
-        let result = report::score_slice_with_standard(dir, &rubric.standard, ScoringEnv::Repo);
+        let result = report::score_slice_with_standard(
+            dir,
+            &rubric.standard,
+            ScoringEnv::Repo {
+                slice_dir: dir.clone(),
+            },
+        );
         let slice = dir
             .strip_prefix(repo_root)
             .unwrap_or(dir)
@@ -983,35 +1019,74 @@ impl BundleStandards {
     }
 }
 
-/// Score an external slice directory against the standards flattened from a bundle
-/// (reuse one [`BundleStandards`] across many slices). Reads the bundle-carried
-/// standards + the external `slice_dir` ONLY — never a repo checkout.
+/// Score an external slice held ENTIRELY IN MEMORY against the standards flattened
+/// from a bundle (reuse one [`BundleStandards`] across many slices).
+///
+/// This is the terminal external-scoring call: no repo checkout, no slice directory,
+/// nothing on a filesystem at all — the bundle bytes and the slice's own file map are
+/// the complete input. Every other external entry point ([`score_external_slice`],
+/// [`score_external_slice_bytes`], [`score_external_slice_files`]) reduces to this
+/// one, so a slice scores identically however its bytes were obtained.
 ///
 /// # Errors
-/// As [`report::score_slice_with_standard`].
-pub fn score_external_slice(
+/// As [`report::score_slice_files_with_standard`].
+pub fn score_external_slice_from_files(
     std: &BundleStandards,
-    slice_dir: &Path,
+    files: &std::collections::BTreeMap<String, Vec<u8>>,
 ) -> gmeow_errors::Result<report::SliceReport> {
-    report::score_slice_with_standard(
-        slice_dir,
+    report::score_slice_files_with_standard(
+        files,
         &std.standard,
         ScoringEnv::Bundle(std.gmn_dict.clone()),
     )
 }
 
-/// Score an external slice directory straight from bundle bytes — the one-slice
-/// convenience over [`BundleStandards::from_gts`] + [`score_external_slice`]. Prefer
-/// the two-step form when scoring many slices from one bundle (it flattens once).
+/// Score an external slice DIRECTORY against the standards flattened from a bundle
+/// (reuse one [`BundleStandards`] across many slices). Reads the bundle-carried
+/// standards + the external `slice_dir` ONLY — never a repo checkout. A thin on-disk
+/// convenience: it reads the directory into a file map and delegates to
+/// [`score_external_slice_from_files`].
+///
+/// # Errors
+/// As [`report::slice_files_from_dir`] and [`score_external_slice_from_files`].
+pub fn score_external_slice(
+    std: &BundleStandards,
+    slice_dir: &Path,
+) -> gmeow_errors::Result<report::SliceReport> {
+    score_external_slice_from_files(std, &report::slice_files_from_dir(slice_dir)?)
+}
+
+/// Score an external slice held in memory straight from bundle bytes — the one-slice
+/// convenience over [`BundleStandards::from_gts`] + [`score_external_slice_from_files`].
+/// The map twin of [`score_external_slice_bytes`], and the entry point a caller with
+/// no filesystem (a browser console, a server handling an upload, a tool reading git
+/// blobs) uses. Prefer the two-step form when scoring many slices from one bundle (it
+/// flattens the wheel once).
 ///
 /// # Errors
 /// HARD FAILS on a corrupt wheel (as [`BundleStandards::from_gts`]) or an unscorable
-/// slice (as [`score_external_slice`]).
+/// slice — including a map carrying no `manifest.ttl` (as
+/// [`report::slice_iri_of_files`]).
+pub fn score_external_slice_files(
+    bundle_gts: &[u8],
+    files: &std::collections::BTreeMap<String, Vec<u8>>,
+) -> gmeow_errors::Result<report::SliceReport> {
+    score_external_slice_from_files(&BundleStandards::from_gts(bundle_gts)?, files)
+}
+
+/// Score an external slice directory straight from bundle bytes — the on-disk twin of
+/// [`score_external_slice_files`]: read the directory into a file map
+/// ([`report::slice_files_from_dir`]) and delegate, so both share ONE scoring
+/// implementation. Prefer the two-step form when scoring many slices from one bundle.
+///
+/// # Errors
+/// HARD FAILS on a corrupt wheel (as [`BundleStandards::from_gts`]), an unreadable
+/// directory, or an unscorable slice (as [`score_external_slice_files`]).
 pub fn score_external_slice_bytes(
     bundle_gts: &[u8],
     slice_dir: &Path,
 ) -> gmeow_errors::Result<report::SliceReport> {
-    score_external_slice(&BundleStandards::from_gts(bundle_gts)?, slice_dir)
+    score_external_slice_files(bundle_gts, &report::slice_files_from_dir(slice_dir)?)
 }
 
 #[cfg(test)]

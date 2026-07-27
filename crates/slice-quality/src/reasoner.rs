@@ -15,6 +15,10 @@
 //! — `rdf:type`, `rdfs:subClassOf`, `rdfs:domain`, characteristics, …).
 
 use std::collections::BTreeSet;
+// Paths are a TEST-ONLY concern in this module now: the axis itself reads every
+// slice-local file out of the in-memory `ScoreContext::files` map, while the
+// batch/scratch parity tests still assemble their comparands from the real checkout.
+#[cfg(test)]
 use std::path::{Path, PathBuf};
 #[cfg(test)]
 use std::sync::Arc;
@@ -305,16 +309,14 @@ fn counterexample_clash_check(ctx: &ScoreContext) -> ClashTally {
 
     // The class-disjointness the slice's SHACL shapes DECLARE — the Principle-17
     // projection of the canonical owl:disjointWith the reasoner must back.
-    let shapes_path = ctx.slice_dir.join("shapes.ttl");
-    let pairs = if shapes_path.is_file() {
-        crate::dataset_from_paths(&[&shapes_path])
+    let pairs = match ctx.bytes("shapes.ttl") {
+        Some(bytes) => crate::dataset_from_documents(&[("shapes.ttl", bytes)])
             .map(|ds| shacl_declared_disjoint_pairs(&ds))
-            .unwrap_or_default()
-    } else {
-        BTreeSet::new()
+            .unwrap_or_default(),
+        None => BTreeSet::new(),
     };
-    let files = counterexample_fixture_files(ctx);
-    if pairs.is_empty() || files.is_empty() {
+    let fixtures = counterexample_fixture_keys(ctx);
+    if pairs.is_empty() || fixtures.is_empty() {
         return ClashTally {
             population: 0,
             clashing: 0,
@@ -322,11 +324,12 @@ fn counterexample_clash_check(ctx: &ScoreContext) -> ClashTally {
         };
     }
 
-    let module = ctx.slice_dir.join("module.ttl");
+    let module = ctx.bytes("module.ttl");
     let mut population = 0usize;
     let mut clashing = 0usize;
-    for fixture_path in &files {
-        let Ok(fixture_ds) = crate::dataset_from_paths(&[fixture_path]) else {
+    for fixture_key in &fixtures {
+        let fixture_bytes = ctx.files[*fixture_key].as_slice();
+        let Ok(fixture_ds) = crate::dataset_from_documents(&[(*fixture_key, fixture_bytes)]) else {
             continue;
         };
         let cotyped = cotyped_disjoint(&fixture_ds, &pairs);
@@ -336,12 +339,12 @@ fn counterexample_clash_check(ctx: &ScoreContext) -> ClashTally {
         population += 1;
 
         // Reason module + this ONE fixture: the co-typing must force a DL clash.
-        let mut refs: Vec<&Path> = Vec::new();
-        if module.is_file() {
-            refs.push(module.as_path());
+        let mut docs: Vec<(&str, &[u8])> = Vec::new();
+        if let Some(module) = module {
+            docs.push(("module.ttl", module));
         }
-        refs.push(fixture_path.as_path());
-        let clashes = crate::dataset_from_paths(&refs)
+        docs.push((*fixture_key, fixture_bytes));
+        let clashes = crate::dataset_from_documents(&docs)
             .ok()
             .and_then(|edb| dl_consistency(&edb).ok())
             .is_some_and(|v| !v.consistent || !v.unsatisfiable_classes.is_empty());
@@ -350,9 +353,12 @@ fn counterexample_clash_check(ctx: &ScoreContext) -> ClashTally {
             clashing += 1;
         } else {
             let (indiv, a, b) = &cotyped[0];
-            let fname = fixture_path
-                .file_name()
-                .and_then(|n| n.to_str())
+            // The fixture's bare file name, as the on-disk `Path::file_name` predecessor
+            // reported it: the key is a forward-slash relative path, so the tail after
+            // the last separator is exactly that name.
+            let fname = fixture_key
+                .rsplit('/')
+                .next()
                 .unwrap_or("<counter-example>");
             findings.push(advisory(
                 "slice-quality.reasoner.counterexample-no-clash",
@@ -422,8 +428,13 @@ fn shacl_declared_disjoint_pairs(shapes: &RdfDataset) -> BTreeSet<(String, Strin
 /// The slice's OWN counter-example fixture files: the `gmeow:exampleFile` of every
 /// `gmeow:ExampleConformance` cell whose `gmeow:expectedOutcome` is `gmeow:violates`
 /// (the discovered counter-example convention — see `tests/example-conformance.ttl`).
-/// Paths are resolved against the slice dir; sorted, deduped, existing files only.
-fn counterexample_fixture_files(ctx: &ScoreContext) -> Vec<PathBuf> {
+///
+/// `gmeow:exampleFile` is authored SLICE-RELATIVE with forward slashes, which is
+/// exactly the file map's key shape, so the "resolve against the slice dir" step is
+/// now a direct key lookup. Sorted (a `BTreeSet` of the authored literals), deduped,
+/// and filtered to keys the slice actually ships — the map twin of the previous
+/// `is_file()` filter.
+fn counterexample_fixture_keys<'a>(ctx: &'a ScoreContext<'a>) -> Vec<&'a str> {
     let ds = ctx.graph;
     let g = |local: &str| format!("{GMEOW}{local}");
     let (Some(type_p), Some(ec), Some(outcome_p), Some(violates), Some(file_p)) = (
@@ -451,8 +462,7 @@ fn counterexample_fixture_files(ctx: &ScoreContext) -> Vec<PathBuf> {
         }
     }
     rels.into_iter()
-        .map(|rel| ctx.slice_dir.join(rel))
-        .filter(|p| p.is_file())
+        .filter_map(|rel| ctx.files.get_key_value(&rel).map(|(key, _)| key.as_str()))
         .collect()
 }
 

@@ -40,6 +40,14 @@ impl Fixture {
             std::process::id()
         ));
         std::fs::create_dir_all(dir.join("mappings")).unwrap();
+        // A real slice directory declares its identity in a manifest; the fixture is read
+        // through the same `slice_files_from_dir` entry point production uses.
+        std::fs::write(
+            dir.join("manifest.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://blackcatinformatics.ca/gmeow/slices/fixture> a gmeow:Slice .\n",
+        )
+        .unwrap();
         // A minimal explicitly-owned term so ScoreContext::new has a term set.
         std::fs::write(
             dir.join("module.ttl"),
@@ -57,11 +65,14 @@ impl Fixture {
     fn score(&self) -> AxisScoreView {
         let module = self.dir.join("module.ttl");
         let ds = gmeow_slice_quality::dataset_from_paths(&[module.as_path()]).unwrap();
+        let files = gmeow_slice_quality::report::slice_files_from_dir(&self.dir).unwrap();
         let ctx = ScoreContext::new(
             "https://blackcatinformatics.ca/gmeow/slices/fixture".to_owned(),
-            self.dir.clone(),
+            &files,
             &ds,
-            ScoringEnv::Repo,
+            ScoringEnv::Repo {
+                slice_dir: self.dir.clone(),
+            },
         );
         let primitive = axes::resolve("linkage_axis").unwrap();
         let s = primitive(&ctx);

@@ -2011,11 +2011,15 @@ impl DocsModel {
     /// aggregate cells authored across many slices, so they belong to no single
     /// slice); they resolve each slice-authored linkage's `sssom_file` to its set
     /// IRI and are documented alongside the slice-owned sets.
-    /// Native-only: builds the model by scanning the repo/catalog off disk. The
-    /// browser engine receives its model from the shipped `gmeow.gts` bundle, so
-    /// it never walks a filesystem. Gating rather than substituting an empty
-    /// catalog on wasm: a silently untranslated model is capability degradation.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Reads the repo/catalog off disk, so it is meaningful only on a host that HAS a
+    /// checkout — but it is compiled on every target rather than `cfg`-gated away. The
+    /// distinction matters: a caller reaches these entries only by asking for the
+    /// repo-anchored environment (`gmeow_slice_quality::score::ScoringEnv::Repo`), which
+    /// names a surrounding checkout as its input. On a target with no filesystem that
+    /// request fails with the REAL I/O error, which is an honest hard failure of a
+    /// capability the caller explicitly selected — never a silent fallback to an empty
+    /// catalog, and never a compile-time hole that forces every consumer crate to
+    /// duplicate the same target gate.
     pub fn from_catalog(
         catalog: &SliceCatalog,
         ownership: &OwnershipReport,
@@ -2472,11 +2476,15 @@ impl DocsModel {
     /// [`discover_with_manifest_and_catalog`](Self::discover_with_manifest_and_catalog)
     /// instead, so the model reflects THIS run's freshly-computed products rather than
     /// lagging one regenerate behind (the stale-disk-fold class).
-    /// Native-only: builds the model by scanning the repo/catalog off disk. The
-    /// browser engine receives its model from the shipped `gmeow.gts` bundle, so
-    /// it never walks a filesystem. Gating rather than substituting an empty
-    /// catalog on wasm: a silently untranslated model is capability degradation.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Reads the repo/catalog off disk, so it is meaningful only on a host that HAS a
+    /// checkout — but it is compiled on every target rather than `cfg`-gated away. The
+    /// distinction matters: a caller reaches these entries only by asking for the
+    /// repo-anchored environment (`gmeow_slice_quality::score::ScoringEnv::Repo`), which
+    /// names a surrounding checkout as its input. On a target with no filesystem that
+    /// request fails with the REAL I/O error, which is an honest hard failure of a
+    /// capability the caller explicitly selected — never a silent fallback to an empty
+    /// catalog, and never a compile-time hole that forces every consumer crate to
+    /// duplicate the same target gate.
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
         let manifest = read_term_manifest(root)?;
         Self::discover_with_manifest_map(root, manifest, CatalogSource::Disk)
@@ -2494,11 +2502,15 @@ impl DocsModel {
     /// Shares the whole discovery body with [`discover`](Self::discover) via
     /// [`discover_with_manifest_map`](Self::discover_with_manifest_map); only the
     /// manifest and catalog sources differ.
-    /// Native-only: builds the model by scanning the repo/catalog off disk. The
-    /// browser engine receives its model from the shipped `gmeow.gts` bundle, so
-    /// it never walks a filesystem. Gating rather than substituting an empty
-    /// catalog on wasm: a silently untranslated model is capability degradation.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Reads the repo/catalog off disk, so it is meaningful only on a host that HAS a
+    /// checkout — but it is compiled on every target rather than `cfg`-gated away. The
+    /// distinction matters: a caller reaches these entries only by asking for the
+    /// repo-anchored environment (`gmeow_slice_quality::score::ScoringEnv::Repo`), which
+    /// names a surrounding checkout as its input. On a target with no filesystem that
+    /// request fails with the REAL I/O error, which is an honest hard failure of a
+    /// capability the caller explicitly selected — never a silent fallback to an empty
+    /// catalog, and never a compile-time hole that forces every consumer crate to
+    /// duplicate the same target gate.
     pub fn discover_with_manifest_and_catalog(
         root: &Path,
         manifest_bytes: &[u8],
@@ -2519,11 +2531,15 @@ impl DocsModel {
     /// would force). The per-term content manifest stays disk-sourced and tolerant
     /// ([`read_term_manifest`] returns an empty map when absent), because it is
     /// provenance-only and likewise does not feed the coverage fraction.
-    /// Native-only: builds the model by scanning the repo/catalog off disk. The
-    /// browser engine receives its model from the shipped `gmeow.gts` bundle, so
-    /// it never walks a filesystem. Gating rather than substituting an empty
-    /// catalog on wasm: a silently untranslated model is capability degradation.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Reads the repo/catalog off disk, so it is meaningful only on a host that HAS a
+    /// checkout — but it is compiled on every target rather than `cfg`-gated away. The
+    /// distinction matters: a caller reaches these entries only by asking for the
+    /// repo-anchored environment (`gmeow_slice_quality::score::ScoringEnv::Repo`), which
+    /// names a surrounding checkout as its input. On a target with no filesystem that
+    /// request fails with the REAL I/O error, which is an honest hard failure of a
+    /// capability the caller explicitly selected — never a silent fallback to an empty
+    /// catalog, and never a compile-time hole that forces every consumer crate to
+    /// duplicate the same target gate.
     pub fn discover_with_catalog(root: &Path, catalog_bytes: &[u8]) -> Result<Self, DocsError> {
         let manifest = read_term_manifest(root)?;
         Self::discover_with_manifest_map(root, manifest, CatalogSource::Live(catalog_bytes))
@@ -2535,11 +2551,15 @@ impl DocsModel {
     /// product in [`discover_with_manifest_and_catalog`](Self::discover_with_manifest_and_catalog))
     /// and sourcing the constraint catalog per `catalog` (disk in [`discover`](Self::discover),
     /// live stage bytes in the in-pipeline entry points).
-    /// Native-only: builds the model by scanning the repo/catalog off disk. The
-    /// browser engine receives its model from the shipped `gmeow.gts` bundle, so
-    /// it never walks a filesystem. Gating rather than substituting an empty
-    /// catalog on wasm: a silently untranslated model is capability degradation.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Reads the repo/catalog off disk, so it is meaningful only on a host that HAS a
+    /// checkout — but it is compiled on every target rather than `cfg`-gated away. The
+    /// distinction matters: a caller reaches these entries only by asking for the
+    /// repo-anchored environment (`gmeow_slice_quality::score::ScoringEnv::Repo`), which
+    /// names a surrounding checkout as its input. On a target with no filesystem that
+    /// request fails with the REAL I/O error, which is an honest hard failure of a
+    /// capability the caller explicitly selected — never a silent fallback to an empty
+    /// catalog, and never a compile-time hole that forces every consumer crate to
+    /// duplicate the same target gate.
     fn discover_with_manifest_map(
         root: &Path,
         manifest: BTreeMap<String, TermProvenance>,
@@ -2621,9 +2641,15 @@ impl DocsModel {
     /// attach. The STATIC [`loss_targets`](Self::loss_targets) discovered from the
     /// slice's own `examples/*.ttl` still populate, so `applicable_lossy` remains
     /// driven honestly by the slice's authored content.
-    /// Native-only: walks a slice directory. Task 1.7 gives the browser path a
-    /// bytes-map equivalent; until then the wasm engine has no directory to walk.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Reads the repo/catalog off disk, so it is meaningful only on a host that HAS a
+    /// checkout — but it is compiled on every target rather than `cfg`-gated away. The
+    /// distinction matters: a caller reaches these entries only by asking for the
+    /// repo-anchored environment (`gmeow_slice_quality::score::ScoringEnv::Repo`), which
+    /// names a surrounding checkout as its input. On a target with no filesystem that
+    /// request fails with the REAL I/O error, which is an honest hard failure of a
+    /// capability the caller explicitly selected — never a silent fallback to an empty
+    /// catalog, and never a compile-time hole that forces every consumer crate to
+    /// duplicate the same target gate.
     pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
         let catalog = SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab())?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;

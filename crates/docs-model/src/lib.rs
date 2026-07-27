@@ -19,10 +19,9 @@
 pub mod badge;
 pub mod card;
 pub mod coverage;
-// describe/i18n_compile reach `gmeow_validate::{language_tags, distinctiveness}`,
-// which that crate gates native-only (its Wikidata/HTTP-adjacent half). Mirror
-// the gate here rather than widening validate's wasm surface: nothing in the
-// browser engine's path needs either module.
+// `describe` reaches into `gmeow_validate`'s native-only half (its Wikidata/HTTP-adjacent
+// surface). Mirror that gate here rather than widening validate's wasm surface: nothing in
+// the browser engine's path needs it.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod describe;
 pub mod error;
@@ -30,7 +29,12 @@ pub mod exec;
 pub mod formats;
 pub mod gmn1_primer;
 pub mod i18n;
-#[cfg(not(target_arch = "wasm32"))]
+// The developer i18n authoring/compile family. Compiled on EVERY target: its only
+// non-wasm-clean-looking import was `gmeow_validate::distinctiveness`, which is itself
+// wasm-clean (pure `std::collections` computation) and no longer gated. The `std::fs`
+// entry points here are inert on wasm rather than absent, and the browser-side
+// slice-quality translation axis reads the PURE half (`parse_po`,
+// `counts_as_reviewed_coverage`, `LOCALIZABLE_PREDICATES`, `expand_predicate`).
 pub mod i18n_compile;
 pub mod llms;
 pub mod maturity;

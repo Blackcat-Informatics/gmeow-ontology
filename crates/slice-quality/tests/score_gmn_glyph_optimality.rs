@@ -62,9 +62,10 @@ ex:form a lang:WordForm .
     // Fixture-scale scoring supplies the complete audit graph directly, matching the
     // embedded-bundle path. Repo mode is exercised separately below because it must
     // assemble the canonical lang authority from a real checkout.
+    let files = std::collections::BTreeMap::new();
     let context = ScoreContext::new(
         slice_iri.to_owned(),
-        PathBuf::new(),
+        &files,
         &dataset,
         ScoringEnv::Bundle(Arc::new(GmnDictionary::default())),
     );
@@ -104,7 +105,15 @@ ex:target a owl:ObjectProperty ; rdfs:isDefinedBy <{SLICE}> .
         "gmeow-missing-glyph-authority-{}/slices/test-glyphs",
         std::process::id()
     ));
-    let context = ScoreContext::new(SLICE.to_owned(), missing_root, &dataset, ScoringEnv::Repo);
+    let files = std::collections::BTreeMap::new();
+    let context = ScoreContext::new(
+        SLICE.to_owned(),
+        &files,
+        &dataset,
+        ScoringEnv::Repo {
+            slice_dir: missing_root,
+        },
+    );
 
     let result = axes::resolve("gmn_glyph_optimality_axis").expect("axis is registered")(&context);
 
@@ -146,7 +155,16 @@ fn real_math_slice_glyph_optimality_is_perfect() {
     let path_refs: Vec<&std::path::Path> = paths.iter().map(PathBuf::as_path).collect();
     let ds = gmeow_slice_quality::dataset_from_paths(&path_refs).expect("math slice loads");
     let slice_iri = gmeow_slice_quality::slice_iri_of_dir(&math_dir).expect("math slice IRI");
-    let ctx = ScoreContext::new(slice_iri, math_dir, &ds, ScoringEnv::Repo);
+    let files =
+        gmeow_slice_quality::report::slice_files_from_dir(&math_dir).expect("math slice files");
+    let ctx = ScoreContext::new(
+        slice_iri,
+        &files,
+        &ds,
+        ScoringEnv::Repo {
+            slice_dir: math_dir,
+        },
+    );
 
     let result = axes::resolve("gmn_glyph_optimality_axis").expect("axis is registered")(&ctx);
     assert_eq!(

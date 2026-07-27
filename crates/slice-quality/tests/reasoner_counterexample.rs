@@ -56,6 +56,16 @@ impl Fixture {
             .as_nanos();
         dir.push(format!("gmeow-ce-{name}-{}-{nanos}", std::process::id()));
         std::fs::create_dir_all(dir.join("tests/counter-examples")).unwrap();
+        // A real slice directory declares its identity in a manifest; the fixture is read
+        // through the same `slice_files_from_dir` entry point production uses.
+        std::fs::write(
+            dir.join("manifest.ttl"),
+            format!(
+                "{PREFIXES}\n\
+                 <https://blackcatinformatics.ca/gmeow/slices/fixture> a gmeow:Slice .\n"
+            ),
+        )
+        .unwrap();
 
         let disjoint = if with_axiom {
             "gmeow:InterpretationAct owl:disjointWith gmeow:Observation .\n"
@@ -125,11 +135,14 @@ impl Fixture {
             self.fixture.as_path(),
         ])
         .unwrap();
+        let files = gmeow_slice_quality::report::slice_files_from_dir(&self.dir).unwrap();
         let ctx = ScoreContext::new(
             "https://blackcatinformatics.ca/gmeow/slices/fixture".to_owned(),
-            self.dir.clone(),
+            &files,
             &ds,
-            ScoringEnv::Repo,
+            ScoringEnv::Repo {
+                slice_dir: self.dir.clone(),
+            },
         );
         let s = reasoner_axis(&ctx);
         View {
@@ -216,6 +229,16 @@ fn structural_only_counterexample_is_not_a_logical_obligation() {
         std::process::id()
     ));
     std::fs::create_dir_all(dir.join("tests/counter-examples")).unwrap();
+    // A real slice directory declares its identity in a manifest; the fixture is read
+    // through the same `slice_files_from_dir` entry point production uses.
+    std::fs::write(
+        dir.join("manifest.ttl"),
+        format!(
+            "{PREFIXES}\n\
+             <https://blackcatinformatics.ca/gmeow/slices/fixture> a gmeow:Slice .\n"
+        ),
+    )
+    .unwrap();
     // No shapes.ttl at all → no declared class-disjointness.
     std::fs::write(
         dir.join("module.ttl"),
@@ -245,11 +268,14 @@ fn structural_only_counterexample_is_not_a_logical_obligation() {
         fixture.as_path(),
     ])
     .unwrap();
+    let files = gmeow_slice_quality::report::slice_files_from_dir(&dir).unwrap();
     let ctx = ScoreContext::new(
         "https://blackcatinformatics.ca/gmeow/slices/fixture".to_owned(),
-        dir.clone(),
+        &files,
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     );
     let s = reasoner_axis(&ctx);
 

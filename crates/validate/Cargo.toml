@@ -38,6 +38,19 @@ gmeow-errors = { path = "../errors" }
 # CBOR reader for the bundle blob metadata: `Graph::blob_meta` values are
 # `ciborium::value::Value`, read to resolve a blob by its `rep` label.
 ciborium = "0.2"
+# SHA-256: content-addressed validation cache keys (parity with Python hashlib) AND
+# the advisory/abductive tiers' claim fingerprints. Compiled on EVERY target because
+# the advisory + abductive producers are wasm-clean (pure `gmeow_errors` + `purrdf`
+# + this hash) and the browser-runnable MCP `validate_local` / `advise` surface
+# carries them.
+sha2 = "0.10"
+# The canonical validation-shape IR + the shape-subsumption enforcement pre-order
+# (equivalent/subsumes/residue_normal_form): the equivalence ORACLE (`shape_oracle`)
+# inverts the SHACL emitter over this IR and decides equivalence via the subsumption
+# lattice, and the abductive tier reconstructs a `logic:Formula` through its frontend.
+# Comparison-only; never wired into a slices/** writer. Compiled on every target —
+# it is itself the flagship wasm-clean crate.
+gmeow-logic-compile = { path = "../logic-compile" }
 
 # Native-only dependencies: the slice-authoring dev gate, repo-lint guards, DSL
 # phases, and the Tier-2 `--deep` reasoner path. None of these cross-compile to wasm
@@ -59,8 +72,6 @@ jsonschema = { version = "0.46", default-features = false }
 # YAML instance parsing: serde_yaml deserializes straight into serde_json::Value,
 # so a YAML instance validates identically to its JSON twin.
 serde_yaml = "0.9"
-# SHA-256 for content-addressed validation cache keys (parity with Python hashlib).
-sha2 = "0.10"
 # Data parallelism: the per-example SHACL pass (the dominant cost of `validate`) is
 # embarrassingly parallel across the ~100 slice examples, and the three DSL SHACL
 # phases are independent — both fan out over rayon against the shared read-only store.
@@ -77,11 +88,6 @@ gmeow-license = { path = "../license" }
 # (`gmeow_logic::reason::reason_all`) and reads the shared logic:ReasoningResult.
 # The edge remains acyclic because logic does not depend on validate.
 gmeow-logic = { path = "../logic" }
-# The canonical validation-shape IR + the shape-subsumption enforcement
-# pre-order (equivalent/subsumes/residue_normal_form): the equivalence ORACLE
-# (`shape_oracle`) inverts the SHACL emitter over this IR and decides equivalence via
-# the subsumption lattice. Comparison-only; never wired into a slices/** writer.
-gmeow-logic-compile = { path = "../logic-compile" }
 # The reusable exact-rational geometry engine: the native math: dimension gate
 # reuses its exact `Rational` (the single source of truth, no duplicate rational
 # type), and the math:Norm conformance gate computes a norm/distance THROUGH its

@@ -26,7 +26,7 @@ use regex::Regex;
 
 use crate::counting;
 use crate::graph::{self, all_iris, all_lits, g, id, instances_of, one_lit};
-use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};
+use crate::score::{AxisScore, FileText, ScoreContext, ScoringEnv, advisory};
 
 /// A measurement primitive: score the slice and surface advisories.
 pub type Primitive = fn(&ScoreContext) -> AxisScore;
@@ -553,33 +553,17 @@ const IDENTITY_ALIGN_PREDICATES: &[&str] = &[
 /// `logic:Correspondence` lens. Only THIS slice's directory is read, so every record found
 /// is slice-owned (single-slice scope — the metric never advises on another slice's surface).
 fn correspondence_surface(ctx: &ScoreContext) -> Option<std::sync::Arc<RdfDataset>> {
-    let mut paths = Vec::new();
-    let module = ctx.slice_dir.join("module.ttl");
-    if module.is_file() {
-        paths.push(module);
+    // Key order reproduces the sorted-path order the on-disk predecessor used: every
+    // `mappings/…` key sorts before `module.ttl` under both a component-wise `Path`
+    // sort and a byte-wise string sort ('a' < 'o'), so the union order is unchanged.
+    let mut docs = ctx.docs_under("mappings/", ".ttl", true);
+    if let Some(module) = ctx.bytes("module.ttl") {
+        docs.push(("module.ttl", module));
     }
-    collect_mapping_ttl(&ctx.slice_dir.join("mappings"), &mut paths);
-    if paths.is_empty() {
+    if docs.is_empty() {
         return None;
     }
-    paths.sort();
-    let refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
-    crate::dataset_from_paths(&refs).ok()
-}
-
-/// Collect every `.ttl` under a mappings directory, recursively.
-fn collect_mapping_ttl(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
-    let Ok(rd) = std::fs::read_dir(dir) else {
-        return;
-    };
-    for e in rd.flatten() {
-        let p = e.path();
-        if p.is_dir() {
-            collect_mapping_ttl(&p, out);
-        } else if p.extension().is_some_and(|x| x == "ttl") {
-            out.push(p);
-        }
-    }
+    crate::dataset_from_documents(&docs).ok()
 }
 
 /// True if the `gmeow:hasBinding` object `binding` is a lawful FACT-rename binding — its
@@ -825,7 +809,7 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     // carries per-slice migration debt for a future quality pass to discharge. This is advisory —
     // the shapes stay live/enforced until the slice's constraints are migrated (equivalence before
     // deletion); the finding is the tracked pressure, not a gate.
-    if ctx.slice_dir.join("shapes.ttl").is_file() {
+    if ctx.has("shapes.ttl") {
         findings.push(advisory(
             "slice-quality.projection.hand-authored-shapes",
             "this slice ships a hand-authored shapes.ttl (a second source of truth): migrate its \
@@ -850,7 +834,7 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
             .is_some_and(|p| graph::predicate_used(ds, p));
     if has_constraints {
         expected += 1;
-        if !ctx.slice_dir.join("shapes.ttl").is_file() {
+        if !ctx.has("shapes.ttl") {
             present += 1;
         }
     }
@@ -858,7 +842,7 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     let links_out = !external_alignment_surface(ctx).is_empty();
     if links_out {
         expected += 1;
-        if ctx.slice_dir.join("mappings/equivalences.ttl").is_file() {
+        if ctx.has("mappings/equivalences.ttl") {
             present += 1;
         } else {
             findings.push(advisory(
@@ -901,14 +885,10 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
 /// grounding, no bridge subtraction), so the measured score here is bit-identical to
 /// before the refactor.
 fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
-    let shapes_path = ctx.slice_dir.join("shapes.ttl");
-    if !shapes_path.is_file() {
+    let Some(bytes) = ctx.bytes("shapes.ttl") else {
         return AxisScore::clean(1.0); // no authored shape surface → nothing to migrate
-    }
-    let Ok(bytes) = std::fs::read(&shapes_path) else {
-        return AxisScore::clean(1.0);
     };
-    let Ok(ds) = purrdf::parse_dataset(&bytes, "text/turtle", None) else {
+    let Ok(ds) = purrdf::parse_dataset(bytes, "text/turtle", None) else {
         // A malformed shapes.ttl surfaces as a validation error on another gate, not here.
         return AxisScore::clean(1.0);
     };
@@ -954,8 +934,20 @@ fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
 /// rewards exhaustive name lists rather than test behaviour.
 fn test_corpus(ctx: &ScoreContext) -> String {
     let mut buf = String::new();
-    for sub in ["tests", "queries"] {
-        collect_text(&ctx.slice_dir.join(sub), &mut buf);
+    for sub in ["tests/", "queries/"] {
+        for ext in [".ttl", ".rq"] {
+            for (_, bytes) in ctx.docs_under(sub, ext, true) {
+                // A cell that is not valid UTF-8 is skipped, exactly as the on-disk
+                // `read_to_string` predecessor skipped any file it could not read: this
+                // corpus is a substring-search haystack, and an undecodable cell has no
+                // term mention to contribute. It cannot fake COVERAGE either — a term
+                // only counts as reached when some readable cell names it.
+                if let Ok(text) = std::str::from_utf8(bytes) {
+                    buf.push_str(text);
+                    buf.push('\n');
+                }
+            }
+        }
     }
     strip_non_executing_test_mentions(&buf)
 }
@@ -1035,23 +1027,6 @@ fn strip_non_executing_test_mentions(corpus: &str) -> String {
     }
 
     String::from_utf8(bytes).expect("test corpus remains UTF-8 after ASCII-region redaction")
-}
-
-fn collect_text(dir: &std::path::Path, buf: &mut String) {
-    let Ok(rd) = std::fs::read_dir(dir) else {
-        return;
-    };
-    for e in rd.flatten() {
-        let p = e.path();
-        if p.is_dir() {
-            collect_text(&p, buf);
-        } else if p.extension().is_some_and(|x| x == "ttl" || x == "rq")
-            && let Ok(t) = std::fs::read_to_string(&p)
-        {
-            buf.push_str(&t);
-            buf.push('\n');
-        }
-    }
 }
 
 /// The meta-level reasoning-carrier class excluded from the testing-axis denominator
@@ -1140,8 +1115,8 @@ fn documentation_axis(ctx: &ScoreContext) -> AxisScore {
     let mut findings = Vec::new();
 
     checks += 1;
-    match std::fs::read_to_string(ctx.slice_dir.join("docs.md")) {
-        Ok(md) => {
+    match ctx.text("docs.md") {
+        FileText::Present(md) => {
             let prose: usize = md
                 .lines()
                 .filter(|l| !l.trim_start().starts_with('#') && !l.trim_start().starts_with("<!--"))
@@ -1157,7 +1132,12 @@ fn documentation_axis(ctx: &ScoreContext) -> AxisScore {
                 ));
             }
         }
-        Err(_) => findings.push(advisory(
+        // Absent and undecodable both land here BY DESIGN, preserving the on-disk
+        // predecessor exactly: it matched a bare `Err(_)` from `read_to_string`, which
+        // already folded `NotFound` and `InvalidData` into this one advisory. Neither
+        // can score the check as passed, so the shortfall is surfaced either way; the
+        // two are not silently equated anywhere a caller could act on the difference.
+        FileText::Absent | FileText::Invalid(_) => findings.push(advisory(
             "slice-quality.documentation.no-docs",
             "the slice ships no docs.md.".to_owned(),
         )),
@@ -1219,7 +1199,7 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     let mut lang_cov = vec![1.0_f64];
     let mut findings = Vec::new();
     for (tag, stem) in TRANSLATION_LANGS {
-        let po = ctx.slice_dir.join(format!("i18n/{stem}.po"));
+        let po_key = format!("i18n/{stem}.po");
         // Covered (term, full-predicate) pairs: catalog entries that count as
         // REVIEWED coverage under the single shared policy
         // (`counts_as_reviewed_coverage`) — a real (non-empty) msgstr that is NOT
@@ -1229,13 +1209,14 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
         // non-fuzzy entries that fail integrity are `rejected` (copied English).
         let mut rejected = 0usize;
         let mut seeded = 0usize;
-        let covered: HashSet<(String, String)> = match std::fs::read_to_string(&po) {
+        let covered: HashSet<(String, String)> = match ctx.text(&po_key) {
             // A genuinely-absent catalog legitimately means no coverage for this language.
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => HashSet::new(),
-            // Any OTHER read error (permission, transient I/O) is a broken input, not honest
-            // absence: surface it as a finding and force zero coverage for this language,
-            // never a silent empty set that would fake a clean score.
-            Err(e) => {
+            FileText::Absent => HashSet::new(),
+            // A catalog the slice DOES ship but whose bytes are not text is a broken input,
+            // not honest absence — the map twin of the on-disk "any other read error" arm:
+            // surface it as a finding and force zero coverage for this language, never a
+            // silent empty set that would fake a clean score.
+            FileText::Invalid(e) => {
                 findings.push(advisory(
                     "slice-quality.translation.read-error",
                     format!("{tag} catalog i18n/{stem}.po failed to read: {e}"),
@@ -1243,7 +1224,7 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                 lang_cov.push(0.0);
                 continue;
             }
-            Ok(text) => {
+            FileText::Present(text) => {
                 // A PRESENT catalog is required input: a malformed one is surfaced as a
                 // finding with zero coverage for this language, never a silent skip that
                 // would fake a score.
@@ -1257,7 +1238,7 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                 // surfaced as an advisory (never silently trusted or ignored) — and a malformed
                 // catalog remains a hard parse-error with zero coverage for this language.
                 let language = (*tag).to_string();
-                match language_from_po(&text) {
+                match language_from_po(text) {
                     Ok(Some(header)) => {
                         let primary = header
                             .split(['_', '-'])
@@ -1286,7 +1267,7 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                         continue;
                     }
                 }
-                let entries = match parse_po(&text, false) {
+                let entries = match parse_po(text, false) {
                     Ok(entries) => entries,
                     Err(e) => {
                         findings.push(advisory(
@@ -1453,19 +1434,18 @@ fn gmn1_dictionary(root: &std::path::Path) -> Option<GmnDictionary> {
 /// The slice's own GMN-0 source surface: `module.ttl` plus every (non-recursive)
 /// `examples/*.ttl` — module + examples ONLY, never `tests/`, mirroring both this
 /// axis's own `skos:definition` and the Task-6 grounding gate's identical scope.
-fn gmn1_coverage_source_paths(slice_dir: &Path) -> Vec<std::path::PathBuf> {
-    let mut paths = vec![slice_dir.join("module.ttl")];
-    if let Ok(rd) = std::fs::read_dir(slice_dir.join("examples")) {
-        for e in rd.flatten() {
-            let p = e.path();
-            if p.extension().is_some_and(|x| x == "ttl") {
-                paths.push(p);
-            }
-        }
+///
+/// Key order reproduces the sorted-path order the on-disk predecessor produced
+/// (`examples/…` before `module.ttl`), and the `examples/` sweep stays SINGLE-LEVEL,
+/// matching the non-recursive `read_dir` it replaces: a nested
+/// `examples/sub/foo.ttl` was outside the measured surface before and stays outside
+/// it, so the coverage denominator is unchanged.
+fn gmn1_coverage_source_documents<'a>(ctx: &'a ScoreContext<'a>) -> Vec<(&'a str, &'a [u8])> {
+    let mut docs = ctx.docs_under("examples/", ".ttl", false);
+    if let Some(module) = ctx.bytes("module.ttl") {
+        docs.push(("module.ttl", module));
     }
-    paths.retain(|p| p.is_file());
-    paths.sort();
-    paths
+    docs
 }
 
 /// GMN-1 coverage: the fraction of a slice's own GMN-0 normal-form vocabulary
@@ -1488,8 +1468,8 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
         // Repo mode is the verbatim pre-seam behaviour: resolve the repo root, read
         // the shared on-disk dictionary, and carry the tolerant no-repo-root /
         // no-dictionary advisories (a malformed checkout other structural gates catch).
-        ScoringEnv::Repo => {
-            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+        ScoringEnv::Repo { slice_dir } => {
+            let Some(root) = repo_root_of(slice_dir) else {
                 return AxisScore {
                     score: 1.0,
                     findings: vec![advisory(
@@ -1516,12 +1496,11 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
         ScoringEnv::Bundle(dict) => dict.as_ref(),
     };
 
-    let paths = gmn1_coverage_source_paths(&ctx.slice_dir);
-    if paths.is_empty() {
+    let docs = gmn1_coverage_source_documents(ctx);
+    if docs.is_empty() {
         return AxisScore::clean(1.0); // no GMN-0 source content → vacuously covered
     }
-    let path_refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
-    let Ok(ds) = crate::dataset_from_paths(&path_refs) else {
+    let Ok(ds) = crate::dataset_from_documents(&docs) else {
         // A malformed source surfaces as a validation error on another gate, not here.
         return AxisScore::clean(1.0);
     };
@@ -1574,8 +1553,8 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
     // its supplied graph already carries the assembled audit closure.
     let repo_graph;
     let ds = match &ctx.env {
-        ScoringEnv::Repo => {
-            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+        ScoringEnv::Repo { slice_dir } => {
+            let Some(root) = repo_root_of(slice_dir) else {
                 return gmn_audit_graph_unavailable(
                     "the slice directory has no resolvable slices/ path prefix",
                 );
@@ -1587,7 +1566,10 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
                     lang_module.display()
                 ));
             }
-            let mut paths = crate::report::slice_ttl_paths(&ctx.slice_dir);
+            // Repo-anchored arm: the audit authority is a CHECKOUT file, so this arm
+            // assembles the join off the same checkout the authority came from rather
+            // than mixing an in-memory slice with an on-disk authority.
+            let mut paths = crate::report::slice_ttl_paths(slice_dir);
             if !paths.contains(&lang_module) {
                 paths.push(lang_module);
             }
@@ -2021,8 +2003,8 @@ fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
     // slice's own graph self-containedly. `advisory_constraint_terms` returns owned sets, so
     // the dataset need not outlive the arm (no deferred placeholder binding).
     let (avoidwhen_terms, usewhen_terms) = match &ctx.env {
-        ScoringEnv::Repo => {
-            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+        ScoringEnv::Repo { slice_dir } => {
+            let Some(root) = repo_root_of(slice_dir) else {
                 return AxisScore {
                     score: 1.0,
                     findings: vec![advisory(
@@ -2097,6 +2079,21 @@ fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
 mod tests {
     use super::*;
 
+    /// A slice that ships no files at all — the right map for a graph-only axis test
+    /// (nothing here reads a slice-local file, so an empty map is the honest input,
+    /// not a stand-in for one).
+    fn no_files() -> BTreeMap<String, Vec<u8>> {
+        BTreeMap::new()
+    }
+
+    /// The repo scoring environment anchored at `slice_dir` — the checkout path the
+    /// repo-scoped arms walk up from.
+    fn repo_env(slice_dir: &str) -> ScoringEnv {
+        ScoringEnv::Repo {
+            slice_dir: std::path::PathBuf::from(slice_dir),
+        }
+    }
+
     #[test]
     fn resolve_maps_group_a_producers() {
         for key in IMPLEMENTED {
@@ -2147,12 +2144,8 @@ mod tests {
              gmeow:Baz a owl:Class ; rdfs:isDefinedBy <{slice}> ; gmeow:avoidWhen \"avoid Baz\"@en .\n"
         );
         let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
-        let ctx = ScoreContext::new(
-            slice.to_owned(),
-            std::path::PathBuf::from("/tmp/testslice"),
-            &ds,
-            ScoringEnv::Repo,
-        );
+        let files = no_files();
+        let ctx = ScoreContext::new(slice.to_owned(), &files, &ds, repo_env("/tmp/testslice"));
         let prose = slice_advice_prose(&ctx);
         assert_eq!(
             prose.len(),
@@ -2190,11 +2183,14 @@ mod tests {
         let kernel_dir = repo.join("slices/core/kernel");
         let module = kernel_dir.join("module.ttl");
         let ds = crate::dataset_from_paths(&[module.as_path()]).expect("kernel module parses");
+        let files = crate::report::slice_files_from_dir(&kernel_dir).expect("kernel slice files");
         let ctx = ScoreContext::new(
             "https://blackcatinformatics.ca/gmeow/slices/kernel".to_owned(),
-            kernel_dir,
+            &files,
             &ds,
-            ScoringEnv::Repo,
+            ScoringEnv::Repo {
+                slice_dir: kernel_dir,
+            },
         );
         let result = advice_coverage_axis(&ctx);
         assert!(
@@ -2241,10 +2237,12 @@ mod tests {
              gmeow:BarAvoid a logic:Constraint ; logic:severity \"Info\" ; logic:formalizes gmeow:Bar .\n"
         );
         let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
-        // Bundle mode reads ctx.graph for BOTH per-field sets (the dict is unused here).
+        // Bundle mode reads ctx.graph for BOTH per-field sets (the dict is unused here),
+        // and carries NO directory at all — the point of the map-shaped context.
+        let files = no_files();
         let ctx = ScoreContext::new(
             slice.to_owned(),
-            std::path::PathBuf::from("/tmp/testslice"),
+            &files,
             &ds,
             ScoringEnv::Bundle(std::sync::Arc::new(
                 gmeow_lang_bridge::GmnDictionary::default(),
@@ -2365,27 +2363,24 @@ ex:CarrierTwo a logic:PropertyCharacteristicAssertion ; rdfs:isDefinedBy slice:d
 
         // A test corpus that names only the exercised domain term (and, adversarially,
         // one carrier — which must still be excluded regardless of being "reached").
-        let dir =
-            std::env::temp_dir().join(format!("slice-quality-testing-axis-{}", std::process::id()));
-        let tests_dir = dir.join("tests");
-        std::fs::create_dir_all(&tests_dir).expect("create temp tests dir");
-        std::fs::write(
-            tests_dir.join("competency.rq"),
-            "ASK { ex:ExercisedTerm rdfs:subClassOf ex:CarrierOne . }\n",
-        )
-        .expect("write temp test cell");
+        // The cell is an ordinary map entry: the testing axis reads its corpus straight
+        // out of `ctx.files`, so no temp directory is needed to exercise it.
+        let mut files = no_files();
+        files.insert(
+            "tests/competency.rq".to_owned(),
+            b"ASK { ex:ExercisedTerm rdfs:subClassOf ex:CarrierOne . }\n".to_vec(),
+        );
 
         let ctx = ScoreContext::new(
             "https://blackcatinformatics.ca/gmeow/slices/demo".to_owned(),
-            dir.clone(),
+            &files,
             &ds,
-            ScoringEnv::Repo,
+            repo_env("/nonexistent/slices/demo"),
         );
         // slice_terms is untouched: it still sees all four typed, owned subjects.
         assert_eq!(ctx.terms.len(), 4, "slice_terms counts carriers globally");
 
         let score = testing_axis(&ctx);
-        std::fs::remove_dir_all(&dir).ok();
 
         // Denominator excludes the two carriers → 2 scoreable domain terms, 1 reached.
         assert!(

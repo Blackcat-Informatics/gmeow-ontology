@@ -318,10 +318,10 @@ impl From<TranslationsDto> for Translations {
 impl Translations {
     /// Build the index from every translation catalog in the slice catalog, and
     /// the BCP-47 → internal-tag map read from the language slice's module.
-    /// Native-only: reads `.po` catalogs off disk through `i18n_compile`, which
-    /// itself sits behind the same gate (it reaches `gmeow_validate`'s native
-    /// half). The browser engine ships prebuilt translations, never a catalog scan.
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Reads `.po` catalogs off disk, so it is meaningful only where a checkout
+    /// exists. Compiled on every target rather than gated away: the caller reaches it
+    /// only by asking for a repo-anchored model, and on a target with no filesystem
+    /// that request must fail with the REAL I/O error rather than vanish from the API.
     pub fn from_catalog(catalog: &SliceCatalog) -> Self {
         use crate::i18n_compile::{expand_predicate, language_from_po, parse_po};
 
@@ -910,8 +910,8 @@ impl UiCatalog {
     ///
     /// The msgctxt of each entry is `"ontology-docs-template|<key>"` (matching the
     /// legacy POT format); the language is read from each catalog's header.
-    /// Native-only: takes a filesystem path. See [`Translations::from_catalog`].
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Takes a filesystem path. See [`Translations::from_catalog`] for why it is
+    /// compiled on every target rather than gated away.
     pub fn from_dir(dir: &std::path::Path) -> Self {
         use crate::i18n_compile::{language_from_po, parse_po};
 

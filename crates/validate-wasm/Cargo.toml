@@ -28,10 +28,12 @@ gmeow-validate = { path = "../validate" }
 # The GMN-1 codec + graph-derived dictionary/glyph registry + the typed
 # `lang:LangConformanceFailure` classifier (`Gmn1Error::failure_class`). The
 # `gmn_validate` entrypoint reads a GMN-1 document via `gmn1_read` against the EMBEDDED
-# codebook. This path is reasoner-free (`cargo tree` proves no gmeow-logic/oxigraph/…),
-# and the crate's tiktoken-rs glyph-cost analytics are `cfg(not(wasm32))`-gated off, so
-# only the codec + dictionary + purrdf RDF core (rayon allowed) reach the wasm image.
-gmeow-lang-bridge = { path = "../lang-bridge" }
+# codebook. This path is reasoner-free (`cargo tree` proves no gmeow-logic/oxigraph/…).
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature: this crate
+# never measures a glyph's token cost, so its ~1.7 MB embedded BPE vocabulary
+# (tiktoken-rs) has no business in the validator image. That opt-out — not a target gate
+# — is what the `make wasm` purity gate's "no tiktoken-rs in the wasm tree" check proves.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 # The ONE canonical RDF parser: the embedded codebook `module.ttl` is parsed via
 # `purrdf::parse_dataset` (Turtle) to build the `GmnDictionary` — never a second parser.
 purrdf.workspace = true

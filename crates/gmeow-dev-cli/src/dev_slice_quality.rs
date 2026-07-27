@@ -134,7 +134,13 @@ pub fn slice_quality(
         Ok(r) => r.standard,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
-    match score_slice_with_standard(&dir, &standard, ScoringEnv::Repo) {
+    match score_slice_with_standard(
+        &dir,
+        &standard,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
+    ) {
         Ok(report) => {
             match render(&report, format) {
                 Ok(text) => print!("{text}"),

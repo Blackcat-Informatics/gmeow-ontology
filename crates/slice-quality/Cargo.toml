@@ -53,6 +53,15 @@ gmeow-lang-bridge = { path = "../lang-bridge" }
 # the parallel scoring fan-out is compiled out there and the dependency with it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rayon = "1"
+# tempfile: native-only, and used by exactly one axis arm. The scorer reads a slice
+# from an in-memory file map, but the documentation model it consumes is built by
+# `purrdf`'s `SliceCatalog`, which has no in-memory constructor (private fields;
+# `discover` / `from_slice_dir` are `&Path` + `std::fs` readers). The external
+# `DocMaturity` arm therefore stages the map back into a temp directory and calls the
+# SAME real loader, keeping the off-repo score byte-for-byte what it was rather than
+# forking a second, divergent documentation model. On wasm32 there is no filesystem to
+# stage into, so both the arm and this dependency are compiled out.
+tempfile = "3"
 
 [dev-dependencies]
 pretty_assertions = "1"

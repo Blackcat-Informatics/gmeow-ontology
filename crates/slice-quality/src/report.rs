@@ -4,6 +4,7 @@
 //! End-to-end slice scoring: assemble the slice graph, run every rubric axis, and
 //! build the assessment + the advisory report on the diagnostics substrate.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_errors::{Finding, Report, Rule, Severity, Standpoint, seed_codes};
@@ -109,7 +110,32 @@ pub struct SliceReport {
     axis_weight: std::collections::HashMap<String, f64>,
 }
 
-/// Discover a slice's ontology IRI from its `manifest.ttl` (`a gmeow:Slice`).
+/// The slice-relative key of a slice's manifest — the ONE file that carries the
+/// slice's ontology identity, and therefore the one whose absence is a hard error
+/// rather than a scored shortfall.
+pub const MANIFEST_KEY: &str = "manifest.ttl";
+
+/// Extract the `gmeow:Slice` ontology IRI from already-parsed manifest bytes.
+///
+/// The SINGLE manifest-IRI extraction implementation: both the on-disk resolver
+/// ([`slice_iri_of`]) and the file-map resolver ([`slice_iri_of_files`]) call it, so
+/// the two entry points can never diverge on WHICH `gmeow:Slice` individual is the
+/// slice's identity (`instances_of` is sorted, so "the first" is deterministic).
+/// `source` names the manifest in the diagnostic — a path for the disk caller, the
+/// map key for the in-memory caller.
+fn slice_iri_from_manifest(manifest_bytes: &[u8], source: &str) -> gmeow_errors::Result<String> {
+    let ds = crate::dataset_from_documents(&[(source, manifest_bytes)])?;
+    instances_of(&ds, &graph::g("Slice"))
+        .into_iter()
+        .next()
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Report {
+                detail: format!("{source} declares no gmeow:Slice"),
+            })
+        })
+}
+
+/// Discover a slice's ontology IRI from its on-disk `manifest.ttl` (`a gmeow:Slice`).
 ///
 /// `pub(crate)` so [`crate::measure_repo_residues`] (the projection-ceiling seed's
 /// and gate's shared residue-measurement helper) resolves the same slice IRI this
@@ -117,22 +143,124 @@ pub struct SliceReport {
 /// re-implementation that could silently diverge on IRI choice.
 pub(crate) fn slice_iri_of(slice_dir: &Path) -> gmeow_errors::Result<String> {
     let manifest = slice_dir.join("manifest.ttl");
-    let ds = crate::dataset_from_paths(&[&manifest])?;
-    instances_of(&ds, &graph::g("Slice"))
-        .into_iter()
-        .next()
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Report {
-                detail: format!("{} declares no gmeow:Slice", manifest.display()),
-            })
+    let bytes = std::fs::read(&manifest).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: {e}", manifest.display()),
         })
+    })?;
+    slice_iri_from_manifest(&bytes, &manifest.display().to_string())
+}
+
+/// Discover a slice's ontology IRI from an IN-MEMORY file map — the map twin of
+/// [`slice_iri_of`], sharing its one [`slice_iri_from_manifest`] extraction core.
+///
+/// A map carrying no [`MANIFEST_KEY`] is a HARD ERROR, and the message names
+/// `manifest.ttl` explicitly: identity is not a scored axis that can degrade to a
+/// vacuous default, it is the precondition for scoring anything at all, and a caller
+/// that forgot to include the manifest in its map must be told exactly which key is
+/// missing rather than handed a mysterious "declares no gmeow:Slice".
+///
+/// # Errors
+/// Hard-fails when the map carries no `manifest.ttl`, when those bytes do not parse
+/// as Turtle, or when they declare no `gmeow:Slice`.
+pub fn slice_iri_of_files(files: &BTreeMap<String, Vec<u8>>) -> gmeow_errors::Result<String> {
+    let bytes = files.get(MANIFEST_KEY).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Report {
+            detail: format!(
+                "the slice file map carries no {MANIFEST_KEY} — a slice's ontology identity is \
+                 read from its {MANIFEST_KEY}, so it is a required entry, never an optional one"
+            ),
+        })
+    })?;
+    slice_iri_from_manifest(bytes, MANIFEST_KEY)
+}
+
+/// Read a slice directory into the in-memory file map the scorer consumes: every
+/// regular file under `slice_dir`, keyed by its slice-relative FORWARD-SLASH path.
+///
+/// The sweep is the WHOLE subtree rather than a hand-listed set of directories, for
+/// two reasons. First, it is trivially a superset of every path any axis asks for
+/// (`manifest.ttl`, `module.ttl`, `shapes.ttl`, `docs.md`, `examples/`, `tests/`,
+/// `queries/`, `i18n/`, `mappings/`) — a new axis reading a new file cannot silently
+/// score against an absent entry because the map author forgot to widen a list.
+/// Second, `DocMaturity`'s external arm rebuilds a real slice tree from this map and
+/// hands it to `purrdf`'s artifact discovery, which itself walks the entire subtree:
+/// anything short of the whole tree would make an off-repo documentation model differ
+/// from the on-disk one it is supposed to reproduce.
+///
+/// The sweep is guarded by a `manifest.ttl` precondition: a slice directory is BY
+/// DEFINITION one that carries a manifest ([`crate::discover_slice_dirs`] uses the
+/// same test), and checking it before recursing is what stops a caller that pointed
+/// at an arbitrary directory (`/etc`, a home directory, a whole checkout) from having
+/// its entire subtree slurped into memory before failing on identity anyway. It is a
+/// presence test, not a second manifest parser — [`slice_iri_of_files`] remains the
+/// one identity authority.
+///
+/// # Errors
+/// Hard-fails if `slice_dir` carries no `manifest.ttl`, if the directory cannot be
+/// walked, or if any file cannot be read — a slice that is present but unreadable is
+/// a broken input, never an empty map that would score as a clean, contentless slice.
+pub fn slice_files_from_dir(slice_dir: &Path) -> gmeow_errors::Result<BTreeMap<String, Vec<u8>>> {
+    fn walk(
+        root: &Path,
+        dir: &Path,
+        out: &mut BTreeMap<String, Vec<u8>>,
+    ) -> gmeow_errors::Result<()> {
+        let entries = std::fs::read_dir(dir).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                detail: format!("{}: {e}", dir.display()),
+            })
+        })?;
+        for entry in entries {
+            let entry = entry.map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    detail: format!("{}: {e}", dir.display()),
+                })
+            })?;
+            let path = entry.path();
+            let file_type = entry.file_type().map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    detail: format!("{}: {e}", path.display()),
+                })
+            })?;
+            if file_type.is_dir() {
+                walk(root, &path, out)?;
+            } else if file_type.is_file() {
+                let rel = path.strip_prefix(root).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Io {
+                        detail: format!("{}: {e}", path.display()),
+                    })
+                })?;
+                let key = rel.to_string_lossy().replace('\\', "/");
+                let bytes = std::fs::read(&path).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Io {
+                        detail: format!("{}: {e}", path.display()),
+                    })
+                })?;
+                out.insert(key, bytes);
+            }
+        }
+        Ok(())
+    }
+    if !slice_dir.join(MANIFEST_KEY).is_file() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Report {
+            detail: format!(
+                "{} carries no {MANIFEST_KEY} — it is not a slice directory",
+                slice_dir.display()
+            ),
+        }));
+    }
+    let mut out = BTreeMap::new();
+    walk(slice_dir, slice_dir, &mut out)?;
+    Ok(out)
 }
 
 /// Every `.ttl` under `slice_dir`'s `module.ttl`, `examples/`, and `tests/` —
-/// deterministic (sorted), existing files only. The SINGLE authority for assembling
-/// a slice's own graph: the sweep, the pipeline carrier producer, and the scoring
-/// tests all collect a slice's Turtle through this one helper (no re-implemented,
-/// possibly-divergent path walk).
+/// deterministic (sorted), existing files only. The SINGLE authority for the PATH
+/// LIST of a slice's own Turtle: the pipeline's cache-input enumeration and the
+/// `slice-brief` loader both need the file paths themselves (a cache key is a path
+/// set, not a byte map), so this stays path-shaped. The scoring kernel reads the same
+/// file set out of the in-memory map via [`slice_ttl_documents`].
 pub fn slice_ttl_paths(slice_dir: &Path) -> Vec<PathBuf> {
     let mut paths = vec![slice_dir.join("module.ttl")];
     for sub in ["examples", "tests"] {
@@ -157,9 +285,38 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// Score `slice_dir` against an already-loaded measurement standard (the floor-free
-/// projection of the rubric; the sweep path reuses one) in the given scoring
-/// environment.
+/// The `(key, bytes)` documents that make up a slice's own graph — `module.ttl` plus
+/// every `.ttl` under `examples/` and `tests/`, in BTreeMap key order.
+///
+/// The map twin of [`slice_ttl_paths`], and the SINGLE authority the scoring kernel
+/// assembles a slice graph through. Key order reproduces the sorted-path order the
+/// path-based twin returns (`examples/…` < `module.ttl` < `tests/…` under both a
+/// component-wise `Path` sort and a byte-wise string sort), so the union order — and
+/// therefore the frozen dataset's term-interning order — is unchanged.
+#[must_use]
+pub fn slice_ttl_documents(files: &BTreeMap<String, Vec<u8>>) -> Vec<(&str, &[u8])> {
+    files
+        .iter()
+        .filter(|(key, _)| {
+            key.as_str() == "module.ttl"
+                || ((key.starts_with("examples/") || key.starts_with("tests/"))
+                    && key.ends_with(".ttl"))
+        })
+        .map(|(key, bytes)| (key.as_str(), bytes.as_slice()))
+        .collect()
+}
+
+/// Score the slice carried by `files` against an already-loaded measurement standard
+/// (the floor-free projection of the rubric; the sweep path reuses one) in the given
+/// scoring environment.
+///
+/// This is THE scoring implementation — every other entry point (the on-disk
+/// [`score_slice_with_standard`], the bundle-facing
+/// [`crate::score_external_slice_files`] and its directory twins) builds a file map
+/// and delegates here, so there is exactly one place a slice's grade is computed.
+/// `files` carries the slice's own bytes keyed by slice-relative forward-slash path;
+/// nothing here touches a filesystem, which is what lets the whole kernel run where
+/// there is none.
 ///
 /// Every rubric axis binds a measurement primitive; an axis whose producer the
 /// kernel does not implement is a hard error (never a silent skip). `env` decides
@@ -169,22 +326,50 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) {
 /// wheel (the consumer path — no repo around the slice).
 ///
 /// # Errors
-/// Returns a message if the standard or the slice graph cannot be loaded, or if the
-/// rubric names a producer with no implemented primitive.
+/// Returns a message if the map carries no `manifest.ttl`, if the slice graph cannot
+/// be parsed, or if the rubric names a producer with no implemented primitive.
+pub fn score_slice_files_with_standard(
+    files: &BTreeMap<String, Vec<u8>>,
+    standard: &MeasurementStandard,
+    env: ScoringEnv,
+) -> gmeow_errors::Result<SliceReport> {
+    let slice_iri = slice_iri_of_files(files)?;
+    let ds = crate::dataset_from_documents(&slice_ttl_documents(files))?;
+    // The scoring environment decides where the two repo-anchored axes source their
+    // wide-scope inputs; every in-repo caller passes `ScoringEnv::Repo` (byte-identical
+    // to the pre-seam behaviour), the consumer wheel passes `ScoringEnv::Bundle`.
+    let ctx = ScoreContext::new(slice_iri.clone(), files, &ds, env);
+    score_with_context(&ctx, &slice_iri, standard)
+}
+
+/// Score the slice at `slice_dir` — the on-disk convenience over
+/// [`score_slice_files_with_standard`]: read the directory into a file map
+/// ([`slice_files_from_dir`]) and delegate, so the disk path and the in-memory path
+/// are the same computation over the same bytes.
+///
+/// `slice_dir` supplies the slice's CONTENT; when `env` is [`ScoringEnv::Repo`] its
+/// own `slice_dir` supplies the CHECKOUT ANCHOR the repo-scoped axis arms walk up
+/// from. In-repo callers pass the same directory for both — they are the same slice —
+/// but the two roles are genuinely distinct, and only the second one is a repo fact.
+///
+/// # Errors
+/// As [`score_slice_files_with_standard`], plus a message if the directory cannot be
+/// read.
 pub fn score_slice_with_standard(
     slice_dir: &Path,
     standard: &MeasurementStandard,
     env: ScoringEnv,
 ) -> gmeow_errors::Result<SliceReport> {
-    let slice_iri = slice_iri_of(slice_dir)?;
-    let paths = slice_ttl_paths(slice_dir);
-    let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
-    let ds = crate::dataset_from_paths(&path_refs)?;
-    // The scoring environment decides where the two repo-anchored axes source their
-    // wide-scope inputs; every in-repo caller passes `ScoringEnv::Repo` (byte-identical
-    // to the pre-seam behaviour), the consumer wheel passes `ScoringEnv::Bundle`.
-    let ctx = ScoreContext::new(slice_iri.clone(), slice_dir.to_path_buf(), &ds, env);
+    let files = slice_files_from_dir(slice_dir)?;
+    score_slice_files_with_standard(&files, standard, env)
+}
 
+/// Run every axis in `standard` over `ctx` and assemble the ranked report.
+fn score_with_context(
+    ctx: &ScoreContext,
+    slice_iri: &str,
+    standard: &MeasurementStandard,
+) -> gmeow_errors::Result<SliceReport> {
     let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(standard.axes.len());
     // Each entry is (axis_iri, axis_weight, advice_kind, finding). `advice_kind`
     // ranks an axis-level template item ahead of that axis's per-term findings.
@@ -200,7 +385,7 @@ pub fn score_slice_with_standard(
                 ),
             })
         })?;
-        let result = primitive(&ctx);
+        let result = primitive(ctx);
         for f in result.findings {
             advisories.push((axis.iri.clone(), axis.weight, ADVICE_KIND_INSTANCE, f));
         }
@@ -245,7 +430,7 @@ pub fn score_slice_with_standard(
     }
     advisories.extend(templates);
 
-    let assessment = lattice::assess(&slice_iri, &scores, standard);
+    let assessment = lattice::assess(slice_iri, &scores, standard);
 
     // Rank advice: heaviest axis first, then group all advisories for the same axis
     // together (axis IRI tiebreak — otherwise two same-weight axes interleave and a

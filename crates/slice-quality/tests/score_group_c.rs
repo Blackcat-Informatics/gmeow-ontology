@@ -4,6 +4,7 @@
 //! Score the real rubric slice with the group-C primitives (linkage, projection,
 //! testing, documentation, translation).
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::axes;
@@ -28,19 +29,28 @@ fn slice_graph() -> std::sync::Arc<purrdf::RdfDataset> {
     gmeow_slice_quality::dataset_from_paths(&refs).unwrap()
 }
 
-fn ctx(ds: &purrdf::RdfDataset) -> ScoreContext<'_> {
+/// The slice's own files as the scorer now consumes them: an in-memory map keyed by
+/// slice-relative path, read once off the real slice directory.
+fn slice_files(dir: &Path) -> BTreeMap<String, Vec<u8>> {
+    gmeow_slice_quality::report::slice_files_from_dir(dir).expect("slice files read")
+}
+
+fn ctx<'a>(ds: &'a purrdf::RdfDataset, files: &'a BTreeMap<String, Vec<u8>>) -> ScoreContext<'a> {
     ScoreContext::new(
         "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric".to_owned(),
-        slice_dir(),
+        files,
         ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: slice_dir(),
+        },
     )
 }
 
 #[test]
 fn all_group_c_producers_yield_normalized_scores() {
     let ds = slice_graph();
-    let c = ctx(&ds);
+    let files = slice_files(&slice_dir());
+    let c = ctx(&ds, &files);
     for producer in [
         "linkage_axis",
         "projection_axis",
@@ -60,7 +70,8 @@ fn all_group_c_producers_yield_normalized_scores() {
 #[test]
 fn documentation_thesis_is_present() {
     let ds = slice_graph();
-    let doc = axes::resolve("documentation_axis").unwrap()(&ctx(&ds));
+    let files = slice_files(&slice_dir());
+    let doc = axes::resolve("documentation_axis").unwrap()(&ctx(&ds, &files));
     assert_eq!(
         doc.score, 1.0,
         "the rubric slice ships a narrative docs.md thesis"
@@ -72,7 +83,8 @@ fn translation_reflects_the_missing_mandarin_catalog_honestly() {
     // The slice ships fr.po but not (yet) zh.po, so translation must NOT be a
     // perfect 1.0 — the axis reports the real gap rather than smoothing it over.
     let ds = slice_graph();
-    let tr = axes::resolve("translation_axis").unwrap()(&ctx(&ds));
+    let files = slice_files(&slice_dir());
+    let tr = axes::resolve("translation_axis").unwrap()(&ctx(&ds, &files));
     assert!(
         tr.score < 1.0,
         "translation must reflect the missing Mandarin catalog, got {}",
@@ -102,6 +114,16 @@ fn literal_fixture(name: &str, translate_example: bool) -> (PathBuf, String) {
     std::fs::create_dir_all(dir.join("i18n")).unwrap();
 
     let slice_iri = "https://blackcatinformatics.ca/gmeow/slices/xlit".to_string();
+    // A real slice directory declares its identity in a manifest; the fixture is read
+    // through the same `slice_files_from_dir` entry point production uses.
+    std::fs::write(
+        dir.join("manifest.ttl"),
+        format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <{slice_iri}> a gmeow:Slice .\n"
+        ),
+    )
+    .unwrap();
     let term = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
     std::fs::write(
         dir.join("module.ttl"),
@@ -152,9 +174,11 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
     let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri,
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ));
     assert!(
         tr.score < 1.0,
@@ -168,9 +192,11 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
     let ds2 = gmeow_slice_quality::dataset_from_paths(&[&dir2.join("module.ttl")]).unwrap();
     let tr2 = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri2,
-        dir2.clone(),
+        &slice_files(&dir2),
         &ds2,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir2.clone(),
+        },
     ));
     assert_eq!(
         tr2.score, 1.0,
@@ -213,9 +239,11 @@ fn translation_axis_does_not_credit_copied_english() {
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
     let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri,
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ));
     assert_eq!(
         tr.score,
@@ -269,9 +297,11 @@ fn mislabeled_catalog_header_cannot_credit_copied_english() {
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
     let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri,
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ));
     assert_eq!(
         tr.score,
@@ -299,9 +329,11 @@ fn fuzzy_entry_does_not_count_toward_coverage() {
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
     let full = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri.clone(),
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ));
     assert_eq!(
         full.score, 1.0,
@@ -324,9 +356,11 @@ fn fuzzy_entry_does_not_count_toward_coverage() {
 
     let gated = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri,
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ));
     assert!(
         gated.score < full.score,
@@ -358,9 +392,11 @@ fn removing_fuzzy_flag_raises_coverage() {
     std::fs::write(dir.join("i18n/fr.po"), &seeded).unwrap();
     let before = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri.clone(),
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ))
     .score;
 
@@ -368,9 +404,11 @@ fn removing_fuzzy_flag_raises_coverage() {
     std::fs::write(dir.join("i18n/fr.po"), seeded.replace("#, fuzzy\n", "")).unwrap();
     let after = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri,
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ))
     .score;
 
@@ -402,9 +440,11 @@ fn zh_po_without_language_header_still_gets_cmn_integrity() {
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
     let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
         iri,
-        dir.clone(),
+        &slice_files(&dir),
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
     ));
     assert!(
         tr.findings

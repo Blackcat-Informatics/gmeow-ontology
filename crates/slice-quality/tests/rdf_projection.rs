@@ -27,7 +27,13 @@ fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
     let module = root.join("slices/core/slice-quality-rubric/module.ttl");
     let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
     let standard = gmeow_slice_quality::rubric::load_rubric(&ds)?.standard;
-    score_slice_with_standard(dir, &standard, ScoringEnv::Repo)
+    score_slice_with_standard(
+        dir,
+        &standard,
+        ScoringEnv::Repo {
+            slice_dir: dir.to_path_buf(),
+        },
+    )
 }
 
 #[test]

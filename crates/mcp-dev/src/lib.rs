@@ -41,6 +41,27 @@
 //! * Everything here needs a checkout. A tool that does NOT need one belongs in
 //!   `gmeow-mcp`, on the consumer surface.
 //! * Nothing depends on this crate except a launcher that already has a checkout.
+//!
+//! # Direct dependencies
+//!
+//! The list below is the crate's complete direct dependency set — it must set-equal
+//! `cargo tree -p gmeow-mcp-dev --depth 1 -e normal`, and the
+//! `documented_dependencies` gate in `crates/mcp/tests/` asserts exactly that, naming
+//! the symmetric difference in both directions when it drifts. Each entry carries the
+//! reason it is here:
+//!
+//! * `gmeow-mcp` — the consumer MCP engine: the server, the bundle view, and the
+//!   [`Extension`] seam these four tools register through. Every consumer tool is
+//!   inherited unchanged.
+//! * `gmeow-pipeline` — the build executor: `run::run_full` + `run::RunMode` are what
+//!   the `validate` and `sync` tools ARE. This single edge is the whole reason the dev
+//!   tools were split out of `gmeow-mcp`.
+//! * `gmeow-logic` — the native reasoner: the `reason` tool runs
+//!   [`gmeow_logic::reason::reason_all`] over the bundle's folded carrier graph.
+//! * `gmeow-errors` — the diagnostic substrate: the dev tools raise typed `DiagKind`s
+//!   as `Diag`s, on the same content-bound catalog as every other crate.
+//! * `serde_json` — the MCP wire format: the tool descriptors and every result
+//!   envelope.
 
 pub mod error;
 

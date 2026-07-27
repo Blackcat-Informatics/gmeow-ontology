@@ -37,10 +37,13 @@ pub mod gmn_metrics;
 pub mod gmn_migrate;
 pub mod gmn_verbalize;
 // The glyph-cost analytics module depends on `tiktoken-rs` (a ~1.7 MB embedded BPE
-// vocabulary), which is excluded from the wasm32 target — it feeds cost analytics, never
-// the wasm-clean GMN-1 validator path (`gmn1_read`). Gated in lockstep with its sole
-// dependency so the wasm build links without the vocabulary.
-#[cfg(not(target_arch = "wasm32"))]
+// vocabulary). Gated on the `glyph-cost` FEATURE (on by default) in lockstep with its sole
+// dependency, not on the target: the primitive cross-compiles to wasm32 fine, so a
+// consumer that genuinely measures glyph cost (`gmeow-slice-quality`) keeps it on EVERY
+// target, and only the two GMN wasm shims that never call it — which read the pinned
+// `GLYPH_TOKEN_COSTS` legend or nothing at all — select it out to keep the vocabulary out
+// of their image.
+#[cfg(feature = "glyph-cost")]
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -76,7 +79,7 @@ pub use gmn_migrate::{
     header_schema_major, reemit_migrated_document, resolved_schema_version, source_operator_table,
     tag_schema_version,
 };
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "glyph-cost")]
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use gmn_verbalize::{
     GmnOperatorForm, VerbalizeError, VerbalizedPair, build_verbalization_pairs, parse_nl,
