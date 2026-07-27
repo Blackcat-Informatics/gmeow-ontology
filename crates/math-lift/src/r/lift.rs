@@ -2933,7 +2933,7 @@ fn named_or_positional<'a>(args: &'a [Arg], name: &str, index: usize) -> Option<
 }
 
 /// The n-th POSITIONAL argument, ignoring named ones — R's own argument-matching order.
-fn positional_argument<'a>(args: &'a [Arg], index: usize) -> Option<&'a RExpr> {
+fn positional_argument(args: &[Arg], index: usize) -> Option<&RExpr> {
     args.iter()
         .filter(|a| a.name.is_none())
         .nth(index)
