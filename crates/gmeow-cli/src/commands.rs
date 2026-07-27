@@ -5750,3 +5750,51 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path) -> i32 {
     }
     0
 }
+
+/// `gmeow logic refine` — bounded means–end search with an honest completeness status.
+pub fn logic_refine(
+    reporter: &dyn Reporter,
+    input: &Path,
+    task: &str,
+    fragment: &str,
+    budget: u32,
+) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-refine";
+    let rows = match logic_derive(reporter, input, CODE) {
+        Ok(r) => r,
+        Err(rc) => return rc,
+    };
+
+    let result = gmeow_logic::refine(task, &rows, fragment, budget);
+
+    match &result.status {
+        gmeow_logic::RefineStatus::UnsupportedFragment { condition } => {
+            // Out of fragment is a REFUSAL, not a thin result: exiting 0 with an empty
+            // candidate list would read as "no decomposition exists", which is a
+            // different and much more comforting claim than "your method set does not
+            // terminate".
+            return fail(
+                reporter,
+                CODE,
+                format!(
+                    "method set is outside the declared search fragment <{fragment}>: \
+                     {condition}. No budget increase would help; the method set needs \
+                     fixing."
+                ),
+            );
+        }
+        gmeow_logic::RefineStatus::CompleteForFragment => {
+            println!("status:      CLOSED (complete for fragment <{fragment}>)");
+        }
+        gmeow_logic::RefineStatus::IncompleteByBudget { budget } => {
+            println!("status:      INCOMPLETE — budget of {budget} method applications exhausted");
+            println!("             The candidates below are real, but this roster is NOT closed.");
+        }
+    }
+    println!("expansions:  {}", result.expansions);
+    println!("candidates:  {}", result.candidates.len());
+    for (i, c) in result.candidates.iter().enumerate() {
+        println!("  [{i}] {}", c.join(" -> "));
+    }
+    0
+}

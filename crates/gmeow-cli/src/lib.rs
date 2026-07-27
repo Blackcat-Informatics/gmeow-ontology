@@ -769,6 +769,29 @@ pub enum LogicCommands {
         #[arg(long = "why-not")]
         why_not: Option<String>,
     },
+    /// Run a BOUNDED means-end search over the authored logic:DecompositionMethod set
+    /// and print the candidate decompositions with an honest completeness status.
+    ///
+    /// The status is the point. A closed roster, a roster cut short by the budget, and a
+    /// method set outside the declared decidable fragment are three different answers,
+    /// and only the first may be treated as exhaustive.
+    Refine {
+        /// An RDF file carrying the logic:DecompositionMethod set.
+        input: PathBuf,
+        /// The task IRI to decompose.
+        #[arg(long = "task")]
+        task: String,
+        /// Maximum method applications. Exhausting it yields an incomplete-by-budget
+        /// result, never a silently truncated roster presented as closed.
+        #[arg(long = "budget", default_value_t = 1000)]
+        budget: u32,
+        /// The declared logic:SearchFragment IRI.
+        #[arg(
+            long = "fragment",
+            default_value = "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod"
+        )]
+        fragment: String,
+    },
     /// Print the external-effect saga status for an enactment: what was intended, what
     /// was attempted, what came back, and — when an outcome is undetermined — what is
     /// owed before anything else may happen.
@@ -1262,6 +1285,12 @@ pub fn run() -> i32 {
             LogicCommands::Frontier { input, why_not } => {
                 commands::logic_frontier(reporter, &input, why_not.as_deref())
             }
+            LogicCommands::Refine {
+                input,
+                task,
+                budget,
+                fragment,
+            } => commands::logic_refine(reporter, &input, &task, &fragment, budget),
             LogicCommands::Saga { input } => commands::logic_saga(reporter, &input),
             LogicCommands::Backward {
                 program_file,

@@ -147,3 +147,95 @@ e:receipt2 a logic:ExternalEffectReceipt ; logic:receiptOfAttempt e:attempt2 .
         .stdout(predicate::str::contains("RECONCILIATION"))
         .stdout(predicate::str::contains("duplicate effect"));
 }
+
+/// The three search outcomes must stay three. A budget cut invites a bigger budget; an
+/// out-of-fragment method set invites an authoring fix; only a complete run may be read
+/// as exhaustive. Collapsing any pair of them sends an operator to the wrong remedy.
+const METHODS: &str = r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:top a logic:DecompositionMethod ; logic:methodDecomposes e:ingest ; logic:methodYields e:ocr , e:store .
+e:sub a logic:DecompositionMethod ; logic:methodDecomposes e:ocr ; logic:methodYields e:extract , e:verify .
+e:alt a logic:DecompositionMethod ; logic:methodDecomposes e:ocr ; logic:methodYields e:quickExtract .
+"#;
+
+fn write(dir: &tempfile::TempDir, name: &str, body: &str) -> std::path::PathBuf {
+    let p = dir.path().join(name);
+    fs::write(&p, body).expect("write fixture");
+    p
+}
+
+#[test]
+fn refine_returns_a_closed_roster_when_the_search_exhausts() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(&dir, "methods.ttl", METHODS);
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            p.to_str().expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/clitest/ingest",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("CLOSED"))
+        // Two methods decompose ex:ocr, so both alternatives must survive: a search that
+        // returned one would be quietly picking a plan on the operator's behalf.
+        .stdout(predicate::str::contains("candidates:  2"));
+}
+
+#[test]
+fn refine_under_a_cut_says_the_roster_is_not_closed() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(&dir, "methods.ttl", METHODS);
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            p.to_str().expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/clitest/ingest",
+            "--budget",
+            "1",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("INCOMPLETE"))
+        .stdout(predicate::str::contains("NOT closed"))
+        .stdout(predicate::str::contains("CLOSED").not());
+}
+
+#[test]
+fn refine_refuses_an_out_of_fragment_method_set_rather_than_reporting_a_thin_result() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(
+        &dir,
+        "cyclic.ttl",
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:a a logic:DecompositionMethod ; logic:methodDecomposes e:t ; logic:methodYields e:u .
+e:b a logic:DecompositionMethod ; logic:methodDecomposes e:u ; logic:methodYields e:t .
+"#,
+    );
+    // Exiting 0 with an empty candidate list would read as "no decomposition exists",
+    // which is a different and far more comforting claim than "your method set does not
+    // terminate" — so this must FAIL, and say which task closes the loop.
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            p.to_str().expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/clitest/t",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "outside the declared search fragment",
+        ))
+        .stderr(predicate::str::contains("decomposition cycle"))
+        // The remedy must be named: a budget increase cannot fix a cycle.
+        .stderr(predicate::str::contains("No budget increase would help"));
+}

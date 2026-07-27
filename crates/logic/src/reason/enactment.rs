@@ -52,6 +52,8 @@
 //! runtime condition a caller could recover from — hence the loud failure, exactly as
 //! [`super::math_gate`] does for its own embedded asset.
 
+pub(crate) mod search;
+
 use std::sync::OnceLock;
 
 use purrdf::{RdfDataset, RdfQuad};
