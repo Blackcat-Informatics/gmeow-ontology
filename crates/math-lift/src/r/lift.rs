@@ -505,7 +505,7 @@ impl Lift<'_> {
         // call, so a script mixing it with real statistics still lifts. Refusing the whole
         // script because one call was not the shape we expected is what made
         // `t.test(x, y)` an unliftable ingest.
-        if MODEL_FITTERS.contains(&name.as_str()) && self.is_model_fit(args) {
+        if MODEL_FITTERS.contains(&name.as_str()) && self.is_model_fit(&name, args) {
             return self.emit_fit(&name, model_estimator(&name), args);
         }
         if DATASET_FUNCTIONS.contains(&name.as_str()) {
@@ -623,7 +623,7 @@ impl Lift<'_> {
                 ))
             })?;
 
-        let Some(data) = named_or_positional(args, "data", 1) else {
+        let Some(data) = fit_data_argument(function, args) else {
             return Err(unliftable(format!(
                 "`{function}(…)` names no data to fit to, so the math:FittedModel it would \
                  produce cannot satisfy the min-1 math:fittedToData restriction (a min-1 OWL \
@@ -1168,14 +1168,14 @@ impl Lift<'_> {
     ///
     /// This is what separates `coxph(Surv(t, e) ~ x, data = d)` from `plot(y ~ x)`: both
     /// take a formula, only one fits a model to data.
-    fn is_model_fit(&self, args: &[Arg]) -> bool {
+    fn is_model_fit(&self, function: &str, args: &[Arg]) -> bool {
         let has_formula =
             named_or_positional(args, "formula", 0).is_some_and(|e| match e.unparenthesized() {
                 RExpr::Formula(_) => true,
                 RExpr::Ident(name) => self.formula_env.contains_key(name),
                 _ => false,
             });
-        has_formula && named_or_positional(args, "data", 1).is_some()
+        has_formula && fit_data_argument(function, args).is_some()
     }
 
     /// The `math:Estimator` a fit used.
@@ -2680,6 +2680,42 @@ fn binary_operator_slug(op: BinaryOp) -> &'static str {
     }
 }
 
+/// The positional index of a fitter's `data` argument, when it has one.
+///
+/// R signatures differ and the difference is load-bearing: `lm(formula, data, …)` puts data
+/// at 1, but `glm(formula, family, data, …)` puts FAMILY at 1. Reading position 1 for every
+/// fitter bound `binomial` as the dataset and orphaned the real one — `math:fittedToData`
+/// pointing at a distribution family is a false statement in the shipped graph, and `glm` is
+/// among the most used fitters in R.
+///
+/// `None` means the call has no positional data slot at all, so only an explicit `data =`
+/// binds. That is the honest default for a fitter this list does not describe: guessing an
+/// index is what produced the defect.
+fn data_position(function: &str) -> Option<usize> {
+    match function {
+        // formula, data, …
+        "lm" | "aov" | "nls" | "loess" | "gls" | "lme" | "lmer" | "glmer" | "nlmer" | "coxph"
+        | "survreg" | "survfit" | "rlm" | "lqs" | "polr" | "multinom" | "rpart"
+        | "randomForest" | "ranger" | "ctree" | "cforest" | "svm" | "naiveBayes" | "lda"
+        | "qda" | "t.test" | "wilcox.test" | "var.test" => Some(1),
+        // formula, family, data, …
+        "glm" | "gam" | "bam" | "gamm" | "glm.nb" => Some(2),
+        // formula, distribution, data, …
+        "gbm" => Some(2),
+        // formula, random, family, data, …
+        "glmmPQL" => Some(3),
+        _ => None,
+    }
+}
+
+/// The `data` argument of a fit call, by name or by the callee's own signature position.
+fn fit_data_argument<'a>(function: &str, args: &'a [Arg]) -> Option<&'a RExpr> {
+    if let Some(named) = named_argument(args, "data") {
+        return Some(named);
+    }
+    data_position(function).and_then(|i| positional_argument(args, i))
+}
+
 /// R calls that FIT A MODEL to data.
 ///
 /// A positive list, and deliberately so. `math:FittedModel`'s obligations (a formula and
@@ -2789,6 +2825,14 @@ fn named_or_positional<'a>(args: &'a [Arg], name: &str, index: usize) -> Option<
     if let Some(found) = named_argument(args, name) {
         return Some(found);
     }
+    args.iter()
+        .filter(|a| a.name.is_none())
+        .nth(index)
+        .and_then(|a| a.value.as_ref())
+}
+
+/// The n-th POSITIONAL argument, ignoring named ones — R's own argument-matching order.
+fn positional_argument<'a>(args: &'a [Arg], index: usize) -> Option<&'a RExpr> {
     args.iter()
         .filter(|a| a.name.is_none())
         .nth(index)
@@ -3910,6 +3954,39 @@ mod tests {
         let a = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         let b = lift(MTCARS.as_bytes(), BASE).expect("lifts").turtle;
         assert_eq!(a, b, "the lift is idempotent: no clock, no counter");
+    }
+
+    #[test]
+    fn positional_data_binds_by_the_callees_own_signature() {
+        // R signatures differ where it matters: `lm(formula, data, …)` puts data at
+        // positional 1, `glm(formula, family, data, …)` puts FAMILY there. Reading position
+        // 1 for every fitter bound `binomial` as the dataset and orphaned the real one — a
+        // math:FittedModel whose math:fittedToData is a distribution family is a false
+        // statement in the shipped graph.
+        //
+        // 298 tests passed with that bug: not one exercised a POSITIONAL data argument.
+        for (src, expected) in [
+            ("fit <- lm(mpg ~ wt, mtcars)\n", "mtcars"),
+            ("fit <- glm(cured ~ dose, binomial, trial)\n", "trial"),
+            ("fit <- gam(y ~ x, poisson, trial)\n", "trial"),
+            ("fit <- gbm(y ~ x, \"bernoulli\", trial)\n", "trial"),
+        ] {
+            let ttl = turtle(src);
+            let fitted: Vec<&str> = ttl
+                .lines()
+                .filter(|l| l.contains(&math("fittedToData")))
+                .filter_map(|l| l.split_whitespace().nth(2))
+                .collect();
+            assert_eq!(fitted.len(), 1, "{src} → {ttl}");
+            let label = ttl
+                .lines()
+                .find(|l| l.starts_with(fitted[0]) && l.contains(RDFS_LABEL))
+                .unwrap_or_else(|| panic!("the dataset carries a label:\n{ttl}"));
+            assert!(
+                label.contains(expected),
+                "{src} must fit to `{expected}`, not to its family argument:\n{label}"
+            );
+        }
     }
 
     #[test]
