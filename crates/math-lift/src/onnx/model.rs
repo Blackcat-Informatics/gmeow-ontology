@@ -573,6 +573,10 @@ pub struct AttributeProto {
     pub strings: Vec<String>,
     /// Which arm this subset does not structure, when one was met.
     pub unstructured: Option<&'static str>,
+    /// A digest of the `t` arm's raw bytes. The header decodes but does not identify:
+    /// two tensors of the same name and shape holding different values are different
+    /// attributes, and without this they collapse onto one node.
+    pub tensor_digest: Option<String>,
     /// A digest of that arm's raw bytes, so an undecoded attribute still DISTINGUISHES.
     /// The arm name alone is a constant; two subgraphs differing in content must not
     /// render identically or the nodes carrying them intern to one and one is lost.
@@ -594,7 +598,8 @@ impl AttributeProto {
             format!("\"{s}\"")
         } else if let Some(t) = &self.t {
             let dims: Vec<String> = t.dims.iter().map(i64::to_string).collect();
-            format!("tensor({})[{}]", t.name, dims.join(","))
+            let digest = self.tensor_digest.as_deref().unwrap_or("");
+            format!("tensor({})[{}]#{digest}", t.name, dims.join(","))
         } else if !self.ints.is_empty() {
             let items: Vec<String> = self.ints.iter().map(i64::to_string).collect();
             format!("[{}]", items.join(","))
@@ -629,7 +634,16 @@ impl AttributeProto {
                 3 => out.i = Some(reader.read_i64()?),
                 4 => out.s = Some(read_utf8_bytes(reader, "an AttributeProto `s`")?),
                 5 => {
-                    let mut nested = reader.read_message()?;
+                    // The header decodes (blob-by-reference: no payload field exists), but
+                    // the header ALONE does not identify the tensor — two `Constant` nodes
+                    // holding different values share a name and dims and would render
+                    // identically, intern to one node, and silently merge. `y = a + b`
+                    // became `y = a + a`. Digesting the raw bytes distinguishes them
+                    // WITHOUT materializing a value, so the doctrine holds and the identity
+                    // is real.
+                    let bytes = reader.read_bytes()?;
+                    out.tensor_digest = Some(digest_of(bytes));
+                    let mut nested = Reader::new(bytes);
                     out.t = Some(TensorProto::read(&mut nested)?);
                 }
                 6 => {
@@ -647,7 +661,7 @@ impl AttributeProto {
                 )?),
                 10 => {
                     out.unstructured = Some("tensors");
-                    reader.skip_field()?;
+                    out.unstructured_digest = Some(digest_of(reader.read_bytes()?));
                 }
                 11 => {
                     out.unstructured = Some("graphs (control-flow subgraphs)");
@@ -655,20 +669,20 @@ impl AttributeProto {
                 }
                 14 => {
                     out.unstructured = Some("tp (a TypeProto attribute)");
-                    reader.skip_field()?;
+                    out.unstructured_digest = Some(digest_of(reader.read_bytes()?));
                 }
                 15 => {
                     out.unstructured = Some("type_protos");
-                    reader.skip_field()?;
+                    out.unstructured_digest = Some(digest_of(reader.read_bytes()?));
                 }
                 20 => out.attribute_type = reader.read_i32()?,
                 22 => {
                     out.unstructured = Some("sparse_tensor");
-                    reader.skip_field()?;
+                    out.unstructured_digest = Some(digest_of(reader.read_bytes()?));
                 }
                 23 => {
                     out.unstructured = Some("sparse_tensors");
-                    reader.skip_field()?;
+                    out.unstructured_digest = Some(digest_of(reader.read_bytes()?));
                 }
                 _ => reader.skip_field()?,
             }

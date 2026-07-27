@@ -1481,6 +1481,75 @@ mod tests {
     }
 
     #[test]
+    fn two_constants_with_different_payloads_never_merge() {
+        // `TensorProto` decodes HEADER ONLY (blob-by-reference), so two `Constant` nodes
+        // holding different values share a name and dims and rendered identically — they
+        // interned to one node, the second was discarded, and an `Add` over both resolved
+        // BOTH operand slots to the same expression. `y = a + b` was lifted as `y = a + a`:
+        // not merely a dropped node, a semantically wrong graph.
+        //
+        // The fix digests the attribute's raw bytes, which distinguishes without
+        // materializing a value — the doctrine holds and the identity is real.
+        let constant = |output: &str, payload: &[u8]| {
+            let mut tensor = varint_field(1, 1);
+            tensor.extend(varint_field(2, 1));
+            tensor.extend(string_field(8, "c"));
+            tensor.extend(bytes_field(9, payload));
+            let mut attribute = string_field(1, "value");
+            attribute.extend(message_field(5, &tensor));
+            let mut node = Vec::new();
+            node.extend(string_field(2, output));
+            node.extend(string_field(4, "Constant"));
+            node.extend(message_field(5, &attribute));
+            node
+        };
+        let mut add = Vec::new();
+        add.extend(string_field(1, "a"));
+        add.extend(string_field(1, "b"));
+        add.extend(string_field(2, "y"));
+        add.extend(string_field(4, "Add"));
+
+        let value_type = {
+            let mut tensor = varint_field(1, 1);
+            tensor.extend(message_field(2, &Vec::new()));
+            message_field(1, &tensor)
+        };
+        let info = |name: &str| {
+            let mut out = Vec::new();
+            out.extend(string_field(1, name));
+            out.extend(message_field(2, &value_type));
+            out
+        };
+
+        let mut graph = Vec::new();
+        graph.extend(message_field(1, &constant("a", &[0x00, 0x00, 0x80, 0x3f])));
+        graph.extend(message_field(1, &constant("b", &[0x00, 0x00, 0x00, 0x40])));
+        graph.extend(message_field(1, &add));
+        graph.extend(message_field(12, &info("y")));
+        let mut model = varint_field(1, 8);
+        model.extend(message_field(7, &graph));
+        model.extend(message_field(8, &varint_field(2, 18)));
+
+        let ttl = lift(&model, BASE).expect("the model lifts").turtle;
+        assert_eq!(
+            count(&ttl, &format!("<{}>", math("computationNode"))),
+            3,
+            "three nodes in, three computation nodes out:\n{ttl}"
+        );
+        // The decisive check: the two operand slots must NOT name one expression.
+        let operands: BTreeSet<String> = ttl
+            .lines()
+            .filter(|l| l.contains(&format!("<{}>", math("slotExpression"))))
+            .filter_map(|l| l.split_whitespace().nth(2).map(str::to_owned))
+            .collect();
+        assert_eq!(
+            operands.len(),
+            2,
+            "a + b must not be lifted as a + a:\n{ttl}"
+        );
+    }
+
+    #[test]
     fn two_nodes_in_one_graph_never_collapse_into_one() {
         // The previous version of this test compared the two RUN IRIs, which are
         // content-addressed on the source bytes and so differ for any two distinct files —

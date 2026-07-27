@@ -493,16 +493,20 @@ impl Lift<'_> {
             return Ok(Binding::Opaque);
         };
 
-        // A call is a model fit when it NAMES a known estimator, or — the general rule —
-        // when it carries a model formula. Keying only on a name list made the bridge refuse
-        // coxph, gam, and every other formula-based fit in R's ecosystem, and each earlier
-        // refusal was closed by appending one more name. The shape is the invariant: a `~`
-        // binder in the formula position IS a model specification, whatever fits it.
-        if let Some(estimator) = model_estimator(&name) {
-            return self.emit_fit(&name, Some(estimator), args);
-        }
-        if self.is_model_fit(args) {
-            return self.emit_fit(&name, None, args);
+        // A model fit is a call KNOWN to fit a model that also carries the formula and the
+        // data `math:FittedModel` requires. Shape alone is not enough and the attempt to use
+        // it was a fabrication: `boxplot(count ~ spray, data = InsectSprays)` and
+        // `aggregate(y ~ g, data = d, FUN = mean)` have exactly the shape of a fit and fit
+        // nothing, so they were asserted as math:FittedModel with an estimator. A drawing
+        // routine is not a fitted statistical model.
+        //
+        // Nothing here HARD-FAILS. A known fitter called without a formula — `t.test(x, y)`,
+        // `lm(y ~ x)` with no data — falls through to the logic: lowering like any other
+        // call, so a script mixing it with real statistics still lifts. Refusing the whole
+        // script because one call was not the shape we expected is what made
+        // `t.test(x, y)` an unliftable ingest.
+        if MODEL_FITTERS.contains(&name.as_str()) && self.is_model_fit(args) {
+            return self.emit_fit(&name, model_estimator(&name), args);
         }
         if DATASET_FUNCTIONS.contains(&name.as_str()) {
             let label = render(&RExpr::Call {
@@ -2676,6 +2680,63 @@ fn binary_operator_slug(op: BinaryOp) -> &'static str {
     }
 }
 
+/// R calls that FIT A MODEL to data.
+///
+/// A positive list, and deliberately so. `math:FittedModel`'s obligations (a formula and
+/// the data fitted to) are a NECESSARY condition, not a sufficient one: `boxplot`,
+/// `aggregate`, `xtabs`, `coplot` and `interaction.plot` all satisfy them and fit nothing.
+/// R draws no syntactic line between a fit and a formula-consuming call, so a lift that
+/// guessed from shape asserted drawing routines as fitted statistical models.
+///
+/// A call NOT on this list is not refused — it lowers to `logic:` as an uninterpreted call
+/// and its script still lifts. The cost of the list is a fit we do not yet name; the cost
+/// of guessing was a fabricated one.
+const MODEL_FITTERS: &[&str] = &[
+    // base / stats
+    "lm",
+    "glm",
+    "aov",
+    "nls",
+    "loess",
+    "t.test",
+    "wilcox.test",
+    "var.test",
+    // nlme / lme4
+    "gls",
+    "lme",
+    "lmer",
+    "glmer",
+    "nlmer",
+    "glmmPQL",
+    // survival
+    "coxph",
+    "survreg",
+    "survfit",
+    // mgcv / gam
+    "gam",
+    "bam",
+    "gamm",
+    // MASS / robust / ordinal / multinomial
+    "rlm",
+    "lqs",
+    "polr",
+    "multinom",
+    "glm.nb",
+    // trees / ensembles that take a formula + data
+    "rpart",
+    "randomForest",
+    "ranger",
+    "ctree",
+    "cforest",
+    // misc modelling
+    "glmnet",
+    "gbm",
+    "svm",
+    "naiveBayes",
+    "lda",
+    "qda",
+];
+
 fn model_estimator(name: &str) -> Option<Estimator> {
     match name {
         // `aov` IS a linear model: R fits it by least squares and `broom::tidy` gives the
@@ -2989,15 +3050,35 @@ mod tests {
     }
 
     #[test]
-    fn a_model_call_without_data_refuses_rather_than_faking_the_restriction() {
-        let err = lift(b"fit <- lm(mpg ~ wt)\n", BASE).expect_err("must not lift");
-        assert!(format!("{err}").contains("math:fittedToData"), "{err}");
+    fn a_model_call_without_data_is_not_a_fit_and_does_not_kill_the_script() {
+        // math:FittedModel carries a min-1 math:fittedToData restriction, so `lm(mpg ~ wt)`
+        // with no data cannot be one and none is minted — the restriction is never faked.
+        //
+        // But it does not hard-fail the INGEST either. This test used to assert exactly
+        // that refusal, and the refusal was the defect: a script mixing such a call with
+        // real statistics produced zero triples over one call that was merely not the shape
+        // expected. The call lowers to logic: like any other.
+        let ttl = turtle("fit <- lm(mpg ~ wt)\nm <- lm(y ~ x, data = d)\n");
+        assert_eq!(
+            typed(&ttl, "FittedModel"),
+            1,
+            "only the data-carrying call is a fit:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("lm(mpg ~ wt)"),
+            "…and the data-less call still reaches the graph:\n{ttl}"
+        );
     }
 
     #[test]
-    fn a_model_call_without_a_formula_refuses() {
-        let err = lift(b"fit <- lm(y, data = d)\n", BASE).expect_err("must not lift");
-        assert!(format!("{err}").contains("math:modelFormula"), "{err}");
+    fn a_model_call_without_a_formula_is_not_a_fit() {
+        // Same rule from the other side: no formula, no math:ModelFormula, so no
+        // math:FittedModel — and no hard failure. `t.test(x, y)` is R's two-sample form and
+        // is canonical on the broom surface the issue names; refusing the ingest over it
+        // made a real statistics script unliftable.
+        let ttl = turtle("r <- t.test(x, y)\nm <- lm(y ~ x, data = d)\n");
+        assert_eq!(typed(&ttl, "FittedModel"), 1, "{ttl}");
+        assert!(ttl.contains("t.test(x, y)"), "{ttl}");
     }
 
     #[test]
@@ -3865,18 +3946,36 @@ mod tests {
 
     #[test]
     fn the_core_stats_model_families_lift() {
-        // `aov` and `t.test` sit squarely on the broom tidy/glance/augment surface the
-        // issue names, and both are formula-based, so they reach the same codomain `lm`
-        // does. Refusing them narrowed "an R model/statistics script" to a handful of
-        // regression functions.
-        for src in [
-            "a <- aov(y ~ g, data = d)\n",
-            "t <- t.test(y ~ g, data = d)\n",
+        // This test previously exercised only the FORMULA form, which the shape rule catches
+        // whether or not the family is named — so it passed with `aov` and `t.test` deleted
+        // from the table entirely, and that is what hid the hard-refusal of `t.test(x, y)`.
+        // It now asserts the two things the family list actually decides.
+        //
+        // (1) A formula+data call on the list IS a fit.
+        for (src, label) in [
+            ("a <- aov(y ~ g, data = d)\n", "aov(y ~ g)"),
+            ("t <- t.test(y ~ g, data = d)\n", "t.test(y ~ g)"),
         ] {
             let ttl = turtle(src);
             assert_eq!(typed(&ttl, "FittedModel"), 1, "{src} → {ttl}");
-            assert_eq!(typed(&ttl, "ModelFormula"), 1, "{src} → {ttl}");
+            assert!(ttl.contains(label), "the fit names the call:\n{ttl}");
         }
+
+        // (2) The SAME family called without a formula does NOT hard-fail the script. R's
+        // `t.test(x, y)` is the two-sample form and is canonical on the broom surface;
+        // refusing the whole ingest over it made a real statistics script unliftable.
+        let ttl = turtle(
+            "x <- c(1, 2, 3)\ny <- c(4, 5, 6)\nr <- t.test(x, y)\nm <- lm(y ~ x, data = d)\n",
+        );
+        assert_eq!(
+            typed(&ttl, "FittedModel"),
+            1,
+            "only the lm is a fit; t.test(x, y) carries no formula:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("t.test(x, y)"),
+            "…and the two-sample call still reaches the graph through logic::\n{ttl}"
+        );
     }
 
     #[test]
