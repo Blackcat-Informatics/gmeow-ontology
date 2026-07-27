@@ -750,6 +750,32 @@ pub enum CandidateCommands {
 /// The `gmeow logic` nested subcommands (native `gmeow_logic` engine).
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
+    /// Print the DERIVED actionable frontier for an enactment: one row per entry, its
+    /// derived label, and the lifecycle-axis tuple that produced it.
+    ///
+    /// The labels are not read from the input. They are computed by the shipped
+    /// `logic:Rule` set from each entry's axis witnesses, so this prints what the
+    /// reasoner concluded rather than what an author typed — and an entry whose label
+    /// an author DID assert is still re-derived, so a stale hand-written label shows up
+    /// as a disagreement rather than being echoed back.
+    Frontier {
+        /// An RDF file carrying the frontier entries and their axis witnesses.
+        input: PathBuf,
+        /// Explain why ONE action is not actionable, instead of listing the whole
+        /// frontier: prints its derived label, the axis witnesses behind it, and any
+        /// operational capability gap and proposal bound to the step. Every part of that
+        /// answer already exists in the graph; this is the surfacing an operator needs
+        /// to act without reading Turtle.
+        #[arg(long = "why-not")]
+        why_not: Option<String>,
+    },
+    /// Print the external-effect saga status for an enactment: what was intended, what
+    /// was attempted, what came back, and — when an outcome is undetermined — what is
+    /// owed before anything else may happen.
+    Saga {
+        /// An RDF file carrying the enactment and its effect records.
+        input: PathBuf,
+    },
     /// Evaluate one or more authored `logic:ReasoningProgram` cells through the
     /// native proof-carrying SLG-WFS backward (goal-directed) engine
     /// ([`gmeow_logic::goal_directed::evaluate_reasoning_programs`]) — the SAME
@@ -1233,6 +1259,10 @@ pub fn run() -> i32 {
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
         Commands::Logic { command } => match command {
+            LogicCommands::Frontier { input, why_not } => {
+                commands::logic_frontier(reporter, &input, why_not.as_deref())
+            }
+            LogicCommands::Saga { input } => commands::logic_saga(reporter, &input),
             LogicCommands::Backward {
                 program_file,
                 program_iri,

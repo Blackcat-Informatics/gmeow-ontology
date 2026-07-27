@@ -5396,3 +5396,357 @@ mod entails_tests {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// `gmeow logic frontier` / `gmeow logic saga` — the operator surface over a
+// durable enactment.
+//
+// Both commands REASON before they print. The frontier labels are derived by the
+// shipped `logic:Rule` set from each entry's lifecycle-axis tuple, so what an
+// operator reads here is the reasoner's conclusion rather than an author's
+// assertion — and a hand-written label that disagrees with the derivation shows up
+// as a disagreement instead of being echoed back unchallenged.
+// ---------------------------------------------------------------------------
+
+/// The `logic:` namespace these commands read.
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// The shipped `logic:` module, embedded so the CLI derives with the SAME rule set the
+/// pipeline and the conformance corpus use.
+///
+/// Reading the rules from the repository at runtime would make the command's answer
+/// depend on the caller's working directory, which is exactly the kind of surface where
+/// an operator ends up looking at a frontier computed by a rule set they cannot name.
+const LOGIC_MODULE_TTL: &str = include_str!("../../../slices/grounding/logic/module.ttl");
+
+/// The synthetic world the CLI reasons in.
+const CLI_WORLD: &str = "https://blackcatinformatics.ca/gmeow/cli/world";
+
+/// Parse `path`, materialize the shipped rule set over it, and return the input plus every
+/// derived triple as `(subject, predicate, object)` IRI/lexical triples.
+///
+/// This is the same `materialize_program` path the conformance runner drives, so what the
+/// CLI prints and what a blessed golden records cannot diverge.
+fn logic_derive(
+    reporter: &dyn Reporter,
+    path: &Path,
+    code: &str,
+) -> Result<Vec<(String, String, String)>, i32> {
+    let bytes = std::fs::read(path).map_err(|e| {
+        fail(
+            reporter,
+            code,
+            format!("cannot read {}: {e}", path.display()),
+        )
+    })?;
+    let media = match path.extension().and_then(|e| e.to_str()) {
+        Some("nq") => "application/n-quads",
+        Some("nt") => "application/n-triples",
+        Some("trig") => "application/trig",
+        _ => "text/turtle",
+    };
+    let parsed = purrdf::parse_dataset(&bytes, media, None).map_err(|e| {
+        fail(
+            reporter,
+            code,
+            format!("cannot parse {}: {e}", path.display()),
+        )
+    })?;
+
+    // The rules reason over named worlds, and Turtle input lands in the default graph, so
+    // a file that plainly carries frontier entries would otherwise derive nothing at all —
+    // the least useful failure available, because it looks exactly like "no rule matched".
+    // Promote the whole input into one synthetic world instead.
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    let world = builder.intern_iri(CLI_WORLD);
+    for q in parsed.quads() {
+        let (purrdf::TermRef::Iri(subj), purrdf::TermRef::Iri(pred)) =
+            (parsed.resolve(q.s), parsed.resolve(q.p))
+        else {
+            continue;
+        };
+        let (subj, pred) = (subj.to_owned(), pred.to_owned());
+        let obj = match parsed.resolve(q.o) {
+            purrdf::TermRef::Iri(i) => {
+                let i = i.to_owned();
+                builder.intern_iri(&i)
+            }
+            purrdf::TermRef::Literal {
+                lexical, language, ..
+            } => {
+                let lit = purrdf::RdfLiteral {
+                    lexical_form: lexical.to_owned(),
+                    datatype: None,
+                    language: language.map(str::to_owned),
+                    direction: None,
+                };
+                builder.intern_literal(lit)
+            }
+            _ => continue,
+        };
+        let s_id = builder.intern_iri(&subj);
+        let p_id = builder.intern_iri(&pred);
+        builder.push_quad(s_id, p_id, obj, Some(world));
+    }
+    let edb = builder.freeze().map_err(|e| {
+        fail(
+            reporter,
+            code,
+            format!(
+                "cannot build the reasoning world for {}: {e}",
+                path.display()
+            ),
+        )
+    })?;
+
+    let (program, _diags) = gmeow_logic_compile::frontend::parse_logic_str(LOGIC_MODULE_TTL, None)
+        .map_err(|e| {
+            fail(
+                reporter,
+                code,
+                format!("cannot compile the embedded logic module: {e}"),
+            )
+        })?;
+
+    let mat = gmeow_logic::materialize::materialize_program(
+        &program,
+        edb.as_ref(),
+        gmeow_logic::materialize::MaterializationLimits { max_steps: None },
+        // The frontier rules are positive Horn. The shipped module spans six semantic
+        // profiles, so the profile is declared here rather than inferred — an inferred
+        // profile over a mixed module is how a caller silently gets a stronger semantics
+        // than the rules were written for.
+        gmeow_logic_compile::ir::SemanticProfileId::from_local("PositiveHornProfile"),
+    )
+    .map_err(|e| fail(reporter, code, format!("materialization failed: {e}")))?;
+
+    let mut out: Vec<(String, String, String)> = Vec::new();
+    // The asserted input, so a caller sees the whole picture rather than only the delta.
+    for q in edb.quads() {
+        let (purrdf::TermRef::Iri(su), purrdf::TermRef::Iri(pr)) =
+            (edb.resolve(q.s), edb.resolve(q.p))
+        else {
+            continue;
+        };
+        let ob = match edb.resolve(q.o) {
+            purrdf::TermRef::Iri(i) => i.to_owned(),
+            purrdf::TermRef::Literal { lexical, .. } => lexical.to_owned(),
+            _ => continue,
+        };
+        out.push((su.to_owned(), pr.to_owned(), ob));
+    }
+    for d in &mat.quads {
+        let (Some(su), Some(ob)) = (
+            term_iri_or_lexical(&d.subject),
+            term_iri_or_lexical(&d.object),
+        ) else {
+            continue;
+        };
+        out.push((su, d.predicate.clone(), ob));
+    }
+    out.sort();
+    out.dedup();
+    Ok(out)
+}
+
+/// An IRI or literal lexical form from a derived term; `None` for anything else.
+fn term_iri_or_lexical(t: &purrdf::TermValue) -> Option<String> {
+    match t {
+        purrdf::TermValue::Iri(i) => Some(i.clone()),
+        purrdf::TermValue::Literal { lexical_form, .. } => Some(lexical_form.clone()),
+        _ => None,
+    }
+}
+
+/// Every `(subject, object)` pair carrying `predicate`.
+fn iri_pairs(rows: &[(String, String, String)], predicate: &str) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = rows
+        .iter()
+        .filter(|(_, p, _)| p == predicate)
+        .map(|(s, _, o)| (s.clone(), o.clone()))
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// Strip the `logic:` namespace for display; leave anything else whole.
+fn short(iri: &str) -> &str {
+    iri.strip_prefix(LOGIC_NS).unwrap_or(iri)
+}
+
+/// `gmeow logic frontier` — print the derived frontier, or explain one action.
+pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&str>) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-frontier";
+    let rows = match logic_derive(reporter, input, CODE) {
+        Ok(r) => r,
+        Err(rc) => return rc,
+    };
+
+    let labels = iri_pairs(&rows, &format!("{LOGIC_NS}entryLabel"));
+    let witnesses = iri_pairs(&rows, &format!("{LOGIC_NS}entryAxisWitness"));
+    let actions = iri_pairs(&rows, &format!("{LOGIC_NS}entryAction"));
+
+    if let Some(target) = why_not {
+        // One action, in depth. The entry is named directly or reached through the
+        // step it positions, because an operator asking "why not this step" should
+        // not have to know the entry's IRI.
+        let entry = labels
+            .iter()
+            .map(|(e, _)| e.clone())
+            .find(|e| e == target)
+            .or_else(|| {
+                actions
+                    .iter()
+                    .find(|(_, step)| step == target)
+                    .map(|(e, _)| e.clone())
+            });
+        let Some(entry) = entry else {
+            return fail(
+                reporter,
+                CODE,
+                format!(
+                    "no frontier entry names <{target}> — neither as an entry IRI nor as the \
+                     action of one"
+                ),
+            );
+        };
+        let label = labels
+            .iter()
+            .find(|(e, _)| *e == entry)
+            .map(|(_, l)| short(l).to_owned())
+            .unwrap_or_else(|| "<no label derived>".to_owned());
+        println!("action:  {target}");
+        println!("entry:   {entry}");
+        println!("label:   {label}   (derived)");
+        for (e, w) in &witnesses {
+            if *e == entry {
+                println!("axis:    {}", short(w));
+            }
+        }
+        // The blockage, if the graph carries one.
+        let step = actions
+            .iter()
+            .find(|(e, _)| *e == entry)
+            .map(|(_, s)| s.clone());
+        if let Some(step) = step {
+            for (gap, blocked) in iri_pairs(&rows, &format!("{LOGIC_NS}gapBlockedStep")) {
+                if blocked == step {
+                    println!("gap:     {gap}");
+                }
+            }
+            for (proposal, blocked) in iri_pairs(&rows, &format!("{LOGIC_NS}proposalBlockedStep")) {
+                if blocked == step {
+                    println!("proposal: {proposal}");
+                    for field in [
+                        "proposalMissingCapability",
+                        "proposalRequiredContract",
+                        "proposalExpectedInputs",
+                        "proposalExpectedOutputs",
+                        "proposalExpectedEffects",
+                        "proposalVerificationMethod",
+                        "proposalSecurityLifecycle",
+                    ] {
+                        for (sub, pred, val) in &rows {
+                            if pred == &format!("{LOGIC_NS}{field}") && sub == &proposal {
+                                println!("  {field}: {val}");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    if labels.is_empty() {
+        return fail(
+            reporter,
+            CODE,
+            format!(
+                "no frontier label was derived from {} — the input carries no \
+                 logic:FrontierEntry with axis witnesses the rule set can label",
+                input.display()
+            ),
+        );
+    }
+
+    println!("{:<44}  {:<36}  {}", "ENTRY", "DERIVED LABEL", "AXIS TUPLE");
+    for (entry, label) in &labels {
+        let axes: Vec<&str> = witnesses
+            .iter()
+            .filter(|(e, _)| e == entry)
+            .map(|(_, w)| short(w))
+            .collect();
+        println!(
+            "{:<44}  {:<36}  {}",
+            short(entry),
+            short(label),
+            if axes.is_empty() {
+                "-".to_owned()
+            } else {
+                axes.join(" + ")
+            }
+        );
+    }
+    0
+}
+
+/// `gmeow logic saga` — the external-effect boundary status.
+pub fn logic_saga(reporter: &dyn Reporter, input: &Path) -> i32 {
+    const CODE: &str = "gmeow-cli.logic-saga";
+    let rows = match logic_derive(reporter, input, CODE) {
+        Ok(r) => r,
+        Err(rc) => return rc,
+    };
+
+    let attempts = iri_pairs(&rows, &format!("{LOGIC_NS}attemptOfIntent"));
+    let receipts = iri_pairs(&rows, &format!("{LOGIC_NS}receiptOfAttempt"));
+    let unknowns = iri_pairs(&rows, &format!("{LOGIC_NS}unknownOfAttempt"));
+    let probes = iri_pairs(&rows, &format!("{LOGIC_NS}probesAttempt"));
+    let verdicts = iri_pairs(&rows, &format!("{LOGIC_NS}reconciliationVerdict"));
+
+    if attempts.is_empty() && unknowns.is_empty() {
+        println!("no external-effect records in {}", input.display());
+        return 0;
+    }
+
+    for (attempt, intent) in &attempts {
+        println!("attempt: {}", short(attempt));
+        println!("  intent:      {}", short(intent));
+        let settled = receipts.iter().any(|(_, a)| a == attempt);
+        let undetermined = unknowns.iter().any(|(_, a)| a == attempt);
+        let probed = probes.iter().any(|(_, a)| a == attempt);
+        if settled {
+            println!("  outcome:     receipted");
+        } else if undetermined {
+            // The whole point of the boundary state: say what is owed, not merely
+            // that the outcome is unknown.
+            println!("  outcome:     UNDETERMINED");
+            if probed {
+                let verdict = verdicts
+                    .iter()
+                    .map(|(_, v)| short(v))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                println!(
+                    "  owed:        reconciliation probe issued; verdict: {}",
+                    if verdict.is_empty() {
+                        "pending"
+                    } else {
+                        &verdict
+                    }
+                );
+            } else {
+                println!(
+                    "  owed:        RECONCILIATION — the provider must be asked what happened. \
+                     Retrying blindly risks a duplicate effect; compensating blindly reverses \
+                     an effect that may never have occurred."
+                );
+            }
+        } else {
+            println!("  outcome:     no receipt and no unknown-outcome record");
+        }
+    }
+    0
+}
