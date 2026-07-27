@@ -514,6 +514,7 @@ fn affect_fixture_gts() -> PathBuf {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
     )
     .expect("emit gts");
 
@@ -547,6 +548,7 @@ fn affect_classify_fixture_gts() -> PathBuf {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
     )
     .expect("emit gts");
 
@@ -619,6 +621,7 @@ fn affect_classify_worked_fixture_gts() -> PathBuf {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
     )
     .expect("emit gts");
 

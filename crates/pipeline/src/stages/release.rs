@@ -918,6 +918,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit tiny snapshot")
     }
@@ -1216,6 +1217,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit snapshot with report blob")
     }
@@ -1316,6 +1318,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit fixture snapshot")
     }
@@ -1482,6 +1485,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit");
 
@@ -1558,6 +1562,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit docs snapshot")
     }
@@ -1676,6 +1681,7 @@ mod tests {
             Some("release-test-kid".to_string()),
             Some(armor),
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit signed phantom bundle");
 

@@ -124,6 +124,28 @@ fn required_codec_id(header: &[(Value, Value)], offset: usize) -> gmeow_errors::
             map_get(descriptor, "name"),
             Some(Value::Text(name)) if name == GMEOW_GTS_FRAME_TRANSFORM
         ) {
+            // Rule 6 mandates a LEVEL, not just a codec name. The level is a
+            // declared catalog parameter (§8.5 `level?`) rather than something
+            // recoverable from the compressed bytes, so before it was emitted on
+            // the wire this clause was unenforceable on an artifact and the gate
+            // that claims to "enforce zstd-rsyncable level 12" could not see it.
+            // Now it can: a catalog entry that omits the level, or declares a
+            // different one, is a hard failure.
+            let declared = map_get(descriptor, "level").ok_or_else(|| {
+                profile_error(format!(
+                    "GTS codec catalog at byte offset {offset} declares a {} entry with no level; \
+                     the mandated profile is level {GMEOW_GTS_ZSTD_LEVEL}",
+                    GMEOW_GTS_FRAME_TRANSFORM
+                ))
+            })?;
+            let declared = integer(declared, "GTS codec level")?;
+            if declared != i128::from(GMEOW_GTS_ZSTD_LEVEL) {
+                return Err(profile_error(format!(
+                    "GTS codec catalog at byte offset {offset} declares {} at level {declared}, \
+                     not the mandated {GMEOW_GTS_ZSTD_LEVEL}",
+                    GMEOW_GTS_FRAME_TRANSFORM
+                )));
+            }
             ids.push(integer(id, "GTS codec id")?);
         }
     }
@@ -246,6 +268,52 @@ pub fn emit_gmeow_gts(
     signer_kid: Option<String>,
     public_key_armor: Option<String>,
 ) -> gmeow_errors::Result<Vec<u8>> {
+    emit_gmeow_gts_with_medium(
+        builder,
+        archive_blobs,
+        report_blobs,
+        signer_secret,
+        signer_kid,
+        public_key_armor,
+        &baseline_medium_plan(),
+    )
+}
+
+/// The mandated no-dictionary medium: the one permitted transform chain with
+/// [`GMEOW_GTS_ZSTD_LEVEL`] declared explicitly in the catalog.
+///
+/// The level is CHAIN-gated, never profile-gated. Upstream used to grant level 12
+/// only under the literal header profile string `"dist"`, so a producer with an
+/// honest profile of its own silently dropped to the encoder default — the
+/// `zstd_level` dist/main regression class. Declaring it here means every GMEOW
+/// authorship door emits at 12 regardless of what its profile string says, and
+/// the level is readable back off the artifact rather than being an
+/// emitter-side article of faith.
+#[must_use]
+pub fn baseline_medium_plan() -> purrdf::gts_compose::MediumPlan {
+    purrdf::gts_compose::MediumPlan::undicted(Some(GMEOW_GTS_ZSTD_LEVEL))
+}
+
+/// Emit a GMEOW snapshot under the mandated frame profile with an explicit
+/// medium plan — the dictionary-carrying door.
+///
+/// [`emit_gmeow_gts`] is this function at [`baseline_medium_plan`]; the pipeline's
+/// medium registry supplies a dict-bearing plan instead.
+///
+/// # Errors
+/// A composition or codec failure inside `emit_gts` (including its
+/// all-three-or-none signing precondition), or a frame slot missing from a
+/// non-empty plan's total assignment.
+#[allow(clippy::too_many_arguments)]
+pub fn emit_gmeow_gts_with_medium(
+    builder: &SnapshotBuilder,
+    archive_blobs: Vec<BlobRow>,
+    report_blobs: Vec<BlobRow>,
+    signer_secret: Option<[u8; 32]>,
+    signer_kid: Option<String>,
+    public_key_armor: Option<String>,
+    medium: &purrdf::gts_compose::MediumPlan,
+) -> gmeow_errors::Result<Vec<u8>> {
     purrdf::gts_compose::emit_gts(
         builder,
         "dist",
@@ -256,6 +324,7 @@ pub fn emit_gmeow_gts(
         signer_kid,
         public_key_armor,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        medium,
     )
     .map_err(|message| gmeow_errors::Diag::of_kind(Transform { message }))
 }
@@ -303,10 +372,20 @@ pub struct GmeowGtsWriter {
 
 impl GmeowGtsWriter {
     /// Mint a segment writer for `profile` and emit its header (the chain genesis).
+    ///
+    /// The header's catalog DECLARES [`GMEOW_GTS_ZSTD_LEVEL`], not merely encodes
+    /// at it. `Writer::new`'s default catalog carries no level, so a segment
+    /// authored through it would satisfy the codec-name half of Rule 6 while
+    /// leaving the level unstated — and therefore unverifiable — on the artifact.
     #[must_use]
     pub fn new(profile: &str) -> Self {
+        let options = purrdf::gts::writer::WriterOptions {
+            zstd_level: Some(GMEOW_GTS_ZSTD_LEVEL),
+            ..Default::default()
+        };
         Self {
-            inner: Writer::new(profile),
+            inner: Writer::with_options(profile, options)
+                .expect("declaring the mandated level on the default catalog is always valid"),
         }
     }
 
@@ -462,11 +541,26 @@ mod tests {
     /// counter-example so the wrapper below is demonstrably load-bearing.
     #[test]
     fn a_bare_purrdf_writer_fails_the_mandated_profile() {
+        // A bare writer violates the profile twice: its catalog declares no level,
+        // and its frames carry no transform chain. Pin BOTH independently, so
+        // neither rejection can mask a regression in the other.
         let mut writer = Writer::new("ai-package");
         writer.add_terms(&[iri_term("https://e/s")]);
-        let bytes = writer.into_bytes();
-        let error =
-            validate_mandated_frames(&bytes).expect_err("a bare writer must fail the profile");
+        let error = validate_mandated_frames(&writer.into_bytes())
+            .expect_err("a bare writer must fail the profile");
+        assert!(error.to_string().contains("no level"), "{error}");
+
+        // Now grant it the declared level and nothing else: the frame-level
+        // violation must still stand on its own.
+        let options = purrdf::gts::writer::WriterOptions {
+            zstd_level: Some(GMEOW_GTS_ZSTD_LEVEL),
+            ..Default::default()
+        };
+        let mut levelled =
+            Writer::with_options("ai-package", options).expect("declared level is valid");
+        levelled.add_terms(&[iri_term("https://e/s")]);
+        let error = validate_mandated_frames(&levelled.into_bytes())
+            .expect_err("a level-declaring bare writer still authors untransformed frames");
         assert!(
             error.to_string().contains("has no transform chain"),
             "{error}"
@@ -483,16 +577,33 @@ mod tests {
         validate_mandated_frames(&appended).expect("every appended segment is audited");
 
         // A second segment authored WITHOUT the profile is caught, proving the walk
-        // does not stop after the first header.
-        let mut mixed = mandated_segment("https://e/a");
+        // does not stop after the first header. A bare `Writer` violates the profile
+        // twice over — its catalog declares no level and its frames carry no
+        // transform chain — and either rejection is correct, so the assertion binds
+        // to the invariant the test actually exists for: the failure is attributed
+        // to the SECOND segment, i.e. the walk did not stop at the first header.
+        let first = mandated_segment("https://e/a");
+        let boundary = first.len();
+        let mut mixed = first;
         let mut bare = Writer::new("ai-package");
         bare.add_terms(&[iri_term("https://e/b")]);
         mixed.extend_from_slice(&bare.into_bytes());
         let error =
             validate_mandated_frames(&mixed).expect_err("an unprofiled appended segment must fail");
+        let offset: usize = error
+            .to_string()
+            .split("byte offset ")
+            .nth(1)
+            .and_then(|rest| {
+                rest.split(|c: char| !c.is_ascii_digit())
+                    .next()
+                    .and_then(|digits| digits.parse().ok())
+            })
+            .unwrap_or_else(|| panic!("the failure must name a byte offset: {error}"));
         assert!(
-            error.to_string().contains("has no transform chain"),
-            "{error}"
+            offset >= boundary,
+            "the failure must be attributed to the appended segment at or past byte {boundary}, \
+             not the conforming first one: {error}"
         );
     }
 

@@ -12239,6 +12239,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit tiny cert-carrying snapshot");
 
@@ -12311,6 +12312,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit tiny header-only canon");
 
@@ -12428,6 +12430,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit tiny header-only canon");
 

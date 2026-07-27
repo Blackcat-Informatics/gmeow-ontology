@@ -590,6 +590,7 @@ fn synthetic_gts_with_dcat_query() -> Vec<u8> {
         None,
         None,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
     )
     .expect("frame the synthetic GTS snapshot")
 }

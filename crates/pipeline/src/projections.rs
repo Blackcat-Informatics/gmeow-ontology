@@ -1399,6 +1399,7 @@ mod tests {
             None,
             None,
             purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .unwrap()
     }

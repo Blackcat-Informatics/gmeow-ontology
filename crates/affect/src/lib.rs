@@ -940,6 +940,7 @@ mod tests {
             None,
             None,
             DEFAULT_RSYNCABLE_THRESHOLD,
+            &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
         )
         .expect("emit gts")
     }

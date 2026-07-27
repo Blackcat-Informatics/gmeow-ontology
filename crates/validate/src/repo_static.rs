@@ -1917,9 +1917,10 @@ const GTS_PROFILE_CRATE_SRC: &str = "crates/gts-profile/src/";
 /// one mints a GTS header, so each one decides the transform chain of every frame
 /// that follows — which is exactly what the mandated profile fixes.
 ///
-/// **Census method (verified against the pinned purrdf source, tag `rust-v0.8.3`,
-/// rev `64dda6c`, under `~/.cargo/git/checkouts/`).** Every `Writer::{new,
-/// deterministic, with_layout, with_options}` construction site in purrdf's
+/// **Census method (re-verified against the pinned purrdf source, tag
+/// `rust-v0.8.5`, rev `59c31dc`, under `~/.cargo/git/checkouts/`).** Every
+/// `Writer::{new, deterministic, with_layout, with_options, appending}`
+/// construction site in purrdf's
 /// non-test source was enumerated, and each was traced up to the nearest `pub`
 /// entry point. Two consequences worth recording, because a guessed list gets
 /// them wrong:
@@ -1935,6 +1936,13 @@ const GTS_PROFILE_CRATE_SRC: &str = "crates/gts-profile/src/";
 ///   segments GMEOW itself appends to those files (`build_audit_segment`,
 ///   `build_nt_segment`) DO go through the profile crate and are audited by
 ///   `gmeow-pipeline`'s own `validate_mandated_frames` tests.
+/// * `Writer::appending` is NEW at this pin — it continues an existing segment's
+///   `prev` chain instead of minting a fresh header, so an append-only store pays
+///   for one header per FILE rather than one per record. It hands the caller a
+///   `Writer`, so it decides the transform chain of every frame it goes on to
+///   author exactly as the minting constructors do, and it is pinned here for the
+///   same reason. Nothing in GMEOW production calls it yet; the seal is what keeps
+///   the first caller from being an unaudited one.
 struct GtsEntryPoint {
     /// The module path tail as written in a qualified call
     /// (`purrdf::gts_compose::emit_gts` → `gts_compose`).
@@ -1949,7 +1957,13 @@ const PURRDF_GTS_ENTRY_POINTS: &[GtsEntryPoint] = &[
     GtsEntryPoint {
         module: "writer",
         item: "Writer",
-        constructors: &["new", "deterministic", "with_layout", "with_options"],
+        constructors: &[
+            "new",
+            "deterministic",
+            "with_layout",
+            "with_options",
+            "appending",
+        ],
     },
     GtsEntryPoint {
         module: "writer",
