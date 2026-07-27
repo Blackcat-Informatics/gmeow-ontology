@@ -505,6 +505,16 @@ impl Lift<'_> {
         // call, so a script mixing it with real statistics still lifts. Refusing the whole
         // script because one call was not the shape we expected is what made
         // `t.test(x, y)` an unliftable ingest.
+        // A two-sample test called in its NON-formula form — `t.test(x, y)`, R's most
+        // common shape for it. It fits no model (no formula, so no math:ModelFormula and no
+        // math:FittedModel), but it does produce an ESTIMATE: the contrast between two
+        // samples. Refusing it left a canonical broom-surface call unlifted.
+        if let Some(spec) = two_sample_test(&name)
+            && !self.is_model_fit(&name, args)
+            && positional_argument(args, 1).is_some()
+        {
+            return self.emit_two_sample_estimate(&name, spec, args);
+        }
         if MODEL_FITTERS.contains(&name.as_str()) && self.is_model_fit(&name, args) {
             return self.emit_fit(&name, model_estimator(&name), args);
         }
@@ -623,13 +633,26 @@ impl Lift<'_> {
                 ))
             })?;
 
+        // `lm(y ~ x)` with no `data =` is ordinary R: the fit resolves its variables from
+        // the CALLING ENVIRONMENT. That is a real data source, so the fit is real and the
+        // min-1 math:fittedToData restriction is satisfied by naming the environment rather
+        // than by inventing a data frame. What the script does NOT state — which frame, which
+        // columns — is enumerated as residue instead of guessed.
+        //
+        // Refusing this outright was the honest-but-incomplete reading: `lm(y ~ x)` is
+        // squarely on the tidy/glance/augment surface the issue names, and refusing to lift a
+        // real fit is not lifting it.
         let Some(data) = fit_data_argument(function, args) else {
-            return Err(unliftable(format!(
-                "`{function}(…)` names no data to fit to, so the math:FittedModel it would \
-                 produce cannot satisfy the min-1 math:fittedToData restriction (a min-1 OWL \
-                 restriction onClass math:DatasetMatrix); a fitted model without its data \
-                 binding is math:UnfittedModel"
-            )));
+            let dataset = self.emit_dataset(
+                &format!("{function}|calling-environment"),
+                "the calling environment (variables resolved from the enclosing scope)",
+            );
+            self.record_unmapped(&format!(
+                "R call `{function}`: no `data =` binding, so the fit resolves its variables \
+                 from the calling environment; WHICH frame and columns those are is not stated \
+                 by the script and does not cross"
+            ));
+            return self.finish_fit(function, estimator, args, formula, dataset);
         };
         let Some(dataset) = self.dataset_reference(data) else {
             return Err(unliftable(format!(
@@ -640,6 +663,21 @@ impl Lift<'_> {
             )));
         };
 
+        self.finish_fit(function, estimator, args, formula, dataset)
+    }
+
+    /// Emit the `math:FittedModel` itself, once its formula and its data are both resolved.
+    ///
+    /// Split out so the no-`data =` path — where the data is the calling environment —
+    /// reaches exactly the same emission rather than a parallel one that could drift.
+    fn finish_fit(
+        &mut self,
+        function: &str,
+        estimator: Option<Estimator>,
+        args: &[Arg],
+        formula: Formula,
+        dataset: String,
+    ) -> gmeow_errors::Result<Binding> {
         let formula_node = self.emit_formula(&formula)?;
         let (formula_iri, formula_key) = self.formula_iri(formula_node);
 
@@ -1133,6 +1171,49 @@ impl Lift<'_> {
 
     // -- estimates, residuals, observations -----------------------------------
 
+    /// The `math:Estimate` a two-sample test produces: the contrast between its samples.
+    ///
+    /// No `math:FittedModel` — there is no formula, so there is no specification to fit, and
+    /// minting one would fabricate the very restriction `math:FittedModel` exists to pin.
+    /// What the call DOES determine is an estimand (the contrast) and the procedure that
+    /// estimated it, which is exactly `math:Estimate`'s union obligation plus `math:estimator`.
+    fn emit_two_sample_estimate(
+        &mut self,
+        function: &str,
+        spec: &'static str,
+        args: &[Arg],
+    ) -> gmeow_errors::Result<Binding> {
+        let left = render(positional_argument(args, 0).unwrap_or(&RExpr::Null));
+        let right = render(positional_argument(args, 1).unwrap_or(&RExpr::Null));
+        let key = format!("{function}|{left}|{right}");
+
+        let (parameter, fresh) = self.mint("parameter", &key);
+        if fresh {
+            self.sink.typed(&parameter, &math("MathematicalObject"));
+            self.label(
+                &parameter,
+                &format!("the contrast between {left} and {right}"),
+            );
+        }
+        let estimator = self.emit_estimator(None, function);
+        let (estimate, fresh) = self.mint("estimate", &key);
+        if fresh {
+            self.sink.typed(&estimate, &math("Estimate"));
+            self.sink
+                .iri(&estimate, &math("estimatedParameter"), &parameter);
+            self.sink.iri(&estimate, &math("estimator"), &estimator);
+            self.label(&estimate, &format!("{function}({left}, {right}) — {spec}"));
+            self.statistical += 1;
+        }
+        // The samples themselves are values in the calling environment, not a framed
+        // dataset, and the test's own distributional assumptions are not stated by the call.
+        self.record_unmapped(&format!(
+            "R call `{function}`: the two-sample form estimates a contrast but names no \
+             math:DatasetMatrix, and its distributional assumptions are not stated by the call"
+        ));
+        Ok(Binding::Expression)
+    }
+
     /// One `math:Estimate` per model coefficient.
     fn emit_estimates(&mut self, fit: &FitInfo) {
         let estimator = self.emit_estimator(fit.estimator, &fit.function);
@@ -1175,7 +1256,13 @@ impl Lift<'_> {
                 RExpr::Ident(name) => self.formula_env.contains_key(name),
                 _ => false,
             });
-        has_formula && fit_data_argument(function, args).is_some()
+        // Formula alone. The DATA requirement lived here to keep `plot(y ~ x)` from being a
+        // fit, but the call site now gates on MODEL_FITTERS, which already establishes that
+        // the callee fits models — `plot` is not on it. Keeping the data conjunct as well
+        // refused `lm(y ~ x)`, a real fit that resolves its variables from the calling
+        // environment.
+        let _ = function;
+        has_formula
     }
 
     /// The `math:Estimator` a fit used.
@@ -2716,6 +2803,20 @@ fn fit_data_argument<'a>(function: &str, args: &'a [Arg]) -> Option<&'a RExpr> {
     data_position(function).and_then(|i| positional_argument(args, i))
 }
 
+/// Two-sample tests and the procedure each names, for the NON-formula call form.
+///
+/// These appear on `MODEL_FITTERS` too: `t.test(y ~ g, data = d)` genuinely fits a model,
+/// while `t.test(x, y)` compares two vectors. Same function, two shapes, two codomains.
+fn two_sample_test(function: &str) -> Option<&'static str> {
+    match function {
+        "t.test" => Some("Welch two-sample mean contrast"),
+        "wilcox.test" => Some("Wilcoxon rank-sum location shift"),
+        "var.test" => Some("F-test variance ratio"),
+        "ks.test" => Some("Kolmogorov–Smirnov distribution contrast"),
+        _ => None,
+    }
+}
+
 /// R calls that FIT A MODEL to data.
 ///
 /// A positive list, and deliberately so. `math:FittedModel`'s obligations (a formula and
@@ -3094,35 +3195,41 @@ mod tests {
     }
 
     #[test]
-    fn a_model_call_without_data_is_not_a_fit_and_does_not_kill_the_script() {
-        // math:FittedModel carries a min-1 math:fittedToData restriction, so `lm(mpg ~ wt)`
-        // with no data cannot be one and none is minted — the restriction is never faked.
-        //
-        // But it does not hard-fail the INGEST either. This test used to assert exactly
-        // that refusal, and the refusal was the defect: a script mixing such a call with
-        // real statistics produced zero triples over one call that was merely not the shape
-        // expected. The call lowers to logic: like any other.
-        let ttl = turtle("fit <- lm(mpg ~ wt)\nm <- lm(y ~ x, data = d)\n");
-        assert_eq!(
-            typed(&ttl, "FittedModel"),
-            1,
-            "only the data-carrying call is a fit:\n{ttl}"
+    fn a_model_call_without_data_fits_the_calling_environment() {
+        // `lm(y ~ x)` with no `data =` is ordinary R: the fit resolves its variables from the
+        // calling environment, which IS a data source. So the fit is real, math:FittedModel's
+        // min-1 math:fittedToData is satisfied by naming that environment rather than by
+        // inventing a data frame, and what the script does not state — which frame, which
+        // columns — is enumerated as residue.
+        let ttl = turtle("fit <- lm(y ~ x)\n");
+        assert_eq!(typed(&ttl, "FittedModel"), 1, "{ttl}");
+        assert!(
+            ttl.contains("the calling environment"),
+            "the data source is named, not invented:\n{ttl}"
         );
         assert!(
-            ttl.contains("lm(mpg ~ wt)"),
-            "…and the data-less call still reaches the graph:\n{ttl}"
+            ttl.contains("no `data =` binding"),
+            "…and the ungrounded binding is enumerated as residue:\n{ttl}"
         );
     }
 
     #[test]
-    fn a_model_call_without_a_formula_is_not_a_fit() {
-        // Same rule from the other side: no formula, no math:ModelFormula, so no
-        // math:FittedModel — and no hard failure. `t.test(x, y)` is R's two-sample form and
-        // is canonical on the broom surface the issue names; refusing the ingest over it
-        // made a real statistics script unliftable.
-        let ttl = turtle("r <- t.test(x, y)\nm <- lm(y ~ x, data = d)\n");
-        assert_eq!(typed(&ttl, "FittedModel"), 1, "{ttl}");
-        assert!(ttl.contains("t.test(x, y)"), "{ttl}");
+    fn a_two_sample_test_estimates_a_contrast_rather_than_fitting_a_model() {
+        // `t.test(x, y)` is R's most common shape for the test and carries no formula, so
+        // there is no specification to fit and NO math:FittedModel — minting one would
+        // fabricate the restriction that class exists to pin. What the call does determine
+        // is an estimand (the contrast) and the procedure that estimated it, which is
+        // exactly math:Estimate's obligation.
+        let ttl = turtle("r <- t.test(x, y)\n");
+        assert_eq!(typed(&ttl, "Estimate"), 1, "{ttl}");
+        assert_eq!(typed(&ttl, "FittedModel"), 0, "no formula, no fit:\n{ttl}");
+        assert!(ttl.contains("Welch two-sample mean contrast"), "{ttl}");
+        assert!(ttl.contains("the contrast between x and y"), "{ttl}");
+
+        // The SAME function in its formula form is a fit — one name, two shapes, two
+        // codomains.
+        let fitted = turtle("t <- t.test(y ~ g, data = d)\n");
+        assert_eq!(typed(&fitted, "FittedModel"), 1, "{fitted}");
     }
 
     #[test]
