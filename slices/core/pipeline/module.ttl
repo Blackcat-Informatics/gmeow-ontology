@@ -259,7 +259,7 @@ gmeow:FanoutExtraction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Fanout Extraction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A reified row of the fanout generated-path ↔ carrier-representative map: how one committed generated/ path (or path family) is reconstructed from gmeow.gts, either as the fold of one named graph (the \"rdf-fanout\" / \"edoal\" families, PIPELINE_SPINE §6/§7) or as a byte-exact member of the inline generated-opaque archive blob (the \"opaque\" family). It carries the committed path matcher (gmeow:extractsPath + gmeow:extractsMatch, optionally gmeow:extractsSuffix), the reconstruction graph family (gmeow:extractsGraphFamily — how the per-file named-graph IRI derives from the path, or \"opaque\" for a blob member), and the serialization form whose fold equals the committed bytes (gmeow:extractsForm, or \"blob\" for an opaque member). Promoted from hard-coded Rust branches so the superset gate reads the map as data; the gate HARD-fails unless every reconstructed named-graph path resolves to exactly one non-opaque row and every opaque archive member resolves to exactly one opaque row — and every row is claimed (a bijection over each family — no path silently dropped from fanout). The rdf-fanout / edoal rows are AUTHORED here; the opaque rows are EMITTED by the carrier at build time (one per archive member, derived from the exact member set), never hand-authored."@x-gmeow-english ;
+    skos:definition "A reified row of the fanout generated-path ↔ carrier-representative map: how one committed generated/ path (or path family) is reconstructed from gmeow.gts — as the fold of one named graph (the \"rdf-fanout\" / \"edoal\" families, PIPELINE_SPINE §6/§7), as a byte-exact member of the inline generated-opaque archive blob (the \"opaque\" family), or as the verbatim bytes of one entry of the segment header's in-band \"dct\" dictionary map (the \"header-dict\" family, GTS spec §5). It carries the committed path matcher (gmeow:extractsPath + gmeow:extractsMatch, optionally gmeow:extractsSuffix), the reconstruction graph family (gmeow:extractsGraphFamily — how the per-file named-graph IRI derives from the path, or \"opaque\" for a blob member, or \"header-dict\" for a pinned dictionary), and the serialization form whose fold equals the committed bytes (gmeow:extractsForm, or \"blob\" for an opaque member, or \"header-dict\" for a pinned dictionary). Promoted from hard-coded Rust branches so the superset gate reads the map as data; the gate HARD-fails unless every reconstructed named-graph path resolves to exactly one non-opaque row, every opaque archive member resolves to exactly one opaque row, and every pinned \"dct\" entry resolves to exactly one header-dict row — and every row is claimed (a bijection over each family — no path silently dropped from fanout). The rdf-fanout / edoal / header-dict rows are AUTHORED here; the opaque rows are EMITTED by the carrier at build time (one per archive member, derived from the exact member set), never hand-authored. A header-dict row's bytes must NOT also ride the generated-opaque archive: a trained dictionary's one home is the header a consumer primes from, so a second copy would re-fold a blob the snapshot already carries (Constitution §18) and would feed high-entropy bytes to a compressor."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores a gmeow:FanoutExtraction ; gmeow:extractsPath \"generated/evals/scores.ttl\" ; gmeow:extractsMatch \"exact\" ; gmeow:extractsGraphFamily \"rdf-fanout\" ; gmeow:extractsForm \"turtle\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -312,7 +312,7 @@ gmeow:extractsGraphFamily
     rdfs:label "extracts graph family"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
     rdfs:range xsd:string ;
-    skos:definition "The reconstruction family that fixes how the committed path is recovered from gmeow.gts: \"rdf-fanout\" (the named graph graph/fanout/<path-without-generated/>) or \"edoal\" (the named graph graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl) — the gate folds the named graph at that IRI to the committed bytes; or \"opaque\" (no reconstruction graph — the committed path rides as a byte-exact member of the inline generated-opaque archive blob, the byte-decorated / non-RDF fanout files). For the \"opaque\" family the row's gmeow:extractsForm is \"blob\", the match is always \"exact\", and the carrier emits one such row per archive member so the opaque blob inventory is declared as data and the superset gate bijection-checks it exactly as it does the RDF fanout graphs."@x-gmeow-english ;
+    skos:definition "The reconstruction family that fixes how the committed path is recovered from gmeow.gts: \"rdf-fanout\" (the named graph graph/fanout/<path-without-generated/>) or \"edoal\" (the named graph graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl) — the gate folds the named graph at that IRI to the committed bytes; or \"opaque\" (no reconstruction graph — the committed path rides as a byte-exact member of the inline generated-opaque archive blob, the byte-decorated / non-RDF fanout files); or \"header-dict\" (no reconstruction graph and no archive member — the committed path generated/medium/<dict-id>.zdict is the verbatim bytes of the <dict-id> entry of the segment header's in-band \"dct\" map). For the \"opaque\" family the row's gmeow:extractsForm is \"blob\", the match is always \"exact\", and the carrier emits one such row per archive member so the opaque blob inventory is declared as data and the superset gate bijection-checks it exactly as it does the RDF fanout graphs. For the \"header-dict\" family the row's gmeow:extractsForm is \"header-dict\", the match is always \"exact\", and the rows are AUTHORED (the declared dictionary set is stable hand-written data) so the superset gate bijection-checks them against the header's own \"dct\" map exactly as it does the opaque archive members. The declared family values are exactly: \"rdf-fanout\" | \"edoal\" | \"opaque\" | \"header-dict\"."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores gmeow:extractsGraphFamily \"rdf-fanout\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -322,7 +322,7 @@ gmeow:extractsForm
     rdfs:label "extracts form"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
     rdfs:range xsd:string ;
-    skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches. The value \"blob\" marks an \"opaque\"-family row: the committed path is not a named-graph fold at all but a byte-exact member of the inline generated-opaque archive, so the gate resolves it from the archive lane rather than folding a graph."@x-gmeow-english ;
+    skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches. The value \"blob\" marks an \"opaque\"-family row: the committed path is not a named-graph fold at all but a byte-exact member of the inline generated-opaque archive, so the gate resolves it from the archive lane rather than folding a graph. The value \"header-dict\" marks a \"header-dict\"-family row on the same footing: the committed path is not a named-graph fold either but the verbatim bytes of one entry of the segment header's in-band \"dct\" map, so the gate resolves it from the header rather than folding a graph or unpacking an archive. The declared form values are exactly: \"turtle\" | \"ntriples\" | \"nquads-self\" | \"nquads-diagnostics\" | \"blob\" | \"header-dict\"."@x-gmeow-english ;
     skos:example "gmeow:fanout-shacl-diagnostics gmeow:extractsForm \"nquads-diagnostics\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1393,7 +1393,15 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-skos-surface ,
     gmeow:fanout-profiles ,
     gmeow:fanout-research-objects ,
-    gmeow:fanout-edoal-projections .
+    gmeow:fanout-edoal-projections ,
+    gmeow:fanout-medium-gmeow-claims-v1 ,
+    gmeow:fanout-medium-gmeow-core-v1 ,
+    gmeow:fanout-medium-gmeow-lang-ast-v1 ,
+    gmeow:fanout-medium-gmeow-logic-v1 ,
+    gmeow:fanout-medium-gmeow-math-v1 ,
+    gmeow:fanout-medium-gmeow-memory-compact-v1 ,
+    gmeow:fanout-medium-gmeow-memory-hot-v1 ,
+    gmeow:fanout-medium-gmeow-prooftrace-v1 .
 
 gmeow:fanout-briefs-authoring-packets a gmeow:FanoutExtraction ;
     rdfs:label "fanout briefs authoring packets"@x-gmeow-english ;
@@ -1563,6 +1571,82 @@ gmeow:fanout-edoal-projections a gmeow:FanoutExtraction ;
     gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "prefix" ;
     gmeow:extractsSuffix ".edoal.ttl" ;
     gmeow:extractsGraphFamily "edoal" ; gmeow:extractsForm "turtle" .
+
+# --- The header-dictionary family (one row per shipped zstd dictionary) ------ #
+# Each of the eight gmeow:CompressionDictionary individuals declared in the gts #
+# slice is pinned in the shipped segment header's in-band "dct" map (GTS spec   #
+# §5) — the channel a consumer priming its OWN runtime store reads the bytes    #
+# from. The gate projects that entry, and ONLY that entry, onto                 #
+# generated/medium/<dict-id>.zdict: routing the same bytes through the          #
+# generated-opaque archive as well would carry them twice (Constitution §18     #
+# forbids re-folding a blob the snapshot already carries) and would hand        #
+# high-entropy bytes to a compressor. These rows are AUTHORED because the       #
+# declared dictionary set is stable hand-written data, and the superset gate    #
+# bijection-checks them against the header's own "dct" map.                     #
+
+gmeow:fanout-medium-gmeow-claims-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-claims-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-claims-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-claims-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-claims-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-core-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-core-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-core-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-core-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-core-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-lang-ast-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-lang-ast-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-lang-ast-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-lang-ast-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-lang-ast-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-logic-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-logic-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-logic-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-logic-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-logic-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-math-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-math-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-math-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-math-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-math-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-memory-compact-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-memory-compact-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-memory-compact-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-memory-compact-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-memory-compact-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-memory-hot-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-memory-hot-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-memory-hot-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-memory-hot-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-memory-hot-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-prooftrace-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-prooftrace-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-prooftrace-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-prooftrace-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-prooftrace-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
 
 
 # =========================================================================== #
@@ -1764,6 +1848,14 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-versions.sssom.tsv",
     "generated/mappings/gmeow-wikidata.sssom.tsv",
     "generated/mappings/gmeow-wordnet.sssom.tsv",
+    "generated/medium/gmeow-claims-v1.zdict",
+    "generated/medium/gmeow-core-v1.zdict",
+    "generated/medium/gmeow-lang-ast-v1.zdict",
+    "generated/medium/gmeow-logic-v1.zdict",
+    "generated/medium/gmeow-math-v1.zdict",
+    "generated/medium/gmeow-memory-compact-v1.zdict",
+    "generated/medium/gmeow-memory-hot-v1.zdict",
+    "generated/medium/gmeow-prooftrace-v1.zdict",
     "generated/metadata/dcat.ttl",
     "generated/metadata/preservation.json",
     "generated/metadata/void.ttl",

@@ -18,11 +18,19 @@
 //! reconcile treats as in-memory dataflow rather than a committed output. That is
 //! deliberate: a zstd dictionary's shipping channel is the GTS segment header's
 //! in-band `"dct"` map (spec §5), which is where a consumer — including one priming
-//! its OWN runtime store with `gmeow-memory-hot-v1` — actually reads it from.
-//! Materializing a second copy under `generated/` would put the same bytes in two
-//! places, oblige the superset gate to reconstruct them, and make
-//! [`crate::medium::MEDIUM_GENERATED_PREFIX`] a live corpus-fixpoint hazard instead
-//! of the defensive exclusion it is.
+//! its OWN runtime store with `gmeow-memory-hot-v1` — actually reads it from. Tarring
+//! a second copy into the generated-opaque archive would put the same bytes in two
+//! places, re-fold a blob the snapshot already carries (Constitution §18), and hand
+//! high-entropy bytes to a compressor.
+//!
+//! The committed `generated/medium/<dict-id>.zdict` files are not that second copy:
+//! they are a PROJECTION of the one header entry, reconstructed by the superset
+//! gate's `header-dict` fanout family
+//! ([`crate::stages::superset`]) exactly as an EDOAL file is reconstructed from its
+//! named graph. Because those files are materialized,
+//! [`crate::medium::MEDIUM_GENERATED_PREFIX`] is a LIVE corpus-fixpoint hazard — a
+//! selector covering it would train the next build's dictionary on this build's
+//! dictionaries — which is why [`crate::medium::corpus`] refuses it statically.
 //!
 //! # Why the envelopes are sealed at the SINK and not here
 //!

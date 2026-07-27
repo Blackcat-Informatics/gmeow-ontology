@@ -72,16 +72,21 @@ pub const MEDIUM_REGISTRY_GRAPH: &str =
 pub const MEDIUM_MEASUREMENT_GRAPH: &str =
     "https://blackcatinformatics.ca/gmeow/graph/medium-measurement";
 
-/// The repo-relative path family reserved for materialized dictionary bytes. A
-/// corpus selector that covers it — in either direction — is a fixpoint.
+/// The repo-relative path family the materialized dictionary bytes are projected
+/// onto. A corpus selector that covers it — in either direction — is a fixpoint.
 ///
-/// The shipped build materializes NOTHING here: a dictionary's channel is the
-/// segment header's in-band `"dct"` map, and
+/// A dictionary's CHANNEL is the segment header's in-band `"dct"` map, and
 /// [`crate::stages::medium_dictionaries`] keeps the trained bytes on the internal
-/// `pipeline/` lane so the same bytes never exist in two places. The exclusion is
-/// kept anyway, and it is not dead: it is what makes "train a dictionary on the
-/// dictionaries" un-authorable, so a future decision to materialize them cannot
-/// quietly close the training cycle.
+/// `pipeline/` lane, so the bundle carries them exactly once. What lands under this
+/// prefix is a PROJECTION of that one copy: the superset gate's `header-dict`
+/// fanout family reconstructs `generated/medium/<dict-id>.zdict` from the header
+/// entry itself (never from the archive lane, which would carry the same
+/// high-entropy bytes a second time — Constitution §18).
+///
+/// The exclusion is therefore live rather than defensive: the projected files ARE
+/// on disk, so a corpus that selected this prefix would train a dictionary on the
+/// previous build's dictionaries and close the cycle
+/// dictionary → registry → corpus → dictionary. [`corpus`] refuses it statically.
 pub const MEDIUM_GENERATED_PREFIX: &str = "generated/medium/";
 
 /// The `gmeow:payloadSchemaId` of the snapshot wire schema — the rep whose

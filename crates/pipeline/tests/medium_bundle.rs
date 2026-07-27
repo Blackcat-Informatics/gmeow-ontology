@@ -513,8 +513,115 @@ fn the_emitted_bundle_ships_its_declared_medium() {
          envelopes are derived from a stratum that excludes them, so adding them cannot move it"
     );
 
+    // ── (g) the dictionaries project onto generated/medium/*.zdict, EXACTLY ONCE ──
+    the_dictionaries_project_exactly_once(&bundle, &pinned, &registry_quads, &module);
+
     // ── (e)/(f) the runtime stores, primed from THIS bundle ──
     runtime_stores_are_primed_from(&bundle);
+}
+
+/// The generated-opaque archive representation label. Spelled out because it is a WIRE
+/// label a consumer reads off the bundle, not a Rust symbol the test may borrow — and
+/// the whole point of the assertion below is that the gate's own crate-private constant
+/// and the shipped bytes agree.
+const REP_GENERATED: &str = "generated-opaque-archive";
+
+/// The fourth fanout family, proved on the SHIPPED artifact: each of the eight
+/// dictionaries reconstructs from the segment header's in-band `"dct"` map onto
+/// `generated/medium/<dict-id>.zdict`, its bytes are byte-equal to both the header entry
+/// and the recorded `gmeow:dictionaryContentDigest`, and NO generated-opaque archive
+/// member carries the same bytes a second time.
+///
+/// The last clause is the load-bearing one. Routing a `.zdict` through the archive as
+/// well would satisfy every other assertion here while shipping the same high-entropy
+/// bytes twice — re-folding a blob the snapshot already carries (Constitution §18) and
+/// inflating the archive it rode in.
+fn the_dictionaries_project_exactly_once(
+    bundle: &[u8],
+    pinned: &BTreeMap<String, Vec<u8>>,
+    registry_quads: &[RdfQuad],
+    module: &MediumRegistry,
+) {
+    let projection = gmeow_pipeline::stages::superset::project_bundle(bundle)
+        .expect("the shipped bundle projects (header-dict bijection + expected completeness)");
+
+    // The realization records, keyed by the dictionary id they realize.
+    let digest_by_id: BTreeMap<String, String> = subjects_of_type(
+        registry_quads,
+        &format!("{GMEOW}CompressionDictionaryRealization"),
+    )
+    .iter()
+    .map(|subject| {
+        let definition = iri_of(registry_quads, subject, "realizesDictionary");
+        let id = module
+            .dictionaries()
+            .get(&definition)
+            .unwrap_or_else(|| panic!("<{definition}> is not a declared dictionary"))
+            .id
+            .clone();
+        (
+            id,
+            literal_of(registry_quads, subject, "dictionaryContentDigest"),
+        )
+    })
+    .collect();
+
+    for id in SHIPPED_DICTIONARIES {
+        let path = format!("generated/medium/{id}.zdict");
+        let projected = projection
+            .files
+            .get(&path)
+            .unwrap_or_else(|| panic!("the bundle projects no {path}"));
+        let in_band = pinned
+            .get(id)
+            .unwrap_or_else(|| panic!("the header pins no {id:?} dictionary"));
+        assert_eq!(
+            projected, in_band,
+            "{path} must be the header \"dct\" entry byte for byte"
+        );
+        assert_eq!(
+            digest_by_id.get(id).map(String::as_str),
+            Some(blake3(projected).as_str()),
+            "{path} must match the gmeow:dictionaryContentDigest its realization records"
+        );
+    }
+    assert_eq!(
+        projection
+            .files
+            .keys()
+            .filter(|p| p.starts_with("generated/medium/"))
+            .count(),
+        SHIPPED_DICTIONARIES.len(),
+        "the projection carries exactly one generated/medium/ file per declared dictionary"
+    );
+
+    // EXACTLY ONCE: no generated-opaque archive member is a dictionary.
+    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
+    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+    let mut archives_seen = 0usize;
+    for record in &lookaside.blobs {
+        if record.representation.as_deref() != Some(REP_GENERATED) {
+            continue;
+        }
+        archives_seen += 1;
+        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+            panic!("the {REP_GENERATED} lookaside record names no inline blob");
+        };
+        let bytes = entry.decoded_vec().expect("the archive decodes");
+        for (name, _) in purrdf::ustar::read_archive(&bytes).expect("the archive unpacks") {
+            assert!(
+                !name.starts_with("generated/medium/") && !name.ends_with(".zdict"),
+                "the {REP_GENERATED} archive carries {name} — a trained dictionary's ONE home \
+                 is the segment header's \"dct\" map, so an archive copy would ship the same \
+                 high-entropy bytes twice"
+            );
+        }
+    }
+    assert_eq!(
+        archives_seen, 1,
+        "the shipped bundle carries exactly one {REP_GENERATED} archive, or the clause above \
+         is vacuous"
+    );
 }
 
 /// The store lane, driven through the PRODUCTION paths over the freshly emitted
