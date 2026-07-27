@@ -21,11 +21,15 @@
 //!
 //! # The rep→medium assignment is TOTAL
 //!
-//! `gmeow:MediumEnvelope` records carry the assignment (`gmeow:envelopeSchema` →
-//! `gmeow:envelopeMedium` + `gmeow:envelopeDictionary`), and
-//! `logic:MediumSchemaMediumFunctionalityConstraint` makes it a FUNCTION: two
-//! envelopes over one schema naming different media leave that rep's medium
-//! underivable, so this reader rejects them rather than picking one.
+//! The assignment is AUTHORED on the `gmeow:PayloadSchema` registry itself —
+//! `gmeow:payloadSchemaMedium` (exactly-one) plus `gmeow:payloadSchemaDictionary`
+//! (the per-rep selection out of that medium's declared bound) — and it is read
+//! from there, never from an emitted `gmeow:MediumEnvelope`. That direction is
+//! load-bearing: an envelope is the PROJECTION of a frame this build actually
+//! wrote, so sourcing the assignment from one would make the assignment a product
+//! of the emission it governs, and a rep that happened not to be emitted this run
+//! would have no medium at all. Reading the schema makes the assignment TOTAL by
+//! construction, because every emittable rep already has a registered schema.
 //! [`MediumRegistry::assignment_for`] therefore answers with a
 //! [`RepAssignment`] or a named failure, never with a default:
 //!
@@ -311,17 +315,17 @@ impl MediumRegistry {
     ///
     /// # Errors
     /// `MediumUnknownSchema` when the rep is unregistered;
-    /// `MediumUndeclaredDictionary` when it is registered but no envelope assigns it
-    /// a medium.
+    /// `MediumUndeclaredDictionary` when it is registered but its schema declares
+    /// no `gmeow:payloadSchemaMedium`.
     pub fn assignment_for(&self, rep: &str) -> Result<&RepAssignment, gmeow_errors::Diag> {
         // Order matters: an UNREGISTERED rep is a registry defect, and reporting it
         // as "undeclared" would send the reader to the wrong fix.
         self.schema_for(rep)?;
         self.assignment.get(rep).ok_or_else(|| {
             undeclared_dictionary(format!(
-                "blob representation {rep:?} is registered but no gmeow:MediumEnvelope assigns it \
-                 a gmeow:Medium — the rep→medium assignment is TOTAL, so a missing row is a \
-                 missing DECLARATION, never permission to encode the payload unprimed"
+                "blob representation {rep:?} is registered but its gmeow:PayloadSchema declares no \
+                 gmeow:payloadSchemaMedium — the rep→medium assignment is TOTAL, so a missing row \
+                 is a missing DECLARATION, never permission to encode the payload unprimed"
             ))
         })
     }
@@ -335,12 +339,17 @@ impl MediumRegistry {
     /// snapshot frame is a payload like any other, and giving it a private rule
     /// would put a second source of truth beside the registry.
     ///
-    /// `trained` maps a `gmeow:dictionaryId` to its trained bytes; only the
-    /// dictionaries the assignment actually selects are pinned in the pack, so a
-    /// declared-but-unselected dictionary never inflates the header.
+    /// `trained` maps a `gmeow:dictionaryId` to its trained bytes. EVERY declared
+    /// dictionary is pinned in the pack's `"dct"` map, not merely the ones this
+    /// emission's reps select: the bundle is the distribution channel for the
+    /// dictionary family itself. `gmeow-memory-hot-v1` and
+    /// `gmeow-memory-compact-v1` prime a consumer's OWN runtime store, so the only
+    /// place a consumer can obtain them is the shipped header — pinning only the
+    /// selected ones would ship a bundle that declares eight dictionaries and
+    /// carries six, leaving the other two nameable but unobtainable.
     ///
     /// # Errors
-    /// An unregistered or unassigned rep, a selected dictionary with no trained
+    /// An unregistered or unassigned rep, a declared dictionary with no trained
     /// bytes, or two assigned media declaring different zstd levels (the plan
     /// carries ONE level, so a disagreement has no answer).
     pub fn medium_plan(
@@ -349,8 +358,20 @@ impl MediumRegistry {
         trained: &BTreeMap<String, Vec<u8>>,
     ) -> Result<WireMediumPlan, gmeow_errors::Diag> {
         let mut assignment: BTreeMap<FrameSlot, WireDictSelection> = BTreeMap::new();
-        let mut selected: BTreeSet<String> = BTreeSet::new();
+        let mut pinned: BTreeSet<String> = BTreeSet::new();
         let mut level: Option<(i32, String)> = None;
+
+        for def in self.dictionaries.values() {
+            if !trained.contains_key(&def.id) {
+                return Err(undeclared_dictionary(format!(
+                    "dictionary <{}> ({:?}) is declared but no trained bytes were supplied — the \
+                     shipped pack pins every declared dictionary, so a declaration with no bytes \
+                     would ship a header naming a dictionary the pack does not carry",
+                    def.iri, def.id
+                )));
+            }
+            pinned.insert(def.id.clone());
+        }
 
         let slots = reps
             .iter()
@@ -396,14 +417,13 @@ impl MediumRegistry {
                             def.id
                         )));
                     }
-                    selected.insert(def.id.clone());
                     WireDictSelection::Named(def.id.clone())
                 }
             };
             assignment.insert(slot, selection);
         }
 
-        let dicts = selected
+        let dicts = pinned
             .into_iter()
             .map(|id| {
                 let bytes = trained.get(&id).cloned().expect("checked above");
@@ -533,38 +553,70 @@ impl MediumRegistry {
         Ok(())
     }
 
+    /// Read the AUTHORED rep→medium assignment off the `gmeow:PayloadSchema`
+    /// registry: `gmeow:payloadSchemaMedium` (exactly-one) plus, under a medium
+    /// that declares a dictionary set, `gmeow:payloadSchemaDictionary`.
+    ///
+    /// The assignment is read from the SCHEMA, never from an emitted
+    /// `gmeow:MediumEnvelope`. An envelope is the PROJECTION of a frame this build
+    /// actually wrote, so sourcing the assignment from one would make the
+    /// assignment a product of the emission it is supposed to govern — and a rep
+    /// that happened not to be emitted this run would have no medium at all.
+    /// Reading the schema instead makes the assignment TOTAL by construction:
+    /// every emittable rep already has a registered schema.
     fn read_assignment(&mut self, ds: &RdfDataset) -> Result<(), gmeow_errors::Diag> {
-        for subject in subjects_of_type(ds, &gm("MediumEnvelope")) {
-            let iri = require_iri(ds, subject)?;
-            let schema_iri = one_iri(ds, subject, &gm("envelopeSchema"), &iri)?;
-            let schema = self.schemas.get(&schema_iri).ok_or_else(|| {
-                unknown_schema(format!(
-                    "envelope <{iri}> gmeow:envelopeSchema <{schema_iri}>, which is not a \
-                     registered gmeow:PayloadSchema"
-                ))
-            })?;
-            let medium_iri = one_iri(ds, subject, &gm("envelopeMedium"), &iri)?;
+        let schemas: Vec<(String, String)> = self
+            .schemas
+            .values()
+            .map(|schema| (schema.iri.clone(), schema.rep.clone()))
+            .collect();
+        for (schema_iri, rep) in schemas {
+            let Some(subject) = iri_id(ds, &schema_iri) else {
+                continue;
+            };
+            let declared_media: Vec<String> = iri_objects(ds, subject, &gm("payloadSchemaMedium"))
+                .into_iter()
+                .collect();
+            let medium_iri = match declared_media.len() {
+                // No row: the schema is registered but UNASSIGNED. That is a
+                // declaration gap, and it is reported where it is actionable — at
+                // `assignment_for`, naming the rep the emission actually reached
+                // for — rather than by refusing to build the registry at all,
+                // which would hide every other row behind one missing one.
+                0 => continue,
+                1 => declared_media.into_iter().next().expect("length checked"),
+                n => {
+                    return Err(undeclared_dictionary(format!(
+                        "<{schema_iri}> (rep {rep:?}) declares {n} gmeow:payloadSchemaMedium \
+                         values — the rep→medium map is a FUNCTION \
+                         (logic:MediumSchemaMediumFunctionalityConstraint), so a rep two \
+                         assignments disagree about has no derivable medium and there is nothing \
+                         to pick between them"
+                    )));
+                }
+            };
             let medium = self.media.get(&medium_iri).ok_or_else(|| {
                 invalid_declaration(format!(
-                    "envelope <{iri}> gmeow:envelopeMedium <{medium_iri}>, which is not a declared \
-                     gmeow:Medium"
+                    "<{schema_iri}> gmeow:payloadSchemaMedium <{medium_iri}>, which is not a \
+                     declared gmeow:Medium"
                 ))
             })?;
 
-            // `gmeow:envelopeDictionary` is exactly-one on a PRIMED envelope. Its
-            // absence is legal in exactly one situation — the assigned medium
-            // declares an empty dictionary set, i.e. the explicitly-declared
-            // no-dictionary medium, where "no dictionary" IS the selection. Anywhere
-            // else it is gmeow:MediumUndeclaredDictionary.
-            let declared = iri_objects(ds, subject, &gm("envelopeDictionary"));
+            // `gmeow:payloadSchemaDictionary` is exactly-one on a rep assigned a
+            // dictionary-declaring medium. Its absence is legal in exactly one
+            // situation — the assigned medium declares an empty dictionary set,
+            // i.e. the explicitly-declared no-dictionary medium, where "no
+            // dictionary" IS the selection. Anywhere else it is
+            // gmeow:MediumUndeclaredDictionary.
+            let declared = iri_objects(ds, subject, &gm("payloadSchemaDictionary"));
             let dictionary = match declared.len() {
                 0 if medium.dictionaries.is_empty() => DictSelection::Baseline,
                 0 => {
                     return Err(undeclared_dictionary(format!(
-                        "envelope <{iri}> declares no gmeow:envelopeDictionary, but its medium \
-                         <{medium_iri}> declares {} — an undeclared dictionary is undiscoverable, \
-                         so the payload is permanently undecodable even though its bytes are \
-                         intact",
+                        "<{schema_iri}> (rep {rep:?}) declares no gmeow:payloadSchemaDictionary, \
+                         but its medium <{medium_iri}> declares {} — an undeclared dictionary is \
+                         undiscoverable, so every payload it primes would be permanently \
+                         undecodable even with its bytes intact",
                         medium.dictionaries.len()
                     )));
                 }
@@ -572,48 +624,37 @@ impl MediumRegistry {
                     let dict_iri = declared.into_iter().next().expect("length checked");
                     if !self.dictionaries.contains_key(&dict_iri) {
                         return Err(super::unknown_dictionary(format!(
-                            "envelope <{iri}> gmeow:envelopeDictionary <{dict_iri}>, which is not \
-                             a registered gmeow:CompressionDictionary"
+                            "<{schema_iri}> gmeow:payloadSchemaDictionary <{dict_iri}>, which is \
+                             not a registered gmeow:CompressionDictionary"
                         )));
                     }
                     if !medium.dictionaries.contains(&dict_iri) {
                         return Err(super::unknown_dictionary(format!(
-                            "envelope <{iri}> primes with <{dict_iri}>, which its medium \
-                             <{medium_iri}> does not declare — the medium's \
-                             gmeow:mediumDictionary set is the BOUND on what it may prime with"
+                            "<{schema_iri}> selects <{dict_iri}>, which its medium <{medium_iri}> \
+                             does not declare — the medium's gmeow:mediumDictionary set is the \
+                             BOUND on what it may prime with"
                         )));
                     }
                     DictSelection::Named(dict_iri)
                 }
                 n => {
                     return Err(undeclared_dictionary(format!(
-                        "envelope <{iri}> declares {n} gmeow:envelopeDictionary values — a payload \
-                         primed with two dictionaries is incoherent, and a projection missing (or \
-                         doubling) a coordinate is a DIFFERENT claim rather than a weaker one"
+                        "<{schema_iri}> declares {n} gmeow:payloadSchemaDictionary values — a \
+                         payload primed with two dictionaries is incoherent, and a declaration \
+                         missing (or doubling) a coordinate is a DIFFERENT claim rather than a \
+                         weaker one"
                     )));
                 }
             };
 
-            let row = RepAssignment {
-                schema: schema_iri,
-                medium: medium_iri,
-                dictionary,
-            };
-            match self.assignment.get(&schema.rep) {
-                Some(existing) if *existing != row => {
-                    return Err(invalid_declaration(format!(
-                        "rep {:?} is assigned by two disagreeing envelopes ({existing:?} vs \
-                         {row:?}) — the rep→medium map is a FUNCTION \
-                         (logic:MediumSchemaMediumFunctionalityConstraint), so a schema two \
-                         envelopes disagree about has no derivable medium",
-                        schema.rep
-                    )));
-                }
-                Some(_) => {}
-                None => {
-                    self.assignment.insert(schema.rep.clone(), row);
-                }
-            }
+            self.assignment.insert(
+                rep,
+                RepAssignment {
+                    schema: schema_iri,
+                    medium: medium_iri,
+                    dictionary,
+                },
+            );
         }
         Ok(())
     }
@@ -769,8 +810,13 @@ gmeow:dictTerms a gmeow:CompressionDictionary ;
     gmeow:dictionaryTargetLength 4096 ;
     gmeow:trainsOverCorpus gmeow:corpusTerms .
 
-gmeow:payloadSchemaCells a gmeow:PayloadSchema ; gmeow:payloadSchemaId "cells-archive" .
-gmeow:payloadSchemaSnapshot a gmeow:PayloadSchema ; gmeow:payloadSchemaId "gmeow:snapshot/wire" .
+gmeow:payloadSchemaCells a gmeow:PayloadSchema ; gmeow:payloadSchemaId "cells-archive" ;
+    gmeow:payloadSchemaMedium gmeow:mediumDist ;
+    gmeow:payloadSchemaDictionary gmeow:dictCore .
+gmeow:payloadSchemaSnapshot a gmeow:PayloadSchema ; gmeow:payloadSchemaId "gmeow:snapshot/wire" ;
+    gmeow:payloadSchemaMedium gmeow:mediumBaseline .
+# Registered but DELIBERATELY unassigned: the negative case for a rep that has a
+# schema and no gmeow:payloadSchemaMedium.
 gmeow:payloadSchemaOrphan a gmeow:PayloadSchema ; gmeow:payloadSchemaId "orphan-archive" .
 
 gmeow:mediumDist a gmeow:ZstdDictMedium ;
@@ -785,15 +831,6 @@ gmeow:mediumBaseline a gmeow:ZstdDictMedium ;
     gmeow:mediumZstdLevel 12 ;
     gmeow:mediumSourceKind gmeow:mediumSourceWholeArtifact ;
     gmeow:requiresReaderCapability "zstd-rsyncable" .
-
-gmeow:envCells a gmeow:MediumEnvelope ;
-    gmeow:envelopeSchema gmeow:payloadSchemaCells ;
-    gmeow:envelopeMedium gmeow:mediumDist ;
-    gmeow:envelopeDictionary gmeow:dictCore .
-
-gmeow:envSnapshot a gmeow:MediumEnvelope ;
-    gmeow:envelopeSchema gmeow:payloadSchemaSnapshot ;
-    gmeow:envelopeMedium gmeow:mediumBaseline .
 {extra}
 "#
         )
@@ -877,16 +914,13 @@ mod tests {
         );
     }
 
-    /// A primed envelope with no dictionary is `MediumUndeclaredDictionary` — the
-    /// baseline exemption is scoped to a medium that declares an EMPTY dictionary
-    /// set, not to "any envelope that forgot the field".
+    /// A rep assigned a dictionary-declaring medium but selecting no dictionary is
+    /// `MediumUndeclaredDictionary` — the baseline exemption is scoped to a medium
+    /// that declares an EMPTY dictionary set, not to "any schema that forgot the
+    /// field".
     #[test]
-    fn a_primed_envelope_with_no_dictionary_is_undeclared() {
-        let diag = error(
-            "gmeow:envBad a gmeow:MediumEnvelope ;\n\
-             \x20   gmeow:envelopeSchema gmeow:payloadSchemaOrphan ;\n\
-             \x20   gmeow:envelopeMedium gmeow:mediumDist .",
-        );
+    fn an_assigned_rep_with_no_dictionary_selection_is_undeclared() {
+        let diag = error("gmeow:payloadSchemaOrphan gmeow:payloadSchemaMedium gmeow:mediumDist .");
         assert_eq!(
             diag.code(),
             crate::error::MediumUndeclaredDictionary::register(),
@@ -896,17 +930,15 @@ mod tests {
 
     /// A dictionary the medium does not declare is outside the medium's BOUND.
     #[test]
-    fn an_envelope_priming_outside_the_medium_bound_is_unknown() {
+    fn a_rep_selecting_outside_the_medium_bound_is_unknown() {
         let diag = error(
             "gmeow:dictStray a gmeow:CompressionDictionary ;\n\
              \x20   gmeow:dictionaryId \"stray-v1\" ; gmeow:dictionaryVersion \"1\" ;\n\
              \x20   gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;\n\
              \x20   gmeow:dictionaryTargetLength 4096 ;\n\
              \x20   gmeow:trainsOverCorpus gmeow:corpusCore .\n\
-             gmeow:envStray a gmeow:MediumEnvelope ;\n\
-             \x20   gmeow:envelopeSchema gmeow:payloadSchemaOrphan ;\n\
-             \x20   gmeow:envelopeMedium gmeow:mediumDist ;\n\
-             \x20   gmeow:envelopeDictionary gmeow:dictStray .",
+             gmeow:payloadSchemaOrphan gmeow:payloadSchemaMedium gmeow:mediumDist ;\n\
+             \x20   gmeow:payloadSchemaDictionary gmeow:dictStray .",
         );
         assert_eq!(
             diag.code(),
@@ -915,17 +947,36 @@ mod tests {
         );
     }
 
-    /// Two envelopes disagreeing about one rep's medium leave that rep's medium
+    /// Two `gmeow:payloadSchemaMedium` values on one schema leave that rep's medium
     /// underivable — which is exactly the per-call decision the axis exists to
     /// remove, so it is rejected rather than resolved by precedence.
     #[test]
-    fn two_envelopes_disagreeing_about_one_rep_are_rejected() {
-        let diag = error(
-            "gmeow:envCells2 a gmeow:MediumEnvelope ;\n\
-             \x20   gmeow:envelopeSchema gmeow:payloadSchemaCells ;\n\
-             \x20   gmeow:envelopeMedium gmeow:mediumBaseline .",
+    fn a_rep_assigned_two_media_is_rejected() {
+        let diag =
+            error("gmeow:payloadSchemaCells gmeow:payloadSchemaMedium gmeow:mediumBaseline .");
+        assert_eq!(
+            diag.code(),
+            crate::error::MediumUndeclaredDictionary::register(),
+            "{diag}"
         );
-        assert!(diag.to_string().contains("disagreeing envelopes"), "{diag}");
+        assert!(
+            diag.to_string()
+                .contains("2 gmeow:payloadSchemaMedium values"),
+            "{diag}"
+        );
+    }
+
+    /// A rep whose assignment names an undeclared medium has no round-trip law.
+    #[test]
+    fn a_rep_assigned_an_undeclared_medium_is_rejected() {
+        let diag =
+            error("gmeow:payloadSchemaOrphan gmeow:payloadSchemaMedium gmeow:mediumInvented .");
+        assert_eq!(
+            diag.code(),
+            crate::error::InvalidDeclaration::register(),
+            "{diag}"
+        );
+        assert!(diag.to_string().contains("mediumInvented"), "{diag}");
     }
 
     /// An exactly-one field that is missing has nothing to default to.
@@ -954,18 +1005,32 @@ mod tests {
         assert!(diag.to_string().contains("dictStrategyInvented"), "{diag}");
     }
 
+    /// The trained bytes of every declared fixture dictionary — the plan pins them
+    /// ALL, so a plan test must supply them all.
+    fn trained_all() -> BTreeMap<String, Vec<u8>> {
+        [
+            ("gmeow-core-v1".to_string(), vec![1, 2, 3]),
+            ("gmeow-terms-v1".to_string(), vec![4, 5]),
+        ]
+        .into()
+    }
+
     #[test]
     fn the_medium_plan_renders_the_assignment_for_the_authorship_door() {
         let registry = registry("");
-        let trained: BTreeMap<String, Vec<u8>> =
-            [("gmeow-core-v1".to_string(), vec![1, 2, 3])].into();
         let plan = registry
-            .medium_plan(&["cells-archive".to_string()], &trained)
+            .medium_plan(&["cells-archive".to_string()], &trained_all())
             .expect("plan");
         assert_eq!(plan.zstd_level, Some(12));
+        // EVERY declared dictionary is pinned, not merely the selected one: the
+        // pack is the distribution channel for the dictionary family, so a
+        // declared-but-unselected dictionary must still be obtainable from it.
         assert_eq!(
             plan.dicts,
-            vec![("gmeow-core-v1".to_string(), vec![1, 2, 3])]
+            vec![
+                ("gmeow-core-v1".to_string(), vec![1, 2, 3]),
+                ("gmeow-terms-v1".to_string(), vec![4, 5]),
+            ]
         );
         assert_eq!(
             plan.assignment
@@ -986,12 +1051,16 @@ mod tests {
     fn the_medium_plan_hard_fails_on_an_unassigned_rep() {
         let registry = registry("");
         let diag = registry
-            .medium_plan(&["orphan-archive".to_string()], &BTreeMap::new())
+            .medium_plan(&["orphan-archive".to_string()], &trained_all())
             .expect_err("an unassigned rep must not produce a plan");
         assert_eq!(
             diag.code(),
             crate::error::MediumUndeclaredDictionary::register(),
             "{diag}"
+        );
+        assert!(
+            diag.to_string().contains("orphan-archive"),
+            "the failure names the unassigned rep, not a missing dictionary: {diag}"
         );
     }
 
@@ -1074,6 +1143,35 @@ mod tests {
                 .any(|s| s.rep == SNAPSHOT_WIRE_REP),
             "the snapshot wire schema is registered like any other payload"
         );
+        // TOTALITY: the authored assignment covers EVERY registered rep. This is
+        // the property that makes `MediumUndeclaredDictionary` unreachable on the
+        // live tree — without it every real rep would raise it at emission time.
+        for schema in registry.schemas().values() {
+            let row = registry
+                .assignment_for(&schema.rep)
+                .unwrap_or_else(|err| panic!("rep {:?} is unassigned: {err}", schema.rep));
+            assert!(
+                registry.media().contains_key(&row.medium),
+                "rep {:?} names undeclared medium <{}>",
+                schema.rep,
+                row.medium
+            );
+            match &row.dictionary {
+                DictSelection::Named(iri) => assert!(
+                    registry.dictionaries().contains_key(iri),
+                    "rep {:?} selects unregistered dictionary <{iri}>",
+                    schema.rep
+                ),
+                DictSelection::Baseline => assert!(
+                    registry
+                        .media()
+                        .get(&row.medium)
+                        .is_some_and(|m| m.dictionaries.is_empty()),
+                    "rep {:?} is unprimed under a medium that declares dictionaries",
+                    schema.rep
+                ),
+            }
+        }
         assert_eq!(registry.media().len(), 2, "baseline + dist");
         for medium in registry.media().values() {
             assert_eq!(

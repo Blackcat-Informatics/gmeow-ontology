@@ -148,6 +148,11 @@ tempfile = "3"
 # and never a gate — the events surface only when a subscriber (e.g. the CLI's
 # `init_tracing`) is installed and the level is enabled.
 tracing = "0.1"
+# The store COMPACTION lane's mandatory packaging signature: purrdf's
+# `compact_streamable` takes the ordering-commitment signer as a plain tuple (never an
+# `Option`), so an unsigned repack is unrepresentable — which means the store lane has
+# to name the key type.
+ed25519-dalek = "2"
 
 [build-dependencies]
 # Hash the workspace source into GMEOW_BUILD_FINGERPRINT (build.rs) so the
@@ -156,6 +161,14 @@ sha2 = "0.10"
 
 [dev-dependencies]
 tempfile = "3"
+# The whole-bundle medium gate (tests/medium_bundle.rs) walks the emitted pack's raw
+# CBOR item stream (header catalog + `"dct"` map + per-frame `pub` metadata) and
+# recomputes the stratified digest independently of the producer. Integration-test
+# crates do NOT inherit the normal dependency table, so the crates it touches are
+# redeclared here.
+ciborium = "0.2"
+blake3 = "1"
+gmeow-gts-profile = { path = "../gts-profile" }
 # The medium-axis concurrency proof (`medium::train`): each worker thread PERTURBS
 # its own thread-local `fastrand` generator around the training call, so a
 # regression to an ambient-seeded trainer shows up as diverging dictionary bytes

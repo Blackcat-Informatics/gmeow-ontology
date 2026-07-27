@@ -23,7 +23,12 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use serde_json::{Value, json};
 
-use crate::gts_profile::GmeowGtsWriter;
+use crate::gts_profile::{open_store_segment, store_tail_pins, store_writer};
+
+/// The medium an append-only runtime store is written through, re-exported so a caller
+/// that must NAME it (the CLI's conjecture / candidate lanes) reaches the whole store
+/// lane through this one module rather than depending on the profile crate directly.
+pub use crate::gts_profile::StoreMedium;
 use gmeow_errors::ResultExt;
 use gmeow_lang_bridge::{
     Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
@@ -42,7 +47,7 @@ use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result}
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
 use purrdf::gts::examples::agent_memory::{
-    Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
+    Memory, MemoryOptions, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
 use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
@@ -1967,6 +1972,18 @@ pub struct McpServer {
     tag_map: BTreeMap<String, String>,
     available: BTreeSet<String>,
     startup_requested: Vec<String>,
+    /// The medium every runtime store this server writes — agent memory, the
+    /// conjecture library, the candidate library — is written through: the shipped
+    /// [`MEMORY_HOT_DICTIONARY`] bytes read out of the loaded bundle's in-band
+    /// `"dct"` map, resolved once on first write and shared thereafter.
+    ///
+    /// Resolved on the WRITE path rather than at construction, because it is a
+    /// precondition of writing and of nothing else: a reader serving `lookup_term`
+    /// or `doc_card` needs no store and must not be refused for a dictionary it will
+    /// never use. On the write path there is no fallback — a bundle that does not
+    /// ship the dictionary raises `gmeow:MediumUndeclaredDictionary` and the write
+    /// refuses, because an unprimed store segment is a silent density loss.
+    store_medium: OnceLock<StoreMedium>,
 }
 
 impl McpServer {
@@ -1995,6 +2012,7 @@ impl McpServer {
             tag_map,
             available,
             startup_requested,
+            store_medium: OnceLock::new(),
         })
     }
 
@@ -2470,7 +2488,14 @@ impl McpServer {
         json!({ "resources": resources })
     }
 
-    fn call_tool_result(&self, name: &str, args: &Value) -> Value {
+    /// Dispatch one MCP tool call and return its JSON-RPC `result` payload — the
+    /// same entry [`Self::run_stdio`] drives, exposed so a caller can run a tool
+    /// WITHOUT a stdio loop.
+    ///
+    /// Public because the alternative for an in-process caller is to reimplement the
+    /// dispatch table, which would be a second source of truth for what each tool
+    /// name does.
+    pub fn call_tool_result(&self, name: &str, args: &Value) -> Value {
         if let Some(err) = args.get("__parse_error").and_then(Value::as_str) {
             return tool_text(json!({"ok": false, "error": err}).to_string(), true);
         }
@@ -3162,6 +3187,7 @@ impl McpServer {
         })?;
         write_audit_segment(
             memory.path(),
+            self.store_medium()?,
             &call.id,
             MCP_STORE_CLAIM_SCHEMA,
             &obtains,
@@ -3273,6 +3299,7 @@ impl McpServer {
         })?;
         write_audit_segment(
             memory.path(),
+            self.store_medium()?,
             &call.id,
             MCP_REVISE_BELIEF_SCHEMA,
             &obtains,
@@ -3374,6 +3401,7 @@ impl McpServer {
         // (also behind the CLI `gmeow conjecture test`); the tool is a thin wrapper rendering
         // its outcome as the JSON response.
         let out = run_conjecture_test(&ConjectureRunInput {
+            medium: self.store_medium()?,
             formula_ttl: formula_src,
             kb_ttl: kb_src,
             standpoint,
@@ -3529,18 +3557,19 @@ impl McpServer {
             // segment can never leave the withdrawal applied without its audit record, or vice
             // versa. The library is still append-only overall: no PRIOR segment's bytes are
             // touched, only new bytes are added.
-            let withdrawal_segment = build_nt_segment(&nt_body)?;
             let call_id = format!(
                 "urn:gmeow:conjecture-call:{}",
                 sha256_hex(format!("withdraw\u{1}{conjecture_id}\u{1}{reason}").as_bytes())
             );
-            let audit_segment = build_audit_segment(
+            commit_library_segments(
+                &path,
+                self.store_medium()?,
+                &nt_body,
                 &call_id,
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
                 "1970-01-01T00:00:00Z",
             )?;
-            append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
             Ok(json!({
                 "ok": true,
                 "conjecture": conjecture_id,
@@ -3646,6 +3675,7 @@ impl McpServer {
         let budget = governed_budget(max_steps, max_answers);
 
         let out = run_submit_candidate(&CandidateSubmitInput {
+            medium: self.store_medium()?,
             formula_ttl: formula_src,
             kb_ttl: kb_src,
             standpoint,
@@ -3726,7 +3756,7 @@ impl McpServer {
         let candidate_id = required_str(args, "candidate_id")?;
         let reason = optional_str(args, "reason").unwrap_or("");
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
-        run_withdraw_candidate(candidate_id, reason, dry_run)
+        run_withdraw_candidate(candidate_id, reason, dry_run, self.store_medium()?)
     }
 
     fn tool_list_candidates(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -3800,6 +3830,20 @@ impl McpServer {
         }
     }
 
+    /// The medium every runtime store this server writes is written through (see
+    /// [`McpServer::store_medium`]).
+    ///
+    /// # Errors
+    /// The loaded bundle pins no [`MEMORY_HOT_DICTIONARY`] — a store cannot be primed
+    /// with an id the bundle does not carry, and there is no unprimed fallback.
+    fn store_medium(&self) -> gmeow_errors::Result<&StoreMedium> {
+        if let Some(medium) = self.store_medium.get() {
+            return Ok(medium);
+        }
+        let resolved = store_medium(self.view.gts_bytes(), MEMORY_HOT_DICTIONARY)?;
+        Ok(self.store_medium.get_or_init(|| resolved))
+    }
+
     fn memory(&self) -> gmeow_errors::Result<Memory> {
         let path = memory_path()?;
         if let Some(parent) = path
@@ -3808,7 +3852,21 @@ impl McpServer {
         {
             fs::create_dir_all(parent)?;
         }
-        Ok(Memory::new(path))
+        // A segment declares ONE codec catalog, so a store whose tail predates this
+        // medium gets a fresh segment boundary before anything is appended into it.
+        let medium = self.store_medium()?;
+        open_store_segment_if_medium_changed(&path, medium)?;
+        Ok(Memory::with_options(
+            path,
+            MemoryOptions {
+                dicts: vec![(medium.dictionary.clone(), medium.bytes.clone())],
+                dict: Some(medium.dictionary.clone()),
+                // profile / transform / level stay upstream's defaults, which ARE the
+                // mandated GMEOW profile (`ai-package`, zstd-rsyncable, level 12);
+                // restating them here would be a second copy of the same pin.
+                ..MemoryOptions::default()
+            },
+        ))
     }
 
     fn root_path(&self) -> gmeow_errors::Result<PathBuf> {
@@ -3887,6 +3945,12 @@ pub struct ConjectureRunInput<'a> {
     /// Optional post-hoc derived-closure-size ceiling; see
     /// [`ConjectureRunPureInput::max_answers`]. `None` = unbounded.
     pub max_answers: Option<usize>,
+    /// The medium the append-only conjecture library is written through — the
+    /// shipped `gmeow-memory-hot-v1` dictionary, resolved from the bundle by
+    /// [`store_medium`]. Not an `Option`: a library segment written unprimed is a
+    /// silent density loss no error would surface, so the caller must name the
+    /// medium it is writing through.
+    pub medium: &'a StoreMedium,
 }
 
 /// A refutation's contradiction witness, flattened for every response surface.
@@ -4088,6 +4152,7 @@ pub fn run_conjecture_test(
         dry_run,
         max_steps,
         max_answers,
+        medium,
     } = *input;
 
     let ConjectureEvaluation {
@@ -4144,19 +4209,20 @@ pub fn run_conjecture_test(
     //     atomic file replace under ONE held lock, so a failure building or committing either
     //     segment can never leave the library holding the verdict without its audit record.
     let path = conjecture_path()?;
-    let verdict_segment = build_nt_segment(&out.verdict_nt)?;
     let call_id = format!(
         "urn:gmeow:conjecture-call:{}",
         sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
     );
-    let audit_segment = build_audit_segment(
-        &call_id,
-        MCP_PERSIST_CONJECTURE_SCHEMA,
-        &obtains,
-        "1970-01-01T00:00:00Z",
-    )?;
     with_conjecture_lock(&path, || {
-        append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+        commit_library_segments(
+            &path,
+            medium,
+            &out.verdict_nt,
+            &call_id,
+            MCP_PERSIST_CONJECTURE_SCHEMA,
+            &obtains,
+            "1970-01-01T00:00:00Z",
+        )
     })?;
     out.committed = true;
     Ok(out)
@@ -4195,6 +4261,9 @@ pub struct CandidateSubmitInput<'a> {
     pub max_steps: Option<u64>,
     /// Optional post-hoc derived-closure-size ceiling; `None` = unbounded.
     pub max_answers: Option<usize>,
+    /// The medium the append-only candidate library is written through (as
+    /// [`ConjectureRunInput::medium`]).
+    pub medium: &'a StoreMedium,
 }
 
 /// The outcome of a [`run_submit_candidate`] call: the projected verdict facets, the
@@ -4282,6 +4351,7 @@ pub fn run_submit_candidate(
         dry_run,
         max_steps,
         max_answers,
+        medium,
     } = *input;
 
     let ConjectureEvaluation {
@@ -4351,19 +4421,20 @@ pub fn run_submit_candidate(
         out.verdict_nt.trim_end(),
         candidate_provenance_nt(&out.node_iri, for_slice, for_packet)
     );
-    let verdict_segment = build_nt_segment(&body)?;
     let call_id = format!(
         "urn:gmeow:candidate-call:{}",
         sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
     );
-    let audit_segment = build_audit_segment(
-        &call_id,
-        MCP_SUBMIT_CANDIDATE_SCHEMA,
-        obtains,
-        "1970-01-01T00:00:00Z",
-    )?;
     with_conjecture_lock(&path, || {
-        append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+        commit_library_segments(
+            &path,
+            medium,
+            &body,
+            &call_id,
+            MCP_SUBMIT_CANDIDATE_SCHEMA,
+            obtains,
+            "1970-01-01T00:00:00Z",
+        )
     })?;
     out.committed = true;
     Ok(out)
@@ -4385,6 +4456,7 @@ pub fn run_withdraw_candidate(
     candidate_id: &str,
     reason: &str,
     dry_run: bool,
+    medium: &StoreMedium,
 ) -> gmeow_errors::Result<String> {
     let path = candidate_path()?;
     // The read → precondition-check → (on a real commit) append sequence runs entirely inside ONE
@@ -4433,18 +4505,19 @@ pub fn run_withdraw_candidate(
             TxReceipt::CommittedSuccess { .. } => {}
         }
 
-        let withdrawal_segment = build_nt_segment(&nt_body)?;
         let call_id = format!(
             "urn:gmeow:candidate-call:{}",
             sha256_hex(format!("withdraw\u{1}{candidate_id}\u{1}{reason}").as_bytes())
         );
-        let audit_segment = build_audit_segment(
+        commit_library_segments(
+            &path,
+            medium,
+            &nt_body,
             &call_id,
             MCP_WITHDRAW_CANDIDATE_SCHEMA,
             &[MCP_CANDIDATE_IN_LIBRARY],
             "1970-01-01T00:00:00Z",
         )?;
-        append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
         Ok(json!({
             "ok": true,
             "candidate": candidate_id,
@@ -5737,14 +5810,163 @@ fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
 /// (UTC-Gregorian, P11), the anchor's `logic:transitionFromState` start state, and the start's
 /// obtaining situations. This is exactly the shape `emit_trajectory_audits` reads, so a cold trajectory
 /// audit of `memory.gts` (unioned with the canonical action theory) verifies the executed turn.
+/// The shipped dictionary every HOT runtime store — agent memory, the conjecture
+/// library, the candidate library — primes its segments with
+/// (`gmeow:dictGmeowMemoryHotV1`).
+///
+/// The store's payloads are short, highly repetitive RDF written a few hundred bytes
+/// at a time, which is the single best case for a primed zstd stream and the single
+/// worst case for an unprimed one: with no dictionary each record re-learns the same
+/// IRIs from scratch.
+pub const MEMORY_HOT_DICTIONARY: &str = "gmeow-memory-hot-v1";
+
+/// The shipped dictionary the COMPACTION lane repacks a store under
+/// (`gmeow:dictGmeowMemoryCompactV1`) — a term table rather than a trained sample,
+/// because a compact store offers too few bytes for the COVER trainer to beat the
+/// ontology's own vocabulary.
+pub const MEMORY_COMPACT_DICTIONARY: &str = "gmeow-memory-compact-v1";
+
+/// Resolve a runtime store's medium out of the SHIPPED bundle's in-band `"dct"` map.
+///
+/// The bundle is the dictionary's distribution channel: `gmeow.gts` pins all eight
+/// declared dictionaries in its segment header, so a consumer priming its own store
+/// reads the exact bytes the build trained — never a re-derivation that could differ
+/// under the same id, and never an out-of-band artifact a wheel-mode install would
+/// not have.
+///
+/// # Errors
+/// The snapshot carries no readable header, or does not pin `dictionary` — which is
+/// `gmeow:MediumUndeclaredDictionary`: an id that names no bytes, and there is no
+/// weaker unprimed store to fall back to, because the store's OWN header is what
+/// makes it decodable.
+pub fn store_medium(snapshot: &[u8], dictionary: &str) -> gmeow_errors::Result<StoreMedium> {
+    let dicts = crate::gts_profile::segment_dictionaries(snapshot)?;
+    let bytes = dicts.get(dictionary).cloned().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::MediumUndeclaredDictionary {
+            detail: format!(
+                "the loaded gmeow.gts pins no in-band dictionary named {dictionary:?} (pinned: \
+                 {:?}) — a runtime store cannot be primed with an id the bundle does not carry, \
+                 and writing it unprimed would silently discard the density the dictionary exists \
+                 to provide. Regenerate the bundle.",
+                dicts.keys().collect::<Vec<_>>()
+            ),
+        })
+    })?;
+    Ok(StoreMedium {
+        dictionary: dictionary.to_string(),
+        bytes,
+    })
+}
+
+/// Ensure the store at `path` ends in a segment whose header pins `medium`, opening a
+/// new one when it does not.
+///
+/// A GTS segment declares exactly ONE codec catalog, so a medium change requires a
+/// segment boundary; without this a record appended to a store whose tail was written
+/// through a different medium would name a catalog id that tail never declared. Every
+/// earlier segment keeps its own header and decodes under its OWN declared medium —
+/// a mixed file is several honest reads, not one degraded one.
+///
+/// # Errors
+/// The store cannot be read/created, or its bytes carry no readable segment header.
+fn open_store_segment_if_medium_changed(
+    path: &Path,
+    medium: &StoreMedium,
+) -> gmeow_errors::Result<()> {
+    let existing = match fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(e.into()),
+    };
+    if existing.is_empty() || store_tail_pins(&existing, &medium.dictionary)? {
+        return Ok(());
+    }
+    let header = open_store_segment(STORE_PROFILE, medium)?;
+    let mut file = fs::OpenOptions::new().append(true).open(path)?;
+    file.write_all(&header)?;
+    Ok(())
+}
+
+/// The GTS profile every GMEOW runtime store declares in its segment headers.
+const STORE_PROFILE: &str = "ai-package";
+
+/// Repack a GMEOW-authored GTS pack into ONE streamable segment primed by the shipped
+/// [`MEMORY_COMPACT_DICTIONARY`] — the small-store maintenance lane.
+///
+/// A long-lived pack accumulates one segment boundary per medium change and one frame
+/// per record; compaction rewrites that into a single streamable segment whose
+/// dictionary is derived from the pack's OWN content-blob corpus, which is what makes
+/// the result byte-reproducible from the input alone and self-decoding without the
+/// bundle. The content claims are rewrite-invariant, so what changes is the LAYOUT and
+/// the MEDIUM, never a statement.
+///
+/// # The pack must carry content blobs
+///
+/// A dictionary is BUILT here rather than shipped in: that is the compaction contract
+/// upstream defines, and it is why the compacted pack needs no external artifact to
+/// decode. It also means a pack with no content blobs — an agent-memory store, whose
+/// records are `terms`/`quads` frames — has no corpus to build one from, and is
+/// REFUSED with that reason rather than quietly repacked unprimed. The refusal is the
+/// correct outcome: a store that cannot be primed should keep the medium its segments
+/// already declare, each of which decodes on its own terms.
+///
+/// The compact dictionary is declared `gmeow:dictStrategyTermTable`, which shares the
+/// raw-content producer with `gmeow:dictStrategyRawContent` (they differ in WHAT is
+/// fed in, not in how it is built), so that is the strategy the plan names.
+///
+/// The whole read → rewrite → replace runs under the store lock, and the replace is
+/// atomic: a compaction that fails part-way leaves the PRIOR store completely intact
+/// rather than a half-rewritten one.
+///
+/// # Errors
+/// The store cannot be read, is not safely compactable (refuse-don't-trust), or the
+/// atomic replace fails.
+pub fn compact_store(
+    path: &Path,
+    timestamp: &str,
+    packaging_signer: (ed25519_dalek::SigningKey, String),
+) -> gmeow_errors::Result<()> {
+    with_conjecture_lock(path, move || {
+        let bytes = fs::read(path)?;
+        let compacted = crate::gts_profile::compact_gmeow_gts(
+            &bytes,
+            timestamp,
+            MEMORY_COMPACT_DICTIONARY,
+            purrdf::gts::compact::DictStrategy::RawContent,
+            packaging_signer,
+        )?;
+        let dir = path
+            .parent()
+            .filter(|parent| !parent.as_os_str().is_empty())
+            .map_or_else(|| PathBuf::from("."), PathBuf::from);
+        let mut tmp = tempfile::Builder::new()
+            .prefix(".compact-")
+            .suffix(".tmp")
+            .tempfile_in(&dir)?;
+        tmp.write_all(&compacted)?;
+        tmp.as_file().sync_all()?;
+        tmp.persist(path)?;
+        Ok(())
+    })
+}
+
 fn write_audit_segment(
     memory_path: &Path,
+    medium: &StoreMedium,
     call_id: &str,
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
-    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time)?;
+    // The store's CURRENT bytes decide whether this record continues the tail
+    // segment or opens a new one; `store_writer` owns that decision, and the frames
+    // it authors prime with the store's declared dictionary either way.
+    let existing = match fs::read(memory_path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Vec::new(),
+        Err(e) => return Err(e.into()),
+    };
+    let segment = build_audit_segment(&existing, medium, call_id, schema_iri, obtains, at_time)?;
     let mut file = fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -5759,6 +5981,8 @@ fn write_audit_segment(
 /// [`append_conjecture_segments`] (one atomic replace), rather than two separate appends where
 /// the second can fail after the first has already landed.
 fn build_audit_segment(
+    existing: &[u8],
+    medium: &StoreMedium,
     call_id: &str,
     schema_iri: &str,
     obtains: &[&str],
@@ -5799,7 +6023,7 @@ fn build_audit_segment(
         quads.push((t_start, t_so, t_sit, None));
     }
 
-    let mut writer = GmeowGtsWriter::new("ai-package");
+    let mut writer = store_writer(STORE_PROFILE, existing, medium)?;
     writer.add_terms(&terms)?;
     writer.add_quads(&quads)?;
     Ok(writer.into_bytes())
@@ -5928,7 +6152,11 @@ fn intern_nt_term(
 /// RDF-1.2-native. Building the bytes is separated from appending them so a caller can assemble
 /// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
 /// together as one atomic file replace — see [`append_conjecture_segments`].
-fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
+fn build_nt_segment(
+    existing: &[u8],
+    medium: &StoreMedium,
+    nt_body: &str,
+) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
@@ -5972,7 +6200,7 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
         quads.push((s, p, o, None));
     }
 
-    let mut writer = GmeowGtsWriter::new("ai-package");
+    let mut writer = store_writer(STORE_PROFILE, existing, medium)?;
     writer.add_terms(&terms)?;
     writer.add_quads(&quads)?;
     Ok(writer.into_bytes())
@@ -6032,6 +6260,43 @@ fn with_conjecture_lock<T>(
 /// append fails, library append is left applied" failure mode). The caller MUST
 /// already hold the conjecture-library lock (see [`with_conjecture_lock`]) — this function does
 /// not lock by itself, so it can be called once per commit even when it writes >1 segment.
+/// Build and commit one verdict/withdrawal segment plus its trajectory-audit segment
+/// to the append-only library at `path`, as ONE atomic file replace.
+///
+/// The caller MUST already hold the library lock (see [`with_conjecture_lock`]): the
+/// store's CURRENT bytes decide whether each segment continues the tail or opens a
+/// new one, so reading them outside the lock would race a concurrent append.
+///
+/// The audit segment is authored over the file AS IT WILL BE once the verdict lands —
+/// `existing + verdict` — because both segments chain: authoring it over the
+/// pre-verdict bytes would give it a `prev` naming the wrong head and fork the chain.
+///
+/// # Errors
+/// The store cannot be read, a segment cannot be authored under the store's medium, or
+/// the atomic replace fails.
+#[allow(clippy::too_many_arguments)]
+fn commit_library_segments(
+    path: &Path,
+    medium: &StoreMedium,
+    body_nt: &str,
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+) -> gmeow_errors::Result<()> {
+    let existing = match fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Vec::new(),
+        Err(e) => return Err(e.into()),
+    };
+    let body_segment = build_nt_segment(&existing, medium, body_nt)?;
+    let mut chained = existing;
+    chained.extend_from_slice(&body_segment);
+    let audit_segment =
+        build_audit_segment(&chained, medium, call_id, schema_iri, obtains, at_time)?;
+    append_conjecture_segments(path, &[body_segment, audit_segment])
+}
+
 fn append_conjecture_segments(path: &Path, segments: &[Vec<u8>]) -> gmeow_errors::Result<()> {
     let mut bytes = match fs::read(path) {
         Ok(bytes) => bytes,
@@ -6545,8 +6810,12 @@ mod tests {
     /// and commit them together via [`append_conjecture_segments`] directly (one atomic replace
     /// covering both), rather than through this single-segment helper.
     fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
-        let segment = build_nt_segment(nt_body)?;
-        with_conjecture_lock(path, || append_conjecture_segments(path, &[segment]))
+        let medium = test_medium();
+        with_conjecture_lock(path, || {
+            let existing = fs::read(path).unwrap_or_default();
+            let segment = build_nt_segment(&existing, &medium, nt_body)?;
+            append_conjecture_segments(path, &[segment])
+        })
     }
 
     /// A representative N-Triples body mirroring what `project_conjecture_verdict` /
@@ -6571,17 +6840,25 @@ mod tests {
     /// digest) MUST stay byte-identical across any change to how the body is parsed — this pins
     /// the delegation of N-Triples parsing to purrdf against the prior hand-rolled lexer.
     ///
-    /// The digest was re-blessed ONCE, deliberately, when segment authorship moved from a bare
-    /// purrdf `Writer` (payload frames with NO transform chain) to [`GmeowGtsWriter`]: the frames
-    /// now carry the mandated `zstd-rsyncable` chain at level 12, so the compressed payload bytes
-    /// — and therefore the content-addressed segment — necessarily changed. The libraries are
-    /// user-scoped, on-demand files, so no committed artifact depends on the prior bytes.
+    /// The digest has been re-blessed twice, each time deliberately and each time because the
+    /// segment's declared MEDIUM changed — never because a parse changed:
+    ///
+    /// 1. bare purrdf `Writer` (payload frames with NO transform chain) → [`GmeowGtsWriter`],
+    ///    which stamps the mandated `zstd-rsyncable` chain at level 12;
+    /// 2. unprimed → DICTIONARY-PRIMED: the segment now pins its store's declared dictionary in
+    ///    its header and every frame primes with it, so both the header bytes and the compressed
+    ///    payload bytes necessarily changed.
+    ///
+    /// The libraries are user-scoped, on-demand files, so no committed artifact depends on the
+    /// prior bytes. What the pin still guards is the thing it was written for: the body's parse
+    /// and interning order, which no change here may perturb.
     #[test]
     fn build_nt_segment_bytes_are_stable() {
-        let bytes = build_nt_segment(BYTE_PARITY_NT_BODY).expect("representative body must parse");
+        let bytes = build_nt_segment(&[], &test_medium(), BYTE_PARITY_NT_BODY)
+            .expect("representative body must parse");
         assert_eq!(
             sha256_hex(&bytes),
-            "9c4469857dd979770eab5288ea2ac7718e08ea801279fe40039b340fbe9cdbf8",
+            "9762124590459bc0907d8a913e202c8ca68c9c637bf8425ac61085e8aaca9652",
             "build_nt_segment output digest changed; segment bytes are append-only content-addressed",
         );
     }
@@ -6624,9 +6901,64 @@ mod tests {
         }
     }
 
+    /// The bundle the crate-local server tests are served from: the locally-built
+    /// `gmeow.gts` with ONE header-only segment appended, pinning the store medium
+    /// these tests write through.
+    ///
+    /// The appended segment is a FIXTURE, not a fallback. A server resolves the
+    /// medium of the stores it writes out of the bundle's in-band `"dct"` map, and
+    /// these tests must be able to exercise the store lane against a bundle they can
+    /// obtain without running the whole pipeline. Appending a segment is the honest
+    /// way to say that: a GTS file is a sequence of independently-headed segments,
+    /// each declaring its own catalog, so this adds a medium declaration without
+    /// touching a byte of the bundle's own content — `import_gts_events` folds the
+    /// same graph either way.
+    ///
+    /// It is deliberately UNCONDITIONAL, so these tests behave identically whether
+    /// or not the local bundle happens to be current. That the SHIPPED bundle pins
+    /// all eight declared dictionaries is a different claim, and it is proven where
+    /// it belongs — over a freshly emitted bundle, in `tests/medium_bundle.rs`.
     fn snapshot() -> Vec<u8> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        fs::read(root.join("generated/dist/gmeow.gts")).expect("read committed snapshot")
+        let mut bytes =
+            fs::read(root.join("generated/dist/gmeow.gts")).expect("read committed snapshot");
+        bytes.extend_from_slice(
+            &open_store_segment(STORE_PROFILE, &test_medium())
+                .expect("pin the fixture store medium in an appended segment"),
+        );
+        bytes
+    }
+
+    /// The store medium the crate-local segment-authorship tests write through.
+    ///
+    /// The dictionary bytes are trained HERE rather than read out of the committed
+    /// bundle: these tests are about the WRITER — that a segment pins a dictionary,
+    /// primes its frames with it, and continues one chain per file — and binding
+    /// them to a build product would make them fail for reasons that have nothing
+    /// to do with the writer. The server's own resolution path (bundle `"dct"` →
+    /// `StoreMedium`) is exercised where it belongs, in the whole-bundle gate.
+    fn test_medium() -> StoreMedium {
+        let owned: Vec<Vec<u8>> = (0..512u32)
+            .map(|i| {
+                format!(
+                    "<https://blackcatinformatics.ca/gmeow/claim{}> \
+                     <https://blackcatinformatics.ca/gmeow/text> \
+                     \"a stored claim about term {i}\" .\n",
+                    i % 37
+                )
+                .into_bytes()
+            })
+            .collect();
+        let corpus: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
+        StoreMedium {
+            dictionary: MEMORY_HOT_DICTIONARY.to_string(),
+            bytes: crate::medium::train::build(
+                crate::medium::registry::DictionaryStrategy::Trained,
+                &corpus,
+                32768,
+            )
+            .expect("the fixture memory dictionary trains"),
+        }
     }
 
     fn text_payload(value: Value) -> Value {
@@ -6655,6 +6987,8 @@ mod tests {
     #[test]
     fn audit_segment_bytes_use_the_mandated_frame_profile() {
         let segment = build_audit_segment(
+            &[],
+            &test_medium(),
             "urn:gmeow:conjecture-call:profile-audit",
             MCP_PERSIST_CONJECTURE_SCHEMA,
             &[MCP_CONJECTURE_IN_LIBRARY],
@@ -6673,6 +7007,7 @@ mod tests {
         let path = dir.path().join("memory.gts");
         write_audit_segment(
             &path,
+            &test_medium(),
             "urn:gmeow:tool-call:profile-audit",
             MCP_PERSIST_CONJECTURE_SCHEMA,
             &[MCP_CONJECTURE_IN_LIBRARY],
@@ -6691,8 +7026,12 @@ mod tests {
     fn conjecture_library_append_uses_the_mandated_frame_profile() {
         let dir = tempfile::tempdir().expect("tempdir");
         let path = dir.path().join("conjectures.gts");
-        let verdict_segment = build_nt_segment(BYTE_PARITY_NT_BODY).expect("build the verdict");
+        let medium = test_medium();
+        let verdict_segment =
+            build_nt_segment(&[], &medium, BYTE_PARITY_NT_BODY).expect("build the verdict");
         let audit_segment = build_audit_segment(
+            &verdict_segment,
+            &medium,
             "urn:gmeow:conjecture-call:profile-append",
             MCP_PERSIST_CONJECTURE_SCHEMA,
             &[MCP_CONJECTURE_IN_LIBRARY],
@@ -10299,10 +10638,20 @@ mod tests {
         fs::set_permissions(&dir, fs::Permissions::from_mode(0o555)).expect("chmod read-only");
 
         let outcome = (|| -> gmeow_errors::Result<()> {
-            let lib_segment = build_nt_segment(&format!(
-                "<{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureWithdrawn> .\n"
-            ))?;
+            let medium = test_medium();
+            let existing = fs::read(&path).unwrap_or_default();
+            let lib_segment = build_nt_segment(
+                &existing,
+                &medium,
+                &format!(
+                    "<{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureWithdrawn> .\n"
+                ),
+            )?;
+            let mut chained = existing;
+            chained.extend_from_slice(&lib_segment);
             let audit_segment = build_audit_segment(
+                &chained,
+                &medium,
                 "urn:gmeow:conjecture-call:simulated-failure",
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
@@ -10502,6 +10851,7 @@ mod tests {
         let (_dir, _path) = temp_conjecture();
 
         let out = run_conjecture_test(&ConjectureRunInput {
+            medium: &test_medium(),
             formula_ttl: &reified_ground_atom_candidate("B"),
             kb_ttl: &ground_atom_entailing_kb("B"),
             standpoint: "http://ex/standpoint/alice",

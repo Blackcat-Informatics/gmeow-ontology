@@ -1937,13 +1937,14 @@ const GTS_PROFILE_CRATE_SRC: &str = "crates/gts-profile/src/";
 ///   segments GMEOW itself appends to those files (`build_audit_segment`,
 ///   `build_nt_segment`) DO go through the profile crate and are audited by
 ///   `gmeow-pipeline`'s own `validate_mandated_frames` tests.
-/// * `Writer::appending` is NEW at this pin — it continues an existing segment's
-///   `prev` chain instead of minting a fresh header, so an append-only store pays
-///   for one header per FILE rather than one per record. It hands the caller a
-///   `Writer`, so it decides the transform chain of every frame it goes on to
-///   author exactly as the minting constructors do, and it is pinned here for the
-///   same reason. Nothing in GMEOW production calls it yet; the seal is what keeps
-///   the first caller from being an unaudited one.
+/// * `Writer::appending` continues an existing segment's `prev` chain instead of
+///   minting a fresh header, so an append-only store pays for one header per FILE
+///   rather than one per record. It hands the caller a `Writer`, so it decides the
+///   transform chain of every frame it goes on to author exactly as the minting
+///   constructors do, and it is pinned here for the same reason. Its ONE production
+///   caller is the profile crate's `store_writer`, which is also the door that
+///   decides between continuing a segment and opening a new one when the store's
+///   medium changes.
 struct GtsEntryPoint {
     /// The module path tail as written in a qualified call
     /// (`purrdf::gts_compose::emit_gts` → `gts_compose`).

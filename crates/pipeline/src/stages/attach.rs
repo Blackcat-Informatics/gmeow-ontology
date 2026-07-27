@@ -131,6 +131,17 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         ],
     );
 
+    // stage-medium-dictionaries — the build-time medium registry: one
+    // gmeow:CompressionDictionaryRealization per declared dictionary. No blob-rep lane:
+    // the trained bytes ride the INTERNAL `pipeline/medium/` byte-artifact family and
+    // reach a consumer through the shipped segment header's in-band "dct" map.
+    entry(
+        &mut t,
+        "stage-medium-dictionaries",
+        &["https://blackcatinformatics.ca/gmeow/graph/medium-registry"],
+        &[],
+    );
+
     // stage-goal-directed — the checked backward-engine answers + proof derivations.
     entry(
         &mut t,

@@ -27,3 +27,7 @@ purrdf.workspace = true
 gmeow-errors = { path = "../errors" }
 # The wire-level frame audit walks the raw CBOR item stream directly.
 ciborium = "0.2"
+# The compaction door's MANDATORY packaging signature: `compact_streamable` takes the
+# ordering-commitment signer as a plain tuple (never an `Option`), so an unsigned pack
+# is unrepresentable — which means this crate has to name the key type.
+ed25519-dalek = "2"

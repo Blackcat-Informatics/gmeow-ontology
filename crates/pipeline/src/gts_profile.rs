@@ -11,7 +11,9 @@
 //! emitters.
 
 pub use gmeow_gts_profile::{
-    GmeowGtsWriter, dataset_to_gmeow_gts, emit_gmeow_gts, validate_mandated_frames,
+    StoreMedium, compact_gmeow_gts, dataset_to_gmeow_gts, emit_gmeow_gts,
+    emit_gmeow_gts_with_medium, open_store_segment, segment_dictionaries, store_tail_pins,
+    store_writer, validate_mandated_frames,
 };
 
 #[cfg(test)]

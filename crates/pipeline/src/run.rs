@@ -510,6 +510,27 @@ pub fn full_spec() -> PipelineSpec {
         ],
     ));
 
+    // ── the medium axis's producer: train the eight declared zstd dictionaries over
+    //    their declared corpora, measure each into a
+    //    gmeow:CompressionDictionaryRealization, and attach graph/medium-registry.
+    //    Its edge set is DERIVED from the shipped corpora, not chosen: the archive
+    //    reps come off `stage-archive-blobs`, the two sink-folded corpora select the
+    //    `stage-mappings` / `stage-reason` products directly, and the named-graph and
+    //    `generated/…` prefix selectors resolve against the assembled carrier
+    //    (`stage-snapshot`) and `stage-statements`. A missing edge is a HARD FAIL in
+    //    `corpus::assemble`, never a silently smaller training set. ──
+    stages.push(st(
+        "stage-medium-dictionaries",
+        "medium-dictionaries",
+        &[
+            "stage-archive-blobs",
+            "stage-mappings",
+            "stage-reason",
+            "stage-snapshot",
+            "stage-statements",
+        ],
+    ));
+
     // ── the single Sink: the terminal gts ARCHIVE writer. It
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
     //    re-assembly), READS the eight by-reference TAR archives off the
@@ -561,6 +582,11 @@ pub fn full_spec() -> PipelineSpec {
             // now reads its product instead of re-deriving from the in-memory carrier.
             "stage-export-schemas",
             "stage-mappings",
+            // THIS run's trained dictionaries + their gmeow:CompressionDictionaryRealization
+            // records. The terminal pins the dictionaries in the pack's in-band "dct" map
+            // and seals one gmeow:MediumEnvelope per frame it authors; without this edge the
+            // bundle would ship unprimed, which is a silent density loss no error surfaces.
+            "stage-medium-dictionaries",
             "stage-reason",
             "stage-snapshot",
             "stage-source-load",

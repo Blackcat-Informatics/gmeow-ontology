@@ -10,16 +10,19 @@
 //! may fall back to plain `zstd`, `gzip`, or `identity`.
 //!
 //! This crate is the SINGLE production gateway to purrdf's GTS-authorship
-//! surface. Three doors exist and no fourth:
+//! surface. Four doors exist and no fifth:
 //!
-//! * [`emit_gmeow_gts`] — snapshot bundles composed from a
-//!   [`SnapshotBuilder`](purrdf::gts_compose::SnapshotBuilder) (the shipped
-//!   `gmeow.gts`, release bundles, on-demand consumer bundles);
+//! * [`emit_gmeow_gts`] / [`emit_gmeow_gts_with_medium`] — snapshot bundles
+//!   composed from a [`SnapshotBuilder`](purrdf::gts_compose::SnapshotBuilder)
+//!   (the shipped `gmeow.gts`, release bundles, on-demand consumer bundles),
+//!   unprimed or under an explicit [`MediumPlan`](purrdf::gts_compose::MediumPlan);
 //! * [`dataset_to_gmeow_gts`] — a frozen carrier
 //!   [`RdfDataset`](purrdf::RdfDataset) serialized straight to GTS bytes (the
 //!   `gmeow convert --to gts` exit);
-//! * [`GmeowGtsWriter`] — incremental, append-only segment authorship (the MCP
-//!   agent-memory and conjecture-library segments).
+//! * [`GmeowGtsWriter`] (via [`store_writer`]) — incremental, append-only segment
+//!   authorship (the MCP agent-memory, conjecture and candidate stores);
+//! * [`compact_gmeow_gts`] — the streamable repack of an append-only store under a
+//!   named dictionary.
 //!
 //! [`validate_mandated_frames`] is the wire-level audit that proves any of them.
 //!
@@ -106,8 +109,19 @@ fn is_segment_header(item: &Value) -> bool {
     }
 }
 
-/// The single codec id a segment header binds to the mandated transform.
-fn required_codec_id(header: &[(Value, Value)], offset: usize) -> gmeow_errors::Result<i128> {
+/// Every codec id a segment header binds to the mandated transform.
+///
+/// A catalog carries ONE entry per `(codec, dictionary)` pair (§5), so a
+/// dictionary-primed pack legitimately declares several `zstd-rsyncable` ids: the
+/// unprimed one plus one per pinned dictionary. The mandate is on the CHAIN, not on
+/// the arity — every declared entry must be the mandated codec at the mandated level,
+/// and every payload frame must reference one of them. Requiring exactly one would
+/// have made priming unrepresentable, which is precisely the density the medium axis
+/// exists to recover.
+fn mandated_codec_ids(
+    header: &[(Value, Value)],
+    offset: usize,
+) -> gmeow_errors::Result<std::collections::BTreeSet<i128>> {
     let catalog = map(
         map_get(header, "cat").ok_or_else(|| {
             profile_error(format!(
@@ -117,7 +131,7 @@ fn required_codec_id(header: &[(Value, Value)], offset: usize) -> gmeow_errors::
         "GTS codec catalog",
     )?;
 
-    let mut ids = Vec::new();
+    let mut ids = std::collections::BTreeSet::new();
     for (id, descriptor) in catalog {
         let descriptor = map(descriptor, "GTS codec descriptor")?;
         if matches!(
@@ -130,7 +144,8 @@ fn required_codec_id(header: &[(Value, Value)], offset: usize) -> gmeow_errors::
             // the wire this clause was unenforceable on an artifact and the gate
             // that claims to "enforce zstd-rsyncable level 12" could not see it.
             // Now it can: a catalog entry that omits the level, or declares a
-            // different one, is a hard failure.
+            // different one, is a hard failure — and it is checked on EVERY entry,
+            // so a dict-bound entry cannot smuggle a different level past the gate.
             let declared = map_get(descriptor, "level").ok_or_else(|| {
                 profile_error(format!(
                     "GTS codec catalog at byte offset {offset} declares a {} entry with no level; \
@@ -146,17 +161,16 @@ fn required_codec_id(header: &[(Value, Value)], offset: usize) -> gmeow_errors::
                     GMEOW_GTS_FRAME_TRANSFORM
                 )));
             }
-            ids.push(integer(id, "GTS codec id")?);
+            ids.insert(integer(id, "GTS codec id")?);
         }
     }
-    if ids.len() != 1 {
+    if ids.is_empty() {
         return Err(profile_error(format!(
-            "GTS codec catalog at byte offset {offset} must contain exactly one {} entry; found {}",
-            GMEOW_GTS_FRAME_TRANSFORM,
-            ids.len()
+            "GTS codec catalog at byte offset {offset} declares no {} entry",
+            GMEOW_GTS_FRAME_TRANSFORM
         )));
     }
-    Ok(ids[0])
+    Ok(ids)
 }
 
 /// Validate the mandatory transform profile on materialized GMEOW GTS bytes.
@@ -192,18 +206,18 @@ pub fn validate_mandated_frames(bytes: &[u8]) -> gmeow_errors::Result<()> {
         return Err(profile_error("GTS bytes do not begin with a header"));
     }
 
-    let mut codec_id: Option<i128> = None;
+    let mut codec_ids: Option<std::collections::BTreeSet<i128>> = None;
     let mut payload_frames = 0usize;
     for (offset, item) in &items {
         if is_segment_header(item) {
             let header = unwrap_header(item).map_err(|message| {
                 profile_error(format!("invalid header at byte offset {offset}: {message}"))
             })?;
-            codec_id = Some(required_codec_id(header, *offset)?);
+            codec_ids = Some(mandated_codec_ids(header, *offset)?);
             continue;
         }
 
-        let required = codec_id.ok_or_else(|| {
+        let required = codec_ids.as_ref().ok_or_else(|| {
             profile_error(format!(
                 "GTS frame at byte offset {offset} precedes any segment header"
             ))
@@ -236,9 +250,10 @@ pub fn validate_mandated_frames(bytes: &[u8]) -> gmeow_errors::Result<()> {
             )));
         }
         let transform = integer(&transforms[0], "GTS frame transform id")?;
-        if transform != required {
+        if !required.contains(&transform) {
             return Err(profile_error(format!(
-                "payload-bearing GTS frame at byte offset {offset} uses codec id {transform}, not {} ({required})",
+                "payload-bearing GTS frame at byte offset {offset} uses codec id {transform}, \
+                 which is not one of this segment's {} entries {required:?}",
                 GMEOW_GTS_FRAME_TRANSFORM
             )));
         }
@@ -362,12 +377,26 @@ pub fn dataset_to_gmeow_gts(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
 /// through `add_frame_with_options`, carrying
 /// [`GMEOW_GTS_FRAME_TRANSFORM`] at [`GMEOW_GTS_ZSTD_LEVEL`].
 ///
-/// It carries no pack dictionary: the pinned purrdf revision primes a dictionary
-/// only for plain `zstd` frames (`zstd-rsyncable`'s independent blocks are out of
-/// scope for a single-frame dictionary), so a dictionary here would be a silent
-/// no-op or a codec rejection.
+/// A writer built by [`GmeowGtsWriter::new`] carries no pack dictionary — the
+/// dictionary-primed store lane goes through [`store_writer`] instead, which is the
+/// one door that decides between minting a header and continuing an existing
+/// segment's chain.
 pub struct GmeowGtsWriter {
     inner: Writer,
+    /// The in-band pack dictionary every authored frame primes with, when this
+    /// writer's segment declares one. `None` is the explicit no-dictionary
+    /// selection, never "the caller forgot".
+    dict: Option<String>,
+    /// How many term rows this writer's segment ALREADY carries.
+    ///
+    /// Term ids are SEGMENT-scoped and cumulative across a segment's `terms` frames
+    /// (spec §7.5). A writer that MINTS a header starts at 0; one that CONTINUES an
+    /// existing segment starts at that segment's current term count, and every quad
+    /// row it authors must be shifted by the same base — otherwise the appended
+    /// rows would silently point at the term table of whatever was appended before
+    /// them. [`Self::add_quads`] applies the shift, so callers keep authoring
+    /// frame-local indices and cannot get this wrong.
+    term_base: usize,
 }
 
 impl GmeowGtsWriter {
@@ -386,6 +415,8 @@ impl GmeowGtsWriter {
         Self {
             inner: Writer::with_options(profile, options)
                 .expect("declaring the mandated level on the default catalog is always valid"),
+            dict: None,
+            term_base: 0,
         }
     }
 
@@ -395,6 +426,27 @@ impl GmeowGtsWriter {
     /// # Errors
     /// A codec failure encoding the frame payload.
     pub fn add_terms(&mut self, terms: &[Term]) -> gmeow_errors::Result<Vec<u8>> {
+        // A term's `datatype` / `reifier` slots are TERM IDS, and they are
+        // segment-scoped exactly as a quad row's are (§7.5). An appended frame
+        // therefore has to shift them by the same base — a typed literal whose
+        // datatype id was left frame-local would resolve to whatever term happens to
+        // sit at that index in the earlier part of the segment, which is how a
+        // `xsd:dateTime` literal ends up claiming another literal as its datatype.
+        let shifted: Vec<Term>;
+        let terms = if self.term_base == 0 {
+            terms
+        } else {
+            let base = self.term_base;
+            shifted = terms
+                .iter()
+                .map(|term| Term {
+                    datatype: term.datatype.map(|id| id + base),
+                    reifier: term.reifier.map(|id| id + base),
+                    ..term.clone()
+                })
+                .collect();
+            &shifted
+        };
         let payload = Value::Array(terms.iter().map(term_to_wire).collect());
         self.add_mandated_frame("terms", payload)
     }
@@ -411,11 +463,21 @@ impl GmeowGtsWriter {
         for &(s, p, o, g) in quads {
             let mut row = Vec::with_capacity(3 + usize::from(g.is_some()));
             for slot in [Some(s), Some(p), Some(o), g].into_iter().flatten() {
-                row.push(Value::Integer(term_index(slot)?.into()));
+                // Shift by the segment's existing term count (§7.5): the caller
+                // authored frame-local indices, and in an appended frame those are
+                // not the segment-local ids the reader will resolve.
+                row.push(Value::Integer(term_index(slot + self.term_base)?.into()));
             }
             rows.push(Value::Array(row));
         }
         self.add_mandated_frame("quads", Value::Array(rows))
+    }
+
+    /// How many term rows this writer's segment already carried before it was
+    /// opened — 0 for a freshly minted header.
+    #[must_use]
+    pub fn term_base(&self) -> usize {
+        self.term_base
     }
 
     fn add_mandated_frame(
@@ -427,6 +489,7 @@ impl GmeowGtsWriter {
             payload: Some(payload),
             transform: vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()],
             zstd_level: Some(GMEOW_GTS_ZSTD_LEVEL),
+            dict: self.dict.clone(),
             ..FrameOptions::default()
         };
         self.inner
@@ -439,10 +502,195 @@ impl GmeowGtsWriter {
     }
 
     /// Consume the writer and return the authored segment bytes.
+    ///
+    /// For a writer built by [`store_writer`] over an existing store this is ONLY
+    /// the appended frames — the segment header is not repeated — so the caller
+    /// appends them to the file as-is.
     #[must_use]
     pub fn into_bytes(self) -> Vec<u8> {
         self.inner.into_bytes()
     }
+}
+
+/// The medium an append-only GMEOW store is written through: the in-band pack
+/// dictionary its segments pin and prime with.
+///
+/// A plain `(name, bytes)` pair rather than an `Option`: a store lane that could
+/// pass "no dictionary" by forgetting a field is exactly the silent density loss the
+/// medium axis exists to remove. A deliberately unprimed store authors through
+/// [`GmeowGtsWriter::new`] instead, which says so in its name.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StoreMedium {
+    /// The `gmeow:dictionaryId` the segment header pins under `"dct"` (§5).
+    pub dictionary: String,
+    /// The trained dictionary bytes, stored uncompressed and in-band.
+    pub bytes: Vec<u8>,
+}
+
+/// Author the next segment of an append-only, dictionary-primed GMEOW store.
+///
+/// `existing` is the store file's current bytes (empty for a store that does not
+/// exist yet). Exactly one of two things happens, and BOTH produce a dict-primed
+/// segment — the choice is only whether a new header is needed:
+///
+/// * the file's last segment already pins `medium.dictionary` → the writer
+///   CONTINUES that segment (`Writer::appending`), so the store pays one header —
+///   and one copy of the dictionary — per FILE rather than per record. At ~16 KiB
+///   of dictionary against a few hundred bytes of claim, a header per record would
+///   cost more than the priming saves;
+/// * it does not (an empty file, or a tail written through a different medium) → a
+///   NEW segment header is minted, pinning the dictionary. A segment declares ONE
+///   codec catalog, so a medium change REQUIRES a segment boundary; the earlier
+///   segments keep their own headers and decode under their own declared medium,
+///   which is why a mixed file is not a degraded read but several honest ones.
+///
+/// # Errors
+/// `existing` is non-empty but carries no readable segment header, ends in a torn
+/// append, or has a chain that cannot be walked to a head id.
+pub fn store_writer(
+    profile: &str,
+    existing: &[u8],
+    medium: &StoreMedium,
+) -> gmeow_errors::Result<GmeowGtsWriter> {
+    if !existing.is_empty() {
+        let state = purrdf::gts::reader::segment_append_state(existing).map_err(profile_error)?;
+        if state.dicts.contains_key(&medium.dictionary) {
+            let inner =
+                Writer::appending(existing).map_err(|err| profile_error(err.to_string()))?;
+            // The segment's CURRENT term count — the base every appended quad row is
+            // shifted by. Read off the LAST segment's own fold, never the
+            // cross-segment union, whose by-value merge would under-count the ids
+            // actually in use.
+            let term_base = purrdf::gts::reader::read_file_segments(existing)
+                .segments
+                .last()
+                .map_or(0, |segment| segment.terms.len());
+            return Ok(GmeowGtsWriter {
+                inner,
+                dict: Some(medium.dictionary.clone()),
+                term_base,
+            });
+        }
+    }
+    let options = purrdf::gts::writer::WriterOptions {
+        zstd_level: Some(GMEOW_GTS_ZSTD_LEVEL),
+        dicts: vec![(medium.dictionary.clone(), medium.bytes.clone())],
+        ..Default::default()
+    };
+    let inner = Writer::with_options(profile, options).map_err(|err| {
+        profile_error(format!(
+            "pinning dictionary {:?} in a {profile} segment header: {err}",
+            medium.dictionary
+        ))
+    })?;
+    Ok(GmeowGtsWriter {
+        inner,
+        dict: Some(medium.dictionary.clone()),
+        term_base: 0,
+    })
+}
+
+/// The in-band pack dictionaries the LAST segment of `bytes` pins, by name (§5
+/// header `"dct"`).
+///
+/// This is how a runtime reads a shipped dictionary out of the bundle it already
+/// holds: the dictionaries travel IN BAND, so a consumer priming its own store never
+/// needs a second artifact, a network fetch, or a repo checkout.
+///
+/// # Errors
+/// `bytes` carries no readable segment header or ends in a torn append.
+pub fn segment_dictionaries(
+    bytes: &[u8],
+) -> gmeow_errors::Result<std::collections::BTreeMap<String, Vec<u8>>> {
+    Ok(purrdf::gts::reader::segment_append_state(bytes)
+        .map_err(profile_error)?
+        .dicts)
+}
+
+/// Whether the last segment of `existing` pins `dictionary` — i.e. whether the next
+/// record appended to this store continues that segment or opens a new one.
+///
+/// Exposed so a caller can OPEN the new segment before handing the file to a writer
+/// that only knows how to continue one (`purrdf`'s `agent_memory::Memory`), rather
+/// than discovering the medium change as a missing-catalog-entry failure mid-write.
+///
+/// # Errors
+/// `existing` is non-empty but carries no readable segment header.
+pub fn store_tail_pins(existing: &[u8], dictionary: &str) -> gmeow_errors::Result<bool> {
+    if existing.is_empty() {
+        return Ok(false);
+    }
+    let state = purrdf::gts::reader::segment_append_state(existing).map_err(profile_error)?;
+    Ok(state.dicts.contains_key(dictionary))
+}
+
+/// The bytes of a header-only segment pinning `medium` — the segment boundary a
+/// MEDIUM CHANGE requires.
+///
+/// A GTS segment declares exactly one codec catalog (spec §5), so a store whose tail
+/// was written through a different medium cannot simply keep appending: the new
+/// frames would name a catalog id the tail's header never declared. Opening a fresh
+/// header is the whole fix, and it costs one header — the dictionary is then paid
+/// once for every record that follows, exactly as it is for a fresh store.
+///
+/// # Errors
+/// The dictionary name is empty, or the catalog cannot bind it.
+pub fn open_store_segment(profile: &str, medium: &StoreMedium) -> gmeow_errors::Result<Vec<u8>> {
+    let options = purrdf::gts::writer::WriterOptions {
+        zstd_level: Some(GMEOW_GTS_ZSTD_LEVEL),
+        dicts: vec![(medium.dictionary.clone(), medium.bytes.clone())],
+        ..Default::default()
+    };
+    Ok(Writer::with_options(profile, options)
+        .map_err(|err| {
+            profile_error(format!(
+                "opening a {profile} segment pinned to {:?}: {err}",
+                medium.dictionary
+            ))
+        })?
+        .into_bytes())
+}
+
+/// Compact a GMEOW-authored GTS file into ONE streamable segment primed by a named
+/// dictionary — the fourth (and last) production door onto purrdf's authorship
+/// surface.
+///
+/// Compaction re-authors ORDERING only: content claims are rewrite-invariant, so the
+/// compacted file carries the same statements at a different layout and, here, under
+/// a different medium. The dictionary is derived from the pack's OWN content-blob
+/// corpus by `strategy`, which is what makes the result byte-reproducible from the
+/// input alone; the trained bytes ride the new header in band, so the compacted file
+/// stays self-decoding without the bundle.
+///
+/// The packaging signature is MANDATORY upstream (a plain tuple, not an `Option`),
+/// and it is deliberately not widened here: an unsigned repack would be a pack whose
+/// ordering commitment nobody attests.
+///
+/// # Errors
+/// The input is not safely compactable (refuse-don't-trust), a blob cannot be
+/// decoded, the dictionary cannot be built, or the writer rejects the plan.
+pub fn compact_gmeow_gts(
+    data: &[u8],
+    timestamp: &str,
+    dictionary: &str,
+    strategy: purrdf::gts::compact::DictStrategy,
+    packaging_signer: (ed25519_dalek::SigningKey, String),
+) -> gmeow_errors::Result<Vec<u8>> {
+    purrdf::gts::compact::compact_streamable(
+        data,
+        purrdf::gts::compact::CompactionParams {
+            timestamp,
+            seal_original: false,
+            plan: purrdf::gts::compact::DictPlan::rsyncable(
+                dictionary,
+                strategy,
+                GMEOW_GTS_ZSTD_LEVEL,
+            ),
+            content_digest: None,
+            packaging_signer,
+        },
+    )
+    .map_err(|err| profile_error(format!("compact a GMEOW store under {dictionary:?}: {err}")))
 }
 
 #[cfg(test)]

@@ -49,6 +49,12 @@ impl GtsSinkStage {
                 // sink after every archive-member producer transitively, so the
                 // JSON-Schema / Pydantic / generated-shape leaves need no direct edge.
                 "stage-archive-blobs".to_string(),
+                // THIS run's eight trained zstd dictionaries and their
+                // gmeow:CompressionDictionaryRealization records. The terminal is the one
+                // point where the whole frame set exists, so it pins the dictionaries in
+                // the pack's in-band "dct" map and seals one gmeow:MediumEnvelope per
+                // frame it authors.
+                "stage-medium-dictionaries".to_string(),
                 // The executable-docs "try it" surface reasons over the object-level EDB,
                 // whose authored / imports / alignments graphs ride on the source-load
                 // product (read, not re-loaded from disk).
@@ -166,15 +172,25 @@ mod tests {
         // the end-to-end pipeline test; this unit test pins the sink's fail-closed
         // artifact wiring without paying for reasoning and snapshot assembly.
         let root = repo_root();
-        let carrier = purrdf::parse_dataset(
-            b"<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
-              <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/description> \"test bundle\" .\n\
-              <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
-              <https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
-            "application/n-triples",
-            None,
-        )
-        .expect("minimal carrier dataset");
+        // The carrier folds the AUTHORED gts slice, because the terminal is now a
+        // medium-aware emitter: it reads the rep→medium assignment, the declared
+        // dictionaries, and the two declared media off the carrier it is serializing.
+        // A carrier with four triples and no medium axis would make the sink refuse
+        // (gmeow:MediumUnknownSchema) — correctly, since every emitted rep must
+        // resolve — so the fixture carries the declarations the production carrier
+        // always carries.
+        let mut carrier_ttl = std::fs::read_to_string(root.join("slices/core/gts/module.ttl"))
+            .expect("the gts slice is readable");
+        carrier_ttl.push_str(
+            "<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/description> \"test bundle\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
+             <https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
+        );
+        let carrier = purrdf::parse_dataset(carrier_ttl.as_bytes(), "text/turtle", None)
+            .expect("minimal carrier dataset");
+        let medium = crate::stages::medium_dictionaries::test_product_over(carrier.as_ref())
+            .expect("the fixture medium product trains over the declared dictionaries");
         let snapshot =
             StageProduct::from_artifacts_over("stage-snapshot", carrier, BTreeMap::new());
 
@@ -401,6 +417,10 @@ mod tests {
         upstream.insert("stage-mappings".to_string(), mappings);
         upstream.insert("stage-reason".to_string(), reason);
         upstream.insert("stage-snapshot".to_string(), snapshot);
+        upstream.insert(
+            crate::stages::medium_dictionaries::STAGE_ID.to_string(),
+            medium,
+        );
         upstream.insert("stage-source-load".to_string(), source_load);
         upstream.insert("stage-statements".to_string(), statements);
         upstream.insert("stage-validate".to_string(), validate);
@@ -452,6 +472,143 @@ mod tests {
         );
 
         // Round-trips through the kernel GTS importer (the bundle is well-formed).
-        let _ = purrdf::import_gts_events(&emitted).expect("import_gts_events");
+        let folded = purrdf::import_gts_events(&emitted).expect("import_gts_events");
+
+        // ── the MEDIUM the terminal emitted through ──
+        // The fast twin of the whole-bundle gate (`tests/medium_bundle.rs`): the same
+        // invariants, over a fixture small enough to iterate on. The whole-DAG gate is
+        // what proves them on the SHIPPED artifact; this one keeps the sink's medium
+        // wiring covered in the focused lane the sink's other contracts live in.
+        let pinned = crate::gts_profile::segment_dictionaries(&emitted)
+            .expect("the emitted bundle's header reads back");
+        assert_eq!(
+            pinned.len(),
+            8,
+            "the pack pins every declared dictionary in band; got {:?}",
+            pinned.keys().collect::<Vec<_>>()
+        );
+
+        let payload = purrdf::flat_rdf_quads_from_dataset(folded.dataset.as_ref());
+        let registry_graph = Some(purrdf::RdfTerm::iri(crate::medium::MEDIUM_REGISTRY_GRAPH));
+        let typed = |class: &str| -> std::collections::BTreeSet<String> {
+            let object =
+                purrdf::RdfTerm::iri(format!("https://blackcatinformatics.ca/gmeow/{class}"));
+            payload
+                .iter()
+                .filter(|q| {
+                    q.graph_name == registry_graph
+                        && q.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                        && q.object == object
+                })
+                .filter_map(|q| match &q.subject {
+                    purrdf::RdfTerm::Iri(iri) => Some(iri.clone()),
+                    _ => None,
+                })
+                .collect()
+        };
+        assert_eq!(
+            typed("CompressionDictionaryRealization").len(),
+            8,
+            "one realization per declared dictionary, IN graph/medium-registry"
+        );
+        let envelopes = typed("MediumEnvelope");
+        let payload_frames = purrdf::gts::wire::iter_items(&emitted)
+            .0
+            .iter()
+            .filter(|(_, item)| match item {
+                ciborium::value::Value::Map(entries) => {
+                    purrdf::gts::wire::map_get(entries, "gts").is_none()
+                        && purrdf::gts::wire::map_get(entries, "d").is_some()
+                }
+                _ => false,
+            })
+            .count();
+        assert!(!envelopes.is_empty());
+        assert_eq!(
+            envelopes.len(),
+            payload_frames,
+            "one gmeow:MediumEnvelope per payload-bearing frame"
+        );
+
+        // The snapshot envelope's stratified digest, recomputed from the emitted
+        // payload: the stratum is the payload MINUS the envelope subgraph, and the
+        // content digest is `snapshot_content_id()` over exactly that region.
+        let stratum = crate::stages::carrier::snapshot_stratum_quads(folded.dataset.as_ref());
+        let envelope_quads = crate::stages::carrier::medium_envelope_quads(folded.dataset.as_ref());
+        assert!(!stratum.is_empty() && !envelope_quads.is_empty());
+        assert_eq!(stratum.len() + envelope_quads.len(), payload.len());
+        let strata_digest = crate::medium::blake3_digest(
+            crate::stages::carrier::snapshot_stratum_nquads(folded.dataset.as_ref())
+                .expect("the stratum canonicalizes")
+                .as_bytes(),
+        );
+        let snapshot_envelope = envelopes
+            .iter()
+            .find(|subject| {
+                payload.iter().any(|q| {
+                    q.subject == purrdf::RdfTerm::iri(subject.as_str())
+                        && q.predicate
+                            == "https://blackcatinformatics.ca/gmeow/envelopeDigestStratum"
+                        && q.object
+                            == purrdf::RdfTerm::iri(
+                                "https://blackcatinformatics.ca/gmeow/\
+                                 stratumPayloadExcludingMediumEnvelope",
+                            )
+                })
+            })
+            .expect("the snapshot frame carries a stratified envelope");
+        let literal = |subject: &str, predicate: &str| -> String {
+            payload
+                .iter()
+                .find(|q| {
+                    q.subject == purrdf::RdfTerm::iri(subject)
+                        && q.predicate
+                            == format!("https://blackcatinformatics.ca/gmeow/{predicate}")
+                })
+                .and_then(|q| match &q.object {
+                    purrdf::RdfTerm::Literal(l) => Some(l.lexical_form.clone()),
+                    _ => None,
+                })
+                .unwrap_or_else(|| panic!("<{subject}> carries no gmeow:{predicate}"))
+        };
+        assert_eq!(
+            literal(snapshot_envelope, "strataDigest"),
+            strata_digest,
+            "the snapshot envelope's strata digest commits to its declared stratum"
+        );
+        // The content digest is `snapshot_content_id()` VERBATIM, and the frame identity
+        // is derived from it — so a digest that were not the payload's own id would
+        // address a frame nothing describes. That derivation is what makes the reuse
+        // checkable from the artifact; the payload's CBOR itself cannot be re-derived by
+        // a reader, because folding the graph back re-interns its blank nodes (which is
+        // exactly why the checkable commitment is the blank-node-canonical STRATUM).
+        let content_digest = literal(snapshot_envelope, "contentDigest");
+        assert!(
+            crate::medium::is_canonical_digest(&content_digest),
+            "the snapshot content digest must be canonical: {content_digest}"
+        );
+        assert_eq!(
+            payload
+                .iter()
+                .find(
+                    |q| q.subject == purrdf::RdfTerm::iri(snapshot_envelope.as_str())
+                        && q.predicate
+                            == "https://blackcatinformatics.ca/gmeow/envelopePayloadFrame"
+                )
+                .map(|q| q.object.clone()),
+            Some(purrdf::RdfTerm::iri(
+                crate::stages::medium_dictionaries::frame_iri(
+                    crate::medium::SNAPSHOT_WIRE_REP,
+                    &content_digest,
+                )
+            )),
+            "the snapshot frame identity is derived from the content digest the envelope \
+             carries, so the digest is the payload's own id rather than a free value"
+        );
+        assert_ne!(
+            literal(snapshot_envelope, "contentDigest"),
+            literal(snapshot_envelope, "strataDigest"),
+            "the stratum digest is an addition to the witness, not a rename of it"
+        );
     }
 }

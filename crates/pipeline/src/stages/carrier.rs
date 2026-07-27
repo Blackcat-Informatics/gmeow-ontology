@@ -304,6 +304,47 @@ pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 8] = [
 ];
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
+/// The typed SHACL validation-shape sidecar's blob representation.
+///
+/// Its wire label IS the surface's repo-relative path — that is what the decode-side
+/// media-type classifier and the REP_GENERATED archive both key on — but it is spelled
+/// as a `REP_*` constant here because the blob channel's closed rep set is READ off
+/// these constants (`crates/validate/tests/gts_medium_axis.rs`). Emitting the path
+/// constant directly left these two reps invisible to that census, so the registry
+/// gate could not see that they had no `gmeow:PayloadSchema` at all.
+const REP_VALIDATION_SHACL: &str = "generated/shapes/validation-shapes.ttl";
+/// The typed ShEx validation-shape sidecar's blob representation (see
+/// [`REP_VALIDATION_SHACL`]).
+const REP_VALIDATION_SHEX: &str = "generated/shapes/validation-shapes.shex";
+
+/// Byte equality of two `&'static str` in const context — the compile-time proof that
+/// a rep constant and the path constant it must mirror have not drifted apart.
+const fn const_str_eq(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut i = 0;
+    while i < a.len() {
+        if a[i] != b[i] {
+            return false;
+        }
+        i += 1;
+    }
+    true
+}
+
+// The rep label and the surface's logical path are ONE value with two names; a drift
+// between them is a compile failure rather than a bundle whose sidecar rep no longer
+// matches the path the classifier keys on.
+const _: () = assert!(const_str_eq(
+    REP_VALIDATION_SHACL,
+    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH
+));
+const _: () = assert!(const_str_eq(
+    REP_VALIDATION_SHEX,
+    crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH
+));
 
 /// The media type carried on the typed SHACL validation-shape sidecar blob. The gts
 /// decode side (`purrdf::gts::lookaside_from_graph` → `lookaside_kind_from_metadata`)
@@ -434,6 +475,7 @@ fn serialize_carrier_snapshot_without_docs(
         &[opaque_manifest, distribution_catalog],
         blobs,
         report_blobs,
+        upstream,
     )
 }
 
@@ -1625,25 +1667,197 @@ fn compile_logic_object_graphs(
 /// Serialize the fully-assembled carrier to the `dist`-profile `gmeow.gts` bytes: fold
 /// the carrier into the snapshot frame (native ingestion), staple the JSON-LD-star /
 /// OKF / caller blobs, and emit. The SOLE serialization of the snapshot.
+///
+/// # The medium's two-pass fixed point
+///
+/// The pack is dictionary-primed, so this is also the one point where the whole
+/// frame set exists and every `gmeow:MediumEnvelope` can be sealed. The snapshot
+/// envelope is SELF-REFERENTIAL — it lives in the very payload
+/// `snapshot_content_id()` digests — so it is emitted in two DECLARED passes rather
+/// than iterated to a fixed point (BLAKE3 is not a contraction; an iterate-until-
+/// stable loop wanders instead of settling):
+///
+/// * **pass 1** folds the carrier, the caller's meta-level graphs and the medium
+///   registry's realizations. Its canonical payload is the snapshot frame's own
+///   in-band identity (`gmeow:contentDigest`), and its quad set IS the region
+///   `gmeow:stratumPayloadExcludingMediumEnvelope` names, whose canonical
+///   serialization gives `gmeow:strataDigest`;
+/// * **pass 2** adds the sealed envelopes and emits.
+///
+/// Adding the envelopes cannot change either value — the first was taken before
+/// they existed, the second is over a region that excludes them — so a third pass
+/// over the pass-2 carrier reproduces the same bytes. Convergence is a theorem
+/// here, not an experiment.
 fn serialize_snapshot(
     carrier: &purrdf::RdfDataset,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
+    upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    use crate::stages::medium_dictionaries as medium;
+
+    let registry = medium::registry_from_carrier(upstream)?;
+    let trained = medium::trained_dictionaries(upstream)?;
+    let realizations = medium::realization_quads(upstream)?;
+
+    // ── pass 1: the envelope-free stratum ──
+    let mut strata: Vec<std::sync::Arc<purrdf::RdfDataset>> = extra_graphs.to_vec();
+    // The medium registry's realizations ride the shipped bundle like any other
+    // meta-level graph: a consumer resolving a frame's Dictionary_ID back to the
+    // authored gmeow:CompressionDictionary reads them out of graph/medium-registry.
+    strata.push(std::sync::Arc::clone(&realizations));
+
     let mut builder = SnapshotBuilder::new();
     builder
         .add_dataset(carrier)
         .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
     // Carrier-time named graphs (e.g. the docs-format grounding, which content-addresses
     // the packed docs blobs built in this stage) fold in alongside the assembled carrier.
-    for graph in extra_graphs {
+    for graph in &strata {
         builder
             .add_dataset(graph)
             .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
     }
-    crate::gts_profile::emit_gmeow_gts(&builder, blobs, report_blobs, None, None, None)
-        .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+    let snapshot_payload = purrdf::gts::wire::canonical(&builder.snapshot_payload());
+    let stratum_bytes = stratum_nquads(carrier, &strata)?;
+
+    // Every rep this emission actually authors, so the plan's assignment is total
+    // over the frames `emit_gts` will write; an unregistered or unassigned one is a
+    // HARD FAIL here rather than an unprimed frame on a shipped artifact.
+    let frames: Vec<&BlobRow> = blobs.iter().chain(report_blobs.iter()).collect();
+    let reps: std::collections::BTreeSet<String> =
+        frames.iter().map(|row| row.rep.clone()).collect();
+    let reps: Vec<String> = reps.into_iter().collect();
+    let plan = registry.medium_plan(&reps, &trained)?;
+
+    // ── pass 2: the envelopes, projected from the facts every frame already carries ──
+    let envelopes = medium::seal_bundle_envelopes(
+        &registry,
+        &plan,
+        &frames,
+        &snapshot_payload,
+        stratum_bytes.as_bytes(),
+    )?;
+    let envelope_quads = medium::envelope_quads(&registry, &envelopes)?;
+    let envelope_graph = purrdf::dataset_from_quads(&envelope_quads)
+        .map_err(|e| stage_err(&format!("freeze the medium-envelope projection: {e}")))?;
+    builder
+        .add_dataset(&envelope_graph)
+        .map_err(|e| stage_err(&format!("fold the medium envelopes into snapshot: {e}")))?;
+
+    crate::gts_profile::emit_gmeow_gts_with_medium(
+        &builder,
+        blobs,
+        report_blobs,
+        None,
+        None,
+        None,
+        &plan,
+    )
+    .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+}
+
+/// The canonical serialization of the snapshot payload's quad set MINUS the
+/// medium-envelope subgraph — the region `gmeow:stratumPayloadExcludingMediumEnvelope`
+/// names, taken over the pass-1 union (which is exactly that region, because the
+/// envelopes do not exist yet).
+///
+/// RDFC-1.0 canonical N-Quads, not a raw dump: the stratum digest must be a function
+/// of the quad SET, so it has to survive the blank-node relabelling a GTS round-trip
+/// is free to perform. A reader recomputes it from the bundle it holds and compares.
+///
+/// # Errors
+/// The union fails dataset validation or canonicalization.
+fn stratum_nquads(
+    carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+) -> Result<String, gmeow_errors::Diag> {
+    let mut sources: Vec<Vec<purrdf::RdfQuad>> = vec![purrdf::flat_rdf_quads_from_dataset(carrier)];
+    for graph in extra_graphs {
+        sources.push(purrdf::flat_rdf_quads_from_dataset(graph));
+    }
+    let borrowed: Vec<&[purrdf::RdfQuad]> = sources.iter().map(Vec::as_slice).collect();
+    let union = purrdf::flat_dataset_from_quad_sources(&borrowed)
+        .map_err(|e| stage_err(&format!("union the medium digest stratum: {e}")))?;
+    purrdf::canonical_flat_nquads(&union)
+        .map_err(|e| stage_err(&format!("canonicalize the medium digest stratum: {e}")))
+}
+
+/// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
+/// snapshot payload: its quad set minus the medium-envelope subgraph, canonicalized
+/// exactly as [`stratum_nquads`] does.
+///
+/// This is the reader-side inverse. It is what makes the stratum CHECKABLE rather
+/// than merely asserted: a consumer folds the bundle, strips the envelope quads by
+/// the declaration alone, and recomputes the digest the envelope carries.
+///
+/// # Errors
+/// The stripped dataset fails validation or canonicalization.
+pub fn snapshot_stratum_nquads(payload: &purrdf::RdfDataset) -> Result<String, gmeow_errors::Diag> {
+    let stripped = purrdf::flat_dataset_from_quads(&snapshot_stratum_quads(payload))
+        .map_err(|e| stage_err(&format!("strip the medium-envelope subgraph: {e}")))?;
+    purrdf::canonical_flat_nquads(&stripped)
+        .map_err(|e| stage_err(&format!("canonicalize the medium digest stratum: {e}")))
+}
+
+/// The stratum's quad set: every quad of an emitted snapshot payload EXCEPT the
+/// medium-envelope subgraph.
+///
+/// Membership is keyed on the DECLARATION — a statement in `graph/medium-registry`
+/// whose subject is typed `gmeow:MediumEnvelope` — never on a predicate allow-list.
+/// A list would have to be edited in lockstep with the envelope's field set, and a
+/// field added without editing it would silently fall INSIDE the stratum and break
+/// convergence.
+#[must_use]
+pub fn snapshot_stratum_quads(payload: &purrdf::RdfDataset) -> Vec<purrdf::RdfQuad> {
+    let flat = purrdf::flat_rdf_quads_from_dataset(payload);
+    let envelopes = medium_envelope_subjects(&flat);
+    flat.into_iter()
+        .filter(|quad| !is_medium_envelope_quad(&envelopes, quad))
+        .collect()
+}
+
+/// The medium-envelope subgraph's quad set — the exact complement of
+/// [`snapshot_stratum_quads`] within `payload`.
+#[must_use]
+pub fn medium_envelope_quads(payload: &purrdf::RdfDataset) -> Vec<purrdf::RdfQuad> {
+    let flat = purrdf::flat_rdf_quads_from_dataset(payload);
+    let envelopes = medium_envelope_subjects(&flat);
+    flat.into_iter()
+        .filter(|quad| is_medium_envelope_quad(&envelopes, quad))
+        .collect()
+}
+
+fn is_medium_envelope_quad(
+    envelope_subjects: &std::collections::BTreeSet<String>,
+    quad: &purrdf::RdfQuad,
+) -> bool {
+    if quad.graph_name != Some(purrdf::RdfTerm::iri(crate::medium::MEDIUM_REGISTRY_GRAPH)) {
+        return false;
+    }
+    match &quad.subject {
+        purrdf::RdfTerm::Iri(subject) => envelope_subjects.contains(subject.as_str()),
+        _ => false,
+    }
+}
+
+/// Every subject asserted `a gmeow:MediumEnvelope` inside `graph/medium-registry`.
+fn medium_envelope_subjects(flat: &[purrdf::RdfQuad]) -> std::collections::BTreeSet<String> {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let envelope_class = format!("{}MediumEnvelope", crate::medium::GMEOW);
+    let registry_graph = Some(purrdf::RdfTerm::iri(crate::medium::MEDIUM_REGISTRY_GRAPH));
+    flat.iter()
+        .filter(|quad| {
+            quad.graph_name == registry_graph
+                && quad.predicate == RDF_TYPE
+                && quad.object == purrdf::RdfTerm::iri(&envelope_class)
+        })
+        .filter_map(|quad| match &quad.subject {
+            purrdf::RdfTerm::Iri(iri) => Some(iri.clone()),
+            _ => None,
+        })
+        .collect()
 }
 
 /// Parse `bytes` natively and re-root every quad into `graph_iri` (see
@@ -1864,12 +2078,12 @@ fn build_validation_shape_typed_blobs(
         BlobRow {
             data: shacl,
             media_type: VALIDATION_SHACL_MEDIA_TYPE.to_string(),
-            rep: crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
+            rep: REP_VALIDATION_SHACL.to_string(),
         },
         BlobRow {
             data: shex,
             media_type: VALIDATION_SHEX_MEDIA_TYPE.to_string(),
-            rep: crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
+            rep: REP_VALIDATION_SHEX.to_string(),
         },
     ])
 }

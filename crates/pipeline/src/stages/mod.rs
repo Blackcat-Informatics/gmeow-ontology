@@ -81,6 +81,12 @@ pub mod lpg;
 pub mod mappings;
 pub mod math_producers;
 pub mod matrix;
+// The medium axis's producer: the eight declared zstd dictionaries trained over
+// their declared corpora, measured into gmeow:CompressionDictionaryRealization
+// records, and projected as graph/medium-registry. The terminal reads its product
+// to pin the pack's in-band "dct" map and to seal one gmeow:MediumEnvelope per
+// emitted frame.
+pub mod medium_dictionaries;
 pub mod meta_findings;
 pub mod metadata;
 pub mod native_query;
@@ -159,6 +165,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register(
         "archive-blobs",
         Arc::new(archive_blobs::ArchiveBlobsStage::new()),
+    );
+    registry.register(
+        "medium-dictionaries",
+        Arc::new(medium_dictionaries::MediumDictionariesStage::new()),
     );
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));

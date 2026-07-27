@@ -569,6 +569,7 @@ gmeow:pipeline-build
         gmeow:stage-export-lpg ,
         gmeow:stage-export-yaml-ld ,
         gmeow:stage-archive-blobs ,
+        gmeow:stage-medium-dictionaries ,
         gmeow:stage-gts-sink .
 
 # ── Spine ──
@@ -1132,6 +1133,24 @@ gmeow:stage-archive-blobs
         gmeow:stage-export-result-shapes ,
         gmeow:stage-mappings .
 
+# ── The medium axis: the shipped zstd dictionaries ──
+
+gmeow:stage-medium-dictionaries
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "medium dictionaries"@x-gmeow-english ;
+    skos:definition "Train the eight declared gmeow:CompressionDictionary definitions over their declared gmeow:DictionaryCorpus selectors, measure each into a gmeow:CompressionDictionaryRealization (content digest, byte length, zstd Dictionary_ID, measured strategy, measured target length), and attach the result as the build-time graph/medium-registry named graph. It is the SINGLE producer of the bundle's dictionaries: the terminal reads its product to pin them in the shipped segment header's in-band dct map and to seal one gmeow:MediumEnvelope per emitted frame. Its dataflow edges are DERIVED from the shipped corpora rather than chosen — the archive-rep selectors resolve against gmeow:stage-archive-blobs, the two sink-folded corpora (proof trace, lang AST) select the gmeow:stage-reason and gmeow:stage-mappings products directly because their archives exist only at the terminal, and the named-graph and generated-path selectors resolve against the assembled carrier (gmeow:stage-snapshot) and gmeow:stage-statements. A corpus that resolves to nothing, a selector this build cannot evaluate, or a selector that reaches the medium pass's own output are each a HARD FAIL, never a silently smaller training set. The trained bytes ride an INTERNAL pipeline/ byte-artifact family rather than a committed generated/ file: a dictionary's shipping channel is the segment header, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries in band."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "medium-dictionaries" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-archive-blobs ,
+        gmeow:stage-mappings ,
+        gmeow:stage-reason ,
+        gmeow:stage-snapshot ,
+        gmeow:stage-statements .
+
 # ── The single serialization exit (the gts narrow waist) ──
 
 gmeow:stage-gts-sink
@@ -1146,6 +1165,7 @@ gmeow:stage-gts-sink
     gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:dataflowConsumes
         gmeow:stage-archive-blobs ,
+        gmeow:stage-medium-dictionaries ,
         gmeow:stage-snapshot ,
         gmeow:stage-source-load ,
         gmeow:stage-export-agreement ,
@@ -1236,6 +1256,9 @@ gmeow:stage-reason
 
 gmeow:stage-goal-directed
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/goal-directed> .
+
+gmeow:stage-medium-dictionaries
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/medium-registry> .
 
 gmeow:stage-archive-blobs
     gmeow:attachesBlobRep "axioms-archive" ,

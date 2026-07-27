@@ -1711,6 +1711,7 @@ name = "gmeow-gts-profile"
 version = "0.2.0"
 dependencies = [
  "ciborium",
+ "ed25519-dalek",
  "gmeow-errors",
  "purrdf",
 ]

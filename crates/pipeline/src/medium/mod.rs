@@ -72,8 +72,16 @@ pub const MEDIUM_REGISTRY_GRAPH: &str =
 pub const MEDIUM_MEASUREMENT_GRAPH: &str =
     "https://blackcatinformatics.ca/gmeow/graph/medium-measurement";
 
-/// The repo-relative path family the medium pass emits under. A corpus selector
-/// that covers it — in either direction — is a fixpoint.
+/// The repo-relative path family reserved for materialized dictionary bytes. A
+/// corpus selector that covers it — in either direction — is a fixpoint.
+///
+/// The shipped build materializes NOTHING here: a dictionary's channel is the
+/// segment header's in-band `"dct"` map, and
+/// [`crate::stages::medium_dictionaries`] keeps the trained bytes on the internal
+/// `pipeline/` lane so the same bytes never exist in two places. The exclusion is
+/// kept anyway, and it is not dead: it is what makes "train a dictionary on the
+/// dictionaries" un-authorable, so a future decision to materialize them cannot
+/// quietly close the training cycle.
 pub const MEDIUM_GENERATED_PREFIX: &str = "generated/medium/";
 
 /// The `gmeow:payloadSchemaId` of the snapshot wire schema — the rep whose
