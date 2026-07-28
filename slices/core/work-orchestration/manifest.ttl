@@ -18,17 +18,13 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/math> ,
-        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/calendar> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> ,
         <https://blackcatinformatics.ca/gmeow/slices/norms> ,
         <https://blackcatinformatics.ca/gmeow/slices/notes> ,
-        <https://blackcatinformatics.ca/gmeow/slices/preference> ,
-        <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+        <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     gmeow:sliceConsumer "Project Lillith's durable work organ: continuing maintenance clusters that recur on a schedule, each occurrence a fresh immutable enactment against a closed input generation, resumable across a crash, refining abstract steps into pinned executable subgraphs, and dispatching external effects under exact approval binding with reconciliation rather than blind retry at the boundary. It needs every recommendation attributable and contestable, every blocked action explained, and the operator review surface honest about what it collapsed."@x-gmeow-english .

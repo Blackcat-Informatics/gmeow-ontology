@@ -24,7 +24,7 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 # Self-contained value individuals (the fixture is unioned with the MODULE only, so kernel/
-# graphrag value individuals like gmeow:sensitivityInternal / gmeow:distanceMetricCosine are
+# ai value individuals like gmeow:sensitivityInternal / gmeow:distanceMetricCosine are
 # untyped here — they are minted locally, typed, so the sh:class carriers are satisfied and
 # the fixture's ONLY deficiency is the manifest's omitted digest).
 ce:omitSensitivity a gmeow:SensitivityLevel ;

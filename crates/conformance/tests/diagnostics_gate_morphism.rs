@@ -50,8 +50,8 @@ use purrdf::{
     SparqlResult, TermValue, dataset_from_bytes,
 };
 
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::GMEOW_NS;
+use gmeow_ns::LOGIC_NS;
 /// The derived predicate and its Fatal value — the head of `logic:ruleGateFatalVerdict`.
 const FINDING_GATE_VERDICT: &str = "https://blackcatinformatics.ca/gmeow/findingGateVerdict";
 const GATE_FATAL: &str = "https://blackcatinformatics.ca/gmeow/gateFatal";

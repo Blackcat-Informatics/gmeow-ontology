@@ -235,17 +235,32 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
     ),
     (
         codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
-        Severity::Warning,
+        Severity::Error,
         Enforcement::Governance,
     ),
     (
         codes::SLICE_OWNERSHIP_STALE_DEPENDENCY,
-        Severity::Warning,
+        Severity::Error,
         Enforcement::Governance,
     ),
     (
         codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
         Severity::Warning,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
+        Severity::Error,
         Enforcement::Governance,
     ),
     // ── Ontology-surface authoring gates ──
@@ -285,12 +300,37 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Enforcement::Governance,
     ),
     (
+        codes::AUTHORING_SEAM_REGISTRY_DRIFT,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::AUTHORING_UNREGISTERED_TERM_NAMESPACE,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
         codes::SLICE_DISCIPLINE_DUPLICATE_IRI,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
         codes::SLICE_DISCIPLINE_MISSING_TIER,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
         Severity::Error,
         Enforcement::Governance,
     ),
@@ -573,6 +613,18 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
         "Fix the malformed slice query so it parses.",
     ),
     (
+        codes::SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+        "Register the crossing term(s) on a gmeow:Seam covering this direction between the co-foundational peers, or replace the peerage-riding reference with an ordinary declared gmeow:sliceDependsOn edge.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
+        "Remove the tier-forbidden reference: a core slice must not depend on an extension, and an extension must not depend on another extension.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
+        "Reverse the direction: move the grounding concept into the grounding slice so it owns it, and have the non-grounding slice consume the grounding term — then drop the grounding slice's gmeow:sliceDependsOn declaration on it. A grounding slice is foundational by construction and must not depend on any consumer.",
+    ),
+    (
         codes::SLICE_OWNERSHIP_FAMILY,
         "Fix the slice-ownership table entry the finding names (owner, dependency, or query).",
     ),
@@ -606,8 +658,16 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
         "Add a language tag to the localizable literal (@x-gmeow-english for authored source) so it is a distinct, translatable term.",
     ),
     (
+        codes::AUTHORING_SEAM_REGISTRY_DRIFT,
+        "Regenerate the docs projection (make sync SYNC_OUTPUTS=docs) so the seam-registry page reflects the current gmeow:Seam data, or fix the gmeow:Seam individual the finding names in the grounding slice's manifest.ttl.",
+    ),
+    (
+        codes::AUTHORING_UNREGISTERED_TERM_NAMESPACE,
+        "Mint the term inside one of the registered term namespaces (gmeow:/logic:/lang:/math:), or — if the slice genuinely needs a new minting namespace — register it in gmeow_ns::TERM_NAMESPACES so purrdf's ownership analyzer can see terms minted there.",
+    ),
+    (
         codes::AUTHORING_FAMILY,
-        "Fix the ontology-surface authoring defect the finding names (shape ownership, profile/catalog closure, module IRI, graft isolation, term declaration, or language tag).",
+        "Fix the ontology-surface authoring defect the finding names (shape ownership, profile/catalog closure, module IRI, graft isolation, term declaration, minting namespace, language tag, or seam-registry drift).",
     ),
     (
         codes::SLICE_DISCIPLINE_DUPLICATE_IRI,
@@ -616,6 +676,18 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::SLICE_DISCIPLINE_MISSING_TIER,
         "Declare exactly one gmeow:sliceTier (tierCore / tierExtension / tierProfile) on the slice manifest.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+        "Remove the gmeow:sliceCoFoundationalWith declaration from the non-grounding slice, or type the slice gmeow:GroundingSlice if it genuinely is one of the three co-foundational grounding layers.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+        "Declare gmeow:sliceCoFoundationalWith back from the peer slice; the relation is symmetric and must be authored on both manifests.",
+    ),
+    (
+        codes::SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
+        "Reconcile the slice's gmeow:GroundingSlice typing with its location: move the slice under slices/grounding/ or drop the typing, whichever matches its real role.",
     ),
     (
         codes::SLICE_DISCIPLINE_FAMILY,

@@ -593,7 +593,7 @@ pub fn lint_correspondence_soundness(
     let catalog = if slices_dir.is_dir() {
         Some(SliceCatalog::discover(
             &slices_dir,
-            crate::gmeow_ns::gmeow_slice_vocab(),
+            gmeow_ns::gmeow_slice_vocab(),
         )?)
     } else {
         None

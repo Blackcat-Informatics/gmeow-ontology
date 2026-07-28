@@ -2400,3 +2400,285 @@ gmeow:LogicalConstraint logic:subClassOf
 # LogicalConstraint: at least two member constraints, as a BARE sh:minCount 2.
 gmeow:LogicalConstraint logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:logicConstraintMember ; logic:minQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:conflictStrategyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "conflictStrategy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conflictStrategy is functional: a rights statement settles a permission-versus-prohibition clash over the same action by exactly one resolution rule — permission wins, prohibition wins, or the policy is void — because two competing strategies would themselves conflict over how the conflict is to be settled, leaving the policy's outcome undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:conflictStrategy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:conflictStrategy ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:conflictStrategy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:conflictStrategy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:conflictStrategy and nothing else. It is not a definition of gmeow:conflictStrategy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:conflictStrategyFunctionality logic:characterizes gmeow:conflictStrategy ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:constraintLogicFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "constraintLogic is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:constraintLogic is functional: a logical constraint combines its members under exactly one boolean operator — AND, OR, XONE, or ordered AND-sequence — because a single member set folded under two different operators would yield two incompatible truth conditions for the one constraint. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:constraintLogic ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:constraintLogic ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:constraintLogic names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:constraintLogic, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:constraintLogic and nothing else. It is not a definition of gmeow:constraintLogic (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:constraintLogicFunctionality logic:characterizes gmeow:constraintLogic ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:constraintOperatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "constraintOperator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:constraintOperator is functional: an atomic constraint is a single leftOperand-operator-rightOperand comparison, so it applies exactly one operator between its two operands; a second operator would make it two comparisons rather than one atom, which is properly modelled as a gmeow:LogicalConstraint over several members."@x-gmeow-english ;
+    logic:characterizes gmeow:constraintOperator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:constraintOperator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:constraintOperator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:constraintOperator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:constraintOperator and nothing else. It is not a definition of gmeow:constraintOperator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:constraintOperatorFunctionality logic:characterizes gmeow:constraintOperator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:copyrightNoticeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightNotice is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightNotice is functional: a copyright relator carries one canonical ready-to-display © notice string, since a single Copyright about one work, holder, and year has exactly one formatted human-readable notice; two divergent notice lines on the same relator would present contradictory copyright claims. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightNotice ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightNotice ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:copyrightNotice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightNotice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:copyrightNotice and nothing else. It is not a definition of gmeow:copyrightNotice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:copyrightNoticeFunctionality logic:characterizes gmeow:copyrightNotice ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:copyrightStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightStatus is functional: a work stands in exactly one copyright condition at a time — in-copyright, public-domain, no-known-copyright, or not-evaluated — because these RightsStatements.org / PREMIS states are mutually exclusive and a work cannot be both protected and free of copyright at once."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:copyrightStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:copyrightStatus and nothing else. It is not a definition of gmeow:copyrightStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:copyrightStatusFunctionality logic:characterizes gmeow:copyrightStatus ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:copyrightWorkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightWork is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightWork is functional: a copyright relator reifies the protection of a single work, so it points at exactly one information object; a second protected work is modelled as its own gmeow:Copyright relator rather than as a second work bound to the same one."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightWork ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightWork ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:copyrightWork names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightWork, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:copyrightWork and nothing else. It is not a definition of gmeow:copyrightWork (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:copyrightWorkFunctionality logic:characterizes gmeow:copyrightWork ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:copyrightYearFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "copyrightYear is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:copyrightYear is functional: a copyright relator records the single year the copyright was asserted, since one Copyright is about one work and its assertion has one first-assertion year; a span of years across editions belongs to distinct works with their own Copyright relators, not to two years on one."@x-gmeow-english ;
+    logic:characterizes gmeow:copyrightYear ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:copyrightYear ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:copyrightYear names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:copyrightYear, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:copyrightYear and nothing else. It is not a definition of gmeow:copyrightYear (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:copyrightYearFunctionality logic:characterizes gmeow:copyrightYear ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:leftOperandFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "leftOperand is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:leftOperand is functional: an atomic constraint tests exactly one dimension — dateTime, spatial, count, purpose, recipient, … — because it is a single comparison over one operand; testing a second dimension is a second atomic constraint combined via a gmeow:LogicalConstraint, not two operands on one atom."@x-gmeow-english ;
+    logic:characterizes gmeow:leftOperand ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:leftOperand ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:leftOperand names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:leftOperand, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:leftOperand and nothing else. It is not a definition of gmeow:leftOperand (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:leftOperandFunctionality logic:characterizes gmeow:leftOperand ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:licensedWorkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "licensedWork is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:licensedWork is functional: a License relator grants rights in exactly one work, so several works under the same terms each carry their own License relator (or reference one shared SPDX-identified licence per work) rather than crowding two works onto a single grant."@x-gmeow-english ;
+    logic:characterizes gmeow:licensedWork ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:licensedWork ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:licensedWork names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:licensedWork, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:licensedWork and nothing else. It is not a definition of gmeow:licensedWork (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:licensedWorkFunctionality logic:characterizes gmeow:licensedWork ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:licenseFamilyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "licenseFamily is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:licenseFamily is functional: a licence belongs to exactly one coarse family — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual — a single classification of the one licence document; even a multi-licence offer is captured by the single 'dual' family value rather than by two family assignments."@x-gmeow-english ;
+    logic:characterizes gmeow:licenseFamily ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:licenseFamily ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:licenseFamily names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:licenseFamily, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:licenseFamily and nothing else. It is not a definition of gmeow:licenseFamily (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:licenseFamilyFunctionality logic:characterizes gmeow:licenseFamily ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:markTextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "markText is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:markText is functional: a mark has one canonical word form — its brand name as registered or used — so a single gmeow:Mark carries exactly one mark-text string; a differently-worded sign is a distinct mark with its own gmeow:Mark rather than a second text on the same one."@x-gmeow-english ;
+    logic:characterizes gmeow:markText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:markText ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:markText names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:markText, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:markText and nothing else. It is not a definition of gmeow:markText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:markTextFunctionality logic:characterizes gmeow:markText ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:registrationNumberFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "registrationNumber is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:registrationNumber is functional: a trademark right carries the single registration number its issuing registry assigned, so one gmeow:Trademark relator bears exactly one; a mark registered separately in another registry (CIPO, USPTO, WIPO) is a distinct trademark right with its own number and its own relator. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:registrationNumber ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:registrationNumber ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:registrationNumber names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:registrationNumber, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:registrationNumber and nothing else. It is not a definition of gmeow:registrationNumber (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:registrationNumberFunctionality logic:characterizes gmeow:registrationNumber ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:rightOperandFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "rightOperand is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:rightOperand is functional: an atomic constraint compares its one dimension against exactly one literal value, so it carries a single tested value; a set of acceptable values is expressed with an isAnyOf-style gmeow:constraintOperator over one operand rather than by two right-operand literals."@x-gmeow-english ;
+    logic:characterizes gmeow:rightOperand ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:rightOperand ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:rightOperand names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:rightOperand, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:rightOperand and nothing else. It is not a definition of gmeow:rightOperand (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:rightOperandFunctionality logic:characterizes gmeow:rightOperand ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ruleActionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "ruleAction is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ruleAction is functional: a deontic rule regulates exactly one action, so a permission, prohibition, or duty points at a single gmeow:RightsAction value; several regulated actions are modelled as several rules rather than as several actions crowded onto one."@x-gmeow-english ;
+    logic:characterizes gmeow:ruleAction ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ruleAction ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ruleAction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ruleAction, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ruleAction and nothing else. It is not a definition of gmeow:ruleAction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ruleActionFunctionality logic:characterizes gmeow:ruleAction ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ruleTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "ruleTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:ruleTarget is functional: when a rule overrides the target it inherits from its enclosing statement, it narrows to exactly one asset, so the target — where set — is a single entity; a permission covering several distinct assets is several rules rather than several targets on one."@x-gmeow-english ;
+    logic:characterizes gmeow:ruleTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:ruleTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:ruleTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:ruleTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:ruleTarget and nothing else. It is not a definition of gmeow:ruleTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:ruleTargetFunctionality logic:characterizes gmeow:ruleTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:spdxLicenseIdFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "spdxLicenseId is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:spdxLicenseId is functional: a licence has one canonical SPDX List identifier, so the property binds exactly one machine-readable id per licence; a dual or compound grant is a single SPDX licence expression carried within that one literal, not two separate ids on the same licence."@x-gmeow-english ;
+    logic:characterizes gmeow:spdxLicenseId ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:spdxLicenseId ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:spdxLicenseId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:spdxLicenseId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:spdxLicenseId and nothing else. It is not a definition of gmeow:spdxLicenseId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:spdxLicenseIdFunctionality logic:characterizes gmeow:spdxLicenseId ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:trademarkMarkFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "trademarkMark is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trademarkMark is functional: a trademark right reifies protection of a single sign, so it points at exactly one gmeow:Mark; protecting a second mark is a second gmeow:Trademark relator rather than two marks bound to the same right."@x-gmeow-english ;
+    logic:characterizes gmeow:trademarkMark ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trademarkMark ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:trademarkMark names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:trademarkMark, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:trademarkMark and nothing else. It is not a definition of gmeow:trademarkMark (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:trademarkMarkFunctionality logic:characterizes gmeow:trademarkMark ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:trademarkStatusFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    rdfs:label "trademarkStatus is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:trademarkStatus is functional: a trademark occupies exactly one registration status at any time — unregistered ™, registered ®, pending, expired, or cancelled — mutually exclusive lifecycle states, so on lapse the single value changes (with gmeow:validUntil recorded) rather than a second status being added."@x-gmeow-english ;
+    logic:characterizes gmeow:trademarkStatus ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:trademarkStatus ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:trademarkStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:trademarkStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:trademarkStatus and nothing else. It is not a definition of gmeow:trademarkStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:trademarkStatusFunctionality logic:characterizes gmeow:trademarkStatus ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

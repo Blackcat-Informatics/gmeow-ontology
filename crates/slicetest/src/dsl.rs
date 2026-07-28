@@ -29,7 +29,7 @@ use crate::native_query::{self, render_term};
 pub const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// The `logic:` namespace; the result-shape terms live directly under it.
-pub const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+pub use gmeow_ns::LOGIC_NS;
 
 /// The three cell collections parsed out of one `tests/*.ttl` spec file.
 #[derive(Debug, Clone, Default)]

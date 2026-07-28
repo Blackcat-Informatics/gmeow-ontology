@@ -44,3 +44,13 @@ here, where `core/inhabitation` is also present, that the **true end-to-end** re
 through the de-conflation chain and onward via `gmeow:stageOfLineage` to the durable
 `gmeow:SubjectLineage`, and the flat `gmeow:generatedForSubject` shortcut is proven equal to that full
 collapse (`tests/competency.ttl`). The composition is not merely declared — it is exercised.
+
+The same is true across the two SIBLING extensions. CQ5 — *was a tool call made through a passive
+capability or delegated to another agent?* — is discriminated structurally, with no wrapper class: a
+`gmeow:usedCapability` edge from an invocation / execution to a `logic:ActionSchema` is **passive** use,
+while a `gmeow:ToolCall` whose `gmeow:usedTool` points to a distinct `gmeow:SoftwareAgent` is
+**delegation**. The passive half is `extensions/model-serving`'s and the delegation half is
+`extensions/agentic`'s, and Principle 16 forbids either from depending on the other — a competency query
+that named the sibling's terms would BE that dependency, whichever lane it runs in. So the question is
+askable only from here (`queries/competency/tool-usage.rq` over `examples/tool-usage.ttl`), which is
+precisely a profile earning its selection.

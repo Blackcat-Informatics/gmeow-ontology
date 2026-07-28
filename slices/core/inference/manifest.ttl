@@ -16,10 +16,9 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
-        <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
-        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:sliceConsumer "The agent-memory flagship — an LLM stating HOW it reached a claim (deduced / generalized / best-explanation / by-analogy) with its premises, warrant, and defeasibility, then revising belief by suppression rather than deletion. store_claim records gmeow:inferredFrom + gmeow:inferenceMode on the claim; recall returns the premises and warrant; the belief-revision audit (a fired defeater closes a gmeow:InferenceTenure and sets the conclusion-claim gmeow:displayable false while retaining the gmeow:InferenceCommitment) is the headline demonstration."@x-gmeow-english .

@@ -520,6 +520,55 @@ fn collect_ttl_all(dir: &Path, out: &mut Vec<PathBuf>) {
 
 // ── doc-lint ────────────────────────────────────────────────────────────────
 
+/// The site-relative path of the rendered grounding seam-registry page
+/// (`gmeow_docs::render::Page::SeamRegistry`), keyed exactly as
+/// [`gmeow_docs::render::Site::files`] keys it.
+const SEAM_REGISTRY_SITE_PAGE: &str = "seams/index.md";
+
+/// The UNCONDITIONAL leg of the R7 seam-registry drift gate.
+///
+/// `gmeow-validate`'s on-disk leg can only compare against `ontology-docs/`, which a
+/// docs-selected sync writes — and neither `make validate` (no sync) nor the
+/// `make check` DAG (`check-sync --outputs generated`) materializes it, so on the
+/// gate path that leg has no page to read. Here the page ALWAYS exists: `doc-lint`
+/// has just rendered the whole site in memory, and `doc-lint` is itself a
+/// `make check` DAG task. So the per-seam comparison
+/// ([`gmeow_validate::authoring_integrity::detect_seam_registry_drift`]) runs on
+/// every gate run, over the authored `gmeow:Seam` registry read through the one
+/// shared reader — and a missing seam page, an unreadable manifest, or any drift is
+/// a HARD FAIL, never a skip.
+///
+/// This is the ONLY direction the dependency can go: `gmeow-docs` depends on
+/// `gmeow-validate`, so `gmeow-validate` cannot render the page itself; this crate
+/// depends on both and is where the two halves legitimately meet.
+fn seam_registry_drift_over_rendered_site(
+    root: &Path,
+    site: &gmeow_docs::render::Site,
+) -> gmeow_errors::Result<Vec<Finding>> {
+    let seams = gmeow_validate::authoring_integrity::seam_registry_of_slices(&root.join("slices"))
+        .map_err(|e| error::source(format!("cannot read the gmeow:Seam registry: {e}")))?;
+    if seams.is_empty() {
+        return Err(error::source(format!(
+            "no gmeow:Seam individuals discovered under {} — the seam-registry drift \
+             comparison would be vacuous, refusing to pass",
+            root.join("slices").display(),
+        )));
+    }
+    let Some(bytes) = site.files.get(SEAM_REGISTRY_SITE_PAGE) else {
+        return Err(error::source(format!(
+            "the rendered site carries no {SEAM_REGISTRY_SITE_PAGE}, but {n} gmeow:Seam \
+             individual(s) are declared in the grounding manifests",
+            n = seams.len(),
+        )));
+    };
+    let page = std::str::from_utf8(bytes).map_err(|e| {
+        error::encoding(format!(
+            "the rendered {SEAM_REGISTRY_SITE_PAGE} is not UTF-8: {e}"
+        ))
+    })?;
+    Ok(gmeow_validate::authoring_integrity::detect_seam_registry_drift(&seams, page))
+}
+
 /// `gmeow-dev doc-lint` — lint the rust-rendered ontology-docs site.
 pub fn doc_lint() -> i32 {
     let root = project_root();
@@ -528,19 +577,40 @@ pub fn doc_lint() -> i32 {
         Err(e) => return fail(format!("doc-lint: cannot build model: {e}")),
     };
     let site = gmeow_docs::render::render_site(&model);
+
+    // R7 seam-registry drift, over the page just rendered — the leg that makes the
+    // per-seam comparison unconditional on-gate (see the helper's doc comment).
+    let seam_drift = match seam_registry_drift_over_rendered_site(&root, &site) {
+        Ok(findings) => findings,
+        Err(e) => return fail(format!("doc-lint: seam-registry drift gate: {e}")),
+    };
+    for finding in &seam_drift {
+        note(
+            "gmeow-dev.doc-lint.seam-registry-drift",
+            format!("{:?} {}", finding.severity, finding.message),
+        );
+    }
+    let seam_errors = seam_drift
+        .iter()
+        .filter(|f| f.severity == Severity::Error)
+        .count();
+
     let report = gmeow_docs::lint(&model, &site);
     let text = render::to_text_summarized(&report.normalized());
     if !text.trim().is_empty() {
         println!("{text}");
     }
-    if report.error_count() > 0 {
+    if report.error_count() > 0 || seam_errors > 0 {
         return fail(format!(
-            "doc-lint: {} error(s), {} warning(s)",
+            "doc-lint: {} error(s), {} warning(s), {seam_errors} seam-registry drift error(s)",
             report.error_count(),
             report.warning_count()
         ));
     }
-    println!("doc-lint OK ({} warning(s))", report.warning_count());
+    println!(
+        "doc-lint OK ({} warning(s)); seam-registry drift OK (per-seam comparison ran)",
+        report.warning_count()
+    );
     0
 }
 

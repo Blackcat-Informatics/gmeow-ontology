@@ -380,9 +380,8 @@ pub fn check_gmn1_shipped_projections(
 
     // Rebuild the projection's lang-model sources EXACTLY as the projection stage does, so the
     // reconstructed documents (text + out-of-band refs) match the shipped artifacts byte-for-byte.
-    let catalog =
-        SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| stage_err(&format!("discover slice catalog: {e}")))?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| stage_err(&format!("discover slice catalog: {e}")))?;
     let sources: Vec<NamedSource> =
         crate::stages::lang_projection::lang_model_sources(Some(&catalog))?;
     let by_name: BTreeMap<&str, &NamedSource> =

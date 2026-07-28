@@ -45,8 +45,8 @@ use purrdf::slice::{ArtifactRole, SliceCatalog};
 
 use crate::stages::lang_translation::{script_for_lang, target_surface_iri, unit_iri};
 
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 /// The example-instance base every minted corpus IRI lives under — the same base the
@@ -95,14 +95,13 @@ struct PageGroup {
 /// each catalog's entries by their `msgctxt` term-IRI page key, and emits the page rendering
 /// + roll-up records plus the exec-docs boundary gap.
 pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, gmeow_errors::Diag> {
-    let catalog =
-        SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!("lang-docs-rendering slice catalog: {e}"),
-                })
-            })?;
+    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-mappings".to_string(),
+                message: format!("lang-docs-rendering slice catalog: {e}"),
+            })
+        })?;
 
     // (lang, term-page IRI) -> the entries that render that page in that language. A
     // BTreeMap keeps the grouping deterministic independent of catalog discovery order.
@@ -420,7 +419,7 @@ fn emit_exec_gap(lang: &str, script: &str, lines: &mut Vec<String>) {
 fn gmeow_source_term(group: &PageGroup) -> Option<String> {
     group
         .term_iri
-        .starts_with(crate::gmeow_ns::GMEOW_NS)
+        .starts_with(gmeow_ns::GMEOW_NS)
         .then(|| group.term_iri.clone())
 }
 
@@ -594,11 +593,9 @@ mod tests {
 
         // Discover the real (lang, page) universe the SAME way the corpus does, so this is a
         // genuine coverage check over the docs language trees, not a tautology.
-        let catalog = SliceCatalog::discover(
-            &repo_root().join("slices"),
-            crate::gmeow_ns::gmeow_slice_vocab(),
-        )
-        .expect("discover catalog");
+        let catalog =
+            SliceCatalog::discover(&repo_root().join("slices"), gmeow_ns::gmeow_slice_vocab())
+                .expect("discover catalog");
         let mut pages: std::collections::BTreeSet<(String, String)> =
             std::collections::BTreeSet::new();
         for record in catalog.records() {

@@ -12,15 +12,15 @@
 #      history; its gmeow:hasSensitivity / gmeow:hasDisclosurePolicy are the
 #      classification everything downstream inherits.
 #   2. GENERATED LOSSY PROJECTION  (ex:bookshelfProjA) — a whole embedding pack
-#      that AGGREGATES graphrag's per-object gmeow:Embedding rows (never a
+#      that AGGREGATES the core ai slice's per-object gmeow:Embedding rows (never a
 #      subclass of gmeow:Embedding) under one gmeow:VectorSpaceContract. It is
 #      lossy: float payloads live outside the graph by reference (P12), and the
 #      lossiness is made an honest, weighable verdict by ex:corrProjA, a
 #      logic:Correspondence at the logic:ValidationOnly / logic:BridgeView floor
 #      (a vector VALIDATES proximity, it does not ENTAIL meaning).
 #   3. RETRIEVAL-SIMILARITY OBSERVATION  (ex:crossObs / ex:inObs) — ranked
-#      retrieval as a logic:Vague gmeow:SimilarityObservation, disjoint from a
-#      graphrag gmeow:RetrievalEvent: a pairwise proximity CLAIM, never an
+#      retrieval as a logic:Vague gmeow:SimilarityObservation, disjoint from the
+#      core ai slice's gmeow:RetrievalEvent: a pairwise proximity CLAIM, never an
 #      equivalence or an entailment.
 #   4. DERIVED REBUILDABLE INDEX  (ex:annIndexA, superseded by ex:annIndexA2) —
 #      a non-authoritative accelerator whose approximation profile
@@ -40,9 +40,9 @@
 # gmeow:ExternalBinding (ex:extChunkText, P12).
 #
 # Every non-ex: predicate below is a shipped term of the slice or a reused
-# kernel / graphrag / logic / math term; ex: and gr: are used ONLY for instance
+# kernel / ai / graphrag / logic / math term; ex: and gr: are used ONLY for instance
 # subjects/objects, never as predicates. Each gmeow:SimilarityObservation names
-# its metric with the slice's gmeow:withMetric (→ a graphrag gmeow:DistanceMetric),
+# its metric with the slice's gmeow:withMetric (→ a core ai gmeow:DistanceMetric),
 # which agrees with the metric its gmeow:overVectorSpace contract declares.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -229,7 +229,7 @@ ex:targetSetA a gmeow:TargetSet ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ===========================================================================
-# 4. The projection A — the whole .purremb pack. It AGGREGATES graphrag
+# 4. The projection A — the whole .purremb pack. It AGGREGATES the core ai slice's
 #    gmeow:Embedding rows (payloads OUTSIDE the graph via gmeow:vectorRef, P12),
 #    commits to ex:vscA, and records its source provenance so the header
 #    constraints pass:

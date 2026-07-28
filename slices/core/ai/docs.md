@@ -66,8 +66,9 @@ assembles prompts from personas lands extension-side.
 `gmeow:MemoryItem` (new gufo:Role ⊑ Observation): any claim can be remembered;
 revision is supersession + `gmeow:displayable false` (P10); salience rides the
 EXISTING statement-level `gmeow:importanceLevel`; recency rides the statement
-clocks. Recall is a retrieval (extensions/graphrag's `RetrievalEvent`). This is
-the substrate under the `gmeow` client and the MCP store/recall/revise triad.
+clocks. Recall is a retrieval (this slice's `RetrievalEvent`, §"Terms" below).
+This is the substrate under the `gmeow` client and the MCP store/recall/revise
+triad.
 
 ## 7. Teleology
 
@@ -83,9 +84,13 @@ source ─(chunkOf)─ Chunk ─(spanOfChunk)─ EvidenceSpan ─(groundedIn⁻�
                                                         wasGeneratedBy = ModelInvocation)
 ```
 
-Pipeline observability around this spine — corpus, embeddings, indexes,
-retrievals, the GraphRAG entity graph — is `extensions/graphrag` (consumer:
-Project Lillith).
+GraphRAG-specific pipeline observability around this spine — corpus, extracted
+entity/relationship, community, and index-wiring artifacts — is
+`extensions/graphrag` (consumer: Project Lillith). The generic vector/embedding
+primitives that any embedding consumer needs — `Embedding`, `VectorIndex`,
+`DistanceMetric`, `RetrievalEvent` — are core-tier terms owned HERE (see
+"Terms" below), reused by both `extensions/graphrag` and
+`extensions/embedding-projection` rather than duplicated per extension.
 
 ## Terms
 
@@ -146,3 +151,34 @@ remembered. `gmeow:memoryOf` names the remembering agent and `gmeow:memoryKind`
 its cognitive register (open `gmeow:MemoryKind` — episodic / semantic / working /
 procedural). Revision is supersession + `gmeow:displayable false` (P10), never
 deletion.
+
+### gmeow:Embedding · gmeow:embeddingOf · gmeow:embeddingModel · gmeow:embeddingDimensions · gmeow:DistanceMetric · gmeow:distanceMetric
+
+Promoted here (from `extensions/graphrag`) as a core-tier, shared vector
+primitive: a vector representation of an information object (usually a
+`Chunk`), produced by an embedding model — the genuine vocabulary gap in the
+semantic-web stack. `embeddingOf` (functional) names the represented object;
+`embeddingModel` (functional) the producing agent, so two models' embeddings
+of the same object are two individuals (P9); `embeddingDimensions` the
+dimensionality; `distanceMetric` (functional, domain-free — carried by
+`Embedding` and `VectorIndex` alike) the open `DistanceMetric` vocabulary
+(cosine, dot product, euclidean) an embedding or index is meaningful under.
+`extensions/graphrag`'s `gmeow:vectorRef` still points the payload outside the
+graph (P12); this slice mints only the vector's provenance, never the floats.
+`extensions/embedding-projection`'s pack-level `gmeow:EmbeddingProjection`
+aggregates many `Embedding` rows (`gmeow:aggregatesEmbedding`) rather than
+subclassing this one.
+
+### gmeow:VectorIndex · gmeow:RetrievalEvent · gmeow:againstIndex
+
+Promoted here (from `extensions/graphrag`) as core-tier, shared retrieval
+primitives: `VectorIndex` is a built retrieval structure over a corpus's
+embeddings (`extensions/graphrag`'s `gmeow:indexAlgorithm`/
+`gmeow:indexParameters`/`gmeow:indexesCorpus` still carry its build details);
+`RetrievalEvent` is one retrieval against a vector index — the query, the
+index queried (`againstIndex`, functional), and the chunks returned
+(`extensions/graphrag`'s `gmeow:retrievedChunk`/`gmeow:retrievalScore`/
+`gmeow:forQuery` carry the rest) — an agent-memory recall is a RetrievalEvent
+too (§6 above). `extensions/embedding-projection`'s `gmeow:DerivedVectorIndex`
+specializes `VectorIndex` directly as a non-authoritative, rebuildable
+accelerator.

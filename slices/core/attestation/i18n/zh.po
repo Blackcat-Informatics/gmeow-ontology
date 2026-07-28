@@ -1,0 +1,294 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: attestation, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactMediaTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifactMediaType is functional"
+msgstr "artifactMediaType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactMediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:artifactMediaType is functional: an attestation artifact is serialized in one wire format, so its IANA media-type string is a single value a consumer dispatches a parser on, distinct from the broader attestation kind that may sit alongside it."
+msgstr "在规范载体上断言 gmeow:artifactMediaType 是函数性的:一个证明文件以单一线路格式序列化,因此其 IANA 媒体类型字符串是消费方据以派发解析器的单一值,有别于可能与之并存的更广泛的证明类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attesterFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attester is functional"
+msgstr "attester 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attesterFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:attester is functional: within the attestation relator there is exactly one vouching party, so the WHO of the envelope names a single agent and jointly-issued vouching is modelled as several Attestations, one per attester, rather than two attesters on one."
+msgstr "在规范载体上断言 gmeow:attester 是函数性的:在证明关系元内部恰好有一个担保方,因此该信封的谁(WHO)只命名单一主体,联合出具的担保被建模为多条 Attestation,每位担保人一条,而非在同一条上出现两个担保人。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "blockHash is functional"
+msgstr "blockHash 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:blockHash is functional: a ledger block has one content-addressed cryptographic identity, so its block hash is a single value that anchors the block independent of its sequential number. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:blockHash 是函数性的:一个账本区块具有一个按内容寻址的密码学身份,因此其区块哈希是独立于其顺序编号、用以锚定该区块的单一值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "blockNumber is functional"
+msgstr "blockNumber 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:blockNumber is functional: a ledger block occupies one position in the chain, so its height is a single integer against which confirmation depth is measured, never a set of competing ordinals."
+msgstr "在规范载体上断言 gmeow:blockNumber 是函数性的:一个账本区块在链中占据一个位置,因此其高度是用以衡量确认深度的单一整数,绝非一组相互竞争的序数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chainId is functional"
+msgstr "chainId 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:chainId is functional: a blockchain network is named by one CAIP-2 chain identifier, so the string that distinguishes it from every other chain is single-valued and on-chain hashes and addresses resolve against exactly one network. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:chainId 是函数式的：一个区块链网络由一个 CAIP-2 链标识符命名，因此将其与所有其他链区分开来的字符串是单值的，链上哈希和地址仅针对恰好一个网络进行解析。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contractAddress is functional"
+msgstr "contractAddress 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:contractAddress is functional: a smart contract lives at one deployment location on its chain, so the on-chain address at which its program is invoked is a single value, unambiguous only together with its chain id. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:contractAddress 是函数式的：一个智能合约在其所在链上恰好位于一个部署位置，因此其程序被调用所依据的链上地址是一个单一值，只有与其链标识符一起时才不含糊。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "issuedAt is functional"
+msgstr "issuedAt 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:issuedAt is functional: the instant an attestation was issued is constitutive of the attestation's identity, so a vouching act carries one wall-clock issue time and a different issue instant is a different attestation rather than a second value."
+msgstr "在规范载体上断言 gmeow:issuedAt 是函数性的:证明被签发的那一时刻构成了该证明身份的构成要素,因此一次担保行为携带一个墙钟签发时间,不同的签发时刻意味着一个不同的证明,而不是第二个取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logEntryIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logEntryIndex is functional"
+msgstr "logEntryIndex 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logEntryIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:logEntryIndex is functional: a transparency-log entry has one stable sequential position within its append-only log, so its log-local index — the identity that survives mirror changes — is single-valued rather than a set of offsets."
+msgstr "在规范载体上断言 gmeow:logEntryIndex 是函数式的:一条透明日志条目在其只追加日志中拥有一个稳定的序列位置,因此其日志本地索引——在镜像变化中依然保持不变的身份标识——是单值的,而不是一组偏移量的集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logIndex is functional"
+msgstr "logIndex 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:logIndex is functional: a ledger event sits at one offset within its containing block or transaction, so the in-block position that disambiguates one emitted log from another is single-valued and, with the transaction hash and block, addresses the event uniquely. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:logIndex 是函数式的:一个账本事件在其所属区块或交易中恰好位于一个偏移位置,因此用以区分不同已发出日志的区块内位置是单值的,并且与交易哈希及区块一起,唯一地定位该事件。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transactionHash is functional"
+msgstr "transactionHash 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:transactionHash is functional: a ledger transaction has one stable on-chain identity hash, so the value used to look up and re-verify it is single, distinct from the hash of its block or the identifier of its network."
+msgstr "在规范载体上断言 gmeow:transactionHash 是函数性的:一笔账本交易拥有一个稳定的链上身份哈希,因此用于查找和重新校验它的值是唯一的,不同于其所在区块的哈希或其所在网络的标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactMediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:artifactMediaType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:artifactMediaType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactMediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactMediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:artifactMediaType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:artifactMediaType, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactMediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:artifactMediaTypeFunctionality logic:characterizes gmeow:artifactMediaType ."
+msgstr "gmeow:artifactMediaTypeFunctionality logic:characterizes gmeow:artifactMediaType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attesterFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:attester names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:attester 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attesterFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attesterFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:attester, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:attester, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attesterFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:attesterFunctionality logic:characterizes gmeow:attester ."
+msgstr "gmeow:attesterFunctionality logic:characterizes gmeow:attester ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:blockHash names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:blockHash 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:blockHash, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:blockHash, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:blockHashFunctionality logic:characterizes gmeow:blockHash ."
+msgstr "gmeow:blockHashFunctionality logic:characterizes gmeow:blockHash ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:blockNumber names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:blockNumber 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:blockNumber, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:blockNumber, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:blockNumberFunctionality logic:characterizes gmeow:blockNumber ."
+msgstr "gmeow:blockNumberFunctionality logic:characterizes gmeow:blockNumber ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:chainId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:chainId 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:chainId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:chainId, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:chainIdFunctionality logic:characterizes gmeow:chainId ."
+msgstr "gmeow:chainIdFunctionality logic:characterizes gmeow:chainId ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:contractAddress names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:contractAddress 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:contractAddress, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:contractAddress, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:contractAddressFunctionality logic:characterizes gmeow:contractAddress ."
+msgstr "gmeow:contractAddressFunctionality logic:characterizes gmeow:contractAddress ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:issuedAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:issuedAt 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:issuedAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:issuedAt, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:issuedAtFunctionality logic:characterizes gmeow:issuedAt ."
+msgstr "gmeow:issuedAtFunctionality logic:characterizes gmeow:issuedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logEntryIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:logEntryIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:logEntryIndex 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logEntryIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logEntryIndexFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:logEntryIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:logEntryIndex, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logEntryIndexFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:logEntryIndexFunctionality logic:characterizes gmeow:logEntryIndex ."
+msgstr "gmeow:logEntryIndexFunctionality logic:characterizes gmeow:logEntryIndex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:logIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:logIndex 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:logIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:logIndex, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:logIndexFunctionality logic:characterizes gmeow:logIndex ."
+msgstr "gmeow:logIndexFunctionality logic:characterizes gmeow:logIndex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:transactionHash names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:transactionHash 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:transactionHash, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:transactionHash, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transactionHashFunctionality logic:characterizes gmeow:transactionHash ."
+msgstr "gmeow:transactionHashFunctionality logic:characterizes gmeow:transactionHash ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactMediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:artifactMediaType and nothing else. It is not a definition of gmeow:artifactMediaType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:artifactMediaType 的一项完整性义务，别无其他。它不是 gmeow:artifactMediaType 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attesterFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:attester and nothing else. It is not a definition of gmeow:attester (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:attester 的一项完整性义务，别无其他。它不是 gmeow:attester 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockHashFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:blockHash and nothing else. It is not a definition of gmeow:blockHash (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:blockHash 的一项完整性义务，别无其他。它不是 gmeow:blockHash 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockNumberFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:blockNumber and nothing else. It is not a definition of gmeow:blockNumber (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:blockNumber 的一项完整性义务，别无其他。它不是 gmeow:blockNumber 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chainIdFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:chainId and nothing else. It is not a definition of gmeow:chainId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:chainId 的一项完整性义务，别无其他。它不是 gmeow:chainId 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contractAddressFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:contractAddress and nothing else. It is not a definition of gmeow:contractAddress (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:contractAddress 的一项完整性义务，别无其他。它不是 gmeow:contractAddress 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/issuedAtFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:issuedAt and nothing else. It is not a definition of gmeow:issuedAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:issuedAt 的一项完整性义务，别无其他。它不是 gmeow:issuedAt 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logEntryIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:logEntryIndex and nothing else. It is not a definition of gmeow:logEntryIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:logEntryIndex 的一项完整性义务，别无其他。它不是 gmeow:logEntryIndex 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logIndexFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:logIndex and nothing else. It is not a definition of gmeow:logIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:logIndex 的一项完整性义务，别无其他。它不是 gmeow:logIndex 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:transactionHash and nothing else. It is not a definition of gmeow:transactionHash (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:transactionHash 的一项完整性义务，别无其他。它不是 gmeow:transactionHash 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

@@ -295,3 +295,60 @@ gmeow:Tagging logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:taggingTagged ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:taggingTag ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:taggingTagger ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:taggingSchemeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
+    rdfs:label "taggingScheme is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taggingScheme is functional: a gmeow:Tagging act is performed within exactly one scheme — even though the applied tag may itself be cross-listed in several schemes via gmeow:tagInScheme, the act names a single scheme context. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:taggingScheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:taggingScheme ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:taggingScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taggingScheme, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:taggingScheme and nothing else. It is not a definition of gmeow:taggingScheme (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:taggingSchemeFunctionality logic:characterizes gmeow:taggingScheme ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taggingTagFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
+    rdfs:label "taggingTag is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taggingTag is functional: a gmeow:Tagging relator applies exactly one tag — several tags on a resource are several relators, not multiple values on one Tagging."@x-gmeow-english ;
+    logic:characterizes gmeow:taggingTag ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:taggingTag ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:taggingTag names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taggingTag, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:taggingTag and nothing else. It is not a definition of gmeow:taggingTag (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:taggingTagFunctionality logic:characterizes gmeow:taggingTag ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taggingTaggedFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
+    rdfs:label "taggingTagged is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:taggingTagged is functional: each gmeow:Tagging relator applies to exactly one tagged entity, with a fresh relator minted per distinct tagging act. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:taggingTagged ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:taggingTagged ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:taggingTagged names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taggingTagged, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:taggingTagged and nothing else. It is not a definition of gmeow:taggingTagged (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:taggingTaggedFunctionality logic:characterizes gmeow:taggingTagged ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

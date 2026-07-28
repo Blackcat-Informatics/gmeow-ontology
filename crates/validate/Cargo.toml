@@ -30,6 +30,7 @@ purrdf.workspace = true
 # Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics. The `gts`
 # feature is oxigraph-free and already cross-compiles to wasm32 (the purrdf engine).
 # Canonical Finding/Report model. Its surface is pure serde, so it is wasm-clean.
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
 # CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's

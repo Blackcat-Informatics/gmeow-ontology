@@ -131,7 +131,7 @@ class, in connectivity).</p>
 </tbody></table>
 <h3>Manifest</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>manifest.ttl</code></td><td><code>text/turtle</code></td><td><code>266cbc93bb4a</code></td></tr>
+<tr><td><code>manifest.ttl</code></td><td><code>text/turtle</code></td><td><code>9b80c28a6ae4</code></td></tr>
 </tbody></table>
 <h3>Mappings</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
@@ -139,20 +139,28 @@ class, in connectivity).</p>
 </tbody></table>
 <h3>Module</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>f16507ba3529</code></td></tr>
+<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>6f5bb7917ce3</code></td></tr>
 </tbody></table>
 <h3>Tests</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
 <tr><td><code>tests/structural.ttl</code></td><td><code>text/turtle</code></td><td><code>7024bdab47ba</code></td></tr>
 </tbody></table>
-<h2>Terms (9)</h2>
+<h3>Translations</h3>
+<table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
+<tr><td><code>i18n/fr.po</code></td><td><code>application/octet-stream</code></td><td><code>bf21c1270db1</code></td></tr>
+<tr><td><code>i18n/zh.po</code></td><td><code>application/octet-stream</code></td><td><code>f8a4c280e53e</code></td></tr>
+</tbody></table>
+<h2>Terms (12)</h2>
 <ul>
 <li><a href="../../terms/accessibilityassertion/index.html"><code>gmeow:AccessibilityAssertion</code></a> — Class</li>
 <li><a href="../../terms/accessibilityfacet/index.html"><code>gmeow:AccessibilityFacet</code></a> — Class</li>
 <li><a href="../../terms/accessibilitypolarity/index.html"><code>gmeow:AccessibilityPolarity</code></a> — Class</li>
 <li><a href="../../terms/assertionfacet/index.html"><code>gmeow:assertionFacet</code></a> — Property</li>
+<li><a href="../../terms/assertionfacetfunctionality/index.html"><code>gmeow:assertionFacetFunctionality</code></a> — Individual</li>
 <li><a href="../../terms/assertionpolarity/index.html"><code>gmeow:assertionPolarity</code></a> — Property</li>
+<li><a href="../../terms/assertionpolarityfunctionality/index.html"><code>gmeow:assertionPolarityFunctionality</code></a> — Individual</li>
 <li><a href="../../terms/assertionsubject/index.html"><code>gmeow:assertionSubject</code></a> — Property</li>
+<li><a href="../../terms/assertionsubjectfunctionality/index.html"><code>gmeow:assertionSubjectFunctionality</code></a> — Individual</li>
 <li><a href="../../terms/hasaccessibilityfeature/index.html"><code>gmeow:hasAccessibilityFeature</code></a> — Property</li>
 <li><a href="../../terms/hasaccessibilityneed/index.html"><code>gmeow:hasAccessibilityNeed</code></a> — Property</li>
 <li><a href="../../terms/hasbarrier/index.html"><code>gmeow:hasBarrier</code></a> — Property</li>

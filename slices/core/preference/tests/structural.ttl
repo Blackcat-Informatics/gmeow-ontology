@@ -46,7 +46,7 @@ ASK {
 # --- (b) AC7 no-duplication: the seven named sibling slices' terms are NOT ------
 # -------- re-minted (rdfs:isDefinedBy) in THIS slice (MUST-NOT), one per slice --
 
-# --- (b.1) norms terms are not re-minted here (MUST-NOT) ----------------------
+# --- (b.1) norms/observations evaluative terms are not re-minted here (MUST-NOT) ---
 ex:saNoRemintNormsTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
@@ -60,7 +60,7 @@ ASK {
     }
     ?banned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> .
 }""" ;
-    gmeow:saRationale "The norms terms (Rubric, Assessment, Criterion, EvaluationVerdict, Condition, ComplianceAssessment) MUST NOT be rdfs:isDefinedBy the preference slice — norms is their one canonical owner, and preference reaches them through a declared gmeow:sliceDependsOn edge (rdfs:range gmeow:Rubric / gmeow:Criterion) or by-reference at the instance level, never by redeclaring/re-minting them in this module (AC7 no-duplication, Principle 4)." .
+    gmeow:saRationale "The evaluative-primitive terms (Rubric, Assessment, Criterion, EvaluationVerdict, Condition — core-owned by observations — and ComplianceAssessment — norms-owned) MUST NOT be rdfs:isDefinedBy the preference slice — observations and norms are their one canonical owners, and preference reaches them through declared gmeow:sliceDependsOn edges (rdfs:range gmeow:Rubric / gmeow:Criterion) or by-reference at the instance level, never by redeclaring/re-minting them in this module (AC7 no-duplication, Principle 4)." .
 
 # --- (b.2) model-serving terms are not re-minted here (MUST-NOT) --------------
 ex:saNoRemintModelServingTerms a gmeow:StructuralAssertion ;

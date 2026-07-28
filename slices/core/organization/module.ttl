@@ -204,12 +204,12 @@ gmeow:acceptsPaymentMethod
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "accepts payment method"@x-gmeow-english ;
     rdfs:range gmeow:PaymentMethod ;
-    skos:definition "Relates an organization to a payment method it accepts — reusing the finance-slice gmeow:PaymentMethod individuals (cash, credit card, bank transfer, cryptocurrency, …). Non-functional: a business may accept several. Projects to schema:paymentAccepted (the method's label)."@x-gmeow-english ;
+    skos:definition "Relates an organization to a payment method it accepts — reusing the accounts-slice gmeow:PaymentMethod individuals (cash, credit card, bank transfer, cryptocurrency, …). Non-functional: a business may accept several. Projects to schema:paymentAccepted (the method's label)."@x-gmeow-english ;
     skos:example "ex:acme gmeow:acceptsPaymentMethod gmeow:paymentMethodCreditCard ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a free-text method string (reuse the gmeow:PaymentMethod vocabulary) and avoid conflating accepted methods with accepted currencies (that is gmeow:acceptsCurrency)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more gmeow:acceptsPaymentMethod triples to the organization referencing gmeow:PaymentMethod individuals; the schema:paymentAccepted projection reads each method's label."@x-gmeow-english ;
-    gmeow:useWhen "Use to record which payment methods a business accepts, referencing the finance-slice gmeow:PaymentMethod value individuals (cash, credit card, bank transfer, cryptocurrency)."@x-gmeow-english .
+    gmeow:useWhen "Use to record which payment methods a business accepts, referencing the accounts-slice gmeow:PaymentMethod value individuals (cash, credit card, bank transfer, cryptocurrency)."@x-gmeow-english .
 
 gmeow:alumniOf
     a owl:ObjectProperty ;
@@ -980,3 +980,135 @@ logic:ssoSucc2 a logic:Formula ; logic:relation gmeow:successorOrganization ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
 logic:ssoSuccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:closesAtFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "closesAt is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:closesAt is functional: a gmeow:OpeningHoursSpecification window has exactly one closing time, a single xsd:time that bounds where the window ends. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:closesAt ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:closesAt ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:closesAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:closesAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:closesAt and nothing else. It is not a definition of gmeow:closesAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:closesAtFunctionality logic:characterizes gmeow:closesAt ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:identifierSchemeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "identifierScheme is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierScheme is functional: each gmeow:Identifier node names exactly one scheme (such as 'lei', 'ror', or 'wikidata'), the property being carried on the per-identifier node precisely so co-existing identifiers each keep a single scheme instead of cross-pairing."@x-gmeow-english ;
+    logic:characterizes gmeow:identifierScheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:identifierScheme ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:identifierScheme names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:identifierScheme, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:identifierScheme and nothing else. It is not a definition of gmeow:identifierScheme (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:identifierSchemeFunctionality logic:characterizes gmeow:identifierScheme ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:identifierUrlFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "identifierUrl is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierUrl is functional: a gmeow:Identifier record resolves at exactly one authority URL, the resolvable counterpart of its single scheme-local value, so a second landing page would denote a different identifier record. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:identifierUrl ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:identifierUrl ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:identifierUrl names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:identifierUrl, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:identifierUrl and nothing else. It is not a definition of gmeow:identifierUrl (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:identifierUrlFunctionality logic:characterizes gmeow:identifierUrl ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:identifierValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "identifierValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:identifierValue is functional: a gmeow:Identifier node carries exactly one literal value within its scheme, and a different value is a different identifier. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:identifierValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:identifierValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:identifierValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:identifierValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:identifierValue and nothing else. It is not a definition of gmeow:identifierValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:identifierValueFunctionality logic:characterizes gmeow:identifierValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:membershipMemberFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "membershipMember is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipMember is functional: a gmeow:Membership relator reifies the membership of exactly one member agent, filling a single member-role slot, while the flat gmeow:memberOf shortcut carries the many-to-many agent-to-organization relation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipMember ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipMember ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipMember names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipMember, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipMember and nothing else. It is not a definition of gmeow:membershipMember (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:membershipMemberFunctionality logic:characterizes gmeow:membershipMember ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:membershipOrganizationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "membershipOrganization is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:membershipOrganization is functional: a gmeow:Membership relator is in exactly one organization (which may be a department that is a sub-organization of a larger org), so joining a second organization is a second membership. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:membershipOrganization ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:membershipOrganization ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:membershipOrganization names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:membershipOrganization, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:membershipOrganization and nothing else. It is not a definition of gmeow:membershipOrganization (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:membershipOrganizationFunctionality logic:characterizes gmeow:membershipOrganization ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:opensAtFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "opensAt is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:opensAt is functional: a gmeow:OpeningHoursSpecification window has exactly one opening time, a single xsd:time that bounds where the window starts. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:opensAt ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:opensAt ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:opensAt names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:opensAt, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:opensAt and nothing else. It is not a definition of gmeow:opensAt (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:opensAtFunctionality logic:characterizes gmeow:opensAt ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:postInFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    rdfs:label "postIn is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:postIn is functional: a gmeow:Post belongs to exactly one organization, and the same post in another organization would be a distinct post. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:postIn ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:postIn ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:postIn names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:postIn, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:postIn and nothing else. It is not a definition of gmeow:postIn (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:postInFunctionality logic:characterizes gmeow:postIn ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

@@ -40,7 +40,6 @@ use crate::lint::{self, LintConfig};
 use crate::model::{owl, rdf, rdfs};
 use crate::report_bridge::shacl_findings_from_report;
 use crate::signature;
-use crate::slice_ownership;
 use crate::store;
 
 /// One per-phase timing record.
@@ -563,10 +562,11 @@ impl ValidationRun {
         } else {
             None
         };
-        if let Some((_, ownership)) = &slice_analysis {
-            for finding in slice_ownership::ownership_findings(ownership)
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
+        if let Some((catalog, ownership)) = &slice_analysis {
+            for finding in
+                crate::slice_peerage::peerage_aware_ownership_findings(ownership, catalog)?
+                    .into_iter()
+                    .filter(|finding| finding.severity == Severity::Error)
             {
                 intern_finding(
                     &mut run_ledger,
@@ -607,14 +607,24 @@ impl ValidationRun {
                 project_root,
                 &slices_path,
             )?;
-            for finding in authoring
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
-            {
+            // EVERY authoring finding is folded, not just the Errors. An Error is
+            // Binding (it hard-fails the run); a non-Error is Advisory (it is
+            // reported and never gates). Dropping the non-Errors would silently
+            // discard the R7 seam-registry gate's "NOT COMPARED against a
+            // materialized page" record — the one thing that must never vanish, since
+            // its whole purpose is to keep an uncompared projection from reading as a
+            // clean one. Advisory findings do not affect `ValidationRun::ok`, so the
+            // gate's hard-fail surface is unchanged.
+            for finding in authoring {
+                let standpoint = if finding.severity == Severity::Error {
+                    Standpoint::Binding
+                } else {
+                    Standpoint::Advisory
+                };
                 intern_finding(
                     &mut run_ledger,
                     StageId::new("validate.authoring_integrity"),
-                    Standpoint::Binding,
+                    standpoint,
                     &finding,
                 );
             }
@@ -639,13 +649,14 @@ impl ValidationRun {
                 |d| std::path::Path::new(d).to_path_buf(),
             );
             let slices_path_str = slices_path.to_string_lossy().into_owned();
-            let (_, ownership) =
+            let (catalog, ownership) =
                 timed(&mut timings, "slice-ownership-live", options, None, || {
                     slice_catalog_and_ownership(&slices_path_str)
                 })?;
-            for finding in slice_ownership::ownership_findings(&ownership)
-                .into_iter()
-                .filter(|finding| finding.severity == Severity::Error)
+            for finding in
+                crate::slice_peerage::peerage_aware_ownership_findings(&ownership, &catalog)?
+                    .into_iter()
+                    .filter(|finding| finding.severity == Severity::Error)
             {
                 intern_finding(
                     &mut run_ledger,
@@ -1444,15 +1455,12 @@ fn merged_shacl_merkle_root(slices_dir: &str) -> gmeow_errors::Result<String> {
 fn slice_catalog_and_ownership(
     slices_dir: &str,
 ) -> gmeow_errors::Result<(SliceCatalog, OwnershipReport)> {
-    let catalog = SliceCatalog::discover(
-        Path::new(slices_dir),
-        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )
-    .map_err(|e| {
-        Diag::of_kind(crate::error::Catalog {
-            detail: format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"),
-        })
-    })?;
+    let catalog = SliceCatalog::discover(Path::new(slices_dir), gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Catalog {
+                detail: format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"),
+            })
+        })?;
     // S4 dependency edges (the same edges the ownership/dependency analyzer
     // produces) drive the Merkle dependency composition.
     let ownership = OwnershipAnalyzer::new(&catalog).analyze().map_err(|e| {

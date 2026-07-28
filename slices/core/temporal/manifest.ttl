@@ -21,6 +21,11 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceProfile "memory" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
+        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/places> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "Every slice carrying time-scoped facts (tenures, residences, validity); the statement layer's validFrom/validUntil; the calendar slice; the mail corpus."@x-gmeow-english .

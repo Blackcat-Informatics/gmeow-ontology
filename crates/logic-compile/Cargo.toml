@@ -24,6 +24,7 @@ path = "src/lib.rs"
 # OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
 # TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the
 # compiler's RDF parse/serialize path builds for wasm32 with no Store dependency.
+gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 # SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
 # A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.

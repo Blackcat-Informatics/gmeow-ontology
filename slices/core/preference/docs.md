@@ -37,14 +37,26 @@ embeddings, comparison complexes, sections, obstructions, and model deltas of a
 running analysis — lives in the consumer `lillith_decodes`, not here.
 
 Cross-slice reuse obeys the tier DAG: this is a **core** slice, so its axioms anchor
-only on core slices and the `logic`/`math` grounding. Norms is core and declared in
-`gmeow:sliceDependsOn`, so `usesRubric` and `onCriterion` carry real `rdfs:range`
-axioms onto `gmeow:Rubric` and `gmeow:Criterion` — the one canonical owner
-(Principle 4). Model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology and
-embedding-projection (`VectorSpaceContract`) are **extensions**, which a core slice may
-never reach by a subclass/domain/range axiom; they are reused **only** at the instance
-level (Principle 5) and named by-reference as a native alignment cell in
+only on core slices and the `logic`/`math` grounding. `Assessment`/`Rubric`/`Criterion`/
+`EvaluationVerdict`/`Condition` (with `assessmentTarget` and `assessmentScoreValue`) are
+**core**, owned by the observations slice, which this slice declares in
+`gmeow:sliceDependsOn` — so `usesRubric` and `onCriterion` carry real `rdfs:range` axioms
+onto `gmeow:Rubric` and `gmeow:Criterion`, the one canonical owner (Principle 4), and the
+remaining evaluative primitives are named by-reference as native alignment cells in
 `mappings/equivalences.ttl`.
+
+model-serving (`ModelArtifact`/`ModelDeployment`), semantic-topology, and
+embedding-projection (`VectorSpaceContract`) are **extensions**, and the tier model
+is stricter about them than "no subclass/range axiom": a mapping cell and a competency query
+are each a *semantic dependency edge*, so naming an extension's term in either would
+BE the forbidden core → extension crossing however carefully it is phrased. Those reuses
+are therefore confined to `examples/` and `tests/`, which are not dependency edges — the
+worked scene types `ex:baseCkpt` a `gmeow:ModelArtifact` and the counter-example corpus
+guards the no-re-mint ban — while the shipped semantic artifacts compose the same content
+through the core/grounding seam (`gmeow:contentDigest` for the delta's base-artifact leg;
+`math:GlobalSection` / `math:GluingObstruction` for the H0/H1 apparatus semantic-topology
+also composes). The mapping set records the two omitted correspondences, with reasons, in its
+`gmeow:setTrailer`.
 
 ## The pipeline
 

@@ -77,6 +77,12 @@ members = [
     # Music-package toolchain: piece model, GTS package I/O, notation renderers,
     # MusicXML import, and loss manifests.
     "crates/music",
+    # The registered ontology term namespaces (gmeow/logic/lang/math) and the ONE
+    # purrdf SliceVocab / OntologyProfile built from them. Depends on `purrdf`
+    # alone so every consumer — validate, docs, slice-brief, pipeline, dev-cli —
+    # can sit above it; a namespace GMEOW mints into but never declares here is
+    # invisible to purrdf's ownership analyzer.
+    "crates/ns",
     # DAG-driven single-pass build executor (#861): typed stages over an
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
@@ -139,7 +145,13 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", tag = "rust-v0.8.3" }
+# Pinned to a rev rather than a tag: this is `rust-v0.8.3` plus the ownership
+# analyzer's term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term),
+# which is on purrdf main but not yet in a tagged release. Without it, ownership analysis
+# is gated on the framework namespace alone, so every slice minting into
+# `logic:`/`lang:`/`math:` is invisible to the dependency analyzer. Move back to a `tag =`
+# pin once a release carries the fix.
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "76f2595528e5d64fd708aa1c24d9055db084870e" }
 
 [workspace.package]
 version = "0.2.0"

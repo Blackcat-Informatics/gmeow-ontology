@@ -36,7 +36,7 @@ This site documents **6815** vocabulary terms across **85** slices.
 
 - [All slices](slices/index.md) — the 85 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
-- [Linkages](linkages/index.md) — 2121 term equivalences to external vocabularies.
+- [Linkages](linkages/index.md) — 2119 term equivalences to external vocabularies.
 - [Examples](examples/index.md) — 200 worked examples.
 - [External ontologies](external-ontologies/index.md) — 1802 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)

@@ -15,9 +15,11 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
         <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
-        <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     gmeow:sliceConsumer "Graph-native epistemics of the lie (P16: core by commitment); the claim layer's refutations."@x-gmeow-english .

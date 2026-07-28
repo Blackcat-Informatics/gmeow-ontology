@@ -122,6 +122,46 @@ pub const SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY: &str = "slice-ownership.undecla
 pub const SLICE_OWNERSHIP_STALE_DEPENDENCY: &str = "slice-ownership.stale-dependency";
 /// `crates/validate/src/slice_ownership.rs` — a slice query failed to parse.
 pub const SLICE_OWNERSHIP_UNPARSEABLE_QUERY: &str = "slice-ownership.unparseable-query";
+/// `crates/validate/src/slice_peerage.rs` — an undeclared semantic cross-slice
+/// edge between two mutually declared co-foundational grounding peers names a
+/// term that is not carried by any registered `gmeow:Seam` covering that
+/// crossing direction (the peerage grant does not cover it — the crossing must
+/// register its own seam, exactly like an ordinary undeclared dependency).
+pub const SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM: &str =
+    "slice-ownership.peered-unregistered-seam";
+/// `crates/validate/src/slice_peerage.rs` — a computed cross-slice dependency
+/// edge violates the tier model (Principle 16 / RFC §10): a core slice
+/// depending on an extension, or an extension depending on another extension.
+/// Forbidden regardless of the edge's reconciliation status (even a MATCHED,
+/// authored `gmeow:sliceDependsOn` declaration between a forbidden tier pair is
+/// still architecturally forbidden — declaring it does not license it).
+pub const SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY: &str = "slice-ownership.forbidden-dependency";
+/// `crates/validate/src/slice_peerage.rs` — a slice typed `gmeow:GroundingSlice`
+/// references a GROUNDING CONCEPT owned by a slice that is not
+/// (`docs/GROUNDING.md`, the tier rule: "a grounding slice never depends on a
+/// non-grounding slice **for a grounding concept**. Where a grounding concept is
+/// found split across a grounding and a non-grounding slice, the reconciliation
+/// direction is fixed: the grounding slice owns the concept and the
+/// non-grounding slice consumes it"). Invisible to
+/// [`SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY`], because all three grounding slices
+/// are authored `gmeow:tierCore`, so a `logic: → cognition` crossing reads as an
+/// ordinary legal core→core edge; this code keys on the `gmeow:GroundingSlice`
+/// marker plus the referenced term's `gmeow:groundingConceptDomain` marker.
+///
+/// The "for a grounding concept" qualifier is enforced, not dropped: a grounding
+/// slice consuming ordinary domain vocabulary by reference (`lang:` subclassing
+/// `gmeow:AttestationArtifact`, `logic:` naming a domain predicate inside a
+/// `logic:Formula`) is sanctioned and never fires. Which terms are grounding
+/// concepts is authored on the terms as `gmeow:groundingConceptDomain`, whose
+/// domain's `gmeow:groundingDomainOwner` names the grounding slice that must own
+/// them — the remediation is to re-point that term's `rdfs:isDefinedBy` and move
+/// its block to the owning grounding slice (the IRI never changes). A bare
+/// DECLARED `gmeow:sliceDependsOn` on a domain slice does not fire on its own:
+/// under the qualified rule such a declaration is legitimate until a grounding
+/// concept actually crosses. Grounding→grounding peer crossings are the
+/// Principle 19 peerage grant and never fire here.
+pub const SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY: &str =
+    "slice-ownership.grounding-downward-dependency";
 /// Family base for `slice-ownership.*`.
 pub const SLICE_OWNERSHIP_FAMILY: &str = "slice-ownership.";
 
@@ -146,6 +186,20 @@ pub const AUTHORING_UNDECLARED_TERM: &str = "authoring.undeclared-term";
 /// plain literal is a distinct RDF term from any tagged sibling, silently
 /// untranslatable.
 pub const AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL: &str = "authoring.untagged-localizable-literal";
+/// The generated grounding seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
+/// materialized under `ontology-docs/seams/index.md` by `make sync SYNC_OUTPUTS=docs`)
+/// disagrees with the canonical `gmeow:Seam` data authored in the grounding slices'
+/// manifests — a carrying term, owning doc, or seam name present in one but not the
+/// other. Only fires when the generated page is present (an absent on-demand `docs`
+/// output is a cache miss, not a drift finding).
+pub const AUTHORING_SEAM_REGISTRY_DRIFT: &str = "authoring.seam-registry-drift";
+/// A slice's `module.ttl` / `shapes.ttl` mints a claimed term (a typed vocabulary
+/// term, or a subject asserting `rdfs:isDefinedBy` at a GMEOW slice) into a
+/// namespace outside [`gmeow_ns::TERM_NAMESPACES`]. purrdf's ownership analyzer
+/// tests ownership against the term's own IRI, so such a term is invisible to it:
+/// it has no owning slice, and no cross-slice dependency edge into the minting
+/// slice is computable. The failure is otherwise silent.
+pub const AUTHORING_UNREGISTERED_TERM_NAMESPACE: &str = "authoring.unregistered-term-namespace";
 /// Family base for `authoring.*`.
 pub const AUTHORING_FAMILY: &str = "authoring.";
 
@@ -156,6 +210,18 @@ pub const SLICE_DISCIPLINE_DUPLICATE_IRI: &str = "slice-discipline.duplicate-iri
 /// A `gmeow:Slice` manifest carries no `gmeow:sliceTier` — tier is mandatory
 /// (the loader would otherwise accept a silent `None`).
 pub const SLICE_DISCIPLINE_MISSING_TIER: &str = "slice-discipline.missing-tier";
+/// A slice manifest declares `gmeow:sliceCoFoundationalWith` (grounding peerage)
+/// but its own slice node is not typed `gmeow:GroundingSlice` — the peerage
+/// grant (Principle 19) is reserved to the three grounding layers
+/// (`lang:`/`math:`/`logic:`); a non-grounding slice must not claim it.
+pub const SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE: &str = "slice-discipline.non-grounding-peerage";
+/// `gmeow:sliceCoFoundationalWith` is a symmetric relation: slice A declares
+/// peerage with B but B's manifest does not declare peerage back with A.
+pub const SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE: &str = "slice-discipline.asymmetric-peerage";
+/// A slice's `gmeow:GroundingSlice` typing disagrees with its location under
+/// `slices/grounding/*`: a slice under that directory not typed
+/// `gmeow:GroundingSlice`, or a slice typed `gmeow:GroundingSlice` outside it.
+pub const SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT: &str = "slice-discipline.grounding-marker-drift";
 /// Family base for `slice-discipline.*`.
 pub const SLICE_DISCIPLINE_FAMILY: &str = "slice-discipline.";
 
@@ -262,6 +328,9 @@ pub const ALL_CODES: &[&str] = &[
     SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
     SLICE_OWNERSHIP_STALE_DEPENDENCY,
     SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
+    SLICE_OWNERSHIP_PEERED_UNREGISTERED_SEAM,
+    SLICE_OWNERSHIP_FORBIDDEN_DEPENDENCY,
+    SLICE_OWNERSHIP_GROUNDING_DOWNWARD_DEPENDENCY,
     CRATE_LAYERING_VIOLATION,
     CRATE_LAYERING_OBSERVATION,
     REPO_STATIC_VIOLATION,
@@ -284,8 +353,13 @@ pub const ALL_CODES: &[&str] = &[
     AUTHORING_GRAFT_LEAK,
     AUTHORING_UNDECLARED_TERM,
     AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL,
+    AUTHORING_SEAM_REGISTRY_DRIFT,
+    AUTHORING_UNREGISTERED_TERM_NAMESPACE,
     SLICE_DISCIPLINE_DUPLICATE_IRI,
     SLICE_DISCIPLINE_MISSING_TIER,
+    SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,
+    SLICE_DISCIPLINE_ASYMMETRIC_PEERAGE,
+    SLICE_DISCIPLINE_GROUNDING_MARKER_DRIFT,
 ];
 
 /// Every dynamic-code family base declared here, paired with the module that

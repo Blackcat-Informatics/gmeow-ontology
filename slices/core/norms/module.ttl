@@ -7,19 +7,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-gmeow:Assessment
-    a logic:SubKind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Assessment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ;
-    skos:definition "An observation that scores a target against a criterion (or whole rubric) — vantage = the judge, human or model: an LLM judge is just a vantage, and two models disagreeing are two coexisting cells with no winner (Principle 9). The judge model's identity and prompt digest travel as observation provenance. gmeow:assessmentCriterion / gmeow:assessmentRubric play the observationMethod ROLE but are deliberately not subproperties of it (observationMethod is functional with a QualityValue range; Criterion and Rubric are Entities — the claimModality axiom pattern). Scoring-density expectations by target granularity reuse kernel gmeow:hasGranularity on the target."@x-gmeow-english ;
-    skos:example "ex:as1 a gmeow:Assessment ; gmeow:assessmentTarget ex:chapter3 ; gmeow:assessmentCriterion ex:agency ; gmeow:assessmentScoreValue 0.9 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating a model's score as ground truth (an LLM judge is just a vantage — Principle 9) and avoid omitting a zero score; a zero is a score, not an absence (false positives are worse than zeros)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint one Assessment per criterion (a 21-axis pass is 21 Assessments), naming the target with gmeow:assessmentTarget, the criterion/rubric with gmeow:assessmentCriterion / gmeow:assessmentRubric, the score with gmeow:assessmentScoreValue, and the judge as observation vantage."@x-gmeow-english ;
-    gmeow:useWhen "Use for a score of a target against a criterion or rubric — an observation whose vantage is the judge, human or model; disagreeing judges are coexisting cells with no winner."@x-gmeow-english .
-
 gmeow:AuthorityLevel
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -45,19 +32,6 @@ gmeow:ComplianceAssessment
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the assessment, name the event with gmeow:assessedEvent, the norm with gmeow:assessedNorm, the verdict with gmeow:complianceVerdict, and carry the assessor as the observation vantage."@x-gmeow-english ;
     gmeow:useWhen "Use the reified form when who-judged, on-what-evidence, or how-confidently an event complied or violated must be first-class."@x-gmeow-english .
-
-gmeow:Condition
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Condition"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A describable circumstance — the trigger of a conditional norm, the activation context of a persona, the antecedent of a causal link (risk design). The canonical form is PROSE (gmeow:conditionText, mandatory by SHACL); machine formalizations attach via gmeow:formalizedAs, and each formalization is a claim of equivalence to the prose, challengeable through the statement layer. Whether the condition held at some moment is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. The ontology stores conditions; it never executes them (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:c1 a gmeow:Condition ; gmeow:conditionText \"the data subject has requested erasure\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid executing or evaluating a condition during validation (the ontology stores conditions, never runs them — Principle 12) and avoid treating an attached formalization as the canonical form; the prose is canonical."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the condition with mandatory gmeow:conditionText prose, attach machine formalizations via gmeow:formalizedAs (each a challengeable equivalence claim), and record whether it held as a gmeow:ConditionEvaluation."@x-gmeow-english ;
-    gmeow:useWhen "Use for a describable circumstance — a norm's trigger, a persona's activation context, a causal antecedent — whose canonical form is prose and whose holding is observed, never entailed."@x-gmeow-english .
 
 gmeow:ConditionEvaluation
     a logic:SubKind ,
@@ -111,19 +85,6 @@ gmeow:ConditionParameter
     gmeow:howToUse "Mint the parameter with gmeow:parameterName and exactly one of gmeow:parameterValue / gmeow:parameterEntity, then attach it to the condition via gmeow:conditionParameter."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a named slot of a condition template so one Condition can serve many norms with different values — 'threshold = 0.8', 'jurisdiction = Canada'."@x-gmeow-english .
 
-gmeow:Criterion
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Criterion"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "One evaluative axis of a rubric — what is being judged, with NAMED poles: a reward pole and a penalty pole that are small information objects with their own labels and definitions ('Power from the Bottom' vs 'Passive Victimhood'), not just numeric extremes. Anchors (gmeow:hasScoreAnchor) pin score ranges to meanings and exemplars."@x-gmeow-english ;
-    skos:example "ex:agency a gmeow:Criterion ; gmeow:rewardPole ex:powerFromBottom ; gmeow:penaltyPole ex:passiveVictimhood ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reducing poles to bare numeric extremes (poles are named information objects) and avoid using a criterion outside a rubric — attach it via gmeow:hasCriterion."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the criterion, give it mandatory distinct gmeow:rewardPole / gmeow:penaltyPole, pin score ranges with gmeow:hasScoreAnchor, classify it with gmeow:criterionDomain, and optionally override the rubric scale with gmeow:usesScale."@x-gmeow-english ;
-    gmeow:useWhen "Use for one evaluative axis of a rubric — what is being judged, with named reward and penalty poles and calibration anchors."@x-gmeow-english .
-
 gmeow:CriterionDomain
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -145,7 +106,7 @@ gmeow:CriterionPole
     rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "A NAMED extreme of a criterion — a small information object carrying its own label and definition. Poles are content, not numbers: 'Power from the Bottom' names what the high end rewards; 'Passive Victimhood' names what the low end penalizes. The numeric mapping lives on the scale and anchors."@x-gmeow-english ;
     skos:example "ex:powerFromBottom a gmeow:CriterionPole ; rdfs:label \"Power from the Bottom\"@en ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reducing a pole to a bare number (the numeric mapping lives on gmeow:ScoreScale and gmeow:ScoreAnchor) and avoid reusing the same pole for both ends — reward and penalty poles must differ (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reducing a pole to a bare number (the numeric mapping lives on gmeow:ScoreScale and gmeow:ScoreAnchor) and avoid reusing the same pole for both ends — reward and penalty poles must differ (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint each pole with its own label and definition, then attach it to a criterion via gmeow:rewardPole or gmeow:penaltyPole."@x-gmeow-english ;
     gmeow:useWhen "Use for a named extreme of a criterion — a small information object with its own label and definition naming what one end rewards or penalizes."@x-gmeow-english .
@@ -163,19 +124,6 @@ gmeow:DeonticModality
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Reference the seeded modality individuals from a norm; extend the axis for supererogation, exemption, or other forces by minting a fresh gmeow:DeonticModality individual rather than a subclass."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for the deontic-force axis — the seeded forces (obligation, prohibition, permission, recommendation) a norm declares via gmeow:deonticModality."@x-gmeow-english .
-
-gmeow:EvaluationVerdict
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Evaluation Verdict"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The outcome of a condition evaluation — held, not held, or undetermined. A closed three-member value vocabulary. Semantically the observationResult of a ConditionEvaluation, but not declared rdfs:subPropertyOf-reachable because QualityValues are disjoint from Entities in the DL profile (the claimModality precedent, standpoint module)."@x-gmeow-english ;
-    skos:example "ex:ev1 gmeow:evaluationVerdict gmeow:verdictUndetermined ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting a fourth verdict (the trichotomy is closed) and avoid modelling it as an observationResult subproperty — QualityValue is disjoint from Entity (the claimModality pattern)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Reference one of the three seeded verdict individuals from an evaluation or compliance assessment; undetermined is a first-class outcome, not an absence."@x-gmeow-english ;
-    gmeow:useWhen "Use as the closed value vocabulary for evaluation outcomes — held, not held, undetermined — reused by both gmeow:evaluationVerdict and gmeow:complianceVerdict."@x-gmeow-english .
 
 gmeow:Exemplar
     a logic:SubKind ,
@@ -285,19 +233,15 @@ gmeow:PrecedenceTenure
     gmeow:howToUse "Mint the tenure, name the prevailing and yielding norms with gmeow:precedenceHigher/precedenceLower, scope it with gmeow:precedenceScope, and carry its interval via the inherited gmeow:duringInterval."@x-gmeow-english ;
     gmeow:useWhen "Use the reified form when the precedence held over an interval — its adoption, revision, or withdrawal — is itself the fact of interest, e.g. 'Tier 2 overrode X until v3.5'."@x-gmeow-english .
 
-gmeow:Rubric
-    a logic:Kind ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "Rubric"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Norm ,
-        gmeow:SocialObject ;
-    skos:definition "A norm for judging — a reified evaluation framework whose criteria, poles, scales, and anchors are first-class content. Being a Norm, a rubric names its issuer (no anonymous evaluation standards), may be overridden, and carries authority within its issuing system. Applying a rubric is solver work; the results come back as vantage-indexed Assessments (Principle 12). Member criteria attach via gmeow:hasCriterion (⊑ gmeow:hasPart)."@x-gmeow-english ;
-    skos:example "ex:voiceRubric a gmeow:Rubric ; gmeow:systemIssuer ex:editorial ; gmeow:hasCriterion ex:agency ; gmeow:usesScale ex:zeroToOne ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid baking the scoring function into triples (applying a rubric is permanently solver work — Principle 12; results return as Assessments) and avoid an anonymous rubric (being a Norm, it must name its issuer)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the rubric, name its issuer, attach criteria with gmeow:hasCriterion, set a default scale with gmeow:usesScale; applying it yields vantage-indexed gmeow:Assessment cells, never asserted scores."@x-gmeow-english ;
-    gmeow:useWhen "Use for a reified evaluation framework — a norm for judging whose criteria, poles, scales, and anchors are first-class content, issued and overridable like any norm."@x-gmeow-english .
+# gmeow:Rubric is now core-owned by the observations slice (its full definition
+# lives there); this bridge axiom is the one triple that MUST stay physically
+# authored here, because it couples the core term to the norms-domain
+# gmeow:Norm class — an observations->norms edge would be forbidden, but this
+# norms->observations edge (Rubric is legally reused, ext depending on core) is
+# not. Being a Norm, a rubric names its issuer (no anonymous evaluation
+# standards), may be overridden, and carries authority within its issuing
+# system (Principle 16).
+gmeow:Rubric rdfs:subClassOf gmeow:Norm .
 
 gmeow:Rule
     rdfs:subClassOf gmeow:Norm .
@@ -431,57 +375,11 @@ gmeow:assessedNorm
     gmeow:howToUse "Assert gmeow:assessedNorm once from the assessment to its gmeow:Norm, paired with gmeow:assessedEvent and gmeow:complianceVerdict."@x-gmeow-english ;
     gmeow:useWhen "Use on a ComplianceAssessment to name the single norm against which the event is judged."@x-gmeow-english .
 
-gmeow:assessmentCriterion
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment criterion"@x-gmeow-english ;
-    rdfs:range gmeow:Criterion ;
-    skos:definition "The criterion applied. Functional: a 21-axis scoring pass is 21 Assessments (zeros included — a zero is a score, not an absence). Plays the observationMethod role without the subproperty axiom (claimModality pattern). An assessment names a criterion or a rubric, or both (SHACL)."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentCriterion ex:agency ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one criterion per assessment (it is functional — split a multi-axis pass into one Assessment per axis) and avoid omitting both criterion and rubric (at least one is required — SHACL)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentCriterion once per assessment; it plays the observationMethod role without the subproperty axiom (claimModality pattern). Pair with gmeow:assessmentRubric for version context."@x-gmeow-english ;
-    gmeow:useWhen "Use on an Assessment to name the single criterion applied — one Assessment per criterion, zeros included."@x-gmeow-english .
-
-gmeow:assessmentRubric
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment rubric"@x-gmeow-english ;
-    rdfs:range gmeow:Rubric ;
-    skos:definition "The rubric under which this assessment was made — version-pinning context for the score. Functional. Plays the observationMethod role without the subproperty axiom (claimModality pattern)."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentRubric ex:voiceRubric ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one rubric per assessment (it is functional) and avoid omitting both rubric and criterion (at least one is required — SHACL)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentRubric once per assessment; it plays the observationMethod role without the subproperty axiom, pinning the rubric version the score belongs to."@x-gmeow-english ;
-    gmeow:useWhen "Use on an Assessment to name the rubric under which it was made — version-pinning context for the score."@x-gmeow-english .
-
-gmeow:assessmentScoreValue
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment score value"@x-gmeow-english ;
-    rdfs:range xsd:decimal ;
-    skos:definition "The numeric score, on the scale the criterion or rubric declares. Functional and mandatory (SHACL). A datatype twin of observationResult (which is entity-valued — the claimModality pattern); zeros are scores, never absences (false positives are worse than zeros)."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentScoreValue 0.9 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory) and avoid dropping a zero — a zero is a score, never an absence (false positives are worse than zeros)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentScoreValue once per assessment as a decimal on the declared gmeow:ScoreScale; it is the datatype twin of observationResult under the claimModality pattern."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry an Assessment's numeric score on the scale its criterion or rubric declares."@x-gmeow-english .
-
-gmeow:assessmentTarget
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Assessment ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "assessment target"@x-gmeow-english ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
-    skos:definition "What is being scored — a work, an expression, a content segment, a chunk (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one assessment, one target."@x-gmeow-english ;
-    skos:example "ex:as1 gmeow:assessmentTarget ex:chapter3 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one target per assessment (it is functional) and avoid naming the criterion or rubric here (those are gmeow:assessmentCriterion / gmeow:assessmentRubric)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:assessmentTarget once from the assessment to its target; it specializes gmeow:observedFeature, and scoring-density expectations read the target's kernel gmeow:hasGranularity."@x-gmeow-english ;
-    gmeow:useWhen "Use on an Assessment to name what is being scored — a work, expression, content segment, or chunk — the observation's feature of interest."@x-gmeow-english .
+# gmeow:assessmentTarget and gmeow:assessmentScoreValue are NOT minted here. They
+# are core-owned by the observations slice alongside gmeow:Assessment,
+# gmeow:assessmentCriterion, and gmeow:assessmentRubric — see
+# slices/core/observations/module.ttl. This slice reuses them on
+# gmeow:ComplianceAssessment as an ordinary extension → core dependency.
 
 gmeow:authorityAbsolute
     a gmeow:AuthorityLevel ;
@@ -1028,7 +926,7 @@ gmeow:penaltyPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penalty pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion penalizes. Functional and mandatory (SHACL — no poles is no axis); must differ from the reward pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:penaltyPole ex:passiveVictimhood ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:rewardPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1101,9 +999,9 @@ gmeow:precedenceLower
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence lower"@x-gmeow-english ;
     rdfs:range gmeow:Norm ;
-    skos:definition "The norm that yields during this tenure. Functional, and distinct from precedenceHigher (the logic:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The norm that yields during this tenure. Functional, and distinct from precedenceHigher (the gmeow:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:pt1 gmeow:precedenceLower ex:xN ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one yielding norm (it is functional) and avoid pointing it at the prevailing norm — it must differ from gmeow:precedenceHigher (the logic:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one yielding norm (it is functional) and avoid pointing it at the prevailing norm — it must differ from gmeow:precedenceHigher (the gmeow:precedenceTenureDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:precedenceLower once from the tenure to the yielding norm, paired with a distinct gmeow:precedenceHigher and a gmeow:precedenceScope."@x-gmeow-english ;
     gmeow:useWhen "Use on a PrecedenceTenure to name the single norm that yields during the tenure."@x-gmeow-english .
@@ -1174,7 +1072,7 @@ gmeow:rewardPole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "reward pole"@x-gmeow-english ;
     rdfs:range gmeow:CriterionPole ;
-    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the logic:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
+    skos:definition "The named pole this criterion rewards. Functional and mandatory (SHACL — no poles is no axis); must differ from the penalty pole (the gmeow:criterionPoleDistinctness axiom, projected to SHACL)."@x-gmeow-english ;
     skos:example "ex:agency gmeow:rewardPole ex:powerFromBottom ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it or giving more than one (it is functional and mandatory — no poles is no axis) and avoid pointing it at the same pole as gmeow:penaltyPole (they must differ — SHACL)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1277,27 +1175,6 @@ gmeow:usesScale
     gmeow:howToUse "Assert gmeow:usesScale once from the rubric or criterion to a gmeow:ScoreScale; a criterion-level scale overrides the rubric default."@x-gmeow-english ;
     gmeow:useWhen "Use to name the score scale a rubric (as default) or a criterion (as override) uses."@x-gmeow-english .
 
-gmeow:verdictHeld
-    a gmeow:EvaluationVerdict ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "held"@x-gmeow-english ;
-    skos:definition "The evaluator found the condition to hold."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:verdictNotHeld
-    a gmeow:EvaluationVerdict ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "not held"@x-gmeow-english ;
-    skos:definition "The evaluator found the condition not to hold."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:verdictUndetermined
-    a gmeow:EvaluationVerdict ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "undetermined"@x-gmeow-english ;
-    skos:definition "The evaluator could not determine whether the condition held."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
 # The generated best-practice recommendation catalog: the gmeow:NormativeSystem that
 # gathers every gmeow:deonticRecommendation gmeow:Rule the validator materialises from an
 # advisory finding (each recommendation norm attaches via gmeow:partOf). Issued by the
@@ -1368,6 +1245,9 @@ gmeow:Persona rdfs:subClassOf
 gmeow:StyleGuide rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:styleGuideFor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+# gmeow:Assessment and every property restricted below are core-owned (observations).
+# This cardinality-restriction axiom is a norms -> observations reference (an extension
+# constraining a core class it consumes, the legal direction); the reverse would not be.
 gmeow:Assessment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:assessmentTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:assessmentScoreValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
@@ -1487,6 +1367,10 @@ gmeow:ConditionGroup rdfs:subClassOf
 gmeow:ConditionParameter rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:parameterName ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+# gmeow:Criterion is core-owned (observations); this restriction axiom stays authored
+# here because both restricted properties (gmeow:rewardPole, gmeow:penaltyPole) range
+# over the norms-domain gmeow:CriterionPole (a norms->observations edge on the
+# Criterion subject, legal; an observations->norms edge would not be).
 gmeow:Criterion rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:rewardPole ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CriterionPole ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:penaltyPole ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CriterionPole ] .
@@ -2134,3 +2018,451 @@ gmeow:ConditionExpression logic:subClassOf
 gmeow:ConditionExpression logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:expressionText ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:expressionText ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+#   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
+
+gmeow:anchorRangeMaxFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "anchorRangeMax is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorRangeMax is functional: an anchored score range has exactly one upper bound, and a second maximum would leave the interval's ceiling ill-defined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:anchorRangeMax ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:anchorRangeMax ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:anchorRangeMax names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:anchorRangeMax, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:anchorRangeMax and nothing else. It is not a definition of gmeow:anchorRangeMax (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:anchorRangeMaxFunctionality logic:characterizes gmeow:anchorRangeMax ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:anchorRangeMinFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "anchorRangeMin is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:anchorRangeMin is functional: an anchored score range has exactly one lower bound, and a second minimum would leave the interval's floor ill-defined (the one lower bound that must never exceed the anchor's upper bound)."@x-gmeow-english ;
+    logic:characterizes gmeow:anchorRangeMin ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:anchorRangeMin ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:anchorRangeMin names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:anchorRangeMin, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:anchorRangeMin and nothing else. It is not a definition of gmeow:anchorRangeMin (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:anchorRangeMinFunctionality logic:characterizes gmeow:anchorRangeMin ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:assessedEventFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "assessedEvent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assessedEvent is functional: a compliance assessment judges exactly one event — the single feature of interest whose compliance it reports — so weighing a second event is a separate assessment, not a further value here."@x-gmeow-english ;
+    logic:characterizes gmeow:assessedEvent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assessedEvent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:assessedEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assessedEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:assessedEvent and nothing else. It is not a definition of gmeow:assessedEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:assessedEventFunctionality logic:characterizes gmeow:assessedEvent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:assessedNormFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "assessedNorm is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:assessedNorm is functional: a compliance assessment weighs its event against exactly one norm, so judging the same event against a further norm is a distinct assessment rather than a second value on this one."@x-gmeow-english ;
+    logic:characterizes gmeow:assessedNorm ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:assessedNorm ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:assessedNorm names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:assessedNorm, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:assessedNorm and nothing else. It is not a definition of gmeow:assessedNorm (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:assessedNormFunctionality logic:characterizes gmeow:assessedNorm ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:complianceVerdictFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "complianceVerdict is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:complianceVerdict is functional: a compliance assessment records exactly one verdict from its single assessor, and a divergent judgement is a separate coexisting assessment cell rather than a second verdict on this one."@x-gmeow-english ;
+    logic:characterizes gmeow:complianceVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:complianceVerdict ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:complianceVerdict names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:complianceVerdict, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:complianceVerdict and nothing else. It is not a definition of gmeow:complianceVerdict (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:complianceVerdictFunctionality logic:characterizes gmeow:complianceVerdict ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:conditionTextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "conditionText is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:conditionText is functional: a condition has exactly one canonical prose statement — the single authoritative form every machine formalization must approximate — so a second prose body would install a rival canon within one condition. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:conditionText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:conditionText ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:conditionText names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:conditionText, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:conditionText and nothing else. It is not a definition of gmeow:conditionText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:conditionTextFunctionality logic:characterizes gmeow:conditionText ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:deonticModalityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "deonticModality is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:deonticModality is functional: a norm carries exactly one deontic force, since a prescription that both permits and obliges is two distinct norms rather than one norm bearing two modalities."@x-gmeow-english ;
+    logic:characterizes gmeow:deonticModality ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:deonticModality ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:deonticModality names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:deonticModality, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:deonticModality and nothing else. It is not a definition of gmeow:deonticModality (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:deonticModalityFunctionality logic:characterizes gmeow:deonticModality ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:evaluatedConditionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "evaluatedCondition is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluatedCondition is functional: a condition evaluation reports on exactly one condition, its single observed feature, and the members of a condition group each receive their own evaluation rather than sharing one."@x-gmeow-english ;
+    logic:characterizes gmeow:evaluatedCondition ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:evaluatedCondition ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:evaluatedCondition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:evaluatedCondition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:evaluatedCondition and nothing else. It is not a definition of gmeow:evaluatedCondition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:evaluatedConditionFunctionality logic:characterizes gmeow:evaluatedCondition ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:evaluationVerdictFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "evaluationVerdict is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:evaluationVerdict is functional: an evaluation returns exactly one outcome — held, not held, or undetermined — and a differing verdict from another evaluator is a separate coexisting observation, not a second value on this evaluation."@x-gmeow-english ;
+    logic:characterizes gmeow:evaluationVerdict ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:evaluationVerdict ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:evaluationVerdict names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:evaluationVerdict, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:evaluationVerdict and nothing else. It is not a definition of gmeow:evaluationVerdict (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:evaluationVerdictFunctionality logic:characterizes gmeow:evaluationVerdict ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exemplarPolarityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "exemplarPolarity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:exemplarPolarity is functional: an exemplar points in exactly one direction — positive, negative, or cautionary — because an exemplar that could not say whether to emulate or avoid would collapse back into a bare citation."@x-gmeow-english ;
+    logic:characterizes gmeow:exemplarPolarity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:exemplarPolarity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:exemplarPolarity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exemplarPolarity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:exemplarPolarity and nothing else. It is not a definition of gmeow:exemplarPolarity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:exemplarPolarityFunctionality logic:characterizes gmeow:exemplarPolarity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:expressionLanguageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "expressionLanguage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:expressionLanguage is functional: a condition expression is written in exactly one named language, so its verbatim source sits in a single dialect and a formalization in another language is a separate expression. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:expressionLanguage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:expressionLanguage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:expressionLanguage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:expressionLanguage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:expressionLanguage and nothing else. It is not a definition of gmeow:expressionLanguage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:expressionLanguageFunctionality logic:characterizes gmeow:expressionLanguage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:expressionTextFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "expressionText is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:expressionText is functional: a condition expression carries exactly one verbatim source body — one expression, one string of source in its declared language. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:expressionText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:expressionText ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:expressionText names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:expressionText, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:expressionText and nothing else. It is not a definition of gmeow:expressionText (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:expressionTextFunctionality logic:characterizes gmeow:expressionText ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:groupOperatorFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "groupOperator is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:groupOperator is functional: a condition group combines its members under exactly one operator — all, any, or none — and richer logic is built by nesting further groups rather than by a second operator on one group."@x-gmeow-english ;
+    logic:characterizes gmeow:groupOperator ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:groupOperator ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:groupOperator names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:groupOperator, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:groupOperator and nothing else. It is not a definition of gmeow:groupOperator (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:groupOperatorFunctionality logic:characterizes gmeow:groupOperator ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:parameterEntityFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "parameterEntity is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parameterEntity is functional: a condition parameter resolves to exactly one bound entity, and a parameter carries at most one of an entity binding or a literal binding, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:parameterEntity ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:parameterEntity ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:parameterEntity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:parameterEntity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:parameterEntity and nothing else. It is not a definition of gmeow:parameterEntity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:parameterEntityFunctionality logic:characterizes gmeow:parameterEntity ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:parameterNameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "parameterName is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parameterName is functional: a condition parameter has exactly one name — the single key by which the condition text or its expressions reference the binding. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:parameterName ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:parameterName ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:parameterName names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:parameterName, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:parameterName and nothing else. It is not a definition of gmeow:parameterName (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:parameterNameFunctionality logic:characterizes gmeow:parameterName ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:parameterValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "parameterValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:parameterValue is functional: a condition parameter resolves to exactly one bound literal, and a parameter carries at most one of a literal binding or an entity binding, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:parameterValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:parameterValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:parameterValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:parameterValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:parameterValue and nothing else. It is not a definition of gmeow:parameterValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:parameterValueFunctionality logic:characterizes gmeow:parameterValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:penaltyPoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "penaltyPole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:penaltyPole is functional: a criterion has exactly one penalty pole — the single named low end it penalizes — which must further be a different pole from the one it rewards. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:penaltyPole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:penaltyPole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:penaltyPole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:penaltyPole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:penaltyPole and nothing else. It is not a definition of gmeow:penaltyPole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:penaltyPoleFunctionality logic:characterizes gmeow:penaltyPole ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:personaBearerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "personaBearer is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:personaBearer is functional: a persona is the reified expression policy of exactly one agent — an agent may bear many co-equal personas, but each persona traces to a single bearer. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:personaBearer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:personaBearer ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:personaBearer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:personaBearer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:personaBearer and nothing else. It is not a definition of gmeow:personaBearer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:personaBearerFunctionality logic:characterizes gmeow:personaBearer ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:precedenceHigherFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "precedenceHigher is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceHigher is functional: a precedence tenure names exactly one prevailing norm — the single norm that took priority over the interval it records. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:precedenceHigher ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:precedenceHigher ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:precedenceHigher names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:precedenceHigher, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:precedenceHigher and nothing else. It is not a definition of gmeow:precedenceHigher (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:precedenceHigherFunctionality logic:characterizes gmeow:precedenceHigher ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:precedenceLowerFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "precedenceLower is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceLower is functional: a precedence tenure names exactly one yielding norm — the single norm that gave way over the interval — which must further be a different norm from the one that prevailed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:precedenceLower ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:precedenceLower ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:precedenceLower names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:precedenceLower, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:precedenceLower and nothing else. It is not a definition of gmeow:precedenceLower (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:precedenceLowerFunctionality logic:characterizes gmeow:precedenceLower ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:precedenceScopeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "precedenceScope is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:precedenceScope is functional: a precedence tenure holds within exactly one normative system, because a system orders only the norms it issues and cannot scope precedence over the world's."@x-gmeow-english ;
+    logic:characterizes gmeow:precedenceScope ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:precedenceScope ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:precedenceScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:precedenceScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:precedenceScope and nothing else. It is not a definition of gmeow:precedenceScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:precedenceScopeFunctionality logic:characterizes gmeow:precedenceScope ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:rewardPoleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "rewardPole is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:rewardPole is functional: a criterion has exactly one reward pole — the single named high end it rewards — which must further be a different pole from the one it penalizes. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:rewardPole ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:rewardPole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:rewardPole names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:rewardPole, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:rewardPole and nothing else. It is not a definition of gmeow:rewardPole (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:rewardPoleFunctionality logic:characterizes gmeow:rewardPole ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleMaxFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "scaleMax is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleMax is functional: a score scale has exactly one upper bound — a single maximum that must exceed the minimum — and a second maximum would leave the scale's ceiling undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:scaleMax ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scaleMax ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:scaleMax names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scaleMax, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:scaleMax and nothing else. It is not a definition of gmeow:scaleMax (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:scaleMaxFunctionality logic:characterizes gmeow:scaleMax ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleMinFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "scaleMin is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleMin is functional: a score scale has exactly one lower bound — a single minimum that must sit below the maximum — and a second minimum would leave the scale's floor undefined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:scaleMin ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scaleMin ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:scaleMin names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scaleMin, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:scaleMin and nothing else. It is not a definition of gmeow:scaleMin (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:scaleMinFunctionality logic:characterizes gmeow:scaleMin ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleStepFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "scaleStep is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:scaleStep is functional: a score scale has at most one granularity step — a single discrete increment when present, whose absence marks the scale as continuous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:scaleStep ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:scaleStep ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:scaleStep names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scaleStep, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:scaleStep and nothing else. It is not a definition of gmeow:scaleStep (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:scaleStepFunctionality logic:characterizes gmeow:scaleStep ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:usesScaleFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "usesScale is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:usesScale is functional: each holder — a rubric as its default or a criterion as an override — uses exactly one score scale, and a criterion-level scale replaces the rubric default rather than adding a second."@x-gmeow-english ;
+    logic:characterizes gmeow:usesScale ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:usesScale ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:usesScale names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:usesScale, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:usesScale and nothing else. It is not a definition of gmeow:usesScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:usesScaleFunctionality logic:characterizes gmeow:usesScale ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:overridesIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "overrides is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overrides is irreflexive: a norm never overrides itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a norm asserted to override itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:overrides ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:overrides ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:overrides never relates a subject to itself; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a self-edge is meaningful — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:overrides, logic:characteristicSort logic:irreflexiveProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:overrides and nothing else. It is not a definition of gmeow:overrides (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:overridesIrreflexivity logic:characterizes gmeow:overrides ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:precedenceTenureDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "a precedence tenure's higher and lower norms are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:PrecedenceTenure's gmeow:precedenceHigher and gmeow:precedenceLower norms must be distinct: a norm does not take precedence over itself. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:PrecedenceTenure ;
+    logic:distinctnessRole gmeow:precedenceHigher , gmeow:precedenceLower ;
+    logic:formalizes gmeow:precedenceHigher ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:PrecedenceTenure; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:PrecedenceTenure no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:PrecedenceTenure and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:PrecedenceTenure and nothing else. It is not a definition of gmeow:PrecedenceTenure (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:precedenceTenureDistinctness logic:characterizes gmeow:PrecedenceTenure ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:criterionPoleDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "a criterion's reward and penalty poles are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Criterion ;
+    logic:distinctnessRole gmeow:rewardPole , gmeow:penaltyPole ;
+    logic:formalizes gmeow:rewardPole ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over gmeow:Criterion; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when gmeow:Criterion no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:Criterion and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Criterion and nothing else. It is not a definition of gmeow:Criterion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:criterionPoleDistinctness logic:characterizes gmeow:Criterion ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

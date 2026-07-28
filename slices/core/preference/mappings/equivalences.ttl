@@ -1,18 +1,29 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Preference — BY-REFERENCE composition bridges. The preference slice is a
-# CONSUMER: it mints its own bridge vocabulary and reuses the sibling slices
-# (norms, model-serving, ai, learning, provenance, evidence, semantic-topology)
-# at the instance level and BY REFERENCE (Principle 5), rather than re-minting
-# their terms. Where the target slice is core and declared in
-# gmeow:sliceDependsOn — as norms now is — a real rdfs:range axiom is authored in
-# module.ttl instead, and no by-reference row stands in for it; the rows that
-# remain here document genuine instance-level composition, including composition
-# with the model-serving and semantic-topology extensions, which a core slice may
-# never reach by a subclass/domain/range axiom. Each row records that reuse as a
-# shipped, auditable correspondence rather than an implicit dependency. Compiled
-# to mappings/gmeow-preference.sssom.tsv by `gmeow compile-mappings`.
+# Preference — BY-REFERENCE composition bridges. The preference slice is a CORE
+# CONSUMER: it mints its own bridge vocabulary and composes vocabulary it does
+# not own. Each row below documents one such reuse: a preference term relates to
+# the term it composes with, so the composition is a shipped, auditable
+# correspondence rather than an implicit dependency. Compiled to
+# mappings/gmeow-preference.sssom.tsv by `gmeow compile-mappings`.
+#
+# EVERY ROW HERE TARGETS A CORE TERM. That is a tier constraint, not a style
+# choice: a mapping artifact is a SEMANTIC dependency edge (purrdf
+# EdgeKind::Mapping), so a cell naming an extension's term would BE a core ->
+# extension dependency, which Principle 16 forbids however the cell is phrased.
+# The observations (EvaluationVerdict, Condition), ai (ModelInvocation, Prompt),
+# learning (LearningEvent), provenance (wasDerivedFrom), and evidence
+# (EvidenceSpan) targets below are all core, so each is a legal reference.
+#
+# The gmeow:usesRubric -> gmeow:Rubric and gmeow:onCriterion -> gmeow:Criterion
+# seams carry NO row by design: observations is a core slice preference declares
+# in gmeow:sliceDependsOn, so those two seams are carried by real rdfs:range
+# axioms in module.ttl and a correspondence row would be a second source of truth.
+#
+# Two further reuses carry NO cell, and deliberately so — see the trailer on
+# gmeow:mapsetPreference for the model-serving gmeow:ModelArtifact and the
+# semantic-topology gmeow:TopologyClaim, both of which are extensions.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -24,29 +35,22 @@ gmeow:mapsetPreference a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/preference" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "By-reference composition bridges from the preference slice to the sibling slices it composes with (norms, model-serving, ai, learning, provenance, evidence, semantic-topology). Each row documents an instance-level reuse (Principle 5), NOT a redeclaration: the preference slice composes the sibling term, it does not re-mint it. The gmeow:usesRubric → gmeow:Rubric and gmeow:onCriterion → gmeow:Criterion bridges are absent by design — norms is a core slice preference declares in gmeow:sliceDependsOn, so those two seams are carried by real rdfs:range axioms in module.ttl and a correspondence row would be a second source of truth." .
+    gmeow:setComment "By-reference composition bridges from the core preference slice to the CORE vocabulary it composes: the observations evaluative primitives (EvaluationVerdict, Condition), ai (ModelInvocation, Prompt), learning (LearningEvent), provenance (wasDerivedFrom), and evidence (EvidenceSpan). Each row documents an instance-level reuse (Principle 5 / Principle 16), NOT a redeclaration: the preference slice composes the term, it does not re-mint it. Every target is core, because a mapping cell is a semantic dependency edge and a core slice may not depend on an extension. The gmeow:usesRubric → gmeow:Rubric and gmeow:onCriterion → gmeow:Criterion bridges are absent by design — observations is a core slice preference declares in gmeow:sliceDependsOn, so those two seams are carried by real rdfs:range axioms in module.ttl and a correspondence row would be a second source of truth." ;
+    gmeow:setTrailer "# NO CELL for the two EXTENSION reuses (Principle 16 — a mapping artifact is a semantic dependency edge, so a cell naming an extension's term would BE the forbidden core -> extension crossing, however the cell is phrased):\n# gmeow:deltaBaseArtifact\tskos:relatedMatch\tgmeow:ModelArtifact\tmodel-serving\tthe checkpoint a config delta is a change FROM. deltaBaseArtifact ranges over the CORE gmeow:InformationObject and is never a range axiom against model-serving; the reuse is instance-level and is demonstrated where the tier model allows it — examples/model-delta-worked.ttl types ex:baseCkpt gmeow:ModelArtifact, and tests/counter-examples/duplicate-model-serving-term.ttl guards the no-re-mint ban.\n# gmeow:DisagreementObstruction\tskos:relatedMatch\tgmeow:TopologyClaim\tsemantic-topology\tthe H1 twin. What the two share is not each other but the math: sheaf apparatus they each compose independently: DisagreementObstruction wraps a math:GluingObstruction (gmeow:obstructionClass) exactly as ConsensusSection wraps a math:GlobalSection, under the same H0/H1 gluing picture TopologyClaim governs. That shared substrate is already shipped as an axiom and PROVED by queries/competency/cq-cross-slice-compose-semantic-topology.rq, which composes through math: and names no semantic-topology term." .
 
-# ── norms: verdict / contract value vocabulary, reused by-reference ────────────
+# ── observations (core): verdict / contract value vocabulary, by-reference ────
 gmeow:verifierOutcome skos:relatedMatch gmeow:EvaluationVerdict {|
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:verifierOutcome ranges over the grounding logic:QualityValue and reuses the norms gmeow:EvaluationVerdict value vocabulary (verdictHeld / verdictNotHeld / verdictUndetermined) by reference at the instance level, rather than minting a parallel verdict axis."
+    gmeow:comment "gmeow:verifierOutcome ranges over the grounding logic:QualityValue and reuses the core observations gmeow:EvaluationVerdict value vocabulary (verdictHeld / verdictNotHeld / verdictUndetermined) by reference at the instance level (Principle 16), rather than minting a parallel verdict axis."
 |} .
 
 gmeow:verifierContract skos:relatedMatch gmeow:Condition {|
     gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
-    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject — a verifier contract is any information object, not specifically a norms gmeow:Condition — and reaches the norms condition apparatus by reference (via gmeow:formalizedAs) at the instance level: the contract a verdict verifies against."
-|} .
-
-# ── model-serving: the base model artifact, reused by-reference ────────────────
-gmeow:deltaBaseArtifact skos:relatedMatch gmeow:ModelArtifact {|
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "gmeow:deltaBaseArtifact ranges over the core gmeow:InformationObject and reuses the model-serving gmeow:ModelArtifact by reference at the instance level (Principle 5) — the checkpoint a config delta is a change FROM; a core slice may never take a range axiom onto the model-serving extension."
+    gmeow:comment "gmeow:verifierContract ranges over the core gmeow:InformationObject — a verifier contract is any information object, not specifically a gmeow:Condition — and reaches the core observations condition apparatus by reference (via the norms gmeow:formalizedAs) at the instance level: the contract a verdict verifies against."
 |} .
 
 # ── ai: model invocation and prompt, reused by-reference ──────────────────────
@@ -86,12 +90,4 @@ gmeow:deltaEvaluationEvidence skos:relatedMatch gmeow:EvidenceSpan {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:comment "gmeow:deltaEvaluationEvidence reuses the evidence gmeow:EvidenceSpan by reference (Principle 16) — the evidence leg that makes a config delta's evaluation warrant auditable, never a re-minted evidence term."
-|} .
-
-# ── semantic-topology: the standpoint claim wrapper, reused by-reference ───────
-gmeow:DisagreementObstruction skos:relatedMatch gmeow:TopologyClaim {|
-    gmeow:sssomFile "gmeow-preference.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "gmeow:DisagreementObstruction is the preference-side H1 twin of the semantic-topology sheaf apparatus: both wrap a math: object (here math:GluingObstruction) under the same H0/H1 gluing picture that gmeow:TopologyClaim governs. Related by reference (Principle 16) — the preference slice reuses the sibling's obstruction/consensus pattern at the instance level, never redeclaring gmeow:TopologyClaim."
 |} .

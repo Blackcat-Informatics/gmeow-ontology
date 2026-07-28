@@ -41,7 +41,8 @@ This is the deception module's held/projected move, applied to oughts.
 
 ## Conditions: stored, composed, formalized, evaluated — never executed
 
-`Condition` is prose-canonical (`conditionText` mandatory). Composition via
+`Condition` (core-owned by the observations slice, Principle 16 — reused by reference here) is
+prose-canonical (`conditionText` mandatory). Composition via
 `ConditionGroup` (all/any/none, ≥2 members, nest for trees). Formalizations
 (`ConditionExpression` + `expressionLanguage`: prose, SPARQL ASK, CEL, Rego,
 Cedar, XACML, SHACL) attach via `formalizedAs`, and **each formalization is
@@ -93,14 +94,22 @@ precedent applies.
 
 ## The rubrics facility
 
-A rubric **is** a norm for judging: `Rubric ⊑ Norm`, so `normIssuer` (no
-anonymous evaluation standards), `overrides`, `AuthorityLevel`, and
-`PrecedenceTenure` arrive free. It lives in this slice because one slice
-carries the deontic family — a single canonical owner (Principle 4).
+`Rubric`, `Criterion`, `Assessment`, `Condition`, and `EvaluationVerdict` are the
+foundational evaluative-primitive vocabulary — genuinely needed by non-norms
+consumers (e.g. the preference slice), so they are **core-owned by the
+observations slice** (Principle 16) and reused by reference here. The one
+bridge axiom this module still authors directly is `Rubric ⊑ Norm`: a rubric
+**is** a norm for judging, so `normIssuer` (no anonymous evaluation
+standards), `overrides`, `AuthorityLevel`, and `PrecedenceTenure` arrive free.
+That bridge lives in this slice because one slice carries the deontic family —
+a single canonical owner (Principle 4) — and the evaluative primitives live in
+observations rather than here so that consumers which need them but not the
+deontic apparatus can reach them without taking a norms edge.
 
-- **Content reified, application solver-layer** (P12): `Criterion` with
+- **Content reified, application solver-layer** (P12): `Criterion` (core) with
   *named* poles (`CriterionPole` — "Power from the Bottom" vs "Passive
-  Victimhood"), `ScoreScale` (min/max/step; arithmetic is solver work),
+  Victimhood" — stays norms-resident since it is domain-specific rubric
+  vocabulary), `ScoreScale` (min/max/step; arithmetic is solver work),
   `ScoreAnchor` (range × meaning × exemplars; interpolation is solver work).
 - **`Exemplar ⊑ CitationAct`** — CiTO alignment free; pins by Selector span
   AND/OR `exemplarSubject` (the entity-pattern case: a character's conduct
@@ -110,12 +119,12 @@ carries the deontic family — a single canonical owner (Principle 4).
   The kernel aboutness axis carries the **phase-gate**: a span that
   *describes* trust is source material; one that *enacts* it is embodiment —
   same selector, different `hasAboutness`, different anchored range.
-- **`Assessment ⊑ Observation`** — the judge is a vantage; an LLM judge is
+- **`Assessment ⊑ Observation`** (core) — the judge is a vantage; an LLM judge is
   just a vantage, and two models disagreeing are two coexisting cells, no
-  winner (P9). `assessmentCriterion`/`assessmentRubric` play the
+  winner (P9). `assessmentCriterion`/`assessmentRubric` (also core) play the
   `observationMethod` role **without** the subproperty axiom (functional
   QualityValue range vs Entity values — the `claimModality` pattern);
-  `assessmentScoreValue` is the datatype twin of `observationResult`.
+  `assessmentScoreValue` (also core) is the datatype twin of `observationResult`.
   Zeros are scores, never absences. Scoring-density guidance by target
   granularity reuses kernel `hasGranularity`.
 - **Deferred to the compiler-arc window**: EARL (EDOAL — Assertion ↔
@@ -198,9 +207,10 @@ time-scoped form ("Tier 2 overrode X until v3.5") carrying its `precedenceHigher
 `precedenceLower` norms (functional, distinct) and a mandatory `precedenceScope` (a
 `NormativeSystem` — precedence is always scoped), withdrawn by suppression only.
 
-### gmeow:Condition · gmeow:conditionText · gmeow:normCondition
+### gmeow:Condition (core, observations) · gmeow:conditionText · gmeow:normCondition
 
-`Condition` is a describable circumstance whose canonical form is prose — the trigger of a
+`Condition` — core-owned by observations, reused by reference here (Principle 16) — is a
+describable circumstance whose canonical form is prose — the trigger of a
 conditional norm, a persona's activation context, a causal antecedent. `conditionText` is the
 mandatory natural-language statement that formalizations approximate. `normCondition` names the
 condition(s) under which a norm applies (several are an implicit conjunction).
@@ -226,11 +236,12 @@ A named binding that instantiates a condition template so one `Condition` serves
 `conditionParameter` attaches bindings; `parameterName` is the mandatory key; a parameter carries
 exactly one of `parameterValue` (literal) or `parameterEntity` (IRI) by SHACL.
 
-### gmeow:ConditionEvaluation · gmeow:evaluatedCondition · gmeow:EvaluationVerdict · gmeow:evaluationVerdict
+### gmeow:ConditionEvaluation · gmeow:evaluatedCondition · gmeow:EvaluationVerdict (core, observations) · gmeow:evaluationVerdict
 
 Whether a condition held is a `ConditionEvaluation ⊑ Observation`, vantage = the evaluator — never
 a graph entailment; two evaluators disagreeing are two coexisting cells. `evaluatedCondition`
-(`⊑ observedFeature`) names the reported condition. `EvaluationVerdict` is the closed trichotomy
+(`⊑ observedFeature`) names the reported condition. `EvaluationVerdict` — core-owned by
+observations, reused by reference here (Principle 16) — is the closed trichotomy
 held / not-held / undetermined, carried by the functional `evaluationVerdict`.
 
 ### gmeow:violates · gmeow:complies · gmeow:ComplianceAssessment · gmeow:assessedEvent · gmeow:assessedNorm · gmeow:complianceVerdict
@@ -240,12 +251,13 @@ never entailed. Promote to `ComplianceAssessment ⊑ Observation` when the asses
 confidence must be first-class: `assessedEvent` (`⊑ observedFeature`) and `assessedNorm` name the
 pair, `complianceVerdict` reuses the verdict vocabulary (held = compliant, not-held = violative).
 
-### gmeow:Rubric · gmeow:Criterion · gmeow:hasCriterion
+### gmeow:Rubric (core, observations) · gmeow:Criterion (core, observations) · gmeow:hasCriterion
 
-A `Rubric ⊑ Norm` is a norm for judging — a reified evaluation framework that names its issuer and
-may be overridden; applying it is solver work that returns vantage-indexed `Assessment` cells.
-`Criterion` is one evaluative axis with named poles; `hasCriterion ⊑ hasPart` attaches the axes
-(rubrics are multi-axis by design).
+`Rubric` and `Criterion` are core-owned by observations (Principle 16) and reused by reference
+here. This module adds the one bridge axiom `Rubric ⊑ Norm`: a rubric **is** a norm for
+judging — a reified evaluation framework that names its issuer and may be overridden; applying it
+is solver work that returns vantage-indexed `Assessment` cells. `Criterion` is one evaluative axis
+with named poles; `hasCriterion ⊑ hasPart` attaches the axes (rubrics are multi-axis by design).
 
 ### gmeow:CriterionPole · gmeow:rewardPole · gmeow:penaltyPole · gmeow:CriterionDomain · gmeow:criterionDomain
 
@@ -276,13 +288,16 @@ the closed trichotomy positive / negative / cautionary, carried by the functiona
 `exemplarPolarity`; `exemplarRedirect` sends a cautionary case to the criterion it actually evidences;
 `exemplarRationale` is the localizable judgement prose.
 
-### gmeow:Assessment · gmeow:assessmentTarget · gmeow:assessmentCriterion · gmeow:assessmentRubric · gmeow:assessmentScoreValue
+### gmeow:Assessment · gmeow:assessmentTarget · gmeow:assessmentCriterion · gmeow:assessmentRubric · gmeow:assessmentScoreValue (all core, observations)
 
-`Assessment ⊑ Observation` scores a target against a criterion or whole rubric — vantage = the judge;
+`Assessment ⊑ Observation` — core-owned by observations, reused by reference here (Principle 16) —
+scores a target against a criterion or whole rubric — vantage = the judge;
 an LLM judge is just a vantage and disagreeing models are coexisting cells. `assessmentTarget`
 (`⊑ observedFeature`) names what is scored; `assessmentCriterion` / `assessmentRubric` play the
 `observationMethod` role without the subproperty axiom (claimModality pattern); `assessmentScoreValue`
-is the mandatory numeric twin of `observationResult` — zeros are scores, never absences.
+is the mandatory numeric twin of `observationResult` — zeros are scores, never absences. The whole
+property cluster is core-owned: this slice consumes it on `ComplianceAssessment` and constrains it
+(cardinality restrictions on the core `Assessment`), which is the legal extension → core direction.
 
 ### gmeow:Persona · gmeow:personaBearer · gmeow:personaRegister · gmeow:activatedIn · gmeow:expressesNorm
 

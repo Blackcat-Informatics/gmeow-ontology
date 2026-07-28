@@ -899,3 +899,135 @@ gmeow:transcript
 # shape enforced.
 gmeow:MediaObject logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:colourspace ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:feedPostingKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "feedPostingKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:feedPostingKind is functional: a feed posting has exactly one kind drawn from the open gmeow:FeedPostingKind vocabulary, and that single flavour deterministically drives the schema projection — a social posting to schema:SocialMediaPosting, a blog posting to schema:BlogPosting — which two competing flavours on one posting would leave ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:feedPostingKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:feedPostingKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:feedPostingKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:feedPostingKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:feedPostingKind and nothing else. It is not a definition of gmeow:feedPostingKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:feedPostingKindFunctionality logic:characterizes gmeow:feedPostingKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:imageOrientationFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "imageOrientation is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:imageOrientation is functional: a media object has exactly one clockwise rotation from its normal orientation — a single EXIF angle (0, 90, 180, or 270 degrees) the solver applies when rendering — because one manifestation cannot be displayed rotated by two conflicting amounts at once."@x-gmeow-english ;
+    logic:characterizes gmeow:imageOrientation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:imageOrientation ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:imageOrientation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:imageOrientation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:imageOrientation and nothing else. It is not a definition of gmeow:imageOrientation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrientation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:mediaTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "mediaType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:mediaType is functional: a concrete content carrier — an email body part, a Manifestation, a Distribution — has exactly one IANA media (MIME) type, since one artifact is encoded in a single format and distinct encodings are modelled as distinct carrier objects rather than two media types on one."@x-gmeow-english ;
+    logic:characterizes gmeow:mediaType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:mediaType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:mediaType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mediaType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:mediaType and nothing else. It is not a definition of gmeow:mediaType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:mediaTypeFunctionality logic:characterizes gmeow:mediaType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:pagePrincipalSubjectFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "pagePrincipalSubject is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pagePrincipalSubject is functional: a web page is primarily about exactly one entity — the single principal subject it represents — even though it may mention many others through the broader gmeow:isAbout it specialises. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:pagePrincipalSubject ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pagePrincipalSubject ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:pagePrincipalSubject names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pagePrincipalSubject, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:pagePrincipalSubject and nothing else. It is not a definition of gmeow:pagePrincipalSubject (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:pagePrincipalSubjectFunctionality logic:characterizes gmeow:pagePrincipalSubject ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:pixelHeightFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "pixelHeight is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pixelHeight is functional: a media object has exactly one height in pixels, since a single raster manifestation has one vertical dimension and distinct renditions are distinct gmeow:MediaObject carriers rather than two heights on one."@x-gmeow-english ;
+    logic:characterizes gmeow:pixelHeight ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pixelHeight ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:pixelHeight names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pixelHeight, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:pixelHeight and nothing else. It is not a definition of gmeow:pixelHeight (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:pixelHeightFunctionality logic:characterizes gmeow:pixelHeight ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:pixelWidthFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "pixelWidth is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:pixelWidth is functional: a media object has exactly one width in pixels, since a single raster manifestation has one horizontal dimension and distinct renditions are distinct gmeow:MediaObject carriers rather than two widths on one."@x-gmeow-english ;
+    logic:characterizes gmeow:pixelWidth ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:pixelWidth ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:pixelWidth names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:pixelWidth, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:pixelWidth and nothing else. It is not a definition of gmeow:pixelWidth (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:pixelWidthFunctionality logic:characterizes gmeow:pixelWidth ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentIndexFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "segmentIndex is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentIndex is functional: a content segment occupies exactly one structural position within its containing whole — a single 1-based index locating it in that one container's ordering — while perspectival reorderings ride a separate gmeow:ReadingOrder standpoint rather than a second index."@x-gmeow-english ;
+    logic:characterizes gmeow:segmentIndex ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:segmentIndex ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:segmentIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentIndex and nothing else. It is not a definition of gmeow:segmentIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:segmentIndexFunctionality logic:characterizes gmeow:segmentIndex ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:segmentTypeFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "segmentType is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:segmentType is functional: a content segment is of exactly one structural kind — a single gmeow:ContentSegmentType value such as chapter, section, or scene — because the kind axis is carried as a property value rather than a subclass (Principle 9) and one segment cannot simultaneously be two structural kinds."@x-gmeow-english ;
+    logic:characterizes gmeow:segmentType ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:segmentType ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:segmentType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:segmentType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentType and nothing else. It is not a definition of gmeow:segmentType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:segmentTypeFunctionality logic:characterizes gmeow:segmentType ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

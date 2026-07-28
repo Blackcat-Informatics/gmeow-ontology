@@ -308,7 +308,7 @@ mod tests {
     use super::*;
     use crate::gmn1_codec::{Gmn1Error, gmn1_read, gmn1_write, gmn1_write_tabular};
 
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
 
     /// A minimal-but-valid current codebook: one dictionary entry (`term → alias`) and one
     /// script grapheme, at the codec's pinned versions (dictionary `3`, glyph-table `2`).

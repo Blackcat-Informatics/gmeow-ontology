@@ -29,6 +29,7 @@ sha1 = "0.10"
 blake3 = "1"
 purrdf.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
+gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 # The wasm-clean logic compiler — the source of truth for the projection loss
 # ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products

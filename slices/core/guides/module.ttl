@@ -591,7 +591,7 @@ gmeow:recipeDocumentsAndSchemaOrg
     gmeow:guideTitle "Publish Documents for Schema.org Consumers"@x-gmeow-english ;
     gmeow:guideGoal "Start with native document and web-presence facts, then inspect which facts project to schema.org and where projection is lossy."@x-gmeow-english ;
     gmeow:usesExamplePath "slices/core/documents/examples/web-presence.ttl" ;
-    gmeow:usesTerm gmeow:Document , gmeow:webUrl , gmeow:Entity ;
+    gmeow:usesTerm gmeow:Document , gmeow:WebPage , gmeow:WebSite , gmeow:pageOfSite , gmeow:Entity ;
     gmeow:followsGuidePath "slices/documents.md" , "linkages/index.md" ;
     gmeow:graphBoxRole gmeow:boxABox .
 

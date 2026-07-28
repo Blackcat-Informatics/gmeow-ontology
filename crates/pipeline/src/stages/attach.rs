@@ -88,6 +88,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         "stage-source-load",
         &[
             "https://blackcatinformatics.ca/gmeow/graph/authored-default",
+            "https://blackcatinformatics.ca/gmeow/graph/grounding-seams",
             "https://blackcatinformatics.ca/gmeow/graph/imports",
             "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs",
             "https://blackcatinformatics.ca/gmeow/graph/metadata",

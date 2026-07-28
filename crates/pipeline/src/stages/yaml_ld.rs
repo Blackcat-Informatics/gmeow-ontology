@@ -574,7 +574,7 @@ mod tests {
     }
 
     fn assert_no_gmeow_at_id_leak(dataset: &RdfDataset, json: &str) {
-        const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+        use gmeow_ns::GMEOW_NS;
         let at_id = format!("{GMEOW_NS}@id");
         let quads = flat_quads(dataset);
         assert!(
