@@ -17,6 +17,84 @@ const SIGNER_WORKFLOW: &str = "Blackcat-Informatics/gmeow-ontology/.github/workf
 
 type Result<T> = gmeow_errors::Result<T>;
 
+/// How many recent `main` pushes to inspect when explaining a missing receipt.
+const DORMANCY_WINDOW: usize = 10;
+
+/// Explain WHY no receipt exists, rather than only that none does.
+///
+/// A receipt is published solely by a SUCCESSFUL main-push CI run, so while
+/// `main` is red no receipt is ever published, no branch can take the reuse fast
+/// path, and the whole capability is inert. The single informational line this
+/// used to emit made that indistinguishable from an ordinary cache miss, so the
+/// feature could sit dormant indefinitely with nothing louder than a line a
+/// reader had to notice in passing — which is exactly what happened.
+///
+/// Returns a leading-space suffix, or the empty string when nothing useful can
+/// be determined. This is diagnosis only: it never changes the decision, which
+/// stays fail-closed on the full profile.
+fn explain_receipt_dormancy(root: &Path) -> String {
+    let limit = DORMANCY_WINDOW.to_string();
+    let Ok(conclusions) = command_output(
+        Command::new("gh")
+            .args([
+                "run",
+                "list",
+                "--repo",
+                REPOSITORY,
+                "--workflow",
+                "ci.yml",
+                "--branch",
+                "main",
+                "--event",
+                "push",
+                "--limit",
+                &limit,
+                "--json",
+                "conclusion",
+                "--jq",
+                ".[].conclusion",
+            ])
+            .current_dir(root),
+        "inspect recent main-push CI runs",
+    ) else {
+        // The explanation is best-effort by construction: it is a second network
+        // call on a path that is already failing, and its absence must never turn
+        // a diagnosis into an error.
+        return String::new();
+    };
+
+    dormancy_suffix(&conclusions)
+}
+
+/// The pure message half of [`explain_receipt_dormancy`], split out so the three
+/// branches are testable without a network call.
+fn dormancy_suffix(conclusions: &str) -> String {
+    let runs: Vec<&str> = conclusions
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect();
+    if runs.is_empty() {
+        return String::new();
+    }
+    let successes = runs.iter().filter(|c| **c == "success").count();
+    if successes == 0 {
+        format!(
+            " — and NONE of the last {} main-push CI run(s) succeeded, so no receipt has been \
+             published at all: the check-receipt reuse path is DORMANT repo-wide, not merely \
+             missing for this base, and it stays dormant until main goes green",
+            runs.len()
+        )
+    } else {
+        format!(
+            " — {} of the last {} main-push CI run(s) succeeded, so receipts are being published; \
+             this base simply is not one of them (rebase onto a green main commit to reuse)",
+            successes,
+            runs.len()
+        )
+    }
+}
+
 pub(crate) fn failure(message: impl Into<String>) -> Diag {
     Diag::new(
         gmeow_errors::code::register_code("xtask.check.evidence"),
@@ -194,7 +272,8 @@ fn obtain_receipt(root: &Path, base: &str) -> Result<PathBuf> {
     )?;
     if run_id.is_empty() || run_id == "null" {
         return Err(failure(format!(
-            "no successful main-push CI receipt exists for {base}"
+            "no successful main-push CI receipt exists for {base}{}",
+            explain_receipt_dormancy(root)
         )));
     }
 
@@ -530,6 +609,37 @@ fn output_text(output: std::process::Output, context: &str) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
+
+    use super::dormancy_suffix;
+
+    #[test]
+    fn an_all_red_main_names_the_reuse_path_as_dormant_repo_wide() {
+        // The situation this exists for: no receipt is EVER published while main is
+        // red, so every branch silently full-falls-back forever. The old message was
+        // indistinguishable from an ordinary cache miss.
+        let msg = dormancy_suffix("failure\nfailure\ncancelled\nfailure\n");
+        assert!(msg.contains("NONE of the last 4"), "{msg}");
+        assert!(msg.contains("DORMANT repo-wide"), "{msg}");
+        assert!(msg.contains("until main goes green"), "{msg}");
+    }
+
+    #[test]
+    fn a_green_main_points_at_the_base_rather_than_the_repo() {
+        // Receipts ARE being published: the fault is this base, not the pipeline,
+        // and conflating the two would send a reader hunting the wrong problem.
+        let msg = dormancy_suffix("success\nfailure\nsuccess\n");
+        assert!(msg.contains("2 of the last 3"), "{msg}");
+        assert!(msg.contains("receipts are being published"), "{msg}");
+        assert!(!msg.contains("DORMANT"), "{msg}");
+    }
+
+    #[test]
+    fn no_run_history_adds_nothing_rather_than_guessing() {
+        // Diagnosis is best-effort; with no evidence it must stay silent instead of
+        // asserting a cause it cannot support.
+        assert!(dormancy_suffix("").is_empty());
+        assert!(dormancy_suffix("   \n\n").is_empty());
+    }
     use super::*;
 
     const TASKS: &[&str] = &[
