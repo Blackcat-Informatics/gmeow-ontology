@@ -541,6 +541,13 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
     // this gate can emit is grouped by check rather than by where its inputs happen
     // to be computed.
     let vocabularies = &rubric.floors.vocabularies;
+    // Every discovered slice's (dir, IRI) pair, resolved ONCE by the scoring pass above.
+    // The merge-base residue reconstruction reuses it instead of re-parsing every
+    // slice's manifest.ttl a second time just to discard all but the implicated few.
+    let slice_dirs: Vec<(&Path, String)> = scored
+        .iter()
+        .map(|(dir, report)| (*dir, report.assessment.slice.clone()))
+        .collect();
     let working_ceilings = ceilings_from_rubric(&rubric);
     let working_residues = match gmeow_slice_quality::measure_repo_residues(&root, vocabularies) {
         Ok(m) => m,
@@ -659,11 +666,16 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                         .map(|(slice, _)| slice.clone())
                         .collect();
                     if !new_keys.is_empty() {
-                        let base_res =
-                            match measure_base_residues(&root, &base, vocabularies, &new_keys) {
-                                Ok(r) => r,
-                                Err(e) => return fail(format!("slice-quality-gate: {e}")),
-                            };
+                        let base_res = match measure_base_residues(
+                            &root,
+                            &base,
+                            vocabularies,
+                            &new_keys,
+                            &slice_dirs,
+                        ) {
+                            Ok(r) => r,
+                            Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                        };
                         for (key, committed) in &working_ceilings {
                             if base_ceilings.contains_key(key) {
                                 continue; // not new — covered by the monotonicity check above
@@ -961,28 +973,53 @@ fn ceilings_from_rubric(rubric: &Rubric) -> std::collections::BTreeMap<(String, 
         .collect()
 }
 
-/// List every path `git ls-tree -r --name-only <base> -- <rel_dir>` reports —
-/// mirrors [`git_show_base`]'s `Command` style (local, no network,
-/// `current_dir(root)`, `LC_ALL=C`). `git ls-tree` does not error on a pathspec
-/// that matches nothing, so a `rel_dir` absent at `base` (a genuinely new slice)
-/// yields empty stdout with a SUCCESSFUL exit — `Ok(vec![])`, which the
-/// grandfather reconstruction ([`measure_base_residues`]) treats as "no surface
-/// texts at base," i.e. base measured 0. A non-zero exit means git itself could
-/// not answer the question and is a HARD-FAIL, never a silent "nothing there."
-fn git_ls_tree(root: &Path, base: &str, rel_dir: &str) -> gmeow_errors::Result<Vec<String>> {
+/// The repo-relative directory holding the repo-level (non-slice) `dsl/mappings/`
+/// authoring surface — the pathspec half of
+/// `gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI`.
+const DSL_MAPPINGS_REL_DIR: &str = "dsl/mappings";
+
+/// A temporary directory holding the merge base's AUTHORING SURFACES as plain files,
+/// materialized by ONE `git archive` (see [`materialize_base_tree`]). Removed on drop —
+/// including on every `?` early return, so a hard-failing gate never leaks it.
+struct BaseTree {
+    /// The extraction root; base surfaces sit under it at their repo-relative paths.
+    root: std::path::PathBuf,
+}
+
+impl Drop for BaseTree {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.root);
+    }
+}
+
+/// Which of `dirs` (repo-relative directory paths) EXIST at `base`. One `git ls-tree`
+/// for the whole set, not one per directory.
+///
+/// This is a pure EXISTENCE probe, never a reconstruction of the ratchet's surface
+/// fileset: [`materialize_base_tree`] hands the surviving directories to `git archive`
+/// wholesale and `gmeow_slice_quality::ratchet_surface_paths` then scans the extracted
+/// tree, so there is exactly ONE definition of "which files are a ratchet surface" and
+/// it is shared with the working-tree measurement. The probe exists only because
+/// `git archive` HARD-FAILS on a pathspec matching nothing, while a slice directory
+/// that is genuinely new in the working tree must legitimately contribute base residue
+/// 0. `git ls-tree` does not error on a non-matching pathspec, so an absent directory
+/// is simply missing from the returned set; a non-zero exit means git could not answer
+/// and is a HARD FAIL, never a silent "nothing there".
+fn base_dirs_present(
+    root: &Path,
+    base: &str,
+    dirs: &[String],
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     let out = std::process::Command::new("git")
         .current_dir(root)
         .env("LC_ALL", "C")
-        .args(["ls-tree", "-r", "--name-only", base, "--", rel_dir])
+        .args(["ls-tree", "-d", "--name-only", base, "--"])
+        .args(dirs)
         .output()
-        .map_err(|e| {
-            sqe(format!(
-                "could not run `git ls-tree {base} -- {rel_dir}`: {e}"
-            ))
-        })?;
+        .map_err(|e| sqe(format!("could not run `git ls-tree -d {base}`: {e}")))?;
     if !out.status.success() {
         return Err(sqe(format!(
-            "`git ls-tree {base} -- {rel_dir}` failed ({}): {}",
+            "`git ls-tree -d {base}` failed ({}): {}",
             out.status,
             String::from_utf8_lossy(&out.stderr).trim()
         )));
@@ -994,48 +1031,126 @@ fn git_ls_tree(root: &Path, base: &str, rel_dir: &str) -> gmeow_errors::Result<V
         .collect())
 }
 
-/// Whether `rel_path` (a repo-relative path as `git ls-tree` reports it) belongs
-/// to the ratchet's authoring surface — the SAME surface set
-/// `gmeow_slice_quality::ratchet_surface_paths` scans on the working tree:
-/// basename `module.ttl` or `shapes.ttl`, or any `.ttl` under a `mappings/`
-/// directory.
-fn is_ratchet_surface(rel_path: &str) -> bool {
-    let basename = rel_path.rsplit('/').next().unwrap_or(rel_path);
-    basename == "module.ttl"
-        || basename == "shapes.ttl"
-        || (rel_path.contains("/mappings/") && rel_path.ends_with(".ttl"))
-}
-
-/// Reconstruct the ungrounded residue AT THE MERGE BASE for exactly the (slice,
-/// vocab) cells whose slice appears in `needed` — the slices whose committed
-/// projection ceiling is NEW in the working tree (ratchet invariant 3, the
-/// grandfather gate). For each discovered (working-tree) slice dir whose
-/// `gmeow_slice_quality::slice_iri_of_dir` is in `needed`: list its base fileset
-/// via [`git_ls_tree`], keep only [`is_ratchet_surface`] paths, and read each via
-/// [`git_show_base`] — a surface ABSENT at base is skipped (a genuinely new file,
-/// not an error); any OTHER git failure is a HARD-FAIL, never silently treated as
-/// absent. A slice with no surface texts at base (the whole slice directory is
-/// new) contributes NOTHING (base residue 0 for every vocab, via the caller's
-/// `unwrap_or(0)`). This feeds the SAME `gmeow_slice_quality::counting::residue`
-/// counter base bytes instead of working-tree files
-/// (`gmeow_slice_quality::residue_over_texts`), so "measured" can never diverge
-/// between the working-tree gate and this base reconstruction.
+/// Materialize `pathspecs` as they existed at `base` into a fresh temp directory with a
+/// SINGLE `git archive <base> -- <pathspecs> | tar -x`, so the base surfaces can be read
+/// as plain files through the very same code path the working tree uses.
+///
+/// One archive replaces the former per-file `git show` fan-out, and — more importantly —
+/// removes the second, base-only path reconstruction that could drift from
+/// `gmeow_slice_quality::ratchet_surface_paths`: after extraction there is one scanner
+/// for both sides, so base-vs-working is an apples-to-apples measurement.
+///
+/// Any failure of either process is a HARD FAIL (propagated), never a silent fall-back
+/// to "no base surfaces" — a silently-empty base tree would measure residue 0 and hand
+/// out a free grandfather for freshly-authored constructs, exactly the degradation
+/// `counting`'s module doc forbids.
 ///
 /// # Errors
-/// HARD-FAILS on any `git` failure other than a legitimately-absent path/dir
-/// (propagated from [`git_ls_tree`] / [`git_show_base`]), or on a Turtle
-/// parse/merge failure of a present base surface (propagated from
-/// `gmeow_slice_quality::residue_over_texts`).
+/// A HARD FAIL if the temp directory cannot be created, if `git archive` or `tar` cannot
+/// be spawned, or if either exits non-zero.
+fn materialize_base_tree(
+    root: &Path,
+    base: &str,
+    pathspecs: &[String],
+) -> gmeow_errors::Result<BaseTree> {
+    use std::process::{Command, Stdio};
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static SEQ: AtomicU64 = AtomicU64::new(0);
+
+    let mut dir = std::env::temp_dir();
+    dir.push(format!(
+        "gmeow-ratchet-base-{}-{}",
+        std::process::id(),
+        SEQ.fetch_add(1, Ordering::SeqCst)
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir)
+        .map_err(|e| sqe(format!("could not create base-tree temp dir {dir:?}: {e}")))?;
+    // Construct the guard BEFORE anything else can fail, so every path below cleans up.
+    let tree = BaseTree { root: dir };
+
+    let mut archive = Command::new("git")
+        .current_dir(root)
+        .env("LC_ALL", "C")
+        .args(["archive", "--format=tar", base, "--"])
+        .args(pathspecs)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| sqe(format!("could not run `git archive {base}`: {e}")))?;
+    let stdout = archive
+        .stdout
+        .take()
+        .ok_or_else(|| sqe(format!("`git archive {base}` produced no stdout pipe")))?;
+    let extract = Command::new("tar")
+        .current_dir(&tree.root)
+        .env("LC_ALL", "C")
+        .args(["-x", "-f", "-"])
+        .stdin(Stdio::from(stdout))
+        .output()
+        .map_err(|e| {
+            sqe(format!(
+                "could not run `tar -x` for `git archive {base}`: {e}"
+            ))
+        })?;
+    let archived = archive
+        .wait_with_output()
+        .map_err(|e| sqe(format!("could not wait for `git archive {base}`: {e}")))?;
+    if !archived.status.success() {
+        return Err(sqe(format!(
+            "`git archive {base} -- {}` failed ({}): {}",
+            pathspecs.join(" "),
+            archived.status,
+            String::from_utf8_lossy(&archived.stderr).trim()
+        )));
+    }
+    if !extract.status.success() {
+        return Err(sqe(format!(
+            "extracting the `git archive {base}` stream failed ({}): {}",
+            extract.status,
+            String::from_utf8_lossy(&extract.stderr).trim()
+        )));
+    }
+    Ok(tree)
+}
+
+/// Reconstruct the ungrounded residue AT THE MERGE BASE for exactly the (slice, vocab)
+/// cells whose slice appears in `needed` — the slices whose committed projection ceiling
+/// is NEW in the working tree (ratchet invariant 3, the grandfather gate).
+///
+/// `slices` carries the working tree's ALREADY-RESOLVED `(slice dir, slice IRI)` pairs
+/// (the gate's scoring pass resolved every manifest once), so the `needed` filter is
+/// applied FIRST and no manifest is re-parsed here at all — the former sweep resolved
+/// `slice_iri_of_dir` for all ~600 discovered slices before discarding all but a
+/// handful. Attribution stays on the WORKING slice IRI, exactly as before.
+///
+/// The surviving directories are materialized at `base` by ONE
+/// [`materialize_base_tree`] call and then measured through
+/// `gmeow_slice_quality::ratchet_surface_paths` +
+/// `gmeow_slice_quality::measure_surface_residue_constructs` — the SAME functions
+/// `measure_repo_residues` runs over the working tree. A slice directory absent at base
+/// (a genuinely new slice) is dropped by the [`base_dirs_present`] probe and contributes
+/// NOTHING, i.e. base residue 0 for every vocab via the caller's `unwrap_or(0)`.
+///
+/// # Errors
+/// HARD-FAILS on any `git`/`tar` failure (propagated from [`base_dirs_present`] /
+/// [`materialize_base_tree`]), on a working-tree path that is not under `root`, or on a
+/// Turtle parse/merge failure of a present base surface (propagated from
+/// `gmeow_slice_quality::measure_surface_residue_constructs`). Never a silent fall-back
+/// to residue 0.
 fn measure_base_residues(
     root: &Path,
     base: &str,
     vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
     needed: &std::collections::BTreeSet<String>,
+    slices: &[(&Path, String)],
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
     let mut out = std::collections::BTreeMap::new();
-    for dir in gmeow_slice_quality::discover_slice_dirs(&root.join("slices")) {
-        let slice_iri = gmeow_slice_quality::slice_iri_of_dir(&dir)?;
-        if !needed.contains(&slice_iri) {
+
+    // FILTER FIRST: only the slices a new ceiling actually implicates do any work.
+    let mut wanted: Vec<(&str, String)> = Vec::new(); // (slice IRI, repo-relative dir)
+    for (dir, slice_iri) in slices {
+        if !needed.contains(slice_iri) {
             continue;
         }
         let rel_dir = dir
@@ -1043,56 +1158,52 @@ fn measure_base_residues(
             .map_err(|e| sqe(format!("failed to strip prefix {root:?} from {dir:?}: {e}")))?
             .to_string_lossy()
             .replace('\\', "/");
-        let entries = git_ls_tree(root, base, &rel_dir)?;
-        let mut texts: Vec<String> = Vec::new();
-        for rel in entries.iter().filter(|p| is_ratchet_surface(p)) {
-            match git_show_base(root, base, rel) {
-                BaseFile::Absent => {}
-                BaseFile::Error(e) => return Err(sqe(e)),
-                BaseFile::Contents(text) => texts.push(text),
-            }
-        }
-        if texts.is_empty() {
-            continue; // the slice is new at base → contributes 0 to every vocab
-        }
-        for vocab in vocabularies {
-            let r = gmeow_slice_quality::residue_over_texts(&texts, vocab, &slice_iri)?;
-            if r > 0 {
-                out.insert((slice_iri.clone(), vocab.prefix.clone()), r);
-            }
+        wanted.push((slice_iri.as_str(), rel_dir));
+    }
+    let dsl_needed = needed.contains(gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI);
+    if wanted.is_empty() && !dsl_needed {
+        return Ok(out);
+    }
+
+    let mut probe: Vec<String> = wanted.iter().map(|(_, rel)| rel.clone()).collect();
+    if dsl_needed {
+        probe.push(DSL_MAPPINGS_REL_DIR.to_owned());
+    }
+    let present = base_dirs_present(root, base, &probe)?;
+    let pathspecs: Vec<String> = probe.into_iter().filter(|p| present.contains(p)).collect();
+    if pathspecs.is_empty() {
+        return Ok(out); // every implicated directory is new at base → base residue 0
+    }
+    let tree = materialize_base_tree(root, base, &pathspecs)?;
+
+    for (slice_iri, rel_dir) in &wanted {
+        let paths = gmeow_slice_quality::ratchet_surface_paths(&tree.root.join(rel_dir));
+        for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
+            &paths,
+            slice_iri,
+            vocabularies,
+        )? {
+            out.insert(((*slice_iri).to_owned(), prefix), constructs.len() as u64);
         }
     }
     // The repo-level dsl/mappings/ surface (attributed to the DSL surface IRI) is not
-    // under any slice dir, so reconstruct its base residue separately — the same
-    // recursive `/mappings/` surfaces `is_ratchet_surface` matches, read at base — so a
-    // NEW dsl-surface ceiling can be grandfathered against real base residue.
-    if needed.contains(gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI) {
-        let entries = git_ls_tree(root, base, "dsl/mappings")?;
-        let mut texts: Vec<String> = Vec::new();
-        for rel in entries.iter().filter(|p| is_ratchet_surface(p)) {
-            match git_show_base(root, base, rel) {
-                BaseFile::Absent => {}
-                BaseFile::Error(e) => return Err(sqe(e)),
-                BaseFile::Contents(text) => texts.push(text),
-            }
-        }
-        if !texts.is_empty() {
-            for vocab in vocabularies {
-                let r = gmeow_slice_quality::residue_over_texts(
-                    &texts,
-                    vocab,
-                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
-                )?;
-                if r > 0 {
-                    out.insert(
-                        (
-                            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
-                            vocab.prefix.clone(),
-                        ),
-                        r,
-                    );
-                }
-            }
+    // under any slice dir — measure it from the same materialized base tree, through the
+    // same scanner the working tree uses, so a NEW dsl-surface ceiling is grandfathered
+    // against real base residue.
+    if dsl_needed {
+        let paths = gmeow_slice_quality::ratchet_dsl_surface_paths(&tree.root);
+        for (prefix, constructs) in gmeow_slice_quality::measure_surface_residue_constructs(
+            &paths,
+            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI,
+            vocabularies,
+        )? {
+            out.insert(
+                (
+                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+                    prefix,
+                ),
+                constructs.len() as u64,
+            );
         }
     }
     Ok(out)
@@ -2271,6 +2382,12 @@ mod seed_floors_tests {
 /// repo (a base commit authoring a non-rubric floor, a working tree lowering/deleting
 /// it) and drive the real [`base_rubric_at`] multi-slice `git show` reconstruction, so
 /// they fail against the pre-widening single-file base read and pass after it.
+///
+/// The second half of the module covers the grandfather gate's BASE RESIDUE
+/// reconstruction over a real materialized base tree ([`measure_base_residues`]):
+/// authoring surfaces present at base but deleted in the working tree, a deeply nested
+/// `mappings/` file, the repo-level `dsl/mappings/` surface, a slice directory that does
+/// not exist at base, and the hard-fail on a base tree that cannot be materialized.
 #[cfg(test)]
 mod base_monotonicity_git_tests {
     use super::*;
@@ -2452,6 +2569,186 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
                 .any(|v| v.contains("sliceDemo") && v.contains("DELETED")),
             "a still-live non-rubric floor deletion must red naming the slice: {:?}",
             mono.violations
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // The GRANDFATHER gate's base measurement, over a REAL materialized base tree.
+    // -------------------------------------------------------------------------
+
+    const DEMO_SLICE: &str = "https://blackcatinformatics.ca/gmeow/sliceDemo";
+    const FRESH_SLICE: &str = "https://blackcatinformatics.ca/gmeow/sliceFresh";
+
+    fn shapes_doc(locals: &[&str]) -> String {
+        let mut out =
+            format!("@prefix sh: <http://www.w3.org/ns/shacl#> .\n@prefix gmeow: <{NS}> .\n");
+        for local in locals {
+            out.push_str(&format!("gmeow:{local} a sh:NodeShape .\n"));
+        }
+        out
+    }
+
+    /// A git repo whose BASE commit carries real ratchet AUTHORING surfaces — a slice
+    /// `shapes.ttl`, a DEEPLY NESTED `mappings/` file, and the repo-level
+    /// `dsl/mappings/` surface — and whose WORKING TREE has deleted every one of them
+    /// and added a brand-new slice directory that never existed at base.
+    fn fixture_with_base_surfaces() -> (GitFixture, String) {
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let mut root = std::env::temp_dir();
+        root.push(format!("gmeow-basesurf-{}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let fx = GitFixture { root: root.clone() };
+
+        let demo_dir = root.join("slices/demo/demo");
+        std::fs::create_dir_all(demo_dir.join("mappings/nested")).unwrap();
+        std::fs::write(demo_dir.join("manifest.ttl"), "# demo slice\n").unwrap();
+        std::fs::write(
+            demo_dir.join("module.ttl"),
+            format!("@prefix gmeow: <{NS}> .\n"),
+        )
+        .unwrap();
+        std::fs::write(demo_dir.join("shapes.ttl"), shapes_doc(&["BaseA", "BaseB"])).unwrap();
+        std::fs::write(
+            demo_dir.join("mappings/nested/extra.ttl"),
+            shapes_doc(&["BaseC"]),
+        )
+        .unwrap();
+        let dsl_dir = root.join("dsl/mappings");
+        std::fs::create_dir_all(&dsl_dir).unwrap();
+        std::fs::write(dsl_dir.join("transforms.ttl"), shapes_doc(&["BaseD"])).unwrap();
+
+        git(&root, &["init", "-q"]);
+        git(&root, &["config", "user.email", "test@example.com"]);
+        git(&root, &["config", "user.name", "Test"]);
+        git(&root, &["config", "commit.gpgsign", "false"]);
+        git(&root, &["add", "-A"]);
+        git(&root, &["commit", "-q", "-m", "base surfaces"]);
+        let out = Command::new("git")
+            .current_dir(&root)
+            .env("HOME", &root)
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .args(["rev-parse", "HEAD"])
+            .output()
+            .expect("git rev-parse runs");
+        assert!(out.status.success(), "git rev-parse failed");
+        let base = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+
+        // The WORKING tree keeps nothing of the base authoring surfaces, so any residue
+        // the base measurement reports can only have come out of the materialized base
+        // tree — never out of the files sitting on disk.
+        std::fs::remove_file(demo_dir.join("shapes.ttl")).unwrap();
+        std::fs::remove_dir_all(demo_dir.join("mappings")).unwrap();
+        std::fs::remove_dir_all(&dsl_dir).unwrap();
+        // A brand-new slice directory that does not exist at base at all.
+        let fresh_dir = root.join("slices/demo/fresh");
+        std::fs::create_dir_all(&fresh_dir).unwrap();
+        std::fs::write(fresh_dir.join("manifest.ttl"), "# fresh slice\n").unwrap();
+        std::fs::write(fresh_dir.join("shapes.ttl"), shapes_doc(&["FreshA"])).unwrap();
+
+        (fx, base)
+    }
+
+    fn demo_slices(root: &std::path::Path) -> Vec<(std::path::PathBuf, String)> {
+        vec![
+            (root.join("slices/demo/demo"), DEMO_SLICE.to_owned()),
+            (root.join("slices/demo/fresh"), FRESH_SLICE.to_owned()),
+        ]
+    }
+
+    #[test]
+    fn base_residue_is_read_from_the_materialized_base_tree() {
+        let (fx, base) = fixture_with_base_surfaces();
+        let vocabularies = vec![gmeow_slice_quality::counting::shacl_vocab()];
+        let owned = demo_slices(&fx.root);
+        let slices: Vec<(&Path, String)> = owned
+            .iter()
+            .map(|(d, iri)| (d.as_path(), iri.clone()))
+            .collect();
+        let needed: std::collections::BTreeSet<String> = [
+            DEMO_SLICE.to_owned(),
+            FRESH_SLICE.to_owned(),
+            gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+        ]
+        .into_iter()
+        .collect();
+
+        let measured =
+            measure_base_residues(&fx.root, &base, &vocabularies, &needed, &slices).unwrap();
+
+        // shapes.ttl (2) + the DEEPLY NESTED mappings file (1) — proving the base tree is
+        // scanned by the very same recursive `ratchet_surface_paths` the working tree uses.
+        assert_eq!(
+            measured
+                .get(&(DEMO_SLICE.to_owned(), "sh".to_owned()))
+                .copied(),
+            Some(3),
+            "{measured:?}"
+        );
+        // The repo-level dsl/mappings surface is measured from the same materialized tree.
+        assert_eq!(
+            measured
+                .get(&(
+                    gmeow_slice_quality::DSL_MAPPING_SURFACE_IRI.to_owned(),
+                    "sh".to_owned()
+                ))
+                .copied(),
+            Some(1),
+            "{measured:?}"
+        );
+        // A slice directory that does not exist at base contributes NOTHING — the caller
+        // reads that as base residue 0, never as the working tree's freshly-authored 1.
+        assert!(
+            !measured.contains_key(&(FRESH_SLICE.to_owned(), "sh".to_owned())),
+            "{measured:?}"
+        );
+    }
+
+    #[test]
+    fn nothing_needed_does_no_git_work_at_all() {
+        let (fx, _) = fixture_with_base_surfaces();
+        let vocabularies = vec![gmeow_slice_quality::counting::shacl_vocab()];
+        let owned = demo_slices(&fx.root);
+        let slices: Vec<(&Path, String)> = owned
+            .iter()
+            .map(|(d, iri)| (d.as_path(), iri.clone()))
+            .collect();
+        // An unresolvable base ref would hard-fail if git were consulted; with no
+        // implicated slice the whole reconstruction is skipped before that can happen.
+        let measured = measure_base_residues(
+            &fx.root,
+            "0000000000000000000000000000000000000000",
+            &vocabularies,
+            &std::collections::BTreeSet::new(),
+            &slices,
+        )
+        .unwrap();
+        assert!(measured.is_empty());
+    }
+
+    #[test]
+    fn an_unusable_base_ref_hard_fails_rather_than_measuring_zero() {
+        let (fx, _) = fixture_with_base_surfaces();
+        let vocabularies = vec![gmeow_slice_quality::counting::shacl_vocab()];
+        let owned = demo_slices(&fx.root);
+        let slices: Vec<(&Path, String)> = owned
+            .iter()
+            .map(|(d, iri)| (d.as_path(), iri.clone()))
+            .collect();
+        let needed: std::collections::BTreeSet<String> =
+            [DEMO_SLICE.to_owned()].into_iter().collect();
+        assert!(
+            measure_base_residues(
+                &fx.root,
+                "0000000000000000000000000000000000000000",
+                &vocabularies,
+                &needed,
+                &slices,
+            )
+            .is_err(),
+            "a base tree that cannot be materialized must HARD FAIL — a silent residue 0 \
+             would grandfather freshly-authored constructs for free"
         );
     }
 }
