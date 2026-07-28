@@ -1567,6 +1567,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-math-lift",
  "gmeow-music",
+ "gmeow-ns",
  "gmeow-pipeline",
  "gmeow-slice-brief",
  "gmeow-slice-quality",

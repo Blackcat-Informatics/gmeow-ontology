@@ -684,7 +684,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     }
 
     // 3. Dangling GMEOW subclass/subproperty targets.
-    for predicate in [rdfs::SUB_CLASS_OF, rdfs::SUB_PROPERTY_OF] {
+    for predicate in [gmeow_ns::RDFS_SUB_CLASS_OF, gmeow_ns::RDFS_SUB_PROPERTY_OF] {
         let Some(p_id) = ds_iri_id(ds, predicate) else {
             continue;
         };
@@ -707,7 +707,7 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
 
     // 4. Comprehensiveness heuristic.
     let mut parent_to_children: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    if let Some(p_id) = ds_iri_id(ds, rdfs::SUB_CLASS_OF) {
+    if let Some(p_id) = ds_iri_id(ds, gmeow_ns::RDFS_SUB_CLASS_OF) {
         for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
             let TermRef::Iri(child) = ds.resolve(q.s) else {
                 continue;

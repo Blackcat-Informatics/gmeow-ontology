@@ -1797,8 +1797,8 @@ const SHACL_NS: &str = "http://www.w3.org/ns/shacl#";
 
 fn example_allows_focus_pruning(example: &RdfDataset) -> bool {
     for quad in example.owned_quads() {
-        if quad.predicate == rdfs::SUB_CLASS_OF
-            || quad.predicate == rdfs::SUB_PROPERTY_OF
+        if quad.predicate == gmeow_ns::RDFS_SUB_CLASS_OF
+            || quad.predicate == gmeow_ns::RDFS_SUB_PROPERTY_OF
             || quad.predicate.starts_with(SHACL_NS)
         {
             return false;

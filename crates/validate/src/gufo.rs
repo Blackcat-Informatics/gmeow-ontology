@@ -38,7 +38,7 @@ use std::collections::{BTreeSet, HashSet, VecDeque};
 use gmeow_errors::model::{Finding, Location, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
-use crate::model::{logic, owl, rdf, rdfs};
+use crate::model::{owl, rdf, rdfs};
 
 /// Resolve an IRI value to its dataset-local [`TermId`], if interned.
 #[inline]
@@ -212,7 +212,7 @@ fn proper_ancestors(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     queue.push_back(cls.to_owned());
     let mut visited: HashSet<String> = HashSet::new();
     visited.insert(cls.to_owned());
-    let subclass_ids: Vec<_> = [rdfs::SUB_CLASS_OF, logic::SUB_CLASS_OF]
+    let subclass_ids: Vec<_> = gmeow_ns::SUB_CLASS_OF
         .iter()
         .filter_map(|p| iri_id(ds, p))
         .collect();
@@ -601,7 +601,7 @@ fn gmeow_subclasses(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let Some(object_id) = iri_id(ds, cls) else {
         return out;
     };
-    for pred in [rdfs::SUB_CLASS_OF, logic::SUB_CLASS_OF] {
+    for pred in gmeow_ns::SUB_CLASS_OF {
         let Some(subclass_id) = iri_id(ds, pred) else {
             continue;
         };
@@ -847,7 +847,7 @@ fn bridged_pairs(ds: &RdfDataset, axes: &[String]) -> Vec<(String, String)> {
     // adjacency: directed subPropertyOf + symmetric equivalentProperty.
     use std::collections::HashMap;
     let mut adjacency: HashMap<String, HashSet<String>> = HashMap::new();
-    if let Some(subprop_id) = iri_id(ds, rdfs::SUB_PROPERTY_OF) {
+    if let Some(subprop_id) = iri_id(ds, gmeow_ns::RDFS_SUB_PROPERTY_OF) {
         for q in ds.quads_for_pattern(None, Some(subprop_id), None, GraphMatch::Any) {
             if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
                 adjacency
@@ -905,10 +905,11 @@ pub fn frame_declaration_completeness(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<
     let requires_id = iri_id(ds, &requires);
 
     // props = sorted transitive_subjects(subPropertyOf, has_frame) minus has_frame.
-    let mut props: Vec<String> = transitive_subjects(ds, rdfs::SUB_PROPERTY_OF, &has_frame)
-        .into_iter()
-        .filter(|p| p != &has_frame)
-        .collect();
+    let mut props: Vec<String> =
+        transitive_subjects(ds, gmeow_ns::RDFS_SUB_PROPERTY_OF, &has_frame)
+            .into_iter()
+            .filter(|p| p != &has_frame)
+            .collect();
     props.sort();
 
     let mut problems: Vec<Finding> = Vec::new();
@@ -1256,6 +1257,47 @@ mod tests {
             relator_mediation(&store, &cfg())
                 .iter()
                 .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond"))
+        );
+    }
+
+    /// The subsumption traversals see a CANONICAL `logic:subClassOf` edge — the
+    /// property the shared [`gmeow_ns::SUB_CLASS_OF`] definition guarantees, pinned
+    /// here so a future narrowing of it re-reds this crate too.
+    ///
+    /// `proper_ancestors` (via `identity_overlap`) and `gmeow_subclasses` (via
+    /// `relator_mediation`) must both trace an edge authored with NO `rdfs:`
+    /// spelling anywhere; an `rdfs:`-only read would report both fixtures clean by
+    /// simply not seeing the hierarchy.
+    #[test]
+    fn canonical_logic_subclass_edges_are_traversed() {
+        // MixIden: two logic:Kind ancestors reached ONLY over `logic:subClassOf`.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Animal a owl:Class , logic:Kind .\n\
+             gmeow:Machine a owl:Class , logic:Kind .\n\
+             gmeow:Cyborg a owl:Class , logic:SubKind ;\n\
+               logic:subClassOf gmeow:Animal , gmeow:Machine .\n"
+        ));
+        assert!(
+            identity_overlap(&store, &cfg())
+                .iter()
+                .any(|p| p.message.contains("MixIden") && p.message.contains("gmeow:Cyborg")),
+            "proper_ancestors must traverse the canonical subsumption edge"
+        );
+
+        // RelComp: the relator is a subclass of logic:Relator only over the
+        // canonical edge, and its single mediating property is found the same way.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:LonelyBond a owl:Class , logic:Kind ; logic:subClassOf logic:Relator .\n\
+             gmeow:bondParty a owl:ObjectProperty , owl:FunctionalProperty ;\n\
+               rdfs:domain gmeow:LonelyBond ; rdfs:range gmeow:Person .\n"
+        ));
+        assert!(
+            relator_mediation(&store, &cfg())
+                .iter()
+                .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond")),
+            "gmeow_subclasses must match on the canonical subsumption edge"
         );
     }
 

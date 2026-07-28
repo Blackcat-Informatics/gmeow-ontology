@@ -31,8 +31,6 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
-const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-const RDFS_SUBPROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
@@ -3110,8 +3108,14 @@ fn build_doc_terms(
         let definition = first_literal(store, &iri, SKOS_DEFINITION)
             .or_else(|| first_literal(store, &iri, RDFS_COMMENT));
 
-        let mut parents = named_objects(store, &iri, RDFS_SUBCLASS_OF);
-        parents.extend(named_objects(store, &iri, RDFS_SUBPROPERTY_OF));
+        // BOTH spellings of the subsumption edge: a term re-authored onto the
+        // canonical `logic:subClassOf` has no `rdfs:` edge at all, and reading only
+        // the projection renders it with an empty parent list and an empty
+        // hierarchy diagram. One definition, in `gmeow_ns`.
+        let mut parents: Vec<String> = gmeow_ns::subsumption_predicates()
+            .into_iter()
+            .flat_map(|predicate| named_objects(store, &iri, predicate))
+            .collect();
         parents.sort();
         parents.dedup();
 
@@ -4714,6 +4718,59 @@ gmeow:hasOwner a owl:ObjectProperty ;
 
         let animal = terms.iter().find(|t| t.iri.ends_with("Animal")).unwrap();
         assert_eq!(animal.definition.as_deref(), Some("A living organism."));
+    }
+
+    /// A term whose taxonomy is authored in the CANONICAL `logic:` spelling —
+    /// with no `rdfs:` edge anywhere — still renders its parents.
+    ///
+    /// This is the blinding regression: reading only `rdfs:subClassOf` /
+    /// `rdfs:subPropertyOf` gave a re-authored term an EMPTY parent list, which
+    /// silently emptied both its parent section and its `term_neighbourhood_svg`
+    /// hierarchy diagram (which projects exactly `DocTerm::parents`).
+    #[test]
+    fn canonical_logic_subsumption_edges_are_parents() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:Animal a owl:Class ;
+    rdfs:label "Animal" .
+
+gmeow:Cat a owl:Class ;
+    logic:subClassOf gmeow:Animal ;
+    rdfs:label "Cat" .
+
+gmeow:touches a owl:ObjectProperty ;
+    rdfs:label "touches" .
+
+gmeow:grooms a owl:ObjectProperty ;
+    logic:subPropertyOf gmeow:touches ;
+    rdfs:label "grooms" .
+"#;
+        let store = store_from(ttl);
+        let terms = extract_terms(&store, "https://example.org/slice/zoo", None);
+
+        let cat = terms.iter().find(|t| t.iri.ends_with("Cat")).unwrap();
+        assert_eq!(
+            cat.parents,
+            vec![format!("{GMEOW_NS}Animal")],
+            "a `logic:subClassOf` edge is a parent"
+        );
+
+        let grooms = terms.iter().find(|t| t.iri.ends_with("grooms")).unwrap();
+        assert_eq!(
+            grooms.parents,
+            vec![format!("{GMEOW_NS}touches")],
+            "a `logic:subPropertyOf` edge is a parent"
+        );
+
+        // The user-visible surface: the hierarchy diagram is non-empty.
+        assert!(
+            crate::svg::term_neighbourhood_svg(cat).contains("Animal"),
+            "the neighbourhood diagram must draw the canonical parent edge"
+        );
     }
 
     /// `read_central_mapping_sets` distinguishes an absent file (fine — slices
