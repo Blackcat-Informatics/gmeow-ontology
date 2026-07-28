@@ -13265,7 +13265,11 @@ math:SetBuilderMemberConditionNodeKindConstraint
     logic:valuePath math:memberCondition ;
     logic:nodeKind "BlankNodeOrIRI" ;
     logic:formalizes math:SetBuilderExpression ;
-    logic:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula (a blank node or IRI), not an opaque literal string." .
+    logic:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula (a blank node or IRI), not an opaque literal string." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:StringOnlyMemberCondition .
 
 # No two distinct math:argumentSlot cells of the same parent may share the same
 # math:slotIndex — a duplicate index makes operand order ambiguous (a self-join
@@ -13361,7 +13365,11 @@ math:FormalVerificationResultGroundingConstraint
     logic:onClass math:FormalVerificationResult ;
     logic:inversePredicate gmeow:observationResult ;
     logic:formalizes math:FormalVerificationResult ;
-    logic:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." .
+    logic:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:UngroundedVerificationResult .
 
 # The math: slice's THIN failure-range gate for gmeow:FlagshipScenario (the canonical
 # grounding of the retired math:FlagshipScenarioShape): a scenario whose
@@ -13970,7 +13978,11 @@ math:DimensionExponentDenominatorNonZeroConstraint
     logic:forbiddenPredicate math:exponentDenominator ;
     logic:forbiddenValue "0"^^xsd:integer ;
     logic:formalizes math:DimensionExponent ;
-    logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." .
+    logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:MalformedDimension .
 
 # A math:MeasureEvaluation's math:measureResult must be non-negative: a measure
 # assigns non-negative extended-real mass, so μ(A) is a finite non-negative number
@@ -13999,7 +14011,11 @@ math:RationalValueDenominatorNonZeroConstraint
     logic:forbiddenPredicate math:denominator ;
     logic:forbiddenValue "0"^^xsd:integer ;
     logic:formalizes math:RationalValue ;
-    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." .
+    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:ZeroDenominator .
 
 # The three lower-bounded integer paths, as validation-only value-range records
 # (never OWL faceted-datatype antecedents: the native reasoner carries no datatype
