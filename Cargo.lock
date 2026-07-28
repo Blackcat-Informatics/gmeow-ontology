@@ -1581,6 +1581,7 @@ dependencies = [
  "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-math-lift",
  "gmeow-mcp",
  "gmeow-music",
  "gmeow-pipeline",
@@ -1804,6 +1805,7 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-term-arena",
  "hashbrown 0.15.5",
  "iai-callgrind",
  "insta",
@@ -1827,6 +1829,7 @@ dependencies = [
  "blake3",
  "gmeow-errors",
  "gmeow-ns",
+ "gmeow-term-arena",
  "insta",
  "purrdf",
  "roxmltree",
@@ -1858,6 +1861,16 @@ name = "gmeow-math"
 version = "0.2.0"
 dependencies = [
  "gmeow-errors",
+ "gmeow-math-lift",
+ "purrdf",
+]
+
+[[package]]
+name = "gmeow-math-lift"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-term-arena",
  "purrdf",
 ]
 
@@ -2028,6 +2041,16 @@ dependencies = [
  "gmeow-ns",
  "gmeow-validate",
  "purrdf",
+]
+
+[[package]]
+name = "gmeow-term-arena"
+version = "0.2.0"
+dependencies = [
+ "foldhash 0.1.5",
+ "hashbrown 0.15.5",
+ "purrdf",
+ "smallvec",
 ]
 
 [[package]]

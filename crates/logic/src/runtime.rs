@@ -273,7 +273,8 @@ const RUNTIME_PROFILES: [SemanticProfileId; 6] = [
 /// # Verified decision-surface boundary
 ///
 /// The backward goal-resolution DECISION surface is confined to these top-level
-/// `src/*.rs` files plus `src/physical/*.rs`. The `src/` subdirectory modules — notably
+/// `src/*.rs` files, plus `src/physical/*.rs`, plus the relocated shared term arena
+/// ([`EXTERNAL_BACKWARD_SOURCE`]). The `src/` subdirectory modules — notably
 /// `reason/` (the forward EL/DL/RL chase, pinned separately via
 /// `forward_contract_hash`) — and the remaining subdirectories are forward reasoning or
 /// post-hoc bookkeeping; none sit on the `dispatch_query` decision path. This was
@@ -313,15 +314,15 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("physical/cursor.rs", include_str!("physical/cursor.rs")),
     ("physical/generic.rs", include_str!("physical/generic.rs")),
     ("physical/id.rs", include_str!("physical/id.rs")),
-    // The structured full-FOL rung, and the term-arena / unification / proof substrate it
-    // consumes in production. Since `magic::resolve_native_under` routes a structured
-    // (`QTerm::Struct`) program into `resolve_fol`, and `resolve_fol` imports `term_dag`,
-    // `term_key`, `lower`, `unify`, and `proof`, a change to any of them can change a decided
-    // structured `AnswerSet` — so they are part of the backward decision surface.
+    // The structured full-FOL rung, and the unification / proof substrate it consumes in
+    // production. Since `magic::resolve_native_under` routes a structured
+    // (`QTerm::Struct`) program into `resolve_fol`, and `resolve_fol` imports the shared
+    // term arena, `lower`, `unify`, and `proof`, a change to any of them can change a
+    // decided structured `AnswerSet` — so they are part of the backward decision surface.
+    // The arena's own source moved OUT of this crate; it is pinned, byte-for-byte and with
+    // the same weight, by `EXTERNAL_BACKWARD_SOURCE` below.
     ("physical/lower.rs", include_str!("physical/lower.rs")),
     ("physical/proof.rs", include_str!("physical/proof.rs")),
-    ("physical/term_dag.rs", include_str!("physical/term_dag.rs")),
-    ("physical/term_key.rs", include_str!("physical/term_key.rs")),
     ("physical/unify.rs", include_str!("physical/unify.rs")),
     (
         "physical/incremental.rs",
@@ -349,6 +350,52 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("physical/store.rs", include_str!("physical/store.rs")),
 ];
 
+/// The backward-dispatch decision surface that lives OUTSIDE this crate.
+///
+/// The one structured-term representation — the hash-consed, content-addressed term DAG
+/// and its content-key fold — was relocated into the reasoner-free `gmeow-term-arena`
+/// crate so a parser front-end can intern terms without linking this runtime. Relocating
+/// it does NOT relocate its authority: `resolve_fol`, `unify`, `proof`, and `lower` all
+/// operate that arena in production, so a byte change to any of its source can change a
+/// decided structured [`AnswerSet`] exactly as a change to `physical/seminaive.rs` can.
+///
+/// It is a SEPARATE list only because [`BACKWARD_SOURCE`]'s partition guard enumerates
+/// this crate's `src/` tree, and a file that no longer lives there would be reported as a
+/// stale entry. `external_backward_source_partition_is_total` enumerates the arena crate's
+/// `src/` the same way, so a new, renamed, or deleted arena module still breaks loudly
+/// rather than silently dropping out of [`backward_source_hash`].
+///
+/// The digest folds this list AFTER [`BACKWARD_SOURCE`], under its own framing tag, so the
+/// two surfaces cannot alias and the fold order is fixed.
+///
+/// [`AnswerSet`]: crate::query_ir::AnswerSet
+const EXTERNAL_BACKWARD_SOURCE: &[(&str, &str)] = &[
+    (
+        "gmeow-term-arena/src/display.rs",
+        include_str!("../../term-arena/src/display.rs"),
+    ),
+    (
+        "gmeow-term-arena/src/id.rs",
+        include_str!("../../term-arena/src/id.rs"),
+    ),
+    (
+        "gmeow-term-arena/src/interner.rs",
+        include_str!("../../term-arena/src/interner.rs"),
+    ),
+    (
+        "gmeow-term-arena/src/lib.rs",
+        include_str!("../../term-arena/src/lib.rs"),
+    ),
+    (
+        "gmeow-term-arena/src/term_dag.rs",
+        include_str!("../../term-arena/src/term_dag.rs"),
+    ),
+    (
+        "gmeow-term-arena/src/term_key.rs",
+        include_str!("../../term-arena/src/term_key.rs"),
+    ),
+];
+
 /// Every top-level `src/*.rs` file that is deliberately NOT part of the
 /// backward-dispatch decision surface [`BACKWARD_SOURCE`] enumerates, paired with a
 /// truthful, specific reason. `backward_source_partition_is_total` asserts every actual
@@ -367,8 +414,16 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
 #[cfg(test)]
 const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
+        "physical/term_dag_tests.rs",
+        "#[cfg(test)] invariant suite for the relocated shared term arena (injectivity, alpha-collapse, metavariable identity, and the DAG <-> logic: IR congruence) — test scaffolding with no production caller; the arena's own source is pinned in EXTERNAL_BACKWARD_SOURCE",
+    ),
+    (
         "certificate.rs",
         "forward reasoning/coherence-certificate surface — pinned via forward_contract_hash, not backward dispatch",
+    ),
+    (
+        "term_arena.rs",
+        "re-export of the shared term arena's façade plus the math:-graph interning wrapper — the ARENA's own source is pinned in EXTERNAL_BACKWARD_SOURCE and the lowering it calls is pinned as physical/lower.rs; this file itself adds no decision logic and no file in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it",
     ),
     (
         "certify.rs",
@@ -425,6 +480,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "goal_directed.rs",
         "the pub façade that runs shipped goal-directed demonstrators through the backward engine and projects proof-checked answers to RDF — a downstream consumer of the decision path (it calls resolve_fol), not part of what dispatch_query decides",
+    ),
+    (
+        "proof_tree.rs",
+        "the pub structured proof view (proof term -> step tree -> TSTP derivation) — like goal_directed.rs a downstream READER of an already-decided proof (it calls goal_directed's lowering, resolve_fol, and proof::check and then only projects); nothing in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it, so it cannot change what dispatch_query decides",
     ),
     ("lib.rs", "crate-root module wiring, not the decision path"),
     (
@@ -552,6 +611,13 @@ fn backward_source_hash() -> String {
     for (name, content) in BACKWARD_SOURCE {
         frame(&mut hasher, b"file", name.as_bytes());
         frame(&mut hasher, b"body", content.as_bytes());
+    }
+    // The relocated term-arena source, under its OWN framing tag and at a fixed position
+    // after the in-crate list: relocation must not weaken the pin, and the two tags keep
+    // the surfaces from aliasing.
+    for (name, content) in EXTERNAL_BACKWARD_SOURCE {
+        frame(&mut hasher, b"external-file", name.as_bytes());
+        frame(&mut hasher, b"external-body", content.as_bytes());
     }
     hasher.finalize().to_hex().to_string()
 }
@@ -924,12 +990,47 @@ mod tests {
 
     #[test]
     fn every_covered_source_file_is_non_empty() {
-        for (name, content) in BACKWARD_SOURCE {
+        for (name, content) in BACKWARD_SOURCE.iter().chain(EXTERNAL_BACKWARD_SOURCE) {
             assert!(
                 !content.trim().is_empty(),
                 "backward-source file {name} resolved empty — the include_str! path is wrong"
             );
         }
+    }
+
+    #[test]
+    fn external_backward_source_partition_is_total() {
+        // The relocation of the term arena into its own crate must not open a hole in the
+        // pin: EVERY `.rs` file under `crates/term-arena/src` must appear in
+        // EXTERNAL_BACKWARD_SOURCE. A new, renamed, or deleted arena module would
+        // otherwise silently stop being covered by backward_source_hash — the same drift
+        // `backward_source_partition_is_total` forbids for this crate's own `src/`.
+        //
+        // There is no NOT_ counterpart list: the arena IS the term representation the
+        // structured resolver decides over, so every byte of it is backward-relevant.
+        let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let arena_src = manifest_dir
+            .parent()
+            .expect("crates/logic has a parent")
+            .join("term-arena/src");
+
+        let mut actual: Vec<String> = rs_file_names(&arena_src)
+            .into_iter()
+            .map(|name| format!("gmeow-term-arena/src/{name}"))
+            .collect();
+        actual.sort();
+
+        let mut covered: Vec<String> = EXTERNAL_BACKWARD_SOURCE
+            .iter()
+            .map(|(name, _)| (*name).to_owned())
+            .collect();
+        covered.sort();
+
+        assert_eq!(
+            actual, covered,
+            "crates/term-arena/src/*.rs drifted from EXTERNAL_BACKWARD_SOURCE; every arena \
+             module is part of what the structured resolver decides and must be pinned"
+        );
     }
 
     #[test]

@@ -31,6 +31,7 @@
 //! `crates/logic/tests/gufo_superset.rs` (which retired the Python fixture
 //! `tests/test_logic_gufo_superset.py`).
 
+use crate::ir::ContentKey;
 use std::collections::{BTreeSet, HashSet};
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
@@ -212,14 +213,18 @@ pub fn assert_ir_isomorphic(
     let rules_b: HashSet<String> = prog_b.rules.iter().map(rule_key).collect();
     let contracts_a: HashSet<String> = prog_a.contracts.iter().map(contract_key).collect();
     let contracts_b: HashSet<String> = prog_b.contracts.iter().map(contract_key).collect();
-    let formulas_a: HashSet<String> = prog_a.formulas.iter().map(Formula::content_key).collect();
-    let formulas_b: HashSet<String> = prog_b.formulas.iter().map(Formula::content_key).collect();
+    let formulas_a: HashSet<ContentKey> =
+        prog_a.formulas.iter().map(Formula::content_key).collect();
+    let formulas_b: HashSet<ContentKey> =
+        prog_b.formulas.iter().map(Formula::content_key).collect();
 
-    let diff = |from: &HashSet<String>, to: &HashSet<String>| -> Vec<String> {
-        let mut v: Vec<String> = from.difference(to).cloned().collect();
+    // Generic over the key type so the formula leg keeps its `ContentKey` newtype rather
+    // than being flattened to a bare `String` for the sake of one shared helper.
+    fn diff<T: std::hash::Hash + Eq + Ord + Clone>(from: &HashSet<T>, to: &HashSet<T>) -> Vec<T> {
+        let mut v: Vec<T> = from.difference(to).cloned().collect();
         v.sort();
         v
-    };
+    }
 
     let mut lines: Vec<String> = Vec::new();
     for item in diff(&axioms_a, &axioms_b) {

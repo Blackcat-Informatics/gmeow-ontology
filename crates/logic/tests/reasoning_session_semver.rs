@@ -141,8 +141,32 @@ use session_common::*;
 /// the extraction is a pure refactor — `reason_closure_dataset` now calls the extracted
 /// function and no rule, no chase step, and no verdict changed, so the fixed edge-only input's
 /// reasoning verdict is unchanged.
+/// Re-blessed once more when the hash-consed structured-term arena was relocated out of
+/// this runtime into the reasoner-free `gmeow-term-arena` crate: `EXTERNAL_BACKWARD_SOURCE`
+/// (`runtime.rs`) `include_str!`s that crate's `src/` tree into `backward_source_hash`, so
+/// moving `physical/term_dag.rs` + `physical/term_key.rs` to `term-arena/src/` — and
+/// splitting the atom dictionary into `interner.rs` and the term rendering into
+/// `display.rs` — changes the folded source-content digest on that axis. The relocation is
+/// byte-for-byte behaviour-preserving (the same netstring fold, the same de-Bruijn
+/// encoding, the same interning constructors), so no reasoning verdict on any input
+/// changes.
+/// Re-blessed once more for the public STRUCTURED proof view (`proof_tree.rs`): reading a
+/// checked proof term as a step TREE requires `physical/proof.rs`'s `ProofShape` decoder and
+/// its `classify` entry to be `pub(crate)` (a second decode of the `App` proof framing would
+/// be a forked duplicate of the one place it is parsed), and `physical/proof.rs` is folded via
+/// `include_str!` into `backward_source_hash`, so the raw source-content digest moves. The
+/// change is visibility-only — no constructor, checker rule, or minting recipe is touched — so
+/// no reasoning verdict on any input changes. (`proof_tree.rs` itself is a downstream READER of
+/// an already-decided proof and is classified in `NOT_BACKWARD_SOURCE` alongside
+/// `goal_directed.rs`, so it adds nothing to the digest.)
+/// Re-blessed once more on the merge that combined this branch's
+/// `inferred_axioms_to_dataset` extraction with main's term-arena relocation and public
+/// structured proof view. Both sides move folded source axes, so the merged digest is a
+/// THIRD value — neither branch's nor main's. Every contributing change is a pure
+/// refactor or a visibility widening, so the fixed edge-only input's reasoning verdict is
+/// unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "0164642bab6809a3461a500ad6a6e559f0445db63bc5e24da498804e30dbf62f";
+    "4055dfd15bf5d7dcbb09d52a37c6817d196482efb67ce1acd4d6089882f92b75";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -195,8 +219,22 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine-descriptor golden above): the native contract hash is one of the seven folded
 /// identity axes and moves with the changed `reason/mod.rs` source, while the fixed edge-only
 /// input's reasoning verdict is unchanged.
+/// Re-blessed once more for the term-arena relocation (see the engine-descriptor golden
+/// above): the backward-source digest is one of the seven folded identity axes and moves
+/// with the arena's new crate-relative source paths, while the fixed edge-only input's
+/// reasoning verdict is unchanged.
+/// Re-blessed once more for the public structured proof view (see the engine-descriptor
+/// golden above): the backward-source digest is one of the seven folded identity axes and
+/// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
+/// edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more on the merge that combined this branch's
+/// `inferred_axioms_to_dataset` extraction with main's term-arena relocation and public
+/// structured proof view. Both sides move folded source axes, so the merged digest is a
+/// THIRD value — neither branch's nor main's. Every contributing change is a pure
+/// refactor or a visibility widening, so the fixed edge-only input's reasoning verdict is
+/// unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "f9a2c44e830de16bb8c0ee60b4b4c52fbef77c10c6fb211846ff039e543ee521";
+    "9027159a020205a0c78fa32ae8d2034576cfa34342865e53367b9183a087d606";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

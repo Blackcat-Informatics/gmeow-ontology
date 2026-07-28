@@ -2,19 +2,38 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The native/shim command surfaces: `gmeow gts` (a shim to the external `gts`
-//! binary), `gmeow music` (the native `gmeow_music` engine), and `gmeow affect`
-//! (the native `gmeow_affect` intensity-geometry engine).
+//! binary), `gmeow music` (the native `gmeow_music` engine), `gmeow affect`
+//! (the native `gmeow_affect` intensity-geometry engine), and `gmeow math` (the
+//! native `gmeow_math_lift` ingestion bridges).
 
 use std::path::{Path, PathBuf};
 
 use gmeow_cli_core::Reporter;
 
 use crate::commands::{fail, fail_code};
-use crate::{AffectCommands, BUNDLE_GTS, ClassifyMetric, MusicCommands};
+use crate::{AffectCommands, BUNDLE_GTS, ClassifyMetric, MathCommands, MusicCommands};
 
 /// The canonical core-affect metric profile — the default `gmeow affect classify`
 /// vantage (bipolar [-1, 1] PAD, `gmeow:coreAffectGram`).
 const CORE_AFFECT_METRIC_PAD: &str = "https://blackcatinformatics.ca/gmeow/coreAffectMetricPAD";
+
+/// The IRI base every `gmeow math lift-*` run and codomain node is minted under.
+///
+/// It is a CONSTANT, and that is load-bearing rather than incidental. `RunFrame::mint`
+/// content-addresses the run IRI on the source bytes, so with a fixed base the whole lift is
+/// a pure function of the artifact: lifting the same file twice — on two machines, from two
+/// working directories, a year apart — yields byte-identical Turtle. Deriving the base from
+/// the clock, the cwd, the input path, or a counter would silently destroy that idempotence
+/// and make every re-lift a new, incomparable graph. It is also what
+/// `tests/self_sufficiency.rs` pins: that harness runs the binary from a blinded cwd with a
+/// cleared environment and demands identical bytes.
+///
+/// The namespace is the repo-wide example convention (`gmeow:examples/<area>/…`, as used by
+/// the `logic:`, `lang:`, and `affect` example IRIs) because that is exactly what a CLI lift
+/// of a user's own file is: an EXAMPLE instance, not shipped ontology content. The bundle's
+/// own in-bundle `math:` producers mint under their own producer namespace, so a
+/// CLI-produced run can never be mistaken for — or collide with — a bundle-resident one.
+const MATH_LIFT_MINT_BASE: &str = "https://blackcatinformatics.ca/gmeow/examples/math/lift/";
 
 /// The install hint printed when the external `gts` binary cannot be found.
 pub(crate) const GTS_INSTALL_HINT: &str = "gts binary not found. Install gmeow-gts: pip install gmeow-gts \
@@ -148,6 +167,25 @@ fn read_source(path: &std::path::Path) -> std::io::Result<String> {
         Ok(buf)
     } else {
         std::fs::read_to_string(path)
+    }
+}
+
+/// Read a command source as RAW BYTES: standard input when the path is `-`, else
+/// the file.
+///
+/// Distinct from [`read_source`] because not every ingestible artifact is text —
+/// an `.onnx` export is a binary protobuf message, and reading it through a
+/// UTF-8-validating path would reject the very files the ONNX bridge exists to
+/// lift. Text bridges keep their own UTF-8 check (their typed `SourceNotUtf8`
+/// diagnostic), so nothing is weakened by handing them bytes here.
+fn read_source_bytes(path: &std::path::Path) -> std::io::Result<Vec<u8>> {
+    if path.as_os_str() == "-" {
+        use std::io::Read;
+        let mut buf = Vec::new();
+        std::io::stdin().read_to_end(&mut buf)?;
+        Ok(buf)
+    } else {
+        std::fs::read(path)
     }
 }
 
@@ -403,6 +441,126 @@ pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
                 Err(e) => fail(reporter, "gmeow-cli.affect.recover", format!("Error: {e}")),
             }
         }
+    }
+}
+
+/// `gmeow math …` — the native `math:` ingestion bridges (R / ONNX / TSTP proof).
+///
+/// Product (canonical Turtle) → stdout, or `--out FILE` byte-for-byte; diagnostics → stderr
+/// through the shared reporter. The lift is a pure function of the source bytes and
+/// [`MATH_LIFT_MINT_BASE`], so re-running the same command is byte-identical.
+///
+/// # Failure surface
+///
+/// A lift failure is emitted as the ENGINE's own typed `Diag`, forwarded verbatim through
+/// [`gmeow_cli_core::emit_and_exit`] — never re-coded, never flattened to a rendered string.
+/// The finding therefore carries the `math-lift` kind's real code (`math.lift.r.parse`,
+/// `math.lift.onnx.wire`, `math.lift.proof.unliftable`, …), its real
+/// [`FindingCategory`](gmeow_errors::FindingCategory), and — because every kind is raised
+/// with `Diag::of_kind` — its `detail`. This handler adds only what the engine cannot know:
+/// the artifact PATH as the finding's source location, and a context frame naming the
+/// invoked bridge.
+///
+/// That is load-bearing, not cosmetic. A finding's identity fingerprint (and so its
+/// `finding_iri`) is `blake3` over `(code, category, source anchor)`. Collapsing eight engine
+/// kinds onto two CLI codes with an empty anchor made a truncated protobuf and an R syntax
+/// error the SAME witness — one fingerprint, indistinguishable to `gmeow explain` and to the
+/// diagnostics substrate. Forwarding the typed diagnostic keeps each kind, and each artifact,
+/// a distinct witness.
+///
+/// The two-class taxonomy the bridges observe is carried by the engine's `category`, which is
+/// where it belongs:
+///
+/// - [`FindingCategory::DataShapeViolation`](gmeow_errors::FindingCategory::DataShapeViolation)
+///   (`SourceNotUtf8`, `RParse`, `OnnxWire`, `TstpParse`) — the artifact is not a well-formed
+///   instance of its own format. The user's file is broken; no bridge, however capable, could
+///   read it.
+/// - [`FindingCategory::ModelingDisciplineViolation`](gmeow_errors::FindingCategory::ModelingDisciplineViolation)
+///   (`RUnliftable`, `OnnxUnliftable`, `ProofUnliftable`, `EmptyCodomain`) — the artifact IS
+///   well-formed, and is still not carryable into the `math:` codomain: an R script that is
+///   only control flow, an ONNX model with no computation node, a derivation with a dangling
+///   parent. Nothing is wrong with the file; it simply states nothing this bridge can
+///   honestly claim to have carried across.
+///
+/// # Exit-code policy
+///
+/// Every lift failure — malformed or unliftable — exits `1`, the handled-failure code
+/// [`gmeow_cli_core::exit_code`] maps an Error-grade report to. That is deliberate, not a
+/// conflation:
+///
+/// - Exit `2` is reserved by this CLI's console convention for USAGE errors: defects in the
+///   argument vector, which clap detects before a single byte of the input is read. Both lift
+///   failures happen on a correctly spelled invocation over a file that was found and read,
+///   so neither is a usage error. (`gmeow music` maps its unsupported-format failures to `2`
+///   because there the defect genuinely IS an argument value — a `--to` the engine has no
+///   writer for. Nothing here is argument-shaped.)
+/// - No distinction is lost by sharing an exit code, because the exit code is not where the
+///   distinction lives. A corpus sweep branches on the finding's `code` and `category` — the
+///   channel that actually carries all eight kinds — which is exactly what forwarding the
+///   typed diagnostic guarantees. A process exit status cannot carry an eight-way kind
+///   distinction, and minting a third integer for a lossy copy of information the reporter
+///   already emits exactly would invite callers to branch on the weaker channel.
+pub(crate) fn math(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
+    // One shared body for the three bridges: they differ only in which `lift` they call,
+    // because every bridge has the identical `(&[u8], &str) -> Result<Lifted>` contract.
+    type LiftFn = fn(&[u8], &str) -> gmeow_errors::Result<gmeow_math_lift::Lifted>;
+    // `leaf` is the invoked subcommand name, carried onto a failure's context frame so the
+    // finding says which bridge refused without the reader having to infer it from the code.
+    let (source, out, lift, leaf): (&PathBuf, &Option<PathBuf>, LiftFn, &str) = match command {
+        MathCommands::LiftR { source, out } => (source, out, gmeow_math_lift::r::lift, "lift-r"),
+        MathCommands::LiftOnnx { source, out } => {
+            (source, out, gmeow_math_lift::onnx::lift, "lift-onnx")
+        }
+        MathCommands::LiftProof { source, out } => {
+            (source, out, gmeow_math_lift::proof::lift, "lift-proof")
+        }
+    };
+
+    // Bytes, never a UTF-8 string: an `.onnx` export is binary protobuf. Each text bridge
+    // runs its own UTF-8 check and raises its own typed `SourceNotUtf8`.
+    let bytes = match read_source_bytes(source) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.io.read",
+                format!("Error: cannot read {}: {e}", source.display()),
+            );
+        }
+    };
+
+    match lift(&bytes, MATH_LIFT_MINT_BASE) {
+        Ok(lifted) => match out {
+            Some(out) => match std::fs::write(out, &lifted.turtle) {
+                Ok(()) => 0,
+                Err(e) => fail(
+                    reporter,
+                    "gmeow-cli.io.write",
+                    format!("Error: cannot write {}: {e}", out.display()),
+                ),
+            },
+            None => {
+                // `print!`, not `println!`: the serialized Turtle already ends in a
+                // newline, and `--out` must receive the SAME bytes stdout does.
+                print!("{}", lifted.turtle);
+                0
+            }
+        },
+        // The engine's typed diagnostic, forwarded WHOLE: its own code, category, grade, and
+        // `detail` reach the reporter untouched. Only the two facts the engine cannot know are
+        // added — the artifact path (the finding's source anchor, which also makes two broken
+        // files distinct witnesses) and the invoked bridge (a context frame, projected into the
+        // finding's `detail`). Re-coding or `format!`-ing the diagnostic here would discard
+        // exactly the structure an agent consuming `--console jsonl` branches on.
+        Err(diag) => gmeow_cli_core::emit_and_exit(
+            reporter,
+            diag.with_location(gmeow_errors::Location {
+                path: Some(source.display().to_string()),
+                ..gmeow_errors::Location::default()
+            })
+            .with_context(format!("gmeow math {leaf}")),
+            "gmeow",
+        ),
     }
 }
 

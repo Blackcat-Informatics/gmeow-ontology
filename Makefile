@@ -216,6 +216,7 @@ regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessar
 		  "before 'make check' just regenerates twice. Run 'make regen' alone ONLY for" \
 		  "a clean-clone bootstrap or a regen-without-gate. To verify work: make check" \
 		  "──────────────────────────────────────────────────────────────────────" >&2; \
+		  exit 1 \
 	fi
 	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
 	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a

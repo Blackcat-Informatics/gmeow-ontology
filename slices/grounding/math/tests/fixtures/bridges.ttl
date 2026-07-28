@@ -17,7 +17,8 @@ ex:rRun a math:RIngestRun ;
     math:ingestCorrespondence ex:rCorr ;
     logic:instantiatesSchema ex:rSchema ;
     logic:instantiatesPlan ex:rPlan .
-ex:rSrc a math:MathematicalObject ; logic:loadBearing true .
+ex:rSrc a math:MathematicalObject ; logic:loadBearing true ;
+    math:retainedSource "fit <- lm(mpg ~ wt, data = mtcars)" .
 ex:rSchema a logic:ActionSchema .
 ex:rPlan a logic:Plan .
 ex:rCorr a logic:Correspondence ;
@@ -28,7 +29,15 @@ ex:rCorr a logic:Correspondence ;
 ex:rComp a math:MathematicalExpression ;
     gmeow:wasGeneratedBy ex:rRun ;
     math:compilesToLogicFormula ex:rLogic .
-ex:rLogic a logic:Formula .
+# A well-formed atomic logic: AST node. logic:FormulaConstructorConstraint requires EXACTLY
+# ONE constructor, so a bare `a logic:Formula` is malformed — it selects none.
+ex:rLogic a logic:Formula ;
+    logic:relation ex:rComputes ;
+    logic:argument ex:rLogicArg .
+ex:rComputes a logic:Type .
+ex:rLogicArg a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termIri ex:rComp .
 ex:rFit a math:FittedModel ;
     gmeow:wasGeneratedBy ex:rRun ;
     math:modelFormula ex:rFormula ;
@@ -52,13 +61,16 @@ ex:onnxRun a math:ONNXIngestRun ;
     math:ingestCorrespondence ex:oCorr ;
     logic:instantiatesSchema ex:oSchema ;
     logic:instantiatesPlan ex:oPlan .
-ex:oSrc a math:MathematicalObject ; logic:loadBearing true .
+# Binary source: referenced by digest, never inlined (blob-by-reference), so this
+# correspondence may NOT claim logic:mnemomorphic.
+ex:oSrc a math:MathematicalObject ; logic:loadBearing true ;
+    math:sourceDigest "7978a9f31743d3c2" .
 ex:oSchema a logic:ActionSchema .
 ex:oPlan a logic:Plan .
 ex:oCorr a logic:Correspondence ;
     logic:morphismClass logic:LossyLens ;
     logic:preservationKind logic:ValidationOnly ;
-    logic:mnemomorphic true .
+    logic:mnemomorphic false .
 ex:oGraph a math:TensorComputationGraph ;
     gmeow:wasGeneratedBy ex:onnxRun ;
     math:architectureOf ex:oNet ;
@@ -75,7 +87,8 @@ ex:proofRun a math:ProofIngestRun ;
     math:ingestCorrespondence ex:pCorr ;
     logic:instantiatesSchema ex:pSchema ;
     logic:instantiatesPlan ex:pPlan .
-ex:pSrc a math:MathematicalObject ; logic:loadBearing true .
+ex:pSrc a math:MathematicalObject ; logic:loadBearing true ;
+    math:retainedSource "cnf(c1, axiom, p(a)).\ncnf(c2, plain, q(a), inference(resolution,[status(thm)],[c1]))." .
 ex:pSchema a logic:ActionSchema .
 ex:pPlan a logic:Plan .
 ex:pCorr a logic:Correspondence ;
@@ -83,6 +96,7 @@ ex:pCorr a logic:Correspondence ;
     logic:preservationKind logic:ValidationOnly ;
     logic:mnemomorphic true .
 ex:pDag a math:ProofDependencyGraph ;
+    math:dependencyGraphOf ex:pProof ;
     gmeow:wasGeneratedBy ex:proofRun .
 ex:pProof a math:Proof ;
     gmeow:wasGeneratedBy ex:proofRun ;

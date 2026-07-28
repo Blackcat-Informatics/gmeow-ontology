@@ -6,7 +6,7 @@
 //! # A proof IS a term
 //!
 //! A proof is not a side structure that mirrors a derivation — it is a
-//! [`TermDag`](crate::physical::term_dag::TermDag) node in the SAME persistent arena as the
+//! [`TermDag`](gmeow_term_arena::engine::TermDag) node in the SAME persistent arena as the
 //! goals it proves, built from two constructors:
 //!
 //! - [`proof_by_rule`] → `App{op: Leaf(logic:byRule), args: [goal, Leaf(rule_iri), subproof₀, …]}`
@@ -53,9 +53,9 @@ use purrdf::TermValue;
 
 use crate::physical::id::{NodeId, TermId};
 use crate::physical::lower::canon;
-use crate::physical::term_dag::{NodeData, TermDag};
 use crate::physical::unify::{Subst, Unified, apply, unify};
 use crate::provenance;
+use gmeow_term_arena::engine::{NodeData, TermDag};
 
 /// Wrap a proof-projection hard failure as a typed provenance diagnostic on the shared
 /// substrate, preserving the authored text verbatim (mirrors
@@ -219,7 +219,11 @@ pub(crate) fn proof_assert(dag: &mut TermDag, goal: NodeId, reifier_iri: TermId)
 // ── Structural decoding ─────────────────────────────────────────────────────────
 
 /// The decoded shape of a proof node — the one place the `App` framing is parsed.
-enum ProofShape {
+///
+/// `pub(crate)` so the public structured proof view ([`crate::proof_tree`]) reads the proof
+/// tree through THIS decoder rather than re-implementing the `App` framing: a second parse of
+/// the constructor shape would be a forkable duplicate of the one place it is defined.
+pub(crate) enum ProofShape {
     /// An `assert(goal, reifier)` leaf.
     Assert {
         /// The asserted goal.
@@ -266,7 +270,10 @@ fn atom_iri(dag: &TermDag, atom: TermId) -> gmeow_errors::Result<String> {
 
 /// Decode a proof node into its [`ProofShape`], or a [`ProofError::Malformed`] on any
 /// structural defect.
-fn classify(dag: &TermDag, node: NodeId) -> Result<ProofShape, ProofError> {
+///
+/// `pub(crate)` for the same single-source reason as [`ProofShape`]: [`crate::proof_tree`]'s
+/// public tree view decodes every step through this function.
+pub(crate) fn classify(dag: &TermDag, node: NodeId) -> Result<ProofShape, ProofError> {
     // Copy the operator and clone the arg ids to release the immutable borrow on `dag`.
     let (op, args) = match dag.data(node) {
         NodeData::App { op, args } => (*op, args.clone()),

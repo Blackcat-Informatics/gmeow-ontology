@@ -1,0 +1,39 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: CC-BY-4.0
+%
+% A TSTP derivation produced by OUR OWN native reasoner — no external prover was
+% involved. Source problem:
+%   conformance/logic/cases/external/tptp-mini/theorem-subclass/source/problem.p
+%   (a ⊑ b, b ⊑ c ⊢ a ⊑ c; SZS status Theorem)
+%
+% How it was produced:
+%   1. `gmeow_conformance::external::tptp::parse_tptp` parses the problem.
+%   2. `gmeow_conformance::external::tptp::lower_to_fol_program` reduces the
+%      refutation `premises ∧ ¬conjecture` into the Horn fragment: the conjecture
+%      ∀X.(a(X) → c(X)) is negated through the shared `gmeow_logic::entail::negate`
+%      waist, whose fresh reserved-namespace witness w yields the asserted fact
+%      a(w) and the goal c(w).
+%   3. `gmeow_logic::proof_tree::prove_reasoning_program` resolves that goal with
+%      the native proof-carrying SLG-WFS backward engine
+%      (`gmeow_logic::physical::resolve_fol`) and VALIDATES every answer's proof
+%      term with the Curry–Howard checker (`gmeow_logic::physical::proof::check`),
+%      which independently re-derives each conclusion from its premises.
+%   4. `ProofTree::to_tstp` projects the checked proof term to the lines below.
+%
+% The derivation of c(w) from a(w) IS the refutation: it contradicts the negated
+% conjecture's ¬c(w).
+%
+% Reading the surface:
+%   * Each step name `d_<hex>` is the exact image of that step's content-addressed
+%     derivation IRI, `https://blackcatinformatics.ca/gmeow/derivation/<hex>` — the
+%     SAME IRI `gmeow_logic::provenance::mint_derivation_id` mints for the forward
+%     reasoner's rule application of the same firing.
+%   * Predicates, constants, and inference-rule identities are IRIs, so they ride
+%     as TPTP single-quoted atoms rather than being lossily shortened.
+%   * An `inference(...)` rule IRI names the content-addressed GROUND-INSTANCE
+%     firing (`.../logic/dag/firing/<blake3>`), which is what the proof checker
+%     re-derives against.
+%   * Leaves are `axiom` (asserted EDB facts); derived steps are `plain`.
+cnf(d_7acf4e9d9037faca7a00b6151eb4528f6f41840d, axiom, 'https://blackcatinformatics.ca/gmeow/tptp#a'('https://blackcatinformatics.ca/logic/entail/reserved#witness-d4a1e02579180296')).
+cnf(d_29e8ab9f3c2b3beff56160d5073b6e6d7bee576c, plain, 'https://blackcatinformatics.ca/gmeow/tptp#b'('https://blackcatinformatics.ca/logic/entail/reserved#witness-d4a1e02579180296'), inference('https://blackcatinformatics.ca/logic/dag/firing/e2725dde7a7db00ec7148cbaaafee1829ca9c532df2ec8b8c59fbe0c2178a5fe', [status(thm)], [d_7acf4e9d9037faca7a00b6151eb4528f6f41840d])).
+cnf(d_1ad92f008ebfa11c6dcc62cb8c78d2980e55afe4, plain, 'https://blackcatinformatics.ca/gmeow/tptp#c'('https://blackcatinformatics.ca/logic/entail/reserved#witness-d4a1e02579180296'), inference('https://blackcatinformatics.ca/logic/dag/firing/e333748014025c765c88458a6275b4b2e1ac78826b7f91e1defbff323ab982e3', [status(thm)], [d_29e8ab9f3c2b3beff56160d5073b6e6d7bee576c])).

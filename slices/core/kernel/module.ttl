@@ -39,7 +39,7 @@ gmeow:Agent
         gmeow:Entity ;
     owl:disjointWith gmeow:InformationObject ,
         gmeow:SocialObject ;
-    skos:definition "An entity that can act, bear responsibility, and enter into agreements: a person, an organization, or a software agent."@x-gmeow-english ;
+    skos:definition "An entity that can act, bear responsibility, and enter into agreements: a person, an organization, or a software agent. Agency is a capacity to act, not a material or informational nature: a gmeow:PhysicalObject or gmeow:InformationObject is not an Agent, and neither is a role an agent plays (issuer, employee) — the role is borne by the Agent rather than being one."@x-gmeow-english ;
     skos:example "ex:lillith a gmeow:Agent ; gmeow:hasName ex:lillithName ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for things that are merely acted upon or that carry information without acting (use PhysicalObject or InformationObject); avoid asserting bare gmeow:Agent when Person or Organization is meant."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -123,7 +123,7 @@ gmeow:Entity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Entity"@x-gmeow-english ;
     rdfs:subClassOf logic:Endurant ;
-    skos:definition "Anything in the GMEOW universe of discourse that persists in time and can bear properties: an agent, a document, a contact point, and so on."@x-gmeow-english ;
+    skos:definition "Anything in the GMEOW universe of discourse that persists in time and can bear properties: an agent, a document, a contact point, and so on. It is the ENDURANT root: an occurrent that unfolds by accumulating temporal parts (a gmeow:Activity, an event) is not an Entity, nor is a bare literal value."@x-gmeow-english ;
     skos:example "ex:thing a gmeow:Entity ; gmeow:hasSensitivity gmeow:sensitivityPublic ; gmeow:hasGranularity ex:cityLevel ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing an instance as a bare gmeow:Entity when a more specific sortal applies; reserve the unqualified type for genuinely category-neutral resources, and never use it for occurrents (those are gufo:Event, not endurants)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -165,7 +165,7 @@ gmeow:InformationObject
     rdfs:label "Information Object"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
-    skos:definition "An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers."@x-gmeow-english ;
+    skos:definition "An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers. It is the information CONTENT bearer, not the physical carrier that inscribes it (a printed page is a gmeow:PhysicalObject) and not the act of communicating it (a gmeow:Activity)."@x-gmeow-english ;
     skos:example "ex:report a gmeow:InformationObject ; gmeow:hasAboutness gmeow:aboutnessDescribes ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the real-world subject an information object is about (model that separately) and for material artifacts whose information role is incidental; do not conflate the carrier with what it describes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -223,7 +223,7 @@ gmeow:ProficiencyLevel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Proficiency Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "An attained proficiency level on a gmeow:ProficiencyScale (CEFR A1–C2; Dreyfus novice→expert; NIH beginner→expert; assessed; native; heritage). Carried by gmeow:proficiencyLevel and gmeow:skillProficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals."@x-gmeow-english ;
+    skos:definition "An attained proficiency level on a gmeow:ProficiencyScale (CEFR A1–C2; Dreyfus novice→expert; NIH beginner→expert; assessed; native; heritage). Carried by gmeow:proficiencyLevel and gmeow:skillProficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals. It is the attained LEVEL itself, not the rating framework it belongs to (gmeow:ProficiencyScale) and not the channel it rates (gmeow:ProficiencyModality)."@x-gmeow-english ;
     skos:example "gmeow:levelCefrB2 a gmeow:ProficiencyLevel ; gmeow:levelScale gmeow:scaleCefr ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for the framework itself (that is gmeow:ProficiencyScale) and avoid minting per-level subclasses; levels are individuals, each tied to its scale by gmeow:levelScale. The knowledge-depth axis has its own dedicated gmeow:KnowledgeLevel value class (cognition)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -236,7 +236,7 @@ gmeow:ProficiencyModality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Proficiency Modality"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The channel a proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall). A value carried by gmeow:proficiencyModality."@x-gmeow-english ;
+    skos:definition "The channel a proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall). A value carried by gmeow:proficiencyModality. It names the channel only — never the attained level (gmeow:ProficiencyLevel) nor the rating framework (gmeow:ProficiencyScale)."@x-gmeow-english ;
     skos:example "gmeow:modalitySpeaking a gmeow:ProficiencyModality ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for the framework (gmeow:ProficiencyScale) or the attained rung (gmeow:ProficiencyLevel); modality is the channel axis, orthogonal to both. Omit it entirely when a proficiency is overall and undifferentiated by channel."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -249,7 +249,7 @@ gmeow:ProficiencyScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Proficiency Scale"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "A framework for rating proficiency in any competency domain — language, skill, or knowledge (CEFR, ILR, ACTFL, Dreyfus, NIH, Bloom's, SOLO, assessed, self-reported). A domain-neutral value vocabulary carried by gmeow:proficiencyScale, gmeow:skillProficiencyScale, gmeow:knowledgeProficiencyScale, and gmeow:levelScale. Minted in kernel so expertise, languages, and cognition reuse it without a cross-slice dependency cycle (Principle 6)."@x-gmeow-english ;
+    skos:definition "A framework for rating proficiency in any competency domain — language, skill, or knowledge (CEFR, ILR, ACTFL, Dreyfus, NIH, Bloom's, SOLO, assessed, self-reported). A domain-neutral value vocabulary carried by gmeow:proficiencyScale, gmeow:skillProficiencyScale, gmeow:knowledgeProficiencyScale, and gmeow:levelScale. Minted in kernel so expertise, languages, and cognition reuse it without a cross-slice dependency cycle (Principle 6). It is the rating FRAMEWORK, not any level within it (gmeow:ProficiencyLevel) and not the competency being rated."@x-gmeow-english ;
     skos:example "gmeow:scaleDreyfus a gmeow:ProficiencyScale ; rdfs:label \"Dreyfus\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-framework subclasses (frameworks are individuals of this class) and avoid using it for an attained rating itself; the level a proficiency reaches is a gmeow:ProficiencyLevel, while this class is the ruler it is read against."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -262,7 +262,7 @@ gmeow:levelScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "level scale"@x-gmeow-english ;
     rdfs:range gmeow:ProficiencyScale ;
-    skos:definition "The scale a proficiency-level individual belongs to (e.g. cefrB2 levelScale scaleCEFR). Functional."@x-gmeow-english ;
+    skos:definition "The scale a proficiency-level individual belongs to (e.g. cefrB2 levelScale scaleCEFR). Functional: a level is defined in exactly one framework and is never shared across scales. Distinct from gmeow:proficiencyScale, which records the scale a RATING was taken on rather than the scale a level is defined in."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ProjectionCapability
@@ -300,7 +300,7 @@ gmeow:SensitivityLevel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Sensitivity Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "A privacy-sensitivity classification for a value — an open, ordered value vocabulary (public ≺ internal ≺ confidential ≺ restricted ≺ sensitive personal). The explicit facet that drives disclosure-control decisions: a value marked sensitive personal may be coarsened or withheld at projection time under a consent guard. Orthogonal to determinacy, confidence, and granularity (Principle 9). The sensitivity-to-coarsen trigger is a solver concern (P12)."@x-gmeow-english ;
+    skos:definition "A privacy-sensitivity classification for a value — an open, ordered value vocabulary (public ≺ internal ≺ confidential ≺ restricted ≺ sensitive personal). The explicit facet that drives disclosure-control decisions: a value marked sensitive personal may be coarsened or withheld at projection time under a consent guard. Distinct from determinacy, confidence, and granularity (Principle 9), to which it is orthogonal: how sensitive a value is says nothing about how certain or how coarse it is. The sensitivity-to-coarsen trigger is a solver concern (P12)."@x-gmeow-english ;
     skos:example "ex:sensitivityConfidential a gmeow:SensitivityLevel ; gmeow:coarserThan ex:sensitivityInternal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it as the disclosure decision itself (that is gmeow:hasDisclosurePolicy plus the solver) and avoid minting per-level subclasses; levels are individuals on an open, ordered axis."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -440,7 +440,7 @@ gmeow:coarserThan
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "coarser than"@x-gmeow-english ;
     rdfs:range gmeow:GranularityLevel ;
-    skos:definition "Orders the granularity axis: relates a granularity level to a finer level it generalizes (country gmeow:coarserThan city). Transitive; the partial order that makes 'at or above a target level' well-defined for coarsening, and mirrors skos:broader between the levels."@x-gmeow-english ;
+    skos:definition "Orders the granularity axis: relates a granularity level to a finer level it generalizes (country gmeow:coarserThan city). Transitive; the partial order that makes 'at or above a target level' well-defined for coarsening, and mirrors skos:broader between the levels. It orders granularity LEVELS, not the individuals classified at them — it is not a parthood or containment relation over the things described (that walk is named by gmeow:generalizesVia)."@x-gmeow-english ;
     skos:example "ex:countryLevel gmeow:coarserThan ex:cityLevel ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for ordering ordinary quantitative values (that is a measurement, not a granularity level) and avoid wiring it between domains' ladders without an explicit cross-domain alignment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -731,21 +731,21 @@ gmeow:frameCardinality
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "frame cardinality"@x-gmeow-english ;
-    skos:definition "Optional cardinality override for a gmeow:requiresFrame declaration: \"exactly-one\" or \"at-least-one\". Absent, the cardinality is derived from the frame property's character — owl:FunctionalProperty means exactly one, otherwise at least one. The override exists for carriers whose frame property is logically non-functional (the property serves several carrier classes with different multiplicities) but whose instances each live in a single frame, e.g. gmeow:Pose."@x-gmeow-english ;
+    skos:definition "Optional cardinality override for a gmeow:requiresFrame declaration: \"exactly-one\" or \"at-least-one\". Absent, the cardinality is derived from the frame property's character — owl:FunctionalProperty means exactly one, otherwise at least one. The override exists for carriers whose frame property is logically non-functional (the property serves several carrier classes with different multiplicities) but whose instances each live in a single frame, e.g. gmeow:Pose. It overrides the DECLARATION only: it does not change the frame property's OWL character and never makes a non-functional property functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ruleSeverity
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "rule severity"@x-gmeow-english ;
-    skos:definition "Declares whether a harvested rule or a generated shape is binding or advisory. \"binding\" (the default when absent) is compliance: a broken rule is a violation, projected as sh:Violation in the SHACL lane and an error finding in the diagnostic lane. \"advisory\" is advice: a recommendation the consumer may decline, projected as sh:Warning in the SHACL lane and a note finding in the diagnostic lane. Use \"advisory\" while a module's data corpus is still being brought up to a rule's expectations. Any other value is rejected."@x-gmeow-english ;
+    skos:definition "Declares whether a harvested rule or a generated shape is binding or advisory. \"binding\" (the default when absent) is compliance: a broken rule is a violation, projected as sh:Violation in the SHACL lane and an error finding in the diagnostic lane. \"advisory\" is advice: a recommendation the consumer may decline, projected as sh:Warning in the SHACL lane and a note finding in the diagnostic lane. Use \"advisory\" while a module's data corpus is still being brought up to a rule's expectations. It grades the CONSEQUENCE of a broken rule, not the rule's logical content, and it is never a way to switch a rule off: an advisory rule still runs and still reports. Any other value is rejected."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:generalizesVia
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "generalizes via"@x-gmeow-english ;
-    skos:definition "Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, keeping the core OWL 2 DL."@x-gmeow-english ;
+    skos:definition "Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, so it is not read by the reasoner and never entails a parthood edge; the core stays OWL 2 DL."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 
@@ -753,7 +753,7 @@ gmeow:guideBlob
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "guide blob"@x-gmeow-english ;
-    skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide in an external documentation projection. The value is the blob digest string; documentation payloads and these references are excluded from the logical GTS bundle, while an external projection may preserve the linkage under its own hash chain (Principle 7)."@x-gmeow-english ;
+    skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide in an external documentation projection. The value is the blob digest string, not the narrative payload itself; documentation payloads and these references are excluded from the logical GTS bundle, while an external projection may preserve the linkage under its own hash chain (Principle 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxRBox .
 
@@ -815,7 +815,7 @@ gmeow:hasPart
     rdfs:label "has part"@x-gmeow-english ;
     logic:instantiatesFramework logic:MereologicalFramework ;
     owl:inverseOf gmeow:partOf ;
-    skos:definition "Universal whole-to-part inverse of gmeow:partOf. Transitive and intentionally broad; specialized component and containment properties remain the authoritative source for domain-specific meaning."@x-gmeow-english ;
+    skos:definition "Universal whole-to-part inverse of gmeow:partOf. Transitive and intentionally broad; specialized component and containment properties remain the authoritative source for domain-specific meaning. It is not class subsumption (that is logic:subClassOf) and asserts no domain or range."@x-gmeow-english ;
     skos:example "ex:car gmeow:hasPart ex:engine ."@x-gmeow-english ;
     skos:scopeNote "Generic has-part is a query/projection convenience, not a single privileged decomposition model. Consumers that need spatial, organizational, event or information-object semantics should use the corresponding specialized subproperty."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting gmeow:hasPart directly when a domain subproperty exists; assert the specialized part relation (or its inverse) and let gmeow:hasPart follow by inheritance and inversion."@x-gmeow-english ;
@@ -886,7 +886,7 @@ gmeow:partOf
     rdfs:label "part of"@x-gmeow-english ;
     logic:instantiatesFramework logic:MereologicalFramework ;
     owl:inverseOf gmeow:hasPart ;
-    skos:definition "Universal part-to-whole relation: relates any GMEOW thing to a larger whole it is part of. Transitive and intentionally broad; use specialized subproperties such as gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread or module-specific component properties when the kind of parthood matters. No domain/range is asserted so event, location, information-object and endurant parthood all remain possible in OWL 2 DL."@x-gmeow-english ;
+    skos:definition "Universal part-to-whole relation: relates any GMEOW thing to a larger whole it is part of. Transitive and intentionally broad; it is not itself a claim about the KIND of parthood — use specialized subproperties such as gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread or module-specific component properties when the kind of parthood matters. No domain/range is asserted so event, location, information-object and endurant parthood all remain possible in OWL 2 DL."@x-gmeow-english ;
     skos:example "ex:engine gmeow:partOf ex:car ."@x-gmeow-english ;
     skos:scopeNote "No cardinality, functionality, asymmetry or irreflexivity is asserted on this transitive property. Proper-part, direct-part and time-scoped mutable parthood must be modelled with narrower simple properties or relators when needed."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the kind of parthood matters — use a narrower subproperty (gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread) — and avoid relying on proper-part, direct-part, or asymmetry semantics, none of which are asserted here."@x-gmeow-english ;
@@ -995,7 +995,7 @@ gmeow:useWhen
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "use when"@x-gmeow-english ;
     rdfs:subPropertyOf skos:scopeNote ;
-    skos:definition "Term-level advisory metadata naming the modeling situation in which a class, property, individual, or slice-level construct should be used. A narrower, machine-addressable form of skos:scopeNote for the WHEN facet; it has no logical force and is consumed by describe, docs, validation, and projection guidance tooling."@x-gmeow-english ;
+    skos:definition "Term-level advisory metadata naming the modeling situation in which a class, property, individual, or slice-level construct should be used. A narrower, machine-addressable form of skos:scopeNote for the WHEN facet; it has no logical force — it is not a constraint and never narrows a term's extension — and is consumed by describe, docs, validation, and projection guidance tooling."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useForConsumer gmeow:consumerAdviceCatalog .
 

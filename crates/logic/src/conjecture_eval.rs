@@ -269,7 +269,7 @@ pub fn evaluate_conjecture_eval(
         }));
     }
     let verdict_input = ConjectureVerdictInput {
-        content_key: &content_key,
+        content_key: content_key.as_str(),
         standpoint: input.standpoint,
         kb_world: &kb_world,
         answer: &answer,
@@ -312,7 +312,7 @@ pub fn evaluate_conjecture_eval(
         witness,
         node_iri,
         verdict_nt,
-        content_key,
+        content_key: content_key.into_string(),
     })
 }
 
