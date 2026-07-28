@@ -2302,22 +2302,6 @@ mod tests {
             .collect()
     }
 
-    /// **The variant-liveness test.** For every [`MathLoweringError`] variant,
-    /// at least one committed `slices/grounding/math/tests/counter-examples/*.ttl` fixture
-    /// must actually produce it through the REAL production entry point
-    /// [`math_expression_structural_keys`] — the SAME function
-    /// [`crate::math_expression::check_math_expression_findings`] calls over the frozen
-    /// reasoned graph. A hand-built [`MathLoweringError`] sample (as
-    /// [`sample_variants`] provides for the failure-class bucketing property) proves the
-    /// variant COMPILES and has a class; it does NOT prove the variant is REACHABLE from
-    /// authored data. Without this test, an unreachable variant is a phantom failure class
-    /// the charter would report as enforced when no fixture on disk can ever raise it — the
-    /// gap this test exists to close (the classes minted in Rust but authored nowhere, `CyclicExpressionGraph` /
-    /// `ExpressionDepthExceeded`, shipped with exactly this gap until their fixtures landed).
-    ///
-    /// No allowlist, no skip-set: a variant absent from EVERY fixture's produced errors
-    /// fails the test by name, never silently passes.
-    #[test]
     /// The committed depth fixture is TIED to [`MAX_MATH_EXPRESSION_DEPTH`], not to a number
     /// someone typed once.
     ///
@@ -2342,6 +2326,22 @@ mod tests {
         );
     }
 
+    /// **The variant-liveness test.** For every [`MathLoweringError`] variant,
+    /// at least one committed `slices/grounding/math/tests/counter-examples/*.ttl` fixture
+    /// must actually produce it through the REAL production entry point
+    /// [`math_expression_structural_keys`] — the SAME function
+    /// [`crate::math_expression::check_math_expression_findings`] calls over the frozen
+    /// reasoned graph. A hand-built [`MathLoweringError`] sample (as
+    /// [`sample_variants`] provides for the failure-class bucketing property) proves the
+    /// variant COMPILES and has a class; it does NOT prove the variant is REACHABLE from
+    /// authored data. Without this test, an unreachable variant is a phantom failure class
+    /// the charter would report as enforced when no fixture on disk can ever raise it — the
+    /// gap this test exists to close (the classes minted in Rust but authored nowhere, `CyclicExpressionGraph` /
+    /// `ExpressionDepthExceeded`, shipped with exactly this gap until their fixtures landed).
+    ///
+    /// No allowlist, no skip-set: a variant absent from EVERY fixture's produced errors
+    /// fails the test by name, never silently passes.
+    #[test]
     fn every_math_lowering_error_variant_is_produced_by_a_committed_fixture() {
         let fixtures = counter_example_fixtures();
         assert!(
