@@ -105,7 +105,7 @@ The partition is read off the **asserted** types:
 - **6 governed writes** (`logic:McpActionSchema`) — `store_claim` ⇄ `revise_belief`,
   `store_conjecture` ⇄ `refute_conjecture`, `submit_candidate` ⇄ `withdraw_candidate`.
   Each pair is its own compensation: the rollback is supersession, never erasure (P10).
-- **29 reads** (plain `logic:ActionSchema`) — capability + precondition, but **no**
+- **31 reads** (plain `logic:ActionSchema`) — capability + precondition, but **no**
   `logic:effect` and **no** `logic:compensation`, because a read changes no state.
   `conjecture_test` is the instructive one: it runs the same isolated-world evaluation
   as `store_conjecture` but never commits, so evaluation is not commitment and it stays

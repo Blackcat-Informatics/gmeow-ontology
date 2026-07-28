@@ -165,6 +165,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "acceptance",
         "reason-verify",
         "wasm-parity",
+        "console-test",
         "lint-alignment",
         "i18n-lint",
         "doc-lint",

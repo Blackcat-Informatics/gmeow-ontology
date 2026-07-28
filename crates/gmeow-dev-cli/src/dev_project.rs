@@ -73,6 +73,37 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     status.exit_code()
 }
 
+/// The repo-relative member the curated conjecture demo library rides under in the
+/// bundle's `examples-archive` — the same path it occupies in the working tree, because
+/// [`REP_EXAMPLES`](gmeow_pipeline::bundle_blobs::REP_EXAMPLES) keys members repo-relative.
+pub(crate) const CONJECTURE_LIBRARY_MEMBER: &str =
+    "slices/grounding/logic/examples/conjectures.ttl";
+
+/// Read the curated `logic:Conjecture` demo library out of a `gmeow.gts` snapshot.
+///
+/// The bundle is the source; the working tree is not consulted. A snapshot that predates
+/// the examples fold is a hard failure naming the regenerate that produces it, so a stale
+/// local bundle is reported rather than silently papered over with the disk copy.
+fn bundled_conjecture_library(snapshot: &[u8]) -> Result<Vec<u8>, i32> {
+    let bundle = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(snapshot)
+        .map_err(|e| fail(format!("cannot read bundle blobs: {e}")))?;
+    let examples = bundle
+        .examples()
+        .map_err(|e| fail(format!("cannot read the bundle's examples archive: {e}")))?;
+    examples
+        .get(CONJECTURE_LIBRARY_MEMBER)
+        .cloned()
+        .ok_or_else(|| {
+            fail(format!(
+                "the bundle carries no {CONJECTURE_LIBRARY_MEMBER} member in its examples \
+                 archive — the curated conjecture demo library is a mandatory site sub-asset, \
+                 and this snapshot predates the examples fold. Run `make regen` to \
+                 re-materialize generated/dist/gmeow.gts; the disk copy is NOT a fallback \
+                 (reading it is what let the bundle and the rendered playground diverge)."
+            ))
+        })
+}
+
 /// Build the site render's [`gmeow_docs::ExecutableDocsData`] from the committed
 /// `gmeow.gts` bundle: its `playground_trig` is `documentation graph ∪ reasoned closure
 /// ∪ the chase-invented-null witness subgraph`, so the shipped SPARQL playground page
@@ -99,17 +130,20 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
     let core_bundle_nquads = gmeow_validate::store::core_browser_bundle_nquads(&bytes, &[])
         .map_err(|e| fail(format!("cannot build core browser bundle from bundle: {e}")))?
         .into_bytes();
-    // The W4 conjecture-playground demo library: the committed curated
-    // `logic:Conjecture` corpus, shipped verbatim as a site sub-asset. No-optionality —
-    // a missing example is a HARD FAIL (never a silently empty playground); the release
-    // path also hard-fails on an empty declared `ConjectureDemo` sub-asset.
-    let conjectures_path = root.join("slices/grounding/logic/examples/conjectures.ttl");
-    let conjectures_ttl = std::fs::read(&conjectures_path).map_err(|e| {
-        fail(format!(
-            "cannot read committed conjecture demo library {}: {e}",
-            conjectures_path.display()
-        ))
-    })?;
+    // The W4 conjecture-playground demo library: the curated `logic:Conjecture` corpus,
+    // read OUT OF THE BUNDLE (the `examples-archive` blob), not off disk.
+    //
+    // It used to be a `std::fs::read` of the slice source. That made the shipped
+    // `gmeow.gts` an incomplete carrier of its own documentation surface: the site render
+    // needed a file the bundle did not contain, so a repo-free render was impossible and
+    // the bundle and the rendered playground could disagree with nothing to catch it. The
+    // corpus is now folded into the bundle by `stage-snapshot` and read back here through
+    // the ONE bundle reader.
+    //
+    // No-optionality: a bundle with no such member is a HARD FAIL naming the regenerate
+    // that folds it — never a fallback to the disk copy, which would restore exactly the
+    // divergence this removes.
+    let conjectures_ttl = bundled_conjecture_library(&bytes)?;
     Ok(gmeow_docs::ExecutableDocsData {
         playground_trig,
         core_bundle_nquads,
@@ -117,6 +151,97 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
         conjectures_ttl,
         ..Default::default()
     })
+}
+
+/// The output bases `console-assemble` REFUSES to write into.
+///
+/// Both are materialized by exactly one writer — `make regen SYNC_OUTPUTS=docs` — which
+/// reconciles them as whole trees. A second command dropping a partial console tree into
+/// either would look like drift to the reconciler and would be silently reverted, or worse
+/// would be reconciled AWAY along with real output. Refusing is the honest behaviour, and
+/// the refusal names the one writer so the reader knows what to run instead.
+pub(crate) const CONSOLE_REFUSED_BASES: &[&str] = &["ontology-docs", "dist/gmeow-docs"];
+
+/// The single writer of the refused bases, named in every refusal.
+pub(crate) const CONSOLE_REFUSAL_WRITER: &str = "make regen SYNC_OUTPUTS=docs";
+
+/// Whether `out` is equal to, or inside, one of [`CONSOLE_REFUSED_BASES`].
+///
+/// Compared on NORMALIZED path components (no string prefix matching), so
+/// `ontology-docs`, `./ontology-docs/console`, and an absolute path under the repo's
+/// `ontology-docs/` all refuse, while a sibling like `ontology-docs-scratch` does not.
+#[must_use]
+pub(crate) fn console_out_is_refused(root: &Path, out: &Path) -> Option<&'static str> {
+    let absolute = if out.is_absolute() {
+        out.to_path_buf()
+    } else {
+        root.join(out)
+    };
+    // Normalize away `.` and `..` without touching the filesystem (the directory need not
+    // exist yet, so `canonicalize` is not available).
+    let mut parts: Vec<std::ffi::OsString> = Vec::new();
+    for component in absolute.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                parts.pop();
+            }
+            other => parts.push(other.as_os_str().to_os_string()),
+        }
+    }
+    let normalized: std::path::PathBuf = parts.iter().collect();
+    CONSOLE_REFUSED_BASES
+        .iter()
+        .find(|base| normalized.starts_with(root.join(base)))
+        .copied()
+}
+
+/// `gmeow-dev console-assemble --out <dir>` — write the standalone console tree.
+///
+/// The tree is [`gmeow_docs::console_files`] over the SAME `exec`
+/// ([`playground_exec_from_bundle`]) the site render uses, so the assembled console and
+/// the site's `console/` subtree are the identical bytes by construction rather than by
+/// a copy step.
+pub fn console_assemble(out: &Path) -> i32 {
+    let root = project_root();
+    if let Some(base) = console_out_is_refused(&root, out) {
+        return fail_code(
+            format!(
+                "refusing to write the console into {} (it is {base}/ or inside it): that base has \
+                 exactly one writer, `{CONSOLE_REFUSAL_WRITER}`, which reconciles it as a whole \
+                 tree. Choose a scratch --out (the pinned default is dist/console-smoke).",
+                out.display()
+            ),
+            2,
+        );
+    }
+    let exec = match playground_exec_from_bundle(&root) {
+        Ok(exec) => exec,
+        Err(code) => return code,
+    };
+    let files = gmeow_docs::console_files(&exec);
+    if files.is_empty() {
+        return fail(
+            "the console assembled to zero files — the bundle-backed exec is not interactive, so \
+             there is no engine to ship (a console without its engine is broken, not smaller)"
+                .to_string(),
+        );
+    }
+    let site = gmeow_docs::Site { files };
+    match gmeow_docs::render::write_site(&site, out) {
+        Ok(written) => {
+            note(
+                "gmeow-dev.console.assembled",
+                format!("{} files under {}", written.len(), out.display()),
+            );
+            println!("{}", out.join("console/index.html").display());
+            0
+        }
+        Err(e) => fail(format!(
+            "cannot write the console tree to {}: {e}",
+            out.display()
+        )),
+    }
 }
 
 /// Render every external documentation projection once for `gmeow-dev sync`.

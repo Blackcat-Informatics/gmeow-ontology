@@ -90,13 +90,22 @@ const FULL_BUNDLE_GTS_PATH: &str = "assets/gmeow.gts";
 /// function of the emitted asset bytes.
 const BUNDLE_MANIFEST_PATH: &str = "assets/bundle-manifest.json";
 
-/// The site-relative path of the docs controller module (SPARQL playground query
-/// execution + result transcoding). A self-contained ES module.
-const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
+/// The site-relative path of the docs controller module — the page wiring for every
+/// interactive documentation widget (validate buttons, explorer, entailment, conjecture,
+/// GMN transcode, SPARQL playground). A self-contained ES module.
+pub(crate) const DOCS_CONTROLLER_PATH: &str = "assets/docs-controller.mjs";
 
-/// The embedded docs controller module, emitted to [`DOCS_JS_PATH`] when the
-/// playground is present.
-const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
+/// The embedded docs controller module, emitted to [`DOCS_CONTROLLER_PATH`].
+const DOCS_CONTROLLER: &str = include_str!("../assets/docs-controller.mjs");
+
+/// The site-relative path of the shared MCP transport — the ONE place the engine boot,
+/// the JSON-RPC frame shape and the reasoning-segment demand loading live. Both the docs
+/// controller and the standalone console's engine worker import it, so there is exactly
+/// one transport rather than one per surface.
+pub(crate) const MCP_TRANSPORT_PATH: &str = "assets/mcp-transport.mjs";
+
+/// The embedded shared MCP transport, emitted to [`MCP_TRANSPORT_PATH`].
+const MCP_TRANSPORT: &str = include_str!("../assets/mcp-transport.mjs");
 
 /// The vendored wasm engines emitted under `assets/<name>/` when the playground is present:
 /// the offline SPARQL runtime (purrdf) and the console's two MCP segments.
@@ -531,7 +540,11 @@ pub fn render_site_lang_exec_with_diagrams(
     // here and the packed mdbook ([`crate::mdbook`]) draw from, so the book ships the
     // byte-identical engines the site's witness lanes prove. Language-independent,
     // emitted only in the English tree (see the gate above).
-    files.extend(interactive_asset_files(exec));
+    // The standalone console tree: the `console/…` shell PLUS every interactive asset
+    // key (`crate::console::console_files` folds `interactive_asset_files` in itself, so
+    // the two surfaces cannot ship different engine bytes). Empty for a non-interactive
+    // render, so a model-only site is byte-unchanged.
+    files.extend(crate::console::console_files(exec));
 
     // The offline SPARQL playground page. Term/slice export runs through this same
     // engine + asset via `DESCRIBE`, so no static export files are needed.
@@ -747,12 +760,19 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
 /// same map under the book `src/` tree, so both surfaces carry byte-identical engines —
 /// the ones the native↔wasm witness lanes prove. Empty when the render is neither
 /// playground- nor bundle-backed.
-pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
+pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     if !exec.has_playground() && !exec.has_bundle() && !exec.has_conjectures() {
         return files;
     }
-    files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
+    files.insert(
+        DOCS_CONTROLLER_PATH.to_string(),
+        DOCS_CONTROLLER.as_bytes().to_vec(),
+    );
+    files.insert(
+        MCP_TRANSPORT_PATH.to_string(),
+        MCP_TRANSPORT.as_bytes().to_vec(),
+    );
     for asset in VENDORED_WASM_ASSETS {
         asset.emit_into(&mut files);
     }
@@ -784,6 +804,39 @@ pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<Str
         files.insert(CONJECTURES_PATH.to_string(), exec.conjectures_ttl.clone());
     }
     files
+}
+
+/// Whether an exec-backed render ships the interactive engines at all.
+///
+/// The SAME predicate [`interactive_asset_files`] gates its emission on, named once so a
+/// caller asking "is the controller reachable from this render?" cannot answer it with a
+/// different disjunction.
+#[must_use]
+pub fn interactive_assets_ship(exec: &ExecutableDocsData) -> bool {
+    exec.has_playground() || exec.has_bundle() || exec.has_conjectures()
+}
+
+/// The DOM hooks the documentation controller binds to.
+///
+/// This is the single inventory of "a page carries an interactive control", read by the
+/// script-injection gate. It mirrors the `document.querySelector`/`getElementById` targets
+/// in `assets/docs-controller.mjs`; a widget that added a hook without adding it here
+/// would render a control with no controller, which is exactly the defect the derived gate
+/// exists to prevent — so the shell-agreement test asserts the two shells activate the
+/// same control set.
+pub(crate) const CONTROLLER_HOOKS: &[&str] = &[
+    "gmeow-run-validation",
+    "id=\"gmeow-explorer-form\"",
+    "id=\"gmeow-reason-form\"",
+    "id=\"gmeow-conjecture-form\"",
+    "id=\"gmeow-gmn-form\"",
+    "id=\"gmeow-sparql\"",
+];
+
+/// Whether a rendered body carries any control the documentation controller drives.
+#[must_use]
+pub fn body_carries_interactive_control(body: &str) -> bool {
+    CONTROLLER_HOOKS.iter().any(|hook| body.contains(hook))
 }
 
 /// The full, deterministically ordered page set for the model.
@@ -1119,7 +1172,7 @@ fn append_term_export_section(
 
 /// The offline SPARQL playground page.
 /// The bundle explorer page: browser `gmeow info`/`describe` over the object-level
-/// core bundle. The controller (`gmeow-docs.js`) loads the core N-Quads via the
+/// core bundle. The controller (`assets/docs-controller.mjs`) loads the core N-Quads via the
 /// shared loader, shows the bundle's `info` summary on boot, and runs a client-side
 /// `DESCRIBE` for the entered term IRI — the same describe the native `gmeow describe`
 /// produces, proven byte-identical by the F2 witness lane.
@@ -1202,13 +1255,15 @@ gmeow:gate1 gmeow:statusLabel &quot;open&quot; .</textarea>\n\
     out
 }
 
-/// The conjecture playground page (the WASM-interactive docs W4 deliverable): the browser SYMMETRIC conjecture /
-/// anti-conjecture engine. The controller (`gmeow-docs.js`) fetches + byte-verifies the
-/// curated demo library, loads the core bundle as the KB, and — on submit — runs the
-/// vendored wasm `conjecture` export (the SAME native `logic:` reasoner, proven
-/// byte-identical by the W4 conjecture witness lane), then renders BOTH legs of the test:
-/// the proof leg (`KB ⊨ φ`), the counterproof leg (`KB ∪ {φ} ⊨ ⊥`) with its contradiction
-/// witness, and the Belnap classification.
+/// The conjecture playground page (the WASM-interactive docs W4 deliverable): the browser
+/// SYMMETRIC conjecture / anti-conjecture engine. The controller
+/// (`assets/docs-controller.mjs`) fetches the curated demo library, byte-verifies it
+/// against the bundle manifest, transcodes it through the engine's own `convert` tool and
+/// PARSES it — the selector's entries are exactly the library's `logic:Conjecture`
+/// individuals. For each it renders the recorded Belnap lifecycle and both symmetric legs,
+/// the contradiction witness for a refutation, and the anti-conjecture obligation; when a
+/// record links a runnable `logic:Formula` AST (`logic:hasFormula`) it additionally runs
+/// the live symmetric engine through `conjecture_test`.
 fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "Conjecture playground");
@@ -1225,9 +1280,10 @@ fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> Str
          to native — proven by the conjecture witness lane).",
     );
     // The interactive form (raw HTML passes through the Markdown → HTML step). The
-    // controller script is injected per page by the HTML shell (gated on
-    // `has_conjectures()`); it populates the selector from the curated demo library and
-    // renders the symmetric verdict.
+    // controller script is injected because this body carries a control the controller
+    // binds to; it populates the selector by PARSING the curated demo library — one option
+    // per shipped `logic:Conjecture`, never a hand-written demo list — and renders each
+    // entry's recorded symmetric verdict.
     out.push_str(
         "<div id=\"gmeow-conjecture\" class=\"gmeow-conjecture\">\n\
          <p id=\"gmeow-conjecture-status\" class=\"gmeow-conjecture-status\">Loading the \
@@ -1245,7 +1301,9 @@ fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> Str
     // Belnap-to-lifecycle projection (open, corroborated, refuted-in-standpoint with a
     // contradiction witness + symmetric anti-conjecture leg, a Lakatos refinement
     // successor, and a phi-entails-psi propagation pair). The controller fetches this exact
-    // asset (`assets/conjectures.ttl`) and byte-verifies it against the bundle manifest.
+    // asset (`assets/conjectures.ttl`), byte-verifies it against the bundle manifest, and
+    // derives the selector from it — so the rendered library and the offered demos are the
+    // same six by construction.
     heading(&mut out, 2, "The curated conjecture library");
     line(
         &mut out,
@@ -1289,6 +1347,16 @@ fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
         "SELECT and ASK return a results table; CONSTRUCT and DESCRIBE return a graph you \
          can copy in any RDF serialization. A `SERVICE` or `LOAD` clause fails offline — \
          there is no remote endpoint to reach.",
+    );
+    // The standalone console is the same engine with the WHOLE read tool surface, not just
+    // this one query widget — so the playground names it rather than leaving the reader to
+    // discover it from the nav.
+    line(
+        &mut out,
+        "For the whole shipped agent surface — validate, reason, transcode, query, the \
+         round-trip loss lattice and a recorded session you can export — open the \
+         [standalone console](../console/index.html). It runs the same engine offline, in \
+         its own shell.",
     );
 
     // Surface any reasoner inferences that could not be attributed to a single worked
@@ -6453,20 +6521,49 @@ pub(crate) fn to_html_lang_exec_with_map(
             &label("nav_sparql", "SPARQL"),
         ));
     }
+    // The bundle explorer and the conjecture playground are rendered pages of the static
+    // site (see `render_site_lang_exec_with_diagrams`), but they were reachable only from
+    // an mdbook table of contents — the static site emitted them and then linked to
+    // neither. Each joins the nav under exactly the gate that emits its page, so the nav
+    // entry and the page can never disagree.
+    if exec.has_bundle() {
+        nav.push(nav_item(
+            &root,
+            &Page::BundleExplorer.dir(),
+            &label("nav_explorer", "Explorer"),
+        ));
+    }
+    if exec.has_conjectures() {
+        nav.push(nav_item(
+            &root,
+            &Page::ConjecturePlayground.dir(),
+            &label("nav_conjectures", "Conjectures"),
+        ));
+    }
+    // The standalone console — the same tool surface, in its own shell. Emitted by
+    // `crate::console::console_files` under exactly the gate that ships the engines.
+    if exec.has_playground() || exec.has_bundle() || exec.has_conjectures() {
+        nav.push(nav_item(&root, "console", &label("nav_console", "Console")));
+    }
 
     let page_lang = if lang == ENGLISH { "en" } else { lang };
 
-    // The playground page loads the controller module (query execution + result
-    // transcoding). Empty for every other page and every model-only render, so the
-    // shell's `body_scripts` slot is byte-neutral there.
-    let body_scripts = if (matches!(page, Page::SparqlPlayground) && exec.has_playground())
-        || (matches!(page, Page::BundleExplorer) && exec.has_bundle())
-        || (matches!(page, Page::ConjecturePlayground) && exec.has_conjectures())
-    {
-        format!("<script type=\"module\" src=\"{root}{DOCS_JS_PATH}\"></script>\n")
-    } else {
-        String::new()
-    };
+    // The controller module is injected into exactly the pages that CARRY a control it
+    // drives — derived from the rendered body, never from a page list.
+    //
+    // This used to be a three-page match. Term pages emit `.gmeow-run-validation`
+    // controls whenever `has_bundle()` (see `md_term`'s conformance-examples section) but
+    // were not in that match, so on the static site every fixture's "run validation"
+    // button was inert while under mdbook — which injects the boot shim on EVERY chapter
+    // through `additional-js` — the identical button worked. Two shells, two behaviours,
+    // from one asymmetry. Deriving the gate from the body closes it by construction: a
+    // control can no longer ship to a page with no controller, in either shell.
+    let body_scripts =
+        if interactive_assets_ship(exec) && body_carries_interactive_control(&body_html) {
+            format!("<script type=\"module\" src=\"{root}{DOCS_CONTROLLER_PATH}\"></script>\n")
+        } else {
+            String::new()
+        };
 
     let tmpl = shell_env()
         .get_template("shell")
@@ -8858,7 +8955,7 @@ mod tests {
 
         // Playground page + its assets (incl. the vendored purrdf engine) are present.
         assert!(site.files.contains_key("sparql/index.html"));
-        assert!(site.files.contains_key(DOCS_JS_PATH));
+        assert!(site.files.contains_key(DOCS_CONTROLLER_PATH));
         assert!(
             site.files
                 .contains_key("assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
@@ -8876,7 +8973,7 @@ mod tests {
             "the query form renders"
         );
         assert!(
-            sparql.contains(DOCS_JS_PATH),
+            sparql.contains(DOCS_CONTROLLER_PATH),
             "the playground page loads the controller module"
         );
         assert!(sparql.contains("SPARQL"), "the SPARQL nav entry is present");

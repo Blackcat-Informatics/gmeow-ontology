@@ -54,7 +54,14 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
     let has = |p: &str| site.files.contains_key(p);
 
     // The shared controller + every vendored engine, under src/ so mdbook copies them.
-    assert!(has("src/assets/gmeow-docs.js"), "controller not packed");
+    assert!(
+        has("src/assets/docs-controller.mjs"),
+        "controller not packed"
+    );
+    assert!(
+        has("src/assets/mcp-transport.mjs"),
+        "shared transport not packed"
+    );
     for engine in [
         "src/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm",
         "src/assets/mcp-core/index.mjs",
@@ -77,7 +84,7 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
     let shim = site.files.get("mdbook-boot.js").expect("boot shim present");
     let shim = String::from_utf8(shim.clone()).unwrap();
     assert!(
-        shim.contains("import(new URL(\"assets/gmeow-docs.js\""),
+        shim.contains("import(new URL(\"assets/docs-controller.mjs\""),
         "boot shim must dynamic-import the controller: {shim}"
     );
 

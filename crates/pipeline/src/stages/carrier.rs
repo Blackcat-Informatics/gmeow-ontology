@@ -1818,6 +1818,10 @@ const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
 const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
+/// tar of the slice worked-example sources, member = repo-relative path. Re-exported
+/// from the reader-side definition in [`crate::bundle_blobs`] so producer and reader
+/// share ONE constant (a drifted label would silently fold/read an empty archive).
+pub(crate) use crate::bundle_blobs::REP_EXAMPLES;
 /// tar of the SHACL-derived JSON Schema + OpenAPI, member = bare filename.
 const REP_SCHEMAS: &str = "schemas-archive";
 /// tar of the generated Pydantic model package, member = package-relative path
@@ -1977,6 +1981,23 @@ fn build_archive_blobs(
     // tests: slices/*/*/tests/*.ttl (non-recursive), member = repo-relative path.
     let mut tests = members_relpath(root, &slice_files(root, "tests")?)?;
     tests.sort_by(|a, b| a.0.cmp(&b.0));
+    // examples: slices/*/*/examples/*.ttl (non-recursive), member = repo-relative path.
+    // These are the authored worked corpora a repo-free consumer still needs — the browser
+    // conjecture playground's curated `logic:Conjecture` library above all, which was
+    // previously read off DISK by the docs fanout, making a repo-free render impossible and
+    // the shipped bundle an incomplete carrier of its own documentation surface. They ride
+    // as a blob, never as a named graph: they are positional `ex:` individuals that must
+    // stay out of the base graph and the reasoned closure.
+    let mut examples = members_relpath(root, &slice_files(root, "examples")?)?;
+    examples.sort_by(|a, b| a.0.cmp(&b.0));
+    // Fail closed: the repository ships worked examples, so an empty match means the
+    // enumeration broke, and folding an empty archive would silently strip the corpus.
+    if examples.is_empty() {
+        return Err(stage_err(
+            "no slices/*/*/examples/*.ttl sources found — the examples archive would fold \
+             empty (fail-closed)",
+        ));
+    }
     // shapes: the FULL SHACL surface, member = repo-relative path —
     // shapes/*.ttl (authored source) + the four generated/shapes/*.ttl members
     // (product-sourced below, P11 fail-closed) + slices/<g>/<n>/shapes.ttl. Carried
@@ -2091,6 +2112,7 @@ fn build_archive_blobs(
         archive_blob(REP_CELLS, &cells)?,
         archive_blob(REP_QUERIES, &queries)?,
         archive_blob(REP_TESTS, &tests)?,
+        archive_blob(REP_EXAMPLES, &examples)?,
         archive_blob(REP_SCHEMAS, &schemas)?,
         archive_blob(REP_SHAPES, &shapes)?,
         archive_blob(REP_AXIOMS, &axioms)?,

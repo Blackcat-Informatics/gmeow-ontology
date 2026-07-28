@@ -18,6 +18,11 @@ CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
 GTS_OUT ?= dist/gmeow.gts
+# Where `make console-assemble` writes the standalone <gmeow-console> tree. A SCRATCH
+# base by design: `gmeow-dev console-assemble` REFUSES an --out equal to or inside
+# `ontology-docs/` or `dist/gmeow-docs/`, because those have exactly one writer —
+# `make regen SYNC_OUTPUTS=docs` — which reconciles them as whole trees.
+CONSOLE_OUT ?= dist/console-smoke
 PERF_DIR ?= dist/perf
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
@@ -76,6 +81,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
+	console-test console-assemble \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
@@ -607,6 +613,26 @@ mcp-core-wasm-pkg-test: mcp-core-wasm-pkg mcp-wasm-pkg ## Build the lean core np
 	@# engine directly. A stubbed segment would prove nothing about re-dispatch.
 	cd crates/mcp-core-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-mcp-core-wasm Node parity + demand-load lane passed"
+
+console-test: ## Run the standalone console's DOM-free acceptance lane against the shipped wasm engine.
+	@# The seven named assertions. They drive the SHIPPED `crates/docs/assets/mcp-core/`
+	@# image over the SHIPPED `generated/dist/gmeow.gts` — no browser, no mocks. Locally
+	@# this SKIPs when node is absent; CI hard-fails, so the console's derived surface is
+	@# never silently unverified on the gating path. (The shell-agreement assertion and the
+	@# producer's byte-identity assertions are Rust tests and ride `rust-gate`.)
+	@if command -v node >/dev/null 2>&1; then \
+		cd crates/docs/assets/console && node --test tests/*.test.mjs; \
+	elif [ -n "$${CI:-}" ]; then \
+		echo "FAIL: node absent in CI — the console acceptance lane cannot run; CI must install it"; exit 1; \
+	else \
+		echo "SKIP: node not installed (local only; CI hard-fails) — install node to run the console acceptance lane"; \
+	fi
+
+console-assemble: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) for local preview.
+	@# `gmeow-dev console-assemble` REFUSES an --out inside ontology-docs/ or
+	@# dist/gmeow-docs/ (one writer: `make regen SYNC_OUTPUTS=docs`), which is why
+	@# CONSOLE_OUT defaults to a scratch base.
+	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
 
 wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the five Node lanes that RUN the shipped wasm and assert byte-identity to native.
 	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the five `*-pkg-test`

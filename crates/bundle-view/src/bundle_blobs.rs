@@ -50,6 +50,17 @@ pub const REP_QUERIES: &str = "queries-archive";
 pub const REP_CELLS: &str = "cells-archive";
 /// tar of the slice test-DSL specs, keyed by repo-relative path.
 pub const REP_TESTS: &str = "tests-archive";
+/// tar of the slice worked-example sources (`slices/<group>/<name>/examples/*.ttl`),
+/// keyed by repo-relative path.
+///
+/// Worked examples are AUTHORED corpora that consumers legitimately need without the
+/// repository — the curated `logic:Conjecture` demo library the browser conjecture
+/// playground offers is one — but they are deliberately NOT ingested into the base graph
+/// (they are positional `ex:` individuals that must not enter the reasoned closure). A
+/// blob archive is exactly the right carriage for that: the bytes travel with the bundle
+/// while the statements stay out of the closure. Sibling of [`REP_CELLS`]/[`REP_TESTS`],
+/// which carry the mapping and test-DSL sources on the same terms.
+pub const REP_EXAMPLES: &str = "examples-archive";
 /// tar of the native reasoner's report artifacts (explanations + DL/EL ledger).
 pub const REP_REASONING: &str = "reasoning-archive";
 /// tar of the OKF (Open Knowledge Format) bundle.
@@ -265,6 +276,13 @@ impl Bundle {
     /// ([`REP_TESTS`]).
     pub fn tests(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
         self.archive(REP_TESTS)
+    }
+
+    /// Every folded slice worked-example source as `{repo-relative-path: ttl-bytes}`
+    /// ([`REP_EXAMPLES`]). Keys preserve the repo-relative path, so a repo-free consumer
+    /// asks for the exact file it would have read on disk.
+    pub fn examples(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+        self.archive(REP_EXAMPLES)
     }
 
     /// The native reasoner's report artifacts as `{member: ttl-bytes}`

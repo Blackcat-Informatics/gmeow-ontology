@@ -17,6 +17,7 @@
 //! The crate is native Rust throughout; lint and i18n consumers share the same
 //! typed model directly.
 
+pub mod console;
 pub mod fixture;
 pub mod lint;
 pub mod mdbook;
@@ -32,6 +33,7 @@ pub mod render;
 // `render` so the model half of this crate can use it without the renderer.
 pub mod vendored_asset;
 
+pub use console::{CONSOLE_PREFIX, console_files, generated_shell};
 pub use describe::{
     DescribeGraph, DescribeStatus, Resolution, build_card, describe, describe_dataset, resolve_term,
 };

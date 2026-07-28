@@ -3434,7 +3434,7 @@ fn builtin_resource_descriptors() -> Vec<Value> {
             "The canonical action theory governing the engine's whole tool surface, as \
                  N-Quads: one schema per advertised tool (tied by logic:mcpToolName), the 6 \
                  writes carrying logic:precondition / logic:effect / logic:compensation and \
-                 the 29 reads carrying logic:capability / logic:precondition — the resource \
+                 the 31 reads carrying logic:capability / logic:precondition — the resource \
                  twin of the `action_policy` tool.",
             ACTION_POLICY_MEDIA_TYPE,
         ),
@@ -4324,8 +4324,8 @@ impl McpServer {
     /// action and the `logic:capability` / `logic:precondition` structure of every read, plus
     /// the `logic:mcpToolName` wire name that ties each schema to the tool it governs, in
     /// [`TXN_WORLD`]. The theory is TOTAL over the surface — 6 governed writes
-    /// (`logic:McpActionSchema`) and 29 reads (plain `logic:ActionSchema`), bijective with the
-    /// 35 advertised tools, enforced by
+    /// (`logic:McpActionSchema`) and 31 reads (plain `logic:ActionSchema`), bijective with the
+    /// 37 advertised tools, enforced by
     /// `the_action_theory_is_bijective_with_the_consumer_tool_surface`. The tool returns THAT
     /// function's output verbatim — never a re-derivation off the embedded Turtle and never a
     /// second filter — so what an agent inspects is exactly what the engine obeys.

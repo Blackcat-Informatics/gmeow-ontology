@@ -651,6 +651,16 @@ jobs:
       - name: Native≡wasm parity — all three gmeow engines (make wasm-parity)
         run: make wasm-parity
 
+      # The standalone console's DOM-free acceptance lane. It drives the SHIPPED
+      # `crates/docs/assets/mcp-core/` wasm image over the materialized bundle and asserts
+      # the console's derived surface: the pane set read out of the shipped action policy,
+      # the recorded (never aborting) round-trip failure, the hard error on a missing
+      # asset, the RDF-1.2 quoted-triple session annotations, the conjecture selector
+      # against the shipped library, and the wasm export subset. It rides this job because
+      # it needs the same Node + materialized-bundle preconditions `wasm-parity` does.
+      - name: Standalone console acceptance (make console-test)
+        run: make console-test
+
   # Aggregator gate. Branch protection requires the "quality" context; this job
   # keeps that single required check stable while the work runs in parallel
   # above. `if: always()` guarantees it reports a definite success/failure

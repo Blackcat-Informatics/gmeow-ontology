@@ -131,6 +131,13 @@ pub enum Commands {
     /// three external-distribution design totals.
     #[command(name = "docs-measure")]
     DocsMeasure,
+    /// Assemble the standalone `<gmeow-console>` tree (shell + shared engine assets)
+    /// into a directory, off the same bundle-backed exec the site render uses.
+    #[command(name = "console-assemble")]
+    ConsoleAssemble {
+        #[arg(long = "out", default_value = "dist/console-smoke")]
+        out: PathBuf,
+    },
     /// Package the materialized `dist/gmeow-docs/` external documentation
     /// distribution into one deterministic content-addressed release asset,
     /// alongside a `.blake3` sidecar for the DCAT release manifest.
@@ -770,6 +777,7 @@ pub fn run() -> i32 {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
         }
         Commands::DocsMeasure => dev_docs_measure::docs_measure(),
+        Commands::ConsoleAssemble { out } => dev_project::console_assemble(&out),
         Commands::DocsPackage { out } => dev_docs_package::docs_package(&out),
         Commands::ReleaseBundle {
             out,

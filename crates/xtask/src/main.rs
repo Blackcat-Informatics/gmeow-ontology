@@ -77,6 +77,7 @@ const FINAL_DEPS: &[&str] = &[
     "acceptance",
     "reason-verify",
     "wasm-parity",
+    "console-test",
     "lint-alignment",
     "i18n-lint",
     "doc-lint",
@@ -149,6 +150,16 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "wasm-parity",
         target: "wasm-parity",
+        dependencies: AFTER_SYNC,
+    },
+    // The standalone console's DOM-free acceptance lane. It drives the SHIPPED wasm
+    // engine over the SHIPPED bundle, so it depends on the synchronized tree exactly as
+    // `wasm-parity` does; its assertions (the derived pane set, the recorded round-trip
+    // failure, the hard error on a missing asset, the quoted-triple annotations, the
+    // conjecture selector, the wasm export subset) are gate blockers, not a smoke test.
+    Task {
+        name: "console-test",
+        target: "console-test",
         dependencies: AFTER_SYNC,
     },
     Task {
