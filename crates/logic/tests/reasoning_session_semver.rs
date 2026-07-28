@@ -132,8 +132,14 @@ use session_common::*;
 /// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
 /// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
 /// changes (all additions are inert on it).
+/// Re-blessed for the enactment gate becoming live: `reason/enactment.rs` and
+/// `relational_core.rs` are folded engine-source axes, and the gate stopped being a stub
+/// (it now compiles `logic/module.ttl`'s 25 failure-class-bearing `logic:Constraint`s into
+/// violation rules and chases them), so their bytes — and the folded descriptor — move. The
+/// fixed edge-only input authors no enactment record, so no reasoning verdict on it changes;
+/// only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "51607dfeff8d949f49fc803bf05bfc754654f8e98db79e32015ce5d26e51fd99";
+    "4058d5820d0188a327eb34ce735e1d6f5bde8bf72a0e1649af614ecca948ac57";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -194,8 +200,11 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// choice between the two. It was recomputed from the merged engine rather than resolved by
 /// taking a side — taking a side here would pin a hash that no build actually produces, and the
 /// test would then fail for everyone on a value that looked deliberate.
+/// Re-blessed once more for the same reason as the engine descriptor above: the enactment
+/// gate stopped being a stub, moving two folded engine-source axes and therefore the
+/// fixed-input session identity with them.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "be93cea88f8f98ac8ad3f67420e691b566e9daacb2baa912ebd19b95343e1575";
+    "ad1542b330f0788b4027a462d1139f0142871bf03df28d4fa5b49731d599bfe0";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

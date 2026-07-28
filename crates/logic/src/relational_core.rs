@@ -28,7 +28,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::TermValue;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};
-use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm};
+use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm, RcViolationResidue};
 
 use crate::facts::sha1_hex;
 use crate::query_ir::{QBuiltin, QTerm};
@@ -299,6 +299,92 @@ pub(crate) fn lower_constraint_violation_rules(
         });
     }
     Ok(rules)
+}
+
+/// The compiled form of a program's ORDINARY (non-builtin-bound) `logic:Constraint`
+/// corpus: the violation rules that lowered, plus the flagged residue naming every
+/// constraint that did not and why.
+///
+/// The residue travels WITH the rules deliberately. A gate that reports "N laws compiled"
+/// while discarding the residue is reporting a number nobody can audit; carrying both lets
+/// the caller state the compiled fraction and name the shortfall.
+#[derive(Debug, Clone)]
+pub(crate) struct ViolationLowering {
+    /// The violation-emitting rules — one per consequent conjunct of every constraint
+    /// that lowered — in canonical (constraint-IRI, conjunct-index) order.
+    pub(crate) rules: Vec<EvalRule>,
+    /// Every `logic:Constraint` this lowering declined, with the closed reason token.
+    pub(crate) residue: Vec<RcViolationResidue>,
+}
+
+/// Lower `program`'s ordinary (non-builtin-bound) `logic:Constraint`s into
+/// VIOLATION-EMITTING [`EvalRule`]s: an antecedent-plus-negated-consequent body, and a
+/// head typing the focus variable with the constraint's `gmeow:enforcesFailureClass`.
+///
+/// The lane ([`gmeow_logic_compile::relational_core::lower_violation_constraints_to_rc`])
+/// owns the formula analysis; this function is the thin native bridge that maps the lane's
+/// binary [`RcAtom`]s to the engine's [`EvalAtom`]s and mints the rule identity.
+///
+/// No `rdfs:seeAlso` reflection-substitution map is threaded through, unlike
+/// [`lower_constraint_violation_rules`]. That map exists because the `math:` dimension
+/// laws predicate over HiLog REFLECTION relations (`math:hasDimensionRel`, …) that no data
+/// ever asserts, so the lowered body had to be bridged to the object-level property. The
+/// ordinary constraint corpus does not: its `logic:Formula` ASTs name the object-level
+/// properties directly (`logic:fencingIdentity`, `logic:receiptOfAttempt`, `rdf:type`, …),
+/// which is exactly what the asserted data carries. Threading a substitution map here
+/// would be worse than useless — it would silently REWRITE any authored predicate that
+/// happened to carry an `rdfs:seeAlso` for an unrelated documentary reason, pointing the
+/// body at a relation the law never mentioned.
+///
+/// Every emitted rule is `constraint_tag`-stamped with its source constraint's IRI: the
+/// law's identity is the only provenance that survives into the chase, and it is what
+/// makes a materialized marker traceable back to the authored `logic:Constraint`.
+///
+/// # Errors
+///
+/// Returns `Err` if a lowered body atom carries a term with no engine form (a blank node,
+/// or a literal in subject position) — an internal-invariant failure of the lane, never a
+/// recoverable runtime condition.
+pub(crate) fn lower_violation_rules(
+    program: &LogicProgram,
+) -> gmeow_errors::Result<ViolationLowering> {
+    let builtin_relations: BTreeSet<String> =
+        builtin_consequent_registry().keys().cloned().collect();
+    let (rc_rules, residue) =
+        gmeow_logic_compile::relational_core::lower_violation_constraints_to_rc(
+            program,
+            &builtin_relations,
+        );
+
+    let mut rules = Vec::with_capacity(rc_rules.len());
+    for rc in &rc_rules {
+        let body = rc
+            .body
+            .iter()
+            .map(rc_atom_to_eval)
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+        let head = EvalAtom {
+            subject: rc_term_to_eval(&rc.subject, false)?,
+            predicate: RDF_TYPE.to_owned(),
+            object: EvalTerm::ConstNamed(rc.failure_class.clone()),
+            negated: false,
+        };
+        // Conjunct-qualified identity: two conjuncts of one constraint are two rules with
+        // two different bodies, so they must not collapse onto one rule IRI.
+        let rule_iri = format!(
+            "{LOGIC_NAMESPACE}constraint-violation-rule/{}",
+            sha1_hex(&format!("{}#{}", rc.constraint_iri, rc.conjunct_index))
+        );
+        rules.push(EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+            constraint_tag: Some(rc.constraint_iri.clone()),
+        });
+    }
+    Ok(ViolationLowering { rules, residue })
 }
 
 /// Map one antecedent [`RcAtom`] to an [`EvalAtom`], bridging its predicate through

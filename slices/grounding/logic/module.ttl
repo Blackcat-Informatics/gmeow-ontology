@@ -10018,6 +10018,7 @@ logic:CapabilityGapProposalCompletenessConstraint
     rdfs:label "a capability-gap proposal binds all eight fields"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:CapabilityGapProposal that omits any of its eight mandatory fields. A partial proposal reports a blockage without its remedy, which is exactly the outcome raising a gap instead of substituting a weaker capability is meant to avoid."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:CapabilityGapProposal must bind all eight fields: missing capability, required contract, expected inputs, expected outputs, expected effects, verification method, security and lifecycle needs, and the blocked step." ;
     logic:integrity logic:cgpForall .
@@ -10051,6 +10052,7 @@ logic:AdvisoryNeverAuthorityConstraint
     rdfs:label "an advisory never occupies an authority position"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:Advisory that authorizes a pin. Model-generated content is attributed evidence and may never be the thing that licenses an action; the separation is enforced structurally rather than left to convention, because a convention is exactly what fails under time pressure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:Advisory may not authorize a pin: model-generated advice is evidence, never authority." ;
     logic:integrity logic:anaForall .
@@ -10070,6 +10072,7 @@ logic:RefinementCandidateSetClosureConstraint
     rdfs:label "a refinement episode declares its search fragment"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:RefinementEpisode that produced a candidate set must declare its logic:searchFragment; otherwise the roster's completeness cannot be judged." ;
     logic:integrity logic:rcsForall .
@@ -10917,6 +10920,7 @@ logic:ReceiptRequiresAttemptConstraint
     rdfs:label "a receipt names the attempt it reports on"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ExternalEffectReceipt with no logic:receiptOfAttempt. A receipt without an attempt asserts an outcome nobody caused, which is the shape a fabricated or mis-imported effect record takes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ExternalEffectReceipt must name the logic:EffectAttempt it reports on; a receipt with no attempt asserts an outcome nobody caused." ;
     logic:integrity logic:rraForall .
@@ -10935,6 +10939,7 @@ logic:CompensationSuccessRequiresReceiptConstraint
     rdfs:label "a compensation outcome carries its own receipt"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:CompensationOutcome with no receipt. Compensation is a new action, so the gap between attempting and achieving applies to it exactly as to a forward effect; recording success on the strength of having tried is the failure this constraint exists to prevent. Coded separately from the not-an-inverse constraint because the two are independent obligations and a corpus must be able to trip each alone."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:CompensationOutcome must carry its own logic:compensationReceipt; a compensation is not successful merely because it was attempted." ;
     logic:integrity logic:csrForall .
@@ -10953,6 +10958,7 @@ logic:CompensationBindsExactForwardEffectConstraint
     rdfs:label "a compensation names the exact forward receipt"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:CompensationAttempt that names no forward receipt. Binding to the exact receipt rather than to an action schema is what stops one compensation being read as covering every effect of its kind, which is the reading under which a single refund appears to undo many charges."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:CompensationAttempt must bind the EXACT forward logic:ExternalEffectReceipt it addresses, never an action schema or an intent." ;
     logic:integrity logic:cbeForall .
@@ -10971,6 +10977,7 @@ logic:DispatchIntentCompletenessConstraint
     rdfs:label "a dispatch intent binds all nine fields"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:DispatchIntent that omits any of its nine mandatory bindings. The journal head is gated alongside the other eight deliberately: it is the field that makes no-blind-retry structural, so leaving it optional would quietly demote that law back to a rule someone must remember."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:DispatchIntent must bind all nine fields: enactment, step, action-schema version, normalized arguments, target, policy, approval requirement, content digest, and expected journal head." ;
     logic:integrity logic:diForall .
@@ -11006,6 +11013,7 @@ logic:IdempotencyContractCompletenessConstraint
     rdfs:label "an idempotency contract binds all five fields"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:IdempotencyContract that omits any of its five fields. Provider evidence and the retention window are gated alongside the rest because a contract asserting safety without evidence records a hope, and one without a window claims a guarantee that in reality lapses."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:IdempotencyContract must bind all five fields: scope, key, retention window, duplicate semantics, and provider support evidence." ;
     logic:integrity logic:icForall .
@@ -11033,6 +11041,7 @@ logic:ApprovalCommitmentCompletenessConstraint
     rdfs:label "an approval commitment binds all six fields"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ApprovalCommitment that omits any of its six bindings. Each omission is a distinct way an authorization could authorize more than it was meant to, which is why they are gated together rather than individually optional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ApprovalCommitment must bind all six fields: exact intent digest, enactment, authorized operator, governing policy, decision, and validity window." ;
     logic:integrity logic:acForall .
@@ -11062,6 +11071,7 @@ logic:EffectRecordsAreObservedNotDerivedConstraint
     rdfs:label "effect attempts and receipts are observed, never derived"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:EffectAttempt that carries derivation provenance. The engine describes, validates, derives and certifies effect records; it never causes them. Carrying a derivation identifier is exactly what a record produced by inference rather than by observation looks like, so that is what the constraint keys on — and a reasoner that could conclude an attempt happened could conclude the world changed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:EffectAttempt must be asserted by the organ that performed it, never derived: an attempt carrying derivation provenance means the engine concluded an external effect occurred." ;
     logic:integrity logic:eodForall .
@@ -11089,6 +11099,7 @@ logic:LeaseExclusivityConstraint
     rdfs:label "a lease carries a fencing identity"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ResourceLease with no fencing identity. Expiry alone does not make a lease safe: a holder paused past its expiry can still attempt a write, and only a monotonic token checked at the resource rejects it. A lease without one records an intention to be exclusive rather than a mechanism for it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ResourceLease must carry a logic:fencingIdentity; expiry alone cannot stop a paused holder from writing after its lease lapsed." ;
     logic:integrity logic:lexForall .
@@ -11829,6 +11840,7 @@ logic:FrontierClosureRequiresSaturationConstraint
     rdfs:label "a frontier claiming closure carries a saturation witness"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ActionableFrontier with no saturation witness. Closedness is the frontier's whole value, and an unwitnessed claim of it is exactly how a roster truncated by a budget cut passes for complete — after which the system confidently omits the action it should have taken."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ActionableFrontier must carry a logic:frontierSaturationWitness; a roster without one cannot be claimed closed." ;
     logic:integrity logic:fcsForall .
@@ -11847,6 +11859,7 @@ logic:ContextAssemblyRecordsExclusionsConstraint
     rdfs:label "a context assembly names the enactment it served"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ContextAssembly with no named enactment. An assembly exists to answer what was surfaced to a PARTICULAR run; unbound, it answers nothing and the guidance-version record it carries has no subject."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ContextAssembly must bind logic:assemblyForEnactment; an assembly with no beneficiary cannot say what was surfaced to which run." ;
     logic:integrity logic:careForall .
@@ -11870,6 +11883,7 @@ logic:CheckpointRestoreIdentityConstraint
     rdfs:label "a checkpoint carries its folded identity"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:EnactmentCheckpoint with no folded descriptor hash. Restore is identity-gated across seven axes, and the fold is the value the gate compares first; without it a restore would have to trust seven separate comparisons it cannot perform, which in practice means performing none."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:EnactmentCheckpoint must carry logic:checkpointDescriptorHash; a checkpoint with no folded identity cannot be identity-gated on restore." ;
     logic:integrity logic:criForall .
@@ -11888,6 +11902,7 @@ logic:ContinuationKindDisjointnessConstraint
     rdfs:label "resume, repeat and revise are not conflated"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a continuation record that is typed as more than one logic:ContinuationKind. The three carry different required bindings and different consequences — resume continues a run, repeat mints a new one, revise supersedes the prescription — so a record claiming two of them has not said which actually happened, which is the conflation the closed vocabulary exists to make detectable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A continuation record must carry exactly one logic:ContinuationKind: resume, repeat and revise have different required bindings and different consequences." ;
     logic:integrity logic:ckdForall .
@@ -11911,6 +11926,7 @@ logic:PrescriptionVersionImmutabilityConstraint
     rdfs:label "a prescription version is content-addressed"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Immutability here is enforced by content-addressing rather than by a mutability flag: a version whose bytes are not addressed cannot be shown to be the one an enactment ran, so revising it in place becomes undetectable and the whole supersession discipline stops meaning anything."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:PrescriptionVersion must carry logic:prescriptionDigest; without a content address, revising a version in place is undetectable." ;
     logic:integrity logic:pviForall .
@@ -11929,6 +11945,7 @@ logic:JournalChainIntegrityConstraint
     rdfs:label "a journal entry names both of its heads"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:JournalEntry missing either the head it was applied against or the head it establishes. The chain is the mechanism from which durability, idempotency and the no-blind-retry law all follow; an entry that names only one end cannot be linked, and a chain that cannot be linked cannot detect a stale resubmission."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:JournalEntry must carry both logic:journalPrevHead and logic:journalNewHead; an entry naming only one end cannot be chained." ;
     logic:integrity logic:jciForall .
@@ -11950,6 +11967,7 @@ logic:NoBlindRetryConstraint
     rdfs:label "an unknown outcome names the attempt it is unknown about"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ExternalOutcomeUnknown that names no attempt. Retry from an undetermined position is licensed only by a discharged idempotency contract or a reconciliation verdict, and both are reached THROUGH the attempt: an unknown outcome with no attempt is unresolvable in principle, so nothing could ever license a retry from it and nothing could ever close it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ExternalOutcomeUnknown must name the logic:EffectAttempt whose outcome is undetermined; without it neither reconciliation nor a licensed retry is reachable." ;
     logic:integrity logic:nbrForall .
@@ -11968,6 +11986,7 @@ logic:CompensationNotInverseConstraint
     rdfs:label "a compensation is not typed as its forward effect"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:CompensationAttempt that is also typed as a logic:ExternalEffectReceipt. Compensation is a NEW action with its own attempt, its own receipt and its own possibility of failing; typing it as the receipt of the effect it addresses collapses the counteraction into the thing counteracted, which is precisely the guaranteed-inverse reading that makes a failed compensation invisible."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:CompensationAttempt must not also be a logic:ExternalEffectReceipt: compensation is a new action, never the erasure of the effect it addresses." ;
     logic:integrity logic:cniForall .
@@ -11987,6 +12006,7 @@ logic:ClockAttributionRequiredConstraint
     rdfs:label "a clock attribution names its source"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ClockAttribution with no named source. Expiry, validity windows and retention are all judged against somebody's notion of now, and provider-consumer skew is the canonical failure of each; an unattributed 'still valid' is unfalsifiable, which makes it worse than an absent judgment because it reads as one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ClockAttribution must name its logic:clockSource; an unattributed time judgment is unfalsifiable." ;
     logic:integrity logic:carForall .
@@ -12005,6 +12025,7 @@ logic:ReconciliationResultCarriesVerdictConstraint
     rdfs:label "a reconciliation result carries a verdict"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:ReconciliationResult with no logic:ReconciliationVerdict. A probe that completed and recorded nothing is indistinguishable from a probe that never ran, and the difference matters: the first leaves an effect where it was, the second leaves it unprobed and still owing a reconciliation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:ReconciliationResult must carry exactly one logic:reconciliationVerdict; a result with none is indistinguishable from a probe that never ran." ;
     logic:integrity logic:rrvForall .
@@ -12023,6 +12044,7 @@ logic:EnactmentPinsPrescriptionAndSnapshotConstraint
     rdfs:label "an enactment pins both a prescription version and an input snapshot"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:Enactment that does not bind both the prescription version it runs and the closed input generation it runs against. These two bindings are what make an occurrence reproducible and comparable to its siblings; an enactment missing either is a record that something happened without a recoverable account of what it was doing or over what."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:Enactment must bind both logic:enactsPrescriptionVersion and logic:enactmentInputSnapshot; without both, the occurrence is neither reproducible nor comparable." ;
     logic:integrity logic:epsForall .
@@ -12044,6 +12066,7 @@ logic:OperationalGapCarriesProposalConstraint
     rdfs:label "an operational capability gap names the step it blocks"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a logic:OperationalCapabilityGap that names no blocked step. Surfacing a gap instead of substituting a weaker capability is only worth doing if the gap is answerable to a concrete blockage; a gap with no blocked step is a general complaint about provisioning, which no operator can act on and no proposal can close."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
     logic:message "A logic:OperationalCapabilityGap must name the step it blocks; a gap answerable to no concrete blockage cannot be closed." ;
     logic:integrity logic:ogpForall .
@@ -15918,7 +15941,7 @@ logic:LogicConformanceFailure
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Logic Conformance Failure"@x-gmeow-english ;
-    skos:definition "The root of the logic grounding layer's typed conformance-failure lattice: every well-formedness violation the logic: slice detects is an instance of one of its subclasses, so a failure is a first-class queryable object rather than an out-of-band error string. Its five bedrock subclasses cover the flagship acceptance scenarios — an incomplete EL/RL/DL closure, a violated correspondence section obligation, an unentrenched counterfactual, an unwitnessed refutation, and an uncertified chase — plus logic:UnwiredFlagshipScenario for an acceptance scenario that does not bind all its realizing/enforcing artifacts."@x-gmeow-english ;
+    skos:definition "The root of the logic grounding layer's typed conformance-failure lattice: every well-formedness violation the logic: slice detects is an instance of one of its subclasses, so a failure is a first-class queryable object rather than an out-of-band error string. Its five bedrock subclasses cover the flagship acceptance scenarios — an incomplete EL/RL/DL closure, a violated correspondence section obligation, an unentrenched counterfactual, an unwitnessed refutation, and an uncertified chase — plus logic:UnwiredFlagshipScenario for an acceptance scenario that does not bind all its realizing/enforcing artifacts and logic:EnactmentIntegrityViolation for an enactment record that breaks one of the enactment kernel's authored integrity laws."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:IncompleteClosure
@@ -15959,6 +15982,24 @@ logic:UncertifiedChase
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Uncertified Chase"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_existential_rules surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# Its subsumption is authored as logic:subClassOf, not rdfs:subClassOf: the logic: core is
+# the canonical reasoning language and the RDFS form is its projection, so a NEW taxonomy
+# axiom belongs in logic: (the projection-ceiling ratchet counts a hand-authored
+# rdfs:subClassOf as exactly this kind of second source). Its five older siblings above
+# predate that rule and still carry the RDFS form; migrating them is the ratchet's own
+# burn-down, not this term's to smuggle in.
+logic:EnactmentIntegrityViolation
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Enactment Integrity Violation"@x-gmeow-english ;
+    skos:definition "The failure raised when an enactment record breaks one of the enactment kernel's authored logic:Constraint integrity laws: a logic:DispatchIntent omitting a mandatory binding, a logic:ExternalEffectReceipt naming no attempt, a logic:ResourceLease with no fencing identity, a logic:CompensationAttempt typed as the receipt it counteracts, a logic:EffectAttempt carrying derivation provenance. The native enactment gate materializes it by compiling each law's logic:integrity formula into a violation-emitting forward rule — the antecedent plus the NEGATED consequent — and typing the offending record with this class when the guard holds and the obligation fails; the logic:Constraint whose law fired travels with the derivation as its rule tag, so the marker is traceable to the authored law rather than to a Rust decision. One class across the kernel's laws rather than one per law, mirroring math:DimensionalInhomogeneity over the two dimension laws: the operator's question is always the same — which record is ill-formed — and law identity is carried by the derivation, not by a proliferation of marker classes."@x-gmeow-english ;
+    skos:example "ex:lease-7 a logic:ResourceLease with no logic:fencingIdentity is typed ex:lease-7 a logic:EnactmentIntegrityViolation by the enactment gate."@x-gmeow-english ;
+    gmeow:useWhen "Use to query for enactment records the kernel's integrity laws reject, and to assert in a counter-example fixture which record the gate must condemn."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand on a well-formed record: it is a reasoner-materialized marker, and hand-asserting it claims a violation no law derived."@x-gmeow-english ;
+    gmeow:howToUse "Author the law as a logic:Constraint carrying gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation and a logic:integrity formula of the shape forall this. guard(this) implies obligation; the enactment gate compiles it and types the violating record."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:UnwiredFlagshipScenario

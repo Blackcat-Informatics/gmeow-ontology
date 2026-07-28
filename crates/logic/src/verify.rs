@@ -258,16 +258,22 @@ pub fn verify_with_reasoning_result(
         });
     }
 
-    // The enactment-kernel gate runs over the SAME reasoned closure, and its own marker
-    // output is put through the observed-not-derived guard a second time on the way out —
-    // a gate that materializes markers from authored laws is itself a derivation, so it is
-    // held to the boundary exactly like the closure above.
+    // The reasoner-derived enactment-kernel gate: compiles the enactment `logic:Constraint`s
+    // authored in `slices/grounding/logic/module.ttl` into VIOLATION-EMITTING forward rules
+    // (each law's antecedent plus its NEGATED consequent) and materializes
+    // `logic:EnactmentIntegrityViolation` markers from those laws over the SAME reasoned
+    // closure the verify queries below evaluate — the asserted EDB UNIONED with the
+    // DL-derived edges layered into `store` just above — so a kernel record whose type or
+    // binding is *derived* rather than asserted is gated too. The marker is an ordinary
+    // `rdf:type` triple spliced into `store` before the freeze below, so the
+    // `enactment-integrity-violation.rq` verify query renders it like any other row — never
+    // a Rust side-channel finding.
     //
-    // This second pass is VACUOUS TODAY: `enactment_gate_markers` compiles no laws yet and
-    // returns an empty set, so the guard here has nothing to inspect. It is kept because it
-    // is the check that binds the gate's own future output, and it starts biting the moment
-    // the kernel's laws are compiled in. The boundary is enforced on the live path by the
-    // unconditional pass over `derived_rows` above, not by this call.
+    // Its marker output is put through the observed-not-derived guard a second time on the
+    // way out: a gate that materializes markers from authored laws is itself a derivation,
+    // so it is held to the boundary exactly like the closure above. The boundary is enforced
+    // on the broadest surface by the unconditional pass over `derived_rows` above; this pass
+    // binds the gate's own output specifically.
     let kernel_markers = crate::reason::enactment::enactment_gate_markers(edb, &derived_edges)?;
     crate::reason::enactment::reject_banned_heads(
         &kernel_markers
