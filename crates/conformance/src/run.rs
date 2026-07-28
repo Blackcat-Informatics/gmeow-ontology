@@ -570,7 +570,7 @@ fn shipped_rule_index()
 /// failure IS the pin. A case that re-typed the rule in its own `input.logic.ttl` would
 /// stay green after the shipped rule was deleted, so the corpus would pin its own copy
 /// rather than what ships; resolving through the module makes deletion or renaming red.
-/// Re-declaring a shipped rule locally is likewise a hard failure — two sources of truth
+/// Redeclaring a shipped rule locally is likewise a hard failure — two sources of truth
 /// for one rule is the condition the resolution exists to remove.
 fn merge_shipped_rules(
     case_id: &str,
@@ -601,7 +601,7 @@ fn merge_shipped_rules(
             .any(|r| r.scope.provenance.as_deref() == Some(iri.as_str()))
         {
             return Err(prefix(format!(
-                "input.logic.ttl re-declares the shipped rule {iri} that profile.json \
+                "input.logic.ttl redeclares the shipped rule {iri} that profile.json \
                  already loads — author it in exactly one place, the shipped module"
             )));
         }
@@ -1489,7 +1489,7 @@ mod gating_tests {
         );
         let err = run_case(&case.0).unwrap_err();
         assert!(
-            err.message().contains("re-declares the shipped rule"),
+            err.message().contains("redeclares the shipped rule"),
             "{err}"
         );
     }

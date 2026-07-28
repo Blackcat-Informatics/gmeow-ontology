@@ -70,7 +70,7 @@ A case that needs a `logic:Rule` the repository ships names it by IRI in `profil
 
 The runner resolves each IRI against `slices/grounding/logic/module.ttl` — the same file
 `gmeow logic frontier` embeds via `include_str!` — and merges the resolved rules into the compiled
-program. An IRI the module does not declare is a **hard failure**, and so is re-declaring a loaded
+program. An IRI the module does not declare is a **hard failure**, and so is redeclaring a loaded
 rule inside the case's own `input.logic.ttl`.
 
 Both refusals exist for one reason: a case that restates a shipped rule in its own input stays green
