@@ -528,26 +528,27 @@ fn shipped_logic_module_path() -> std::path::PathBuf {
 /// per process from [`shipped_logic_module_path`].
 ///
 /// The module is ~18k lines and every opted-in case needs it, so the compile is memoized;
-/// the cached value is the `Result` message on failure so a broken module reports the same
-/// error for every case rather than only the first.
+/// the cached value carries the graded [`Diag`] on failure so a broken module reports the
+/// same diagnostic for every case rather than only the first (`Diag` is the sole
+/// first-party error type — a bare `String` error would be a second one).
 fn shipped_rule_index()
--> &'static Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, String> {
+-> &'static Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, Diag> {
     static INDEX: std::sync::OnceLock<
-        Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, String>,
+        Result<BTreeMap<String, gmeow_logic_compile::ir::LogicRule>, Diag>,
     > = std::sync::OnceLock::new();
     INDEX.get_or_init(|| {
         let path = shipped_logic_module_path();
         let source = std::fs::read_to_string(&path)
-            .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+            .map_err(|e| run_fail(format!("cannot read {}: {e}", path.display())))?;
         let (program, diagnostics) = parse_logic_str(&source, None)
-            .map_err(|e| format!("cannot compile {}: {}", path.display(), e.0))?;
+            .map_err(|e| run_fail(format!("cannot compile {}: {}", path.display(), e.0)))?;
         if let Some(first) = first_error(&diagnostics) {
-            return Err(format!(
+            return Err(run_fail(format!(
                 "the shipped logic module {} does not compile cleanly — first error [{}]: {}",
                 path.display(),
                 first.code,
                 first.message
-            ));
+            )));
         }
         let mut index = BTreeMap::new();
         for rule in program.rules {
@@ -582,7 +583,7 @@ fn merge_shipped_rules(
     let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
     let index = shipped_rule_index()
         .as_ref()
-        .map_err(|e| prefix(e.clone()))?;
+        .map_err(|e| prefix(e.to_string()))?;
 
     let mut program = program;
     for iri in shipped_rules {

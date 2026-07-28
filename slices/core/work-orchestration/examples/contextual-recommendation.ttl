@@ -41,6 +41,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -434,3 +435,48 @@ ex:remediationSaturation a logic:SaturationWitness ;
                            logic:entryAxisWitness, gmeow:explainsEntry ;
     logic:consumedBudget "48"^^xsd:nonNegativeInteger ;
     logic:resultEvaluation logic:EvaluationCompleted .
+
+# =========================================================================== #
+# === Statement metadata: two vantages on ONE statement                   === #
+# =========================================================================== #
+#
+# `ex:rollback gmeow:strictlyOver ex:hotfix` is the covering edge the whole
+# recommendation stands on. The incident commander asserts it. The on-call
+# engineer OPPOSES it — not the candidate, not the order as a whole, and not the
+# other covering edge in the same cell, but THAT ONE STATEMENT, on the ground
+# recorded in ex:onCallObjection.
+#
+# This is what RDF 1.2 statement metadata is for, and what a plain triple cannot
+# do. A plain triple can say the engineer dissents and can say rollback ≻ hotfix,
+# but it cannot bind the first to the second: to attach a stance to a statement
+# without a reifier you must re-spell that statement's subject, predicate and
+# object on a second node and hope the copy stays in step with the original.
+# The reifier NAMES the occurrence, so the stance travels with it and the
+# correspondence cannot drift.
+#
+# Two reifiers over the same triple, not one carrying both stances: the two
+# vantages are CO-EQUAL (Principle 9). One reifier holding an affirm and an
+# oppose would be a contradiction on a single node, which is exactly the
+# collapse the standpoint axis exists to prevent. Two named occurrences, each
+# indexed to its own vantage, is the shape that keeps both readable — and it is
+# the same discipline the three comparison contexts above follow for orders.
+ex:cmdrOnRollbackOverHotfix
+    rdf:reifies <<( ex:rollback gmeow:strictlyOver ex:hotfix )>> ;
+    rdfs:label "The incident commander asserts rollback ≻ hotfix"@x-gmeow-english ;
+    gmeow:accordingTo ex:incidentCommanderStandpoint ;
+    gmeow:standpointPolarity gmeow:polarityAffirm ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssert ;
+    gmeow:standpointSupportStatus gmeow:supportSupported .
+
+# The engineer does not deny that rollback restores service faster. They SUSPEND
+# on the edge as a preference claim, because the criterion the edge is scored on
+# ignores the regression the rollback reintroduces. Suspension and denial are
+# different stances and the polarity axis keeps them apart; folding this into a
+# denial would put a claim in the engineer's mouth they did not make.
+ex:onCallOnRollbackOverHotfix
+    rdf:reifies <<( ex:rollback gmeow:strictlyOver ex:hotfix )>> ;
+    rdfs:label "The on-call engineer opposes rollback ≻ hotfix"@x-gmeow-english ;
+    gmeow:accordingTo ex:onCallEngineerVantage ;
+    gmeow:standpointPolarity gmeow:polaritySuspend ;
+    gmeow:standpointAssertoricForce gmeow:assertoricConjecture ;
+    gmeow:standpointSupportStatus gmeow:supportOpposed .

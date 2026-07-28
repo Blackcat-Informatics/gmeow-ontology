@@ -166,8 +166,7 @@ e:receipt2 a logic:ExternalEffectReceipt ; logic:receiptOfAttempt e:attempt2 .
 /// them sends an operator to the wrong remedy.
 ///
 /// `logic:methodYields` carries ONE ordered `rdf:List`. The cells are NAMED rather than
-/// blank because the CLI's reasoning world is built from IRI-subject quads, and because a
-/// decomposition that may be pinned must be addressable cell by cell.
+/// blank because a decomposition that may be pinned must be addressable cell by cell.
 const METHODS: &str = r#"
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -676,5 +675,337 @@ fn frontier_marks_an_authored_label_no_rule_derives() {
     assert!(
         out.contains("UNCHECKED     no shipped logic:Rule derives a label for this entry"),
         "the marker must say WHY the value is unchecked, got:\n{out}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Information flow: what the operator surface may NOT quietly drop.
+//
+// The retired reader walked the input with `TermRef::Iri`-only guards and a
+// `_ => continue` fallthrough, and rebuilt every literal with `datatype: None`.
+// The result was an operator reading a silently reduced world: a typed literal
+// came back as a bare lexical form, a blank-node object and an RDF 1.2 triple
+// term came back as nothing at all, and the screen said so nowhere.
+// ---------------------------------------------------------------------------
+
+/// One graph exercising every term shape the retired reader lost: a typed literal, a
+/// language-tagged literal, a blank-node object, and an RDF 1.2 reifier binding
+/// (`rdf:reifies <<( … )>>`) carrying an attributed annotation.
+const MIXED_TERMS: &str = r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:ocr   a logic:FrontierEntry ; logic:entryAxisWitness logic:StepWaiting ; logic:entryAction e:ocrStep .
+e:ocrStep a logic:TransactionStep .
+e:gap  a logic:OperationalCapabilityGap ; logic:gapBlockedStep e:ocrStep .
+e:prop a logic:CapabilityGapProposal ;
+    logic:proposalBlockedStep e:ocrStep ;
+    logic:proposalMissingCapability e:ocrCap ;
+    logic:proposalExpectedInputs "300"^^xsd:nonNegativeInteger ;
+    logic:proposalRequiredContract "Page image in, positioned text out."@en ;
+    logic:proposalExpectedOutputs [ a logic:TransactionStep ] .
+e:sensorClaim rdf:reifies <<( e:ocrStep logic:stepState logic:StepWaiting )>> ;
+    logic:attestedBy e:opsSensor .
+"#;
+
+#[test]
+fn why_not_carries_datatypes_language_tags_and_blank_nodes() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(&dir, "mixed.ttl", MIXED_TERMS);
+    let out = stdout_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "frontier",
+        p.to_str().expect("utf-8"),
+        "--why-not",
+        "https://blackcatinformatics.ca/gmeow/clitest/ocrStep",
+    ]);
+    // The datatype is the value's meaning, not decoration: "300" as a string and 300 as a
+    // non-negative integer are different facts, and only one of them is what was authored.
+    assert!(
+        out.contains("\"300\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>"),
+        "the typed literal must keep its datatype, got:\n{out}"
+    );
+    assert!(
+        out.contains("\"Page image in, positioned text out.\"@en"),
+        "the language-tagged literal must keep its tag, got:\n{out}"
+    );
+    // A blank-node object used to vanish entirely — a proposal field the operator was
+    // never told existed.
+    assert!(
+        out.contains("proposalExpectedOutputs: _:"),
+        "the blank-node object must be carried, got:\n{out}"
+    );
+}
+
+#[test]
+fn structured_frontier_carries_every_term_kind_and_reports_what_it_did_not_reason_over() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(&dir, "mixed.ttl", MIXED_TERMS);
+    let assert = gmeow()
+        .args([
+            "--console",
+            "text",
+            "logic",
+            "frontier",
+            p.to_str().expect("utf-8"),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .success();
+    let out = assert.get_output();
+    let stdout = String::from_utf8(out.stdout.clone()).expect("utf-8 stdout");
+    let stderr = String::from_utf8(out.stderr.clone()).expect("utf-8 stderr");
+    let doc: serde_json::Value = serde_json::from_str(&stdout).expect("stdout is one JSON doc");
+    let facts = doc["facts"].as_array().expect("facts array");
+
+    let kinds: Vec<&str> = facts
+        .iter()
+        .flat_map(|f| [f["subject"]["kind"].as_str(), f["object"]["kind"].as_str()])
+        .flatten()
+        .collect();
+    for kind in ["iri", "blank", "literal", "triple-term"] {
+        assert!(
+            kinds.contains(&kind),
+            "every RDF term kind in the input must reach the structured output; {kind} is \
+             missing from:\n{stdout}"
+        );
+    }
+    // The literal facets travel as data, not as a rendered string.
+    assert!(
+        facts.iter().any(|f| {
+            f["object"]["datatype"].as_str()
+                == Some("http://www.w3.org/2001/XMLSchema#nonNegativeInteger")
+        }),
+        "the typed literal's datatype must be carried as a field, got:\n{stdout}"
+    );
+    assert!(
+        facts
+            .iter()
+            .any(|f| f["object"]["language"].as_str() == Some("en")),
+        "the language tag must be carried as a field, got:\n{stdout}"
+    );
+    // The RDF 1.2 attribution: the reified statement AND the annotation that attributes it.
+    assert!(
+        facts.iter().any(|f| {
+            f["predicate"].as_str() == Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies")
+                && f["object"]["kind"].as_str() == Some("triple-term")
+        }),
+        "the reifier binding must be carried whole, got:\n{stdout}"
+    );
+    assert!(
+        facts.iter().any(|f| {
+            f["predicate"].as_str() == Some("https://blackcatinformatics.ca/logic/attestedBy")
+        }),
+        "the reifier's attributing annotation must be carried, got:\n{stdout}"
+    );
+    // Carrying it is not enough: the run must SAY that the shipped rule set was not run
+    // over the triple-term facts, or the operator reads the frontier as a conclusion about
+    // a world the reasoner only partly saw.
+    assert!(
+        stderr.contains("statement-metadata-not-reasoned")
+            && stderr.contains("RDF 1.2 statement-metadata fact"),
+        "the withheld statement metadata must be reported, not silently withheld, got:\n{stderr}"
+    );
+}
+
+#[test]
+fn a_named_graph_is_refused_rather_than_flattened_into_one_world() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    // Two worlds. Re-homing both into the one reasoning world would let a fact asserted in
+    // `e:w1` satisfy a rule body about `e:w2`, and nothing would say so.
+    let p = write(
+        &dir,
+        "worlds.trig",
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:w1 { e:a a logic:FrontierEntry ; logic:entryAxisWitness logic:StepReady . }
+e:w2 { e:a logic:entryAxisWitness logic:ApprovalNull . }
+"#,
+    );
+    gmeow()
+        .args(["logic", "frontier", p.to_str().expect("utf-8")])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("named graph"))
+        .stderr(predicate::str::contains("refused rather than"));
+}
+
+// ---------------------------------------------------------------------------
+// Structured output: the derived frontier must be able to flow back into a graph.
+//
+// A human-readable table is a terminal. The named consumer of this surface is an
+// agent runtime, and a runtime that has to scrape a column layout to recover a
+// conclusion cannot fold it back into the graph it came from.
+// ---------------------------------------------------------------------------
+
+/// The parsed JSON document one structured run printed on stdout.
+fn json_of(args: &[&str]) -> serde_json::Value {
+    serde_json::from_str(&stdout_of(args)).expect("stdout is exactly one JSON document")
+}
+
+#[test]
+fn structured_frontier_carries_the_provenance_split() {
+    let doc = json_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "frontier",
+        shipped_ocr_example().to_str().expect("utf-8"),
+        "--format",
+        "json",
+    ]);
+    let entry = doc["entries"]
+        .as_array()
+        .and_then(|e| e.first())
+        .expect("one frontier entry");
+    // The three-way split is the point: a consumer must be able to tell a conclusion from
+    // an unverified assertion WITHOUT reading prose.
+    assert_eq!(entry["provenance"].as_str(), Some("ASSERTED-UNCHECKED"));
+    assert_eq!(
+        entry["asserted_label"].as_str(),
+        Some("https://blackcatinformatics.ca/logic/FrontierBlockedCapabilityOrResource")
+    );
+    assert!(entry["derived_label"].is_null(), "nothing derived it");
+    assert!(
+        doc["facts"]
+            .as_array()
+            .is_some_and(|f| f.iter().all(|r| r["asserted"].is_boolean()
+                && r["derived"].is_boolean()
+                && r["provenance"].is_string())),
+        "every carried row must state its own provenance"
+    );
+}
+
+#[test]
+fn structured_explain_carries_all_five_elements_including_dissent() {
+    let doc = json_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "explain",
+        shipped_example("contextual-recommendation.ttl")
+            .to_str()
+            .expect("utf-8"),
+        "--action",
+        "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/rollbackEntry",
+        "--format",
+        "json",
+    ]);
+    let elements = &doc["explanations"][0]["elements"];
+    for element in ["proof", "evidence", "policy", "criterion", "dissent"] {
+        assert!(
+            elements[element].is_array(),
+            "R3.5 element {element} must be a key of its own, present even when empty, got:\n{doc}"
+        );
+    }
+    assert_eq!(
+        elements["dissent"][0]["value"].as_str(),
+        Some(
+            "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/onCallObjection"
+        ),
+        "dissent must survive into the structured surface, not be averaged away"
+    );
+    assert_eq!(
+        doc["explanations"][0]["label_verdicts"][0]["provenance"].as_str(),
+        Some("derived (input agrees)"),
+        "the explanation's re-derived label must carry its own provenance"
+    );
+}
+
+#[test]
+fn structured_refine_carries_the_status_and_every_witness() {
+    let doc = json_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "refine",
+        shipped_example("ocr-capability-absent.ttl")
+            .to_str()
+            .expect("utf-8"),
+        "--task",
+        "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-absent/ocrStep",
+        "--format",
+        "json",
+    ]);
+    assert_eq!(doc["status"].as_str(), Some("CLOSED"));
+    let rejection = &doc["rejections"][0];
+    assert_eq!(rejection["kind"].as_str(), Some("capability"));
+    // The witness is what makes the roster re-derivable rather than merely asserted.
+    assert_eq!(
+        rejection["witness"]["rule_iri"].as_str(),
+        Some("https://blackcatinformatics.ca/logic/ruleRefinementRejectedOnCapability")
+    );
+    assert!(
+        rejection["witness"]["premises"]
+            .as_array()
+            .is_some_and(|p| !p.is_empty()),
+        "the chase premises must travel with the rejection, got:\n{doc}"
+    );
+}
+
+#[test]
+fn structured_refine_under_a_cut_reports_incomplete_and_ships_no_roster() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(&dir, "methods.ttl", METHODS);
+    let doc = json_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "refine",
+        p.to_str().expect("utf-8"),
+        "--task",
+        "https://blackcatinformatics.ca/gmeow/clitest/ingest",
+        "--budget",
+        "1",
+        "--format",
+        "json",
+    ]);
+    assert_eq!(doc["status"].as_str(), Some("INCOMPLETE"));
+    // A partial roster in a machine-readable document is worse than in a table: nothing
+    // downstream reads the caveat prose, so there must be no roster to misread.
+    assert_eq!(doc["candidates"].as_array().map(Vec::len), Some(0));
+    assert_eq!(doc["reached"].as_array().map(Vec::len), Some(0));
+}
+
+#[test]
+fn structured_saga_carries_each_outcome_and_what_is_owed() {
+    let doc = json_of(&[
+        "--console",
+        "silent",
+        "logic",
+        "saga",
+        shipped_example("effect-boundary-unknown.ttl")
+            .to_str()
+            .expect("utf-8"),
+        "--format",
+        "json",
+    ]);
+    let outcomes: Vec<&str> = doc["attempts"]
+        .as_array()
+        .expect("attempts")
+        .iter()
+        .filter_map(|a| a["outcome"].as_str())
+        .collect();
+    // Receipted, foreclosed and undetermined are three different next actions.
+    for outcome in ["receipted", "FORECLOSED", "UNDETERMINED"] {
+        assert!(
+            outcomes.contains(&outcome),
+            "the structured saga must keep {outcome} apart from the others, got:\n{doc}"
+        );
+    }
+    let undetermined = doc["attempts"]
+        .as_array()
+        .expect("attempts")
+        .iter()
+        .find(|a| a["outcome"].as_str() == Some("UNDETERMINED"))
+        .expect("one undetermined attempt");
+    assert!(
+        undetermined["owed"].is_string(),
+        "an undetermined attempt must say what is owed, got:\n{doc}"
     );
 }

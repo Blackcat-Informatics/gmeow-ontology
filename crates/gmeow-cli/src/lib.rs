@@ -72,13 +72,21 @@ impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
     }
 }
 
-/// The `logic fragments` output serialization.
+/// The output serialization every structured `gmeow logic` reader shares
+/// (`fragments`, `frontier`, `explain`, `refine`, `saga`).
+///
+/// ONE convention, not one per verb: a derived frontier that an agent runtime must
+/// read back into a graph is the same kind of product as the decidability manifest,
+/// and giving each verb its own flag name would make the machine-readable surface
+/// discoverable only verb by verb.
 #[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
-pub enum FragmentsFormat {
+pub enum OutputFormat {
     /// Deterministic, greppable human-readable text (the default).
     #[default]
     Text,
-    /// Pretty JSON of the decided-fragment / retained-boundary surface.
+    /// Pretty JSON carrying the FULL derived content — every row with its
+    /// provenance split, every witness, and the run's outcome — so a derived
+    /// result can flow back into a graph instead of ending at a terminal.
     Json,
 }
 
@@ -780,6 +788,11 @@ pub enum LogicCommands {
         /// to act without reading Turtle.
         #[arg(long = "why-not")]
         why_not: Option<String>,
+        /// Output serialization: `text` (default) or `json`. The JSON carries every
+        /// derived row with its provenance split, so an agent runtime can fold the
+        /// frontier back into a graph rather than scraping a table.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
     },
     /// Explain a recommended or blocked action: the proof it rests on, its evidence, the
     /// governing policy, the cost/risk/benefit criteria weighed, and any recorded dissent.
@@ -792,6 +805,11 @@ pub enum LogicCommands {
         /// The action (or frontier entry) IRI to explain.
         #[arg(long = "action")]
         action: String,
+        /// Output serialization: `text` (default) or `json`. The JSON carries all five
+        /// R3.5 elements, the re-derived label verdict and every derived row, so a
+        /// consumer never has to re-parse prose to find the dissent.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
     },
     /// Run a BOUNDED means-end search over the authored logic:DecompositionMethod set
     /// and print the candidate decompositions with an honest completeness status.
@@ -815,6 +833,11 @@ pub enum LogicCommands {
             default_value = "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod"
         )]
         fragment: String,
+        /// Output serialization: `text` (default) or `json`. The JSON carries the
+        /// completeness status, every candidate and typed rejection, and each one's
+        /// chase witness (rule IRI, proof height, premises).
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
     },
     /// Print the external-effect saga status for an enactment: what was intended, what
     /// was attempted, what came back, and — when an outcome is undetermined — what is
@@ -822,6 +845,11 @@ pub enum LogicCommands {
     Saga {
         /// An RDF file carrying the enactment and its effect records.
         input: PathBuf,
+        /// Output serialization: `text` (default) or `json`. The JSON carries each
+        /// attempt's outcome, what is owed, and every derived row with its
+        /// provenance split.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
     },
     /// Evaluate one or more authored `logic:ReasoningProgram` cells through the
     /// native proof-carrying SLG-WFS backward (goal-directed) engine
@@ -887,8 +915,8 @@ pub enum LogicCommands {
         #[arg(long = "bundle")]
         bundle: Option<PathBuf>,
         /// Output serialization: `text` (default) or `json`.
-        #[arg(long = "format", short = 'f', value_enum, default_value_t = FragmentsFormat::Text)]
-        format: FragmentsFormat,
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
     },
 }
 
@@ -1306,19 +1334,24 @@ pub fn run() -> i32 {
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
         Commands::Logic { command } => match command {
-            LogicCommands::Frontier { input, why_not } => {
-                commands::logic_frontier(reporter, &input, why_not.as_deref())
-            }
-            LogicCommands::Explain { input, action } => {
-                commands::logic_explain(reporter, &input, &action)
-            }
+            LogicCommands::Frontier {
+                input,
+                why_not,
+                format,
+            } => commands::logic_frontier(reporter, &input, why_not.as_deref(), format),
+            LogicCommands::Explain {
+                input,
+                action,
+                format,
+            } => commands::logic_explain(reporter, &input, &action, format),
             LogicCommands::Refine {
                 input,
                 task,
                 budget,
                 fragment,
-            } => commands::logic_refine(reporter, &input, &task, &fragment, budget),
-            LogicCommands::Saga { input } => commands::logic_saga(reporter, &input),
+                format,
+            } => commands::logic_refine(reporter, &input, &task, &fragment, budget, format),
+            LogicCommands::Saga { input, format } => commands::logic_saga(reporter, &input, format),
             LogicCommands::Backward {
                 program_file,
                 program_iri,

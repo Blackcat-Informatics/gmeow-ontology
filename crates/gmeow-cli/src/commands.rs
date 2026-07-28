@@ -56,7 +56,7 @@ use gmeow_pipeline::diagnostics_reader::{
     read_findings, read_invented_witnesses, render_shared_dag, verdict,
 };
 
-use crate::{BUNDLE_GTS, FragmentsFormat, NAMESPACE};
+use crate::{BUNDLE_GTS, NAMESPACE, OutputFormat};
 
 /// Build an Error-grade CLI diagnostic carrying a per-site stable code — the
 /// pre-carrier graded witness a handled `gmeow` failure lowers to (never a bare
@@ -78,6 +78,26 @@ fn error_diag(code: &str, message: impl Into<String>) -> Diag {
 /// stderr, an NDJSON `finding` line for agents, dropped by a silent sink).
 pub(crate) fn emit_error(reporter: &dyn Reporter, code: &str, message: impl Into<String>) {
     reporter.report(&report_diag(error_diag(code, message), "gmeow"));
+}
+
+/// Emit a Warning-grade CLI diagnostic on the reporter's channel — a report the run
+/// OWES the caller without the run itself having failed.
+///
+/// Distinct from [`emit_error`] because the two are different claims: an Error says the
+/// command could not do what it was asked, a Warning says it did, and here is something
+/// about the result you must know. Grading a non-fatal report Error would make the
+/// severity axis useless for exactly the readers (agents consuming NDJSON) it exists for.
+pub(crate) fn emit_warning(reporter: &dyn Reporter, code: &str, message: impl Into<String>) {
+    let diag = Diag::new(
+        gmeow_errors::code::register_code(code),
+        Grade::new(
+            Severity::Warning,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    );
+    reporter.report(&report_diag(diag, "gmeow"));
 }
 
 /// Emit an Error-grade CLI diagnostic through `reporter` and yield the failure
@@ -2114,7 +2134,7 @@ fn render_fragments_json(surface: &DecidabilitySurface) -> Result<String, serde_
 pub fn logic_fragments(
     reporter: &dyn Reporter,
     bundle: Option<&Path>,
-    format: FragmentsFormat,
+    format: OutputFormat,
 ) -> i32 {
     let dataset = match fragments_graph_source(reporter, bundle) {
         Ok(d) => d,
@@ -2132,8 +2152,8 @@ pub fn logic_fragments(
         );
     }
     let rendered = match format {
-        FragmentsFormat::Text => Ok(render_fragments_text(&surface)),
-        FragmentsFormat::Json => render_fragments_json(&surface)
+        OutputFormat::Text => Ok(render_fragments_text(&surface)),
+        OutputFormat::Json => render_fragments_json(&surface)
             .map(|mut s| {
                 s.push('\n');
                 s
@@ -5428,6 +5448,236 @@ const LOGIC_MODULE_TTL: &str = include_str!("../../../slices/grounding/logic/mod
 /// The synthetic world the CLI reasons in.
 const CLI_WORLD: &str = "https://blackcatinformatics.ca/gmeow/cli/world";
 
+/// The `rdf:reifies` predicate — the RDF 1.2 statement layer's binding edge.
+///
+/// `purrdf` parses `<r> rdf:reifies <<( s p o )>>` into the dataset's reifier SIDE TABLE
+/// rather than a base quad, so a reader that only walks `quads()` never sees a reifier at
+/// all. The CLI lifts the side tables back into explicit base quads (below) so attributed
+/// provenance reaches the reasoner instead of being silently absent from its world.
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+/// `xsd:string` — the implied datatype of a plain literal, elided in the display form
+/// exactly as Turtle elides it.
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+
+/// `rdf:langString` — the implied datatype of a language-tagged literal.
+const RDF_LANGSTRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+
+/// The RDF kind of one derived row's subject or object.
+///
+/// Carried explicitly so an IRI can never be confused with a literal whose lexical form
+/// happens to spell one, and so a consumer folding the JSON back into a graph rebuilds
+/// the SAME term rather than guessing from a bare string.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum RowTermKind {
+    Iri,
+    BlankNode,
+    Literal,
+    TripleTerm,
+}
+
+impl RowTermKind {
+    /// The stable JSON tag for this kind.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Iri => "iri",
+            Self::BlankNode => "blank",
+            Self::Literal => "literal",
+            Self::TripleTerm => "triple-term",
+        }
+    }
+}
+
+/// One term of a derived row, kept LOSSLESSLY.
+///
+/// The retired form was a bare `String`, which collapsed four different RDF terms into one
+/// spelling and threw the datatype, the language tag and the base direction away on the
+/// way past. A typed literal came back as its lexical form, a blank node and a triple term
+/// came back as nothing at all, and an operator had no way to tell any of that had
+/// happened.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct RowTerm {
+    kind: RowTermKind,
+    /// The IRI, the blank-node label, the literal's lexical form, or a triple term's
+    /// N-Triples text.
+    value: String,
+    /// The literal's datatype IRI. `None` for every non-literal.
+    datatype: Option<String>,
+    /// The literal's language tag, lowercased as RDF requires.
+    language: Option<String>,
+    /// The RDF 1.2 base direction (`ltr` / `rtl`) of a directional language-tagged string.
+    direction: Option<String>,
+}
+
+impl RowTerm {
+    /// This term as an IRI, or `None` when it is any other kind.
+    fn iri(&self) -> Option<&str> {
+        match self.kind {
+            RowTermKind::Iri => Some(self.value.as_str()),
+            _ => None,
+        }
+    }
+
+    /// The term in Turtle's own abbreviating syntax: a bare IRI, `_:label`, a quoted
+    /// literal carrying whichever of `@lang` / `^^<datatype>` is not implied, or a
+    /// `<<( … )>>` triple term. Faithful — reading it back reconstructs the term.
+    fn display(&self) -> String {
+        match self.kind {
+            RowTermKind::Iri | RowTermKind::TripleTerm => self.value.clone(),
+            RowTermKind::BlankNode => format!("_:{}", self.value),
+            RowTermKind::Literal => {
+                let mut out = format!("{:?}", self.value);
+                if let Some(lang) = &self.language {
+                    out.push('@');
+                    out.push_str(lang);
+                    if let Some(dir) = &self.direction {
+                        out.push_str("--");
+                        out.push_str(dir);
+                    }
+                } else if let Some(dt) = &self.datatype
+                    && dt != XSD_STRING
+                {
+                    out.push_str("^^<");
+                    out.push_str(dt);
+                    out.push('>');
+                }
+                out
+            }
+        }
+    }
+
+    /// The term in strict N-Triples syntax: `<iri>`, `_:label`, a quoted literal, or a
+    /// `<<( … )>>` triple term. Used INSIDE a triple term, where a bare IRI would not be
+    /// re-readable; [`RowTerm::display`] keeps the bare form for the table columns.
+    fn n3(&self) -> String {
+        match self.kind {
+            RowTermKind::Iri => format!("<{}>", self.value),
+            _ => self.display(),
+        }
+    }
+
+    /// The JSON object for this term: kind, value, and every literal facet that exists.
+    fn to_json(&self) -> serde_json::Value {
+        let mut map = serde_json::Map::new();
+        map.insert("kind".to_owned(), self.kind.as_str().into());
+        map.insert("value".to_owned(), self.value.clone().into());
+        if let Some(dt) = &self.datatype {
+            map.insert("datatype".to_owned(), dt.clone().into());
+        }
+        if let Some(lang) = &self.language {
+            map.insert("language".to_owned(), lang.clone().into());
+        }
+        if let Some(dir) = &self.direction {
+            map.insert("direction".to_owned(), dir.clone().into());
+        }
+        serde_json::Value::Object(map)
+    }
+
+    /// Build a row term from an owned [`purrdf::RdfTerm`] — the parse-side form.
+    fn from_rdf_term(term: &RdfTerm) -> Self {
+        match term {
+            RdfTerm::Iri(iri) => Self {
+                kind: RowTermKind::Iri,
+                value: iri.clone(),
+                datatype: None,
+                language: None,
+                direction: None,
+            },
+            RdfTerm::BlankNode(label) => Self {
+                kind: RowTermKind::BlankNode,
+                value: label.clone(),
+                datatype: None,
+                language: None,
+                direction: None,
+            },
+            RdfTerm::Literal(lit) => Self {
+                kind: RowTermKind::Literal,
+                value: lit.lexical_form.clone(),
+                // `None` on the wire means the IMPLIED datatype, which is
+                // `rdf:langString` for a tagged string and `xsd:string` otherwise. Naming
+                // it is the whole point: the retired code wrote `datatype: None` back out
+                // and lost the authored `^^<…>` entirely.
+                datatype: Some(lit.datatype.clone().unwrap_or_else(|| {
+                    if lit.language.is_some() {
+                        RDF_LANGSTRING.to_owned()
+                    } else {
+                        XSD_STRING.to_owned()
+                    }
+                })),
+                language: lit.language.clone(),
+                direction: lit.direction.map(|d| text_direction_str(d).to_owned()),
+            },
+            RdfTerm::Triple(triple) => Self {
+                kind: RowTermKind::TripleTerm,
+                value: format!(
+                    "<<( {} <{}> {} )>>",
+                    Self::from_rdf_term(&triple.subject).n3(),
+                    triple.predicate,
+                    Self::from_rdf_term(&triple.object).n3()
+                ),
+                datatype: None,
+                language: None,
+                direction: None,
+            },
+        }
+    }
+
+    /// Build a row term from a reasoner-side [`purrdf::TermValue`].
+    fn from_term_value(term: &TermValue) -> Self {
+        match term {
+            TermValue::Iri(iri) => Self {
+                kind: RowTermKind::Iri,
+                value: iri.clone(),
+                datatype: None,
+                language: None,
+                direction: None,
+            },
+            TermValue::Blank { label, .. } => Self {
+                kind: RowTermKind::BlankNode,
+                value: label.clone(),
+                datatype: None,
+                language: None,
+                direction: None,
+            },
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language,
+                direction,
+            } => Self {
+                kind: RowTermKind::Literal,
+                value: lexical_form.clone(),
+                datatype: Some(datatype.clone()),
+                language: language.clone(),
+                direction: direction.map(|d| text_direction_str(d).to_owned()),
+            },
+            TermValue::Triple { s, p, o } => Self {
+                kind: RowTermKind::TripleTerm,
+                value: format!(
+                    "<<( {} <{p_iri}> {} )>>",
+                    Self::from_term_value(s).n3(),
+                    Self::from_term_value(o).n3(),
+                    p_iri = match p.as_ref() {
+                        TermValue::Iri(iri) => iri.clone(),
+                        other => Self::from_term_value(other).display(),
+                    }
+                ),
+                datatype: None,
+                language: None,
+                direction: None,
+            },
+        }
+    }
+}
+
+/// The BCP-47 / RDF 1.2 spelling of a base direction.
+fn text_direction_str(direction: purrdf::RdfTextDirection) -> &'static str {
+    match direction {
+        purrdf::RdfTextDirection::Ltr => "ltr",
+        purrdf::RdfTextDirection::Rtl => "rtl",
+    }
+}
+
 /// One `(subject, predicate, object)` row of the reasoning result, carrying WHERE it came
 /// from.
 ///
@@ -5439,9 +5689,9 @@ const CLI_WORLD: &str = "https://blackcatinformatics.ca/gmeow/cli/world";
 /// typed this and no rule looked at it".
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct FactRow {
-    subject: String,
+    subject: RowTerm,
     predicate: String,
-    object: String,
+    object: RowTerm,
     /// The row is in the asserted EDB — a human or an upstream tool wrote it.
     asserted: bool,
     /// A shipped `logic:Rule` concluded the row. Recognised by the derivation's `rule_iri`
@@ -5449,6 +5699,30 @@ struct FactRow {
     /// the same EDB/IDB split `crates/logic` itself uses in `derivation_graph.rs` and in
     /// the chase — not a scheme invented here.
     derived: bool,
+}
+
+impl FactRow {
+    /// The row's provenance as the one word the operator surface prints.
+    fn provenance(&self) -> &'static str {
+        match (self.asserted, self.derived) {
+            (true, true) => "derived (input agrees)",
+            (false, true) => "derived",
+            _ => "ASSERTED-UNCHECKED",
+        }
+    }
+
+    /// The row as one JSON object: both terms in full, the predicate, and the provenance
+    /// split spelled out AND kept as the two independent flags it really is.
+    fn to_json(&self) -> serde_json::Value {
+        serde_json::json!({
+            "subject": self.subject.to_json(),
+            "predicate": self.predicate,
+            "object": self.object.to_json(),
+            "asserted": self.asserted,
+            "derived": self.derived,
+            "provenance": self.provenance(),
+        })
+    }
 }
 
 /// Parse `path`, materialize the shipped rule set over it, and return the input plus every
@@ -5478,7 +5752,8 @@ fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<
         )
     })?;
 
-    let edb = cli_world_dataset(reporter, path, &parsed, None, code)?;
+    let world = cli_world_dataset(reporter, path, &parsed, None, code)?;
+    let edb = world.edb;
     // The re-derivation audit world: the same input with every asserted `logic:entryLabel`
     // WITHHELD.
     //
@@ -5494,7 +5769,8 @@ fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<
         &parsed,
         Some(&format!("{LOGIC_NS}entryLabel")),
         code,
-    )?;
+    )?
+    .edb;
 
     let (program, _diags) = gmeow_logic_compile::frontend::parse_logic_str(LOGIC_MODULE_TTL, None)
         .map_err(|e| {
@@ -5512,23 +5788,50 @@ fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<
     // flags are OR-merged per triple rather than the rows being pushed twice and deduped.
     // Deduping tagged rows would keep both copies and make an agreeing label look like a
     // disagreement with itself.
-    let mut by_triple: BTreeMap<(String, String, String), (bool, bool)> = BTreeMap::new();
+    let mut by_triple: BTreeMap<(RowTerm, String, RowTerm), (bool, bool)> = BTreeMap::new();
     // The asserted input, so a caller sees the whole picture rather than only the delta.
-    for q in edb.quads() {
-        let (purrdf::TermRef::Iri(su), purrdf::TermRef::Iri(pr)) =
-            (edb.resolve(q.s), edb.resolve(q.p))
-        else {
-            continue;
-        };
-        let ob = match edb.resolve(q.o) {
-            purrdf::TermRef::Iri(i) => i.to_owned(),
-            purrdf::TermRef::Literal { lexical, .. } => lexical.to_owned(),
-            _ => continue,
-        };
+    // EVERY quad, whatever its terms: a blank-node subject, a typed literal and an RDF 1.2
+    // triple term are all carried whole. The retired reader `continue`d past each of them
+    // and rebuilt literals with the datatype stripped, so an operator read a reduced world
+    // with nothing on screen to say so.
+    for q in edb.owned_quads() {
         by_triple
-            .entry((su.to_owned(), pr.to_owned(), ob))
+            .entry((
+                RowTerm::from_rdf_term(&q.subject),
+                q.predicate.clone(),
+                RowTerm::from_rdf_term(&q.object),
+            ))
             .or_default()
             .0 = true;
+    }
+    // The RDF 1.2 statement metadata the engine's own EDB-echo term surface cannot
+    // round-trip. It IS carried — as asserted rows, with its triple term whole — and the
+    // boundary is REPORTED below, because an operator reading a frontier over a graph
+    // whose attributions the reasoner never saw must be told that, not left to assume it.
+    for (subject, predicate, object) in &world.unreasoned {
+        by_triple
+            .entry((
+                RowTerm::from_rdf_term(subject),
+                predicate.clone(),
+                RowTerm::from_rdf_term(object),
+            ))
+            .or_default()
+            .0 = true;
+    }
+    if !world.unreasoned.is_empty() {
+        emit_warning(
+            reporter,
+            &format!("{code}.statement-metadata-not-reasoned"),
+            format!(
+                "{} carries {} RDF 1.2 statement-metadata fact(s) whose term is a triple term \
+                 (`<<( … )>>`). They are reported in full below, but the shipped rule set was \
+                 NOT run over them: the reasoner's EDB-echo term surface \
+                 (gmeow_logic::term_codec) has no triple-term form, so feeding one in returns \
+                 it as a malformed IRI. Nothing derived here is a conclusion about them.",
+                path.display(),
+                world.unreasoned.len()
+            ),
+        );
     }
     // The audit run contributes ONLY its `logic:entryLabel` conclusions. It is a narrower
     // world than the full one, so letting it speak about anything else could only ever
@@ -5540,13 +5843,13 @@ fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<
         .iter()
         .filter(|d| d.predicate == label_predicate);
     for d in mat.quads.iter().chain(audited) {
-        let (Some(su), Some(ob)) = (
-            term_iri_or_lexical(&d.subject),
-            term_iri_or_lexical(&d.object),
-        ) else {
-            continue;
-        };
-        let slot = by_triple.entry((su, d.predicate.clone(), ob)).or_default();
+        let slot = by_triple
+            .entry((
+                RowTerm::from_term_value(&d.subject),
+                d.predicate.clone(),
+                RowTerm::from_term_value(&d.object),
+            ))
+            .or_default();
         // The materialization echoes the EDB back under the assert pseudo-rule. Treating
         // that echo as a derivation is exactly the bug this split exists to prevent: every
         // authored label would come back stamped "derived".
@@ -5576,48 +5879,132 @@ fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<
 /// The rules reason over named worlds, and Turtle input lands in the default graph, so a
 /// file that plainly carries frontier entries would otherwise derive nothing at all — the
 /// least useful failure available, because it looks exactly like "no rule matched".
+///
+/// Every term the reasoner CAN take is carried whole. A blank node, a typed literal and a
+/// directional language-tagged string all reach it exactly as authored: the reasoning store
+/// holds opaque `TermValue`s, so there is no reason to reduce any of them, and the retired
+/// reader's `datatype: None` rebuild was pure loss.
+///
+/// The RDF 1.2 statement layer is read too. `purrdf` parses `<r> rdf:reifies <<( s p o )>>`
+/// and its annotations into SIDE TABLES, not base quads, so a reader that walks `quads()`
+/// alone sees NO attributed statement at all — precisely the provenance an enactment kernel
+/// exists to carry. Annotations are plain triples and go straight into the world; a fact
+/// whose subject or object is a triple term is returned in
+/// [`CliWorld::unreasoned`] instead, because the engine's EDB-echo term surface
+/// (`gmeow_logic::term_codec`) has no triple-term form and would hand back a malformed IRI.
+/// Carried and reported, never carried and silently mangled.
+///
+/// A quad asserted in a NAMED graph is a hard fail rather than a silent re-homing: folding
+/// several distinct worlds into one reasoning world would let a fact asserted in one world
+/// satisfy a rule body about another, and the caller would never learn that their world
+/// structure had been flattened.
+struct CliWorld {
+    /// The world the shipped rule set is materialized over.
+    edb: Arc<purrdf::RdfDataset>,
+    /// `(subject, predicate, object)` facts carried to the caller but WITHHELD from the
+    /// reasoning world — every one of them a triple-term-bearing statement-metadata fact.
+    unreasoned: Vec<(RdfTerm, String, RdfTerm)>,
+}
+
+/// True when `term` is (or contains) an RDF 1.2 triple term.
+fn bears_triple_term(term: &RdfTerm) -> bool {
+    match term {
+        RdfTerm::Triple(_) => true,
+        RdfTerm::Iri(_) | RdfTerm::BlankNode(_) | RdfTerm::Literal(_) => false,
+    }
+}
+
 fn cli_world_dataset(
     reporter: &dyn Reporter,
     path: &Path,
     parsed: &purrdf::RdfDataset,
     withhold: Option<&str>,
     code: &str,
-) -> Result<Arc<purrdf::RdfDataset>, i32> {
+) -> Result<CliWorld, i32> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     let world = builder.intern_iri(CLI_WORLD);
-    for q in parsed.quads() {
-        let (purrdf::TermRef::Iri(subj), purrdf::TermRef::Iri(pred)) =
-            (parsed.resolve(q.s), parsed.resolve(q.p))
-        else {
-            continue;
-        };
-        if withhold == Some(pred) {
+
+    let mut named_graphs: BTreeSet<String> = BTreeSet::new();
+    let mut unreasoned: Vec<(RdfTerm, String, RdfTerm)> = Vec::new();
+    let push = |builder: &mut purrdf::RdfDatasetBuilder,
+                unreasoned: &mut Vec<(RdfTerm, String, RdfTerm)>,
+                subject: RdfTerm,
+                predicate: String,
+                object: RdfTerm| {
+        if bears_triple_term(&subject) || bears_triple_term(&object) {
+            unreasoned.push((subject, predicate, object));
+            return;
+        }
+        let s = builder.intern_owned_term(&subject);
+        let p = builder.intern_iri(&predicate);
+        let o = builder.intern_owned_term(&object);
+        builder.push_quad(s, p, o, Some(world));
+    };
+
+    for q in parsed.owned_quads() {
+        if let Some(g) = &q.graph_name {
+            named_graphs.insert(RowTerm::from_rdf_term(g).display());
             continue;
         }
-        let (subj, pred) = (subj.to_owned(), pred.to_owned());
-        let obj = match parsed.resolve(q.o) {
-            purrdf::TermRef::Iri(i) => {
-                let i = i.to_owned();
-                builder.intern_iri(&i)
-            }
-            purrdf::TermRef::Literal {
-                lexical, language, ..
-            } => {
-                let lit = purrdf::RdfLiteral {
-                    lexical_form: lexical.to_owned(),
-                    datatype: None,
-                    language: language.map(str::to_owned),
-                    direction: None,
-                };
-                builder.intern_literal(lit)
-            }
-            _ => continue,
-        };
-        let s_id = builder.intern_iri(&subj);
-        let p_id = builder.intern_iri(&pred);
-        builder.push_quad(s_id, p_id, obj, Some(world));
+        if withhold == Some(q.predicate.as_str()) {
+            continue;
+        }
+        push(
+            &mut builder,
+            &mut unreasoned,
+            q.subject,
+            q.predicate,
+            q.object,
+        );
     }
-    builder.freeze().map_err(|e| {
+    for reifier in parsed.owned_reifiers() {
+        if let Some(g) = &reifier.graph {
+            named_graphs.insert(RowTerm::from_rdf_term(g).display());
+            continue;
+        }
+        push(
+            &mut builder,
+            &mut unreasoned,
+            reifier.reifier,
+            RDF_REIFIES.to_owned(),
+            RdfTerm::Triple(Box::new(reifier.statement)),
+        );
+    }
+    for annotation in parsed.owned_annotations() {
+        if let Some(g) = &annotation.graph {
+            named_graphs.insert(RowTerm::from_rdf_term(g).display());
+            continue;
+        }
+        if withhold == Some(annotation.predicate.as_str()) {
+            continue;
+        }
+        push(
+            &mut builder,
+            &mut unreasoned,
+            annotation.reifier,
+            annotation.predicate,
+            annotation.object,
+        );
+    }
+
+    if !named_graphs.is_empty() {
+        return Err(fail(
+            reporter,
+            code,
+            format!(
+                "{} asserts content in {} named graph(s) ({}). The shipped rule set reasons \
+                 in ONE world, and merging distinct worlds into it would let a fact asserted \
+                 in one satisfy a rule body about another — so this is refused rather than \
+                 re-homed behind your back. Project the world you want reasoned over into the \
+                 default graph and pass that.",
+                path.display(),
+                named_graphs.len(),
+                named_graphs.into_iter().collect::<Vec<_>>().join(", ")
+            ),
+        ));
+    }
+
+    let edb = builder.freeze().map_err(|e| {
         fail(
             reporter,
             code,
@@ -5626,7 +6013,8 @@ fn cli_world_dataset(
                 path.display()
             ),
         )
-    })
+    })?;
+    Ok(CliWorld { edb, unreasoned })
 }
 
 /// Materialize the shipped rule set over one CLI world.
@@ -5649,26 +6037,20 @@ fn materialize_cli_world(
     .map_err(|e| fail(reporter, code, format!("materialization failed: {e}")))
 }
 
-/// An IRI or literal lexical form from a derived term; `None` for anything else.
-fn term_iri_or_lexical(t: &purrdf::TermValue) -> Option<String> {
-    match t {
-        purrdf::TermValue::Iri(i) => Some(i.clone()),
-        purrdf::TermValue::Literal { lexical_form, .. } => Some(lexical_form.clone()),
-        _ => None,
-    }
-}
-
-/// Every `(subject, object)` pair carrying `predicate`, regardless of provenance.
+/// Every `(subject IRI, object IRI)` pair carrying `predicate`, regardless of provenance.
 ///
 /// The right reading for the structural predicates — axis witnesses, actions, gaps,
-/// proposals — where asserted and derived rows are equally usable input. It is the WRONG
-/// reading for `logic:entryLabel`, which is the conclusion under scrutiny; that one goes
-/// through [`label_verdicts`].
+/// proposals — whose two ends are IRIs by construction and where asserted and derived rows
+/// are equally usable input. It is the WRONG reading for `logic:entryLabel`, which is the
+/// conclusion under scrutiny; that one goes through [`label_verdicts`].
+///
+/// This is a PROJECTION for one structural question, not a filter that loses data: every
+/// row, whatever its term kinds, stays in the row set the commands print and serialize.
 fn iri_pairs(rows: &[FactRow], predicate: &str) -> Vec<(String, String)> {
     let mut out: Vec<(String, String)> = rows
         .iter()
         .filter(|r| r.predicate == predicate)
-        .map(|r| (r.subject.clone(), r.object.clone()))
+        .filter_map(|r| Some((r.subject.iri()?.to_owned(), r.object.iri()?.to_owned())))
         .collect();
     out.sort();
     out.dedup();
@@ -5737,6 +6119,69 @@ impl LabelVerdict {
             ),
         }
     }
+
+    /// The verdict as JSON: the SAME three-way provenance split the table prints, with the
+    /// derived and asserted labels in separate keys so a consumer can never read one as
+    /// the other. The full label IRIs are emitted, not the `logic:`-stripped display form —
+    /// a machine consumer needs the term, not the column.
+    fn to_json(&self, entry: &str) -> serde_json::Value {
+        let mut map = serde_json::Map::new();
+        map.insert("entry".to_owned(), entry.into());
+        match self {
+            Self::Derived {
+                label,
+                also_asserted,
+            } => {
+                map.insert(
+                    "provenance".to_owned(),
+                    if *also_asserted {
+                        "derived (input agrees)"
+                    } else {
+                        "derived"
+                    }
+                    .into(),
+                );
+                map.insert("derived_label".to_owned(), label.clone().into());
+                map.insert("input_agrees".to_owned(), (*also_asserted).into());
+            }
+            Self::Disagreement { derived, asserted } => {
+                map.insert("provenance".to_owned(), "DISAGREEMENT".into());
+                map.insert("derived_label".to_owned(), derived.clone().into());
+                map.insert("asserted_label".to_owned(), asserted.clone().into());
+            }
+            Self::AssertedUnchecked { asserted } => {
+                map.insert("provenance".to_owned(), "ASSERTED-UNCHECKED".into());
+                map.insert("asserted_label".to_owned(), asserted.clone().into());
+            }
+        }
+        if let Some(caveat) = self.caveat() {
+            map.insert("caveat".to_owned(), caveat.trim().into());
+        }
+        serde_json::Value::Object(map)
+    }
+}
+
+/// Print a JSON document to stdout as ONE pretty block with a trailing newline — the
+/// convention `logic fragments` already established.
+fn print_json(reporter: &dyn Reporter, code: &str, doc: &serde_json::Value) -> i32 {
+    match serde_json::to_string_pretty(doc) {
+        Ok(text) => {
+            println!("{text}");
+            0
+        }
+        Err(e) => fail(
+            reporter,
+            code,
+            format!("cannot render the result as JSON: {e}"),
+        ),
+    }
+}
+
+/// Every derived row as a JSON array — the whole reasoned closure with its per-row
+/// provenance split, which is what lets a consumer fold the result back into a graph
+/// instead of re-deriving it from a rendered table.
+fn rows_json(rows: &[FactRow]) -> serde_json::Value {
+    serde_json::Value::Array(rows.iter().map(FactRow::to_json).collect())
 }
 
 /// Split every entry's `logic:entryLabel` rows by provenance into per-entry verdicts.
@@ -5750,17 +6195,17 @@ fn label_verdicts(rows: &[FactRow]) -> Vec<(String, LabelVerdict)> {
     let mut derived: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     let mut asserted: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     for row in rows.iter().filter(|r| r.predicate == predicate) {
+        // A frontier label is one of the shipped `logic:Frontier…` individuals, so both
+        // ends are IRIs. A row that is not is a different fact and keeps its place in the
+        // full row set rather than being coerced into a verdict about a label.
+        let (Some(subject), Some(object)) = (row.subject.iri(), row.object.iri()) else {
+            continue;
+        };
         if row.derived {
-            derived
-                .entry(row.subject.as_str())
-                .or_default()
-                .insert(row.object.as_str());
+            derived.entry(subject).or_default().insert(object);
         }
         if row.asserted {
-            asserted
-                .entry(row.subject.as_str())
-                .or_default()
-                .insert(row.object.as_str());
+            asserted.entry(subject).or_default().insert(object);
         }
     }
 
@@ -5814,8 +6259,25 @@ fn short(iri: &str) -> &str {
     iri.strip_prefix(LOGIC_NS).unwrap_or(iri)
 }
 
+/// The proposal fields a blocked step's remedy carries, in the order an operator reads
+/// them. Named once so the text and JSON renderings can never drift apart.
+const PROPOSAL_FIELDS: [&str; 7] = [
+    "proposalMissingCapability",
+    "proposalRequiredContract",
+    "proposalExpectedInputs",
+    "proposalExpectedOutputs",
+    "proposalExpectedEffects",
+    "proposalVerificationMethod",
+    "proposalSecurityLifecycle",
+];
+
 /// `gmeow logic frontier` — print the derived frontier, or explain one action.
-pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&str>) -> i32 {
+pub fn logic_frontier(
+    reporter: &dyn Reporter,
+    input: &Path,
+    why_not: Option<&str>,
+    format: OutputFormat,
+) -> i32 {
     const CODE: &str = "gmeow-cli.logic-frontier";
     let rows = match logic_derive(reporter, input, CODE) {
         Ok(r) => r,
@@ -5850,6 +6312,15 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
                 ),
             );
         };
+        if matches!(format, OutputFormat::Json) {
+            return print_json(
+                reporter,
+                CODE,
+                &why_not_json(
+                    input, target, &entry, &verdicts, &witnesses, &actions, &rows,
+                ),
+            );
+        }
         println!("action:  {target}");
         println!("entry:   {entry}");
         let mut spoke = false;
@@ -5901,20 +6372,12 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
             for (proposal, blocked) in iri_pairs(&rows, &format!("{LOGIC_NS}proposalBlockedStep")) {
                 if blocked == step {
                     println!("proposal: {proposal}");
-                    for field in [
-                        "proposalMissingCapability",
-                        "proposalRequiredContract",
-                        "proposalExpectedInputs",
-                        "proposalExpectedOutputs",
-                        "proposalExpectedEffects",
-                        "proposalVerificationMethod",
-                        "proposalSecurityLifecycle",
-                    ] {
+                    for field in PROPOSAL_FIELDS {
                         for row in &rows {
                             if row.predicate == format!("{LOGIC_NS}{field}")
-                                && row.subject == proposal
+                                && row.subject.iri() == Some(proposal.as_str())
                             {
-                                println!("  {field}: {}", row.object);
+                                println!("  {field}: {}", row.object.display());
                             }
                         }
                     }
@@ -5933,6 +6396,14 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
                  carries no logic:FrontierEntry with axis witnesses the rule set can label",
                 input.display()
             ),
+        );
+    }
+
+    if matches!(format, OutputFormat::Json) {
+        return print_json(
+            reporter,
+            CODE,
+            &frontier_json(input, &verdicts, &witnesses, &actions, &rows),
         );
     }
 
@@ -5970,8 +6441,141 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
     0
 }
 
+/// The whole frontier as JSON: every entry with its provenance-split verdict and axis
+/// tuple, the entry→action positioning, AND the complete derived row set.
+///
+/// The row set is the part that makes the frontier a graph again rather than a report: an
+/// agent runtime folds `facts` straight back in, keeping each row's `asserted` / `derived`
+/// flags, instead of re-deriving a conclusion it has just been handed.
+fn frontier_json(
+    input: &Path,
+    verdicts: &[(String, LabelVerdict)],
+    witnesses: &[(String, String)],
+    actions: &[(String, String)],
+    rows: &[FactRow],
+) -> serde_json::Value {
+    let entries: Vec<serde_json::Value> = verdicts
+        .iter()
+        .map(|(entry, verdict)| {
+            let mut obj = verdict.to_json(entry);
+            let axes: Vec<&str> = witnesses
+                .iter()
+                .filter(|(e, _)| e == entry)
+                .map(|(_, w)| w.as_str())
+                .collect();
+            let acts: Vec<&str> = actions
+                .iter()
+                .filter(|(e, _)| e == entry)
+                .map(|(_, a)| a.as_str())
+                .collect();
+            if let serde_json::Value::Object(map) = &mut obj {
+                map.insert("axis_witnesses".to_owned(), axes.into());
+                map.insert("actions".to_owned(), acts.into());
+            }
+            obj
+        })
+        .collect();
+    serde_json::json!({
+        "command": "logic frontier",
+        "input": input.display().to_string(),
+        "entries": entries,
+        "facts": rows_json(rows),
+    })
+}
+
+/// One action's `--why-not` answer as JSON: the entry it belongs to, its verdicts, its
+/// axis tuple, and every operational capability gap and proposal bound to its step, with
+/// each proposal field carried as a full term rather than a flattened string.
+fn why_not_json(
+    input: &Path,
+    target: &str,
+    entry: &str,
+    verdicts: &[(String, LabelVerdict)],
+    witnesses: &[(String, String)],
+    actions: &[(String, String)],
+    rows: &[FactRow],
+) -> serde_json::Value {
+    let entry_verdicts: Vec<serde_json::Value> = verdicts
+        .iter()
+        .filter(|(e, _)| e == entry)
+        .map(|(e, v)| v.to_json(e))
+        .collect();
+    let axes: Vec<&str> = witnesses
+        .iter()
+        .filter(|(e, _)| e == entry)
+        .map(|(_, w)| w.as_str())
+        .collect();
+    let step = actions
+        .iter()
+        .find(|(e, _)| e == entry)
+        .map(|(_, s)| s.clone());
+    let mut gaps: Vec<String> = Vec::new();
+    let mut proposals: Vec<serde_json::Value> = Vec::new();
+    if let Some(step) = &step {
+        for (gap, blocked) in iri_pairs(rows, &format!("{LOGIC_NS}gapBlockedStep")) {
+            if &blocked == step {
+                gaps.push(gap);
+            }
+        }
+        for (proposal, blocked) in iri_pairs(rows, &format!("{LOGIC_NS}proposalBlockedStep")) {
+            if &blocked != step {
+                continue;
+            }
+            let mut fields = serde_json::Map::new();
+            for field in PROPOSAL_FIELDS {
+                let predicate = format!("{LOGIC_NS}{field}");
+                let values: Vec<serde_json::Value> = rows
+                    .iter()
+                    .filter(|r| {
+                        r.predicate == predicate && r.subject.iri() == Some(proposal.as_str())
+                    })
+                    .map(|r| r.object.to_json())
+                    .collect();
+                if !values.is_empty() {
+                    fields.insert(field.to_owned(), values.into());
+                }
+            }
+            proposals.push(serde_json::json!({
+                "proposal": proposal,
+                "fields": serde_json::Value::Object(fields),
+            }));
+        }
+    }
+    serde_json::json!({
+        "command": "logic frontier --why-not",
+        "input": input.display().to_string(),
+        "action": target,
+        "entry": entry,
+        "verdicts": entry_verdicts,
+        "axis_witnesses": axes,
+        "step": step,
+        "capability_gaps": gaps,
+        "proposals": proposals,
+        "facts": rows_json(rows),
+    })
+}
+
+/// One attempt's settled position at the external-effect boundary, computed ONCE and then
+/// rendered as text or as JSON.
+///
+/// The four outcomes are kept apart deliberately: a receipted attempt owes nothing, a
+/// foreclosed one owes an escalation no probe can substitute for, an undetermined one owes
+/// a reconciliation, and an attempt with neither record owes an authoring fix. Collapsing
+/// any pair sends an operator to the wrong remedy.
+struct SagaAttempt {
+    attempt: String,
+    intent: String,
+    /// The stable outcome tag: `receipted`, `FORECLOSED`, `UNDETERMINED`, or
+    /// `no-effect-record`.
+    outcome: &'static str,
+    /// What must happen before anything else may, or `None` when nothing is owed.
+    owed: Option<String>,
+    /// A reconciliation probe has been issued for this attempt.
+    probed: bool,
+}
+
 /// `gmeow logic saga` — the external-effect boundary status.
-pub fn logic_saga(reporter: &dyn Reporter, input: &Path) -> i32 {
+pub fn logic_saga(reporter: &dyn Reporter, input: &Path, format: OutputFormat) -> i32 {
     const CODE: &str = "gmeow-cli.logic-saga";
     let rows = match logic_derive(reporter, input, CODE) {
         Ok(r) => r,
@@ -5987,57 +6591,120 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path) -> i32 {
     // them apart or it silently sends an operator after evidence that cannot be got.
     let foreclosed = iri_pairs(&rows, &format!("{LOGIC_NS}impossibleOfAttempt"));
     let probes = iri_pairs(&rows, &format!("{LOGIC_NS}probesAttempt"));
-    let verdicts = iri_pairs(&rows, &format!("{LOGIC_NS}reconciliationVerdict"));
+    let all_verdicts = iri_pairs(&rows, &format!("{LOGIC_NS}reconciliationVerdict"));
 
-    if attempts.is_empty() && unknowns.is_empty() {
-        println!("no external-effect records in {}", input.display());
-        return 0;
-    }
-
+    let empty = attempts.is_empty() && unknowns.is_empty();
+    let mut settled_attempts: Vec<SagaAttempt> = Vec::new();
     for (attempt, intent) in &attempts {
-        println!("attempt: {}", short(attempt));
-        println!("  intent:      {}", short(intent));
         let settled = receipts.iter().any(|(_, a)| a == attempt);
         let undetermined = unknowns.iter().any(|(_, a)| a == attempt);
         let unresolvable = foreclosed.iter().any(|(_, a)| a == attempt);
         let probed = probes.iter().any(|(_, a)| a == attempt);
-        if settled {
-            println!("  outcome:     receipted");
+        let (outcome, owed) = if settled {
+            ("receipted", None)
         } else if unresolvable {
-            println!("  outcome:     FORECLOSED");
-            println!(
-                "  owed:        ESCALATION — the means of determining what happened no \
-                 longer exist, so no probe can settle this and no retry is licensed. \
-                 This is not an undetermined outcome awaiting reconciliation; it is one \
-                 that can never be reconciled, and it needs a human decision on record."
-            );
-        } else if undetermined {
-            // The whole point of the boundary state: say what is owed, not merely
-            // that the outcome is unknown.
-            println!("  outcome:     UNDETERMINED");
-            if probed {
-                let verdict = verdicts
-                    .iter()
-                    .map(|(_, v)| short(v))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                println!(
-                    "  owed:        reconciliation probe issued; verdict: {}",
-                    if verdict.is_empty() {
+            (
+                "FORECLOSED",
+                Some(
+                    "ESCALATION — the means of determining what happened no longer exist, so \
+                     no probe can settle this and no retry is licensed. This is not an \
+                     undetermined outcome awaiting reconciliation; it is one that can never be \
+                     reconciled, and it needs a human decision on record."
+                        .to_owned(),
+                ),
+            )
+        } else if undetermined && probed {
+            // The verdicts are reported at the DOCUMENT level, not per attempt: the shipped
+            // vocabulary hangs `logic:reconciliationVerdict` on a `logic:ReconciliationResult`
+            // that carries no edge back to the probe or the attempt, so there is no join to
+            // make and claiming one would be inventing it.
+            let joined = all_verdicts
+                .iter()
+                .map(|(_, v)| short(v))
+                .collect::<Vec<_>>()
+                .join(", ");
+            (
+                "UNDETERMINED",
+                Some(format!(
+                    "reconciliation probe issued; verdict: {}",
+                    if joined.is_empty() {
                         "pending"
                     } else {
-                        &verdict
+                        &joined
                     }
-                );
-            } else {
-                println!(
-                    "  owed:        RECONCILIATION — the provider must be asked what happened. \
-                     Retrying blindly risks a duplicate effect; compensating blindly reverses \
-                     an effect that may never have occurred."
-                );
-            }
+                )),
+            )
+        } else if undetermined {
+            (
+                "UNDETERMINED",
+                Some(
+                    "RECONCILIATION — the provider must be asked what happened. Retrying \
+                     blindly risks a duplicate effect; compensating blindly reverses an effect \
+                     that may never have occurred."
+                        .to_owned(),
+                ),
+            )
         } else {
-            println!("  outcome:     no receipt and no unknown-outcome record");
+            ("no-effect-record", None)
+        };
+        settled_attempts.push(SagaAttempt {
+            attempt: attempt.clone(),
+            intent: intent.clone(),
+            outcome,
+            owed,
+            probed,
+        });
+    }
+
+    if matches!(format, OutputFormat::Json) {
+        let attempts_json: Vec<serde_json::Value> = settled_attempts
+            .iter()
+            .map(|a| {
+                serde_json::json!({
+                    "attempt": a.attempt,
+                    "intent": a.intent,
+                    "outcome": a.outcome,
+                    "owed": a.owed,
+                    "probed": a.probed,
+                })
+            })
+            .collect();
+        return print_json(
+            reporter,
+            CODE,
+            &serde_json::json!({
+                "command": "logic saga",
+                "input": input.display().to_string(),
+                "has_effect_records": !empty,
+                "attempts": attempts_json,
+                "reconciliation_verdicts": all_verdicts
+                    .iter()
+                    .map(|(result, verdict)| serde_json::json!({
+                        "result": result,
+                        "verdict": verdict,
+                    }))
+                    .collect::<Vec<_>>(),
+                "facts": rows_json(&rows),
+            }),
+        );
+    }
+
+    if empty {
+        println!("no external-effect records in {}", input.display());
+        return 0;
+    }
+
+    for a in &settled_attempts {
+        println!("attempt: {}", short(&a.attempt));
+        println!("  intent:      {}", short(&a.intent));
+        match a.outcome {
+            "no-effect-record" => {
+                println!("  outcome:     no receipt and no unknown-outcome record")
+            }
+            other => println!("  outcome:     {other}"),
+        }
+        if let Some(owed) = &a.owed {
+            println!("  owed:        {owed}");
         }
     }
     0
@@ -6069,6 +6736,25 @@ fn print_refine_witness(indent: &str, witness: &gmeow_logic::ProofWitness) {
     }
 }
 
+/// One chase witness as JSON: the rule that concluded the row, its proof height, and the
+/// premises it fired on — the same three things the text rendering prints, so a consumer
+/// can re-run the derivation rather than take the roster on trust.
+fn refine_witness_json(witness: &gmeow_logic::ProofWitness) -> serde_json::Value {
+    serde_json::json!({
+        "rule_iri": witness.rule_iri,
+        "proof_height": witness.proof_height,
+        "premises": witness
+            .premises
+            .iter()
+            .map(|(subject, predicate, object)| serde_json::json!({
+                "subject": subject,
+                "predicate": predicate,
+                "object": object,
+            }))
+            .collect::<Vec<_>>(),
+    })
+}
+
 /// `gmeow logic refine` — bounded, chase-derived means–end refinement.
 ///
 /// Every line printed below is a row of the reasoner's closure: the roster, the
@@ -6080,6 +6766,7 @@ pub fn logic_refine(
     task: &str,
     fragment: &str,
     budget: u32,
+    format: OutputFormat,
 ) -> i32 {
     const CODE: &str = "gmeow-cli.logic-refine";
     let bytes = match std::fs::read(input) {
@@ -6110,6 +6797,68 @@ pub fn logic_refine(
     };
 
     let report = gmeow_logic::refine(parsed.as_ref(), task, fragment, budget);
+
+    // The two outcomes that are ANSWERS about the method set — a closed roster and a
+    // budget-cut one — are the two the structured mode serializes. Every other outcome is
+    // a refusal, and a refusal travels the console's error rail (stderr, exit 1, an NDJSON
+    // `finding` line under `--console jsonl`) rather than being dressed as a result
+    // document a consumer could mistake for a roster.
+    if matches!(format, OutputFormat::Json) {
+        let (status, detail) = match &report.outcome {
+            gmeow_logic::runtime::OperationOutcome::Applied { run, .. } => (
+                "CLOSED",
+                serde_json::json!({
+                    "complete_for_fragment": fragment,
+                    "derivations": run.consumed_steps,
+                }),
+            ),
+            gmeow_logic::runtime::OperationOutcome::Incomplete { status, cause } => (
+                "INCOMPLETE",
+                serde_json::json!({
+                    "cut_status": format!("{status:?}"),
+                    "cause": format!("{cause:?}"),
+                    "budget": budget,
+                    "note": "the derivation was cut, so NO roster is reported: a partial roster \
+                             presented here would be read as the roster",
+                }),
+            ),
+            _ => ("", serde_json::Value::Null),
+        };
+        if !status.is_empty() {
+            let closed = status == "CLOSED";
+            return print_json(
+                reporter,
+                CODE,
+                &serde_json::json!({
+                    "command": "logic refine",
+                    "input": input.display().to_string(),
+                    "task": task,
+                    "fragment": fragment,
+                    "budget": budget,
+                    "status": status,
+                    "outcome": detail,
+                    "candidates": if closed {
+                        report.candidates.iter().map(|c| serde_json::json!({
+                            "task": c.task,
+                            "method": c.method,
+                            "steps": c.steps,
+                            "open_steps": c.open_steps,
+                            "witness": refine_witness_json(&c.witness),
+                        })).collect::<Vec<_>>()
+                    } else { Vec::new() },
+                    "rejections": if closed {
+                        report.rejections.iter().map(|r| serde_json::json!({
+                            "step": r.step,
+                            "kind": rejection_label(r.kind),
+                            "witness_iri": r.witness_iri,
+                            "witness": refine_witness_json(&r.witness),
+                        })).collect::<Vec<_>>()
+                    } else { Vec::new() },
+                    "reached": if closed { report.reached.clone() } else { Vec::new() },
+                }),
+            );
+        }
+    }
 
     match &report.outcome {
         gmeow_logic::runtime::OperationOutcome::UnsupportedFragment { kind } => {
@@ -6214,8 +6963,25 @@ pub fn logic_refine(
     0
 }
 
+/// R3.5's five explanation elements: the graph predicate and the heading it is read under.
+///
+/// Named once so the text and JSON renderings can never disagree about which five they
+/// are — a report silently missing one still looks complete.
+const EXPLANATION_ELEMENTS: [(&str, &str); 5] = [
+    ("explanationProof", "proof"),
+    ("explanationEvidence", "evidence"),
+    ("explanationPolicy", "policy"),
+    ("explanationCriterion", "criterion"),
+    ("explanationDissent", "dissent"),
+];
+
 /// `gmeow logic explain` — R3.5's five elements for one action.
-pub fn logic_explain(reporter: &dyn Reporter, input: &Path, action: &str) -> i32 {
+pub fn logic_explain(
+    reporter: &dyn Reporter,
+    input: &Path,
+    action: &str,
+    format: OutputFormat,
+) -> i32 {
     const CODE: &str = "gmeow-cli.logic-explain";
     const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
     let rows = match logic_derive(reporter, input, CODE) {
@@ -6232,6 +6998,64 @@ pub fn logic_explain(reporter: &dyn Reporter, input: &Path, action: &str) -> i32
         .collect();
 
     let explains = iri_pairs(&rows, &format!("{GMEOW_NS}explainsEntry"));
+
+    if matches!(format, OutputFormat::Json) {
+        let matched: Vec<&(String, String)> = explains
+            .iter()
+            .filter(|(_, entry)| entries.contains(entry))
+            .collect();
+        if matched.is_empty() {
+            return fail(
+                reporter,
+                CODE,
+                format!("no gmeow:FrontierExplanation explains <{action}>"),
+            );
+        }
+        let all_verdicts = label_verdicts(&rows);
+        let explanations: Vec<serde_json::Value> = matched
+            .iter()
+            .map(|(explanation, entry)| {
+                let mut elements = serde_json::Map::new();
+                for (field, heading) in EXPLANATION_ELEMENTS {
+                    let predicate = format!("{GMEOW_NS}{field}");
+                    // An element with no value is emitted as an EMPTY array rather than
+                    // omitted: "recorded nothing" and "the key is not in this document"
+                    // are different claims, and dissent is the one most easily lost.
+                    let values: Vec<serde_json::Value> = rows
+                        .iter()
+                        .filter(|r| {
+                            r.predicate == predicate
+                                && r.subject.iri() == Some(explanation.as_str())
+                        })
+                        .map(|r| r.object.to_json())
+                        .collect();
+                    elements.insert(heading.to_owned(), values.into());
+                }
+                serde_json::json!({
+                    "explanation": explanation,
+                    "entry": entry,
+                    "label_verdicts": all_verdicts
+                        .iter()
+                        .filter(|(e, _)| e == entry)
+                        .map(|(e, v)| v.to_json(e))
+                        .collect::<Vec<_>>(),
+                    "elements": serde_json::Value::Object(elements),
+                })
+            })
+            .collect();
+        return print_json(
+            reporter,
+            CODE,
+            &serde_json::json!({
+                "command": "logic explain",
+                "input": input.display().to_string(),
+                "action": action,
+                "explanations": explanations,
+                "facts": rows_json(&rows),
+            }),
+        );
+    }
+
     let mut found = false;
     for (explanation, entry) in &explains {
         if !entries.contains(entry) {
@@ -6268,19 +7092,14 @@ pub fn logic_explain(reporter: &dyn Reporter, input: &Path, action: &str) -> i32
         }
         // R3.5's five elements, each named so a missing one is visible as missing
         // rather than silently absent from an otherwise plausible-looking report.
-        for (field, heading) in [
-            ("explanationProof", "proof"),
-            ("explanationEvidence", "evidence"),
-            ("explanationPolicy", "policy"),
-            ("explanationCriterion", "criterion"),
-            ("explanationDissent", "dissent"),
-        ] {
+        for (field, heading) in EXPLANATION_ELEMENTS {
             let vals: Vec<String> = rows
                 .iter()
                 .filter(|r| {
-                    r.subject == *explanation && r.predicate == format!("{GMEOW_NS}{field}")
+                    r.subject.iri() == Some(explanation.as_str())
+                        && r.predicate == format!("{GMEOW_NS}{field}")
                 })
-                .map(|r| r.object.clone())
+                .map(|r| r.object.display())
                 .collect();
             if vals.is_empty() {
                 println!("{heading:<12} <none recorded>");

@@ -14,6 +14,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/scada/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -153,3 +154,46 @@ ex:valvePositionResult a logic:ReconciliationResult ;
 ex:closeFeedValveAttempt a logic:CompensationAttempt ;
     rdfs:label "Compensating action: close FV-104"@x-gmeow-english ;
     logic:compensatesEffect ex:valvePositionResult .
+
+# --- Statement metadata: the read-back is an INSTRUMENT'S claim.
+#
+# `ex:valvePositionResult logic:reconciliationVerdict logic:ReconciledCommitted`
+# is the statement that closes the unknown and releases the plant to continue.
+# In this domain it is a claim by a physical instrument about a physical valve,
+# and instruments are the things that disagree: a position transmitter reading
+# 40% and a limit switch reading "not open" is the ordinary, expected conflict a
+# control system must survive. Both are claims about the SAME statement.
+#
+# Attaching the source to ex:valvePositionResult cannot express that. A second,
+# disagreeing instrument would need a second result node — and then there are two
+# reconciliation results for one probe, which is a different and much worse
+# claim: it reads as two reconciliations rather than one contested reading, and
+# the kernel's `probesAttempt` join no longer says which one settled the unknown.
+# Reifying the verdict statement keeps one result and two attributed stances.
+ex:transmitterOnValveOpen
+    rdf:reifies <<( ex:valvePositionResult logic:reconciliationVerdict logic:ReconciledCommitted )>> ;
+    rdfs:label "Position transmitter PT-104 reads FV-104 at 40%"@x-gmeow-english ;
+    gmeow:accordingTo ex:positionTransmitterPT104 ;
+    gmeow:standpointPolarity gmeow:polarityAffirm ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssert ;
+    gmeow:standpointSupportStatus gmeow:supportSupported .
+
+# The limit switch does not confirm it. This is NOT a denial that the command
+# committed — a limit switch only trips at the fully-open stop, and 40% is not
+# fully open — so the honest stance is suspension with an OPPOSED support status:
+# the instrument withholds support without contradicting the reading. Collapsing
+# this to a denial would manufacture an interlock trip; dropping it would hide
+# the only evidence that the two instruments were ever compared.
+ex:limitSwitchOnValveOpen
+    rdf:reifies <<( ex:valvePositionResult logic:reconciliationVerdict logic:ReconciledCommitted )>> ;
+    rdfs:label "Limit switch ZS-104 does not confirm FV-104 fully open"@x-gmeow-english ;
+    gmeow:accordingTo ex:limitSwitchZS104 ;
+    gmeow:standpointPolarity gmeow:polaritySuspend ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssume ;
+    gmeow:standpointSupportStatus gmeow:supportOpposed .
+
+ex:positionTransmitterPT104 a logic:EngineCapability ;
+    rdfs:label "Feed valve FV-104 position transmitter PT-104"@x-gmeow-english .
+
+ex:limitSwitchZS104 a logic:EngineCapability ;
+    rdfs:label "Feed valve FV-104 fully-open limit switch ZS-104"@x-gmeow-english .

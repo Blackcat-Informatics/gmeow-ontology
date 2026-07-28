@@ -176,3 +176,44 @@ fn every_guarded_projection_vocabulary_is_reproduced_exactly() {
         );
     }
 }
+
+/// The escape hatch must never be able to silence a LIVE slice.
+///
+/// `RETIRED_SLICES` skips frozen golden rows, and the golden is a permanent record whose
+/// whole value is that a dropped or perturbed commitment stays detectable forever. A slice
+/// that no longer exists genuinely has no commitment to reproduce; a slice that still ships
+/// does, and adding it here would silently drain the teeth from every one of its frozen
+/// rows while the suite kept reporting green.
+///
+/// So the list is pinned to the one thing that makes an entry legitimate: the slice is
+/// GONE. Liveness is read from the repository itself — the same
+/// `discover_slice_dirs` + `slice_iri_of_dir` pair the sweep, the ratchet gate and the
+/// pipeline carrier producer use — not from a second hand-maintained roster that could
+/// drift from it.
+#[test]
+fn no_retired_slice_entry_names_a_slice_that_still_exists() {
+    let root = repo_root();
+    let live: Vec<String> = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"))
+        .iter()
+        .map(|dir| {
+            gmeow_slice_quality::slice_iri_of_dir(dir)
+                .unwrap_or_else(|e| panic!("{} must declare a gmeow:Slice: {e}", dir.display()))
+        })
+        .collect();
+    assert!(
+        !live.is_empty(),
+        "slice discovery found no slices at all, so this guard would pass vacuously"
+    );
+    for (iri, reason) in RETIRED_SLICES {
+        assert!(
+            !live.contains(&(*iri).to_owned()),
+            "{iri} is still a LIVE slice in the repository, so its frozen ceiling rows must \
+             keep their full teeth; RETIRED_SLICES exempts only slices that are gone (the \
+             recorded reason was: {reason})"
+        );
+        assert!(
+            !reason.trim().is_empty(),
+            "{iri} must carry a recorded reason, or the exemption is a silent hole"
+        );
+    }
+}

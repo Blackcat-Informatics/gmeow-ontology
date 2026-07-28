@@ -24,6 +24,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/effect-boundary/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -276,3 +277,46 @@ ex:settlementProcessV5 a logic:PrescriptionVersion ;
 ex:invoiceBatchNightly a logic:InputSnapshot ;
     rdfs:label "Invoice batch frozen at settlement-run start"@x-gmeow-english ;
     logic:snapshotDigest "b3:9d720ba53e18cf46015a9c73be0d284f610ac539be8d2740f1a5c96b3e07d825" .
+
+# =========================================================================== #
+# === Statement metadata: whose word the verdict is                       === #
+# =========================================================================== #
+#
+# The verdict statement above — `ex:chargeProbeResult logic:reconciliationVerdict
+# logic:ReconciledCommitted` — is the one fact in this whole file that licenses a
+# next action, and it is NOT ours. Our records are exactly what cannot settle it;
+# that is the premise of the boundary state. It is the provider's word, and the
+# only thing making it actionable is whose word it is.
+#
+# So the attribution belongs to the STATEMENT, not to the result node. Put
+# `gmeow:accordingTo` on ex:chargeProbeResult and you have said the record has a
+# source — which is true of the label, the type and everything else hanging off
+# it. Put it on the reifier and you have said this exact claim came from Acme
+# Payments, which is the claim an auditor is actually checking and the one a
+# second, disagreeing probe would have to contradict statement-for-statement.
+#
+# The assertoric force is `assert` and the support status `supported`: the
+# provider is not conjecturing. An unattributed verdict here would be
+# unfalsifiable — indistinguishable from our own inference about a fact we have
+# already established we cannot observe.
+ex:acmeOnChargeCommitted
+    rdf:reifies <<( ex:chargeProbeResult logic:reconciliationVerdict logic:ReconciledCommitted )>> ;
+    rdfs:label "Acme Payments states that the charge committed"@x-gmeow-english ;
+    gmeow:accordingTo ex:acmePaymentsEndpoint ;
+    gmeow:standpointPolarity gmeow:polarityAffirm ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssert ;
+    gmeow:standpointSupportStatus gmeow:supportSupported .
+
+# The complementary statement, and the reason the reifier is not decoration: OUR
+# standpoint SUSPENDS on the same triple. We did not observe the charge and we
+# never will; we are relaying a claim, not making one. Two vantages, one
+# statement, neither privileged — and an operator can see at a glance that the
+# retry is licensed by the provider's assertion rather than by anything the
+# settlement run itself knows.
+ex:settlementRunOnChargeCommitted
+    rdf:reifies <<( ex:chargeProbeResult logic:reconciliationVerdict logic:ReconciledCommitted )>> ;
+    rdfs:label "The settlement run relays, but does not itself assert, the committed verdict"@x-gmeow-english ;
+    gmeow:accordingTo ex:settlementRun ;
+    gmeow:standpointPolarity gmeow:polaritySuspend ;
+    gmeow:standpointAssertoricForce gmeow:assertoricAssume ;
+    gmeow:standpointSupportStatus gmeow:supportNeither .
