@@ -102,6 +102,39 @@ fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset>
     builder.freeze().expect("valid scoped test dataset")
 }
 
+/// Project the authored `logic:` structural predicates onto the `rdfs:` twins OWL 2 RL reasons
+/// over, before the closure runs.
+///
+/// `logic:subClassOf` / `logic:subPropertyOf` are this repo's CANONICAL authoring predicates for
+/// subsumption — slices state specializations with them and the pipeline projects the `rdfs:`
+/// forms from them. OWL 2 RL has rules only for the `rdfs:` forms, so a closure taken over RAW
+/// module source parses the authored axiom and then does nothing with it: every authored
+/// specialization silently vanishes, and the missing entailment reads as an ontology defect
+/// rather than as a missing projection. Doing the projection here is what makes a source-level
+/// closure mean the same thing the shipped bundle's closure means.
+fn project_logic_structural_predicates(quads: &mut Vec<RdfQuad>) {
+    const PROJECTIONS: &[(&str, &str)] = &[
+        (
+            "https://blackcatinformatics.ca/logic/subClassOf",
+            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+        ),
+        (
+            "https://blackcatinformatics.ca/logic/subPropertyOf",
+            "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
+        ),
+    ];
+    let projected: Vec<RdfQuad> = quads
+        .iter()
+        .filter_map(|q| {
+            PROJECTIONS
+                .iter()
+                .find(|(authored, _)| q.predicate == *authored)
+                .map(|(_, rdfs)| RdfQuad::new(q.subject.clone(), *rdfs, q.object.clone()))
+        })
+        .collect();
+    quads.extend(projected);
+}
+
 /// An RL closure of the named slice modules plus injected `abox` quads — the native twin of the
 /// Python `_materialize(*modules, abox)` pattern. `slices` are `<group>/<name>` ids; the relevant
 /// `module.ttl` files (small TBox) plus the tiny A-Box close in seconds, Docker-free.
@@ -110,6 +143,7 @@ pub fn scoped_closure(slices: &[&str], abox: &[RdfQuad]) -> RlClosure {
     paths.sort();
     let mut quads = turtle_quads(&paths);
     quads.extend_from_slice(abox);
+    project_logic_structural_predicates(&mut quads);
     let dataset = dataset_from_quads(quads);
     rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }
@@ -120,6 +154,7 @@ pub fn scoped_closure_files(rel_paths: &[&str], abox: &[RdfQuad]) -> RlClosure {
     let paths: Vec<String> = rel_paths.iter().map(|s| (*s).to_owned()).collect();
     let mut quads = turtle_quads(&paths);
     quads.extend_from_slice(abox);
+    project_logic_structural_predicates(&mut quads);
     let dataset = dataset_from_quads(quads);
     rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }

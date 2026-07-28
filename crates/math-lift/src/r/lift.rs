@@ -305,6 +305,27 @@ impl Lift<'_> {
         (iri, fresh)
     }
 
+    /// The run-scoped `math:Set` every lifted free variable is declared over, minted once.
+    ///
+    /// `math:variableDomain` is mandatory — a declaration without one is
+    /// `math:UntypedFreeVariable` — and the R front end genuinely does not know a variable's
+    /// domain: a model-frame column may be numeric, a factor, or a character vector, and the
+    /// script text does not say which. Naming `math:realNumbers` here would satisfy the
+    /// obligation by asserting something the parser never established. This set says exactly
+    /// what IS known — the variable ranges over the values of this R run — and leaves the
+    /// narrowing to whoever has the data.
+    fn value_domain(&mut self) -> String {
+        let (iri, fresh) = self.mint("value-domain", "");
+        if fresh {
+            self.sink.typed(&iri, &math("Set"));
+            self.label(
+                &iri,
+                "R value domain — the unconstrained set an R binding ranges over",
+            );
+        }
+        iri
+    }
+
     fn label(&mut self, subject: &str, text: &str) {
         self.sink.string(subject, RDFS_LABEL, text);
     }
@@ -1103,6 +1124,9 @@ impl Lift<'_> {
             self.sink
                 .typed(&declaration, &math("FreeVariableDeclaration"));
             self.label(&declaration, name);
+            let domain = self.value_domain();
+            self.sink
+                .iri(&declaration, &math("variableDomain"), &domain);
             self.sink
                 .iri(&occurrence, &math("declaredVariable"), &declaration);
             self.sink
@@ -1525,7 +1549,13 @@ impl Lift<'_> {
             return;
         }
         let formula = self.lower_formula(expr);
-        self.sink.typed(&iri, &math("MathematicalExpression"));
+        // A math:MathematicalStatement, NOT a math:MathematicalExpression. This node denotes a
+        // PROPOSITION (see the math:denotationKind below) and, as the doc above says, is an
+        // anchor whose content rides entirely in the logic: formula tree beneath it — it carries
+        // no math:argumentSlot / boundVariable / symbol / literal child of its own. Typed as an
+        // expression it is exactly the anti-pattern math:StringOnlyComputableExpression exists to
+        // forbid: an expression whose only self-contained content is its rendered source string.
+        self.sink.typed(&iri, &math("MathematicalStatement"));
         self.sink
             .iri(&iri, &math("compilesToLogicFormula"), &formula);
         self.sink
