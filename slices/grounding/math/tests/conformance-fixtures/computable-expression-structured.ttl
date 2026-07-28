@@ -7,7 +7,7 @@
 # math:NormalizationDeclaration names the (source, target) pair, held at
 # math:structuralNormalization with EQUAL math:structuralKey values on both ends, so this
 # fixture is also clean of math:UndeclaredNormalForm,
-# math:FalseStructuralNormalizationClaim, and (post-G11) the min-qualified-cardinality-1
+# math:FalseStructuralNormalizationClaim, and the min-qualified-cardinality-1
 # restriction on math:normalizationStrength.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .

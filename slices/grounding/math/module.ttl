@@ -11014,7 +11014,7 @@ math:MathematicalExpression logic:subClassOf
 # math:normalizationStrength, unlike math:structuralKey, is declared MANDATORY as well
 # as functional: every math:NormalizationDeclaration names exactly one strength — a
 # strength-less declaration is a bare, unattributed edge, exactly the vacuous-contract
-# gap this restriction closes (see the G11 hardening note on
+# gap this restriction closes (see the note on
 # math:UndeclaredNormalFormConstraint below). The sibling logic:allValuesFrom
 # restriction carries the math:NormalizationStrength class constraint so the derived
 # shape gets an sh:class, not a bare sh:maxCount; the logic:minQualifiedCardinality

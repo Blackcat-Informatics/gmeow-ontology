@@ -8,7 +8,7 @@
 # (source, target) pair, held at math:structuralNormalization with EQUAL
 # math:structuralKey values on both ends, so this fixture stays isolated to ONLY this
 # violation and does not also trip math:UndeclaredNormalForm,
-# math:FalseStructuralNormalizationClaim, or (post-G11) the min-qualified-cardinality-1
+# math:FalseStructuralNormalizationClaim, or the min-qualified-cardinality-1
 # restriction on math:normalizationStrength.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .

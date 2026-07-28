@@ -187,7 +187,7 @@ use session_common::*;
 /// the native-contract source-content digest folded into this descriptor; the fixed
 /// edge-only input (authoring no `math:` expression graph) has an unchanged reasoning
 /// verdict.
-/// Re-blessed once more (G19) for the REAL, generating `structural_digest`/
+/// Re-blessed once more for the REAL, generating `structural_digest`/
 /// `lower_math_expression` α-equivalence property-test module (`physical::lower::tests::
 /// interning`), which replaces a five-string hardcoded-suffix-table example test with a
 /// `proptest` generator driven through the real `MathGraph`/`lower_math_expression`
@@ -220,8 +220,16 @@ use session_common::*;
 /// no reasoning verdict on any input changes. (`proof_tree.rs` itself is a downstream READER of
 /// an already-decided proof and is classified in `NOT_BACKWARD_SOURCE` alongside
 /// `goal_directed.rs`, so it adds nothing to the digest.)
+/// Re-blessed once more when the DL existential chase stopped treating an `owl:Thing`
+/// qualification as a real class qualifier. `reason/dl.rs` is a native-contract component, so
+/// normalizing `≥n p.⊤` to the unqualified obligation moves the engine descriptor. This one is
+/// a genuine SEMANTIC repair, not a source-churn re-bless: carrying `owl:Thing` into the rule
+/// head added a `?witness rdf:type owl:Thing` conjunct that nothing ever asserts, so the
+/// restricted chase's head-satisfaction probe could never match, blocking never fired, and a
+/// witness was invented even for a subject that already had its filler — one asserted value
+/// read back as two and collided with the `≤1` restriction on the same property.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "01be0673502bde1a2918b5bf01076e1be2dbab29bd2a5b4f410a536fd2bd81d6";
+    "946c01570738fd651bb58739794abed84823eaccf344aa85dc3bfed039598298";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -303,7 +311,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `alpha_class_iri_for_digest` moves the native contract hash, one of the seven folded
 /// identity axes, while the fixed edge-only input (authoring no `math:` expression graph)
 /// has an unchanged reasoning verdict.
-/// Re-blessed once more for the G19 real generating α-equivalence property-test module
+/// Re-blessed once more for the real generating α-equivalence property-test module
 /// (see the engine-descriptor golden above for the mechanism): `physical/lower.rs`'s
 /// test-only `physical::lower::tests::interning` addition moves the native contract hash,
 /// one of the seven folded identity axes, while the fixed edge-only input (authoring no
@@ -317,7 +325,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
 /// edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "c0f731c19f340a1ea6c24aa6cde447c52f67a01a44184fb9461fda67285094a0";
+    "939b1033706580134285769b3b4e1d065864a7667c1e4b38f38c076906c512ae";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

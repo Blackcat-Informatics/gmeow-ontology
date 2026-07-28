@@ -639,7 +639,7 @@ fn deep_consistency_findings(
         .map_err(|e| DeepPassError::Unavailable(format!("GTS read error: {e}")))?;
     let user = data_dataset(data_bytes, data_format)
         .map_err(|d| DeepPassError::Unavailable(d.message().to_string()))?;
-    // Narrow the bundle side to the object-level reasoning EDB (G13) — the SAME
+    // Narrow the bundle side to the object-level reasoning EDB — the SAME
     // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
     // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`)
     // — BEFORE merging in the caller's own data, so `gmeow validate <data> --deep`
@@ -689,7 +689,7 @@ fn deep_consistency_findings(
         .map_err(|e| DeepPassError::Derivation(e.message))?;
 
     // The math: dimensional-homogeneity + math: expression-identity reasoned gates
-    // (G13): the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
+    // the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
     // build time over the pipeline's own `assemble_object_level_edb`, now reachable
     // from `gmeow validate --deep` over the CALLER'S OWN data merged with the bundle
     // — a consumer with their own math AST graph gets `math:StructuralKeyDrift` /
@@ -1349,7 +1349,7 @@ ex:B rdfs:subClassOf ex:C .
 ";
 
     /// A `sh:targetClass` shape requiring `ex:name` on instances of `class_local`
-    /// (e.g. `C`, `D`) — the pattern G12 diagnosed as dead when every real instance is
+    /// (e.g. `C`, `D`) — the pattern that is dead when every real instance is
     /// typed with a proper subclass rather than the targeted class itself.
     fn subclass_probe_shapes(class_local: &str) -> String {
         format!(
@@ -1363,7 +1363,7 @@ ex:B rdfs:subClassOf ex:C .
         )
     }
 
-    /// G12 regression (Half A): a focus node typed ONLY as a proper subclass (`ex:x a
+    /// Bundle-hierarchy regression: a focus node typed ONLY as a proper subclass (`ex:x a
     /// ex:A`, never `ex:x a ex:C` directly) IS selected by a shape whose `sh:targetClass`
     /// names an ANCESTOR (`ex:C`) the isolated data graph never restates — the exact defect
     /// the shipped `gmeow validate <file>` CLI hit on `math:ArgumentSlotContiguityConstraint`
@@ -1396,7 +1396,7 @@ ex:B rdfs:subClassOf ex:C .
         );
     }
 
-    /// G12 regression (Half A), the negative twin: a shape targeting an UNRELATED class
+    /// Bundle-hierarchy regression, the negative twin: a shape targeting an UNRELATED class
     /// (`ex:D`, no subsumption edge to/from `ex:A` in [`SUBCLASS_ONTOLOGY`]) must NOT select
     /// an `ex:A`-typed focus node — the shortcut injection must not over-approximate and
     /// select every instance for every shape regardless of its real class.
@@ -1424,7 +1424,7 @@ ex:B rdfs:subClassOf ex:C .
         );
     }
 
-    /// G12 regression (Half A), the transitivity proof: the shape targets `ex:C`, the data
+    /// Bundle-hierarchy regression, the transitivity proof: the shape targets `ex:C`, the data
     /// is typed only `ex:A`, and [`SUBCLASS_ONTOLOGY`] connects them ONLY via the two-hop
     /// chain `ex:A ⊑ ex:B ⊑ ex:C` — `ex:A` carries no DIRECT `rdfs:subClassOf ex:C` edge, so
     /// this fails if the shortcut injection only walked one hop instead of the full

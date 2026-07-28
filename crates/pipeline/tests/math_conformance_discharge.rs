@@ -243,7 +243,7 @@ const SECTIONS: &[ConformanceSection] = &[
 /// `math:<Class>` local name extracted from its `Failure class` cell (empty when the cell
 /// is prose rather than a class — the competency/structural/native-test rows), and the
 /// class cell's raw text verbatim (surfaced in hard-gap/orphan diagnostics so a reader sees
-/// the charter's own words, not only the derived local name — G30: this field is READ, not
+/// the charter's own words, not only the derived local name — this field is READ, not
 /// dead-code-placated).
 #[derive(Debug, Clone)]
 struct MatrixRow {
@@ -262,7 +262,7 @@ struct MatrixRow {
 /// en-dashes) that can sit immediately after a `math:` mention with no recognized local-name
 /// character between them. The old `local.len().max(1)` advance assumed a byte offset of at
 /// least 1 was always a char boundary of `after`, which is false the instant the character
-/// right after `math:` is multibyte (G26) — this advances by that character's OWN UTF-8
+/// right after `math:` is multibyte — this advances by that character's OWN UTF-8
 /// length instead, and stops rather than indexing past an empty remainder.
 fn extract_math_classes(cell: &str) -> Vec<String> {
     let mut out = Vec::new();
@@ -294,7 +294,7 @@ fn extract_math_classes(cell: &str) -> Vec<String> {
 /// `#`-prefixed line (any heading level) or EOF, and extract every markdown table row's
 /// middle (`Primary gate`) and LAST (`Failure class`) cells — skipping the header row and the
 /// `|---|` separator, exactly mirroring `gmn_conformance_discharge::matrix_gmn_rows`'s
-/// boundary and skip logic. The failure-class cell is `cells.last()` (G33: matching this
+/// boundary and skip logic. The failure-class cell is `cells.last()` (matching this
 /// doc's own "last cell" wording, not a hardcoded `cells[2]` — every real row today has
 /// exactly 3 cells, so this changes nothing observable, but a defensively-wider row shape
 /// is read correctly rather than silently misaligned).
@@ -385,7 +385,7 @@ fn channels_to_string(channels: &BTreeSet<Channel>) -> String {
 
 /// `true` iff `marker` occurs in `haystack` at a real token boundary — the character
 /// immediately before and after the match, if any, is never ASCII alphanumeric. A bare
-/// substring test (G34) also matches a marker that is merely a PREFIX of a longer identifier
+/// substring test also matches a marker that is merely a PREFIX of a longer identifier
 /// mentioned in the SAME cell (e.g. the marker `"structural"` inside a hypothetical gate
 /// cell mentioning `math:structuralKey`/`math:structuralNormalization`), misrouting the row.
 fn contains_word(haystack: &str, marker: &str) -> bool {
@@ -403,7 +403,7 @@ fn contains_word(haystack: &str, marker: &str) -> bool {
 }
 
 /// Classify a charter `Primary gate` cell into every channel it names, by token-boundary
-/// match (G34 — not a bare substring test) against the charter's own stable vocabulary (see
+/// match (not a bare substring test) against the charter's own stable vocabulary (see
 /// the exhaustive enumeration this was built from in the task investigation). A cell naming
 /// NONE of these markers is a charter-drift bug (a new gate-kind vocabulary word) and PANICS
 /// rather than silently classifying as empty.
@@ -653,7 +653,7 @@ mod unauthored_reachable_regression {
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Execution discharge: the native lint + reasoned-graph channels (no `generated/`
-// dependency). G35: each takes the ALREADY-PARSED, already-unioned per-fixture dataset —
+// dependency). each takes the ALREADY-PARSED, already-unioned per-fixture dataset —
 // the caller parses and unions each fixture exactly ONCE and shares it across every channel.
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
@@ -672,7 +672,7 @@ fn on_disk_counter_examples() -> Vec<PathBuf> {
 /// function DOES (the doctrine's three kinds: "a Rust source-level check over the slice TTL
 /// before folding", "a native check for obligations that genuinely need specialized
 /// execution", "an acceptance query over a generated lowering"), never inferred from the
-/// charter's OWN declared tier (G8). This is the EXHAUSTIVE set of `math:` classes
+/// charter's OWN declared tier. This is the EXHAUSTIVE set of `math:` classes
 /// `structural_lint_dataset` can raise (`check_math_ingest_invariants`,
 /// `check_math_expression_invariants`, `check_math_core_invariants`,
 /// `check_math_probability_invariants`, `check_math_projection_invariants`); a native-lint
@@ -742,7 +742,7 @@ fn native_lint_tripped(ds: &RdfDataset) -> BTreeSet<String> {
 ///
 /// `dimension_gate_markers`'s own contract (see its doc comment) is that an `Err` is a
 /// genuine internal-invariant failure (non-stratifiable rules, or a declined native forward
-/// chase) — never a missing-fixture condition. G21: this propagates that as a hard panic
+/// chase) — never a missing-fixture condition. this propagates that as a hard panic
 /// instead of silently dropping it via `if let Ok(...)`, which would misattribute a real
 /// engine failure as "the gate found nothing".
 fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
@@ -772,7 +772,7 @@ fn reasoned_tripped(ds: &RdfDataset) -> BTreeSet<String> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
-// Execution discharge: the OWL-axiom disjointness channel (G10). Reads the module's own
+// Execution discharge: the OWL-axiom disjointness channel. Reads the module's own
 // `owl:disjointWith` + `gmeow:enforcesFailureClass` pairing generically, then consults the
 // ACTUAL reasoned closure for the `owl:Nothing` witness the axiom promises — never a
 // structural co-typing heuristic alone, and never an "unverified" bucket when no fixture
@@ -912,7 +912,7 @@ fn owl_axiom_tripped(ds: &Arc<RdfDataset>, carriers: &[OwlAxiomCarrier]) -> BTre
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
-// Execution discharge: the SHACL channels (G7 — HARD-REQUIRED, never a best-effort degrade).
+// Execution discharge: the SHACL channels (HARD-REQUIRED, never a best-effort degrade).
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
 /// Build an ad-hoc [`Diag`] from a plain message — `gmeow_errors::Diag` is this repo's sole
@@ -933,7 +933,7 @@ fn harness_diag(message: impl Into<String>) -> Diag {
 /// Silence the default panic-hook stderr spew while recovering the panic message, for a
 /// caller that turns an assertion-style helper's panic into a [`Diag`] it can attribute to
 /// the RIGHT prose-row hard-gap message (used by [`run_flagship_manifest_channel`] only —
-/// NOT by shape loading, which hard-fails directly per G7).
+/// NOT by shape loading, which hard-fails directly).
 fn silence_panics<T>(f: impl FnOnce() -> T + std::panic::UnwindSafe) -> Result<T, Diag> {
     let prev_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(|_| {}));
@@ -979,7 +979,7 @@ type MathShapeSurface = (
 
 /// Load the scoped `math:` shape surface + shape→class map + shape→tier map.
 ///
-/// G7: both an ABSENT `generated/shapes/*.ttl` and a MALFORMED one are HARD FAILURES — the
+/// Both an ABSENT `generated/shapes/*.ttl` and a MALFORMED one are HARD FAILURES — the
 /// repo doctrine is that a missing generated artifact means recompute-or-hard-fail, never a
 /// weaker verdict ("a missing dependency or implementation is a HARD FAIL, never permission
 /// to use a weaker parser, omit output, retain stale bytes, or otherwise degrade
@@ -1137,7 +1137,7 @@ fn run_flagship_manifest_channel() -> Result<(), Diag> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
-// G9: the projection-test channel's real-producer acceptance query, over ACTUAL executed
+// the projection-test channel's real-producer acceptance query, over ACTUAL executed
 // producer output — not only over hand-authored counter-example/conformance-fixture
 // testimony. A SEPARATE test from the fixture-driven reconciliation below: this one proves
 // each producer named in the charter's "### Projection rules" section rows actually runs
@@ -1252,7 +1252,7 @@ fn total_math_conformance_matrix_is_discharged() {
         "tests/counter-examples has no fixtures"
     );
 
-    // ── The generated SHACL shape surface — HARD-REQUIRED (G7), loaded once. ──────────
+    // ── The generated SHACL shape surface — HARD-REQUIRED, loaded once. ──────────
     let (shapes, shape_class, shape_tier) = load_math_shapes();
 
     // class -> (channel -> fixtures that trip it via that channel)
@@ -1267,7 +1267,7 @@ fn total_math_conformance_matrix_is_discharged() {
             .expect("utf8 fixture name")
             .to_owned();
 
-        // G35: parse + union this fixture with the conformance modules EXACTLY ONCE,
+        // parse + union this fixture with the conformance modules EXACTLY ONCE,
         // sharing the result across every channel below (native lint, reasoned-graph,
         // owl-axiom, SHACL) instead of re-parsing/re-unioning per channel.
         let fixture_ds = gmeow_slicetest::native_query::dataset_from_file(fixture)
@@ -1275,14 +1275,14 @@ fn total_math_conformance_matrix_is_discharged() {
         let ds =
             gmeow_slicetest::native_query::union(&[Arc::clone(&conformance_modules), fixture_ds]);
 
-        // The native structural-lint channel — G8: credited under the channel its OWN
+        // The native structural-lint channel — credited under the channel its OWN
         // emitting function actually implements, never the charter's declared tier fed
         // back to itself.
         for class in native_lint_tripped(&ds) {
             let credited = native_check_channel(&class).unwrap_or_else(|| {
                 panic!(
                     "math:{class}: native lint raised this class over {} but no entry \
-                     exists in native_check_channel's explicit tier registry (G8) — \
+                     exists in native_check_channel's explicit tier registry — \
                      register its true channel by reading what the emitting check \
                      function actually does",
                     fixture.display()
@@ -1309,7 +1309,7 @@ fn total_math_conformance_matrix_is_discharged() {
             fixture_used.insert(name.clone());
         }
 
-        // The OWL-axiom disjointness channel (G10): reads the reasoned closure's verdict.
+        // The OWL-axiom disjointness channel: reads the reasoned closure's verdict.
         for class in owl_axiom_tripped(&ds, &owl_carriers) {
             class_channel_fixtures
                 .entry(class)
@@ -1320,7 +1320,7 @@ fn total_math_conformance_matrix_is_discharged() {
             fixture_used.insert(name.clone());
         }
 
-        // The SHACL channels (G7 — always executed, never best-effort).
+        // The SHACL channels (always executed, never best-effort).
         for (class, channel) in shacl_tripped(&ds, &shapes, &shape_class, &shape_tier) {
             class_channel_fixtures
                 .entry(class)
@@ -1341,7 +1341,7 @@ fn total_math_conformance_matrix_is_discharged() {
 
     // ── Reconciliation report. ────────────────────────────────────────────────────────
     let mut hard_gaps: Vec<String> = Vec::new();
-    // Retained as a defensive gate, not a leniency valve (G10): every push site that used
+    // Retained as a defensive gate, not a leniency valve: every push site that used
     // to feed this bucket (absent/malformed shapes, an unbuilt owl-axiom channel) is gone,
     // so this stays empty by construction — but the final assert still fails loudly if a
     // future regression ever pushes to it, rather than silently accepting a weaker verdict.
@@ -1415,7 +1415,7 @@ fn total_math_conformance_matrix_is_discharged() {
     }
 
     // Unused fixtures: on-disk counter-examples that tripped NOTHING via any executed
-    // channel (native lint, reasoned-graph, owl-axiom, or SHACL — all four always run, G7).
+    // channel (native lint, reasoned-graph, owl-axiom, or SHACL — all four always run).
     let all_fixture_names: BTreeSet<String> = fixtures
         .iter()
         .filter_map(|f| f.file_name().and_then(|n| n.to_str()))
@@ -1553,13 +1553,13 @@ fn total_math_conformance_matrix_is_discharged() {
         report.push_str(&format!("  • {n}\n"));
     }
 
-    // G32: printed UNCONDITIONALLY — a passing run's report is exactly as important as a
+    // printed UNCONDITIONALLY — a passing run's report is exactly as important as a
     // failing one's, and the previous version dropped it silently on the passing path
     // (only the `assert!` panic payload carried it, invisible unless the test failed).
     println!("{report}");
 
     // The gate: HARD GAPS, ORPHAN CLASSES, and a non-empty UNVERIFIED bucket are all
-    // actionable and drive failure. There is no "environment-limited" carve-out (G7/G10):
+    // actionable and drive failure. There is no "environment-limited" carve-out:
     // every channel above is executed for real, so a class this harness cannot discharge is
     // always a hard gap, never a silently-accepted weaker verdict.
     assert!(

@@ -1563,7 +1563,7 @@ ex:ecNormalFormMistypedDeclaration a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/normal-form-mistyped-declaration.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedFailureClass math:UndeclaredNormalForm ;
-    gmeow:conformanceRationale "The counter-example's math:normalForm edge (source, target) has a candidate witness naming that SAME pair through math:normalizes/math:normalizesTo, but that witness is NOT itself typed math:NormalizationDeclaration — the bare edge the G11 hardening's math:unfBody rdf:type atom exists to reject (before it, ANY node carrying the two mediating edges discharged the gate, typed or not). Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UndeclaredNormalForm, isolated from math:StringOnlyComputableExpression cross-fire by the fixture's math:literalValue structured child." .
+    gmeow:conformanceRationale "The counter-example's math:normalForm edge (source, target) has a candidate witness naming that SAME pair through math:normalizes/math:normalizesTo, but that witness is NOT itself typed math:NormalizationDeclaration — the bare edge math:unfBody's rdf:type atom exists to reject (before it, ANY node carrying the two mediating edges discharged the gate, typed or not). Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UndeclaredNormalForm, isolated from math:StringOnlyComputableExpression cross-fire by the fixture's math:literalValue structured child." .
 
 # === Rule: a structural-strength math:NormalizationDeclaration needs equal structuralKey values === #
 
@@ -1665,7 +1665,7 @@ ex:ecSurfaceLeakInNormalForm a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/surface-leak-in-normal-form.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedFailureClass math:SurfaceLeakInNormalForm ;
-    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration's math:normalizes source directly carries math:rendersAs — a surface-stratum predicate leaking into structural-identity computation — decided ONLY by the native reasoned-graph gate (check_surface_leak_in_normal_form), which carries no SHACL/Datalog derivation at all; the declaration is otherwise fully attributed (math:commutativeNormalization with procedure, observation/vantage, and preservation kind) so the G11-hardened declarative tier stays clean. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:SurfaceLeakInNormalForm." .
+    gmeow:conformanceRationale "The counter-example's math:NormalizationDeclaration's math:normalizes source directly carries math:rendersAs — a surface-stratum predicate leaking into structural-identity computation — decided ONLY by the native reasoned-graph gate (check_surface_leak_in_normal_form), which carries no SHACL/Datalog derivation at all; the declaration is otherwise fully attributed (math:commutativeNormalization with procedure, observation/vantage, and preservation kind) so the declarative tier stays clean. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:SurfaceLeakInNormalForm." .
 
 ex:ecStructuralKeyOnRejectedExpressionOperatorMissing a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/structural-key-on-rejected-expression.ttl" ;

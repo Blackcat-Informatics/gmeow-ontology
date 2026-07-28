@@ -1224,13 +1224,24 @@ fn cardinality_minima(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
 /// `onClass` when present. These are the obligations the chase discharges by
 /// inventing scoped Skolem witnesses through the native restricted chase.
 fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
+    // `owl:Thing` qualification is VACUOUS, and carrying it into the head breaks the
+    // restricted chase. The head would gain a `?witness rdf:type owl:Thing` conjunct, and
+    // nothing asserts `rdf:type owl:Thing` for anything — so the head-satisfaction probe
+    // can never match, blocking never fires, and the chase invents a witness even for a
+    // subject that already has its filler. That turns `≥1 p.⊤` into "always add one more
+    // p", so an asserted single value reads back as two and collides with the `≤1 p`
+    // restriction on the same property. Normalizing it to the unqualified obligation
+    // restores the blocking check the restricted chase depends on.
+    fn qualifier(class: Option<&str>) -> Option<&str> {
+        class.filter(|c| *c != OWL_THING)
+    }
     let mut obligations: Vec<(usize, Option<&str>)> = Vec::new();
     if let Some(class) = restriction.some_values_from.as_deref() {
-        obligations.push((1, Some(class)));
+        obligations.push((1, qualifier(Some(class))));
     }
     for (n, on_class) in cardinality_minima(restriction) {
         if n > 0 {
-            obligations.push((n, on_class));
+            obligations.push((n, qualifier(on_class)));
         }
     }
     obligations

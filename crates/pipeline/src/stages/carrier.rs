@@ -986,7 +986,7 @@ fn assemble_carrier(
     for graph_iri in MATH_PRODUCER_GRAPHS {
         datasets.push(producer_graph(upstream, "stage-math-producers", graph_iri)?);
     }
-    // graph/math-examples (G13) — the math slice's authored positive-demonstrator ABox
+    // graph/math-examples — the math slice's authored positive-demonstrator ABox
     // corpus (every slices/grounding/math/examples/*.ttl file), read off the SAME
     // `stage-math-producers` product's attached named graph. UNLIKE the eight producer
     // graphs above, this one IS admitted to the object-level reasoning EDB (see
@@ -1321,7 +1321,7 @@ fn rdf_fanout_members(
 /// function of the ontology alone, not of its self-description. This is the single
 /// EDB the sole `stage-reason` pass reasons over; it depends on the
 /// `stage-statements`, `stage-compile-logic`, `stage-source-load` products (the authored
-/// / imports self-description graphs) and (G13) `stage-math-producers`' math-examples
+/// / imports self-description graphs) and `stage-math-producers`' math-examples
 /// graph (the math slice's authored positive-demonstrator ABox corpus — see
 /// [`gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES`]) — never on mapping/
 /// correspondence projections or the snapshot, so reasoning need not wait on either.
@@ -1347,7 +1347,7 @@ pub(crate) fn assemble_object_level_edb(
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
-        // (G13) The math slice's positive-demonstrator ABox — the authored
+        // The math slice's positive-demonstrator ABox — the authored
         // `math:structuralKey` / `math:NormalizationDeclaration` instances under
         // `slices/grounding/math/examples/` — admitted to object-level reasoning so the
         // expression-identity gate has a real witness to decide over the shipped bundle.

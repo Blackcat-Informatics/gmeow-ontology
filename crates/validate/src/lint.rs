@@ -4067,7 +4067,7 @@ mod tests {
         }
     }
 
-    /// Prefixes for inline math: projection-loss unit fixtures (G27 regression: the
+    /// Prefixes for inline math: projection-loss unit fixtures (tokenization regression: the
     /// discharge-by-mention check over `logic:unsupportedConstruct` must tokenize the
     /// literal, never `str::contains` it — "ast" is a substring of many ordinary words).
     const MATH_PROJECTION_LOSS_PREFIXES: &str = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
@@ -4813,7 +4813,7 @@ mod tests {
 
     #[test]
     fn ungrounded_result_claim_fires_under_a_non_default_namespace() {
-        // G28 regression: `check_ungrounded_result_claim` must derive its
+        // Namespace-derivation regression: `check_ungrounded_result_claim` must derive its
         // gmeow:observationResult / gmeow:vantage / gmeow:Observation terms from
         // `cfg.namespace`, exactly like every sibling lookup in
         // `structural_lint_dataset` — never a hardcoded

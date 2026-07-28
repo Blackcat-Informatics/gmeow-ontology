@@ -9,7 +9,7 @@
 # neither of its two siblings math:StructuralKeyDrift /
 # math:StructuralKeyOnRejectedExpression). ex:decl is held at
 # math:commutativeNormalization with a FULL attribution (procedure, observation/vantage,
-# preservation kind) so the G11-hardened declarative tier
+# preservation kind) so the hardened declarative tier
 # (math:UnattributedNormalizationConstraint, and the min-qualified-cardinality-1
 # restriction on math:normalizationStrength) stays clean — this fixture isolates the
 # ONE native surface-leak violation, not a declarative attribution gap.

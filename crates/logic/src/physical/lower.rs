@@ -1850,7 +1850,7 @@ mod tests {
         assert!(key.contains("nil"), "the nil constant survives: {key}");
     }
 
-    // ── G4: commutative sort key is CONTENT KEY, never NodeId ───────────────────────────
+    // ── commutative sort key is CONTENT KEY, never NodeId ───────────────────────────
 
     #[test]
     fn g4_and_operand_order_content_key_stable_across_separate_dags() {
@@ -1882,7 +1882,7 @@ mod tests {
         );
     }
 
-    // ── G7: a math:NumberLiteral's typed literalValue lowers, datatype preserved ────────
+    // ── a math:NumberLiteral's typed literalValue lowers, datatype preserved ────────
 
     #[test]
     fn g7_math_number_literal_preserves_typed_datatype() {
@@ -1943,7 +1943,7 @@ mod tests {
         );
     }
 
-    // ── G3: a ROOTLESS (fully closed) cyclic component is still reached and rejected ──
+    // ── a ROOTLESS (fully closed) cyclic component is still reached and rejected ──
 
     /// A fully closed 2-node cycle — `ex:a`'s argument slot points at `ex:b`, whose
     /// argument slot points back at `ex:a`, and NEITHER is referenced from outside the
@@ -2302,7 +2302,7 @@ mod tests {
             .collect()
     }
 
-    /// **G20 — the real variant-liveness test.** For every [`MathLoweringError`] variant,
+    /// **The variant-liveness test.** For every [`MathLoweringError`] variant,
     /// at least one committed `slices/grounding/math/tests/counter-examples/*.ttl` fixture
     /// must actually produce it through the REAL production entry point
     /// [`math_expression_structural_keys`] — the SAME function
@@ -2312,7 +2312,7 @@ mod tests {
     /// variant COMPILES and has a class; it does NOT prove the variant is REACHABLE from
     /// authored data. Without this test, an unreachable variant is a phantom failure class
     /// the charter would report as enforced when no fixture on disk can ever raise it — the
-    /// gap this test exists to close (G2's two new classes, `CyclicExpressionGraph` /
+    /// gap this test exists to close (the classes minted in Rust but authored nowhere, `CyclicExpressionGraph` /
     /// `ExpressionDepthExceeded`, shipped with exactly this gap until their fixtures landed).
     ///
     /// No allowlist, no skip-set: a variant absent from EVERY fixture's produced errors
@@ -2506,7 +2506,7 @@ mod tests {
     // ── 1. Alpha-equivalence: see the `interning` property-test module below ─────────
     //
     // The hand-enumerated "a handful of hardcoded suffixes share one digest" case that
-    // used to live here (G19) is now STRICTLY SUBSUMED by
+    // used to live here is now STRICTLY SUBSUMED by
     // `interning::bound_variable_renaming_does_not_change_digest` (arbitrary generated
     // renamings, not five fixed strings) and `interning::shadowing_changes_binder_resolution_and_digest`
     // (the nested-shadowing case, generated rather than hand-authored) — both drive the
@@ -2566,7 +2566,7 @@ mod tests {
         );
     }
 
-    // ── G5: the leaf fallback HARD-FAILS an ill-typed node, never degrades it ─────────
+    // ── the leaf fallback HARD-FAILS an ill-typed node, never degrades it ─────────
 
     /// A `math:slotExpression` pointed directly at a bare `math:VariableOccurrence` (the
     /// SHAPE the committed alpha-equivalence fixtures originally used, before they were
@@ -2846,7 +2846,7 @@ mod tests {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // G19 — a REAL, GENERATING property test for α-equivalence structural identity.
+    // A REAL, GENERATING property test for α-equivalence structural identity.
     // ═══════════════════════════════════════════════════════════════════════════════
     //
     // What used to sit here (`alpha_variants_share_one_structural_digest`, deleted

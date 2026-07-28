@@ -1010,7 +1010,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
             detail: format!("validate --deep: GTS read error: {e}"),
         })
     })?;
-    // Narrow the full bundle down to the object-level reasoning EDB (G13) — the SAME
+    // Narrow the full bundle down to the object-level reasoning EDB — the SAME
     // boundary `crates/pipeline`'s `assemble_object_level_edb` / `stage-reason` use at
     // build time (shared via `gmeow_logic::reasoning_graphs::project_object_level_edb`),
     // so this CLI deep pass reasons over byte-identical worlds to the pipeline's own
@@ -1059,7 +1059,7 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
     })?;
 
     // The math: dimensional-homogeneity + math: expression-identity reasoned gates
-    // (G13): the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
+    // the SAME two checks `stage-verify` / `gmeow-dev reason-verify` run at
     // build time over the pipeline's own `assemble_object_level_edb`, now reachable
     // from `gmeow validate --deep` / `gmeow verify --deep` over an ARBITRARY shipped
     // bundle — a consumer's own math AST graph gets `math:StructuralKeyDrift` /

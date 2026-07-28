@@ -3,7 +3,7 @@
 #
 # Single violation: a bare math:normalForm edge (source, target) whose ONLY candidate
 # "declaration" is a node carrying math:normalizes/math:normalizesTo naming that SAME
-# pair but is NOT ITSELF typed math:NormalizationDeclaration. Before the G11 hardening
+# pair but is NOT ITSELF typed math:NormalizationDeclaration. Before that restriction
 # (module.ttl's math:unfBody gaining an rdf:type atom on the existential ?decl
 # variable), ANY node carrying just the two mediating edges discharged
 # math:UndeclaredNormalFormConstraint's guard — a bare edge with an untyped, unattributed
