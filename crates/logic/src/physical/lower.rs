@@ -2318,6 +2318,30 @@ mod tests {
     /// No allowlist, no skip-set: a variant absent from EVERY fixture's produced errors
     /// fails the test by name, never silently passes.
     #[test]
+    /// The committed depth fixture is TIED to [`MAX_MATH_EXPRESSION_DEPTH`], not to a number
+    /// someone typed once.
+    ///
+    /// It is a hand-committed chain rather than a generated one, so raising the depth bound
+    /// would leave it quietly UNDER the limit: it would stop exceeding anything, the fixture
+    /// would lower cleanly, and `math:ExpressionDepthExceeded` would go unexercised while every
+    /// assertion still passed. Pin the relationship so the constant and the fixture cannot
+    /// drift apart silently — if this fails, regenerate the chain to the new bound.
+    #[test]
+    fn the_depth_fixture_chain_is_pinned_to_the_depth_bound() {
+        const FIXTURE: &str = include_str!(
+            "../../../../slices/grounding/math/tests/counter-examples/expression-depth-exceeded.ttl"
+        );
+        let nodes = FIXTURE
+            .lines()
+            .filter(|l| l.contains("a math:ApplicationExpression"))
+            .count();
+        assert!(
+            nodes > MAX_MATH_EXPRESSION_DEPTH,
+            "the depth fixture must EXCEED the bound it exercises: {nodes} application nodes \
+             vs MAX_MATH_EXPRESSION_DEPTH {MAX_MATH_EXPRESSION_DEPTH} — regenerate the chain"
+        );
+    }
+
     fn every_math_lowering_error_variant_is_produced_by_a_committed_fixture() {
         let fixtures = counter_example_fixtures();
         assert!(
@@ -2352,6 +2376,19 @@ mod tests {
             "sample_variants() must enumerate every MathLoweringError variant exactly once \
              (update this count alongside the enum and both variant lists when a variant is \
              added or removed)"
+        );
+        // The count alone would still pass if one variant were listed twice and another
+        // dropped — the two errors cancel. Pin DISTINCTNESS by discriminant so a duplicate
+        // is caught as itself rather than hiding an omission.
+        let distinct: std::collections::BTreeSet<_> = samples
+            .iter()
+            .map(|v| format!("{:?}", std::mem::discriminant(v)))
+            .collect();
+        assert_eq!(
+            distinct.len(),
+            samples.len(),
+            "sample_variants() must list each variant ONCE; a duplicate silently masks a \
+             missing one because only the total is checked"
         );
         let missing: Vec<&'static str> = samples
             .iter()
