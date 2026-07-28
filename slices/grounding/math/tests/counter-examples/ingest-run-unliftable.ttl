@@ -20,7 +20,11 @@ ex:run a math:RIngestRun ;
     logic:instantiatesSchema ex:schema ;
     logic:instantiatesPlan ex:plan ;
     math:ingestCorrespondence ex:corr .
-ex:srcWitness a math:MathematicalObject ; logic:loadBearing true .
+# The witness retains its source verbatim, so the ONE thing wrong with this run is the
+# empty codomain — a minimal violation stays minimal only if it is well-formed everywhere
+# else, and a bare witness would add a second, unrelated defect (the amnesic case).
+ex:srcWitness a math:MathematicalObject ; logic:loadBearing true ;
+    math:retainedSource "fit <- lm(mpg ~ wt, data = mtcars)" .
 ex:schema a logic:ActionSchema .
 ex:plan a logic:Plan .
 ex:corr a logic:Correspondence ;

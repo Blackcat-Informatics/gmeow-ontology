@@ -161,7 +161,7 @@ class, in connectivity).
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `module.ttl` | `text/turtle` | `807ab997dee3` |
+| `module.ttl` | `text/turtle` | `2ffd23a0c689` |
 
 ### Tests
 
@@ -173,8 +173,8 @@ class, in connectivity).
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `i18n/fr.po` | `application/octet-stream` | `7202e69b266f` |
-| `i18n/zh.po` | `application/octet-stream` | `b15cbc98cb7b` |
+| `i18n/fr.po` | `application/octet-stream` | `bf21c1270db1` |
+| `i18n/zh.po` | `application/octet-stream` | `f8a4c280e53e` |
 
 ## Terms \(12\)
 

@@ -12,19 +12,19 @@
 //! de-Bruijn refs, so alpha-equivalent terms already share structure and thus share a
 //! key; there is no name in the key to normalize.
 //!
+//! [`NodeId`]: crate::id::NodeId
+//!
 //! # Why length-prefixed (netstring) encoding, not bare separators
 //!
-//! [`crate::logic-compile`](gmeow_logic_compile)'s `ir::Formula::content_key` folds with
-//! a bare `SEP='\u{0}'` separator, which is safe there because its leaves are already
-//! sanitized IR tokens.  This DAG interns *arbitrary* IRIs and literal lexical forms as
-//! leaves — bytes that can contain any separator, mimic a kind tag, or embed a NUL.  A
-//! bare-separator scheme could then conflate two structurally-distinct terms.  So every
-//! child fragment is emitted as a **netstring** `"{len}:{s}"` (byte length, colon,
-//! bytes), exactly the injective length-prefixing that
-//! [`crate::provenance::mint_nary_reifier`] deliberately chose: because a reader consumes
+//! The `logic:` IR's `Formula::content_key` folds with a bare `SEP='\u{0}'` separator,
+//! which is safe there because its leaves are already sanitized IR tokens.  This DAG
+//! interns *arbitrary* IRIs and literal lexical forms as leaves — bytes that can contain
+//! any separator, mimic a kind tag, or embed a NUL.  A bare-separator scheme could then
+//! conflate two structurally-distinct terms.  So every child fragment is emitted as a
+//! **netstring** `"{len}:{s}"` (byte length, colon, bytes): because a reader consumes
 //! exactly `len` bytes, the fragment's content can never bleed into the framing, so the
 //! encoding is injective in every child regardless of its bytes.  The DISCIPLINE (kind-tag
-//! letters, de-Bruijn bound tokens) mirrors `ir.rs`; only the child framing differs.
+//! letters, de-Bruijn bound tokens) mirrors the IR fold; only the child framing differs.
 //!
 //! # Encoding
 //!
@@ -42,7 +42,7 @@
 //! deeper (`Bound`'s next byte is a decimal digit from `net(debruijn)`; `Binder`'s is the
 //! `I` of `BIND`).
 
-use crate::physical::term_dag::{NodeData, TermDag};
+use crate::term_dag::{NodeData, TermDag};
 
 /// Frame one fragment as an injective netstring `"{len}:{s}"` (byte length, colon, bytes).
 ///
@@ -82,7 +82,7 @@ pub(crate) fn content_key(dag: &TermDag, data: &NodeData) -> String {
         NodeData::Free(atom) => {
             out.push('V');
             // The `free_` prefix keeps a free variable named `x` distinct from a leaf
-            // IRI/literal whose display is `x`, mirroring `ir.rs`'s `free_<name>` token.
+            // IRI/literal whose display is `x`, mirroring the IR's `free_<name>` token.
             let mut framed = String::with_capacity(5 + dag.atom_display(*atom).len());
             framed.push_str("free_");
             framed.push_str(dag.atom_display(*atom));

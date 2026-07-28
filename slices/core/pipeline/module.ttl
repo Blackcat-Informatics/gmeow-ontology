@@ -1186,11 +1186,13 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/clifford-12-13> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/onnx-lift> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-lift> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice> ,
-        <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-lift> .
 
 gmeow:stage-gmn-training-corpus
     gmeow:attachesGraph

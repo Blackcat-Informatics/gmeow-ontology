@@ -1,0 +1,31 @@
+# Competency (executable lift): "From which R script (at what fidelity) was this model
+# lifted, what did it lose, and what did it route to logic:?" — asked of the OUTPUT OF THE
+# REAL LIFTER, not of a hand-authored example graph.
+#
+# This is the producer-namespace twin of r-bridge-source-fidelity-and-loss.rq. That query
+# interrogates tests/fixtures/bridges.ttl, a prose-authored scene under
+# <http://example.org/math/>. This one interrogates tests/fixtures/lifted-r.ttl — the
+# byte-exact output of gmeow_math::producers::r_lift, which runs the shipped R front-end
+# (gmeow_math_lift::r::lift) over the committed crates/math-lift/fixtures/mtcars.R. Every
+# triple it matches was derived by the recursive-descent R parser and its lift tier, so a
+# green answer here is evidence about the executable bridge rather than about a template.
+#
+# The join is the whole point of the ingest frame: the run must name its retained source
+# witness (math:parseSource), the fidelity rung of its lift correspondence
+# (logic:morphismClass), and — through a product it generated — the logic:Formula the
+# computation compiled to (math:compilesToLogicFormula). One row per lifted computation
+# that reached logic:.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?source ?rung ?logicTarget WHERE {
+    ?run a math:RIngestRun ;
+         math:parseSource ?source ;
+         math:ingestCorrespondence ?corr .
+    ?corr logic:morphismClass ?rung .
+    ?comp gmeow:wasGeneratedBy ?run ;
+          math:compilesToLogicFormula ?logicTarget .
+    FILTER(STRSTARTS(STR(?run), "https://blackcatinformatics.ca/gmeow/examples/math/producers/"))
+}
+ORDER BY ?run ?logicTarget

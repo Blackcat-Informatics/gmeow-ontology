@@ -376,7 +376,7 @@ logic:DependencyModel
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Dependency Model"@x-gmeow-english ;
-    rdfs:subClassOf logic:ProbabilityModel ;
+    logic:subClassOf logic:ProbabilityModel ;
     skos:definition "A probability model carrying an EXPLICIT joint distribution over a correlated set of logic:probability facts: where logic:FullIndependence factorizes as a product, a dependency model substitutes a declared joint table (logic:correlates names the correlated facts; logic:jointOutcome enumerates the joint outcomes with their logic:jointProbability). Facts outside the correlated set remain independent and factorize as usual. The declared joint outcomes must be exhaustive and sum to one."@x-gmeow-english .
 
 logic:DerivationRule
@@ -641,7 +641,7 @@ logic:GenericDependence
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Generic Dependence"@x-gmeow-english ;
-    rdfs:subClassOf logic:ProbabilityModel ;
+    logic:subClassOf logic:ProbabilityModel ;
     skos:definition "A probability model for a GENERIC (unstructured) stochastic dependence between random variables: the lowering target for a math:MarkovKernel via math:probabilityModelLowering, whose conditional structure is not further factored into an explicit joint table (logic:DependencyModel) or a full-independence product (logic:FullIndependence). It records that a dependence exists without committing to its internal structure. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:GenericDependence only under the stated identity and validation conditions."@x-gmeow-english .
 
 # === Teleology layer: goal expressions, evaluation, plans, decomposition ======
@@ -1106,7 +1106,7 @@ logic:MaterialRelationshipType
 
 logic:McpActionSchema
     a owl:Class ;
-    rdfs:subClassOf logic:ActionSchema ;
+    logic:subClassOf logic:ActionSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "MCP Action Schema"@x-gmeow-english ;
     skos:definition "A logic:ActionSchema that grounds an MCP (Model Context Protocol) tool action — the opt-in marker subtype that brings an action schema under the stricter MCP-action governance profile (logic:McpActionPolicyShape). Beyond the facets every action schema carries it must always declare a logic:compensation (rollback) because an MCP tool that mutates external state must be recoverable: the dogfood case where the canonical process model governs the agent's own tool calls. A plain logic:ActionSchema is NOT required to carry compensation; typing it logic:McpActionSchema is the explicit declaration that the governance profile applies."@x-gmeow-english ;
@@ -1114,7 +1114,7 @@ logic:McpActionSchema
 
 logic:NotificationWaitSchema
     a owl:Class ;
-    rdfs:subClassOf logic:ActionSchema ;
+    logic:subClassOf logic:ActionSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Notification Wait Schema"@x-gmeow-english ;
     skos:definition "A logic:ActionSchema whose completion the engine learns of ONLY by being externally told: it does not fire until a logic:ExternalSignal it logic:awaitsSignal obtains in the state — a manual-notification or callback-driven completion, the prescriptive-descriptive epistemic boundary where what the engine knows of the real world is limited to what it is informed of. The opt-in marker subtype that brings an action schema under the wait-well-formedness profile (logic:NotificationWaitShape, which requires a logic:awaitsSignal). At the action gate a wait whose signal has not obtained is neither admitted nor denied but logic:GateUndetermined, carrying a logic:awaitingSignal witness — the wait is pending (the engine has not been told), a judgment withheld rather than a failure; in a plan a wait step blocks the path until the signal is received."@x-gmeow-english ;
@@ -1739,7 +1739,7 @@ logic:SzsStatus
 
 logic:SzsSuccess
     a owl:Class ;
-    rdfs:subClassOf logic:SzsStatus ;
+    logic:subClassOf logic:SzsStatus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "SZS Success"@x-gmeow-english ;
     skos:definition "The SZS success sort: the statuses under which the prover reached a decision about the problem — the axiom set's satisfiability or the conjecture's entailment was settled. Its members (logic:SzsTheorem, logic:SzsUnsatisfiable, logic:SzsContradictoryAxioms, logic:SzsSatisfiable, logic:SzsCounterSatisfiable) project onto the two informative logic:ConformanceVerdict meet-elements. The decided half of the logic:SzsStatus partition, complement of logic:SzsNoSuccess."@x-gmeow-english ;
@@ -1747,7 +1747,7 @@ logic:SzsSuccess
 
 logic:SzsNoSuccess
     a owl:Class ;
-    rdfs:subClassOf logic:SzsStatus ;
+    logic:subClassOf logic:SzsStatus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "SZS No-Success"@x-gmeow-english ;
     skos:definition "The SZS no-success sort: the statuses under which the prover did NOT reach a decision — it gave up, timed out, ran out of resources, or returned an explicit unknown. Its members (logic:SzsUnknown, logic:SzsGaveUp, logic:SzsTimeout, logic:SzsResourceOut) project onto the least-informative join logic:ConfIncomplete, kept strictly distinct from a native capability gap (a hard fail, never an incomplete swallowed into agreement). The undecided half of the logic:SzsStatus partition, complement of logic:SzsSuccess."@x-gmeow-english ;
@@ -1873,7 +1873,7 @@ logic:DeleteUpdate
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Delete Update"@x-gmeow-english ;
-    rdfs:subClassOf logic:ElementaryUpdate ;
+    logic:subClassOf logic:ElementaryUpdate ;
     skos:definition "An elementary Transaction-Logic update of the `del(F)` kind: it retires one active support from the successor state while retaining the historical support in the path record. `del` is supersession, not physical erasure; state validity changes by moving to a successor snapshot, while displayability remains a separate disclosure decision."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1881,7 +1881,7 @@ logic:InsertUpdate
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Insert Update"@x-gmeow-english ;
-    rdfs:subClassOf logic:ElementaryUpdate ;
+    logic:subClassOf logic:ElementaryUpdate ;
     skos:definition "An elementary Transaction-Logic update of the `ins(F)` kind: it asserts one support into the successor state of a path. Insertion advances the path by materializing the support in the successor snapshot; it does not mutate the predecessor state."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -6874,7 +6874,7 @@ logic:obligationDischargeVerdict
 
 logic:Conjecture
     a owl:Class ;
-    rdfs:subClassOf logic:FormalizationCandidate ;
+    logic:subClassOf logic:FormalizationCandidate ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Conjecture"@x-gmeow-english ;
     skos:definition "A named, standpoint-scoped candidate formula under active epistemic test: the dynamic, testable specialization of the logic:FormalizationCandidate spine (rdfs:subClassOf logic:FormalizationCandidate). Because it subclasses the candidate, a conjecture carries all eight universal candidate carriers (logic:candidateSourceHash, logic:candidateExtractionProvenance, logic:candidateScope, logic:candidateContract, logic:candidateCategory, logic:candidateLifecycle, logic:candidateProjectionBehavior, logic:candidateSemanticRisk); what specializes it is that its positive/negative cases are ENGINE-PRODUCED (via a scoped reasoning run recorded through logic:verdictProvenance) rather than reviewer-asserted. Its verdict is always scoped to a single reified standpoint (logic:conjectureStandpoint, REQUIRED — Principle 9 refuses a global-false verdict), and it carries an EPISTEMIC lifecycle (logic:conjectureLifecycleState: open / corroborated / refuted-in-standpoint / withdrawn) ORTHOGONAL to the GOVERNANCE lifecycle it inherits from the candidate (logic:candidateLifecycle). Conclusiveness reuses the existing logic:DischargeVerdict value class (logic:conjectureDischargeVerdict), never a freshly minted notion: a conclusive independence carries logic:ObligationDischarged, a budget-exhausted or fragment-gap run carries logic:ObligationUnknown. The conjectured formula is tested symmetrically against its constructed strong negation as two INDEPENDENT legs — support for the formula (the standpoint's KB entails it) and support for its negation (the KB refutes it, decided by the inconsistency of asserting the formula) — so a KB that entails BOTH the formula AND its negation from one standpoint yields the Belnap glut logic:InfoBoth, a within-standpoint contradiction LOCALIZED to the candidate proposition (a genuine refutation still carrying a concrete logic:ContradictionWitness), whereas a KB contradictory for reasons UNRELATED to the candidate cannot host a meaningful test at all. A refutation names a concrete logic:ContradictionWitness, and the two symmetric promotion legs feed a corroborated formula back as a canonical-axiom candidate (logic:conjecturePromotionCandidate) and a robustly-refuted formula forward as a logic:NonEntailmentObligation candidate (logic:antiConjectureObligationCandidate) (design/LOGIC-FOUNDATION.md, the conjecture-and-refutation section)."@x-gmeow-english ;
@@ -7381,7 +7381,7 @@ logic:rtvfFormulaType
 
 logic:Dialect
     a owl:Class ;
-    rdfs:subClassOf logic:ConversionTarget ;
+    logic:subClassOf logic:ConversionTarget ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Dialect"@x-gmeow-english ;
     skos:definition "A named sub-language of the canonical logic: IR, in the MLIR sense of a dialect with its own node verifiers and progressive lowering (not an LLVM-style substrate). The one F1 dialect is logic:RelationalCore, the logical-to-physical lowering waist between the full IR and the native execution engine."@x-gmeow-english ;
@@ -8363,7 +8363,7 @@ logic:dataflowProduces
 
 logic:ControlFlowEdge
     a owl:Class ;
-    rdfs:subClassOf logic:Relator ;
+    logic:subClassOf logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Control-Flow Edge"@x-gmeow-english ;
     logic:mediates logic:flowFrom ,
@@ -8373,7 +8373,7 @@ logic:ControlFlowEdge
 
 logic:DataFlowEdge
     a owl:Class ;
-    rdfs:subClassOf logic:Relator ;
+    logic:subClassOf logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Data-Flow Edge"@x-gmeow-english ;
     logic:mediates logic:flowFrom ,
@@ -9124,7 +9124,7 @@ logic:ConstraintSugar
 
 logic:ChoiceGroupConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Choice Group Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."@x-gmeow-english ;
@@ -9136,7 +9136,7 @@ logic:ChoiceGroupConstraint
 
 logic:GuardedImplicationConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Guarded Implication Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -9148,7 +9148,7 @@ logic:GuardedImplicationConstraint
 
 logic:DisjunctiveRequirednessConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Disjunctive Requiredness Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -9160,7 +9160,7 @@ logic:DisjunctiveRequirednessConstraint
 
 logic:PathValueTypeConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Path Value Type Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -9172,7 +9172,7 @@ logic:PathValueTypeConstraint
 
 logic:CrossNodeConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Cross Node Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -9184,7 +9184,7 @@ logic:CrossNodeConstraint
 
 logic:ForbiddenPatternConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Forbidden Pattern Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -9196,7 +9196,7 @@ logic:ForbiddenPatternConstraint
 
 logic:ValueRangeConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Value Range Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a numeric value-range constraint (P8): a logic:onClass target, a logic:valuePath predicate, and an inclusive lower (logic:minInclusiveBound) and/or upper (logic:maxInclusiveBound) literal bound every value on that path must satisfy. Expands to a canonical logic:Constraint ∀this,v. C(this) ∧ P(this,v) → min ≤ v ∧ v ≤ max and lowers declaratively to sh:minInclusive/sh:maxInclusive on the target class shape. It is the decidable, validation-only home of a bounded range — NOT an OWL faceted-datatype axiom, which the native reasoner cannot decide once a literal is asserted on the constrained path: it validates and never entails. Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -9220,7 +9220,7 @@ logic:UniqueLangConstraint
 
 logic:AggregateConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:ConstraintSugar ;
+    logic:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Aggregate Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."@x-gmeow-english ;
@@ -12284,7 +12284,7 @@ logic:LogicConformanceFailure
 
 logic:IncompleteClosure
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Incomplete Closure"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:ClosureAcceptanceWitness — the acceptance record of an EL→RL→DL reasoning closure — declares no logic:closureEntailedAtom, i.e. names no atom the closure entails beyond its asserted EDB. A closure that adds nothing is either trivial or truncated; the flagship's guarantee is that the native reason_all closure genuinely derives new entailed atoms, so a witness carrying none is ill-formed and the gate rejects it."@x-gmeow-english ;
@@ -12292,7 +12292,7 @@ logic:IncompleteClosure
 
 logic:SectionObligationViolated
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Section Obligation Violated"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:SectionAcceptanceWitness — the acceptance record of a correspondence section-law discharge — names no logic:dischargesSectionObligation edge, i.e. claims a get/put leg pair round-trips without pointing at the section obligation it discharges. The section law (put ∘ get = identity) is the correspondence's teeth; a witness that discharges no obligation is unfalsifiable, so the gate rejects it (LOGIC-CORRESPONDENCE.md)."@x-gmeow-english ;
@@ -12300,7 +12300,7 @@ logic:SectionObligationViolated
 
 logic:UnentrenchedCounterfactual
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unentrenched Counterfactual"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:CounterfactualAcceptanceWitness — the acceptance record of a Stratum-C counterfactual resolution — names no logic:selectedByEntrenchment outcome, i.e. resolves an antecedent without recording the entrenchment-ranked selection that made the result deterministic. A counterfactual whose outcome is not tied to an entrenchment ordering is a silent, arbitrary choice; the flagship's guarantee is a deterministic entrenchment-ranked selection, so a witness with none is ill-formed (LOGIC-SEMANTICS.md)."@x-gmeow-english ;
@@ -12308,7 +12308,7 @@ logic:UnentrenchedCounterfactual
 
 logic:UnwitnessedRefutation
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unwitnessed Refutation"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:RefutationAcceptanceWitness — the acceptance record of a symmetric φ/¬φ conjecture test whose verdict is a refutation — names no logic:namesContradictionWitness, i.e. claims the conjecture was refuted without pointing at the concrete logic:ContradictionWitness that carries the clash. A refutation with no replayable witness is an assertion, not a proof; the flagship's guarantee is that conjecture_test returns a concrete witness on a refutation, so a witness-less refutation record is ill-formed (LOGIC-CONTRACT.md)."@x-gmeow-english ;
@@ -12316,7 +12316,7 @@ logic:UnwitnessedRefutation
 
 logic:UncertifiedChase
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Uncertified Chase"@x-gmeow-english ;
     skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_existential_rules surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
@@ -12324,7 +12324,7 @@ logic:UncertifiedChase
 
 logic:UnwiredFlagshipScenario
     a owl:Class ;
-    rdfs:subClassOf logic:LogicConformanceFailure ;
+    logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unwired Flagship Scenario"@x-gmeow-english ;
     skos:definition "The failure raised when a gmeow:FlagshipScenario in the logic grounding layer is not fully wired: it is missing its worked example (gmeow:demonstratedByExample), its competency question (gmeow:demonstratedByCompetency), its producer (gmeow:demonstratedByProducer), its counter-example (gmeow:guardedByCounterExample), or its enforcing failure class (gmeow:enforcesFailureClass); or the class it names as enforcing is not a logic:LogicConformanceFailure subclass. The depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all realizing/enforcing artifacts cannot claim the scenario is met, and the gate rejects it. This layer's concrete realization of the shared gmeow:UnwiredFlagshipScenario marker (enforced uniformly by the shared gmeow:FlagshipScenarioShape); it subclasses ONLY the slice failure root (never the spec-layer gmeow:UnwiredFlagshipScenario marker), so it is a typed, queryable object in this layer's own failure lattice."@x-gmeow-english ;
@@ -13177,7 +13177,7 @@ gmeow:GraphBoxRole
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Graph Box Role"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "A documentation and validation role describing which graph layer a term, shape, module, or graph artifact primarily serves: assertional data (ABox), terminology/schema (TBox), role/property behavior (RBox), contextual statement metadata (CBox), or runtime/package/profile configuration (ConfigBox). Roles are descriptive annotations, may be multi-valued, and never partition the ontology into exactly one box per resource."@x-gmeow-english ;
     skos:example "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using box roles as logical class membership, named-graph routing, or an exactly-one partition; a construct can legitimately serve more than one box."@x-gmeow-english ;

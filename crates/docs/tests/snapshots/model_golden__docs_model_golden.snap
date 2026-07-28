@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "17",
   "slice_count": 85,
-  "term_count": 6488,
-  "dependency_edge_count": 1336,
+  "term_count": 6507,
+  "dependency_edge_count": 1345,
   "term_count_by_category": {
-    "Class": 1812,
+    "Class": 1816,
     "Datatype": 1,
     "Individual": 1583,
-    "Property": 3092
+    "Property": 3107
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -140,14 +140,14 @@ expression: summary
         "role": "TranslationCatalog",
         "logical_path": "i18n/fr.po",
         "media_type": "application/octet-stream",
-        "raw_digest": "7202e69b266f4771c88603dd6a701e703221cca32b47b6601b4daadf12e5683c",
+        "raw_digest": "bf21c1270db1e162a2d9288b8ea27f1da67c48d31c45ff02f0469979db30eecd",
         "semantic_digest": null
       },
       {
         "role": "TranslationCatalog",
         "logical_path": "i18n/zh.po",
         "media_type": "application/octet-stream",
-        "raw_digest": "b15cbc98cb7bd89e82f28a72a253630121814369c46832d7e0e08195b43cc290",
+        "raw_digest": "f8a4c280e53e0a86de12485e2d54c886e647d863a64afe0821699c1f854b0674",
         "semantic_digest": null
       },
       {
@@ -168,8 +168,8 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "807ab997dee337c353d7b825a0af263e834068304b77b5bf7e9166a996ae4082",
-        "semantic_digest": "b2a4f44cfb90d0e1376b600629c17d3f06edeb1fabc8d7ed3fe562d56a15ab9d"
+        "raw_digest": "2ffd23a0c6899de722e639715ef8264d64d1bda099e6668c65109dae1faebbab",
+        "semantic_digest": "a95701fd11e58120728718c300fd499042fca737c0fd423dae5396b13e2a8bf3"
       },
       {
         "role": "TestDsl",
@@ -461,7 +461,7 @@ expression: summary
     ]
   },
   "shape_count": 144,
-  "competency_count": 293,
+  "competency_count": 295,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",

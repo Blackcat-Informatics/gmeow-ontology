@@ -10,8 +10,8 @@ use purrdf::TermValue;
 use super::*;
 use crate::physical::id::{MetaId, NodeId, TermId};
 use crate::physical::proof::check;
-use crate::physical::term_dag::TermDag;
 use crate::physical::unify::{SortContext, SortOrder};
+use gmeow_term_arena::engine::TermDag;
 
 // ── Builders ────────────────────────────────────────────────────────────────────
 
@@ -566,7 +566,7 @@ fn structured_qprogram_routes_through_resolve_native_fol() {
     let zero = iri(&mut dag, "zero");
 
     let arena = dag.arena();
-    let struct_t = move |n: NodeId| QTerm::Struct(StructNode::new(n, arena));
+    let struct_t = move |n: NodeId| QTerm::Struct(StructNode::wrap(n, arena));
     let vt = |s: &str| QTerm::Var(s.to_owned());
 
     // Fact add(zero, Y, Y).
@@ -994,7 +994,7 @@ fn g8_structured_dispatch_enforces_max_answers_and_marks_partial() {
     let c = iri(&mut dag, "c");
 
     let arena = dag.arena();
-    let struct_t = move |n: NodeId| QTerm::Struct(StructNode::new(n, arena));
+    let struct_t = move |n: NodeId| QTerm::Struct(StructNode::wrap(n, arena));
     let vt = |s: &str| QTerm::Var(s.to_owned());
 
     let fact = |val: NodeId| QRule {

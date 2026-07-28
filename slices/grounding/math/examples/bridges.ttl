@@ -9,9 +9,20 @@
 # through logic:instantiatesSchema / logic:instantiatesPlan, ties its produced math:
 # codomain back through gmeow:wasGeneratedBy, and carries its law-spine on a
 # logic:Correspondence (reused verbatim — no math: shadow). Because no get (down-
-# projection) leg is authored yet, the correspondences honestly sit at the LossyLens rung
-# with logic:mnemomorphic true (the witness IS retained, so each is climbable to section
-# the moment a get leg lands) — never a fabricated verified section.
+# projection) leg is authored yet, no correspondence claims a verified section; each sits
+# honestly at the LossyLens rung.
+#
+# What separates the three at that rung is WHAT THE WITNESS HOLDS, because a mnemomorphism
+# claim is a claim about retention, not about intent:
+#   * the R and proof sources are TEXT, so their witnesses retain the source verbatim
+#     (math:retainedSource) and their correspondences may assert logic:mnemomorphic true —
+#     each is climbable to section the moment a get leg lands;
+#   * the ONNX source is a blob-scale BINARY, held by reference (math:sourceDigest) under
+#     the blob-by-reference doctrine. A digest identifies the artifact; it does not retain
+#     it, so that correspondence asserts logic:mnemomorphic FALSE and may never climb to a
+#     section/retraction rung on this witness alone (see math:sourceDigest's definition).
+# Each witness also enumerates, through math:unmappedConstruct, what its lift did not carry
+# — the lossy lens's residue made queryable rather than merely declared.
 #
 # Exercises all six competency questions:
 #   Q1 from which R script (at what fidelity) a model was lifted, what it lost, what routed to logic:
@@ -37,10 +48,18 @@ ex:rRun a math:RIngestRun ;
     logic:instantiatesPlan ex:rBridgePlan ;
     math:ingestCorrespondence ex:rCorr .
 
-# The retained in-band witness: the R source, marked load-bearing so the put leg can
-# recover the formula/data/coefficient sub-fragment (never an opaque droppable string).
+# The retained in-band witness: the R source held VERBATIM, marked load-bearing so the put
+# leg can recover the formula/data/coefficient sub-fragment by projecting along the witness
+# rather than reconstructing a plausible script (never an opaque droppable string). The two
+# IO/plotting calls have no image in math:, so they are named as residue — which is what
+# makes this lens's declared loss queryable instead of merely asserted by its rung.
 ex:rSrcWitness a math:MathematicalObject ;
     rdfs:label "lm(mpg ~ wt + hp, data = mtcars)"@x-gmeow-english ;
+    math:retainedSource """fit <- lm(mpg ~ wt + hp, data = mtcars)
+tidy_coefficients <- summary(fit)$coefficients
+plot(fit, which = 1)
+write.csv(tidy_coefficients, "coefficients.csv")""" ;
+    math:unmappedConstruct "r-call: plot(...)" , "r-call: write.csv(...)" ;
     logic:loadBearing true .
 
 ex:rBridgeSchema a logic:ActionSchema .
@@ -99,7 +118,16 @@ ex:fitComputation a math:MathematicalExpression ;
     math:compilesToLogicFormula ex:fitLogicFormula ;
     math:logicLoweringPreservation logic:SoundUnderApproximation ;
     math:denotationKind math:denotesProposition .
-ex:fitLogicFormula a logic:Formula .
+# A well-formed atomic logic: AST node. logic:FormulaConstructorConstraint requires EXACTLY
+# ONE constructor from {and, antecedent, exists, forall, iff, not, or, relation}, so a bare
+# `a logic:Formula` is malformed — it selects none.
+ex:fitLogicFormula a logic:Formula ;
+    logic:relation ex:fitComputes ;
+    logic:argument ex:fitLogicArg .
+ex:fitComputes a logic:Type .
+ex:fitLogicArg a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termIri ex:fitComputation .
 
 # The held claim (Q5): the fit summary as a vantage-grounded observation.
 ex:rFitClaim a gmeow:Observation ;
@@ -120,21 +148,29 @@ ex:onnxRun a math:ONNXIngestRun ;
     logic:instantiatesSchema ex:onnxBridgeSchema ;
     logic:instantiatesPlan ex:onnxBridgePlan ;
     math:ingestCorrespondence ex:onnxCorr .
+# A blob-scale BINARY source: the model is held BY REFERENCE through its content digest and
+# never inlined (the blob-by-reference doctrine — inlining the weight payload would put in
+# the graph exactly the bytes the residue below says did not cross). A digest identifies the
+# artifact; it does not retain it, which is why ex:onnxCorr asserts logic:mnemomorphic false.
 ex:onnxSource a math:MathematicalObject ;
     rdfs:label "model.onnx (opset 18, by reference)"@x-gmeow-english ;
+    math:sourceDigest "7978a9f31743d3c2" ;
+    math:unmappedConstruct "onnx-field: initializer raw_data (weight payload)" ,
+        "onnx-field: metadata_props" ;
     logic:loadBearing true .
 ex:onnxBridgeSchema a logic:ActionSchema .
 ex:onnxBridgePlan a logic:Plan .
 
-# The structure lifts faithfully and is recoverable from the witness, so the correspondence
-# is climbable to section (mnemomorphic true); until a get leg verifies the round-trip its
-# assertable rung is a lossy lens with a load-bearing witness.
+# The graph STRUCTURE lifts faithfully from a crisp source, but the witness only REFERENCES
+# the model (a digest, not the bytes), so the source is not recoverable by projecting along
+# it: mnemomorphic is false, and this correspondence may not climb to a section/retraction
+# rung. That is the honest reading of math:sourceDigest, not a weaker claim about ONNX.
 ex:onnxCorr a logic:Correspondence ;
     logic:preservationKind logic:ValidationOnly ;
     logic:correspondenceRelation logic:RelatedMatch ;
     logic:morphismClass logic:LossyLens ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic true .
+    logic:mnemomorphic false .
 
 # The lifted codomain: the tensor computation graph (the learning-charter self-structure object).
 ex:selfGraph a math:TensorComputationGraph ;
@@ -175,8 +211,15 @@ ex:proofRun a math:ProofIngestRun ;
     logic:instantiatesSchema ex:proofBridgeSchema ;
     logic:instantiatesPlan ex:proofBridgePlan ;
     math:ingestCorrespondence ex:proofCorr .
+# A TEXT source, retained verbatim: the declaration lines the dependency DAG was read from.
+# The tactic block that discharged each step has no image in the lifted DAG, so it is named
+# as residue rather than silently dropped.
 ex:proofSource a math:MathematicalObject ;
-    rdfs:label "mathlib declaration graph for the Pythagorean theorem (by reference)"@x-gmeow-english ;
+    rdfs:label "mathlib declaration graph for the Pythagorean theorem"@x-gmeow-english ;
+    math:retainedSource """theorem pythagoras (t : RightTriangle) : t.c ^ 2 = t.a ^ 2 + t.b ^ 2
+axiom euclid_parallel : ...
+lemma similar_triangles (t : RightTriangle) : ratio t.a t.c = ratio t.h t.a""" ;
+    math:unmappedConstruct "lean-block: tactic proof body" ;
     logic:loadBearing true .
 ex:proofBridgeSchema a logic:ActionSchema .
 ex:proofBridgePlan a logic:Plan .
@@ -191,6 +234,7 @@ ex:proofCorr a logic:Correspondence ;
 # The lifted codomain: the dependency graph and the proof it underlies.
 ex:pythagorasDAG a math:ProofDependencyGraph ;
     rdfs:label "Pythagorean theorem dependency DAG"@x-gmeow-english ;
+    math:dependencyGraphOf ex:pythagorasProof ;
     gmeow:wasGeneratedBy ex:proofRun .
 ex:pythagorasProof a math:Proof ;
     math:provesStatement ex:pythagorasStatement ;
@@ -203,8 +247,12 @@ ex:euclidParallelAxiom a math:Axiom .
 ex:similarTrianglesStep a math:ProofStep ;
     math:hasPremise ex:similarTrianglesLemma ;
     math:hasConclusion ex:ratioEquality ;
+    math:usesInferenceRule ex:ruleSimilarityTransfer ;
     math:dependsOnAxiom ex:euclidParallelAxiom ;
     math:provesGoal ex:similarTrianglesGoal .
+# The step-level licence: which rule fired here, distinct from the proof's overall
+# math:usesProofMethod strategy.
+ex:ruleSimilarityTransfer a math:Operation .
 ex:similarTrianglesLemma a math:MathematicalObject .
 ex:ratioEquality a math:MathematicalObject .
 

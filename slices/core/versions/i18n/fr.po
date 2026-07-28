@@ -83,4 +83,4 @@ msgstr "Un littéral simple sur toute gmeow:Entity : une version logicielle, une
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
-msgstr "gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
+msgstr "Exemple : gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."

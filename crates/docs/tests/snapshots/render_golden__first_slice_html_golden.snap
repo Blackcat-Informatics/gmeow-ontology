@@ -139,7 +139,7 @@ class, in connectivity).</p>
 </tbody></table>
 <h3>Module</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>807ab997dee3</code></td></tr>
+<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>2ffd23a0c689</code></td></tr>
 </tbody></table>
 <h3>Tests</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
@@ -147,8 +147,8 @@ class, in connectivity).</p>
 </tbody></table>
 <h3>Translations</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>i18n/fr.po</code></td><td><code>application/octet-stream</code></td><td><code>7202e69b266f</code></td></tr>
-<tr><td><code>i18n/zh.po</code></td><td><code>application/octet-stream</code></td><td><code>b15cbc98cb7b</code></td></tr>
+<tr><td><code>i18n/fr.po</code></td><td><code>application/octet-stream</code></td><td><code>bf21c1270db1</code></td></tr>
+<tr><td><code>i18n/zh.po</code></td><td><code>application/octet-stream</code></td><td><code>f8a4c280e53e</code></td></tr>
 </tbody></table>
 <h2>Terms (12)</h2>
 <ul>

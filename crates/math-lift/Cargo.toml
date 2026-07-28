@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-math-lift"
+description = "Executable math: ingestion front-ends: R / ONNX / proof artifacts parsed into math: structures as the mnemomorphic put leg of a logic:Correspondence"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["ingest", "lifter", "onnx", "r", "proof"]
+
+[lib]
+# rlib-only: a front-end crate consumed by the shipped CLI and by the pure in-bundle
+# producers. It links no reasoning runtime, so a lift can run without pulling the native
+# DL engine — which is exactly what relocating the term arena out of `gmeow-logic` bought.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# purrdf: the RDF 1.2 value space and the deterministic Turtle codec. Every lift emits
+# through `RdfDatasetBuilder` rather than by string concatenation, so canonical ordering
+# is the codec's job and not a promise this crate has to keep by hand.
+purrdf.workspace = true
+# gmeow-errors: the typed-diagnostic substrate. Every unliftable input is a
+# `define_diag_kind!` hard failure under the `math.lift.*` namespace — never a string
+# fallback, never a degraded AST (MATHEMATICS-RUNTIME.md "Ingestion hard rules").
+gmeow-errors = { path = "../errors" }
+# gmeow-term-arena: the ONE content-addressed structured-term store. A lifted expression
+# interns into it, so structurally identical subexpressions across R, ONNX, and proof
+# inputs collapse to one node and one ContentKey — the "fact count grows with distinct
+# structure, not textual repetition" acceptance bar. Reasoner-free, so this crate stays
+# engine-free and wasm-buildable.
+gmeow-term-arena = { path = "../term-arena" }
