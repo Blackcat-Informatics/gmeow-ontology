@@ -102,8 +102,35 @@ ex:rollbackEntry a logic:FrontierEntry ;
 ex:rollbackExplanation a gmeow:FrontierExplanation ;
     rdfs:label "Why roll back is recommended under the fastest-restore policy"@x-gmeow-english ;
     gmeow:explainsEntry ex:rollbackEntry ;
+    gmeow:explanationProof logic:ruleFrontierReadyAuthorized ;
+    gmeow:explanationEvidence ex:incidentTimeline ;
+    gmeow:explanationCriterion ex:timeToRestore ;
     gmeow:explanationPolicy ex:fastestRestore ;
     gmeow:explanationDissent ex:onCallObjection .
+
+# The proof is the shipped derivation rule that concluded this entry's label from
+# its axis witnesses, not a restatement of the recommendation in prose. That is
+# the whole point of the position: an operator can re-run it. A narrative here
+# would be a model's account of a conclusion rather than the conclusion's
+# warrant, which is why the law refuses one.
+ex:incidentTimeline a gmeow:InformationObject ;
+    rdfs:label "Incident 4412 timeline: error-rate onset, deploy correlation, blast radius"@x-gmeow-english .
+
+# The criterion is what the policy actually traded on, kept separate from the
+# policy itself so a reader can see WHICH measure ranked the candidates rather
+# than only that some policy did. Its poles are mandatory and are what make it
+# an oriented axis rather than a label: without them "time to restore" does not
+# say which direction is better, and a comparison over it means nothing.
+ex:timeToRestore a gmeow:Criterion ;
+    rdfs:label "Time to restore service"@x-gmeow-english ;
+    gmeow:rewardPole ex:restoreFast ;
+    gmeow:penaltyPole ex:restoreSlow .
+
+ex:restoreFast a gmeow:CriterionPole ;
+    rdfs:label "Service restored sooner"@x-gmeow-english .
+
+ex:restoreSlow a gmeow:CriterionPole ;
+    rdfs:label "Service restored later"@x-gmeow-english .
 
 ex:onCallObjection a gmeow:Observation ;
     rdfs:label "On-call engineer: rollback reintroduces the data-export defect fixed last week"@x-gmeow-english ;
