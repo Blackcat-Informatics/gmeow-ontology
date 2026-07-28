@@ -4051,7 +4051,13 @@ mod tests {
             "Residual",
             "ApplicationExpression",
             "Operation",
-            "MathematicalExpression",
+            // The lowered R statements are math:MathematicalStatement, not
+            // math:MathematicalExpression: they denote propositions and carry no structural
+            // child of their own, which as a math:MathematicalExpression is exactly
+            // math:StringOnlyComputableExpression.
+            "MathematicalStatement",
+            // The run-scoped math:Set every free-variable declaration is declared over.
+            "Set",
         ] {
             assert!(
                 typed(&lifted.turtle, class) > 0,

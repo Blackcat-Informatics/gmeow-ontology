@@ -12403,7 +12403,11 @@ logic:fsfcFailurePath a logic:Formula ; logic:relation gmeow:enforcesFailureClas
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
 logic:fsfcNsGuard a logic:Formula ; logic:relation logic:termStrStarts ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/logic/" ] .
-logic:fsfcMembership a logic:Formula ; logic:relation rdfs:subClassOf ;
+# Membership is tested against logic:subClassOf, the predicate the failure classes are
+# actually authored with. Testing rdfs:subClassOf here asked for the PROJECTED form of an
+# axiom the module states canonically, so the gate stopped recognizing its own slice's
+# failure classes and reported a conforming flagship scenario as a violation.
+logic:fsfcMembership a logic:Formula ; logic:relation logic:subClassOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri logic:LogicConformanceFailure ] .
 
 # =========================================================================== #
