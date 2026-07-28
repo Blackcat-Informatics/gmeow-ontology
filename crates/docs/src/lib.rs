@@ -24,7 +24,7 @@ pub mod mdbook;
 // its original paths so every `gmeow_docs::<module>` caller is unchanged.
 pub use gmeow_docs_model::{
     badge, card, coverage, describe, error, exec, formats, gmn1_primer, i18n, i18n_compile, llms,
-    maturity, model, rdf, slug, source_map, svg,
+    maturity, model, rdf, slug, source_map, surface_lattice, svg,
 };
 
 pub mod render;

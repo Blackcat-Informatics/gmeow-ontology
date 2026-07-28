@@ -45,6 +45,31 @@ gmeow:calledByInvocation
     skos:definition "The model invocation that requested this tool call. Functional: one requesting invocation per call. Optional: a recording harness may not expose the invocation — a ToolCall without one is still auditable provenance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:derivedBy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "derived by"@x-gmeow-english ;
+    rdfs:range gmeow:ToolCall ;
+    skos:definition "The tool call a RESULT STATEMENT came out of — the predicate an annotated result triple carries so an agent's answer stays attributable to the call that produced it. Backward-pointing, like gmeow:wasGeneratedBy, but attaching to the statement rather than to an entity: gmeow:wasGeneratedBy says a thing was produced by an activity, this says a particular assertion was. Deliberately domain-free, since any statement a session emits may be annotated this way and the annotated subjects share no class. Distinct from gmeow:derivedByFunction, which names a pure function a derived observation was computed with, not an audited call event."@x-gmeow-english ;
+    skos:example "ex:answer gmeow:derivedBy ex:searchCall ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it where the subject is an entity the call produced rather than an assertion about one — that is gmeow:wasGeneratedBy — and avoid it for a computation with no call event, which is gmeow:derivedByFunction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Annotate the result statement with the gmeow:ToolCall it came out of, and let the call itself carry the tool, the arguments, and the verbatim payload; a reader recovers the whole provenance chain by following this one edge back."@x-gmeow-english ;
+    gmeow:useWhen "Use when an assertion an agent emits must remain traceable to the specific tool call that yielded it, so a later reader can audit the answer rather than trusting it."@x-gmeow-english .
+
+gmeow:sessionStoreSegment
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "session store segment"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The identifier of the append-only session-store segment this call's audit record was appended to. A session's trajectory is written as an ordered run of segments rather than as one rewritten whole, so naming the segment makes the record locatable without re-reading the entire store, and makes an audit that spans several commits reconstructible in order."@x-gmeow-english ;
+    skos:example "ex:call gmeow:sessionStoreSegment \"0003\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to carry the audit payload itself (that is gmeow:toolResult) and avoid re-pointing an existing call at a different segment, which would falsify an append-only record."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Record the segment identifier at the moment the audit bytes are appended, so the identifier and the bytes are committed together and the trajectory can be replayed in append order."@x-gmeow-english ;
+    gmeow:useWhen "Use to locate a tool call's audit record inside an append-only session store, when the store is written as a run of segments rather than as one rewritten file."@x-gmeow-english .
+
 gmeow:toolArguments
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:ToolCall ;

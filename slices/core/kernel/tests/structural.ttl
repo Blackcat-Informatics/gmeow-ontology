@@ -302,7 +302,7 @@ ASK {
     gmeow:consumerResearchQueue           a gmeow:ProjectionContext .
     gmeow:consumerAdviceCatalog           a gmeow:ProjectionContext .
 }""" ;
-    gmeow:saRationale "The projection-consumer vocabulary MUST be seeded with the original nine declared gmeow:ProjectionContext individuals — the founding members of what is now a closed fourteen-member enumeration (Principle 9): the nine seeds plus the five documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client)." .
+    gmeow:saRationale "The projection-consumer vocabulary MUST be seeded with the original nine declared gmeow:ProjectionContext individuals — the founding members of what is now a closed fifteen-member enumeration (Principle 9): the nine seeds plus the six documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client, interactive console). This assertion pins only the nine seeds; the closure over all fifteen is ex:saProjectionContextNoTenthMember's job." .
 
 # --- 7.8 No unlisted ProjectionContext member in the kernel module (MUST-NOT) ---
 ex:saProjectionContextNoTenthMember a gmeow:StructuralAssertion ;
@@ -325,10 +325,11 @@ ASK {
         ?m != gmeow:consumerLinkedDataTooling &&
         ?m != gmeow:consumerOfflineBook &&
         ?m != gmeow:consumerPrintArchive &&
-        ?m != gmeow:consumerTypedModelClient
+        ?m != gmeow:consumerTypedModelClient &&
+        ?m != gmeow:consumerInteractiveConsole
     )
 }""" ;
-    gmeow:saRationale "The kernel projection-consumer vocabulary is a closed fourteen-member enumeration (Principle 9): the original nine seeds plus the five documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client). The kernel module MUST NOT declare any gmeow:ProjectionContext individual outside this closed set." .
+    gmeow:saRationale "The kernel projection-consumer vocabulary is a closed fifteen-member enumeration (Principle 9): the original nine seeds plus the six documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client, interactive console). The kernel module MUST NOT declare any gmeow:ProjectionContext individual outside this closed set." .
 
 # --- 7.9 DisclosurePolicy seeds are declared (MUST) --------------------------
 ex:saDisclosurePolicySeedsDeclared a gmeow:StructuralAssertion ;

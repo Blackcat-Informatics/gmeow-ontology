@@ -5,19 +5,28 @@
 //! constructor slice-quality's DocMaturity axis uses to score a FOREIGN slice's
 //! documentation coverage from that slice's own files.
 //!
-//! The fixtures under `tests/fixtures/` are self-contained single-slice trees
-//! (`manifest.ttl` + `module.ttl` + `docs.md`); `from_slice_dir` points
-//! `SliceCatalog::discover` straight at one such dir, which stops recursing at that
-//! dir's own `manifest.ttl`, yielding a catalog scoped to exactly that one slice.
+//! The fixtures are self-contained single-slice trees (`manifest.ttl` + `module.ttl` +
+//! `docs.md`); `from_slice_dir` points `SliceCatalog::discover` straight at one such dir,
+//! which stops recursing at that dir's own `manifest.ttl`, yielding a catalog scoped to
+//! exactly that one slice.
+//!
+//! They live with `from_slice_dir` itself, in `gmeow-docs-model`, whose own unit tests read
+//! the SAME trees — one fixture set for one constructor. This crate reaches across to them
+//! in the direction of its dependency edge (`gmeow-docs` → `gmeow-docs-model`), never the
+//! reverse, so the leaf never has to know this crate exists.
 
 use std::path::PathBuf;
 
 use gmeow_docs::rdf::documentation_graph;
 use gmeow_docs::{DocsError, DocsModel};
 
-/// The path to a committed single-slice fixture directory under `tests/fixtures/`.
+/// The path to a committed single-slice fixture directory, in the crate that owns
+/// `from_slice_dir`.
 fn fixture(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("crate is under <repo>/crates")
+        .join("docs-model")
         .join("tests")
         .join("fixtures")
         .join(name)

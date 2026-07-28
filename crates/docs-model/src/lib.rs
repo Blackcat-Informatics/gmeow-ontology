@@ -45,4 +45,7 @@ pub mod rdf;
 pub mod slug;
 pub mod source_map;
 mod store;
+/// The formal-concept lattice DERIVED from the `Surface × Capability` incidence in
+/// [`formats`] — its order, bounds, Hasse edges, and Duquenne–Guigues implication basis.
+pub mod surface_lattice;
 pub mod svg;

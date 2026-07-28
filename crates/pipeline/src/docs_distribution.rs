@@ -833,6 +833,84 @@ mod tests {
         );
     }
 
+    /// The EMITTER half of the concept-lattice pair, read back through the reader that was
+    /// written against the shape. Over the REAL catalog this returns the four concepts the
+    /// authored surface × capability incidence admits — an empty result would now mean the
+    /// emitter regressed, not that a lattice is optional.
+    #[test]
+    fn read_concept_lattice_over_a_synthetic_bundle_returns_the_derived_lattice() {
+        let gts_bytes = synthetic_gts_with_catalog();
+        let rows =
+            gmeow_docs_catalog::read_concept_lattice(&gts_bytes).expect("read concept lattice");
+        let rendered: Vec<(Vec<&str>, Vec<&str>)> = rows
+            .iter()
+            .map(|row| {
+                (
+                    row.extent.iter().map(String::as_str).collect(),
+                    row.intent.iter().map(String::as_str).collect(),
+                )
+            })
+            .collect();
+        // Rows sort by concept IRI, whose tail is the extent joined in surface order
+        // (`site`, `site+mdbook`, `site+mdbook+console`, `site+mdbook+pdf+snippets+console`)
+        // — so the rows arrive bottom-up along the lattice. Extents and intents come back
+        // as ALPHABETICALLY sorted local names, which is the reader's own convention.
+        assert_eq!(
+            rendered,
+            vec![
+                (
+                    vec!["site"],
+                    vec![
+                        "capabilityCrossLinkFidelity",
+                        "capabilityDiagrams",
+                        "capabilityInteractivity",
+                        "capabilityLiveReasoning",
+                        "capabilityLiveSparql",
+                        "capabilitySearchIndex",
+                    ]
+                ),
+                (
+                    vec!["mdbook", "site"],
+                    vec![
+                        "capabilityCrossLinkFidelity",
+                        "capabilityDiagrams",
+                        "capabilityInteractivity",
+                        "capabilityLiveReasoning",
+                        "capabilityLiveSparql",
+                    ]
+                ),
+                (
+                    vec!["console", "mdbook", "site"],
+                    vec![
+                        "capabilityDiagrams",
+                        "capabilityInteractivity",
+                        "capabilityLiveReasoning",
+                        "capabilityLiveSparql",
+                    ]
+                ),
+                (
+                    vec!["console", "mdbook", "pdf", "site", "snippets"],
+                    Vec::<&str>::new()
+                ),
+            ],
+            "the emitted lattice must be the four concepts the incidence admits"
+        );
+
+        // The console is an OBJECT of the lattice but NOT a distribution: the matrix over
+        // the very same bytes still returns exactly the eight shipped surfaces.
+        let matrix = read_distribution_matrix(&gts_bytes).expect("read distribution matrix");
+        assert_eq!(
+            matrix.len(),
+            8,
+            "emitting the lattice must not widen the distribution matrix: {:?}",
+            matrix.iter().map(|r| &r.slug).collect::<Vec<_>>()
+        );
+        assert!(
+            !matrix.iter().any(|row| row.slug == "console"),
+            "the console is a projection surface, never a shipped distribution"
+        );
+    }
+
     #[test]
     fn read_distribution_matrix_fails_closed_without_the_catalog_graph() {
         let builder = purrdf::gts_compose::SnapshotBuilder::new();

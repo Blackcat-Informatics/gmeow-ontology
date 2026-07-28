@@ -34,11 +34,14 @@
 //! The N-Triples are sorted + deduped and no clock/randomness rides here, so the
 //! catalog is byte-reproducible.
 
-use gmeow_docs::formats::{DocFormat, format_capabilities};
+use gmeow_docs::formats::{Capability, DistributionSurface, DocFormat, surface_capabilities};
+use gmeow_docs::surface_lattice::{
+    AUTHORED_INCIDENCE, CapMask, Implication, SurfaceConcept, authored_concepts, authored_dg_basis,
+};
 
 use crate::stages::carrier::{GRAPH_DISTRIBUTION_CATALOG, parse_into_graph};
 
-use gmeow_ns::GMEOW_NS;
+use gmeow_ns::{GMEOW_NS, LOGIC_NS};
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
@@ -210,8 +213,19 @@ fn doc_render_consumer(fmt: DocFormat) -> &'static str {
 /// [`GRAPH_DISTRIBUTION_CATALOG`].
 pub fn build_distribution_catalog() -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag>
 {
-    let nt = emit_ntriples();
+    let nt = emit_ntriples()?;
     parse_into_graph(&nt, "application/n-triples", GRAPH_DISTRIBUTION_CATALOG)
+}
+
+/// The catalog's serialized N-Triples, exactly as [`build_distribution_catalog`] parses
+/// them. Exposed so a cross-crate contract gate can read the emitted rows without folding a
+/// dataset and without a second, test-local emitter that could drift from this one.
+///
+/// # Errors
+///
+/// Propagates a refusal from [`emit_capability_laws`].
+pub fn distribution_catalog_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
+    emit_ntriples()
 }
 
 /// The declared `gmeow:artifactMediaType` for a distribution slug — the SAME
@@ -296,8 +310,71 @@ pub fn site_sub_asset_pricing() -> Vec<(&'static str, &'static str, &'static str
         .collect()
 }
 
-fn capability_iri(cap_slug: &str) -> String {
-    format!("{DISTRIBUTION_BASE}capability/{cap_slug}")
+/// The DECLARED `gmeow:ProjectionCapability` individual a capability is. The kernel owns
+/// this value vocabulary, exactly as it owns the `gmeow:ProjectionContext` consumers this
+/// module already references by name through [`consumer_iri`] — so a loss node's accounted
+/// parameter and a concept's intent member are the SAME six declared individuals, never a
+/// second, catalog-local capability namespace.
+fn capability_iri(cap: Capability) -> String {
+    let local = match cap {
+        Capability::SearchIndex => "capabilitySearchIndex",
+        Capability::LiveSparql => "capabilityLiveSparql",
+        Capability::Interactivity => "capabilityInteractivity",
+        Capability::LiveReasoning => "capabilityLiveReasoning",
+        Capability::Diagrams => "capabilityDiagrams",
+        Capability::CrossLinkFidelity => "capabilityCrossLinkFidelity",
+    };
+    iri(GMEOW_NS, local)
+}
+
+/// The catalog subject for a capability-bearing projection SURFACE — the object column of
+/// the formal context. For a rendered format that IS its distribution subject; the console
+/// is a surface without being a shipped distribution, so it gets its own subject outside the
+/// eight-slug bijection.
+fn surface_iri(surface: DistributionSurface) -> String {
+    match surface {
+        DistributionSurface::Format(fmt) => dist_iri(fmt.slug()),
+        DistributionSurface::Console => {
+            format!("{DISTRIBUTION_BASE}surface/{}", surface.slug())
+        }
+    }
+}
+
+/// The subject of one derived formal concept, named by its extent so the identity is
+/// content-addressed: adding a surface renames only the concepts it actually joins, and no
+/// concept carries a positional index that a later edit would silently renumber.
+fn concept_iri(concept: SurfaceConcept) -> String {
+    let extent: Vec<&str> = concept
+        .extent
+        .members()
+        .iter()
+        .map(|surface| surface.slug())
+        .collect();
+    let name = if extent.is_empty() {
+        "empty".to_owned()
+    } else {
+        extent.join("+")
+    };
+    format!("{DISTRIBUTION_BASE}concept/{name}")
+}
+
+/// The subject of one Duquenne–Guigues law, named by its premise (pseudo-intents are
+/// pairwise distinct, so the name is a key).
+fn law_iri(implication: Implication) -> String {
+    let premise: Vec<&str> = implication
+        .premise
+        .members()
+        .iter()
+        .map(|cap| cap.slug())
+        .collect();
+    format!("{DISTRIBUTION_BASE}law/{}", premise.join("+"))
+}
+
+/// A term carrier shared by every law atom: the quantified surface variable, and one
+/// carrier per capability. Sharing them keeps the emitted AST linear in the basis size
+/// instead of re-minting two carriers per atom.
+fn law_term_iri(name: &str) -> String {
+    format!("{DISTRIBUTION_BASE}law/term/{name}")
 }
 
 fn consumer_iri(name: &str) -> String {
@@ -314,7 +391,7 @@ fn consumer_iri(name: &str) -> String {
 /// and never a second copy. That is also what keeps the N-Triples escaping/quoting
 /// convention from forking between the emitter here and
 /// [`crate::docs_distribution`]'s release-instance emitter.
-pub(crate) use gmeow_docs_catalog::identity::{iri, triple, triple_lit};
+pub(crate) use gmeow_docs_catalog::identity::{XSD_INTEGER, iri, triple, triple_lit, triple_typed};
 
 /// The four a-box skeleton triples every subject this module emits carries:
 /// `rdf:type`, `rdfs:isDefinedBy <graph/distribution-catalog>`, `gmeow:graphBoxRole
@@ -334,8 +411,308 @@ fn skeleton(lines: &mut Vec<String>, subject: &str, rdf_type: &str, label: &str)
     lines.push(triple_lit(subject, RDFS_LABEL, label));
 }
 
+/// Emit one surface's BOTH-SIDED capability ledger: what it carries
+/// (`gmeow:representableParameter`) and what it drops (`gmeow:declaredLoss` →
+/// `gmeow:ProjectionLoss` → `gmeow:accountsForParameter`).
+///
+/// Both halves are read from the single authority
+/// ([`gmeow_docs::formats::surface_capabilities`]), which is why the catalog's ledger and
+/// the renderer's loss appendix cannot drift, and why the derived Duquenne–Guigues laws
+/// below are checkable against this very graph rather than floating above it. The subject
+/// must be a `gmeow:LossBearingProfile` — the class both predicates take as their domain.
+fn emit_capability_ledger(lines: &mut Vec<String>, subject: &str, surface: DistributionSurface) {
+    let slug = surface.slug();
+    let caps = surface_capabilities(surface);
+    for cap in &caps.representable {
+        lines.push(triple(
+            subject,
+            &iri(GMEOW_NS, "representableParameter"),
+            &capability_iri(*cap),
+        ));
+    }
+    for cap in &caps.dropped {
+        let cap_slug = cap.slug();
+        let loss_node = loss_iri(slug, cap_slug);
+        lines.push(triple(subject, &iri(GMEOW_NS, "declaredLoss"), &loss_node));
+        skeleton(
+            lines,
+            &loss_node,
+            &iri(GMEOW_NS, "ProjectionLoss"),
+            &format!("projection surface {slug} declared loss {cap_slug}"),
+        );
+        lines.push(triple(
+            &loss_node,
+            &iri(GMEOW_NS, "accountsForParameter"),
+            &capability_iri(*cap),
+        ));
+    }
+}
+
+/// Emit the interactive console as a capability-bearing projection SURFACE.
+///
+/// It is typed `gmeow:LossBearingProfile` directly rather than
+/// `gmeow:DocumentationDistribution`: the console is not one of the eight artifacts the
+/// release ships, so typing it as a distribution would silently widen
+/// `read_distribution_matrix` to nine rows. It still needs a loss ledger and an audience,
+/// because it is an object of the formal context the concept lattice is derived over.
+fn emit_console_surface(lines: &mut Vec<String>) {
+    let console = surface_iri(DistributionSurface::Console);
+    skeleton(
+        lines,
+        &console,
+        &iri(GMEOW_NS, "LossBearingProfile"),
+        "interactive console projection surface",
+    );
+    lines.push(triple(
+        &console,
+        &iri(GMEOW_NS, "eligibleForConsumer"),
+        &consumer_iri("consumerInteractiveConsole"),
+    ));
+    emit_capability_ledger(lines, &console, DistributionSurface::Console);
+}
+
+/// Emit the COMPLETE concept-lattice element set: every formal concept of the
+/// surface × capability incidence, with its extent and its intent.
+///
+/// Digest-free, like the rest of this carrier-time catalog. The order between concepts is
+/// deliberately NOT stored as edges: extent inclusion recovers it exactly, so an emitted
+/// edge would be a second, drift-prone encoding of the same fact.
+fn emit_concept_lattice(lines: &mut Vec<String>) {
+    for concept in authored_concepts() {
+        let node = concept_iri(concept);
+        let extent: Vec<&str> = concept
+            .extent
+            .members()
+            .iter()
+            .map(|surface| surface.slug())
+            .collect();
+        let intent: Vec<&str> = concept
+            .intent
+            .members()
+            .iter()
+            .map(|cap| cap.slug())
+            .collect();
+        skeleton(
+            lines,
+            &node,
+            &iri(GMEOW_NS, "FormalConcept"),
+            &format!(
+                "formal concept: surfaces [{}] share capabilities [{}]",
+                extent.join(", "),
+                intent.join(", ")
+            ),
+        );
+        for surface in concept.extent.members() {
+            lines.push(triple(
+                &node,
+                &iri(GMEOW_NS, "conceptExtent"),
+                &surface_iri(surface),
+            ));
+        }
+        for cap in concept.intent.members() {
+            lines.push(triple(
+                &node,
+                &iri(GMEOW_NS, "conceptIntent"),
+                &capability_iri(cap),
+            ));
+        }
+    }
+}
+
+/// Emit one side of a law as a `logic:` formula node, returning its subject: a bare atom
+/// when the side is a single capability, an explicit `logic:and` conjunction otherwise.
+fn emit_law_side(lines: &mut Vec<String>, law: &str, side: &str, mask: CapMask) -> Option<String> {
+    let members = mask.members();
+    if members.is_empty() {
+        return None;
+    }
+    let atoms: Vec<String> = members
+        .iter()
+        .map(|cap| {
+            let atom = format!("{law}/{side}/{}", cap.slug());
+            skeleton(
+                lines,
+                &atom,
+                &iri(LOGIC_NS, "Formula"),
+                &format!("law atom: the surface represents {}", cap.slug()),
+            );
+            lines.push(triple(
+                &atom,
+                &iri(LOGIC_NS, "relation"),
+                &iri(GMEOW_NS, "representableParameter"),
+            ));
+            lines.push(triple(
+                &atom,
+                &iri(LOGIC_NS, "argument"),
+                &law_term_iri("surface"),
+            ));
+            lines.push(triple(
+                &atom,
+                &iri(LOGIC_NS, "argument"),
+                &law_term_iri(cap.slug()),
+            ));
+            atom
+        })
+        .collect();
+    if let [only] = atoms.as_slice() {
+        return Some(only.clone());
+    }
+    let conjunction = format!("{law}/{side}");
+    skeleton(
+        lines,
+        &conjunction,
+        &iri(LOGIC_NS, "Formula"),
+        &format!("law {side}: a conjunction of {} atoms", atoms.len()),
+    );
+    for atom in &atoms {
+        lines.push(triple(&conjunction, &iri(LOGIC_NS, "and"), atom));
+    }
+    Some(conjunction)
+}
+
+/// Emit the Duquenne–Guigues implication basis of the incidence as derived catalog LAWS —
+/// `logic:Formula` ASTs with `logic:antecedent` / `logic:consequent`, the repo's one
+/// representation for a law. No implication vocabulary is minted here.
+///
+/// A law whose premise no surface exhibits holds only VACUOUSLY over the authored context;
+/// such a law additionally carries `logic:expressivenessBoundary logic:FirstOrder`, marking
+/// it as an honest gap rather than a witnessed catalog fact.
+///
+/// # Errors
+///
+/// Refuses when a basis premise is EMPTY. An `∅ → C` law is not representable in the
+/// implication AST (an antecedent-free implication is not an implication), and emitting the
+/// law without its antecedent would silently publish a strictly stronger claim than the
+/// context supports. It cannot arise while some surface has an empty intent — which makes
+/// `∅` closed — so this is a fail-closed guard, not a live branch.
+fn emit_capability_laws(lines: &mut Vec<String>) -> Result<(), gmeow_errors::Diag> {
+    let basis = authored_dg_basis();
+
+    // One shared carrier for the quantified variable, and one per capability. Every atom
+    // below argues over exactly these, so the AST is linear in the basis size.
+    let variable = law_term_iri("surface");
+    skeleton(
+        lines,
+        &variable,
+        &iri(LOGIC_NS, "TermCarrier"),
+        "law term carrier: the quantified projection surface",
+    );
+    lines.push(triple_typed(
+        &variable,
+        &iri(LOGIC_NS, "termIndex"),
+        "0",
+        XSD_INTEGER,
+    ));
+    lines.push(triple_lit(
+        &variable,
+        &iri(LOGIC_NS, "termVariable"),
+        "surface",
+    ));
+    for cap in Capability::ALL {
+        let carrier = law_term_iri(cap.slug());
+        skeleton(
+            lines,
+            &carrier,
+            &iri(LOGIC_NS, "TermCarrier"),
+            &format!("law term carrier: capability {}", cap.slug()),
+        );
+        lines.push(triple_typed(
+            &carrier,
+            &iri(LOGIC_NS, "termIndex"),
+            "1",
+            XSD_INTEGER,
+        ));
+        lines.push(triple(
+            &carrier,
+            &iri(LOGIC_NS, "termIri"),
+            &capability_iri(cap),
+        ));
+    }
+
+    for implication in basis {
+        let law = law_iri(implication);
+        let premise: Vec<&str> = implication
+            .premise
+            .members()
+            .iter()
+            .map(|cap| cap.slug())
+            .collect();
+        let conclusion: Vec<&str> = implication
+            .conclusion
+            .members()
+            .iter()
+            .map(|cap| cap.slug())
+            .collect();
+
+        skeleton(
+            lines,
+            &law,
+            &iri(LOGIC_NS, "Formula"),
+            &format!(
+                "derived catalog law: a surface representing [{}] represents [{}]",
+                premise.join(", "),
+                conclusion.join(", ")
+            ),
+        );
+        lines.push(triple(
+            &law,
+            &iri(LOGIC_NS, "quantifiedVariable"),
+            &variable,
+        ));
+
+        let body = format!("{law}/implication");
+        lines.push(triple(&law, &iri(LOGIC_NS, "forall"), &body));
+        skeleton(
+            lines,
+            &body,
+            &iri(LOGIC_NS, "Formula"),
+            "derived catalog law: the quantified implication body",
+        );
+
+        let antecedent =
+            emit_law_side(lines, &law, "premise", implication.premise).ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Projection {
+                    message: format!(
+                        "the Duquenne-Guigues basis yielded a law with an EMPTY premise \
+                     (conclusion [{}]); an antecedent-free implication cannot be represented \
+                     as a logic:Formula AST without publishing a stronger claim than the \
+                     incidence supports",
+                        conclusion.join(", ")
+                    ),
+                })
+            })?;
+        // A basis implication's conclusion is `premise″ ∖ premise`, which is non-empty by
+        // construction (a pseudo-closed premise is never closed), so this cannot be `None`.
+        let consequent = emit_law_side(lines, &law, "conclusion", implication.conclusion)
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Projection {
+                    message: format!(
+                        "the Duquenne-Guigues law with premise [{}] has an EMPTY conclusion, which \
+                     contradicts its premise being pseudo-closed",
+                        premise.join(", ")
+                    ),
+                })
+            })?;
+        lines.push(triple(&body, &iri(LOGIC_NS, "antecedent"), &antecedent));
+        lines.push(triple(&body, &iri(LOGIC_NS, "consequent"), &consequent));
+
+        if implication.is_unrealized(&AUTHORED_INCIDENCE) {
+            lines.push(triple(
+                &law,
+                &iri(LOGIC_NS, "expressivenessBoundary"),
+                &iri(LOGIC_NS, "FirstOrder"),
+            ));
+        }
+    }
+    Ok(())
+}
+
 /// Emit the sorted, deduped, byte-stable N-Triples for the whole catalog.
-fn emit_ntriples() -> Vec<u8> {
+///
+/// # Errors
+///
+/// Propagates a refusal from [`emit_capability_laws`].
+fn emit_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut lines: Vec<String> = Vec::new();
 
     // ── family nodes ──
@@ -380,25 +757,10 @@ fn emit_ntriples() -> Vec<u8> {
             &consumer_iri(doc_render_consumer(fmt)),
         ));
 
-        // Declared loss, SOURCED FROM format_capabilities (single authority — never
-        // re-authored here).
-        let caps = format_capabilities(fmt);
-        for cap in &caps.dropped {
-            let cap_slug = cap.slug();
-            let loss_node = loss_iri(slug, cap_slug);
-            lines.push(triple(&dist, &iri(GMEOW_NS, "declaredLoss"), &loss_node));
-            skeleton(
-                &mut lines,
-                &loss_node,
-                &iri(GMEOW_NS, "ProjectionLoss"),
-                &format!("distribution {slug} declared loss {cap_slug}"),
-            );
-            lines.push(triple(
-                &loss_node,
-                &iri(GMEOW_NS, "accountsForParameter"),
-                &capability_iri(cap_slug),
-            ));
-        }
+        // The capability ledger, SOURCED FROM the single authority — never re-authored
+        // here. `gmeow:DocumentationDistribution` is a `gmeow:LossBearingProfile`, which is
+        // what makes it a legal subject of `gmeow:declaredLoss`.
+        emit_capability_ledger(&mut lines, &dist, DistributionSurface::Format(fmt));
     }
 
     // ── serialization distributions: no declaredLoss ──
@@ -471,30 +833,36 @@ fn emit_ntriples() -> Vec<u8> {
         ));
     }
 
+    // ── the interactive console: a capability-bearing surface, NOT a distribution ──
+    emit_console_surface(&mut lines);
+
+    // ── the DERIVED half: the complete concept lattice and its implication basis ──
+    // Both are computed from the surface × capability incidence, never authored here.
+    emit_concept_lattice(&mut lines);
+    emit_capability_laws(&mut lines)?;
+
     lines.sort();
     lines.dedup();
     let mut out = lines.join("\n");
     out.push('\n');
-    out.into_bytes()
+    Ok(out.into_bytes())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_docs::formats::Capability;
-
     fn ntriples_text() -> String {
         // Building via the real entry point exercises parse_into_graph end-to-end (a
         // parse failure here would fail the test), then the string-content assertions
         // below grep the exact bytes the emitter produced (what parse_into_graph parsed).
         let _ds = build_distribution_catalog().expect("build distribution catalog");
-        String::from_utf8(emit_ntriples()).expect("utf8 n-triples")
+        String::from_utf8(emit_ntriples().expect("emit catalog")).expect("utf8 n-triples")
     }
 
     #[test]
     fn catalog_is_byte_reproducible() {
-        let a = emit_ntriples();
-        let b = emit_ntriples();
+        let a = emit_ntriples().expect("emit catalog");
+        let b = emit_ntriples().expect("emit catalog");
         assert_eq!(a, b, "distribution catalog N-Triples must be deterministic");
     }
 
@@ -614,7 +982,7 @@ mod tests {
         for fmt in DocFormat::ALL {
             let slug = fmt.slug();
             let dist = dist_iri(slug);
-            let caps = format_capabilities(fmt);
+            let caps = surface_capabilities(DistributionSurface::Format(fmt));
             for cap in Capability::ALL {
                 let loss_node = loss_iri(slug, cap.slug());
                 let declares =
@@ -631,10 +999,251 @@ mod tests {
                         nt.contains(&triple(
                             &loss_node,
                             &iri(GMEOW_NS, "accountsForParameter"),
-                            &capability_iri(cap.slug())
+                            &capability_iri(cap)
                         )),
                         "{slug}/{:?} loss node missing accountsForParameter",
                         cap
+                    );
+                }
+            }
+        }
+    }
+
+    /// The console rides as a capability-bearing SURFACE: it has an audience and a loss
+    /// ledger, and it is deliberately not a distribution, so the eight-slug bijection and
+    /// the consumer-facing matrix are untouched by its arrival.
+    #[test]
+    fn the_console_is_a_surface_with_a_ledger_and_not_a_distribution() {
+        let nt = ntriples_text();
+        let console = surface_iri(DistributionSurface::Console);
+        assert!(
+            nt.contains(&triple(
+                &console,
+                RDF_TYPE,
+                &iri(GMEOW_NS, "LossBearingProfile")
+            )),
+            "the console surface must be typed gmeow:LossBearingProfile"
+        );
+        assert!(
+            !nt.contains(&triple(
+                &console,
+                RDF_TYPE,
+                &iri(GMEOW_NS, "DocumentationDistribution")
+            )),
+            "the console must NOT be typed as a shipped distribution"
+        );
+        assert!(
+            nt.contains(&triple(
+                &console,
+                &iri(GMEOW_NS, "eligibleForConsumer"),
+                &consumer_iri("consumerInteractiveConsole")
+            )),
+            "the console surface must name its declared audience"
+        );
+        assert!(
+            !nt.lines().any(|line| line.starts_with(&format!(
+                "<{console}> <{}>",
+                iri(GMEOW_NS, "distributionFormat")
+            ))),
+            "the console carries no distribution format slug — it is outside the bijection"
+        );
+        assert_eq!(
+            declared_distribution_slugs().len(),
+            8,
+            "the eight-slug bijection must survive the console's arrival"
+        );
+
+        // Its ledger is the authored partition, both halves.
+        let caps = surface_capabilities(DistributionSurface::Console);
+        for cap in &caps.dropped {
+            let loss_node = loss_iri("console", cap.slug());
+            assert!(nt.contains(&triple(
+                &console,
+                &iri(GMEOW_NS, "declaredLoss"),
+                &loss_node
+            )));
+        }
+        for cap in &caps.representable {
+            assert!(nt.contains(&triple(
+                &console,
+                &iri(GMEOW_NS, "representableParameter"),
+                &capability_iri(*cap)
+            )));
+        }
+    }
+
+    /// Every surface's ledger is TOTAL over the capability vocabulary: each capability is
+    /// either represented or accounted for as a loss, never both and never neither. That
+    /// pairing is exactly what makes the derived laws below checkable against this graph.
+    #[test]
+    fn every_surface_ledger_is_total_over_the_capabilities() {
+        let nt = ntriples_text();
+        for surface in DistributionSurface::ALL {
+            let subject = surface_iri(surface);
+            for cap in Capability::ALL {
+                let represents = nt.contains(&triple(
+                    &subject,
+                    &iri(GMEOW_NS, "representableParameter"),
+                    &capability_iri(cap),
+                ));
+                let drops = nt.contains(&triple(
+                    &subject,
+                    &iri(GMEOW_NS, "declaredLoss"),
+                    &loss_iri(surface.slug(), cap.slug()),
+                ));
+                assert!(
+                    represents ^ drops,
+                    "{}/{cap:?}: the catalog ledger must place it in exactly one side \
+                     (represents={represents}, drops={drops})",
+                    surface.slug()
+                );
+            }
+        }
+    }
+
+    /// The COMPLETE concept lattice is emitted — every derived concept, with its extent and
+    /// its intent — and nothing beyond it.
+    #[test]
+    fn the_complete_concept_lattice_is_emitted() {
+        let nt = ntriples_text();
+        let derived = authored_concepts();
+        assert_eq!(derived.len(), 4, "{derived:?}");
+
+        for concept in &derived {
+            let node = concept_iri(*concept);
+            assert!(
+                nt.contains(&triple(&node, RDF_TYPE, &iri(GMEOW_NS, "FormalConcept"))),
+                "{node} is not typed gmeow:FormalConcept — the reader would drop it"
+            );
+            for surface in concept.extent.members() {
+                assert!(nt.contains(&triple(
+                    &node,
+                    &iri(GMEOW_NS, "conceptExtent"),
+                    &surface_iri(surface)
+                )));
+            }
+            for cap in concept.intent.members() {
+                assert!(nt.contains(&triple(
+                    &node,
+                    &iri(GMEOW_NS, "conceptIntent"),
+                    &capability_iri(cap)
+                )));
+            }
+        }
+
+        // No EXTRA concept: the count of typed nodes matches the derived set exactly.
+        let emitted = nt
+            .lines()
+            .filter(|line| line.ends_with(&format!("<{}> .", iri(GMEOW_NS, "FormalConcept"))))
+            .count();
+        assert_eq!(
+            emitted,
+            derived.len(),
+            "the emitted lattice is not complete"
+        );
+    }
+
+    /// The Duquenne–Guigues basis rides as `logic:Formula` ASTs — the repo's one law
+    /// representation — with `logic:antecedent` / `logic:consequent`. No implication
+    /// vocabulary is minted.
+    #[test]
+    fn the_implication_basis_rides_as_logic_formula_asts() {
+        let nt = ntriples_text();
+        let basis = authored_dg_basis();
+        assert_eq!(basis.len(), 6, "{basis:?}");
+
+        for implication in &basis {
+            let law = law_iri(*implication);
+            let body = format!("{law}/implication");
+            assert!(nt.contains(&triple(&law, RDF_TYPE, &iri(LOGIC_NS, "Formula"))));
+            assert!(nt.contains(&triple(
+                &law,
+                &iri(LOGIC_NS, "quantifiedVariable"),
+                &law_term_iri("surface")
+            )));
+            assert!(nt.contains(&triple(&law, &iri(LOGIC_NS, "forall"), &body)));
+            assert!(
+                nt.lines()
+                    .any(|line| line
+                        .starts_with(&format!("<{body}> <{}>", iri(LOGIC_NS, "antecedent")))),
+                "law {law} has no logic:antecedent"
+            );
+            assert!(
+                nt.lines()
+                    .any(|line| line
+                        .starts_with(&format!("<{body}> <{}>", iri(LOGIC_NS, "consequent")))),
+                "law {law} has no logic:consequent"
+            );
+            // Every atom argues the shared surface variable against a capability carrier,
+            // over the ONE existing predicate — no minted implication vocabulary.
+            for cap in implication.premise.members() {
+                let atom = format!("{law}/premise/{}", cap.slug());
+                assert!(nt.contains(&triple(
+                    &atom,
+                    &iri(LOGIC_NS, "relation"),
+                    &iri(GMEOW_NS, "representableParameter")
+                )));
+                assert!(nt.contains(&triple(
+                    &atom,
+                    &iri(LOGIC_NS, "argument"),
+                    &law_term_iri(cap.slug())
+                )));
+            }
+        }
+
+        // The one honest-gap marker, and only where the derivation says so: a law whose
+        // premise no surface exhibits. Over the authored incidence there is none, and the
+        // emitted marker set must agree with that derivation rather than with a guess.
+        let unrealized: Vec<_> = basis
+            .iter()
+            .filter(|i| i.is_unrealized(&AUTHORED_INCIDENCE))
+            .collect();
+        let emitted_markers = nt
+            .lines()
+            .filter(|line| line.contains(&iri(LOGIC_NS, "expressivenessBoundary")))
+            .count();
+        assert_eq!(
+            emitted_markers,
+            unrealized.len(),
+            "the expressiveness-boundary markers must be exactly the vacuously-true laws"
+        );
+        for implication in unrealized {
+            assert!(nt.contains(&triple(
+                &law_iri(*implication),
+                &iri(LOGIC_NS, "expressivenessBoundary"),
+                &iri(LOGIC_NS, "FirstOrder")
+            )));
+        }
+    }
+
+    /// Every DG law actually HOLDS of the emitted ledger — the laws are checkable against
+    /// this graph, not floating above it.
+    #[test]
+    fn every_emitted_law_holds_of_the_emitted_ledger() {
+        let nt = ntriples_text();
+        let represents = |surface: DistributionSurface, cap: Capability| {
+            nt.contains(&triple(
+                &surface_iri(surface),
+                &iri(GMEOW_NS, "representableParameter"),
+                &capability_iri(cap),
+            ))
+        };
+        for implication in authored_dg_basis() {
+            for surface in DistributionSurface::ALL {
+                let premise_holds = implication
+                    .premise
+                    .members()
+                    .into_iter()
+                    .all(|cap| represents(surface, cap));
+                if !premise_holds {
+                    continue;
+                }
+                for cap in implication.conclusion.members() {
+                    assert!(
+                        represents(surface, cap),
+                        "law {:?} is violated by the emitted ledger of {}",
+                        implication,
+                        surface.slug()
                     );
                 }
             }

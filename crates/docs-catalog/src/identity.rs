@@ -66,6 +66,21 @@ pub fn triple_lit(subject: &str, predicate: &str, literal: &str) -> String {
     format!("<{subject}> <{predicate}> {} .", nt_literal(literal))
 }
 
+/// The single N-Triples subject/predicate/TYPED-literal formatter — see [`triple`]. Shares
+/// [`nt_literal`]'s escaping so a datatyped value can never fork the quoting convention.
+#[must_use]
+pub fn triple_typed(subject: &str, predicate: &str, literal: &str, datatype: &str) -> String {
+    format!(
+        "<{subject}> <{predicate}> {}^^<{datatype}> .",
+        nt_literal(literal)
+    )
+}
+
+/// `xsd:integer` — the datatype the authored `logic:` formula ASTs give a `logic:termIndex`
+/// (Turtle's bare integer literal), so an emitted AST is byte-comparable with a hand-written
+/// one.
+pub const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
 /// Escape a string as an N-Triples quoted literal (UTF-8 passes through verbatim).
 fn nt_literal(value: &str) -> String {
     let mut out = String::with_capacity(value.len() + 2);

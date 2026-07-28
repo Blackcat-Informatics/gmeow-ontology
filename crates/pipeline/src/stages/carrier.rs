@@ -2899,7 +2899,7 @@ fn build_docs_print_blob(
         })?;
         axioms.insert(rel.to_string(), bytes.clone());
     }
-    let losses: Vec<gmeow_docs::formats::FormatCapabilities> = [
+    let losses: Vec<gmeow_docs::formats::SurfaceCapabilities> = [
         gmeow_docs::formats::DocFormat::Site,
         gmeow_docs::formats::DocFormat::Mdbook,
         gmeow_docs::formats::DocFormat::Pdf,

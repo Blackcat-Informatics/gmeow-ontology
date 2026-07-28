@@ -388,7 +388,7 @@ fn render_print(
         .and_then(|p| p.artifact(BIB_PATH))
         .ok_or_else(|| err("missing stage-export-references bibliography for the print renderer"))?
         .to_vec();
-    let losses: Vec<gmeow_docs::formats::FormatCapabilities> = [
+    let losses: Vec<gmeow_docs::formats::SurfaceCapabilities> = [
         gmeow_docs::formats::DocFormat::Site,
         gmeow_docs::formats::DocFormat::Mdbook,
         gmeow_docs::formats::DocFormat::Pdf,

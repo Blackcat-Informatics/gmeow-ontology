@@ -93,6 +93,6 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     ?p a owl:ObjectProperty ;
         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> .
-    FILTER (?p NOT IN (gmeow:calledByInvocation, gmeow:usedTool))
+    FILTER (?p NOT IN (gmeow:calledByInvocation, gmeow:usedTool, gmeow:derivedBy))
 }""" ;
-    gmeow:saRationale "No owl:ObjectProperty defined in the agentic slice other than gmeow:calledByInvocation and gmeow:usedTool MUST NOT exist -- Principle 5: produced entities link back via gmeow:wasGeneratedBy, never a forward output property." .
+    gmeow:saRationale "The agentic slice MUST NOT declare a FORWARD output object property (Principle 5): whatever a call produced links BACK to it, never forward from it. Its object properties are therefore exactly three backward or inward edges -- gmeow:calledByInvocation (call to the invocation that requested it), gmeow:usedTool (call to the tool agent that ran), and gmeow:derivedBy (result statement back to the call it came out of, the statement-level sibling of gmeow:wasGeneratedBy). Any other owl:ObjectProperty defined here is presumed to be the forbidden forward edge." .

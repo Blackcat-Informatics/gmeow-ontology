@@ -1,17 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The single per-format capability-loss table.
+//! The single per-surface capability-loss table.
 //!
 //! Every documentation projection (the static site, the mdbook, the print PDF,
 //! the flat per-term snippets) renders the same underlying
 //! [`crate::model::DocsModel`] but can
-//! only carry a subset of the site's live surfaces. This module is the ONE
-//! source of truth for which of the six cross-cutting capabilities each format
-//! preserves and which it declares lost. Both the renderers (the PDF loss
+//! only carry a subset of the site's live surfaces; so does the standalone interactive
+//! console, which is a capability-bearing surface without being a shipped distribution.
+//! This module is the ONE source of truth for which of the six cross-cutting capabilities
+//! each surface preserves and which it declares lost. Both the renderers (the PDF loss
 //! appendix in `docs-print`) and the pipeline grounding read this table, so a
 //! format's loss appendix matches the graph loss ledger *by construction* — the
 //! two can never drift because they are the same data.
+//!
+//! The formal-concept lattice DERIVED from this table (its order, meet, join, bounds, and
+//! Duquenne–Guigues implication basis) lives in [`crate::surface_lattice`]; nothing there
+//! re-authors an incidence cell.
 //!
 //! ## The capability poset
 //!
@@ -81,6 +86,116 @@ impl DocFormat {
     }
 }
 
+/// A **distribution surface**: anything that carries a capability partition.
+///
+/// This is the object set of the `Surface × Capability` formal context
+/// ([`crate::surface_lattice`]). It is the four rendered [`DocFormat`] distributions PLUS
+/// the standalone interactive console, which is a capability-bearing surface but NOT one
+/// of the eight shipped documentation distributions — it renders the ontology live in a
+/// browser from the bundle rather than being a distributed artifact of its own.
+///
+/// The serialization distributions (`okf`, `jsonld`, `yamlld`, `pydantic`) are deliberately
+/// absent: they are structured re-serializations, not prose renderings, and carry no
+/// capability partition at all. A mask sized to the whole distribution catalog rather than
+/// to this set would leave the lattice's greatest element unreachable by any join.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum DistributionSurface {
+    /// One of the four rendered documentation formats.
+    Format(DocFormat),
+    /// The standalone interactive console: a live in-browser surface over the bundle. It
+    /// runs SPARQL and the structured-DL chase against the vendored wasm engines, is
+    /// interactive by construction, and renders derived diagrams (including the Hasse
+    /// diagram of this very lattice). It ships no bundled full-text index and its term
+    /// references are console commands rather than resolvable links.
+    Console,
+}
+
+impl DistributionSurface {
+    /// Every capability-bearing surface: the four [`DocFormat::ALL`] renderings plus the
+    /// console. The length is *derived* from [`DocFormat::ALL`] so a new format cannot be
+    /// added without widening this set (and, with it, the lattice's surface mask).
+    pub const ALL: [DistributionSurface; DocFormat::ALL.len() + 1] = [
+        DistributionSurface::Format(DocFormat::Site),
+        DistributionSurface::Format(DocFormat::Mdbook),
+        DistributionSurface::Format(DocFormat::Pdf),
+        DistributionSurface::Format(DocFormat::Snippets),
+        DistributionSurface::Console,
+    ];
+
+    /// The stable machine slug (kebab-case) identifying this surface. For a rendered
+    /// format it IS the format's slug, so the catalog's distribution slugs and the
+    /// lattice's surface slugs are the same strings by construction.
+    pub fn slug(&self) -> &'static str {
+        match self {
+            DistributionSurface::Format(fmt) => fmt.slug(),
+            DistributionSurface::Console => "console",
+        }
+    }
+
+    /// A human-readable label for this surface.
+    pub fn label(&self) -> &'static str {
+        match self {
+            DistributionSurface::Format(fmt) => fmt.label(),
+            DistributionSurface::Console => "Interactive console",
+        }
+    }
+
+    /// The capabilities this surface declares lost, in [`Capability::ALL`] order.
+    ///
+    /// This `const fn` is the SINGLE authored incidence table — [`surface_capabilities`]
+    /// derives its owned partition from it, and [`crate::surface_lattice`] derives the
+    /// `const` bit masks its [`gmeow_errors::grade::BoundedLattice`] bounds are built from.
+    /// A `Vec`-returning authority could not be read in a `const` context, so the bounds
+    /// would have had to be hand-written — exactly the second source of truth this avoids.
+    ///
+    /// The reasoning behind each set:
+    ///
+    /// * **Site** — drops nothing. The live HTML site carries the search index, the live
+    ///   SPARQL playground, every interactive widget, the in-browser reasoner + GMN
+    ///   transcode, the rendered diagrams, and full cross-link fidelity.
+    /// * **Mdbook** — drops `{SearchIndex}` only. The book packs the SAME vendored wasm
+    ///   engines + controller the site does (validate / purrdf-SPARQL / reason / GMN) and an
+    ///   interactive host chapter, wired through `book.toml` `additional-js`, so once built
+    ///   it carries live SPARQL, the interactive widgets, and the in-browser reasoning +
+    ///   transcode — plus the rendered diagrams (SVGs render inline) and cross-link fidelity
+    ///   (chapter links resolve; dropped-surface links externalize to the published site,
+    ///   never dangling). It keeps no bundled full-text index of our making (mdbook ships
+    ///   its own client search), so `SearchIndex` stays a declared loss.
+    /// * **Pdf** — drops all six. This print PDF renders term text, tables, and the
+    ///   bibliography. It embeds **no** diagrams, exposes no search index or live SPARQL,
+    ///   has no interactive surfaces or in-browser reasoning, and its cross-references are
+    ///   prose (not live resolvable links). The set is deliberately conservative: a
+    ///   capability is representable only when the PDF genuinely renders it.
+    /// * **Snippets** — drops the same six as the PDF. Flat per-term Markdown blocks carry
+    ///   no cross-links, no search, no diagrams, no live SPARQL, no interactivity, and no
+    ///   in-browser reasoning.
+    /// * **Console** — drops `{SearchIndex, CrossLinkFidelity}`. It runs the vendored
+    ///   engines, so live SPARQL, interactivity, and live reasoning are all genuinely
+    ///   present, and `Diagrams` is REPRESENTABLE: the console renders the derived Hasse
+    ///   diagram of the concept lattice (declaring `Diagrams` dropped while requiring that
+    ///   diagram would be a self-contradiction). It bundles no full-text index, and a term
+    ///   reference inside a console session is a command to re-query, not a link that
+    ///   resolves inside the artifact.
+    pub const fn dropped(self) -> &'static [Capability] {
+        match self {
+            DistributionSurface::Format(DocFormat::Site) => &[],
+            DistributionSurface::Format(DocFormat::Mdbook) => &[Capability::SearchIndex],
+            DistributionSurface::Format(DocFormat::Pdf)
+            | DistributionSurface::Format(DocFormat::Snippets) => &[
+                Capability::SearchIndex,
+                Capability::LiveSparql,
+                Capability::Interactivity,
+                Capability::LiveReasoning,
+                Capability::Diagrams,
+                Capability::CrossLinkFidelity,
+            ],
+            DistributionSurface::Console => {
+                &[Capability::SearchIndex, Capability::CrossLinkFidelity]
+            }
+        }
+    }
+}
+
 /// A cross-cutting documentation capability. Each format either represents a
 /// capability or declares it a loss.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -112,6 +227,20 @@ impl Capability {
         Capability::CrossLinkFidelity,
     ];
 
+    /// This capability's position in [`Capability::ALL`] — the bit index the
+    /// [`crate::surface_lattice`] intent mask encodes it at. A `const fn` so the lattice's
+    /// bounds can be computed in a `const` context from the authored incidence.
+    pub const fn index(self) -> usize {
+        match self {
+            Capability::SearchIndex => 0,
+            Capability::LiveSparql => 1,
+            Capability::Interactivity => 2,
+            Capability::LiveReasoning => 3,
+            Capability::Diagrams => 4,
+            Capability::CrossLinkFidelity => 5,
+        }
+    }
+
     /// The stable machine slug (kebab-case) identifying this capability.
     pub fn slug(&self) -> &'static str {
         match self {
@@ -142,105 +271,105 @@ impl Capability {
 /// nesting as a PROVENANCE refinement it is not. Monotonicity is proved BOTH along these
 /// provenance edges AND along the capability lattice (see the tests). The pipeline
 /// cross-checks this edge set against its composition legs so the two cannot drift.
+///
+/// # Two distinct orders, neither derived from the other
+///
+/// This constant is the **provenance** order — WHICH artifact is rendered from WHICH — and
+/// it is HAND-DECLARED, mirroring the pipeline's composition legs. [`crate::surface_lattice`]
+/// carries the **capability** order — WHICH surface represents MORE — and it is DERIVED
+/// from the `Surface × Capability` formal context, never enumerated. Neither order is a
+/// function of the other: mdbook and pdf are capability-comparable but provenance-
+/// incomparable, and the console is capability-comparable to both while appearing in no
+/// provenance edge at all. Because this edge set is a SINGLE edge, replacing the deleted
+/// hand chain with a "reproduce PROJECTION_DAG_EDGES" check would be near-vacuous — so both
+/// proofs are kept, separately gated, and each fails on its own regression.
 pub const PROJECTION_DAG_EDGES: &[(DocFormat, DocFormat)] =
     &[(DocFormat::Site, DocFormat::Snippets)];
 
-/// One format's capability partition: which capabilities it represents and which
-/// it declares lost. Both vectors are sorted (by [`Capability`]'s derived order)
-/// and are a total, disjoint partition of [`Capability::ALL`].
+/// One surface's capability partition: which capabilities it represents and which it
+/// declares lost. Both vectors are sorted (by [`Capability`]'s derived order) and are a
+/// total, disjoint partition of [`Capability::ALL`].
+///
+/// This is the ONLY capability-partition type. There is no separate format-only partition:
+/// a `DocFormat` is simply a [`DistributionSurface::Format`], and [`format_capabilities`]
+/// is a thin wrapper over [`surface_capabilities`].
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FormatCapabilities {
-    /// The format this partition describes.
-    pub format: DocFormat,
-    /// The capabilities this format faithfully represents (sorted).
+pub struct SurfaceCapabilities {
+    /// The surface this partition describes.
+    pub surface: DistributionSurface,
+    /// The capabilities this surface faithfully represents (sorted).
     pub representable: Vec<Capability>,
-    /// The capabilities this format declares lost (sorted).
+    /// The capabilities this surface declares lost (sorted).
     pub dropped: Vec<Capability>,
 }
 
-/// The honest per-format capability partition. This is the single authority the
-/// loss appendix and the graph ledger both read.
-///
-/// The dropped sets, and the reasoning behind each:
-///
-/// * **Site** — drops nothing. The live HTML site carries the search index, the
-///   live SPARQL playground, every interactive widget, the in-browser reasoner +
-///   GMN transcode, the rendered diagrams, and full cross-link fidelity.
-/// * **Mdbook** — drops `{SearchIndex}` only. The book packs the SAME vendored wasm
-///   engines + controller the site does (validate / purrdf-SPARQL / reason / GMN) and
-///   an interactive host chapter, wired through `book.toml` `additional-js`, so once
-///   built it carries live SPARQL, the interactive widgets, and the in-browser
-///   reasoning + transcode — plus the rendered diagrams (SVGs render inline) and
-///   cross-link fidelity (chapter links resolve; dropped-surface links externalize to
-///   the published site, never dangling). It keeps no bundled full-text index of our
-///   making (mdbook ships its own client search), so `SearchIndex` stays a declared
-///   loss.
-/// * **Pdf** — drops `{SearchIndex, LiveSparql, Interactivity, LiveReasoning,
-///   Diagrams, CrossLinkFidelity}` (all of them). This print PDF renders term text,
-///   tables, and the bibliography. It embeds **no** diagrams, exposes no search index
-///   or live SPARQL, has no interactive surfaces or in-browser reasoning, and its
-///   cross-references are prose (not live resolvable links). The set is deliberately
-///   conservative: a capability is representable only when the PDF genuinely renders it.
-/// * **Snippets** — drops the same six as the PDF. Flat per-term Markdown blocks
-///   carry no cross-links, no search, no diagrams, no live SPARQL, no interactivity,
-///   and no in-browser reasoning.
+impl SurfaceCapabilities {
+    /// The rendered format this partition describes, when the surface is one — `None` for
+    /// the console, which is a capability-bearing surface but not a shipped format.
+    pub fn format(&self) -> Option<DocFormat> {
+        match self.surface {
+            DistributionSurface::Format(fmt) => Some(fmt),
+            DistributionSurface::Console => None,
+        }
+    }
+}
+
+/// The honest per-surface capability partition, derived from the single authored incidence
+/// table [`DistributionSurface::dropped`]. This is the single authority the loss appendix,
+/// the graph loss ledger, the distribution catalog, and the concept lattice all read.
 ///
 /// Dropped sets are monotone along the projection DAG's covering edges
-/// ([`PROJECTION_DAG_EDGES`]): `dropped(site) ⊆ dropped(snippets)`. Separately — and
-/// gated by its own test — the dropped sets form a capability-refinement chain
-/// `dropped(site) ⊆ dropped(mdbook) ⊆ dropped(pdf) = dropped(snippets)`: mdbook and pdf
-/// are provenance siblings but NOT capability-incomparable (mdbook represents a superset
-/// of the pdf). Both properties are machine-checked below.
-pub fn format_capabilities(fmt: DocFormat) -> FormatCapabilities {
-    let dropped: Vec<Capability> = match fmt {
-        DocFormat::Site => Vec::new(),
-        DocFormat::Mdbook => vec![Capability::SearchIndex],
-        DocFormat::Pdf | DocFormat::Snippets => vec![
-            Capability::SearchIndex,
-            Capability::LiveSparql,
-            Capability::Interactivity,
-            Capability::LiveReasoning,
-            Capability::Diagrams,
-            Capability::CrossLinkFidelity,
-        ],
-    };
-
+/// ([`PROJECTION_DAG_EDGES`]): `dropped(site) ⊆ dropped(snippets)`. Separately — and gated
+/// by its own test — the dropped sets form a capability-refinement chain
+/// `dropped(site) ⊆ dropped(mdbook) ⊊ dropped(console) ⊊ dropped(pdf) = dropped(snippets)`.
+/// Both properties are machine-checked below, and the SECOND is re-derived from the formal
+/// context rather than asserted in [`crate::surface_lattice`].
+pub fn surface_capabilities(surface: DistributionSurface) -> SurfaceCapabilities {
+    let dropped: Vec<Capability> = surface.dropped().to_vec();
     let representable: Vec<Capability> = Capability::ALL
         .into_iter()
         .filter(|c| !dropped.contains(c))
         .collect();
 
-    // Both partitions sorted by the derived Capability order (ALL is already in
-    // that order, and each match arm lists in that order); assert in the test.
-    FormatCapabilities {
-        format: fmt,
+    // Both partitions sorted by the derived Capability order (ALL is already in that
+    // order, and each authored arm lists in that order); asserted in the test.
+    SurfaceCapabilities {
+        surface,
         representable,
         dropped,
     }
+}
+
+/// The per-FORMAT capability partition — a thin wrapper over [`surface_capabilities`] for
+/// the four rendered distributions. Every caller that speaks in `DocFormat` reads the same
+/// one table the console reads.
+pub fn format_capabilities(fmt: DocFormat) -> SurfaceCapabilities {
+    surface_capabilities(DistributionSurface::Format(fmt))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// Every capability appears in exactly one of `representable` / `dropped`,
-    /// for every format (a total, disjoint partition), and both are sorted.
+    /// Every capability appears in exactly one of `representable` / `dropped`, for every
+    /// SURFACE — the console included, not just the four rendered formats — a total,
+    /// disjoint partition, with both sides sorted.
     #[test]
     fn partition_is_total_and_disjoint() {
-        for fmt in DocFormat::ALL {
-            let caps = format_capabilities(fmt);
-            assert_eq!(caps.format, fmt);
+        for surface in DistributionSurface::ALL {
+            let caps = surface_capabilities(surface);
+            assert_eq!(caps.surface, surface);
 
             // Sorted.
             let mut sorted_repr = caps.representable.clone();
             sorted_repr.sort();
             assert_eq!(
                 sorted_repr, caps.representable,
-                "{fmt:?} representable unsorted"
+                "{surface:?} representable unsorted"
             );
             let mut sorted_drop = caps.dropped.clone();
             sorted_drop.sort();
-            assert_eq!(sorted_drop, caps.dropped, "{fmt:?} dropped unsorted");
+            assert_eq!(sorted_drop, caps.dropped, "{surface:?} dropped unsorted");
 
             // Total + disjoint: each capability is in exactly one side.
             for cap in Capability::ALL {
@@ -248,15 +377,62 @@ mod tests {
                 let in_drop = caps.dropped.contains(&cap);
                 assert!(
                     in_repr ^ in_drop,
-                    "{fmt:?}/{cap:?}: must be in exactly one of representable/dropped"
+                    "{surface:?}/{cap:?}: must be in exactly one of representable/dropped"
                 );
             }
             assert_eq!(
                 caps.representable.len() + caps.dropped.len(),
                 Capability::ALL.len(),
-                "{fmt:?}: partition size mismatch"
+                "{surface:?}: partition size mismatch"
             );
         }
+    }
+
+    /// The surface set is exactly the four formats plus the console, and
+    /// `format_capabilities` is genuinely a wrapper (never a second table).
+    #[test]
+    fn every_format_is_a_surface_and_the_console_is_the_only_extra() {
+        assert_eq!(DocFormat::ALL.len(), 4);
+        assert_eq!(DistributionSurface::ALL.len(), DocFormat::ALL.len() + 1);
+        for fmt in DocFormat::ALL {
+            assert!(
+                DistributionSurface::ALL.contains(&DistributionSurface::Format(fmt)),
+                "{fmt:?} is not a distribution surface"
+            );
+            assert_eq!(
+                format_capabilities(fmt),
+                surface_capabilities(DistributionSurface::Format(fmt)),
+                "format_capabilities must be a wrapper over surface_capabilities"
+            );
+            assert_eq!(format_capabilities(fmt).format(), Some(fmt));
+        }
+        assert!(DistributionSurface::ALL.contains(&DistributionSurface::Console));
+        assert_eq!(
+            surface_capabilities(DistributionSurface::Console).format(),
+            None,
+            "the console is a surface but NOT one of the shipped distributions"
+        );
+    }
+
+    /// The console's authored incidence, pinned. `Diagrams` is REPRESENTABLE: the console
+    /// renders the derived Hasse diagram of the concept lattice, so declaring it dropped
+    /// while requiring that diagram would be a self-contradiction.
+    #[test]
+    fn the_console_incidence_is_the_authored_one() {
+        let caps = surface_capabilities(DistributionSurface::Console);
+        assert_eq!(
+            caps.representable,
+            vec![
+                Capability::LiveSparql,
+                Capability::Interactivity,
+                Capability::LiveReasoning,
+                Capability::Diagrams,
+            ]
+        );
+        assert_eq!(
+            caps.dropped,
+            vec![Capability::SearchIndex, Capability::CrossLinkFidelity]
+        );
     }
 
     /// Dropped-capability sets are monotone along the projection DAG's covering
@@ -329,6 +505,22 @@ mod tests {
         let dropped = |fmt| -> BTreeSet<Capability> {
             format_capabilities(fmt).dropped.into_iter().collect()
         };
+        // The console sits STRICTLY between mdbook and the pdf on this chain: it drops
+        // cross-link fidelity the packed mdbook keeps, and keeps the live engines and the
+        // rendered diagrams the pdf cannot carry. Both strictness directions are checked,
+        // so a console that silently collapsed onto either neighbour reds here.
+        let console: BTreeSet<Capability> = surface_capabilities(DistributionSurface::Console)
+            .dropped
+            .into_iter()
+            .collect();
+        assert!(
+            dropped(DocFormat::Mdbook).is_subset(&console) && dropped(DocFormat::Mdbook) != console,
+            "capability lattice: dropped(mdbook) ⊊ dropped(console) must be PROPER"
+        );
+        assert!(
+            console.is_subset(&dropped(DocFormat::Pdf)) && console != dropped(DocFormat::Pdf),
+            "capability lattice: dropped(console) ⊊ dropped(pdf) must be PROPER"
+        );
         assert!(
             dropped(DocFormat::Site).is_subset(&dropped(DocFormat::Mdbook)),
             "capability lattice: dropped(site) ⊄ dropped(mdbook)"
@@ -365,5 +557,22 @@ mod tests {
         assert_eq!(fmt_slugs.len(), DocFormat::ALL.len());
         let cap_slugs: BTreeSet<&str> = Capability::ALL.iter().map(|c| c.slug()).collect();
         assert_eq!(cap_slugs.len(), Capability::ALL.len());
+        let surface_slugs: BTreeSet<&str> =
+            DistributionSurface::ALL.iter().map(|s| s.slug()).collect();
+        assert_eq!(surface_slugs.len(), DistributionSurface::ALL.len());
+        // A surface's slug IS its format's slug — the catalog and the lattice address the
+        // same four rendered distributions by the same strings.
+        for fmt in DocFormat::ALL {
+            assert_eq!(DistributionSurface::Format(fmt).slug(), fmt.slug());
+        }
+    }
+
+    /// `Capability::index` is the bit position the lattice masks encode, so it must be a
+    /// bijection onto `0..Capability::ALL.len()` agreeing with `ALL`'s order.
+    #[test]
+    fn capability_index_is_the_position_in_all() {
+        for (position, cap) in Capability::ALL.into_iter().enumerate() {
+            assert_eq!(cap.index(), position, "{cap:?} index disagrees with ALL");
+        }
     }
 }
