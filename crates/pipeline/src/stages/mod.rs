@@ -81,7 +81,7 @@ pub mod lpg;
 pub mod mappings;
 pub mod math_producers;
 pub mod matrix;
-// The medium axis's producer: the eight declared zstd dictionaries trained over
+// The medium axis's producer: the seven declared zstd dictionaries trained over
 // their declared corpora, measured into gmeow:CompressionDictionaryRealization
 // records, and projected as graph/medium-registry. The terminal reads its product
 // to pin the pack's in-band "dct" map and to seal one gmeow:MediumEnvelope per

@@ -345,8 +345,8 @@ impl MediumRegistry {
     /// dictionary family itself. `gmeow-memory-hot-v1` and
     /// `gmeow-memory-compact-v1` prime a consumer's OWN runtime store, so the only
     /// place a consumer can obtain them is the shipped header — pinning only the
-    /// selected ones would ship a bundle that declares eight dictionaries and
-    /// carries six, leaving the other two nameable but unobtainable.
+    /// selected ones would ship a bundle that declares seven dictionaries and
+    /// carries five, leaving the other two nameable but unobtainable.
     ///
     /// # Errors
     /// An unregistered or unassigned rep, a declared dictionary with no trained
@@ -1064,8 +1064,27 @@ mod tests {
         );
     }
 
+    /// The dictionary ids `slices/core/gts/module.ttl` ships, spelled out so the
+    /// inventory is pinned in BOTH directions: a dropped dictionary and an added one
+    /// each fail [`the_live_gts_slice_reads_as_a_complete_registry`].
+    ///
+    /// It is SEVEN, not eight. An earlier draft carried `gmeow-math-v1`, designed from
+    /// slice names rather than from the bundle's frame layout; the mathematical named
+    /// graphs are unioned into the SNAPSHOT payload, which is one frame already primed
+    /// in full by `gmeow-core-v1`, so it primed zero reps. See the retirement note in
+    /// the slice.
+    const SHIPPED_DICTIONARY_IDS: [&str; 7] = [
+        "gmeow-claims-v1",
+        "gmeow-core-v1",
+        "gmeow-lang-ast-v1",
+        "gmeow-logic-v1",
+        "gmeow-memory-compact-v1",
+        "gmeow-memory-hot-v1",
+        "gmeow-prooftrace-v1",
+    ];
+
     /// NON-VACUITY: the reader is exercised against the REAL authored declaration,
-    /// not only the fixture. The eight shipped dictionaries, their corpora, the
+    /// not only the fixture. The seven shipped dictionaries, their corpora, the
     /// payload-schema registry, and both declared media must all read cleanly — if
     /// the reader silently disagreed with `slices/core/gts/module.ttl`, every
     /// fixture-based test above would still pass.
@@ -1085,26 +1104,30 @@ mod tests {
             .expect("the gts slice parses as Turtle");
         let registry = MediumRegistry::from_dataset(&ds).expect("the live medium axis reads");
 
-        let ids: Vec<&str> = registry
+        let ids: BTreeSet<&str> = registry
             .dictionaries()
             .values()
             .map(|d| d.id.as_str())
             .collect();
+        // BOTH directions, and the count on its own line: a dropped dictionary orphans
+        // every artifact primed with it, and a re-added eighth would be trained,
+        // measured, pinned in the header, and projected onto a committed `.zdict` while
+        // priming nothing — which is exactly how `gmeow-math-v1` shipped as dead weight
+        // until it was measured. Neither may pass unnoticed.
         assert_eq!(
             ids.len(),
-            8,
-            "the bundle ships eight dictionaries; got {ids:?}"
+            SHIPPED_DICTIONARY_IDS.len(),
+            "the bundle ships {} dictionaries; got {ids:?}",
+            SHIPPED_DICTIONARY_IDS.len()
         );
-        for id in [
-            "gmeow-claims-v1",
-            "gmeow-core-v1",
-            "gmeow-lang-ast-v1",
-            "gmeow-logic-v1",
-            "gmeow-math-v1",
-            "gmeow-memory-compact-v1",
-            "gmeow-memory-hot-v1",
-            "gmeow-prooftrace-v1",
-        ] {
+        assert_eq!(
+            ids,
+            SHIPPED_DICTIONARY_IDS
+                .into_iter()
+                .collect::<BTreeSet<&str>>(),
+            "the declared dictionary inventory drifted"
+        );
+        for id in SHIPPED_DICTIONARY_IDS {
             let def = registry.dictionary_by_id(id).expect("shipped dictionary");
             assert!(
                 registry.corpora().contains_key(&def.corpus),
@@ -1112,6 +1135,48 @@ mod tests {
                 def.corpus
             );
             assert!(def.target_length > 0, "{id} declares a zero target length");
+        }
+
+        // TOTALITY IN THE OTHER DIRECTION — the check that turns "gmeow-math-v1 primed
+        // nothing" from a thing someone had to measure into a thing the gate refuses.
+        // A dictionary has exactly two legitimate homes:
+        //
+        //   * it is selected by a registered `gmeow:PayloadSchema`, so some emitted
+        //     frame is actually primed with it; or
+        //   * it is bound by a `gmeow:mediumSourceHeaderDict` medium — the runtime-store
+        //     family, whose frames are written by a CONSUMER out of the shipped header
+        //     rather than by this emission, so no bundle rep names it.
+        //
+        // Anything else is a dictionary the bundle trains, measures, pins, and projects
+        // while no payload cites it: pure dead weight, and (Constitution §18) high-entropy
+        // bytes handed to a compressor for nothing.
+        let primed: BTreeSet<&str> = registry
+            .schemas()
+            .values()
+            .filter_map(
+                |schema| match &registry.assignment_for(&schema.rep).ok()?.dictionary {
+                    DictSelection::Named(iri) => {
+                        registry.dictionaries().get(iri).map(|d| d.id.as_str())
+                    }
+                    DictSelection::Baseline => None,
+                },
+            )
+            .collect();
+        let consumer_primed: BTreeSet<&str> = registry
+            .media()
+            .values()
+            .filter(|m| m.source_kind == MediumSourceKind::HeaderDict)
+            .flat_map(|m| m.dictionaries.iter())
+            .filter_map(|iri| registry.dictionaries().get(iri).map(|d| d.id.as_str()))
+            .collect();
+        for id in SHIPPED_DICTIONARY_IDS {
+            assert!(
+                primed.contains(id) || consumer_primed.contains(id),
+                "{id} primes no registered gmeow:PayloadSchema and is bound by no \
+                 header-dict medium — it would be trained, measured, pinned and projected \
+                 while no frame cites it. Assign it to a rep or retire it; do NOT weaken \
+                 this assertion (primed: {primed:?}, consumer-primed: {consumer_primed:?})"
+            );
         }
 
         // The two memory dictionaries are the ones whose corpora must be

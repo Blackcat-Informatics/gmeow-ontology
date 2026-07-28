@@ -6916,7 +6916,7 @@ mod tests {
     ///
     /// It is deliberately UNCONDITIONAL, so these tests behave identically whether
     /// or not the local bundle happens to be current. That the SHIPPED bundle pins
-    /// all eight declared dictionaries is a different claim, and it is proven where
+    /// all seven declared dictionaries is a different claim, and it is proven where
     /// it belongs — over a freshly emitted bundle, in `tests/medium_bundle.rs`.
     fn snapshot() -> Vec<u8> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");

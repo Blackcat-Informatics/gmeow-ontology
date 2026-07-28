@@ -35,7 +35,7 @@
 //! # Why the envelopes are sealed at the SINK and not here
 //!
 //! A `gmeow:MediumEnvelope` is the projection of an EMITTED FRAME. The frame set of
-//! the shipped bundle — the eight archives plus the language-surface, reasoning,
+//! the shipped bundle — the nine archives plus the language-surface, reasoning,
 //! opaque-fanout, typed-validation and SHACL-report blobs, plus the snapshot itself
 //! — is assembled by the terminal, and several of those blobs exist nowhere else.
 //! Recomputing that assembly here to seal envelopes early would be a second source
@@ -353,7 +353,7 @@ impl Stage for MediumDictionariesStage {
         &self.attaches_graphs
     }
     fn impl_version(&self) -> &str {
-        // v1: the eight declared dictionaries trained over their declared corpora,
+        // v1: the seven declared dictionaries trained over their declared corpora,
         // measured into gmeow:CompressionDictionaryRealization records, and projected
         // into graph/medium-registry.
         "medium-dictionaries.v1"

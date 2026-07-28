@@ -5,11 +5,12 @@
 //! it emits is audited against the medium axis `slices/core/gts/module.ttl` declares.
 //!
 //! Every assertion here is about the SHIPPED artifact rather than about a component:
-//! the eight declared dictionaries are pinned in the segment header a consumer
+//! the seven declared dictionaries are pinned in the segment header a consumer
 //! actually reads, one `gmeow:MediumEnvelope` describes each payload-bearing frame
-//! the pack actually carries, and the self-referential snapshot envelope's stratified
-//! digest is recomputed FROM the emitted bytes rather than trusted. A unit test over
-//! the sealing code could pass with none of that true.
+//! the pack actually carries, each declared dictionary primes a NON-EMPTY set of those
+//! frames, and the self-referential snapshot envelope's stratified digest is recomputed
+//! FROM the emitted bytes rather than trusted. A unit test over the sealing code could
+//! pass with none of that true.
 //!
 //! The DAG is run ONCE, so every clause lives in one test function. Splitting them
 //! would multiply a whole-pipeline execution by the number of clauses.
@@ -29,19 +30,33 @@ use purrdf::{RdfQuad, RdfTerm};
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The eight dictionaries `slices/core/gts/module.ttl` declares. Spelled out rather
+/// The seven dictionaries `slices/core/gts/module.ttl` declares. Spelled out rather
 /// than read back off the same registry the producer used, so a dictionary silently
 /// dropped from the declaration is a FAILURE here instead of a smaller expectation.
-const SHIPPED_DICTIONARIES: [&str; 8] = [
+///
+/// SEVEN, not eight: `gmeow-math-v1` was retired after measurement showed it primed
+/// ZERO reps (the mathematical named graphs are unioned into the snapshot payload,
+/// which is one frame already primed by `gmeow-core-v1`).
+const SHIPPED_DICTIONARIES: [&str; 7] = [
     "gmeow-claims-v1",
     "gmeow-core-v1",
     "gmeow-lang-ast-v1",
     "gmeow-logic-v1",
-    "gmeow-math-v1",
     "gmeow-memory-compact-v1",
     "gmeow-memory-hot-v1",
     "gmeow-prooftrace-v1",
 ];
+
+/// The archive rep the `lang:` projection deliverables ride, as a WIRE label (the test
+/// may not borrow the crate-private Rust constant — the point is that the two agree).
+const REP_LANG_PROJECTIONS: &str = "lang-projections-archive";
+
+/// The document-scale English surface rep — the ONLY thing `gmeow-lang-ast-v1` primed
+/// before [`REP_LANG_PROJECTIONS`] existed.
+const REP_LANG_SURFACE: &str = "lang-surface-blob";
+
+/// The committed prefix every [`REP_LANG_PROJECTIONS`] member reconstructs under.
+const LANG_PROJECTION_PREFIX: &str = "generated/projections/lang/";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -278,13 +293,13 @@ fn the_emitted_bundle_ships_its_declared_medium() {
 
     let head = header(&bundle);
 
-    // ── (a) the header pins the eight declared dictionaries, in band ──
+    // ── (a) the header pins the seven declared dictionaries, in band ──
     let pinned = gmeow_gts_profile::segment_dictionaries(&bundle)
         .expect("the emitted bundle's header reads back");
     let names: Vec<&str> = pinned.keys().map(String::as_str).collect();
     assert_eq!(
         names, SHIPPED_DICTIONARIES,
-        "the pack's in-band \"dct\" map must pin exactly the eight declared dictionaries"
+        "the pack's in-band \"dct\" map must pin exactly the seven declared dictionaries"
     );
     for (name, bytes) in &pinned {
         assert!(
@@ -293,7 +308,7 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         );
     }
 
-    // ── (b) graph/medium-registry: eight realizations + one envelope per frame ──
+    // ── (b) graph/medium-registry: seven realizations + one envelope per frame ──
     let folded = purrdf::import_gts_events(&bundle).expect("the emitted bundle folds back");
     let payload: Vec<RdfQuad> = purrdf::flat_rdf_quads_from_dataset(folded.dataset.as_ref());
     let registry_quads: Vec<RdfQuad> = payload
@@ -516,6 +531,11 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     // ── (g) the dictionaries project onto generated/medium/*.zdict, EXACTLY ONCE ──
     the_dictionaries_project_exactly_once(&bundle, &pinned, &registry_quads, &module);
 
+    // ── (h) gmeow-lang-ast-v1 primes a REAL population — the projection archive rather
+    //        than two document-scale literals — and those projections ride exactly one rep ──
+    the_lang_dictionary_primes_a_real_population(&bundle, &module);
+    the_lang_projections_are_carried_by_exactly_one_rep(&bundle);
+
     // ── (e)/(f) the runtime stores, primed from THIS bundle ──
     runtime_stores_are_primed_from(&bundle);
 }
@@ -622,6 +642,220 @@ fn the_dictionaries_project_exactly_once(
         "the shipped bundle carries exactly one {REP_GENERATED} archive, or the clause above \
          is vacuous"
     );
+}
+
+/// The blob-representation labels the emitted pack actually carries frames for. Read off
+/// the lookaside alone — no payload is decoded, because the question is only WHICH reps
+/// were emitted.
+fn emitted_reps(bundle: &[u8]) -> BTreeSet<String> {
+    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
+    purrdf::gts::lookaside_from_graph(&graph)
+        .blobs
+        .iter()
+        .filter_map(|record| record.representation.clone())
+        .collect()
+}
+
+/// `(frame count, total decoded payload bytes)` for ONE representation — a rep may back
+/// several frames (`lang-surface-blob` backs one per document-scale literal).
+///
+/// Scoped to a single rep on purpose: the big `ontology-docs` / `okf-export` payloads trip
+/// the zstd decode safety bound, so a sweep that decoded every blob would be fatal as well
+/// as wasteful (the same reason `carrier::archive_rep_carries_generated` excludes them).
+fn decoded_frames_for_rep(bundle: &[u8], rep: &str) -> (usize, usize) {
+    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
+    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+    let mut frames = 0usize;
+    let mut bytes = 0usize;
+    for record in &lookaside.blobs {
+        if record.representation.as_deref() != Some(rep) {
+            continue;
+        }
+        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+            panic!("the {rep:?} lookaside record names no inline blob");
+        };
+        frames += 1;
+        bytes += entry
+            .decoded_vec()
+            .unwrap_or_else(|err| panic!("the {rep:?} blob decodes: {err:?}"))
+            .len();
+    }
+    (frames, bytes)
+}
+
+/// The reps a dictionary primes, read off the SHIPPED bundle's own payload-schema
+/// registry (never a repo re-parse), keyed by `gmeow:dictionaryId`.
+fn primed_reps_by_dictionary(module: &MediumRegistry) -> BTreeMap<String, BTreeSet<String>> {
+    use gmeow_pipeline::medium::registry::DictSelection;
+    let mut out: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for schema in module.schemas().values() {
+        let row = module
+            .assignment_for(&schema.rep)
+            .unwrap_or_else(|err| panic!("rep {:?} is unassigned: {err}", schema.rep));
+        if let DictSelection::Named(iri) = &row.dictionary {
+            let def = module
+                .dictionaries()
+                .get(iri)
+                .unwrap_or_else(|| panic!("rep {:?} selects unregistered <{iri}>", schema.rep));
+            out.entry(def.id.clone())
+                .or_default()
+                .insert(schema.rep.clone());
+        }
+    }
+    out
+}
+
+/// A dictionary exists to PRIME FRAMES, and `gmeow-lang-ast-v1` now does — measurably.
+///
+/// This is the clause that proves the projection-archive split on the SHIPPED artifact
+/// rather than in the declaration. It is quantitative on purpose: that dictionary used to
+/// prime ONLY `lang-surface-blob` — the handful of `@x-gmeow-english` literals over the
+/// document-scale threshold, a ~12 KB population — while the ~150 KB of grammar /
+/// CoNLL-U / TEI / GMN1 bytes it was trained for rode the general opaque archive under
+/// `gmeow-core-v1`. Asserting only "the primed rep set is non-empty" would have passed in
+/// exactly that state, so what is asserted is that the projection archive's population
+/// DOMINATES the surface blobs'.
+///
+/// SCOPE. The obvious generalization — "EVERY declared dictionary primes at least one rep
+/// the shipped bundle emits" — is deliberately NOT asserted here, because it is currently
+/// FALSE for `gmeow-claims-v1` and fixing that is a separate inventory decision:
+/// `gmeow-claims-v1`'s only registered rep is `yaml-ld-archive`, whose WRITER
+/// (`carrier::build_yaml_ld_blob`) is `#[cfg(test)]`, so the production sink emits no such
+/// frame. That is the same category error `gmeow-math-v1` was retired for, but reached by
+/// a different route (a reader-side rep with no live producer rather than a graph folded
+/// into the snapshot), and it is left standing rather than papered over with an allowlist.
+/// The registry-level half of the invariant — every declared dictionary primes at least
+/// one REGISTERED `gmeow:PayloadSchema`, which `gmeow-math-v1` failed and
+/// `gmeow-claims-v1` passes — IS enforced, in
+/// `medium::registry::tests::the_live_gts_slice_reads_as_a_complete_registry`.
+fn the_lang_dictionary_primes_a_real_population(bundle: &[u8], module: &MediumRegistry) {
+    let emitted_reps = emitted_reps(bundle);
+    let primed = primed_reps_by_dictionary(module);
+
+    let lang_reps = primed
+        .get("gmeow-lang-ast-v1")
+        .expect("gmeow-lang-ast-v1 primes at least one rep");
+    assert!(
+        lang_reps.contains(REP_LANG_PROJECTIONS) && lang_reps.contains(REP_LANG_SURFACE),
+        "gmeow-lang-ast-v1 must prime BOTH the projection archive and the surface blobs; \
+         got {lang_reps:?}"
+    );
+    assert!(
+        emitted_reps.contains(REP_LANG_PROJECTIONS),
+        "the bundle emits no {REP_LANG_PROJECTIONS} frame"
+    );
+    let (surface_frames, surface_bytes) = decoded_frames_for_rep(bundle, REP_LANG_SURFACE);
+    let (projection_frames, projection_bytes) =
+        decoded_frames_for_rep(bundle, REP_LANG_PROJECTIONS);
+    assert!(
+        surface_frames > 0,
+        "the surface-blob half must be non-empty too, or the comparison below is vacuous"
+    );
+    // The measured BEFORE/AFTER of this change, printed so a future reader sees the
+    // population rather than only the inequality that guards it.
+    println!(
+        "gmeow-lang-ast-v1 population: {surface_frames} surface frame(s) / {surface_bytes} B \
+         + {projection_frames} projection frame(s) / {projection_bytes} B"
+    );
+    assert_eq!(
+        projection_frames, 1,
+        "the lang projections ride ONE tar frame"
+    );
+    // The whole point of the split, stated as an inequality rather than a claim: the
+    // dictionary now primes materially more than the ~12 KB of document-scale literals
+    // it was reaching before. A regression that folded the projections back into the
+    // generated-opaque archive drops `projection_bytes` to zero and reds here.
+    assert!(
+        projection_bytes > 5 * surface_bytes.max(1),
+        "gmeow-lang-ast-v1's population must be dominated by the projection archive, not by \
+         the document-scale literals: {projection_frames} projection frame(s) / \
+         {projection_bytes} B vs {surface_frames} surface frame(s) / {surface_bytes} B"
+    );
+    assert!(
+        projection_bytes > 100_000,
+        "the {REP_LANG_PROJECTIONS} archive is implausibly small ({projection_bytes} B) — the \
+         committed generated/projections/lang/ tree is ~150 KB, so a smaller archive means \
+         members were dropped"
+    );
+}
+
+/// Every `generated/projections/lang/**` path is carried by EXACTLY ONE rep, and that
+/// rep is [`REP_LANG_PROJECTIONS`].
+///
+/// `project_bundle` already hard-fails on a path two representatives both carry, but
+/// that is a NEGATIVE guard: it would stay silent if the paths quietly rode the
+/// generated-opaque archive alone (the pre-split state) and `gmeow-lang-ast-v1` primed
+/// nothing again. So the positive half is asserted here, over the shipped tars.
+fn the_lang_projections_are_carried_by_exactly_one_rep(bundle: &[u8]) {
+    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
+    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+
+    // The documentation/export payloads are large enough to trip the zstd decode safety
+    // bound (the same set `carrier::archive_rep_carries_generated` excludes), so they are
+    // NOT decoded. The skip is DECLARED rather than silent: any other rep that failed to
+    // decode would leave a blind spot in this bijection, so the assertion below pins the
+    // skipped set instead of swallowing the error.
+    const OVERSIZED: [&str; 4] = ["ontology-docs", "okf-export", "docs-book", "docs-print"];
+
+    let mut carriers: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut scanned: BTreeSet<String> = BTreeSet::new();
+    let mut undecodable: BTreeSet<String> = BTreeSet::new();
+    for record in &lookaside.blobs {
+        if record.media_type.as_deref() != Some("application/x-tar") {
+            continue;
+        }
+        let rep = record
+            .representation
+            .as_deref()
+            .unwrap_or_default()
+            .to_string();
+        if OVERSIZED.contains(&rep.as_str()) {
+            continue;
+        }
+        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+            panic!("the {rep:?} lookaside record names no inline blob");
+        };
+        let Ok(bytes) = entry.decoded_vec() else {
+            undecodable.insert(rep);
+            continue;
+        };
+        let members = purrdf::ustar::read_archive(&bytes)
+            .unwrap_or_else(|err| panic!("the {rep:?} archive unpacks: {err}"));
+        scanned.insert(rep.clone());
+        for (name, _) in members {
+            if name.starts_with(LANG_PROJECTION_PREFIX) {
+                carriers.entry(name).or_default().insert(rep.clone());
+            }
+        }
+    }
+
+    assert!(
+        undecodable.is_empty(),
+        "every tar archive outside the declared oversized set must decode, or this bijection \
+         has an unexamined blind spot; undecodable: {undecodable:?}"
+    );
+    assert!(
+        scanned.contains(REP_GENERATED) && scanned.contains(REP_LANG_PROJECTIONS),
+        "the scan must cover BOTH the generated-opaque archive and the lang-projections \
+         archive, or 'exactly one carrier' proves nothing; scanned {scanned:?}"
+    );
+    assert!(
+        !carriers.is_empty(),
+        "no archive carries a {LANG_PROJECTION_PREFIX}** member — the clause is vacuous"
+    );
+    assert_eq!(
+        carriers.len(),
+        35,
+        "the lang-projection family membership drifted; got {:?}",
+        carriers.keys().collect::<Vec<_>>()
+    );
+    for (path, reps) in &carriers {
+        assert_eq!(
+            reps.iter().map(String::as_str).collect::<Vec<_>>(),
+            vec![REP_LANG_PROJECTIONS],
+            "{path} must be carried by exactly one rep, the lang-projections archive"
+        );
+    }
 }
 
 /// The store lane, driven through the PRODUCTION paths over the freshly emitted

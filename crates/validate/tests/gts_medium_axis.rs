@@ -32,13 +32,19 @@ const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 
-/// The eight dictionaries the bundle ships, by `gmeow:dictionaryId`.
-const SHIPPED_DICTIONARY_IDS: [&str; 8] = [
+/// The seven dictionaries the bundle ships, by `gmeow:dictionaryId`.
+///
+/// SEVEN, not eight. The inventory was first drafted from slice names and carried a
+/// `gmeow-math-v1`; measuring it against the bundle's actual frame layout retired it,
+/// because the mathematical named graphs are unioned into the SNAPSHOT payload — one
+/// frame, already primed in full by `gmeow-core-v1` — so it primed zero reps. The
+/// mathematical content is still fully dictionary-compressed and still fully
+/// SPARQL-able off the fold; only the dead 64 KiB is gone.
+const SHIPPED_DICTIONARY_IDS: [&str; 7] = [
     "gmeow-claims-v1",
     "gmeow-core-v1",
     "gmeow-lang-ast-v1",
     "gmeow-logic-v1",
-    "gmeow-math-v1",
     "gmeow-memory-compact-v1",
     "gmeow-memory-hot-v1",
     "gmeow-prooftrace-v1",
@@ -176,8 +182,14 @@ fn every_shipped_dictionary_resolves_to_one_corpus_with_at_least_one_selector() 
     let found: BTreeSet<&str> = by_id.keys().map(String::as_str).collect();
     let expected: BTreeSet<&str> = SHIPPED_DICTIONARY_IDS.into_iter().collect();
     assert_eq!(
+        found.len(),
+        SHIPPED_DICTIONARY_IDS.len(),
+        "the gts slice must declare exactly {} dictionaries; got {found:?}",
+        SHIPPED_DICTIONARY_IDS.len()
+    );
+    assert_eq!(
         found, expected,
-        "the gts slice must declare exactly the eight shipped dictionaries"
+        "the gts slice must declare exactly the seven shipped dictionaries"
     );
 
     for (dictionary_id, dict) in &by_id {

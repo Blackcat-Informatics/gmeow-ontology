@@ -1394,7 +1394,7 @@ gmeow:mediumProfileBaselineL12
     a gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "baseline medium — zstd-rsyncable level 12, no dictionary"@x-gmeow-english ;
-    skos:definition "The EXPLICITLY DECLARED no-dictionary medium: zstd-rsyncable at level 12 with an empty gmeow:mediumDictionary set. It exists to make the rep-to-medium assignment TOTAL — 'no dictionary' is a named selection a producer makes, not an absence a frame falls through into, so there is no state in which a payload has no declared medium. LEGAL for whole-artifact producers and for the runtime store, whose payloads are written once and never re-primed. ILLEGAL for the gmeow:gtsProfileDist profile: a distribution snapshot is the shipped deliverable, its reps are exactly the ones the eight shipped dictionaries were trained for, and emitting it unprimed silently discards the density the dictionaries exist to provide while still demanding the same non-baseline reader."@x-gmeow-english ;
+    skos:definition "The EXPLICITLY DECLARED no-dictionary medium: zstd-rsyncable at level 12 with an empty gmeow:mediumDictionary set. It exists to make the rep-to-medium assignment TOTAL — 'no dictionary' is a named selection a producer makes, not an absence a frame falls through into, so there is no state in which a payload has no declared medium. LEGAL for whole-artifact producers and for the runtime store, whose payloads are written once and never re-primed. ILLEGAL for the gmeow:gtsProfileDist profile: a distribution snapshot is the shipped deliverable, its reps are exactly the ones the seven shipped dictionaries were trained for, and emitting it unprimed silently discards the density the dictionaries exist to provide while still demanding the same non-baseline reader."@x-gmeow-english ;
     gmeow:mediumCodec gmeow:codecZstdRsyncable ;
     gmeow:mediumZstdLevel 12 ;
     gmeow:mediumSourceKind gmeow:mediumSourceWholeArtifact ;
@@ -1407,7 +1407,7 @@ gmeow:mediumProfileDistL12
     a gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dist medium — zstd-rsyncable level 12, dictionary-primed"@x-gmeow-english ;
-    skos:definition "The MANDATED dictionary-primed production medium: zstd-rsyncable at level 12, resolving a dictionary per registered gmeow:PayloadSchema from the eight shipped dictionaries. It is the medium the gmeow:gtsProfileDist distribution snapshot is written through; gmeow:mediumProfileBaselineL12 is illegal there. It demands two non-baseline reader capabilities — rsyncable framing (GTS spec §8.4) and dictionary priming — and declares both, because raising the reader contract is a property of the deliverable (Principle 13), never a discovery a consumer makes mid-decode."@x-gmeow-english ;
+    skos:definition "The MANDATED dictionary-primed production medium: zstd-rsyncable at level 12, resolving a dictionary per registered gmeow:PayloadSchema from the seven shipped dictionaries. It is the medium the gmeow:gtsProfileDist distribution snapshot is written through; gmeow:mediumProfileBaselineL12 is illegal there. It demands two non-baseline reader capabilities — rsyncable framing (GTS spec §8.4) and dictionary priming — and declares both, because raising the reader contract is a property of the deliverable (Principle 13), never a discovery a consumer makes mid-decode."@x-gmeow-english ;
     gmeow:mediumCodec gmeow:codecZstdRsyncable ;
     gmeow:mediumZstdLevel 12 ;
     gmeow:mediumSourceKind gmeow:mediumSourcePerRep ;
@@ -1418,7 +1418,6 @@ gmeow:mediumProfileDistL12
         gmeow:dictGmeowCoreV1 ,
         gmeow:dictGmeowLangAstV1 ,
         gmeow:dictGmeowLogicV1 ,
-        gmeow:dictGmeowMathV1 ,
         gmeow:dictGmeowMemoryCompactV1 ,
         gmeow:dictGmeowMemoryHotV1 ,
         gmeow:dictGmeowProoftraceV1 ;
@@ -1622,7 +1621,22 @@ gmeow:mediumCorrStoreL12
 
 gmeow:mediumCorrStoreL12Get gmeow:path gmeow:mediumCorrStoreL12Step .
 
-# --- The eight shipped dictionaries and their corpora ----------------------- #
+# --- The seven shipped dictionaries and their corpora ----------------------- #
+# WHY SEVEN, AND WHY NOT A MATHEMATICAL ONE. The inventory was first drafted from
+# SLICE NAMES and carried an eighth entry, "gmeow-math-v1", trained over
+# slices/grounding/math/. Measuring it against the bundle's ACTUAL FRAME LAYOUT
+# retired it: a dictionary primes FRAMES, and the mathematical content ships as
+# named graphs UNIONED INTO THE SNAPSHOT PAYLOAD, which is ONE frame — already
+# primed, in full, by gmeow-core-v1. A second dictionary cannot prime part of one
+# frame, so the math entry primed ZERO reps: it was trained, measured, pinned in
+# the segment header, and projected onto a committed .zdict that no payload ever
+# cited. Retiring it is a CORRECTION, not a descope — the math content stays fully
+# dictionary-compressed (by the dictionary that primes the frame carrying it) and
+# fully SPARQL-able off the fold; the bundle merely sheds a dead 64 KiB.
+# The lesson generalizes: a gmeow:CompressionDictionary is justified by the FRAME
+# SET it primes, never by the topical importance of a slice, and every entry below
+# names at least one gmeow:PayloadSchema through gmeow:payloadSchemaDictionary.
+#
 # EVERY corpus is BUNDLE-INTERNAL. The two memory dictionaries train on the
 # BUNDLE-SHIPPED claim corpora (generated/statements/*, the authoring packets),
 # never on a user's runtime ~/.gmeow/memory.gts, for three independent reasons,
@@ -1672,15 +1686,6 @@ gmeow:corpusGmeowLogicV1
     skos:definition "The bundle-internal logic corpus: the compiled logic/DL projection surface the carrier folds as axioms-archive, plus the authored logic: slice tree. Bundle-internal — the archive rep is owned by gmeow:stage-archive-blobs and the prefix is in-repo."@x-gmeow-english ;
     gmeow:corpusSelectsBlobRep "axioms-archive" ;
     gmeow:corpusSelectsPathPrefix "slices/grounding/logic/" ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
-gmeow:corpusGmeowMathV1
-    a gmeow:DictionaryCorpus ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "math corpus v1"@x-gmeow-english ;
-    skos:definition "The bundle-internal mathematical corpus: the authored math: slice tree, whose expression, quantity, and unit surfaces dominate the byte profile of every math-bearing payload. Bundle-internal — the prefix is in-repo."@x-gmeow-english ;
-    gmeow:corpusSelectsPathPrefix "slices/grounding/math/" ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -1743,7 +1748,7 @@ gmeow:dictGmeowLangAstV1
     a gmeow:CompressionDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gmeow-lang-ast-v1 dictionary"@x-gmeow-english ;
-    skos:definition "The shipped dictionary for linguistic-surface payloads: lang: form, grammar, and rendering structures plus the alias tables dominate their byte profile."@x-gmeow-english ;
+    skos:definition "The shipped dictionary for linguistic-surface payloads: lang: form, grammar, and rendering structures plus the alias tables dominate their byte profile. It primes TWO reps — gmeow:payloadSchemaLangProjectionsArchive (the generated/projections/lang/ external-format deliverables, the bulk of the population) and gmeow:payloadSchemaLangSurfaceBlob (the document-scale English surface literals)."@x-gmeow-english ;
     gmeow:dictionaryId "gmeow-lang-ast-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
@@ -1762,19 +1767,6 @@ gmeow:dictGmeowLogicV1
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
     gmeow:dictionaryTargetLength 112640 ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowLogicV1 ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
-gmeow:dictGmeowMathV1
-    a gmeow:CompressionDictionary ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "gmeow-math-v1 dictionary"@x-gmeow-english ;
-    skos:definition "The shipped dictionary for mathematical payloads: math: expression, quantity, dimension, and unit structures dominate their byte profile."@x-gmeow-english ;
-    gmeow:dictionaryId "gmeow-math-v1" ;
-    gmeow:dictionaryVersion "1" ;
-    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 65536 ;
-    gmeow:trainsOverCorpus gmeow:corpusGmeowMathV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -1894,11 +1886,22 @@ gmeow:payloadSchemaGeneratedOpaqueArchive
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
+gmeow:payloadSchemaLangProjectionsArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — lang projections archive"@x-gmeow-english ;
+    skos:definition "The lang: projection deliverables under generated/projections/lang/, keyed by repo-relative path: the EBNF/ABNF/GBNF/Lark grammars, the GMN1 example corpus, the CoNLL-U readings, the TEI XML, the SEMAF AMR, the Web-Annotation JSON-LD, and the RDF side formats (a NIF stand-off .nt, the bcp47-tags.ttl tag set). Every one of them is a STANDALONE external-format file a consumer reads, and none reconstructs from a canonical named-graph fold — so they were already opaque byte projections. They ride THIS rep, and no longer the generated-opaque archive, for one reason: a rep is the unit a dictionary primes, so folding them into the general generated/ archive left gmeow:dictGmeowLangAstV1 priming nothing but the two document-scale surface literals. Splitting them out costs ZERO ontological use — their lang:ProjectionEmission semantics keep riding the graph/lang-projection-corpus named graph independently — and gives the linguistic dictionary the population it was trained for."@x-gmeow-english ;
+    gmeow:payloadSchemaId "lang-projections-archive" ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowLangAstV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
 gmeow:payloadSchemaLangSurfaceBlob
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — lang surface blob"@x-gmeow-english ;
-    skos:definition "The lifted linguistic-surface blob. SINK-FOLDED: assembled only at the terminal snapshot, which is why gmeow:corpusGmeowLangAstV1 selects a stage product rather than this rep."@x-gmeow-english ;
+    skos:definition "The lifted linguistic-surface blob: one frame per @x-gmeow-english source literal over the document-scale threshold. SINK-FOLDED — assembled only at the terminal snapshot, which is why gmeow:corpusGmeowLangAstV1 selects a stage product rather than this rep. It shares gmeow:dictGmeowLangAstV1 with gmeow:payloadSchemaLangProjectionsArchive, which carries the bulk of that dictionary's population."@x-gmeow-english ;
     gmeow:payloadSchemaId "lang-surface-blob" ;
     gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
     gmeow:payloadSchemaDictionary gmeow:dictGmeowLangAstV1 ;

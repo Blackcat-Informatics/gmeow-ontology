@@ -36,7 +36,7 @@ use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 // questions (`archive_rep_carries_generated` / `committed_path_for_archive_member`) —
 // never to re-fold an archive, which is that stage's job alone.
 use crate::stages::archive_blobs::{
-    REP_AXIOMS, REP_MAPPINGS, REP_QUERIES, REP_SCHEMAS, REP_SHAPES,
+    REP_AXIOMS, REP_LANG_PROJECTIONS, REP_MAPPINGS, REP_QUERIES, REP_SCHEMAS, REP_SHAPES,
 };
 // The compiled logic/DL projection listing the print-PDF renderer inlines — the SAME
 // member list `axioms-archive` folds, so the two can never disagree about which
@@ -365,7 +365,7 @@ const VALIDATION_SHEX_MEDIA_TYPE: &str = "text/shex";
 /// product's bundle, never re-assembled (the razor: transform transport→form at most
 /// once per pipeline).
 ///
-/// The eight TAR archives (REP_AXIOMS / REP_SCHEMAS / REP_SHAPES / …) are READ off the
+/// The nine TAR archives (REP_AXIOMS / REP_SCHEMAS / REP_SHAPES / REP_LANG_PROJECTIONS / …) are READ off the
 /// `stage-archive-blobs` product, which folded them once mid-DAG; the presenter still
 /// folds the channels only it can see — the lang surface blobs, the reasoning reports
 /// from `stage-reason`, the opaque `generated/` fanout archive over THIS run's carrier,
@@ -1990,7 +1990,13 @@ fn take_opaque(members: &mut BTreeMap<String, Vec<u8>>, arts: BTreeMap<String, V
 pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
     matches!(
         rep,
-        REP_MAPPINGS | REP_QUERIES | REP_SCHEMAS | REP_AXIOMS | REP_SHAPES | REP_GENERATED
+        REP_MAPPINGS
+            | REP_QUERIES
+            | REP_SCHEMAS
+            | REP_AXIOMS
+            | REP_SHAPES
+            | REP_LANG_PROJECTIONS
+            | REP_GENERATED
     )
 }
 
@@ -2000,7 +2006,8 @@ pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
 /// basename-keyed reps (`REP_MAPPINGS`/`REP_QUERIES`/`REP_SCHEMAS`, keyed by bare
 /// filename in their single directory via `members_basename_from_artifacts`) get their directory
 /// prefix restored here; the repo-relative reps (`REP_AXIOMS`/`REP_SHAPES`/
-/// `REP_GENERATED`, keyed by `members_relpath`) pass through unchanged. One authority:
+/// `REP_LANG_PROJECTIONS`/`REP_GENERATED`, keyed by the committed path) pass through
+/// unchanged. One authority:
 /// carrier.rs owns both the forward member naming and this inverse. Returns `None`
 /// for a rep that carries no committed `generated/` file (mirrors
 /// [`archive_rep_carries_generated`]).
@@ -2010,7 +2017,7 @@ pub(crate) fn committed_path_for_archive_member(rep: &str, member: &str) -> Opti
         REP_QUERIES => Some(format!("generated/queries/{member}")),
         REP_SCHEMAS => Some(format!("generated/schemas/{member}")),
         // Already repo-relative (`generated/...` or source `shapes/`/`slices/`).
-        REP_AXIOMS | REP_SHAPES | REP_GENERATED => Some(member.to_string()),
+        REP_AXIOMS | REP_SHAPES | REP_LANG_PROJECTIONS | REP_GENERATED => Some(member.to_string()),
         _ => None,
     }
 }
@@ -2030,6 +2037,93 @@ fn opaque_already_carried(path: &str) -> bool {
         || path == "generated/schemas/card.schema.json"   // REP_SCHEMAS
         || path == "generated/schemas/validate-finding.schema.json" // REP_SCHEMAS
         || path == "generated/datalog/gmeow.dl" // REP_AXIOMS
+        || is_lang_projection_path(path) // REP_LANG_PROJECTIONS
+}
+
+/// Whether a committed path is one of the `lang:` projection deliverables that
+/// [`REP_LANG_PROJECTIONS`] carries. Refused by [`opaque_already_carried`] so the
+/// generated-opaque archive can never double-carry a path the lang-projections
+/// archive owns — the double-carry the superset reverse sweep exists to catch, and
+/// which would also hand the SAME bytes to two differently-primed frames.
+fn is_lang_projection_path(path: &str) -> bool {
+    path.starts_with(crate::stages::lang_projection::LANG_PROJECTION_DIR)
+        && path
+            .as_bytes()
+            .get(crate::stages::lang_projection::LANG_PROJECTION_DIR.len())
+            == Some(&b'/')
+}
+
+#[cfg(test)]
+mod lang_projection_rep_tests {
+    use super::*;
+
+    /// ONE AUTHORITY, both directions: every path
+    /// [`crate::stages::archive_blobs::lang_projection_members`] selects into the
+    /// `lang-projections-archive` is refused by [`opaque_already_carried`], and no other
+    /// path is. If the two ever disagree, a `generated/projections/lang/**` file would
+    /// either ride BOTH archives (the same bytes in two differently-primed frames, which
+    /// the superset reverse sweep hard-fails) or NEITHER (a silently dropped deliverable).
+    #[test]
+    fn the_lang_projection_prefix_is_the_same_set_the_archive_selects() {
+        let artifacts: BTreeMap<String, Vec<u8>> = [
+            ("generated/projections/lang/ebnf/gmn.ebnf", &b"g"[..]),
+            ("generated/projections/lang/bcp47-tags.ttl", b"t"),
+            ("generated/projections/lang/gmn1/v1/deep/x.gmn", b"d"),
+            // Near misses that must NOT be swept into the lang archive: a sibling
+            // directory whose name merely shares the prefix, and an unrelated projection.
+            ("generated/projections/lang-extra/x.ttl", b"n"),
+            ("generated/projections/core-prefixes.ttl", b"c"),
+            ("generated/n3/gmeow.n3", b"3"),
+        ]
+        .into_iter()
+        .map(|(p, b)| (p.to_string(), b.to_vec()))
+        .collect();
+
+        let selected = crate::stages::archive_blobs::lang_projection_members(&artifacts);
+        let selected_paths: Vec<&str> = selected.iter().map(|(p, _)| p.as_str()).collect();
+        assert_eq!(
+            selected_paths,
+            [
+                "generated/projections/lang/bcp47-tags.ttl",
+                "generated/projections/lang/ebnf/gmn.ebnf",
+                "generated/projections/lang/gmn1/v1/deep/x.gmn",
+            ],
+            "the archive selects exactly the lang-projection family, sorted"
+        );
+        for path in artifacts.keys() {
+            assert_eq!(
+                opaque_already_carried(path),
+                selected_paths.contains(&path.as_str()),
+                "{path}: the generated-opaque archive's guard and the lang-projections \
+                 archive's selector must name the SAME set"
+            );
+        }
+    }
+
+    /// The RDF members of the family (`.ttl`/`.nt`) are the reason the guard exists at
+    /// all: `take_opaque` already drops them via `is_rdf_member`, so only
+    /// [`opaque_already_carried`] can state that a NON-RDF lang projection is somebody
+    /// else's rep.
+    #[test]
+    fn a_non_rdf_lang_projection_is_refused_by_take_opaque() {
+        let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        take_opaque(
+            &mut members,
+            [
+                ("generated/projections/lang/ebnf/gmn.ebnf", &b"g"[..]),
+                ("generated/projections/lang/tei/x.tei.xml", b"x"),
+                ("generated/references/refs.md", b"r"),
+            ]
+            .into_iter()
+            .map(|(p, b)| (p.to_string(), b.to_vec()))
+            .collect(),
+        );
+        assert_eq!(
+            members.keys().collect::<Vec<_>>(),
+            vec!["generated/references/refs.md"],
+            "no lang-projection member may reach the generated-opaque archive"
+        );
+    }
 }
 
 /// The two generated validation-shape surfaces (SHACL Core Turtle + ShEx compact),
@@ -2396,23 +2490,18 @@ fn collect_fanout_opaque_members(
         )?,
     );
 
-    // The `lang:` projection deliverables under `generated/projections/lang/` are STANDALONE
-    // external-format files a consumer reads — the EBNF/ABNF grammar files, the TEI XML, the
-    // Web-Annotation JSON-LD, AND the RDF side formats (a NIF `.nt` stand-off annotation, the
-    // `bcp47-tags.ttl` tag set). None of them reconstructs from a canonical named-graph fold:
-    // the RDF ones are lowerings a consumer reads as files, not reasoned graphs (their
-    // `lang:ProjectionEmission` semantics ride the `graph/lang-projection-corpus` named graph
-    // independently). So every lang-projection artifact — RDF-extension or not — is carried as
-    // a committed byte projection, read off the sink-consumed stage-mappings product (rendered
-    // once by that stage) via a keyed fold over the in-memory product, never a disk walk.
-    for (path, bytes) in producer_artifacts("stage-mappings", upstream)? {
-        if path.starts_with(&format!(
-            "{}/",
-            crate::stages::lang_projection::LANG_PROJECTION_DIR
-        )) {
-            members.insert(path, bytes);
-        }
-    }
+    // NOT HERE: the `lang:` projection deliverables under `generated/projections/lang/`.
+    // They are still STANDALONE external-format files a consumer reads (the EBNF/ABNF/GBNF
+    // grammars, the TEI XML, the Web-Annotation JSON-LD, AND the RDF side formats — a NIF
+    // `.nt` stand-off annotation, the `bcp47-tags.ttl` tag set), and none of them
+    // reconstructs from a canonical named-graph fold, so they are still carried as committed
+    // byte projections — but on their OWN rep,
+    // [`REP_LANG_PROJECTIONS`](crate::stages::archive_blobs::REP_LANG_PROJECTIONS), folded by
+    // `stage-archive-blobs` off the same `stage-mappings` product. A rep is the unit a
+    // `gmeow:CompressionDictionary` primes, so leaving them in this archive left
+    // `gmeow-lang-ast-v1` priming nothing but the two document-scale surface literals.
+    // `opaque_already_carried` refuses the prefix, so a future `take_opaque` over a product
+    // that happens to carry one cannot silently re-add it here and double-carry the bytes.
 
     Ok(members)
 }

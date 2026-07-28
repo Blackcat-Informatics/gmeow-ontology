@@ -1798,7 +1798,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            406,
+            405,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {
@@ -1943,7 +1943,7 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             .collect();
         assert_eq!(profiles.len(), 8, "profiles family membership drifted");
         assert_eq!(edoal.len(), 47, "edoal family membership drifted");
-        assert_eq!(dicts.len(), 8, "header-dict family membership drifted");
+        assert_eq!(dicts.len(), 7, "header-dict family membership drifted");
 
         // Equal authored/derived over the derivable families passes.
         let reconstructed: BTreeSet<String> = expected
@@ -2014,9 +2014,9 @@ gmeow:o1 gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact
             .collect();
         check_header_dict_bijection(&header_dict, &pinned).expect("header-dict bijection holds");
 
-        // An undeclared pinned dictionary (the medium axis grew a ninth) HARD-fails.
+        // An undeclared pinned dictionary (the medium axis grew a third) HARD-fails.
         let mut undeclared = pinned.clone();
-        undeclared.insert(header_dict_path("gmeow-math-v1"));
+        undeclared.insert(header_dict_path("gmeow-unrowed-v1"));
         let err = check_header_dict_bijection(&header_dict, &undeclared).unwrap_err();
         assert_eq!(err.code(), crate::error::FanoutBijection::register());
 

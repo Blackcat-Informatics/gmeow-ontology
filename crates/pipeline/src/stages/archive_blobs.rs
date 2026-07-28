@@ -85,6 +85,33 @@ pub(crate) const REP_SHAPES: &str = "shapes-archive";
 /// which ride other channels. The Python reader (`bundle.bundled_axioms`) MUST use
 /// this exact rep string.
 pub(crate) const REP_AXIOMS: &str = "axioms-archive";
+/// tar of the `lang:` projection deliverables under
+/// [`LANG_PROJECTION_DIR`](crate::stages::lang_projection::LANG_PROJECTION_DIR),
+/// member = repo-relative path.
+///
+/// # Why these have their OWN rep instead of riding `generated-opaque-archive`
+///
+/// A `gmeow:CompressionDictionary` primes a REP: the rep is the unit the medium
+/// registry assigns a dictionary to, so a payload family that shares a rep with
+/// unrelated bytes cannot be primed separately from them. While the lang projections
+/// rode the general opaque archive, `gmeow-lang-ast-v1` primed only
+/// `lang-surface-blob` — the handful of `@x-gmeow-english` literals over the
+/// document-scale threshold, a ~12 KB population — and the ~150 KB of grammar /
+/// CoNLL-U / TEI / GMN1 bytes it was actually trained for were primed by
+/// `gmeow-core-v1` instead.
+///
+/// The split costs ZERO ontological use, which is exactly why it is legal here and
+/// was NOT the answer for the mathematical content: these files are ALREADY opaque
+/// byte projections (standalone external-format artifacts a consumer reads as files;
+/// none reconstructs from a canonical named-graph fold), and their queryable
+/// `lang:ProjectionEmission` semantics keep riding the `graph/lang-projection-corpus`
+/// named graph independently. Nothing that was a graph becomes bytes.
+///
+/// The members must therefore be carried by THIS rep and no longer by
+/// `REP_GENERATED`: `carrier::opaque_already_carried` refuses the prefix so the two
+/// archives cannot double-carry a path, and the superset reverse sweep would catch it
+/// if they did.
+pub(crate) const REP_LANG_PROJECTIONS: &str = "lang-projections-archive";
 
 /// The compiled logic/DL projection files folded as [`REP_AXIOMS`]: the
 /// small, committed, drift-gated projections a repo-free consumer needs. The
@@ -102,7 +129,7 @@ pub(crate) const AXIOM_FILES: [&str; 4] = [
 /// back in exactly this order, so the row sequence a consumer sees is identical to
 /// the sequence the fold produced (order-stable regardless of the blob lane's own
 /// record order, which a cache round-trip is free to renormalize).
-const ARCHIVE_REPS: [&str; 8] = [
+const ARCHIVE_REPS: [&str; 9] = [
     REP_MAPPINGS,
     REP_CELLS,
     REP_QUERIES,
@@ -111,6 +138,7 @@ const ARCHIVE_REPS: [&str; 8] = [
     REP_SHAPES,
     REP_AXIOMS,
     REP_MODELS_PYTHON,
+    REP_LANG_PROJECTIONS,
 ];
 
 /// THIS run's three generated SHACL shape surfaces, folded into REP_SHAPES from the
@@ -327,6 +355,21 @@ pub(crate) fn build_archive_blobs(
              the models-python archive would fold empty (fail-closed)",
         ));
     }
+    // lang-projections: the `generated/projections/lang/**` external-format deliverables,
+    // member = repo-relative path, sourced from THIS run's stage-mappings product for the
+    // same stale-disk reason the mappings/queries archives are. See [`REP_LANG_PROJECTIONS`]
+    // for why they are their OWN rep rather than members of the generated-opaque archive.
+    let lang_projections = lang_projection_members(mappings_artifacts);
+    // Fail closed, mirroring every other product-sourced archive above: an empty match
+    // means stage-mappings keyed its projections under an unexpected prefix (or emitted
+    // none), which would fold an EMPTY archive AND leave gmeow-lang-ast-v1 priming an
+    // empty rep — a silent capability degradation, not a fallback.
+    if lang_projections.is_empty() {
+        return Err(stage_err(
+            "no generated/projections/lang/** artifacts in the stage-mappings product — the \
+             lang-projections archive would fold empty (fail-closed)",
+        ));
+    }
     Ok(vec![
         archive_blob(REP_MAPPINGS, &mappings)?,
         archive_blob(REP_CELLS, &cells)?,
@@ -336,7 +379,31 @@ pub(crate) fn build_archive_blobs(
         archive_blob(REP_SHAPES, &shapes)?,
         archive_blob(REP_AXIOMS, &axioms)?,
         archive_blob(REP_MODELS_PYTHON, &models_python)?,
+        archive_blob(REP_LANG_PROJECTIONS, &lang_projections)?,
     ])
+}
+
+/// The [`REP_LANG_PROJECTIONS`] members of a `stage-mappings` product: every artifact
+/// under [`LANG_PROJECTION_DIR`](crate::stages::lang_projection::LANG_PROJECTION_DIR),
+/// keyed by its repo-relative committed path (so
+/// [`committed_path_for_archive_member`](crate::stages::carrier::committed_path_for_archive_member)
+/// is the identity for this rep) and sorted.
+///
+/// Split out as its own function because the carrier's `opaque_already_carried` guard
+/// has to refuse the SAME prefix this selects — one authority for "which paths ride the
+/// lang-projections archive", checked against that guard by
+/// `carrier::lang_projection_rep_tests::the_lang_projection_prefix_is_the_same_set_the_archive_selects`.
+pub(crate) fn lang_projection_members(
+    artifacts: &BTreeMap<String, Vec<u8>>,
+) -> Vec<(String, Vec<u8>)> {
+    let prefix = format!("{}/", crate::stages::lang_projection::LANG_PROJECTION_DIR);
+    let mut out: Vec<(String, Vec<u8>)> = artifacts
+        .iter()
+        .filter(|(path, _)| path.starts_with(&prefix))
+        .map(|(path, bytes)| (path.clone(), bytes.clone()))
+        .collect();
+    out.sort_by(|a, b| a.0.cmp(&b.0));
+    out
 }
 
 /// `(filename, bytes)` archive members sourced from a STAGE PRODUCT's in-memory
@@ -455,7 +522,7 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
-/// The `archive-blobs` pipeline stage: folds the eight by-reference TAR archives and
+/// The `archive-blobs` pipeline stage: folds the nine by-reference TAR archives and
 /// attaches each to its product's blob lane under its `representation` label.
 pub struct ArchiveBlobsStage {
     consumes: Vec<String>,
@@ -504,7 +571,10 @@ impl Stage for ArchiveBlobsStage {
         // v1: the by-reference archive fold, lifted verbatim out of the terminal sink so
         // the archives exist as a product mid-DAG (equivalence proven byte-for-byte by
         // `stage_product_is_byte_identical_to_the_pre_extraction_sink_fold`).
-        "archive-blobs.v1"
+        // v2: `lang-projections-archive` joins the fold — the generated/projections/lang/**
+        // deliverables move OFF the terminal's generated-opaque archive onto their own rep,
+        // so gmeow-lang-ast-v1 primes the population it was trained for.
+        "archive-blobs.v2"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         authored_archive_sources(root)
@@ -672,10 +742,11 @@ mod tests {
         )])
     }
 
-    /// Mirror the committed `generated/mappings/*.sssom.tsv` AND `generated/queries/*.rq`
-    /// into an artifact map keyed by repo-relative path — the stand-in for the
-    /// stage-mappings product in blob-archive unit tests (production sources both the
-    /// SSSOM surface and the SPARQL query surface from the in-memory product).
+    /// Mirror the committed `generated/mappings/*.sssom.tsv`, `generated/queries/*.rq` AND
+    /// `generated/projections/lang/**` into an artifact map keyed by repo-relative path —
+    /// the stand-in for the stage-mappings product in blob-archive unit tests (production
+    /// sources the SSSOM surface, the SPARQL query surface, and the `lang:` projection
+    /// deliverables all from that one in-memory product).
     fn mappings_artifacts_from_disk(root: &Path) -> BTreeMap<String, Vec<u8>> {
         let mut out = BTreeMap::new();
         for p in list_files(&root.join("generated/mappings"), "sssom.tsv").unwrap_or_default() {
@@ -692,7 +763,43 @@ mod tests {
                 std::fs::read(&p).unwrap_or_else(|_| panic!("read {}", p.display())),
             );
         }
+        // The lang-projection tree is NESTED (ebnf/, gmn1/v1/, conllu/, tei/, …) and
+        // heterogeneous in extension, so it is walked rather than extension-filtered —
+        // the same shape the production stage-mappings product keys it under.
+        walk_into(
+            &root.join(crate::stages::lang_projection::LANG_PROJECTION_DIR),
+            root,
+            &mut out,
+        );
+        assert!(
+            out.keys()
+                .any(|p| p.starts_with("generated/projections/lang/")),
+            "the stage-mappings stand-in must carry the lang projections, or the \
+             lang-projections archive's fail-closed guard is what these tests measure"
+        );
         out
+    }
+
+    /// Every regular file under `dir`, inserted into `out` keyed by its path relative to
+    /// `root`. Recursive; skips symlinks (a symlinked directory could cycle).
+    fn walk_into(dir: &Path, root: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.filter_map(Result::ok) {
+            let path = entry.path();
+            if path.is_symlink() {
+                continue;
+            }
+            if path.is_dir() {
+                walk_into(&path, root, out);
+            } else if let Ok(rel) = path.strip_prefix(root) {
+                out.insert(
+                    rel.to_string_lossy().into_owned(),
+                    std::fs::read(&path).unwrap_or_else(|_| panic!("read {}", path.display())),
+                );
+            }
+        }
     }
 
     /// The committed ResultShape SHACL projection — the stand-in for the

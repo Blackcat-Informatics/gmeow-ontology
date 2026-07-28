@@ -42,7 +42,7 @@ impl GtsSinkStage {
         Self {
             consumes: vec![
                 "stage-snapshot".to_string(),
-                // THIS run's eight by-reference TAR archives (mappings / cells / queries
+                // THIS run's nine by-reference TAR archives (mappings / cells / queries
                 // / tests / schemas / shapes / axioms / models-python), folded once by
                 // their own producer — the terminal reads them off that product and
                 // re-folds nothing (PIPELINE_SPINE §3.2/§4). The edge also orders the
@@ -124,7 +124,7 @@ impl Stage for GtsSinkStage {
         // v5: REP_SHAPES' generated members (result-shapes.ttl + frame-shapes.ttl)
         // are folded from the consumed export-leaf products instead of a stale
         // disk read, matching the validation-shapes.ttl freshness rule.
-        // v6: the eight by-reference TAR archives are no longer folded here at all —
+        // v6: the nine by-reference TAR archives are no longer folded here at all —
         // they are READ off the `stage-archive-blobs` product (the fold moved to its
         // own stage so the archives exist mid-DAG).
         "gts_sink.v6-archives-read-from-their-own-stage"
@@ -273,6 +273,20 @@ mod tests {
         mapping_artifacts.insert(
             "generated/queries/gmeow-test.rq".to_string(),
             b"# minimal query\n".to_vec(),
+        );
+        // REP_LANG_PROJECTIONS folds the `generated/projections/lang/**` deliverables from
+        // this SAME product (fail-closed, same rule again): they no longer ride the
+        // generated-opaque archive, because a rep is the unit a dictionary primes and
+        // sharing one with the general archive left `gmeow-lang-ast-v1` priming almost
+        // nothing. Two members under different sub-trees, so the fixture exercises the
+        // nested repo-relative member keying rather than a single flat file.
+        mapping_artifacts.insert(
+            "generated/projections/lang/ebnf/gmeow-test.ebnf".to_string(),
+            b"(* minimal grammar *)\n".to_vec(),
+        );
+        mapping_artifacts.insert(
+            "generated/projections/lang/gmn1/v1/gmeow-test.gmn".to_string(),
+            b"# minimal gmn\n".to_vec(),
         );
         // The fanout presenter reads dsl-stats + the JSON-LD context + the EmotionML XML
         // projection off this product.
@@ -433,7 +447,7 @@ mod tests {
         for product in export_leaves {
             upstream.insert(product.stage_id.clone(), product);
         }
-        // The eight by-reference TAR archives arrive as their OWN stage's product now: fold
+        // The nine by-reference TAR archives arrive as their OWN stage's product now: fold
         // them over this same fixture upstream and insert the result, exactly as the real
         // DAG does. The sink then READS them (never re-folds), so this also pins that the
         // sink's fail-closed archive wiring is the product read, not an inline build.
@@ -483,9 +497,22 @@ mod tests {
             .expect("the emitted bundle's header reads back");
         assert_eq!(
             pinned.len(),
-            8,
+            7,
             "the pack pins every declared dictionary in band; got {:?}",
             pinned.keys().collect::<Vec<_>>()
+        );
+        // The lang-projection deliverables ride their OWN primed rep, not the
+        // generated-opaque archive: the fixture's two `generated/projections/lang/**`
+        // members must reach the bundle as a `lang-projections-archive` frame, which is
+        // what gives `gmeow-lang-ast-v1` a population beyond the document-scale literals.
+        assert!(
+            purrdf::gts::lookaside_from_graph(
+                &purrdf::gts::read_graph(&emitted, true).expect("the blob lane reads")
+            )
+            .blobs
+            .iter()
+            .any(|record| record.representation.as_deref() == Some("lang-projections-archive")),
+            "the emitted pack carries no lang-projections-archive frame"
         );
 
         let payload = purrdf::flat_rdf_quads_from_dataset(folded.dataset.as_ref());
@@ -508,7 +535,7 @@ mod tests {
         };
         assert_eq!(
             typed("CompressionDictionaryRealization").len(),
-            8,
+            7,
             "one realization per declared dictionary, IN graph/medium-registry"
         );
         let envelopes = typed("MediumEnvelope");

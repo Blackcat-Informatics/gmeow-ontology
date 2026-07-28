@@ -510,7 +510,7 @@ pub fn full_spec() -> PipelineSpec {
         ],
     ));
 
-    // ── the medium axis's producer: train the eight declared zstd dictionaries over
+    // ── the medium axis's producer: train the seven declared zstd dictionaries over
     //    their declared corpora, measure each into a
     //    gmeow:CompressionDictionaryRealization, and attach graph/medium-registry.
     //    Its edge set is DERIVED from the shipped corpora, not chosen: the archive
@@ -533,7 +533,7 @@ pub fn full_spec() -> PipelineSpec {
 
     // ── the single Sink: the terminal gts ARCHIVE writer. It
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
-    //    re-assembly), READS the eight by-reference TAR archives off the
+    //    re-assembly), READS the nine by-reference TAR archives off the
     //    `stage-archive-blobs` product, and staples the channels only it can see (the
     //    lang surface blobs, the reasoning reports, the opaque `generated/` fanout
     //    archive over THIS run's carrier, and the SHACL-report blobs). ──
@@ -541,7 +541,7 @@ pub fn full_spec() -> PipelineSpec {
         SINK_STAGE,
         "gts_sink",
         &[
-            // THIS run's eight by-reference TAR archives, folded once by their own
+            // THIS run's nine by-reference TAR archives, folded once by their own
             // producer and read back here (never re-folded in the terminal). This edge
             // also orders the sink after every archive-member producer transitively, so
             // the schema / Pydantic / generated-shape leaves need no direct edge here.

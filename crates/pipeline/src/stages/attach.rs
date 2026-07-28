@@ -112,7 +112,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
-    // stage-archive-blobs — the eight by-reference TAR archives, each on its own
+    // stage-archive-blobs — the nine by-reference TAR archives, each on its own
     // blob-representation lane. No named graph: the archives are opaque byte payloads
     // the terminal staples alongside the carrier, never graph content.
     entry(
@@ -122,6 +122,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &[
             "axioms-archive",
             "cells-archive",
+            "lang-projections-archive",
             "mappings-archive",
             "models-python",
             "queries-archive",
