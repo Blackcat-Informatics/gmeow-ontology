@@ -210,7 +210,17 @@ const WITNESSES = {
     );
     assert.throws(
       () => session.exportSegment(s, undefined),
-      "an export without the engine store must be refused, not half-emitted",
+      "an export that never read the engine store must be refused, not half-emitted",
+    );
+    // A store that HOLDS state the engine will not serialize is the hard failure …
+    assert.throws(
+      () => session.exportSegment(s, { nquads: "", heldBy: ["recall"] }),
+      "an export must refuse to silently drop stored state",
+    );
+    // … while an untouched store is not: nothing is dropped, so the trajectory exports.
+    assert.ok(
+      session.exportSegment(s, { nquads: "", heldBy: [] }).includes("ToolCall"),
+      "a session whose store holds nothing must still export its trajectory",
     );
     return "the installed session module recorded, exported and round-tripped a trajectory";
   },

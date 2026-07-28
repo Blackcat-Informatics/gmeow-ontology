@@ -23,7 +23,7 @@ import {
   ensureMcp,
   listTools,
 } from "../assets/mcp-transport.mjs";
-import { ConsoleSession, exportSegment } from "./session.mjs";
+import { ConsoleSession, exportSegment, storeReading } from "./session.mjs";
 
 // Same-origin guard. A worker inherits its creator's origin, but a message can be posted
 // by any context that holds a reference to the port; frames whose declared origin is not
@@ -166,10 +166,7 @@ const OPS = {
     const candidates = await callTool("list_candidates", {}, ({ phase, tool, segment }) => {
       post({ event: "segment", phase, tool, segment });
     });
-    const store = [claims.store_nquads ?? claims.nquads ?? "", candidates.store_nquads ?? candidates.nquads ?? ""]
-      .filter((text) => typeof text === "string" && text.trim().length > 0)
-      .join("\n");
-    return { gts: exportSegment(session, store) };
+    return { gts: exportSegment(session, storeReading(claims, candidates)) };
   },
 };
 

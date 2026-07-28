@@ -26,7 +26,7 @@ import {
   listTools,
   parseNQuads,
 } from "../../mcp-transport.mjs";
-import { ConsoleSession, decodePermalink, exportSegment } from "../session.mjs";
+import { ConsoleSession, decodePermalink, exportSegment, storeReading } from "../session.mjs";
 import { VIGNETTES } from "../examples/gallery.mjs";
 
 const here = (rel) => fileURLToPath(new URL(rel, import.meta.url));
@@ -349,14 +349,100 @@ test("session_permalink_round_trips_and_refuses_tampering", () => {
 test("session_export_carries_the_store_segment_graph", () => {
   const session = new ConsoleSession({ id: "t4d", now: () => "2026-01-01T00:00:00Z" });
   session.record({ tool: "recall", schema: "https://example.org/s", args: {} });
-  const gts = exportSegment(session, "<http://example.org/claim> <http://example.org/p> \"v\" .\n");
+
+  // ── case 1: the store holds state AND the engine serialized it → carried ───────
+  const gts = exportSegment(session, {
+    nquads: "<http://example.org/claim> <http://example.org/p> \"v\" .\n",
+    heldBy: ["recall"],
+  });
   assert.match(gts, /store-segment/, "the export names its session-store segment graph");
   const stored = parseNQuads(gts.split("\n").filter((l) => !l.startsWith("#")).join("\n")).filter(
     (q) => q.graph !== null,
   );
   assert.ok(stored.length > 0, "the store rides in a NAMED graph, not the default one");
-  // An export with no store is refused — half a snapshot is not a snapshot.
-  assert.throws(() => exportSegment(session, undefined), /store serialization is required/);
+
+  // ── case 2: the store holds state the engine will NOT serialize → refused ──────
+  // This is the shipped defect: `""` is a string, so a type-only guard waved it through
+  // and the export silently emitted an empty store graph. The refusal names the tool.
+  for (const empty of ["", "   \n# only a comment\n"]) {
+    assert.throws(
+      () => exportSegment(session, { nquads: empty, heldBy: ["recall"] }),
+      /recall reported stored state/,
+      "state that cannot be carried must fail the export, and the failure must name its tool",
+    );
+  }
+  assert.throws(
+    () => exportSegment(session, { nquads: "", heldBy: ["recall", "list_candidates"] }),
+    /recall and list_candidates reported stored state/,
+  );
+  // A reading that was never taken is still refused: not knowing is not the same as empty.
+  assert.throws(() => exportSegment(session, undefined), /store reading is required/);
+  assert.throws(() => exportSegment(session, ""), /store reading is required/);
+
+  // ── case 3: the store holds NOTHING → exports, with no store graph at all ──────
+  const bare = exportSegment(session, { nquads: "", heldBy: [] });
+  assert.match(bare, /ToolCall/, "a no-store session must still export its trajectory");
+  assert.doesNotMatch(
+    bare,
+    /store-segment/,
+    "an untouched store must emit NO store graph — an empty one would imply state was captured",
+  );
+  assert.match(bare, /# store segment: none/, "the header must say the store carried nothing");
+  const bareQuads = parseNQuads(bare.split("\n").filter((l) => !l.startsWith("#")).join("\n"));
+  assert.ok(bareQuads.length > 0, "the trajectory is still present");
+  assert.equal(
+    bareQuads.filter((q) => q.graph !== null).length,
+    0,
+    "no named-graph quad may appear when the store held nothing",
+  );
+});
+
+test("session_export_drives_the_real_worker_store_read", async () => {
+  // NON-VACUOUS by construction: the store string is not hand-supplied here, it is read
+  // off the REAL results of the two shipped tools by the SAME function `OPS.export` uses.
+  // The previous test could not have observed the defect this one exists to pin, because
+  // it never touched the worker's store read at all.
+  //
+  const claims = await callTool("recall", {});
+  const candidates = await callTool("list_candidates", {});
+  const store = storeReading(claims, candidates);
+
+  const session = new ConsoleSession({ id: "t4e", now: () => "2026-01-01T00:00:00Z" });
+  session.record({ tool: "recall", schema: "https://example.org/s", args: {} });
+
+  // `heldBy` is read off the tools' own answers, so it tracks the engine rather than a
+  // list kept here. Whatever it says, the export's behaviour must follow from it.
+  assert.ok(Array.isArray(store.heldBy), "the reading must report which tools hold state");
+  assert.equal(typeof store.nquads, "string", "the reading must report a serialization");
+
+  if (store.heldBy.length === 0) {
+    // Nothing stored: the export must SUCCEED and carry no store graph. This is the case
+    // the console is actually in — it renders only the read half of the action policy, so
+    // no pane can write a claim or a candidate.
+    assert.equal(store.nquads, "", "an empty store cannot produce a serialization");
+    const gts = exportSegment(session, store);
+    assert.match(gts, /ToolCall/, "an untouched store must not block the trajectory export");
+    assert.doesNotMatch(gts, /store-segment/, "no store graph may be emitted for an empty store");
+    return;
+  }
+
+  if (store.nquads.trim().length === 0) {
+    // State exists and the engine will not serialize it. The export MUST refuse, naming
+    // the tools, so the console can never emit a snapshot that quietly dropped them.
+    assert.throws(
+      () => exportSegment(session, store),
+      new RegExp(`${store.heldBy[0]}.*reported stored state`),
+      "stored state that cannot be carried must FAIL the export and name its tool",
+    );
+    return;
+  }
+
+  // State exists and the engine serialized it: the export must land it in the named graph.
+  const gts = exportSegment(session, store);
+  const stored = parseNQuads(gts.split("\n").filter((l) => !l.startsWith("#")).join("\n")).filter(
+    (q) => q.graph !== null,
+  );
+  assert.ok(stored.length > 0, "a non-empty store must export a non-empty store segment graph");
 });
 
 // ── 5 ───────────────────────────────────────────────────────────────────────

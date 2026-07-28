@@ -2,3 +2,9 @@
 # package. The console's own sources are all tracked; these are not.
 /node_modules/
 /*.tgz
+
+# The dev-only Playwright smoke lane's installed dependencies. `smoke/package.json` and
+# `smoke/package-lock.json` ARE tracked (the lane is pinned); what `npm ci --prefix
+# crates/docs/assets/console/smoke` unpacks under them is not. The rule above is anchored
+# at THIS directory, so it does not reach the nested tree — this second rule does.
+/smoke/node_modules/

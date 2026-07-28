@@ -199,6 +199,125 @@ const CHECK_DAG: &[Task] = &[
     },
 ];
 
+#[cfg(test)]
+mod dag_tests {
+    use super::{CHECK_DAG, FINAL_DEPS};
+    use std::collections::BTreeSet;
+
+    /// A dependency naming a task that does not exist does NOT panic and does NOT fail:
+    /// [`run_check`](super::run_check) only moves a task from `pending` to `ready` when
+    /// EVERY dependency name is present in `passed`, and dependency names are never
+    /// resolved through [`task`](super::task). A dangling name is therefore satisfied by
+    /// nothing, the task stays pending forever, `running` stays empty, and the scheduler's
+    /// `if !running.is_empty()` sleep is skipped — so `make check` BUSY-SPINS at 100% CPU
+    /// instead of reporting anything. That failure mode is silent and unbounded, which is
+    /// why closure over the task registry is asserted here rather than discovered on the
+    /// gate.
+    ///
+    /// Both halves matter. `FINAL_DEPS` is the aggregate task's dependency list, but every
+    /// OTHER task's `dependencies` can dangle in exactly the same way; a `FINAL_DEPS`-only
+    /// check would pass while `console-smoke <- console` hung the whole run.
+    #[test]
+    fn every_dag_dependency_resolves_to_a_declared_task() {
+        let declared: BTreeSet<&str> = CHECK_DAG.iter().map(|task| task.name).collect();
+
+        let mut dangling = Vec::new();
+        for name in FINAL_DEPS {
+            if !declared.contains(name) {
+                dangling.push(format!("FINAL_DEPS -> {name}"));
+            }
+        }
+        for task in CHECK_DAG {
+            for dependency in task.dependencies {
+                if !declared.contains(dependency) {
+                    dangling.push(format!("{} -> {dependency}", task.name));
+                }
+            }
+        }
+        assert!(
+            dangling.is_empty(),
+            "these CHECK_DAG dependency edges name tasks that do not exist, which makes \
+             `cargo xtask check` busy-spin forever instead of failing: {dangling:?}"
+        );
+    }
+
+    /// Task names are unique: [`task`](super::task) resolves by first match, and the
+    /// scheduler keys `pending`/`passed`/`running` by name, so a duplicate would silently
+    /// run one entry and mark both done.
+    #[test]
+    fn task_names_are_unique() {
+        let mut seen = BTreeSet::new();
+        for task in CHECK_DAG {
+            assert!(
+                seen.insert(task.name),
+                "duplicate CHECK_DAG task name {}",
+                task.name
+            );
+        }
+    }
+
+    /// The DAG is acyclic. A cycle is the same silent hang as a dangling name: every task
+    /// in the cycle waits on a peer that is itself waiting, nothing is ever ready, and the
+    /// scheduler spins.
+    #[test]
+    fn the_dag_is_acyclic() {
+        let mut settled: BTreeSet<&str> = BTreeSet::new();
+        loop {
+            let ready = CHECK_DAG
+                .iter()
+                .filter(|task| !settled.contains(task.name))
+                .filter(|task| task.dependencies.iter().all(|dep| settled.contains(dep)))
+                .map(|task| task.name)
+                .collect::<Vec<_>>();
+            if ready.is_empty() {
+                break;
+            }
+            settled.extend(ready);
+        }
+        let stuck = CHECK_DAG
+            .iter()
+            .map(|task| task.name)
+            .filter(|name| !settled.contains(name))
+            .collect::<Vec<_>>();
+        assert!(
+            stuck.is_empty(),
+            "these CHECK_DAG tasks are never schedulable (cycle or dangling dependency): {stuck:?}"
+        );
+    }
+
+    /// Every task's `target` is a real Makefile target. The scheduler spawns
+    /// `make <target>`; an undeclared target fails the child, which at least reports —
+    /// but a target that exists only as a `.PHONY` entry with no rule would "succeed"
+    /// with `make: Nothing to be done`, so the RULE line is what is asserted.
+    #[test]
+    fn every_task_target_has_a_makefile_rule() {
+        let makefile = std::fs::read_to_string(super::workspace_root().join("Makefile"))
+            .expect("the workspace Makefile is readable");
+        let rules: BTreeSet<&str> = makefile
+            .lines()
+            .filter(|line| !line.starts_with(['\t', ' ', '#']))
+            .filter_map(|line| line.split_once(':'))
+            .filter(|(name, rest)| {
+                !name.is_empty()
+                    && !rest.starts_with('=')
+                    && name
+                        .chars()
+                        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.'))
+            })
+            .map(|(name, _)| name)
+            .collect();
+        let missing = CHECK_DAG
+            .iter()
+            .map(|task| task.target)
+            .filter(|target| !rules.contains(target))
+            .collect::<Vec<_>>();
+        assert!(
+            missing.is_empty(),
+            "these CHECK_DAG targets have no Makefile rule: {missing:?}"
+        );
+    }
+}
+
 struct WorktreeLock {
     file: File,
 }

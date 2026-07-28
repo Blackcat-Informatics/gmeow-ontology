@@ -64,12 +64,32 @@ export function contentAddress(text: string): string;
  */
 export function decodePermalink(fragment: string): DecodedPermalink;
 
+/** The engine's store reading: its own serialization, and which reads found real state. */
+export interface StoreReading {
+  /** The engine's serialization of the store. Empty when the engine offers none. */
+  nquads: string;
+  /** The tools that reported actual stored state (`recall`, `list_candidates`). */
+  heldBy: string[];
+}
+
+/**
+ * The engine's store reading, taken off the `recall` and `list_candidates` results. Mints
+ * nothing: the RDF shape of a stored claim belongs to the engine's store.
+ */
+export function storeReading(claims: unknown, candidates: unknown): StoreReading;
+
 /**
  * The exportable `.gts` segment text for a session: the trajectory in the default graph
- * plus the engine's claim/candidate store in the `SESSION_STORE_GRAPH` named graph. An
- * absent `store` is a hard failure — half a session snapshot is not a session snapshot.
+ * plus, when the store holds state, the engine's claim/candidate store in the
+ * `SESSION_STORE_GRAPH` named graph.
+ *
+ * The `store` reading is required — an export that never asked the store what it held
+ * cannot know whether it dropped anything. An EMPTY store is not an error: the export
+ * succeeds carrying the trajectory alone, and emits no store graph rather than an empty
+ * one. A store that holds state the engine will not serialize IS a hard failure, naming
+ * the tools whose state cannot be carried.
  */
-export function exportSegment(session: ConsoleSession, store: string): string;
+export function exportSegment(session: ConsoleSession, store: StoreReading): string;
 
 /** Rebuild a session from a permalink fragment (identity round trip for the invocations). */
 export function sessionFromPermalink(

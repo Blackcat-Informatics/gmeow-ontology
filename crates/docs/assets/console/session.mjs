@@ -353,6 +353,54 @@ export function sessionFromPermalink(fragment, options = {}) {
 // ── Export ──────────────────────────────────────────────────────────────────
 
 /**
+ * The engine's store reading: `{nquads, heldBy}`, taken off the `recall` and
+ * `list_candidates` results that `engine.worker.mjs`'s `export` operation just made.
+ *
+ * * `nquads` — the engine's own serialization of the store, concatenated. Empty when the
+ *   engine offers none.
+ * * `heldBy` — the tools that reported ACTUAL STATE, so [`exportSegment`] can tell "there
+ *   is nothing to carry" apart from "there is something to carry and I cannot carry it".
+ *   Those are opposite situations and only the second is a failure.
+ *
+ * It lives HERE, beside its one consumer [`exportSegment`], rather than inline in the
+ * worker, for two reasons. It is the worker's only DOM-free, engine-free step, so keeping
+ * it in this module makes it reachable from the Node acceptance lane — and an export
+ * assertion that cannot reach this function cannot observe whether the store it exports
+ * is real. And the pairing is the contract: the reader and the refusal belong together,
+ * so a field rename on one side cannot drift past the other unnoticed.
+ *
+ * # Why `heldBy` is read off the RESULTS, not off the recorded trajectory
+ *
+ * The alternative is to scan the trajectory for store-touching tool names. That is
+ * strictly weaker AND needs a list. Weaker, because `export` calls `recall` and
+ * `list_candidates` on EVERY export: the store's whole state is observed at export time
+ * regardless of what the reader happened to click, so a trajectory scan is a proxy for a
+ * fact already in hand. And it misreads the common case — a session that called `recall`
+ * and got nothing back recorded a store-touching invocation but has no state to lose, so
+ * a name-based rule would refuse an export that is perfectly complete. Asking the store
+ * what it holds needs no list of tool names to keep in sync with the engine, which is the
+ * whole point.
+ *
+ * It deliberately mints NOTHING. The RDF shape of a stored claim is owned by the engine's
+ * store; re-deriving quads here from the returned JSON would be a second source of truth
+ * for that shape, and a silent one — the store could change shape and nothing would fail.
+ * If the engine carries no serialization this reports the empty string; it never invents
+ * a substitute.
+ */
+export function storeReading(claims, candidates) {
+  const nquads = [
+    claims.store_nquads ?? claims.nquads ?? "",
+    candidates.store_nquads ?? candidates.nquads ?? "",
+  ]
+    .filter((text) => typeof text === "string" && text.trim().length > 0)
+    .join("\n");
+  const heldBy = [];
+  if (Array.isArray(claims.claims) && claims.claims.length > 0) heldBy.push("recall");
+  if (Number(candidates.candidate_count ?? 0) > 0) heldBy.push("list_candidates");
+  return { nquads, heldBy };
+}
+
+/**
  * The exportable `.gts` segment text for a session.
  *
  * Two graphs, both required:
@@ -365,19 +413,48 @@ export function sessionFromPermalink(fragment, options = {}) {
  *    property that locates a call's audit record inside the append-only store, and each
  *    call's segment identifier is recorded on the call itself.
  *
- * `store` is the engine's own serialization (N-Quads text). An ABSENT store is a hard
- * failure, not an empty graph: an export that silently dropped the store would claim to
- * be a session snapshot while carrying only half of one.
+ * `store` is the [`storeReading`] the engine just gave us — `{nquads, heldBy}`, never a
+ * bare string. The reading is REQUIRED (an export that never asked the store what it held
+ * cannot know whether it dropped anything), but an EMPTY store is not an error.
+ *
+ * The refusal is scoped to the case where state actually exists and cannot be carried:
+ *
+ *  * `heldBy` empty — the store holds nothing. There is nothing to drop, so the export
+ *    succeeds and carries the trajectory alone. A session that parsed some Turtle and ran
+ *    `convert` is perfectly exportable and is not made less so by an untouched store.
+ *  * `heldBy` non-empty and `nquads` empty — the store holds state the engine will not
+ *    serialize. THAT is the hard failure, and it names the tools whose state cannot be
+ *    carried, because an export that quietly shipped without them would claim to be a
+ *    session snapshot while carrying half of one.
+ *
+ * Note what this does NOT do: when the store is empty it emits no `SESSION_STORE_GRAPH`
+ * quads at all, rather than an empty named graph. An empty graph would imply the store
+ * was captured and found empty, which is a claim about state; emitting nothing says only
+ * that nothing was captured, which is what actually happened.
+ *
+ * "Empty" is judged on the QUADS the reading contributes, not on a field's type. A
+ * `typeof store !== "string"` test accepts `""`, and `""` reaches the end of this
+ * function as an empty `storeLines` — precisely the storeless export described above.
+ * That was not hypothetical: `engine.worker.mjs` reads `store_nquads`/`nquads` off
+ * `recall` and `list_candidates`, neither of which carries either field, so it passed
+ * `""` here on every export and no refusal ever fired. A guard a real caller walks
+ * straight through is not a guard.
  */
 export function exportSegment(session, store) {
-  if (typeof store !== "string") {
+  if (
+    store === null ||
+    typeof store !== "object" ||
+    typeof store.nquads !== "string" ||
+    !Array.isArray(store.heldBy)
+  ) {
     throw new Error(
-      "session export: the wasm claim/candidate store serialization is required — an export " +
-        "without it is not a session snapshot",
+      "session export: the wasm claim/candidate store reading is required — an export that " +
+        "never asked the store what it held cannot know whether it dropped anything. Pass the " +
+        "`{nquads, heldBy}` value `storeReading` returns.",
     );
   }
   const graph = `<${SESSION_STORE_GRAPH}>`;
-  const storeLines = String(store)
+  const storeLines = store.nquads
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0 && !line.startsWith("#"))
@@ -387,10 +464,22 @@ export function exportSegment(session, store) {
       const body = line.replace(/\s*\.\s*$/, "");
       return `${body} ${graph} .`;
     });
+  if (storeLines.length === 0 && store.heldBy.length > 0) {
+    throw new Error(
+      `session export: ${store.heldBy.join(" and ")} reported stored state, but the engine ` +
+        "returned no serialization for it, so the store segment carried no quads. Exporting the " +
+        "trajectory alone would silently drop that state and still call itself a session snapshot.",
+    );
+  }
+  // The header describes what the file ACTUALLY carries. Naming the store graph when no
+  // store quad follows would tell a reader the store was captured into that graph and
+  // found empty; the truthful statement for an untouched store is that none was captured.
   const header = [
     `# gmeow console session ${session.id}`,
     `# trajectory anchor: ${session.anchor}`,
-    `# store segment graph: ${SESSION_STORE_GRAPH}`,
+    storeLines.length > 0
+      ? `# store segment graph: ${SESSION_STORE_GRAPH}`
+      : "# store segment: none — the engine store held nothing at export time",
   ].join("\n");
   return `${header}\n${session.trajectoryNQuads()}${storeLines.join("\n")}${storeLines.length ? "\n" : ""}`;
 }
