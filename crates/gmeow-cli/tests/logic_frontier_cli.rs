@@ -160,9 +160,10 @@ e:receipt2 a logic:ExternalEffectReceipt ; logic:receiptOfAttempt e:attempt2 .
         .stdout(predicate::str::contains("duplicate effect"));
 }
 
-/// The three search outcomes must stay three. A budget cut invites a bigger budget; an
-/// out-of-fragment method set invites an authoring fix; only a complete run may be read
-/// as exhaustive. Collapsing any pair of them sends an operator to the wrong remedy.
+/// The refinement outcomes must stay apart. A budget cut invites a bigger budget; an
+/// out-of-fragment method set invites an authoring fix; a malformed request invites a
+/// corrected one; only a complete run may be read as exhaustive. Collapsing any pair of
+/// them sends an operator to the wrong remedy.
 ///
 /// `logic:methodYields` carries ONE ordered `rdf:List`. The cells are NAMED rather than
 /// blank because the CLI's reasoning world is built from IRI-subject quads, and because a
@@ -181,14 +182,36 @@ e:alt a logic:DecompositionMethod ; logic:methodDecomposes e:ocr ; logic:methodY
 e:altCell1 rdf:first e:quickExtract ; rdf:rest rdf:nil .
 "#;
 
+/// A shipped worked example of the work-orchestration slice, by file name.
+///
+/// Anchored on the manifest directory rather than the process CWD, so the demonstration
+/// drives the SAME bytes the slice ships instead of a copy that could drift from them.
+fn shipped_example(name: &str) -> std::path::PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/work-orchestration/examples")
+        .join(name)
+}
+
 fn write(dir: &tempfile::TempDir, name: &str, body: &str) -> std::path::PathBuf {
     let p = dir.path().join(name);
     fs::write(&p, body).expect("write fixture");
     p
 }
 
+/// The roster is DERIVED, and the derivation is visible.
+///
+/// Three properties, and the third is the one the retired Rust search could not have had:
+///
+/// 1. Both methods for `e:ocr` survive. A roster carrying one of two alternatives would be
+///    quietly picking a plan on the operator's behalf while presenting the choice as
+///    settled.
+/// 2. `e:ocr` is marked OPEN inside the top method's step list. A roster that presented an
+///    abstract task as executable work would be inviting somebody to run it.
+/// 3. Every roster row names the AUTHORED RULE that concluded it and the premise it
+///    concluded it from. That is what makes "why is this candidate here" answerable from
+///    the graph rather than by reading an evaluator.
 #[test]
-fn refine_returns_a_closed_roster_when_the_search_exhausts() {
+fn refine_returns_a_closed_roster_when_the_derivation_settles() {
     let dir = tempfile::tempdir().expect("tempdir");
     let p = write(&dir, "methods.ttl", METHODS);
     gmeow()
@@ -202,9 +225,25 @@ fn refine_returns_a_closed_roster_when_the_search_exhausts() {
         .assert()
         .success()
         .stdout(predicate::str::contains("CLOSED"))
-        // Two methods decompose ex:ocr, so both alternatives must survive: a search that
-        // returned one would be quietly picking a plan on the operator's behalf.
-        .stdout(predicate::str::contains("candidates:  2"));
+        // One method for e:ingest and BOTH alternatives for e:ocr.
+        .stdout(predicate::str::contains("candidates:  3"))
+        .stdout(predicate::str::contains("clitest/sub>"))
+        .stdout(predicate::str::contains("clitest/alt>"))
+        // The top method's own sequence, in the AUTHORED order.
+        .stdout(predicate::str::contains(
+            "steps: https://blackcatinformatics.ca/gmeow/clitest/ocr -> \
+             https://blackcatinformatics.ca/gmeow/clitest/store",
+        ))
+        .stdout(predicate::str::contains(
+            "open:  https://blackcatinformatics.ca/gmeow/clitest/ocr",
+        ))
+        .stdout(predicate::str::contains(
+            "derived by <https://blackcatinformatics.ca/logic/ruleRefinementCandidateMethod>",
+        ))
+        .stdout(predicate::str::contains(
+            "from <https://blackcatinformatics.ca/gmeow/clitest/top> \
+             <https://blackcatinformatics.ca/logic/methodDecomposes>",
+        ));
 }
 
 #[test]
@@ -225,7 +264,128 @@ fn refine_under_a_cut_says_the_roster_is_not_closed() {
         .success()
         .stdout(predicate::str::contains("INCOMPLETE"))
         .stdout(predicate::str::contains("NOT closed"))
+        .stdout(predicate::str::contains("CLOSED").not())
+        // A cut leaves the session uncommitted, so there is no roster at all — never a
+        // truncated one an operator could read as the roster.
+        .stdout(predicate::str::contains("candidates:").not());
+}
+
+/// A task the input never mentions is a MALFORMED REQUEST, not an empty roster.
+///
+/// "CLOSED, 0 candidates" for a typo'd IRI is both wrong and reassuring, which is the
+/// worst pair available: it tells an operator the system looked and found nothing.
+#[test]
+fn refine_refuses_a_task_the_input_never_mentions() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(&dir, "methods.ttl", METHODS);
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            p.to_str().expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/clitest/nosuchtask",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("invalid"))
+        .stderr(predicate::str::contains("nothing to refine"))
         .stdout(predicate::str::contains("CLOSED").not());
+}
+
+/// A method whose ordered carrier is broken is refused, not silently shortened.
+///
+/// The retired reader dropped such a method on the floor, which turns a typo into a plan
+/// quietly one step short — the failure mode where a system runs four fifths of a
+/// procedure and reports success.
+#[test]
+fn refine_refuses_a_broken_yields_chain_rather_than_truncating_the_plan() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let p = write(
+        &dir,
+        "broken.ttl",
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
+e:m a logic:DecompositionMethod ; logic:methodDecomposes e:t ; logic:methodYields e:c1 .
+e:c1 rdf:first e:s1 ; rdf:rest e:c2 .
+e:c2 rdf:first e:s2 .
+"#,
+    );
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            p.to_str().expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/clitest/t",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("malformed"))
+        .stderr(predicate::str::contains("never reaches rdf:nil"));
+}
+
+/// The capability-absent scene: the refusal NAMES the missing capability, and names the
+/// gap and proposal it read it from.
+#[test]
+fn refine_surfaces_a_capability_rejection_naming_the_missing_capability() {
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            shipped_example("ocr-capability-absent.ttl")
+                .to_str()
+                .expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-absent/ocrStep",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("rejected on capability"))
+        .stdout(predicate::str::contains("ocr-absent/ocrCapability>"))
+        .stdout(predicate::str::contains(
+            "derived by <https://blackcatinformatics.ca/logic/ruleRefinementRejectedOnCapability>",
+        ))
+        .stdout(predicate::str::contains(
+            "<https://blackcatinformatics.ca/logic/proposalMissingCapability>",
+        ));
+}
+
+/// The capability-PRESENT scene: the five-step decomposition comes back in the AUTHORED
+/// order, and the one approval-gated step carries its typed rejection.
+#[test]
+fn refine_returns_the_authored_five_step_decomposition_with_its_approval_rejection() {
+    gmeow()
+        .args([
+            "logic",
+            "refine",
+            shipped_example("ocr-capability-present.ttl")
+                .to_str()
+                .expect("utf-8"),
+            "--task",
+            "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/ocrStep",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("CLOSED"))
+        // inspect -> prepare -> OCR -> verify -> store receipt. Alphabetised, this plan
+        // verifies before it extracts, so the exact sequence is the assertion.
+        .stdout(predicate::str::contains(
+            "steps: \
+             https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/inspectStep -> \
+             https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/prepareStep -> \
+             https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/extractTextStep -> \
+             https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/verifyStep -> \
+             https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/storeReceiptStep",
+        ))
+        .stdout(predicate::str::contains(
+            "ocr-present/storeReceiptStep> rejected on approval",
+        ))
+        .stdout(predicate::str::contains(
+            "derived by <https://blackcatinformatics.ca/logic/ruleRefinementRejectedOnApproval>",
+        ));
 }
 
 #[test]

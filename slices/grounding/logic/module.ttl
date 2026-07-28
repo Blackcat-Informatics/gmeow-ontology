@@ -10024,6 +10024,386 @@ logic:searchFragment
     skos:definition "Relates a logic:RefinementEpisode to the decidable fragment its search ran within. Functional; an episode without one cannot claim a complete roster."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- RQ2/RQ3: means-end expansion is DERIVED, never computed beside the engine ---
+#
+# The relations below are the means-end search itself, expressed as ontology content:
+# walking a method's ordered rdf:List into its steps, expanding a task through the
+# methods that decompose it, closing that expansion transitively, and typing why a step
+# is not freely executable. Every one of them is a conclusion the canonical reasoner
+# draws over the same closure everything else reads.
+#
+# Authoring them here rather than in Rust is the whole point. A search that runs beside
+# the engine has no derivation to show: its roster is a list somebody's code produced,
+# its budget cut is a counter somebody's code kept, and "why is this candidate here"
+# has no answer the graph can give. Derived, each roster row carries the firing rule and
+# its premises, so the roster is auditable in the same way every other conclusion is.
+#
+# The relations are deliberately BINARY and positive, which keeps them inside the
+# incrementally-maintainable fragment: a refinement is then one committed transaction
+# with a real budget, a real cost vector, and a real per-fact witness, rather than a
+# bespoke evaluator with a bespoke completeness story.
+#
+# What a CANDIDATE is here is also deliberate. It is an applicable
+# logic:DecompositionMethod — the reusable schema logic:RefinementCandidateSet is
+# defined over — and NOT a fully linearized total plan. Enumerating linearizations is a
+# cross-product over every task's alternatives: it is exponential in the method set, and
+# it is exactly what makes an unbounded search exhaust memory before any budget trips.
+# The roster of methods carries the same information (each alternative is named, and
+# logic:refinementReaches states what each expands into) in space linear in the method
+# set, which is what lets boundedness be a property rather than a hope.
+
+logic:methodYieldCell
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method yield cell"@x-gmeow-english ;
+    skos:definition "Relates a logic:DecompositionMethod to a cell of the ONE rdf:List its logic:methodYields names — the head cell and, transitively, every rdf:rest reachable from it. Range an rdf:List cell (stated in prose). Derived, never asserted: it is how the ordered carrier is walked by the reasoner instead of by a reader, so the sequence a method yields is reachable as ontology content rather than only as a parser's internal state."@x-gmeow-english ;
+    skos:example "ex:ocrMethod logic:methodYieldCell ex:ocrCell3 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to reach every cell of a method's yielded sequence, including the ones past the head."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it: a hand-written cell membership that disagrees with the rdf:rest chain makes the plan depend on which of the two a reader trusts."@x-gmeow-english ;
+    gmeow:howToUse "Let the reasoner derive it from logic:methodYields and rdf:rest; read it to find the cells, and rdf:first to find the step each carries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:methodStep
+    a owl:ObjectProperty ;
+    rdfs:domain logic:DecompositionMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method step"@x-gmeow-english ;
+    skos:definition "Relates a logic:DecompositionMethod to a subtask its yielded sequence contains, derived from the rdf:first of each logic:methodYieldCell. Range a plan step or action schema (stated in prose). Multi-valued and UNORDERED by construction: membership is what a join needs, and the ORDER lives where it was authored, in the rdf:List, so nothing here can be mistaken for the plan."@x-gmeow-english ;
+    skos:example "ex:ocrMethod logic:methodStep ex:verifyStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use to join a method against the subtasks it yields, without regard to their order."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading an execution order off it: it is a set, and any order a reader imposed on it would be a plan nobody authored."@x-gmeow-english ;
+    gmeow:howToUse "Join on it for membership; walk logic:methodYields and rdf:rest for the sequence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementExpands
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement expands"@x-gmeow-english ;
+    skos:definition "Relates a task to a subtask ONE method application away: some logic:DecompositionMethod decomposes the task and yields the subtask. Domain and range a plan step or action schema (stated in prose). This is a single means-end step made explicit, so the expansion an operator sees is a derivation with a firing rule and premises rather than a frontier some evaluator held in memory."@x-gmeow-english ;
+    skos:example "ex:ocrStep logic:refinementExpands ex:verifyStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the immediate subtasks a task decomposes into under the authored method set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it where the TRANSITIVE reach is meant; one application is not the whole expansion."@x-gmeow-english ;
+    gmeow:howToUse "Read it for one level; read logic:refinementReaches for the closure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementReaches
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement reaches"@x-gmeow-english ;
+    skos:definition "The transitive closure of logic:refinementExpands: every subtask a task decomposes into through any chain of method applications. Domain and range a plan step or action schema (stated in prose). It is also the DECIDABILITY witness for logic:FragmentAcyclicMethod, because a task that reaches ITSELF is exactly a decomposition cycle — and the self-edge names WHICH task closes the loop, which a bare refusal cannot."@x-gmeow-english ;
+    skos:example "ex:ingestStep logic:refinementReaches ex:verifyStep ."@x-gmeow-english ;
+    gmeow:useWhen "Use for everything a task decomposes into, at any depth, and to detect a decomposition cycle as a self-edge."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a self-edge as an ordinary expansion: it means no expansion of that task terminates, which no budget increase repairs."@x-gmeow-english ;
+    gmeow:howToUse "Read a self-edge as an out-of-fragment method set under logic:FragmentAcyclicMethod, and every other edge as reachable work."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementCandidateMethod
+    a owl:ObjectProperty ;
+    rdfs:range logic:DecompositionMethod ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement candidate method"@x-gmeow-english ;
+    skos:definition "Relates a task to a logic:DecompositionMethod that decomposes it — one member of the roster a means-end search is choosing between. Domain a plan step or action schema (stated in prose). Multi-valued: two methods for one task are two genuine alternatives, and a roster that carried one of them would be picking a plan on the operator's behalf while presenting the choice as settled. Typed APART from logic:refinementCandidate, which relates a logic:RefinementCandidateSet RECORD to what it contains; this is the derived roster of the task itself."@x-gmeow-english ;
+    skos:example "ex:ocrStep logic:refinementCandidateMethod ex:ocrByPagePartition ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the derived roster of methods a task may be refined through."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid presenting the roster as closed without the operation outcome that says the derivation ran to completion."@x-gmeow-english ;
+    gmeow:howToUse "Read every member as a real alternative, and read the rejections alongside it to see what stands between each and execution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# The four typed rejections. They mirror logic:RejectionKind one for one, and each
+# carries its WITNESS in the object position: a rejection whose reason cannot be named
+# is an opinion. Four predicates rather than one reified node because a rejection is
+# fully determined by the pair (step, witness) — reifying it would require the reasoner
+# to invent a node, which puts the derivation outside the bounded, incrementally
+# maintainable fragment for no information gained.
+
+logic:refinementRejectedOnPrecondition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement rejected on precondition"@x-gmeow-english ;
+    skos:definition "Relates a step whose action gate was DENIED to the logic:precondition situation that gate was judging — the logic:RejectedPrecondition case, carrying the unmet condition as its witness. Domain a plan step or action schema, range the precondition situation (stated in prose). Remediable by changing the world, which is what distinguishes it from a capability rejection no change of world state resolves."@x-gmeow-english ;
+    skos:example "ex:extractTextStep logic:refinementRejectedOnPrecondition ex:pagesRasterised ."@x-gmeow-english ;
+    gmeow:useWhen "Use to say WHICH condition stands between a candidate and execution when an action gate denied it."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for an absent capability: no change of world state supplies a capability the deployment does not have."@x-gmeow-english ;
+    gmeow:howToUse "Read the witness as the condition to establish, and act on the world rather than on the deployment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementRejectedOnCapability
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement rejected on capability"@x-gmeow-english ;
+    skos:definition "Relates a step blocked by a logic:OperationalCapabilityGap to the capability the gap's logic:CapabilityGapProposal names as missing — the logic:RejectedCapability case, carrying the absent capability as its witness. Domain a plan step or action schema, range the missing capability (stated in prose). This is the rejection that yields a capability-gap proposal rather than a retry, and naming the capability is what makes the refusal actionable instead of merely honest."@x-gmeow-english ;
+    skos:example "ex:ocrStep logic:refinementRejectedOnCapability ex:ocrCapability ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the capability whose absence removes a candidate from consideration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a reasoning-profile gap: 'install an OCR service' and 'this needs full first-order logic' are not the same finding."@x-gmeow-english ;
+    gmeow:howToUse "Read the witness as the capability to acquire, and the gap's proposal as what acquiring it must deliver."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementRejectedOnResource
+    a owl:ObjectProperty ;
+    rdfs:range logic:ResourceLease ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement rejected on resource"@x-gmeow-english ;
+    skos:definition "Relates a waiting step to the logic:ResourceLease whose scope covers what it awaits — the logic:RejectedResource case, carrying the exclusive claim as its witness. Domain a plan step or action schema (stated in prose). Distinguished from a capability rejection: the ability exists, the means to exercise it is claimed by somebody else, and the remedy is to wait for or preempt the lease rather than to acquire anything."@x-gmeow-english ;
+    skos:example "ex:valveStep logic:refinementRejectedOnResource ex:valveLease ."@x-gmeow-english ;
+    gmeow:useWhen "Use when what blocks a candidate is an exclusive claim on a resource it needs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it where the capability itself is absent; a lease on a capability nobody has is not what stands in the way."@x-gmeow-english ;
+    gmeow:howToUse "Read the witness lease's owner and expiry to decide between waiting and escalating."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:refinementRejectedOnApproval
+    a owl:ObjectProperty ;
+    rdfs:range logic:FrontierEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement rejected on approval"@x-gmeow-english ;
+    skos:definition "Relates a step to the logic:FrontierEntry whose approval axis sits at logic:ApprovalCreated — created and NOT yet detached — the logic:RejectedApproval case, carrying that entry as its witness. Domain a plan step or action schema (stated in prose). Distinguished from the other three: nothing about the world or the actor is lacking, only the permission, so the remedy is a decision by somebody rather than a change to anything."@x-gmeow-english ;
+    skos:example "ex:storeReceiptStep logic:refinementRejectedOnApproval ex:storeReceiptEntry ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the only thing between a candidate and execution is an undetached authorization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a defect: an approval-gated step is working exactly as the policy intends, and only the roster's silence about it would be the failure."@x-gmeow-english ;
+    gmeow:howToUse "Read the witness entry's axis positions to see that the step is simultaneously ready and gated — two axes, not one blended state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- The eleven rules that ARE the search -------------------------------------
+#
+# All positive Horn and all binary, which is what admits them to the incrementally
+# maintainable fragment: a refinement then runs as one budgeted transaction whose
+# completeness is the engine's own outcome, not a status a search invented for itself.
+#
+# They are DERIVATION rules and deliberately not violation rules: their heads publish
+# refinement structure, never logic:violatedLaw, so nothing here competes with the
+# enactment-integrity laws for a head tuple.
+
+logic:ruleMethodYieldCellHead
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method yield cell: the head of the yields list"@x-gmeow-english ;
+    skos:definition "Derives logic:methodYieldCell for the cell a method's logic:methodYields names directly — the base case of the ordered-carrier walk. Positive Horn. Without it the walk has nowhere to start, and a method's sequence would be reachable only by a reader who already knew where the list began."@x-gmeow-english ;
+    logic:provenance logic:ruleMethodYieldCellHead ;
+    logic:head [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodYieldCell ;
+        rdf:object    "?cell"
+    ] ;
+    logic:body [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodYields ;
+        rdf:object    "?cell"
+    ] .
+
+logic:ruleMethodYieldCellRest
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method yield cell: every rdf:rest of a cell already reached"@x-gmeow-english ;
+    skos:definition "Derives logic:methodYieldCell for the rdf:rest of any cell already reached — the recursive case that walks the ordered carrier to rdf:nil. Positive Horn and recursive. This is where the SEQUENCE stops being a parser's private business: the whole list is in the closure, so the steps past the head are as visible to a query as the first one."@x-gmeow-english ;
+    logic:provenance logic:ruleMethodYieldCellRest ;
+    logic:head [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodYieldCell ;
+        rdf:object    "?next"
+    ] ;
+    logic:body [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodYieldCell ;
+        rdf:object    "?cell"
+    ] , [
+        rdf:subject   "?cell" ;
+        rdf:predicate rdf:rest ;
+        rdf:object    "?next"
+    ] .
+
+logic:ruleMethodStep
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "method step: the rdf:first of every reached cell"@x-gmeow-english ;
+    skos:definition "Derives logic:methodStep for the subtask carried by each logic:methodYieldCell. Positive Horn. It projects the ordered carrier into the membership relation joins need, while leaving the order where it was authored — so a join never has to pretend a set is a sequence."@x-gmeow-english ;
+    logic:provenance logic:ruleMethodStep ;
+    logic:head [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodStep ;
+        rdf:object    "?step"
+    ] ;
+    logic:body [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodYieldCell ;
+        rdf:object    "?cell"
+    ] , [
+        rdf:subject   "?cell" ;
+        rdf:predicate rdf:first ;
+        rdf:object    "?step"
+    ] .
+
+logic:ruleRefinementExpands
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement expands: one method application"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementExpands from a method that decomposes a task and yields a step — ONE means-end application, made a fact. Positive Horn. This is the smallest unit of the search, and having it in the closure is what lets 'why is this subtask here' be answered by the graph rather than by reading an evaluator."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementExpands ;
+    logic:head [
+        rdf:subject   "?task" ;
+        rdf:predicate logic:refinementExpands ;
+        rdf:object    "?step"
+    ] ;
+    logic:body [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodDecomposes ;
+        rdf:object    "?task"
+    ] , [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodStep ;
+        rdf:object    "?step"
+    ] .
+
+logic:ruleRefinementReachesBase
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement reaches: one application is a reach"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementReaches from a single logic:refinementExpands — the base case of the expansion closure. Positive Horn."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementReachesBase ;
+    logic:head [
+        rdf:subject   "?task" ;
+        rdf:predicate logic:refinementReaches ;
+        rdf:object    "?step"
+    ] ;
+    logic:body [
+        rdf:subject   "?task" ;
+        rdf:predicate logic:refinementExpands ;
+        rdf:object    "?step"
+    ] .
+
+logic:ruleRefinementReachesTransitive
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement reaches: the transitive closure of expansion"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementReaches transitively, so the whole expansion of a task is a single derived relation. Positive Horn and recursive, and it TERMINATES on every method set because the closure is a finite relation over the tasks the data names — a cyclic method set yields a self-edge rather than a divergence, which is precisely what makes the cycle reportable instead of fatal."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementReachesTransitive ;
+    logic:head [
+        rdf:subject   "?task" ;
+        rdf:predicate logic:refinementReaches ;
+        rdf:object    "?far"
+    ] ;
+    logic:body [
+        rdf:subject   "?task" ;
+        rdf:predicate logic:refinementReaches ;
+        rdf:object    "?mid"
+    ] , [
+        rdf:subject   "?mid" ;
+        rdf:predicate logic:refinementReaches ;
+        rdf:object    "?far"
+    ] .
+
+logic:ruleRefinementCandidateMethod
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "refinement candidate: every method that decomposes the task"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementCandidateMethod for each logic:DecompositionMethod decomposing a task, orienting the roster on the TASK so a refinement can be asked of the thing being refined. Positive Horn. Every method is a member: applicability is reported by the typed rejections alongside the roster rather than by silently shortening it, because a candidate removed without a reason is indistinguishable from one nobody thought of."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementCandidateMethod ;
+    logic:head [
+        rdf:subject   "?task" ;
+        rdf:predicate logic:refinementCandidateMethod ;
+        rdf:object    "?method"
+    ] ;
+    logic:body [
+        rdf:subject   "?method" ;
+        rdf:predicate logic:methodDecomposes ;
+        rdf:object    "?task"
+    ] .
+
+logic:ruleRefinementRejectedOnPrecondition
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejection: a denied action gate names the precondition it judged"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementRejectedOnPrecondition for a step whose logic:GateProbe returned logic:GateDenied, witnessed by the step's own logic:precondition. Positive Horn: the gate is the authority on whether the situation obtained, and this rule projects its verdict onto the refinement roster rather than re-deciding it. The witness is the CONDITION, not the probe, because 'establish this' is the actionable form and 'a probe was denied' is not."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementRejectedOnPrecondition ;
+    logic:head [
+        rdf:subject   "?step" ;
+        rdf:predicate logic:refinementRejectedOnPrecondition ;
+        rdf:object    "?situation"
+    ] ;
+    logic:body [
+        rdf:subject   "?probe" ;
+        rdf:predicate logic:probesSchema ;
+        rdf:object    "?step"
+    ] , [
+        rdf:subject   "?probe" ;
+        rdf:predicate logic:gateVerdict ;
+        rdf:object    logic:GateDenied
+    ] , [
+        rdf:subject   "?step" ;
+        rdf:predicate logic:precondition ;
+        rdf:object    "?situation"
+    ] .
+
+logic:ruleRefinementRejectedOnCapability
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejection: an operational capability gap names the missing capability"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementRejectedOnCapability for a step a logic:OperationalCapabilityGap blocks, witnessed by the logic:proposalMissingCapability of the proposal standing on the SAME step. Positive Horn. Joining gap and proposal on the blocked step is what keeps the answer specific: a deployment with several gaps must not attribute one gap's missing capability to another gap's step."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementRejectedOnCapability ;
+    logic:head [
+        rdf:subject   "?step" ;
+        rdf:predicate logic:refinementRejectedOnCapability ;
+        rdf:object    "?capability"
+    ] ;
+    logic:body [
+        rdf:subject   "?gap" ;
+        rdf:predicate logic:gapBlockedStep ;
+        rdf:object    "?step"
+    ] , [
+        rdf:subject   "?proposal" ;
+        rdf:predicate logic:proposalBlockedStep ;
+        rdf:object    "?step"
+    ] , [
+        rdf:subject   "?proposal" ;
+        rdf:predicate logic:proposalMissingCapability ;
+        rdf:object    "?capability"
+    ] .
+
+logic:ruleRefinementRejectedOnResource
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejection: an awaited resource is under an exclusive lease"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementRejectedOnResource for a step whose frontier entry awaits something a logic:ResourceLease scopes, witnessed by that lease. Positive Horn. The join is on the AWAITED thing rather than on the step, because a lease knows nothing about plans: what makes it the obstruction is that its scope covers precisely what the step is waiting for."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementRejectedOnResource ;
+    logic:head [
+        rdf:subject   "?step" ;
+        rdf:predicate logic:refinementRejectedOnResource ;
+        rdf:object    "?lease"
+    ] ;
+    logic:body [
+        rdf:subject   "?entry" ;
+        rdf:predicate logic:entryAction ;
+        rdf:object    "?step"
+    ] , [
+        rdf:subject   "?entry" ;
+        rdf:predicate logic:entryAwaits ;
+        rdf:object    "?resource"
+    ] , [
+        rdf:subject   "?lease" ;
+        rdf:predicate logic:leaseScope ;
+        rdf:object    "?resource"
+    ] .
+
+logic:ruleRefinementRejectedOnApproval
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "rejection: an approval exists and has not been detached"@x-gmeow-english ;
+    skos:definition "Derives logic:refinementRejectedOnApproval for a step whose frontier entry sits at logic:ApprovalCreated, witnessed by that entry. Positive Horn. Created-and-undetached is the one approval position that blocks WITHOUT anything being wrong, which is why it must be reported rather than left to a reader to notice that a ready step never ran."@x-gmeow-english ;
+    logic:provenance logic:ruleRefinementRejectedOnApproval ;
+    logic:head [
+        rdf:subject   "?step" ;
+        rdf:predicate logic:refinementRejectedOnApproval ;
+        rdf:object    "?entry"
+    ] ;
+    logic:body [
+        rdf:subject   "?entry" ;
+        rdf:predicate logic:entryAction ;
+        rdf:object    "?step"
+    ] , [
+        rdf:subject   "?entry" ;
+        rdf:predicate logic:entryAxisWitness ;
+        rdf:object    logic:ApprovalCreated
+    ] .
+
 logic:CapabilityGapProposalCompletenessConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

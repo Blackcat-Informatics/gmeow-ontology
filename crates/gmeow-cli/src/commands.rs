@@ -5675,14 +5675,6 @@ fn iri_pairs(rows: &[FactRow], predicate: &str) -> Vec<(String, String)> {
     out
 }
 
-/// The provenance-blind triple view, for consumers that reason over the closure as a whole
-/// rather than over who concluded what.
-fn triples(rows: &[FactRow]) -> Vec<(String, String, String)> {
-    rows.iter()
-        .map(|r| (r.subject.clone(), r.predicate.clone(), r.object.clone()))
-        .collect()
-}
-
 /// What the command knows about one frontier entry's `logic:entryLabel`.
 ///
 /// The three cases are three different things to tell an operator, and flattening any pair
@@ -6037,7 +6029,37 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path) -> i32 {
     0
 }
 
-/// `gmeow logic refine` — bounded means–end search with an honest completeness status.
+/// The label an operator reads for one derived rejection kind.
+fn rejection_label(kind: gmeow_logic::RejectionKind) -> &'static str {
+    match kind {
+        gmeow_logic::RejectionKind::Precondition => "precondition",
+        gmeow_logic::RejectionKind::Capability => "capability",
+        gmeow_logic::RejectionKind::Resource => "resource",
+        gmeow_logic::RejectionKind::Approval => "approval",
+    }
+}
+
+/// Print one chase witness: the authored rule that concluded a row, and the premises it
+/// concluded it from.
+///
+/// A roster row without this is an assertion; with it, the operator can follow the same
+/// derivation the engine made. The premises are the chase's own, never reconstructed
+/// here.
+fn print_refine_witness(indent: &str, witness: &gmeow_logic::ProofWitness) {
+    println!(
+        "{indent}derived by <{}> (proof height {})",
+        witness.rule_iri, witness.proof_height
+    );
+    for (subject, predicate, object) in &witness.premises {
+        println!("{indent}  from {subject} <{predicate}> {object}");
+    }
+}
+
+/// `gmeow logic refine` — bounded, chase-derived means–end refinement.
+///
+/// Every line printed below is a row of the reasoner's closure: the roster, the
+/// transitive expansion and each typed rejection are conclusions the authored `logic:`
+/// rules drew, each carrying the rule that drew it. Nothing here searches.
 pub fn logic_refine(
     reporter: &dyn Reporter,
     input: &Path,
@@ -6046,44 +6068,134 @@ pub fn logic_refine(
     budget: u32,
 ) -> i32 {
     const CODE: &str = "gmeow-cli.logic-refine";
-    let rows = match logic_derive(reporter, input, CODE) {
-        Ok(r) => r,
-        Err(rc) => return rc,
+    let bytes = match std::fs::read(input) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            return fail(
+                reporter,
+                CODE,
+                format!("cannot read {}: {e}", input.display()),
+            );
+        }
+    };
+    let media = match input.extension().and_then(|e| e.to_str()) {
+        Some("nq") => "application/n-quads",
+        Some("nt") => "application/n-triples",
+        Some("trig") => "application/trig",
+        _ => "text/turtle",
+    };
+    let parsed = match purrdf::parse_dataset(&bytes, media, None) {
+        Ok(parsed) => parsed,
+        Err(e) => {
+            return fail(
+                reporter,
+                CODE,
+                format!("cannot parse {}: {e}", input.display()),
+            );
+        }
     };
 
-    // The search reasons over the decomposition-method closure as a whole; asserted and
-    // derived methods are equally real inputs to it, so the provenance split is not part of
-    // this question.
-    let result = gmeow_logic::refine(task, &triples(&rows), fragment, budget);
+    let report = gmeow_logic::refine(parsed.as_ref(), task, fragment, budget);
 
-    match &result.status {
-        gmeow_logic::RefineStatus::UnsupportedFragment { condition } => {
+    match &report.outcome {
+        gmeow_logic::runtime::OperationOutcome::UnsupportedFragment { kind } => {
             // Out of fragment is a REFUSAL, not a thin result: exiting 0 with an empty
             // candidate list would read as "no decomposition exists", which is a
             // different and much more comforting claim than "your method set does not
             // terminate".
+            let cycles = report
+                .cycles
+                .iter()
+                .map(|task| format!("<{task}>"))
+                .collect::<Vec<_>>()
+                .join(", ");
             return fail(
                 reporter,
                 CODE,
                 format!(
-                    "method set is outside the declared search fragment <{fragment}>: \
-                     {condition}. No budget increase would help; the method set needs \
-                     fixing."
+                    "method set is outside the declared search fragment <{fragment}> \
+                     ({kind:?}): decomposition cycle — {cycles} {} reachable from \
+                     {} through the authored method set, so no expansion terminates. No \
+                     budget increase would help; the method set needs fixing.",
+                    if report.cycles.len() == 1 {
+                        "is"
+                    } else {
+                        "are"
+                    },
+                    if report.cycles.len() == 1 {
+                        "itself"
+                    } else {
+                        "themselves"
+                    },
                 ),
             );
         }
-        gmeow_logic::RefineStatus::CompleteForFragment => {
-            println!("status:      CLOSED (complete for fragment <{fragment}>)");
+        gmeow_logic::runtime::OperationOutcome::Invalid { fault } => {
+            // A malformed request must not be answered with a clean empty roster: that
+            // reads as "nothing decomposes this", which is both wrong and reassuring.
+            return fail(
+                reporter,
+                CODE,
+                format!("the refinement request is invalid: {fault:?}"),
+            );
         }
-        gmeow_logic::RefineStatus::IncompleteByBudget { budget } => {
-            println!("status:      INCOMPLETE — budget of {budget} method applications exhausted");
-            println!("             The candidates below are real, but this roster is NOT closed.");
+        gmeow_logic::runtime::OperationOutcome::EngineFailure { diagnostic } => {
+            return fail(reporter, CODE, format!("engine failure: {diagnostic:?}"));
+        }
+        gmeow_logic::runtime::OperationOutcome::Applied { run, .. } => {
+            println!("task:        <{task}>");
+            println!("status:      CLOSED (complete for fragment <{fragment}>)");
+            println!("derivations: {}", run.consumed_steps);
+        }
+        gmeow_logic::runtime::OperationOutcome::Incomplete { status, cause } => {
+            println!("task:        <{task}>");
+            println!(
+                "status:      INCOMPLETE — the derivation was cut ({status:?}, {cause:?}) under \
+                 a budget of {budget}"
+            );
+            println!("             No roster is shown: this run is NOT closed, and a partial");
+            println!("             roster presented here would be read as the roster.");
+            return 0;
+        }
+        other => {
+            // Every remaining outcome is a routing verdict about the program, not an
+            // answer about the method set, and printing a roster under one would attribute
+            // a result to a run that never committed.
+            return fail(
+                reporter,
+                CODE,
+                format!("the refinement did not settle: {other:?}"),
+            );
         }
     }
-    println!("expansions:  {}", result.expansions);
-    println!("candidates:  {}", result.candidates.len());
-    for (i, c) in result.candidates.iter().enumerate() {
-        println!("  [{i}] {}", c.join(" -> "));
+
+    println!("candidates:  {}", report.candidates.len());
+    for (i, candidate) in report.candidates.iter().enumerate() {
+        println!("  [{i}] <{}> via <{}>", candidate.task, candidate.method);
+        println!("       steps: {}", candidate.steps.join(" -> "));
+        if !candidate.open_steps.is_empty() {
+            println!(
+                "       open:  {} (decomposed further below)",
+                candidate.open_steps.join(", ")
+            );
+        }
+        print_refine_witness("       ", &candidate.witness);
+    }
+
+    println!("rejections:  {}", report.rejections.len());
+    for (i, rejection) in report.rejections.iter().enumerate() {
+        println!(
+            "  [{i}] <{}> rejected on {}: <{}>",
+            rejection.step,
+            rejection_label(rejection.kind),
+            rejection.witness_iri
+        );
+        print_refine_witness("       ", &rejection.witness);
+    }
+
+    println!("reached:     {}", report.reached.len());
+    for step in &report.reached {
+        println!("  <{step}>");
     }
     0
 }

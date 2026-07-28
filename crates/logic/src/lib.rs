@@ -137,81 +137,21 @@ pub(crate) mod oracle;
 pub mod certify;
 
 // ---------------------------------------------------------------------------
-// Bounded means–end search (RQ2/RQ3) — public façade.
+// Means–end refinement (RQ2/RQ3/RQ10) — public façade.
 //
-// The implementation lives in `reason::enactment::search`, which is crate-private
+// The implementation lives in `reason::enactment::refine`, which is crate-private
 // because the reasoning internals are. This façade is the shipped surface a consumer
-// (the `gmeow logic refine` command) drives, so the search is a reachable capability
-// rather than a module nothing calls.
+// (the `gmeow logic refine` command) drives, so the refinement is a reachable
+// capability rather than a module nothing calls.
+//
+// There is deliberately NO refinement-specific status type here. A refinement reports
+// the same six-way [`runtime::OperationOutcome`] every other engine operation does, on
+// [`RefineReport::outcome`]: a private three-valued fold could express neither a
+// cancellation nor a malformed request, and inventing a second vocabulary for the same
+// question is how two parts of one engine come to disagree about what "incomplete"
+// means.
 // ---------------------------------------------------------------------------
 
-/// How a bounded means–end search terminated.
-///
-/// Three outcomes, deliberately not two: a budget cut invites a retry with a larger
-/// budget, while an out-of-fragment method set invites an authoring fix. Reporting the
-/// second as the first sends an operator to buy compute for a problem compute cannot
-/// solve.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RefineStatus {
-    /// Ran to exhaustion within the declared fragment: the candidate set is CLOSED.
-    CompleteForFragment,
-    /// Correct but cut short. The candidates found are real; the roster is not closed.
-    IncompleteByBudget {
-        /// The expansion budget that was exhausted.
-        budget: u32,
-    },
-    /// The method set is outside the declared fragment. No budget would fix it.
-    UnsupportedFragment {
-        /// What put it out of fragment, named concretely enough to act on.
-        condition: String,
-    },
-}
-
-/// The result of a bounded means–end search.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RefineResult {
-    /// Every fully-decomposed candidate: its ordered task sequence.
-    pub candidates: Vec<Vec<String>>,
-    /// How the search terminated.
-    pub status: RefineStatus,
-    /// Method applications consumed.
-    pub expansions: u32,
-}
-
-impl RefineResult {
-    /// Whether this result may be presented as a CLOSED roster.
-    #[must_use]
-    pub fn is_closed(&self) -> bool {
-        matches!(self.status, RefineStatus::CompleteForFragment)
-    }
-}
-
-/// Run a bounded means–end search for `root` over the `logic:DecompositionMethod`s
-/// carried by `rows` (`(subject, predicate, object)` triples).
-///
-/// `fragment` is the declared `logic:SearchFragment` IRI; `budget` counts method
-/// applications.
-#[must_use]
-pub fn refine(
-    root: &str,
-    rows: &[(String, String, String)],
-    fragment: &str,
-    budget: u32,
-) -> RefineResult {
-    use crate::reason::enactment::search;
-    let methods = search::methods_from_triples(rows);
-    let r = search::search(root, &methods, fragment, budget);
-    RefineResult {
-        candidates: r.candidates,
-        status: match r.status {
-            search::SearchStatus::CompleteForFragment => RefineStatus::CompleteForFragment,
-            search::SearchStatus::IncompleteByBudget { budget } => {
-                RefineStatus::IncompleteByBudget { budget }
-            }
-            search::SearchStatus::UnsupportedFragment { condition } => {
-                RefineStatus::UnsupportedFragment { condition }
-            }
-        },
-        expansions: r.expansions,
-    }
-}
+pub use reason::enactment::refine::{
+    ProofWitness, RefineCandidate, RefineRejection, RefineReport, RejectionKind, refine,
+};
