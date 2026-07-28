@@ -391,7 +391,7 @@ msgstr "Attachez gmeow:distanceMetricCosine / DotProduct / Euclidean via gmeow:d
 
 msgctxt "https://blackcatinformatics.ca/gmeow/DistanceMetric|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
-msgstr "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+msgstr ""
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Embedding|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for one vector representation of one information object under one model."
@@ -487,7 +487,7 @@ msgstr "Attachez-la via gmeow:distanceMetric à un gmeow:Embedding ou un gmeow:V
 
 msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricCosine|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
-msgstr "gmeow:distanceMetricCosine a gmeow:DistanceMetric ."
+msgstr ""
 
 msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when magnitude carries signal, as with normalized embeddings."
@@ -503,7 +503,7 @@ msgstr "Attachez-la via gmeow:distanceMetric à un gmeow:Embedding ou un gmeow:V
 
 msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricDotProduct|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ."
-msgstr "gmeow:distanceMetricDotProduct a gmeow:DistanceMetric ."
+msgstr ""
 
 msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when straight-line L2 distance is the intended notion of near."
@@ -519,7 +519,7 @@ msgstr "Attachez-la via gmeow:distanceMetric à un gmeow:Embedding ou un gmeow:V
 
 msgctxt "https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ."
-msgstr "gmeow:distanceMetricEuclidean a gmeow:DistanceMetric ."
+msgstr ""
 
 msgctxt "https://blackcatinformatics.ca/gmeow/embeddingDimensions|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record the dimensionality of the embedding vector."

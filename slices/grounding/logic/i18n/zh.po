@@ -12388,7 +12388,7 @@ msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 instan
 
 msgctxt "https://blackcatinformatics.ca/logic/keyProperty|http://www.w3.org/2004/02/skos/core#example"
 msgid "logic:keyProperty logic:characterizes instance ."
-msgstr "logic:keyProperty logic:characterizes instance ."
+msgstr ""
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -12640,7 +12640,7 @@ msgstr "指称接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/denotation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → logic seam through which a lang:Denotation names its meaning: lang:denotationKind fixes the kind of thing meant, and lang:denotationTarget names the logic:Formula/logic:Type/logic:Individual (or other resource) it points at; a composed denotation additionally names the lang:CompositionRule that lowers it into the logic Formula/Term IR."
-msgstr "The lang → logic seam through which a lang:Denotation names its meaning: lang:denotationKind fixes the kind of thing meant, and lang:denotationTarget names the logic:Formula/logic:Type/logic:Individual (or other resource) it points at; a composed denotation additionally names the lang:CompositionRule that lowers it into the logic Formula/Term IR.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → logic 接缝：lang:Denotation 借此命名其含义。lang:denotationKind 确定所指事物的种类，lang:denotationTarget 命名它所指向的 logic:Formula/logic:Type/logic:Individual（或其他资源）；复合指称还会命名将其下降到 logic 的 Formula/Term 中间表示的 lang:CompositionRule。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/compilation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Compilation seam"
@@ -12648,7 +12648,7 @@ msgstr "编译接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/compilation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The math → logic seam through which a math:MathematicalExpression lowers into the reasoning layer: math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType carry the lowering, gated by a declared math:denotationKind, and an intensional math:memberCondition on a math:SetBuilderExpression denotes a logic: formula rather than an opaque literal."
-msgstr "The math → logic seam through which a math:MathematicalExpression lowers into the reasoning layer: math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType carry the lowering, gated by a declared math:denotationKind, and an intensional math:memberCondition on a math:SetBuilderExpression denotes a logic: formula rather than an opaque literal.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "math → logic 接缝：math:MathematicalExpression 借此下降到推理层。math:compilesToLogicTerm/math:compilesToLogicFormula/math:compilesToLogicType 承载该下降，并以已声明的 math:denotationKind 为前提；math:SetBuilderExpression 上的内涵式 math:memberCondition 指称一个 logic: 公式，而非不透明的字面量。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/laws-and-boundaries|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Laws and boundaries seam"
@@ -12656,7 +12656,7 @@ msgstr "定律与边界接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/laws-and-boundaries|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The math → logic seam through which mathematical laws (homogeneity, topology, algebra) are authored directly as logic:Formula, with logic:expressivenessBoundary the honest record of a defining statement that genuinely exceeds first-order logic rather than a fake first-order formula."
-msgstr "The math → logic seam through which mathematical laws (homogeneity, topology, algebra) are authored directly as logic:Formula, with logic:expressivenessBoundary the honest record of a defining statement that genuinely exceeds first-order logic rather than a fake first-order formula.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "math → logic 接缝：数学定律（齐次性、拓扑、代数）借此直接写作 logic:Formula，而 logic:expressivenessBoundary 是对某个定义性陈述确实超出一阶逻辑的诚实记录，而不是伪造一个一阶公式。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/correspondence-and-preservation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Correspondence and preservation seam"
@@ -12664,7 +12664,7 @@ msgstr "对应与保持接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/correspondence-and-preservation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → logic and math → logic seam through which both peers name a logic:Correspondence (translation, GMN dialect crossings, external alignments) and reuse logic:preservationKind verbatim as the single preservation surface, never shadowing it with a parallel enum."
-msgstr "The lang → logic and math → logic seam through which both peers name a logic:Correspondence (translation, GMN dialect crossings, external alignments) and reuse logic:preservationKind verbatim as the single preservation surface, never shadowing it with a parallel enum.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → logic 与 math → logic 接缝：两个对等方借此命名同一个 logic:Correspondence（翻译、GMN 方言跨越、外部对齐），并原样复用 logic:preservationKind 作为唯一的保持性表面，绝不以平行枚举将其遮蔽。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/rendering|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Rendering seam"
@@ -12672,7 +12672,7 @@ msgstr "渲染接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/rendering|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The math → lang seam through which math:ExpressionRendering is a lang:Relator grafted onto the general lang:Rendering theory: the rendering node reads lang:renderedContent, lang:renderingConvention, and lang:renderingPreservation directly off the math record rather than lang: re-implementing a parallel rendering vocabulary."
-msgstr "The math → lang seam through which math:ExpressionRendering is a lang:Relator grafted onto the general lang:Rendering theory: the rendering node reads lang:renderedContent, lang:renderingConvention, and lang:renderingPreservation directly off the math record rather than lang: re-implementing a parallel rendering vocabulary.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "math → lang 接缝：math:ExpressionRendering 是嫁接在通用 lang:Rendering 理论之上的 lang:Relator。渲染节点直接从 math 记录上读取 lang:renderedContent、lang:renderingConvention 和 lang:renderingPreservation，而不是由 lang: 另行实现一套平行的渲染词汇。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Quantity seam"
@@ -12680,7 +12680,7 @@ msgstr "量接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → math seam through which math:Quantity individuals, carrying math:hasDimension and math:quantityValue, hold lang's declared and measured magnitudes — GMN codebook rates, glyph token costs — as dimensioned values rather than bare literals."
-msgstr "The lang → math seam through which math:Quantity individuals, carrying math:hasDimension and math:quantityValue, hold lang's declared and measured magnitudes — GMN codebook rates, glyph token costs — as dimensioned values rather than bare literals.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → math 接缝：math:Quantity 个体携带 math:hasDimension 与 math:quantityValue，以有量纲的值而非裸字面量承载 lang 的已声明量与已测量量——GMN 码本速率、字形词元开销。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/gmn-mathematical-plane|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "GMN mathematical-plane seam"
@@ -12688,7 +12688,7 @@ msgstr "GMN 数学平面接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/gmn-mathematical-plane|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The lang → math seam through which the @μ-scoped mathematical plane of the GMN glyph inventory names the math: terms it renders: gmeow:gmnCandidateTarget records the audited symbology ruling for a term, lang:denotationTarget carries the executable meaning of an adopted glyph, gmeow:gmnDictionaryEntryTerm binds a named-key alias where the measurement rejected the display sign, and the whole record is a notation of math:MathematicalExpression under the gmeow:eqLangGmnMathNotationAst lens. GMN names these terms and prices their rendering; it never re-mints them, and math: remains their sole authority. Declared and measured magnitudes are deliberately NOT on this seam — they cross on the quantity seam — so neither seam becomes a general licence to name anything in the peer."
-msgstr "The lang → math seam through which the @μ-scoped mathematical plane of the GMN glyph inventory names the math: terms it renders: gmeow:gmnCandidateTarget records the audited symbology ruling for a term, lang:denotationTarget carries the executable meaning of an adopted glyph, gmeow:gmnDictionaryEntryTerm binds a named-key alias where the measurement rejected the display sign, and the whole record is a notation of math:MathematicalExpression under the gmeow:eqLangGmnMathNotationAst lens. GMN names these terms and prices their rendering; it never re-mints them, and math: remains their sole authority. Declared and measured magnitudes are deliberately NOT on this seam — they cross on the quantity seam — so neither seam becomes a general licence to name anything in the peer.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "lang → math 接缝：GMN 字形清单中以 @μ 为范围的数学平面借此命名它所渲染的 math: 术语。gmeow:gmnCandidateTarget 记录某术语经审计的符号学裁定，lang:denotationTarget 承载已采纳字形的可执行含义，gmeow:gmnDictionaryEntryTerm 在测量否决了显示符号处绑定具名键别名；整条记录是 gmeow:eqLangGmnMathNotationAst 透镜下 math:MathematicalExpression 的一种记法。GMN 命名这些术语并为其渲染定价，但从不重新铸造它们，math: 始终是其唯一权威。已声明量与已测量量刻意不在此接缝上——它们经由量接缝跨越——以免任何接缝变成在对等方中任意命名的通行证。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity-boundary|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Quantity boundary seam"
@@ -12696,7 +12696,7 @@ msgstr "量边界接缝"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/seam/quantity-boundary|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer."
-msgstr "The logic → math seam through which the logic-owned upper-ontology boundary names the math-owned quantity authority as a bridge row's GMEOW-side source endpoint. SUMO is an upper ontology, so its catalog is logic:-owned, but SUMO carries a Quantity class and docs/GROUNDING.md's tier rule fixes math:Quantity as the sole class authority for dimensioned magnitude — logic: may not mint a rival, so the honest row is math:Quantity skos:broadMatch sumo:Quantity, a commitment-shifting logic:BridgeView at logic:ValidationOnly. The seam carries exactly one term on purpose: it sanctions naming the peer-owned quantity authority as a bridge endpoint, and nothing else. It is the single structural reference logic: makes into a grounding peer.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "logic → math 接缝：由 logic 拥有的上层本体边界借此将由 math 拥有的量权威命名为桥接行在 GMEOW 一侧的源端点。SUMO 是上层本体，其目录归 logic: 所有；但 SUMO 带有 Quantity 类，而 docs/GROUNDING.md 的层级规则确定 math:Quantity 为有量纲量的唯一类权威——logic: 不得铸造对手，因此诚实的写法是 math:Quantity skos:broadMatch sumo:Quantity，一个处于 logic:ValidationOnly 的、发生承诺位移的 logic:BridgeView。该接缝刻意只承载一个术语：它只批准将对等方拥有的量权威命名为桥接端点，别无其他。这是 logic: 对某个 grounding 对等方所做的唯一结构性引用。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "logical grounding domain"
@@ -12704,4 +12704,4 @@ msgstr "逻辑基础域"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role."
-msgstr "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role.（参考译文：以该术语所承载的英文规范定义为准。）"
+msgstr "上层本体、逻辑形式体系、规则语言与验证方言——种类与基础范畴，将知识库按描述逻辑划分为术语、角色、断言与陈述语境，模态与次协调框架，推导与完整性语言，以及验证所投影到的形状方言。`logic:` 切片是该领域中每一个 grounding 概念的唯一拥有者。一条形式化了某领域术语的规则或公式，并不因此使该术语成为 grounding 概念：由术语自身的主题决定，而形式化领域词汇正是 `logic:` 被设计承担的角色。"
