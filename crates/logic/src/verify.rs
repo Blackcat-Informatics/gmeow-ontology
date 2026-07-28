@@ -86,10 +86,17 @@ fn query_stem(name: &str) -> &str {
 /// Never panics on a violation; the caller inspects [`Report::ok`]. The returned
 /// report is NOT yet normalized (the PyO3 layer normalizes before serializing).
 ///
+/// One class of defect is NOT reported as a finding but as a hard `Err`: a reasoned
+/// closure that derives an enactment-kernel effect record. A violation there means the
+/// engine crossed the commitment layer's observed-not-derived boundary, which invalidates
+/// the run rather than describing a fact about the data, so it aborts before any gate or
+/// query runs (see [`crate::reason::enactment::reject_banned_heads`]).
+///
 /// # Errors
 ///
 /// Returns `Err` if a query fails to parse/evaluate, if a query is not a
-/// SELECT, or if a derived edge cannot be built as a quad.
+/// SELECT, if a derived edge cannot be built as a quad, or if the reasoned closure
+/// derives a `logic:EffectAttempt` / `logic:ExternalEffectReceipt`.
 pub fn verify_with_reasoning_result(
     edb: &RdfDataset,
     result: &ReasoningResult,
@@ -179,6 +186,11 @@ pub fn verify_with_reasoning_result(
     // reach the hard-fail gate; the native closure only materializes all-IRI edges, so
     // these carry no literal terms.
     let mut derived_edges: Vec<RdfQuad> = Vec::new();
+    // The same derived edges as `(subject, predicate, object)` rows, for the enactment
+    // kernel's observed-not-derived guard immediately below. Built here rather than
+    // decoded back out of `derived_edges` because the bare IRI strings are already in
+    // hand at this point.
+    let mut derived_rows: Vec<(String, String, String)> = Vec::new();
     for ax in result.inferred() {
         if ax.is_edb {
             continue;
@@ -198,7 +210,28 @@ pub fn verify_with_reasoning_result(
             predicate,
             RdfTerm::iri(object),
         ));
+        derived_rows.push((subject.to_owned(), predicate.to_owned(), object.to_owned()));
     }
+
+    // The enactment kernel's observed-not-derived guard, over the REASONED CLOSURE — the
+    // derived (non-EDB) edges just materialized, i.e. what the shipped reasoner actually
+    // concluded from the bundle's own rules. Run unconditionally and FIRST, before any
+    // gate-marker work, because it is the one check whose failure means the engine crossed
+    // the commitment layer's hardest boundary: effect attempts and receipts are records of
+    // what happened in the world, and a reasoner that could conclude an attempt happened
+    // could conclude the world changed. If that inference is in the closure, there is
+    // nothing worth gating afterwards.
+    //
+    // The authored `logic:EffectRecordsAreObservedNotDerivedConstraint` says the same
+    // thing, but a constraint only binds if it is actually run, so the rule is carried here
+    // as a Rust-side guard too — and it HARD-FAILS rather than filtering the offending row
+    // away, since dropping it would preserve the invariant in the output while hiding the
+    // defect that produced it.
+    //
+    // ASSERTED effect records never reach this call: `derived_edges` skips every `is_edb`
+    // axiom, so an attempt the dispatching organ wrote down stays a legitimate observation
+    // the verify queries reason about like any other data.
+    crate::reason::enactment::reject_banned_heads(&derived_rows)?;
 
     // The reasoner-derived `math:` dimensional-homogeneity gate: compiles the two
     // builtin-bound-consequent `logic:Constraint`s authored in `slices/grounding/math/
@@ -225,14 +258,16 @@ pub fn verify_with_reasoning_result(
         });
     }
 
-    // The enactment-kernel gate runs over the SAME reasoned closure, and carries the
-    // observed-not-derived guard on the way out. Effect attempts and receipts are records
-    // of what happened in the world: a reasoner that could conclude an attempt happened
-    // could conclude the world changed, which is the one inference the commitment layer
-    // exists to forbid. The authored constraint says so, but a constraint only binds if
-    // it is actually run, so the guard is enforced here too and HARD-FAILS rather than
-    // filtering the offending row away — dropping it would preserve the invariant in the
-    // output while hiding the defect that produced it.
+    // The enactment-kernel gate runs over the SAME reasoned closure, and its own marker
+    // output is put through the observed-not-derived guard a second time on the way out —
+    // a gate that materializes markers from authored laws is itself a derivation, so it is
+    // held to the boundary exactly like the closure above.
+    //
+    // This second pass is VACUOUS TODAY: `enactment_gate_markers` compiles no laws yet and
+    // returns an empty set, so the guard here has nothing to inspect. It is kept because it
+    // is the check that binds the gate's own future output, and it starts biting the moment
+    // the kernel's laws are compiled in. The boundary is enforced on the live path by the
+    // unconditional pass over `derived_rows` above, not by this call.
     let kernel_markers = crate::reason::enactment::enactment_gate_markers(edb, &derived_edges)?;
     crate::reason::enactment::reject_banned_heads(
         &kernel_markers
