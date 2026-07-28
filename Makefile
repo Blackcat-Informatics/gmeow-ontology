@@ -195,21 +195,13 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 ##@ Generated Artifacts And Outputs
 
 regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessary — `make check` already syncs then gates. Scope via SYNC_OUTPUTS={generated,docs,all}, mode via SYNC_MODE. The standalone regenerate lane for build/release/commit/CI; the gate is `make check`.
-	@# Steering banner on DIRECT invocation only (MAKELEVEL=0). `make check`'s own
-	@# regeneration runs the `check-sync` target via xtask, NOT this `regen` target, so
-	@# this banner never fires inside `make check`; and the sub-make `regen` calls from
-	@# install/build/docs/recursion run at MAKELEVEL>=1, so they stay quiet too.
-	@if [ "$(MAKELEVEL)" = "0" ]; then \
-		printf '\033[1;33m%s\033[0m\n' \
-		  "──────────────────────────────────────────────────────────────────────" \
-		  "NOTE: 'make regen' only REGENERATES generated/ + the bundle — it does NOT" \
-		  "run any gate. You almost never need it directly: 'make check' ALREADY" \
-		  "syncs (CHECK_SYNC_MODE=update) and THEN runs the full gate, so 'make regen'" \
-		  "before 'make check' just regenerates twice. Run 'make regen' alone ONLY for" \
-		  "a clean-clone bootstrap or a regen-without-gate. To verify work: make check" \
-		  "──────────────────────────────────────────────────────────────────────" >&2; \
-		  exit 1 \
-	fi
+	@# Steering guard on DIRECT invocation only. `make check`'s own regeneration runs
+	@# the `check-sync` target via xtask, NOT this `regen` target, so the guard never
+	@# fires inside `make check`; the sub-make `regen` calls from install/build/docs/
+	@# release recursion run at MAKELEVEL>=1, and CI sets CI=true, so both stay quiet.
+	@# GMEOW_MAKELEVEL carries make's OWN expansion: make exports MAKELEVEL to a recipe's
+	@# children already incremented, so the guard cannot read the environment directly.
+	@GMEOW_MAKELEVEL="$(MAKELEVEL)" scripts/regen-guard.sh
 	@# The docs-only fanout (`sync_docs`) REFERENCES the single `make build` output
 	@# (dist/gmeow.jsonld / dist/gmeow.yamlld) instead of re-serializing it, so on a
 	@# cold checkout that build output must exist before this pipeline's docs fanout
@@ -226,7 +218,11 @@ regen: ## Regenerate generated/ + the bundle ONLY (no gates). Usually unnecessar
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
-commit: regen ## Synchronize artifacts, stage generator-owned outputs, and commit.
+commit: ## Synchronize artifacts, stage generator-owned outputs, and commit.
+	@# Regeneration runs as a SUB-make (as install/release/docs already do) rather than
+	@# as a prerequisite: a prerequisite executes at the SAME MAKELEVEL as its target,
+	@# so `commit: regen` would trip the direct-invocation guard for every human.
+	$(MAKE) regen
 	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
 	for p in $${REGENERATED_PATHS}; do \
 	  if [ -e "$$p" ]; then git add "$$p"; fi; \
@@ -249,7 +245,7 @@ project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time 
 
 release: ## Materialize from source (update mode), native-reason, build, report, docs, and emit CrossRef deposit.
 	# A release BUILDS the product from canonical sources — it must materialize, never
-	# read-only check. generated/ is a git-ignored product (#1600), so a fresh release
+	# read-only check. generated/ is a git-ignored product, so a fresh release
 	# checkout has no pre-materialized tree; force SYNC_MODE=update (mirroring how `check`
 	# forces CHECK_SYNC_MODE=update) instead of inheriting gmeow-dev's CI default of Check,
 	# which would hard-fail the superset gate ("no carrier representative") on the absent tree.
@@ -528,7 +524,7 @@ gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its N
 wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the three Node lanes that RUN the shipped wasm and assert byte-identity to native.
 	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the three `*-pkg-test`
 	@# lanes RUN the shipped wasm (validate/reason/gmn) and assert byte-identity to the
-	@# native engine — the "every gmeow surface proven native≡wasm" contract (#1406).
+	@# native engine — the "every gmeow surface proven native≡wasm" contract.
 	@# On-gate so the vendored digest that gates the shipped bytes is exactly the one a
 	@# parity run blessed (the `maint-refresh-*-asset` targets now depend on `*-pkg-test`,
 	@# so re-vendoring cannot re-pin bytes that never passed parity). Locally this SKIPs
