@@ -15307,8 +15307,8 @@ logic:checkpointDataDigest
     skos:definition "Identity axis one of seven: the content address of the authorized data generation the checkpoint was taken over. A restore against a different generation is refused even when every other axis matches, because the run would resume over inputs it never saw. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
     skos:example "ex:midterm logic:checkpointDataDigest \"b3:a17f0c…\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin the asserted data a checkpoint was taken under — one of the seven axes a restore is gated on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid restoring against a subset of the axes: matching the data alone will happily reuse a result computed under different rules, a different engine, or a different fragment."@x-gmeow-english ;
-    gmeow:howToUse "Record all seven axes plus the folded descriptor hash; the fold is what a restore compares first, and the individual axes are what tell you WHICH one moved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid digesting a filtered or projected view of the data; the restore compares this against what was actually loaded, so a narrowed digest matches a state that never existed."@x-gmeow-english ;
+    gmeow:howToUse "Digest the asserted quads as the run saw them, before any view or projection is applied."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:checkpointRulesDigest
@@ -15319,8 +15319,8 @@ logic:checkpointRulesDigest
     skos:definition "Identity axis two of seven: the content address of the rule set in force when the checkpoint was taken. Drifted rules would make the resumed run derive conclusions the original could not, so a mismatch is a refusal rather than an upgrade. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
     skos:example "ex:midterm logic:checkpointRulesDigest \"b3:3e9b1d…\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin the rule set in force a checkpoint was taken under — one of the seven axes a restore is gated on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid restoring against a subset of the axes: matching the data alone will happily reuse a result computed under different rules, a different engine, or a different fragment."@x-gmeow-english ;
-    gmeow:howToUse "Record all seven axes plus the folded descriptor hash; the fold is what a restore compares first, and the individual axes are what tell you WHICH one moved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting rules that were compiled but never fired: a rule set that could have fired differently is a different rule set, even when the run's output was identical."@x-gmeow-english ;
+    gmeow:howToUse "Digest every rule in force at checkpoint time, firing or not."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:checkpointSliceDigest
@@ -15331,8 +15331,8 @@ logic:checkpointSliceDigest
     skos:definition "Identity axis three of seven: the content address of the vocabulary selection in force when the checkpoint was taken. A restore under a different selection may find terms undefined or newly defined, so the axis is gated rather than reconciled. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
     skos:example "ex:midterm logic:checkpointSliceDigest \"b3:6d2a58…\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin the slice inventory a checkpoint was taken under — one of the seven axes a restore is gated on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid restoring against a subset of the axes: matching the data alone will happily reuse a result computed under different rules, a different engine, or a different fragment."@x-gmeow-english ;
-    gmeow:howToUse "Record all seven axes plus the folded descriptor hash; the fold is what a restore compares first, and the individual axes are what tell you WHICH one moved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid digesting only the slices the run touched; a slice that was present and unused still changes what the next step could have seen."@x-gmeow-english ;
+    gmeow:howToUse "Digest the whole loaded slice inventory, including versions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:checkpointContractDigest
@@ -15343,8 +15343,8 @@ logic:checkpointContractDigest
     skos:definition "Identity axis four of seven: the content address of the logic:ReasoningContract the checkpointed run executed under. Resuming under a different contract changes what counts as a complete answer, so the axis is part of identity rather than of configuration. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
     skos:example "ex:midterm logic:checkpointContractDigest \"b3:8f41c0…\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin the reasoning contract a checkpoint was taken under — one of the seven axes a restore is gated on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid restoring against a subset of the axes: matching the data alone will happily reuse a result computed under different rules, a different engine, or a different fragment."@x-gmeow-english ;
-    gmeow:howToUse "Record all seven axes plus the folded descriptor hash; the fold is what a restore compares first, and the individual axes are what tell you WHICH one moved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating two contracts as equal because they produced the same answer here; a contract governs what CAN be concluded, not only what was."@x-gmeow-english ;
+    gmeow:howToUse "Digest the declared reasoning contract — profile, budget policy and completeness semantics together."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:checkpointEngineDigest
@@ -15355,8 +15355,8 @@ logic:checkpointEngineDigest
     skos:definition "Identity axis five of seven: the logic:EngineContract descriptor hash of the engine that took the checkpoint. It is the axis that refuses a restore under a drifted engine — the case a purely data-level check would silently accept. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
     skos:example "ex:midterm logic:checkpointEngineDigest \"b3:15c9e0…\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin the engine build a checkpoint was taken under — one of the seven axes a restore is gated on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid restoring against a subset of the axes: matching the data alone will happily reuse a result computed under different rules, a different engine, or a different fragment."@x-gmeow-english ;
-    gmeow:howToUse "Record all seven axes plus the folded descriptor hash; the fold is what a restore compares first, and the individual axes are what tell you WHICH one moved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pinning a version string in place of the engine's content: two builds of the same version can differ, and the restore would accept a build that reasons differently."@x-gmeow-english ;
+    gmeow:howToUse "Digest the engine's own source-content identity, which is what moves when its behaviour can move."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:checkpointAnnotationDigest
@@ -15367,8 +15367,8 @@ logic:checkpointAnnotationDigest
     skos:definition "Identity axis six of seven: the content address of the tuple-annotation algebra in force when the checkpoint was taken. A different algebra changes how derived annotations combine, so a resumed run would fold evidence differently. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
     skos:example "ex:midterm logic:checkpointAnnotationDigest \"b3:c07b2e…\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin the annotation algebra a checkpoint was taken under — one of the seven axes a restore is gated on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid restoring against a subset of the axes: matching the data alone will happily reuse a result computed under different rules, a different engine, or a different fragment."@x-gmeow-english ;
-    gmeow:howToUse "Record all seven axes plus the folded descriptor hash; the fold is what a restore compares first, and the individual axes are what tell you WHICH one moved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid ignoring the annotation algebra because it looks like metadata; provenance and attribution decide which derivations are admissible, so changing it changes the closure."@x-gmeow-english ;
+    gmeow:howToUse "Digest the annotation semantics in force, not merely the annotations present."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:checkpointFragmentDigest
@@ -15379,8 +15379,8 @@ logic:checkpointFragmentDigest
     skos:definition "Identity axis seven of seven: the content address of the certified decidable fragment the checkpointed run was admitted under. A restore outside that fragment would trade a certified-complete answer for an uncertified one without saying so. Domain a checkpoint (stated in prose)."@x-gmeow-english ;
     skos:example "ex:midterm logic:checkpointFragmentDigest \"b3:24a90f…\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to pin the declared fragment a checkpoint was taken under — one of the seven axes a restore is gated on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid restoring against a subset of the axes: matching the data alone will happily reuse a result computed under different rules, a different engine, or a different fragment."@x-gmeow-english ;
-    gmeow:howToUse "Record all seven axes plus the folded descriptor hash; the fold is what a restore compares first, and the individual axes are what tell you WHICH one moved."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid restoring across a fragment change: a result that was complete for a narrower fragment is merely incomplete for a wider one, and nothing in the data says so."@x-gmeow-english ;
+    gmeow:howToUse "Digest the declared decidable fragment, so a completeness claim is only reused where it still holds."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:checkpointOfEnactment
@@ -16441,8 +16441,8 @@ logic:proposalMissingCapability
     skos:definition "Field one of eight: the capability that is absent. Range a capability (stated in prose). Functional."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalMissingCapability ex:ocrCap ."@x-gmeow-english ;
     gmeow:useWhen "Use for the capability that is absent — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a product or a vendor here; the gap is a capability the deployment lacks, and pinning it to one implementation forecloses the alternatives an operator may prefer."@x-gmeow-english ;
+    gmeow:howToUse "Name the capability abstractly enough that more than one implementation could close it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:proposalRequiredContract
@@ -16453,8 +16453,8 @@ logic:proposalRequiredContract
     skos:definition "Field two of eight: the contract a provider of the missing capability must satisfy. Range a contract descriptor (stated in prose). Functional."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalRequiredContract \"Page image in, positioned text out.\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use for the interface it must satisfy — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid describing the contract in terms of the current caller; a contract written around one call site cannot be satisfied by anything reusable."@x-gmeow-english ;
+    gmeow:howToUse "State the interface as an obligation on any implementation: what it must accept and what it must guarantee."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:proposalExpectedInputs
@@ -16465,8 +16465,8 @@ logic:proposalExpectedInputs
     skos:definition "Field three of eight: the inputs a provider would consume. Range an input descriptor (stated in prose). Functional."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalExpectedInputs \"Rasterised page images, 300dpi or better.\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use for what it consumes — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid listing inputs the blocked step does not actually have; a proposal demanding data nobody can supply cannot be acted on."@x-gmeow-english ;
+    gmeow:howToUse "List what the deployment can already produce at the blocked step, with the formats and quality bounds that matter."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:proposalExpectedOutputs
@@ -16477,8 +16477,8 @@ logic:proposalExpectedOutputs
     skos:definition "Field four of eight: the outputs a provider would produce. Range an output descriptor (stated in prose). Functional."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalExpectedOutputs \"Per-page text with confidence scores.\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use for what it produces — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid specifying outputs richer than the blocked step consumes: over-specifying rules out simpler implementations for no benefit."@x-gmeow-english ;
+    gmeow:howToUse "Specify exactly what the blocked step needs downstream, and no more."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:proposalExpectedEffects
@@ -16489,8 +16489,8 @@ logic:proposalExpectedEffects
     skos:definition "Field five of eight: the world changes a provider would cause. Range an effect descriptor (stated in prose). Functional. Stated separately from outputs because an effect may be irreversible where an output is merely returned."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalExpectedEffects \"Reads batch images; writes text alongside.\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use for what it changes outside itself — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting effects outside the obvious data path — writes, deletions, external calls; an unstated effect is the one that surprises an operator in production."@x-gmeow-english ;
+    gmeow:howToUse "State every effect beyond returning a value, including what it must NOT touch."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:proposalVerificationMethod
@@ -16501,8 +16501,8 @@ logic:proposalVerificationMethod
     skos:definition "Field six of eight: how a candidate provider's correctness would be established. Range a verification descriptor (stated in prose). Functional. Without it a gap can be closed by something that merely claims the capability."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use for how its correctness would be checked — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a verification method with no threshold: 'tested for accuracy' cannot be passed or failed, so it will be declared passed."@x-gmeow-english ;
+    gmeow:howToUse "Give a measurable criterion and the corpus it is measured on, so enabling the capability is a decidable event."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:proposalSecurityLifecycle
@@ -16513,8 +16513,8 @@ logic:proposalSecurityLifecycle
     skos:definition "Field seven of eight: the credential, isolation, retention and decommissioning handling a provider would require. Range a security-lifecycle descriptor (stated in prose). Functional."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalSecurityLifecycle \"Runs inside the data boundary; retains no page content.\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use for its security and retention handling — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deferring security to the deployment: a capability whose data handling is unstated will be deployed with whatever handling is convenient."@x-gmeow-english ;
+    gmeow:howToUse "State the trust boundary, the retention, and the classification of what it processes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:proposalBlockedStep
@@ -16525,8 +16525,8 @@ logic:proposalBlockedStep
     skos:definition "Field eight of eight: the step that would be unblocked. Range a plan step (stated in prose). Functional. It is what makes a proposal answerable to a concrete blockage rather than a general wish."@x-gmeow-english ;
     skos:example "ex:prop logic:proposalBlockedStep ex:ocrStep ."@x-gmeow-english ;
     gmeow:useWhen "Use for the step it would unblock — one of the eight fields a capability-gap proposal must bind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid an incomplete proposal: missing any one field makes it a complaint rather than a request, and an operator cannot act on it without a follow-up conversation."@x-gmeow-english ;
-    gmeow:howToUse "Bind all eight; the completeness constraint rejects a proposal that omits any, which is what makes surfacing a gap worth doing instead of substituting a weaker tool."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming the plan rather than the step; a proposal answerable to a whole plan cannot be checked as having unblocked anything."@x-gmeow-english ;
+    gmeow:howToUse "Name the exact step whose blockage this proposal would clear, which is how the gap and its remedy stay joined."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:Advisory

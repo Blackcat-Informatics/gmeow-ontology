@@ -19460,3 +19460,387 @@ msgstr "étiquette de frontière : compensation recevable"
 msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationEligible|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Derives logic:FrontierCompensationEligible for a frontier entry whose effect axis sits at receipted — a forward effect is known to have committed, so a counteraction is now permissible. Eligibility is all this derives: it asserts no compensation attempt, no compensation outcome, and no claim that compensating will succeed, because compensation is a new action with its own possibility of failing."
 msgstr "Dérive logic:FrontierCompensationEligible pour une entrée de frontière dont l'axe d'effet se trouve à « reçu » — un effet aller est connu comme validé, de sorte qu'une contre-mesure devient permise. La recevabilité est tout ce qui est dérivé ici : rien n'affirme une tentative de compensation, ni une issue de compensation, ni que compenser réussira, car la compensation est une action nouvelle, dotée de sa propre possibilité d'échouer."
+
+msgctxt "https://blackcatinformatics.ca/logic/advisoryAbout|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:draftSummary logic:advisoryAbout ex:weekThirteen ."
+msgstr "Exemple : ex:draftSummary logic:advisoryAbout ex:weekThirteen ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalBindingFault|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:fault logic:approvalBindingFault logic:FaultDifferentEnactment ."
+msgstr "Exemple : ex:fault logic:approvalBindingFault logic:FaultDifferentEnactment ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalDecision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval logic:approvalDecision \"granted\"@x-gmeow-english ."
+msgstr "Exemple : ex:approval logic:approvalDecision \"granted\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalEnactment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval logic:approvalEnactment ex:settlementRun ."
+msgstr "Exemple : ex:approval logic:approvalEnactment ex:settlementRun ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalIntentDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval logic:approvalIntentDigest \"b3:7c30a9…\" ."
+msgstr "Exemple : ex:approval logic:approvalIntentDigest \"b3:7c30a9…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval logic:approvalOperator ex:releaseManager ."
+msgstr "Exemple : ex:approval logic:approvalOperator ex:releaseManager ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval logic:approvalPolicy ex:publicationPolicy ."
+msgstr "Exemple : ex:approval logic:approvalPolicy ex:publicationPolicy ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval logic:approvalState logic:ApprovalDetached ."
+msgstr "Exemple : ex:approval logic:approvalState logic:ApprovalDetached ."
+
+msgctxt "https://blackcatinformatics.ca/logic/approvalValidityWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:approval logic:approvalValidityWindow \"2026-07-25T00:00:00Z/2026-07-25T23:59:59Z\" ."
+msgstr "Exemple : ex:approval logic:approvalValidityWindow \"2026-07-25T00:00:00Z/2026-07-25T23:59:59Z\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyExcluded|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:week13Context logic:assemblyExcluded ex:staleNote ."
+msgstr "Exemple : ex:week13Context logic:assemblyExcluded ex:staleNote ."
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyExclusionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:week13Context logic:assemblyExclusionReason \"superseded by revision 4\"@x-gmeow-english ."
+msgstr "Exemple : ex:week13Context logic:assemblyExclusionReason \"superseded by revision 4\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyForEnactment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:week13Context logic:assemblyForEnactment ex:weekThirteen ."
+msgstr "Exemple : ex:week13Context logic:assemblyForEnactment ex:weekThirteen ."
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyGuidanceVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:week13Context logic:assemblyGuidanceVersion ex:guidanceV2 ."
+msgstr "Exemple : ex:week13Context logic:assemblyGuidanceVersion ex:guidanceV2 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/assemblyIncluded|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:week13Context logic:assemblyIncluded ex:adrNote ."
+msgstr "Exemple : ex:week13Context logic:assemblyIncluded ex:adrNote ."
+
+msgctxt "https://blackcatinformatics.ca/logic/attemptOfIntent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeAttempt logic:attemptOfIntent ex:chargeIntent ."
+msgstr "Exemple : ex:chargeAttempt logic:attemptOfIntent ex:chargeIntent ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointAnnotationDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointAnnotationDigest \"b3:c07b2e…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointAnnotationDigest \"b3:c07b2e…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointContractDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointContractDigest \"b3:8f41c0…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointContractDigest \"b3:8f41c0…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointDataDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointDataDigest \"b3:a17f0c…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointDataDigest \"b3:a17f0c…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointDescriptorHash|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointDescriptorHash \"b3:e58021…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointDescriptorHash \"b3:e58021…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointEngineDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointEngineDigest \"b3:15c9e0…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointEngineDigest \"b3:15c9e0…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointFragmentDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointFragmentDigest \"b3:24a90f…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointFragmentDigest \"b3:24a90f…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointOfEnactment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointOfEnactment ex:enrolment ."
+msgstr "Exemple : ex:midterm logic:checkpointOfEnactment ex:enrolment ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointOfStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:extractCheckpoint logic:checkpointOfStep ex:extractStep ."
+msgstr "Exemple : ex:extractCheckpoint logic:checkpointOfStep ex:extractStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointRulesDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointRulesDigest \"b3:3e9b1d…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointRulesDigest \"b3:3e9b1d…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/checkpointSliceDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:midterm logic:checkpointSliceDigest \"b3:6d2a58…\" ."
+msgstr "Exemple : ex:midterm logic:checkpointSliceDigest \"b3:6d2a58…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/clockObservedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:plantClock logic:clockObservedAt \"2026-07-25T06:12:00Z\"^^xsd:dateTime ."
+msgstr "Exemple : ex:plantClock logic:clockObservedAt \"2026-07-25T06:12:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/logic/clockSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:plantClock logic:clockSource ex:historianNtp ."
+msgstr "Exemple : ex:plantClock logic:clockSource ex:historianNtp ."
+
+msgctxt "https://blackcatinformatics.ca/logic/cohortMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:autumnCohort logic:cohortMember ex:enrolment ."
+msgstr "Exemple : ex:autumnCohort logic:cohortMember ex:enrolment ."
+
+msgctxt "https://blackcatinformatics.ca/logic/compensatesEffect|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:closeValve logic:compensatesEffect ex:valveResult ."
+msgstr "Exemple : ex:closeValve logic:compensatesEffect ex:valveResult ."
+
+msgctxt "https://blackcatinformatics.ca/logic/compensationReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:closeOutcome logic:compensationReceipt ex:closeReceipt ."
+msgstr "Exemple : ex:closeOutcome logic:compensationReceipt ex:closeReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/logic/continuationKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:returnEntry logic:continuationKind logic:ContinuationResume ."
+msgstr "Exemple : ex:returnEntry logic:continuationKind logic:ContinuationResume ."
+
+msgctxt "https://blackcatinformatics.ca/logic/deviationFromStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:accommodation logic:deviationFromStep ex:syllabus ."
+msgstr "Exemple : ex:accommodation logic:deviationFromStep ex:syllabus ."
+
+msgctxt "https://blackcatinformatics.ca/logic/effectKnowledge|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeAttempt logic:effectKnowledge logic:InfoUndetermined ."
+msgstr "Exemple : ex:chargeAttempt logic:effectKnowledge logic:InfoUndetermined ."
+
+msgctxt "https://blackcatinformatics.ca/logic/effectProtocolPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeAttempt logic:effectProtocolPosition logic:EffectAttempted ."
+msgstr "Exemple : ex:chargeAttempt logic:effectProtocolPosition logic:EffectAttempted ."
+
+msgctxt "https://blackcatinformatics.ca/logic/enactmentInputSnapshot|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:weekThirteen logic:enactmentInputSnapshot ex:corpusW13 ."
+msgstr "Exemple : ex:weekThirteen logic:enactmentInputSnapshot ex:corpusW13 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/enactmentJournal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:weekThirteen logic:enactmentJournal ex:journal ."
+msgstr "Exemple : ex:weekThirteen logic:enactmentJournal ex:journal ."
+
+msgctxt "https://blackcatinformatics.ca/logic/enactmentState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:weekThirteen logic:enactmentState logic:EnactmentRunning ."
+msgstr "Exemple : ex:weekThirteen logic:enactmentState logic:EnactmentRunning ."
+
+msgctxt "https://blackcatinformatics.ca/logic/enactsPrescriptionVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:weekThirteen logic:enactsPrescriptionVersion ex:reviewV4 ."
+msgstr "Exemple : ex:weekThirteen logic:enactsPrescriptionVersion ex:reviewV4 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAction|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrEntry logic:entryAction ex:ocrStep ."
+msgstr "Exemple : ex:ocrEntry logic:entryAction ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAxisWitness|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrEntry logic:entryAxisWitness logic:StepReady , logic:ApprovalCreated ."
+msgstr "Exemple : ex:ocrEntry logic:entryAxisWitness logic:StepReady , logic:ApprovalCreated ."
+
+msgctxt "https://blackcatinformatics.ca/logic/entryLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrEntry logic:entryLabel logic:FrontierReadyApprovalRequired ."
+msgstr "Exemple : ex:ocrEntry logic:entryLabel logic:FrontierReadyApprovalRequired ."
+
+msgctxt "https://blackcatinformatics.ca/logic/fencingIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:valveLease logic:fencingIdentity \"fence:FV-104:epoch-41\" ."
+msgstr "Exemple : ex:valveLease logic:fencingIdentity \"fence:FV-104:epoch-41\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/frontierOfEnactment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:frontier logic:frontierOfEnactment ex:run884 ."
+msgstr "Exemple : ex:frontier logic:frontierOfEnactment ex:run884 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/frontierSaturationWitness|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:frontier logic:frontierSaturationWitness ex:saturation ."
+msgstr "Exemple : ex:frontier logic:frontierSaturationWitness ex:saturation ."
+
+msgctxt "https://blackcatinformatics.ca/logic/frontierVantage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:frontier logic:frontierVantage ex:opsStandpoint ."
+msgstr "Exemple : ex:frontier logic:frontierVantage ex:opsStandpoint ."
+
+msgctxt "https://blackcatinformatics.ca/logic/gapBlockedStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrGap logic:gapBlockedStep ex:ocrStep ."
+msgstr "Exemple : ex:ocrGap logic:gapBlockedStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyDuplicateSemantics|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIdem logic:idempotencyDuplicateSemantics \"Repeated key within the window returns the original result.\"@x-gmeow-english ."
+msgstr "Exemple : ex:chargeIdem logic:idempotencyDuplicateSemantics \"Repeated key within the window returns the original result.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIdem logic:idempotencyKey \"invoice:90233:charge:1\" ."
+msgstr "Exemple : ex:chargeIdem logic:idempotencyKey \"invoice:90233:charge:1\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyProviderEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIdem logic:idempotencyProviderEvidence \"Provider API v3 idempotency spec, section 4.2.\"@x-gmeow-english ."
+msgstr "Exemple : ex:chargeIdem logic:idempotencyProviderEvidence \"Provider API v3 idempotency spec, section 4.2.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyRetention|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIdem logic:idempotencyRetention \"PT24H\"^^xsd:duration ."
+msgstr "Exemple : ex:chargeIdem logic:idempotencyRetention \"PT24H\"^^xsd:duration ."
+
+msgctxt "https://blackcatinformatics.ca/logic/idempotencyScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIdem logic:idempotencyScope \"provider:acme:merchant-88\" ."
+msgstr "Exemple : ex:chargeIdem logic:idempotencyScope \"provider:acme:merchant-88\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentActionSchemaVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentActionSchemaVersion ex:chargeSchemaV2 ."
+msgstr "Exemple : ex:chargeIntent logic:intentActionSchemaVersion ex:chargeSchemaV2 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentApprovalRequired|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentApprovalRequired false ."
+msgstr "Exemple : ex:chargeIntent logic:intentApprovalRequired false ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentDigest \"b3:6c1a80…\" ."
+msgstr "Exemple : ex:chargeIntent logic:intentDigest \"b3:6c1a80…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentIdempotency|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentIdempotency ex:chargeIdem ."
+msgstr "Exemple : ex:chargeIntent logic:intentIdempotency ex:chargeIdem ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentNormalizedArguments|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentNormalizedArguments ex:chargeArgs ."
+msgstr "Exemple : ex:chargeIntent logic:intentNormalizedArguments ex:chargeArgs ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentOfEnactment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentOfEnactment ex:settlementRun ."
+msgstr "Exemple : ex:chargeIntent logic:intentOfEnactment ex:settlementRun ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentOfStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentOfStep ex:chargeStep ."
+msgstr "Exemple : ex:chargeIntent logic:intentOfStep ex:chargeStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentPolicy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentPolicy ex:settlementPolicy ."
+msgstr "Exemple : ex:chargeIntent logic:intentPolicy ex:settlementPolicy ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intentTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeIntent logic:intentTarget ex:paymentsEndpoint ."
+msgstr "Exemple : ex:chargeIntent logic:intentTarget ex:paymentsEndpoint ."
+
+msgctxt "https://blackcatinformatics.ca/logic/journalDeltaIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry7 logic:journalDeltaIdentity \"b3:2e6a19…\" ."
+msgstr "Exemple : ex:entry7 logic:journalDeltaIdentity \"b3:2e6a19…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/journalHead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:journal logic:journalHead \"b3:7c05ea…\" ."
+msgstr "Exemple : ex:journal logic:journalHead \"b3:7c05ea…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/journalNewHead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry7 logic:journalNewHead \"b3:7c05ea…\" ."
+msgstr "Exemple : ex:entry7 logic:journalNewHead \"b3:7c05ea…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/journalOutcomeTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry7 logic:journalOutcomeTag \"accepted\" ."
+msgstr "Exemple : ex:entry7 logic:journalOutcomeTag \"accepted\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/journalPrevHead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry7 logic:journalPrevHead \"b3:0000…\" ."
+msgstr "Exemple : ex:entry7 logic:journalPrevHead \"b3:0000…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/leaseExpiry|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:valveLease logic:leaseExpiry \"2026-07-25T06:30:00Z\"^^xsd:dateTime ."
+msgstr "Exemple : ex:valveLease logic:leaseExpiry \"2026-07-25T06:30:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/logic/leaseOwner|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:valveLease logic:leaseOwner ex:supervisorA ."
+msgstr "Exemple : ex:valveLease logic:leaseOwner ex:supervisorA ."
+
+msgctxt "https://blackcatinformatics.ca/logic/leaseScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:valveLease logic:leaseScope \"actuator:FV-104\" ."
+msgstr "Exemple : ex:valveLease logic:leaseScope \"actuator:FV-104\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/methodApplicability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrMethod logic:methodApplicability ex:hasOcrCapability ."
+msgstr "Exemple : ex:ocrMethod logic:methodApplicability ex:hasOcrCapability ."
+
+msgctxt "https://blackcatinformatics.ca/logic/methodDecomposes|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrMethod logic:methodDecomposes ex:ocr ."
+msgstr "Exemple : ex:ocrMethod logic:methodDecomposes ex:ocr ."
+
+msgctxt "https://blackcatinformatics.ca/logic/methodDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrMethod logic:methodDigest \"b3:1a2b3c…\" ."
+msgstr "Exemple : ex:ocrMethod logic:methodDigest \"b3:1a2b3c…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/methodYields|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrMethod logic:methodYields ex:extract , ex:verify ."
+msgstr "Exemple : ex:ocrMethod logic:methodYields ex:extract , ex:verify ."
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reviewV4 logic:prescriptionDigest \"b3:4c8a03…\" ."
+msgstr "Exemple : ex:reviewV4 logic:prescriptionDigest \"b3:4c8a03…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reviewProcess logic:prescriptionKind logic:prescriptionKindRepeatableGuide ."
+msgstr "Exemple : ex:reviewProcess logic:prescriptionKind logic:prescriptionKindRepeatableGuide ."
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reviewV4 logic:prescriptionOf ex:reviewProcess ."
+msgstr "Exemple : ex:reviewV4 logic:prescriptionOf ex:reviewProcess ."
+
+msgctxt "https://blackcatinformatics.ca/logic/probesAttempt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:probe logic:probesAttempt ex:chargeAttempt ."
+msgstr "Exemple : ex:probe logic:probesAttempt ex:chargeAttempt ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalBlockedStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalBlockedStep ex:ocrStep ."
+msgstr "Exemple : ex:prop logic:proposalBlockedStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalExpectedEffects|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalExpectedEffects \"Reads batch images; writes text alongside.\"@x-gmeow-english ."
+msgstr "Exemple : ex:prop logic:proposalExpectedEffects \"Reads batch images; writes text alongside.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalExpectedInputs|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalExpectedInputs \"Rasterised page images, 300dpi or better.\"@x-gmeow-english ."
+msgstr "Exemple : ex:prop logic:proposalExpectedInputs \"Rasterised page images, 300dpi or better.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalExpectedOutputs|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalExpectedOutputs \"Per-page text with confidence scores.\"@x-gmeow-english ."
+msgstr "Exemple : ex:prop logic:proposalExpectedOutputs \"Per-page text with confidence scores.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalMissingCapability|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalMissingCapability ex:ocrCap ."
+msgstr "Exemple : ex:prop logic:proposalMissingCapability ex:ocrCap ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalRequiredContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalRequiredContract \"Page image in, positioned text out.\"@x-gmeow-english ."
+msgstr "Exemple : ex:prop logic:proposalRequiredContract \"Page image in, positioned text out.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalSecurityLifecycle|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalSecurityLifecycle \"Runs inside the data boundary; retains no page content.\"@x-gmeow-english ."
+msgstr "Exemple : ex:prop logic:proposalSecurityLifecycle \"Runs inside the data boundary; retains no page content.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/proposalVerificationMethod|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:prop logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\"@x-gmeow-english ."
+msgstr "Exemple : ex:prop logic:proposalVerificationMethod \"CER below 2% on the ground-truth set.\"@x-gmeow-english ."
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeReceipt logic:receiptEvidence ex:providerResponse ."
+msgstr "Exemple : ex:chargeReceipt logic:receiptEvidence ex:providerResponse ."
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfAttempt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeReceipt logic:receiptOfAttempt ex:chargeAttempt ."
+msgstr "Exemple : ex:chargeReceipt logic:receiptOfAttempt ex:chargeAttempt ."
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:stagingReceipt logic:receiptOfPreparation ex:stageFiles ."
+msgstr "Exemple : ex:stagingReceipt logic:receiptOfPreparation ex:stageFiles ."
+
+msgctxt "https://blackcatinformatics.ca/logic/reconciliationVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:probeResult logic:reconciliationVerdict logic:ReconciledCommitted ."
+msgstr "Exemple : ex:probeResult logic:reconciliationVerdict logic:ReconciledCommitted ."
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementBudget|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:episode logic:refinementBudget ex:stepBudget ."
+msgstr "Exemple : ex:episode logic:refinementBudget ex:stepBudget ."
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:episode logic:refinementCandidate ex:pinnedPlan ."
+msgstr "Exemple : ex:episode logic:refinementCandidate ex:pinnedPlan ."
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementServesGoal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:episode logic:refinementServesGoal ex:textExtracted ."
+msgstr "Exemple : ex:episode logic:refinementServesGoal ex:textExtracted ."
+
+msgctxt "https://blackcatinformatics.ca/logic/refinementWorldSnapshot|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:episode logic:refinementWorldSnapshot ex:worldAtDecision ."
+msgstr "Exemple : ex:episode logic:refinementWorldSnapshot ex:worldAtDecision ."
+
+msgctxt "https://blackcatinformatics.ca/logic/refinesGoal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:subGoal logic:refinesGoal ex:topGoal ."
+msgstr "Exemple : ex:subGoal logic:refinesGoal ex:topGoal ."
+
+msgctxt "https://blackcatinformatics.ca/logic/refinesStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:episode logic:refinesStep ex:ocrStep ."
+msgstr "Exemple : ex:episode logic:refinesStep ex:ocrStep ."
+
+msgctxt "https://blackcatinformatics.ca/logic/snapshotDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:corpusW13 logic:snapshotDigest \"b3:93e5c1…\" ."
+msgstr "Exemple : ex:corpusW13 logic:snapshotDigest \"b3:93e5c1…\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/unknownOfAttempt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:chargeUnknown logic:unknownOfAttempt ex:chargeAttempt ."
+msgstr "Exemple : ex:chargeUnknown logic:unknownOfAttempt ex:chargeAttempt ."
