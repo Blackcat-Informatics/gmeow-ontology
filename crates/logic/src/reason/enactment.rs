@@ -14,13 +14,23 @@
 //! as an ordinary positive body, its consequent NEGATED and joined on — and drives them
 //! through the native forward semi-naive chase over the SAME reasoned closure `verify()`
 //! is checking. A body that fully matches is therefore exactly a record that meets the
-//! law's guard and breaks its obligation, and the rule's head types that record
-//! `logic:EnactmentIntegrityViolation`. The marker is an ordinary `rdf:type` triple the
-//! caller splices into the reasoned graph, so the `enactment-integrity-violation.rq`
-//! verify query renders it like any other row: the finding is REASONER-DERIVED from the
-//! authored law, never a Rust side-channel decision. Structurally this is
-//! [`super::math_gate`] with the arithmetic-decided consequent replaced by a
-//! negation-as-failure one, which is what the ordinary (non-builtin-bound) corpus needs.
+//! law's guard and breaks its obligation, and the rule's head publishes WHICH law it broke
+//! as `record logic:violatedLaw <the constraint>`. The caller splices that edge and the
+//! law's authored `gmeow:enforcesFailureClass` marker into the reasoned graph, so the
+//! `enactment-integrity-violation.rq` verify query renders them like any other row: the
+//! finding is REASONER-DERIVED from the authored law, never a Rust side-channel decision.
+//! Structurally this is [`super::math_gate`] with the arithmetic-decided consequent
+//! replaced by a negation-as-failure one, which is what the ordinary (non-builtin-bound)
+//! corpus needs.
+//!
+//! **The head names the law, and that is load-bearing.** The kernel shares ONE failure
+//! class across all forty of its laws, so heading every rule with
+//! `record rdf:type logic:EnactmentIntegrityViolation` made every law derive the SAME
+//! tuple. The chase keeps one winning derivation per derived tuple, so a record condemned
+//! by two laws surfaced under exactly one of them and the rest went dark — enforcing
+//! nothing while compiling, running, and passing every census. Heading on
+//! `logic:violatedLaw` makes each law's conclusion its own tuple; the invariant is held by
+//! `crate::relational_core::reject_colliding_heads` rather than left to convention.
 //!
 //! Not every authored constraint compiles, and the ones that do not are named rather than
 //! quietly dropped: the lowering is a total function into `⟨ rules ⊕ flagged residue ⟩`
@@ -56,12 +66,12 @@
 //!
 //! 1. **Insertion-order enumeration** — every join / scan walks the world's quads in the
 //!    deterministic, content-sorted order the store produces.
-//! 2. **Canonical marker sort** — the emitted `(subject, failure_class)` pairs are sorted
-//!    and deduplicated before return, so a marker set is a function of the closure alone.
+//! 2. **Canonical marker sort** — the emitted `(subject, failure_class, law)` triples are
+//!    sorted and deduplicated before return, so a marker set is a function of the closure
+//!    alone.
 //! 3. **Chase-derived only** — a row whose `rule_iri` is [`crate::provenance::ASSERT_RULE_IRI`]
-//!    is echoed EDB and is dropped: a violation marker is always DERIVED, and a caller's
-//!    data asserting `a logic:EnactmentIntegrityViolation` by hand is not a finding this
-//!    gate made.
+//!    is echoed EDB and is dropped: a violation finding is always DERIVED, and a caller's
+//!    data asserting `logic:violatedLaw` by hand is not a finding this gate made.
 //!
 //! # No-optionality
 //!
@@ -80,7 +90,7 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 use crate::physical::{NativeOutcome, compile_cached, materialize_native};
 use gmeow_logic_compile::relational_core::RcViolationGap;
 
-use crate::relational_core::ViolationLowering;
+use crate::relational_core::{VIOLATED_LAW, ViolationLowering};
 use crate::rule_ir::{EvalRule, EvalTerm};
 use crate::store::WorldStore;
 
@@ -433,12 +443,32 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
     }
 }
 
+/// One materialized kernel finding: the record the chase condemned, the authored failure
+/// class it is typed with, and the authored `logic:Constraint` whose law condemned it.
+///
+/// The third field is why this is a struct rather than the `(subject, class)` pair the math
+/// gate returns. The kernel deliberately shares ONE failure class across forty laws, so the
+/// marker alone answers "this record is ill-formed" and leaves the operator to re-derive
+/// WHICH of forty authored obligations it broke — from a record that, by construction, looks
+/// fine except in the one respect the law names. The law identity already exists at this
+/// point (every violation rule is `constraint_tag`-stamped by the lowering); carrying it out
+/// of the chase rather than dropping it on the floor is the whole fix.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct KernelViolation {
+    /// The condemned record's IRI.
+    pub(crate) subject: String,
+    /// The authored `gmeow:enforcesFailureClass` IRI the marker types the record with.
+    pub(crate) failure_class: String,
+    /// The authored `logic:Constraint` IRI whose law fired.
+    pub(crate) law: String,
+}
+
 /// The enactment-kernel gate entry point.
 ///
 /// Runs the compiled kernel laws over the reasoned closure (`edb` UNIONED with the
 /// DL-`derived` non-EDB edges the caller layered onto the reasoned graph) and returns every
-/// materialized `(subject, failure_class)` marker pair — deduplicated, sorted — ready to be
-/// inserted as `subject rdf:type failure_class` quads.
+/// materialized [`KernelViolation`] — deduplicated, sorted — ready to be inserted as a
+/// `subject rdf:type failure_class` marker plus a `subject logic:violatedLaw law` edge.
 ///
 /// Returns an empty vector, ordinarily, when the closure violates no kernel law. It is NOT
 /// a way of saying "nothing ran": the compiled law set is non-empty by construction (a
@@ -449,13 +479,14 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
 /// # Errors
 ///
 /// Returns `Err` when the promoted closure fails to freeze, when the compiled laws are not
-/// stratifiable, when the native forward chase declines the program, or when a materialized
-/// marker's subject is not an IRI — every case a genuine internal-invariant failure, never
-/// a silent empty result standing in for an error.
+/// stratifiable, when the native forward chase declines the program, when a materialized
+/// marker's subject is not an IRI, or when a chase-derived row's rule is not one of the
+/// compiled laws — every case a genuine internal-invariant failure, never a silent empty
+/// result standing in for an error.
 pub(crate) fn enactment_gate_markers(
     edb: &RdfDataset,
     derived: &[RdfQuad],
-) -> gmeow_errors::Result<Vec<(String, String)>> {
+) -> gmeow_errors::Result<Vec<KernelViolation>> {
     let rules = compiled_rules();
     let (keep_predicates, keep_type_objects) = gate_read_predicates(rules);
     let promoted = promote_to_single_world(edb, derived, &keep_predicates, &keep_type_objects)?;
@@ -465,8 +496,8 @@ pub(crate) fn enactment_gate_markers(
     let Some(executable) = lookup.executable else {
         return Err(enactment_gate_err(
             "enactment gate: the compiled violation rules are not stratifiable — a kernel \
-             law's negated consequent literal shares a predicate with a violation head, so \
-             no finite stratification exists"
+             law's negated consequent literal names logic:violatedLaw, which every violation \
+             rule heads on, so no finite stratification exists"
                 .to_owned(),
         ));
     };
@@ -482,21 +513,37 @@ pub(crate) fn enactment_gate_markers(
         }
     };
 
-    let mut markers: Vec<(String, String)> = Vec::new();
+    let failure_classes = &compiled_law_report().failure_classes;
+    let mut markers: Vec<KernelViolation> = Vec::new();
     for row in budgeted.rows {
         // Drop the echoed-EDB rows: a violation marker is always chase-DERIVED, and a
-        // caller's data typing a record `a logic:EnactmentIntegrityViolation` by hand is an
-        // assertion about the world, not a finding this gate made.
+        // caller's data asserting `logic:violatedLaw` by hand is a claim about the world,
+        // not a finding this gate made.
         if row.rule_iri == crate::provenance::ASSERT_RULE_IRI {
             continue;
         }
-        if row.predicate != RDF_TYPE {
+        if row.predicate != VIOLATED_LAW {
             continue;
         }
-        let TermValue::Iri(class) = &row.object else {
+        let TermValue::Iri(law) = &row.object else {
             continue;
         };
-        markers.push((subject_iri(&row.subject)?, class.clone()));
+        // A derived row naming a law the lowering never compiled would mean the chase
+        // produced a finding no authored constraint asked for — surfaced rather than
+        // dropped, because publishing an unattributable finding is exactly the defect the
+        // law identity exists to end.
+        let failure_class = failure_classes.get(law).ok_or_else(|| {
+            enactment_gate_err(format!(
+                "enactment gate: the chase condemned a record under <{law}>, which is not one \
+                 of the compiled logic:Constraint laws — a finding no authored law can be \
+                 traced to"
+            ))
+        })?;
+        markers.push(KernelViolation {
+            subject: subject_iri(&row.subject)?,
+            failure_class: failure_class.clone(),
+            law: law.clone(),
+        });
     }
     markers.sort();
     markers.dedup();
@@ -506,43 +553,93 @@ pub(crate) fn enactment_gate_markers(
 #[cfg(test)]
 mod tests {
     use super::{
-        BANNED_DERIVED_HEADS, DERIVATION_IDENTIFIER, RcViolationGap, compile_cached,
-        compiled_law_report, is_banned_derived_head, reject_banned_heads,
+        BANNED_DERIVED_HEADS, DERIVATION_IDENTIFIER, EvalTerm, RcViolationGap, VIOLATED_LAW,
+        compile_cached, compiled_law_report, is_banned_derived_head, reject_banned_heads,
     };
     use std::collections::BTreeSet;
 
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-    /// The 23 enactment-kernel laws the gate MUST compile, by local name.
+    /// The 40 enactment-kernel laws the gate MUST compile, by local name.
     ///
     /// Spelled out rather than counted, because the number alone would stay green if one
     /// law silently dropped out of the fragment and an unrelated one was added. This is the
     /// census the module doc's claim rests on: every enactment law authored in
     /// `slices/grounding/logic/module.ttl` is a law the chase actually runs.
-    const ENACTMENT_LAWS: [&str; 23] = [
+    ///
+    /// The set is deliberately PAIRED across most record kinds: a presence law whose name
+    /// says only that a binding exists, and a relational law whose name states the relation
+    /// and whose body joins the records that relation holds between. The pairing exists
+    /// because the two failures are independent — a lease with no fencing identity and a
+    /// lease double-claiming a held scope are different defects, and a corpus must be able
+    /// to trip each alone — and because a single law cannot do both: the relational body
+    /// needs the binding in its GUARD, which makes the missing-binding case fall outside it.
+    const ENACTMENT_LAWS: [&str; 40] = [
         "AdvisoryNeverAuthorityConstraint",
         "ApprovalCommitmentCompletenessConstraint",
+        "ApprovalDigestBindsDispatchIntentConstraint",
+        "ApprovalScopedToIntentEnactmentConstraint",
         "CapabilityGapProposalCompletenessConstraint",
+        "CheckpointCarriesFoldedIdentityConstraint",
         "CheckpointRestoreIdentityConstraint",
         "ClockAttributionRequiredConstraint",
         "CompensationBindsExactForwardEffectConstraint",
+        "CompensationNamesForwardEffectConstraint",
         "CompensationNotInverseConstraint",
+        "CompensationOutcomeReceiptIsNotTheForwardReceiptConstraint",
         "CompensationSuccessRequiresReceiptConstraint",
+        "ContextAssemblyExclusionIsNotInclusionConstraint",
+        "ContextAssemblyNamesItsEnactmentConstraint",
         "ContextAssemblyRecordsExclusionsConstraint",
         "ContinuationKindDisjointnessConstraint",
+        "ContinuationRepeatExcludesReviseConstraint",
         "DispatchIntentCompletenessConstraint",
         "EffectRecordsAreObservedNotDerivedConstraint",
         "EnactmentPinsPrescriptionAndSnapshotConstraint",
+        "FrontierCarriesSaturationWitnessConstraint",
         "FrontierClosureRequiresSaturationConstraint",
         "IdempotencyContractCompletenessConstraint",
+        "JournalChainIntegrityConstraint",
+        "JournalEntryNamesBothHeadsConstraint",
+        "LeaseCarriesFencingIdentityConstraint",
+        "LeaseExclusivityConstraint",
+        "NoBlindRetryConstraint",
+        "OperationalGapCarriesProposalConstraint",
+        "OperationalGapNamesBlockedStepConstraint",
+        "PrescriptionVersionImmutabilityConstraint",
+        "PrescriptionVersionIsContentAddressedConstraint",
+        "ReceiptRequiresAttemptConstraint",
+        "ReconciliationResultCarriesVerdictConstraint",
+        "RefinementEpisodeDeclaresSearchFragmentConstraint",
+        "RefinementPinComesFromCandidateSetConstraint",
+        "RestoreStaysWithinItsEnactmentConstraint",
+        "RetryRequiresLicenceConstraint",
+        "UnknownOutcomeNamesItsAttemptConstraint",
+    ];
+
+    /// Every relational law — one whose body JOINS two or more records — compiles.
+    ///
+    /// A subset of [`ENACTMENT_LAWS`], named separately because it is the half that would
+    /// be silently lost by a regression to presence checking: a constraint whose guard
+    /// carries the extra join atoms is exactly the shape that falls out of the Horn+NAF
+    /// fragment first, and losing one would restore the defect this census was rebuilt to
+    /// end — a law whose IRI asserts a relation and whose body tests a field.
+    const RELATIONAL_LAWS: [&str; 15] = [
+        "ApprovalDigestBindsDispatchIntentConstraint",
+        "ApprovalScopedToIntentEnactmentConstraint",
+        "CheckpointRestoreIdentityConstraint",
+        "CompensationBindsExactForwardEffectConstraint",
+        "CompensationOutcomeReceiptIsNotTheForwardReceiptConstraint",
+        "ContextAssemblyExclusionIsNotInclusionConstraint",
+        "ContextAssemblyRecordsExclusionsConstraint",
+        "FrontierClosureRequiresSaturationConstraint",
         "JournalChainIntegrityConstraint",
         "LeaseExclusivityConstraint",
         "NoBlindRetryConstraint",
         "OperationalGapCarriesProposalConstraint",
         "PrescriptionVersionImmutabilityConstraint",
-        "ReceiptRequiresAttemptConstraint",
-        "ReconciliationResultCarriesVerdictConstraint",
-        "RefinementCandidateSetClosureConstraint",
+        "RefinementPinComesFromCandidateSetConstraint",
+        "RestoreStaysWithinItsEnactmentConstraint",
     ];
 
     /// The IRIs of the constraints that actually lowered into violation rules.
@@ -576,6 +673,203 @@ mod tests {
             missing.is_empty(),
             "these authored enactment-kernel laws did not lower into violation rules, so the \
              gate does not enforce them: {missing:?}"
+        );
+    }
+
+    /// The variables an atom mentions, as an ordered set.
+    fn atom_vars(atom: &crate::rule_ir::EvalAtom) -> BTreeSet<&str> {
+        [&atom.subject, &atom.object]
+            .into_iter()
+            .filter_map(|term| match term {
+                EvalTerm::Var(v) => Some(v.as_str()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// The variables a body binds POSITIVELY, closed under join with the focus variable.
+    ///
+    /// Seeded with the focus and grown by repeatedly absorbing every positive atom that
+    /// already shares a variable with the set. A body variable outside the result is one
+    /// the law reaches only through an atom that shares nothing with the focus record —
+    /// a cartesian product wearing a join's clothes.
+    fn focus_connected_vars<'a>(
+        body: &'a [crate::rule_ir::EvalAtom],
+        focus: &'a str,
+    ) -> BTreeSet<&'a str> {
+        let mut reached: BTreeSet<&str> = BTreeSet::new();
+        reached.insert(focus);
+        loop {
+            let before = reached.len();
+            for atom in body.iter().filter(|a| !a.negated) {
+                let vars = atom_vars(atom);
+                if vars.iter().any(|v| reached.contains(v)) {
+                    reached.extend(vars);
+                }
+            }
+            if reached.len() == before {
+                return reached;
+            }
+        }
+    }
+
+    /// Every relational law lowers into a rule whose body actually JOINS, and whose
+    /// CONCLUSION names the law that drew it.
+    ///
+    /// The census above would stay green if a relational law's body were quietly reduced to
+    /// its presence sibling's — same IRI, same failure class, same rule count, and a gate
+    /// that reads as enforcing a relation while testing a field. Three properties are
+    /// pinned, and the third is the one this test used to be missing:
+    ///
+    /// 1. **Its GUARD reaches past the focus record** — some POSITIVE body atom mentions a
+    ///    variable other than the focus. This is the structural difference the census doc
+    ///    above names: a presence law's guard is a bare `rdf:type` test and its only other
+    ///    variable is the free object of the NAF probe, so a relational law reduced to its
+    ///    presence sibling loses exactly this. The test is on the guard, and on EITHER term
+    ///    position, because a relation between two of the focus record's own bindings —
+    ///    `assemblyExcluded(?this, ?w) ∧ assemblyIncluded(?this, ?w)` — joins on the OBJECT
+    ///    and is no less a relation for it.
+    /// 2. **The join is CONNECTED** — every variable a POSITIVE atom mentions is reachable
+    ///    from the focus through shared variables. An unconnected positive atom is a
+    ///    cartesian product: it makes the body look relational and constrains nothing about
+    ///    the focus record, so a law reduced to one would satisfy property 1 alone. A
+    ///    variable free in the NAF literal alone is excluded by design — that is the
+    ///    existential probe the obligation shape is decided by, not a stray join.
+    /// 3. **The conclusion is LAW-DISTINGUISHING** — the head tuple names this constraint,
+    ///    so a record condemned by this law and by another produces two distinct derived
+    ///    tuples. When every law headed on the shared `rdf:type EnactmentIntegrityViolation`
+    ///    marker instead, the chase's one-winner-per-tuple selection erased every law but
+    ///    one on any record that broke more than one, and this test — checking only body
+    ///    shape — stayed green throughout. A law whose finding another law can delete is
+    ///    exactly a law that reads as relational and enforces nothing.
+    #[test]
+    fn every_relational_law_lowers_into_a_joining_body() {
+        let report = compiled_law_report();
+        let mut not_joining: Vec<&str> = Vec::new();
+        let mut disconnected: Vec<String> = Vec::new();
+        let mut anonymous_conclusion: Vec<String> = Vec::new();
+        for name in RELATIONAL_LAWS {
+            let suffix = format!("/{name}");
+            let rules: Vec<&crate::rule_ir::EvalRule> = report
+                .rules
+                .iter()
+                .filter(|rule| {
+                    rule.constraint_tag
+                        .as_ref()
+                        .is_some_and(|iri| iri.ends_with(&suffix))
+                })
+                .collect();
+            if !rules.iter().any(|rule| {
+                let EvalTerm::Var(focus) = &rule.head.subject else {
+                    return false;
+                };
+                rule.body
+                    .iter()
+                    .filter(|atom| !atom.negated)
+                    .any(|atom| atom_vars(atom).iter().any(|v| *v != focus.as_str()))
+            }) {
+                not_joining.push(name);
+            }
+            for rule in &rules {
+                let EvalTerm::Var(focus) = &rule.head.subject else {
+                    anonymous_conclusion
+                        .push(format!("{name}: head subject is not the focus variable"));
+                    continue;
+                };
+                let reached = focus_connected_vars(&rule.body, focus);
+                // POSITIVE atoms only. A variable occurring solely in the NAF literal is
+                // the existential probe this lowering is built on — `¬intentDigest(?intent,
+                // ?digest)` with `?intent` free asks "does ANY intent carry this digest",
+                // which is the obligation's meaning and not a stray join.
+                let stranded: Vec<&str> = rule
+                    .body
+                    .iter()
+                    .filter(|atom| !atom.negated)
+                    .flat_map(|atom| atom_vars(atom))
+                    .filter(|v| !reached.contains(v))
+                    .collect();
+                if !stranded.is_empty() {
+                    disconnected.push(format!("{name}: {stranded:?}"));
+                }
+                let names_this_law = rule.head.predicate == VIOLATED_LAW
+                    && matches!(&rule.head.object, EvalTerm::ConstNamed(iri) if iri.ends_with(&suffix));
+                if !names_this_law {
+                    anonymous_conclusion.push(format!(
+                        "{name}: head is <{}> {:?}",
+                        rule.head.predicate, rule.head.object
+                    ));
+                }
+            }
+        }
+        assert!(
+            not_joining.is_empty(),
+            "these laws name a RELATION and lowered into a body that never leaves the focus \
+             record, so their name asserts more than their body checks: {not_joining:?}"
+        );
+        assert!(
+            disconnected.is_empty(),
+            "these laws lowered into a body whose variables are not all reachable from the \
+             focus record, so part of the body is a cartesian product constraining nothing \
+             about the record the law condemns: {disconnected:?}"
+        );
+        assert!(
+            anonymous_conclusion.is_empty(),
+            "these laws lowered into a conclusion that does not name them, so a record they \
+             condemn derives a tuple another law can derive too — and the chase keeps one \
+             derivation per tuple, silently erasing every loser: {anonymous_conclusion:?}"
+        );
+    }
+
+    /// No two laws share a head tuple shape, across the WHOLE compiled corpus.
+    ///
+    /// The corpus-wide form of the property the relational census pins per law, and the
+    /// invariant `crate::relational_core::reject_colliding_heads` enforces at lowering
+    /// time. Stated here as well because the failure it prevents is silent by construction:
+    /// two laws sharing a conclusion still compile, still run, still appear in every census,
+    /// and still lose one finding per co-condemned record.
+    #[test]
+    fn no_two_laws_share_a_conclusion() {
+        let mut owners: std::collections::BTreeMap<(String, String), BTreeSet<String>> =
+            std::collections::BTreeMap::new();
+        for rule in &compiled_law_report().rules {
+            let object = match &rule.head.object {
+                EvalTerm::ConstNamed(iri) => iri.clone(),
+                other => format!("{other:?}"),
+            };
+            owners
+                .entry((rule.head.predicate.clone(), object))
+                .or_default()
+                .insert(rule.constraint_tag.clone().unwrap_or_default());
+        }
+        let shared: Vec<String> = owners
+            .iter()
+            .filter(|(_, laws)| laws.len() > 1)
+            .map(|(head, laws)| format!("{head:?} shared by {laws:?}"))
+            .collect();
+        assert!(
+            shared.is_empty(),
+            "these head tuple shapes are derived by more than one authored law, so a record \
+             both condemn yields one derived tuple and one surviving law: {shared:?}"
+        );
+    }
+
+    /// Every compiled rule is traceable to the authored law it came from.
+    ///
+    /// The precondition of the finding carrying its law identity. An untagged rule would
+    /// derive a marker the gate cannot attribute, which `enactment_gate_markers` refuses at
+    /// runtime — this catches it at the lowering instead, where the cause is visible.
+    #[test]
+    fn every_compiled_rule_carries_its_authored_law() {
+        let untagged: Vec<&str> = compiled_law_report()
+            .rules
+            .iter()
+            .filter(|rule| rule.constraint_tag.is_none())
+            .map(|rule| rule.rule_iri.as_str())
+            .collect();
+        assert!(
+            untagged.is_empty(),
+            "these violation rules carry no source constraint, so a marker they derive names \
+             no law an operator could read: {untagged:?}"
         );
     }
 

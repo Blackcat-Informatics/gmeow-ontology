@@ -11019,8 +11019,8 @@ msgid "ex:refundAttempt a logic:CompensationAttempt ; logic:compensatesEffect ex
 msgstr "Exemple : ex:refundAttempt a logic:CompensationAttempt ; logic:compensatesEffect ex:payReceipt ."
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationBindsExactForwardEffectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a compensation names the exact forward receipt"
-msgstr "une compensation nomme le reçu aller exact"
+msgid "a compensation binds the exact forward receipt"
+msgstr "une compensation lie le reçu aller exact"
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcome|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Compensation Outcome"
@@ -11043,8 +11043,8 @@ msgid "ex:w12Context a logic:ContextAssembly ; logic:assemblyForEnactment ex:adr
 msgstr "Exemple : ex:w12Context a logic:ContextAssembly ; logic:assemblyForEnactment ex:adrReviewW12 ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a context assembly names the enactment it served"
-msgstr "un assemblage de contexte nomme l'exécution effective qu'il a servie"
+msgid "an assembly that withholds material says why"
+msgstr "un assemblage qui retient de la matière dit pourquoi"
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Continuation Kind"
@@ -11299,8 +11299,8 @@ msgid "cancelled with in-flight effects"
 msgstr "annulé avec des effets en vol"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierClosureRequiresSaturationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a frontier claiming closure carries a saturation witness"
-msgstr "une frontière se déclarant close porte un témoin de saturation"
+msgid "a frontier's witness must not record a budget cut"
+msgstr "le témoin d'une frontière ne doit pas consigner une coupe de budget"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationEligible|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "compensation eligible"
@@ -11411,8 +11411,8 @@ msgid "Journal Entry"
 msgstr "Entrée de journal"
 
 msgctxt "https://blackcatinformatics.ca/logic/LeaseExclusivityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a lease carries a fencing identity"
-msgstr "un bail porte une identité de clôture"
+msgid "one lease at a time over one scope"
+msgstr "un seul bail à la fois sur une même portée"
 
 msgctxt "https://blackcatinformatics.ca/logic/LivenessCertificate|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Liveness Certificate"
@@ -11610,7 +11610,7 @@ msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSet|http://www.
 msgid "ex:ocrCandidates a logic:RefinementCandidateSet ; logic:refinementCandidate ex:ocrViaTesseract ."
 msgstr "Exemple : ex:ocrCandidates a logic:RefinementCandidateSet ; logic:refinementCandidate ex:ocrViaTesseract ."
 
-msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSetClosureConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisodeDeclaresSearchFragmentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a refinement episode declares its search fragment"
 msgstr "un épisode de raffinement déclare son fragment de recherche"
 
@@ -12415,8 +12415,8 @@ msgid "A NEW action taken to counteract a forward effect known to have committed
 msgstr "Une action NOUVELLE entreprise pour contrecarrer un effet aller dont on sait qu'il a été validé — avec ses propres préconditions, ses propres effets, sa propre tentative et son propre reçu, et sa propre possibilité d'échouer. Ce n'est catégoriquement PAS une annulation : l'effet aller demeure au dossier, l'histoire est corrigée en avant plutôt que réécrite, et une compensation qui échoue laisse le système dans un état véritablement incohérent qui appelle une escalade plutôt qu'une nouvelle tentative."
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationBindsExactForwardEffectConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:CompensationAttempt that names no forward receipt. Binding to the exact receipt rather than to an action schema is what stops one compensation being read as covering every effect of its kind, which is the reading under which a single refund appears to undo many charges."
-msgstr "La logic:Constraint qui rejette une logic:CompensationAttempt ne nommant aucun reçu aller. Se lier au reçu exact plutôt qu'à un schéma d'action est ce qui empêche de lire une compensation comme couvrant tous les effets de son espèce — lecture sous laquelle un unique remboursement paraît annuler de nombreux débits."
+msgid "The logic:Constraint rejecting a logic:CompensationAttempt whose logic:compensatesEffect names something that is not a receipt of an observed attempt. Exactness is a property of what the binding REACHES, not of the binding existing: an action schema, an intent, or a reconciliation result all satisfy a presence check while naming a CLASS of effects rather than the one committed effect, which is the reading under which a single refund appears to undo many charges. Only a logic:ExternalEffectReceipt carries logic:receiptOfAttempt, so requiring the target to carry it is exactly the exactness test."
+msgstr "La logic:Constraint qui rejette une logic:CompensationAttempt dont le logic:compensatesEffect nomme autre chose qu'un reçu d'une tentative observée. L'exactitude est une propriété de ce que la liaison ATTEINT, non du fait que la liaison existe : un schéma d'action, une intention ou un résultat de rapprochement satisfont tous un contrôle de présence tout en nommant une CLASSE d'effets plutôt que l'unique effet validé — lecture sous laquelle un unique remboursement paraît annuler de nombreux débits. Seul un logic:ExternalEffectReceipt porte un logic:receiptOfAttempt : exiger que la cible le porte est donc exactement le test d'exactitude."
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcome|http://www.w3.org/2004/02/skos/core#definition"
 msgid "What a logic:CompensationAttempt achieved, established by its own receipt exactly as a forward effect's outcome is. A compensation may not be recorded as successful on the strength of having been attempted: the asymmetry between attempting and achieving is the whole reason the saga exists, and it does not stop applying just because the action is corrective."
@@ -12431,8 +12431,8 @@ msgid "The record of what was put in front of a decider: what was included, from
 msgstr "Le relevé de ce qui a été soumis à celui qui décide : ce qui a été inclus, d'où, sous quel budget, et — de façon décisive — ce qui a été EXCLU. Consigner les exclusions est ce qui donne son sens à une dissidence consignée, car « l'opérateur a vu l'objection et a poursuivi » et « l'objection n'a jamais été présentée » sont deux situations distinctes qu'un relevé limité aux inclusions ne peut départager. Typé À PART de la décision elle-même : un assemblage est ce dont on disposait pour décider."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ContextAssembly with no named enactment. An assembly exists to answer what was surfaced to a PARTICULAR run; unbound, it answers nothing and the guidance-version record it carries has no subject."
-msgstr "La logic:Constraint qui rejette un logic:ContextAssembly ne nommant aucune exécution effective. Un assemblage existe pour répondre à la question de ce qui a été présenté à une exécution PARTICULIÈRE ; non lié, il ne répond à rien et le relevé de version de directive qu'il porte n'a pas de sujet."
+msgid "The logic:Constraint rejecting a logic:ContextAssembly that names something in logic:assemblyExcluded and records no logic:assemblyExclusionReason. Recording exclusions is what makes recorded dissent meaningful, and a bare list of withheld items does not: 'I would have objected had I seen X' is answerable only if the record says whether X was shown AND on what grounds it was not. An unexplained exclusion reads, to every later reader, exactly like an oversight."
+msgstr "La logic:Constraint qui rejette un logic:ContextAssembly qui nomme quelque chose dans logic:assemblyExcluded sans consigner de logic:assemblyExclusionReason. Consigner les exclusions est ce qui donne son sens à une dissidence consignée, et une simple liste d'éléments retenus n'y suffit pas : « j'aurais objecté si j'avais vu X » n'est jugeable que si le relevé dit si X a été présenté ET pour quel motif il ne l'a pas été. Pour tout lecteur ultérieur, une exclusion inexpliquée se lit exactement comme un oubli."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The closed three-valued vocabulary distinguishing the three ways work continues after it has already begun: resuming the same enactment, repeating under a new input generation, or revising the prescription itself. They are pairwise disjoint and carry different required bindings, so conflating them — the common failure in which 'run it again' silently means any of the three — is structurally detectable. Its members are individuals, never subclasses."
@@ -12771,8 +12771,8 @@ msgid "The enactment was cancelled while an effect remained unresolved. Cancella
 msgstr "L'exécution effective a été annulée alors qu'un effet demeurait non résolu. L'annulation ne règle pas la connaissance de la validation : l'effet en suspens exige donc toujours un rapprochement — sans doute le cas réel le plus difficile, et celui qu'une simple étiquette « annulé » dissimule."
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierClosureRequiresSaturationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ActionableFrontier with no saturation witness. Closedness is the frontier's whole value, and an unwitnessed claim of it is exactly how a roster truncated by a budget cut passes for complete — after which the system confidently omits the action it should have taken."
-msgstr "La logic:Constraint qui rejette une logic:ActionableFrontier dépourvue de témoin de saturation. La clôture est toute la valeur d'une frontière, et une prétention à la clôture sans témoin est précisément la façon dont une liste tronquée par une coupure de budget passe pour complète — après quoi le système omet en toute confiance l'action qu'il aurait dû entreprendre."
+msgid "The logic:Constraint rejecting a logic:ActionableFrontier whose logic:frontierSaturationWitness records logic:BudgetExhausted. A witness is evidence, and evidence has content: a frontier that cites a witness whose own evaluation status says the search hit a declared bound is citing proof of the very truncation it claims not to have suffered. Carrying such a witness is strictly worse than carrying none, because the citation reads as certification."
+msgstr "La logic:Constraint qui rejette une logic:ActionableFrontier dont le logic:frontierSaturationWitness consigne logic:BudgetExhausted. Un témoin est une preuve, et une preuve a un contenu : une frontière qui cite un témoin dont le propre statut d'évaluation dit que la recherche a heurté une borne déclarée cite la preuve de la troncature même qu'elle prétend n'avoir pas subie. Porter un tel témoin est strictement pire que n'en porter aucun, car la citation se lit comme une certification."
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationEligible|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A forward effect is proved committed and compensation is permitted but not demanded. Distinguished from compensation-required, where policy or a failed enactment makes it obligatory."
@@ -12871,8 +12871,8 @@ msgid "One committed transition in a logic:TransitionJournal, binding the predec
 msgstr "Une transition validée dans un logic:TransitionJournal, liant la tête antérieure au regard de laquelle elle s'est appliquée (logic:journalPrevHead), l'adresse de contenu du delta appliqué (logic:journalDeltaIdentity), l'issue typée qu'elle a produite (logic:journalOutcomeTag) et la tête qu'elle établit (logic:journalNewHead). L'invariant de chaîne veut que la logic:journalPrevHead d'une entrée égale la logic:journalNewHead de celle qui la précède. Typée À PART de logic:TransactionStep, qui est une mise à jour d'état élémentaire à l'intérieur d'une exécution : une entrée de journal est le relevé de validation DURABLE et adressé par contenu au regard duquel on éprouve la péremption d'une soumission ultérieure."
 
 msgctxt "https://blackcatinformatics.ca/logic/LeaseExclusivityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ResourceLease with no fencing identity. Expiry alone does not make a lease safe: a holder paused past its expiry can still attempt a write, and only a monotonic token checked at the resource rejects it. A lease without one records an intention to be exclusive rather than a mechanism for it."
-msgstr "La logic:Constraint qui rejette un logic:ResourceLease dépourvu d'identité de clôture. L'expiration ne suffit pas à rendre un bail sûr : un titulaire suspendu au-delà de son expiration peut encore tenter une écriture, et seul un jeton monotone contrôlé au niveau de la ressource la rejette. Un bail sans ce jeton consigne une intention d'exclusivité plutôt qu'un mécanisme pour l'assurer."
+msgid "The logic:Constraint rejecting a logic:ResourceLease that claims a scope some OTHER lease holds. Exclusivity is not a field a lease can carry: two leases each carrying a fencing identity, an owner and an expiry are individually impeccable and jointly a double-claim over one actuator, one seat, one lock. The scope's logic:scopeExclusiveHolder is the single arbiter, so any lease whose logic:leaseScope names a held scope without BEING the holder is the overlap."
+msgstr "La logic:Constraint qui rejette un logic:ResourceLease revendiquant une portée qu'un AUTRE bail détient. L'exclusivité n'est pas un champ qu'un bail puisse porter : deux baux portant chacun une identité de clôture, un titulaire et une expiration sont individuellement irréprochables et conjointement une double revendication sur un même actionneur, une même place, un même verrou. Le logic:scopeExclusiveHolder de la portée est l'unique arbitre : tout bail dont le logic:leaseScope nomme une portée détenue sans EN ÊTRE le détenteur est le chevauchement."
 
 msgctxt "https://blackcatinformatics.ca/logic/LivenessCertificate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The record that the authored transition laws were checked for PROGRESS, not merely for safety: that every non-terminal axis tuple has at least one enabled next move (deadlock-freedom), that no state is unreachable and every state can reach a terminal one (reachability), and that no dispatch intent can sit past its deadline with no attempt, receipt or reconciliation (no orphan intent). Safety constraints alone prove that bad transitions are rejected; only this proves the system cannot get stuck, which is the dominant real failure of long-running work."
@@ -13010,9 +13010,9 @@ msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSet|http://www.
 msgid "The roster of subplans and action schemas a logic:RefinementEpisode found applicable — CLOSED, meaning the episode ran to saturation within its budget and nothing applicable was omitted. Closedness is a claim that must be earned by a saturation witness, never asserted: a roster produced under a budget cut is incomplete and must say so, because presenting a truncated roster as complete is how a system silently picks a worse action."
 msgstr "La liste des sous-plans et schémas d'action qu'un logic:RefinementEpisode a jugés applicables — CLOSE, au sens où l'épisode a été mené jusqu'à saturation dans les limites de son budget et où rien d'applicable n'a été omis. La clôture est une prétention qui doit se mériter par un témoin de saturation, jamais s'affirmer : une liste produite sous une coupure de budget est incomplète et doit le dire, car présenter une liste tronquée comme complète est la façon dont un système choisit silencieusement une action moins bonne."
 
-msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSetClosureConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed."
-msgstr "La logic:Constraint qui rejette un logic:RefinementEpisode ayant produit un ensemble de candidats sans déclarer le fragment décidable dans lequel sa recherche s'est déroulée. Un fragment non déclaré rend infalsifiable la clôture de la liste, puisqu'un lecteur ne peut savoir si la terminaison a été méritée ou présumée."
+msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisodeDeclaresSearchFragmentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed. The law checks the DECLARATION, which is what the record can carry; the roster's closure itself is a property of a search that has already finished and left no other trace, so this is deliberately not named a closure law."
+msgstr "La logic:Constraint qui rejette un logic:RefinementEpisode ayant produit un ensemble de candidats sans déclarer le fragment décidable dans lequel sa recherche s'est déroulée. Un fragment non déclaré rend infalsifiable la clôture de la liste, puisqu'un lecteur ne peut savoir si la terminaison a été méritée ou présumée. La loi contrôle la DÉCLARATION, qui est ce que le relevé peut porter ; la clôture de la liste elle-même est une propriété d'une recherche déjà achevée et qui n'a laissé aucune autre trace, d'où le choix délibéré de ne pas nommer cette loi une loi de clôture."
 
 msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisode|http://www.w3.org/2004/02/skos/core#definition"
 msgid "One bounded, attributed attempt to turn an abstract step into something executable, against a stated world snapshot and under a declared resource policy. Boundedness is definitional: means-end search is undecidable in general, so an episode that cannot report the budget it ran under cannot report an honest closed roster either. Typed APART from logic:Enactment, which carries out a plan; an episode PRODUCES the plan fragment an enactment will later carry out."
@@ -13751,12 +13751,12 @@ msgid "Relates an unsupported-fragment operation record to its typed condition. 
 msgstr "Relie un relevé d'opération « fragment non pris en charge » à sa condition typée. Domaine : un relevé d'opération (énoncé en prose). Fonctionnelle."
 
 msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a checkpoint carries its folded identity"
-msgstr "un point de reprise porte son identité repliée"
+msgid "a restore's folded identity must equal its checkpoint's"
+msgstr "l'identité repliée d'une restauration doit égaler celle de son point de reprise"
 
 msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:EnactmentCheckpoint with no folded descriptor hash. Restore is identity-gated across seven axes, and the fold is the value the gate compares first; without it a restore would have to trust seven separate comparisons it cannot perform, which in practice means performing none."
-msgstr "La logic:Constraint qui rejette un logic:EnactmentCheckpoint dépourvu de hachage de descripteur replié. La restauration est conditionnée par l'identité sur sept axes, et le repli est la valeur que la barrière compare en premier ; sans lui, une restauration devrait se fier à sept comparaisons distinctes qu'elle ne peut effectuer, ce qui revient en pratique à n'en effectuer aucune."
+msgid "The logic:Constraint rejecting a logic:CheckpointRestore whose logic:restoreDescriptorHash is not the logic:checkpointDescriptorHash of the checkpoint it restores. This is the identity gate itself, and it is irreducibly a relation between two records: resuming a run against drifted rules, a drifted engine or a drifted slice silently produces a result the run never would have produced, and the fold is the single value that makes the drift visible before the first step executes."
+msgstr "La logic:Constraint qui rejette une logic:CheckpointRestore dont le logic:restoreDescriptorHash n'est pas le logic:checkpointDescriptorHash du point de reprise qu'elle restaure. C'est la barrière d'identité elle-même, et elle est irréductiblement une relation entre deux relevés : reprendre une exécution face à des règles dérivées, à un moteur dérivé ou à une tranche dérivée produit silencieusement un résultat que l'exécution n'aurait jamais produit, et le repli est l'unique valeur qui rend cette dérive visible avant l'exécution de la première étape."
 
 msgctxt "https://blackcatinformatics.ca/logic/ClockAttributionRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a clock attribution names its source"
@@ -13791,36 +13791,36 @@ msgid "The logic:Constraint rejecting a logic:Enactment that does not bind both 
 msgstr "La logic:Constraint qui rejette une logic:Enactment ne liant pas à la fois la version de prescription qu'elle exécute et la génération d'entrées close face à laquelle elle se déroule. Ces deux liaisons sont ce qui rend une occurrence reproductible et comparable à ses semblables ; une exécution effective à laquelle il manque l'une ou l'autre est le relevé que quelque chose a eu lieu, sans compte rendu récupérable de ce qu'elle faisait ni de ce sur quoi."
 
 msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a journal entry names both of its heads"
-msgstr "une entrée de journal nomme ses deux têtes"
+msgid "an entry's prior head is its predecessor's new head"
+msgstr "la tête antérieure d'une entrée est la tête nouvelle de son prédécesseur"
 
 msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:JournalEntry missing either the head it was applied against or the head it establishes. The chain is the mechanism from which durability, idempotency and the no-blind-retry law all follow; an entry that names only one end cannot be linked, and a chain that cannot be linked cannot detect a stale resubmission."
-msgstr "La logic:Constraint qui rejette une logic:JournalEntry à laquelle manque soit la tête au regard de laquelle elle s'est appliquée, soit la tête qu'elle établit. La chaîne est le mécanisme dont découlent la durabilité, l'idempotence et la loi d'interdiction du réessai aveugle ; une entrée ne nommant qu'une extrémité ne peut être chaînée, et une chaîne qui ne peut être chaînée ne peut détecter une resoumission périmée."
+msgid "The logic:Constraint rejecting a logic:JournalEntry whose logic:journalPrevHead is not the logic:journalNewHead of the entry it succeeds. This is the hash-chain invariant itself, and every durability property the layer claims rests on it: an entry applied against a head its predecessor never established was applied against a state the journal never reached, which is what a stale resubmission after a crash looks like from the inside. A genesis entry carries no logic:journalPredecessor and is therefore not governed — it is the one entry with nothing to reproduce."
+msgstr "La logic:Constraint qui rejette une logic:JournalEntry dont la logic:journalPrevHead n'est pas la logic:journalNewHead de l'entrée à laquelle elle succède. C'est l'invariant de la chaîne de hachage lui-même, et toutes les propriétés de durabilité que revendique la couche en dépendent : une entrée appliquée face à une tête que son prédécesseur n'a jamais établie a été appliquée face à un état que le journal n'a jamais atteint, ce à quoi ressemble de l'intérieur une resoumission périmée après une panne. Une entrée de genèse ne porte aucun logic:journalPredecessor et n'est donc pas régie — c'est la seule entrée qui n'a rien à reproduire."
 
 msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "an unknown outcome names the attempt it is unknown about"
-msgstr "une issue inconnue nomme la tentative dont l'issue est inconnue"
+msgid "a retry's licence covers the attempt being retried"
+msgstr "l'autorisation d'un réessai couvre la tentative réessayée"
 
 msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ExternalOutcomeUnknown that names no attempt. Retry from an undetermined position is licensed only by a discharged idempotency contract or a reconciliation verdict, and both are reached THROUGH the attempt: an unknown outcome with no attempt is unresolvable in principle, so nothing could ever license a retry from it and nothing could ever close it."
-msgstr "La logic:Constraint qui rejette un logic:ExternalOutcomeUnknown ne nommant aucune tentative. Le réessai depuis une position indéterminée n'est autorisé que par un contrat d'idempotence acquitté ou un verdict de rapprochement, et l'on atteint l'un comme l'autre PAR la tentative : une issue inconnue sans tentative est irrésoluble en principe, de sorte que rien ne pourrait jamais y autoriser un réessai ni jamais la clore."
+msgid "The logic:Constraint rejecting a logic:RetryDispatch whose logic:retryLicence does not carry logic:licenceCoversAttempt for the attempt the retry re-sends. Licensing is a relation between a specific licence and a specific attempt, and nothing weaker will do: an idempotency contract covers the keys and the window it actually covers, and a reconciliation verdict settles the attempt it actually probed. A licence borrowed from a neighbouring dispatch — the same provider, the same step, the previous invoice — reads identically to a real one and permits exactly the double-effect the whole commitment layer exists to prevent."
+msgstr "La logic:Constraint qui rejette une logic:RetryDispatch dont la logic:retryLicence ne porte pas de logic:licenceCoversAttempt pour la tentative que le réessai renvoie. L'autorisation est une relation entre une autorisation précise et une tentative précise, et rien de plus faible ne convient : un contrat d'idempotence couvre les clés et la fenêtre qu'il couvre effectivement, et un verdict de rapprochement règle la tentative qu'il a effectivement sondée. Une autorisation empruntée à une expédition voisine — même fournisseur, même étape, facture précédente — se lit exactement comme une vraie et permet précisément le double effet que toute la couche d'engagement existe pour empêcher."
 
 msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "an operational capability gap names the step it blocks"
-msgstr "une lacune de capacité opérationnelle nomme l'étape qu'elle bloque"
+msgid "an operational capability gap arrives with its remedy"
+msgstr "une lacune de capacité opérationnelle arrive avec son remède"
 
 msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:OperationalCapabilityGap that names no blocked step. Surfacing a gap instead of substituting a weaker capability is only worth doing if the gap is answerable to a concrete blockage; a gap with no blocked step is a general complaint about provisioning, which no operator can act on and no proposal can close."
-msgstr "La logic:Constraint qui rejette une logic:OperationalCapabilityGap ne nommant aucune étape bloquée. Faire remonter une lacune plutôt que lui substituer une capacité plus faible ne vaut la peine que si la lacune est redevable d'un blocage concret ; une lacune sans étape bloquée est une plainte générale sur l'approvisionnement, sur laquelle aucun opérateur ne peut agir et qu'aucune proposition ne peut combler."
+msgid "The logic:Constraint rejecting a logic:OperationalCapabilityGap whose blocked step is the logic:proposalBlockedStep of no logic:CapabilityGapProposal. Surfacing a gap rather than substituting a weaker capability is a discipline that pays only when the blockage comes with the statement of what would close it: an unanswered gap is a provisioning complaint, and a backlog of them is indistinguishable from a system that silently degraded instead. The join is the step, which both records already name."
+msgstr "La logic:Constraint qui rejette une logic:OperationalCapabilityGap dont l'étape bloquée n'est le logic:proposalBlockedStep d'aucune logic:CapabilityGapProposal. Faire remonter une lacune plutôt que lui substituer une capacité plus faible est une discipline qui ne paie que si le blocage s'accompagne de l'énoncé de ce qui le comblerait : une lacune sans réponse est une plainte d'approvisionnement, et un arriéré de telles plaintes est indiscernable d'un système qui s'est silencieusement dégradé à la place. La jointure est l'étape, que les deux relevés nomment déjà."
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a prescription version is content-addressed"
-msgstr "une version de prescription est adressée par contenu"
+msgid "a landed version's address never moves"
+msgstr "l'adresse d'une version posée ne bouge jamais"
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Immutability here is enforced by content-addressing rather than by a mutability flag: a version whose bytes are not addressed cannot be shown to be the one an enactment ran, so revising it in place becomes undetectable and the whole supersession discipline stops meaning anything."
-msgstr "La logic:Constraint qui rejette une logic:PrescriptionVersion dépourvue d'empreinte. L'immuabilité est ici imposée par l'adressage par contenu plutôt que par un drapeau de mutabilité : une version dont les octets ne sont pas adressés ne peut être montrée comme étant celle qu'une exécution effective a exécutée, de sorte que la réviser sur place devient indétectable et que toute la discipline de supplantation cesse de signifier quoi que ce soit."
+msgid "The logic:Constraint rejecting a logic:PrescriptionVersion whose logic:prescriptionDigest differs from the logic:enactedPrescriptionDigest an enactment of it froze at pin time. That divergence has exactly one cause — the version's bytes were edited after a run pinned them — and it is the failure the whole supersession discipline exists to make impossible: the run's recoverable account of what it executed now describes something that no longer exists, while its version pointer keeps resolving, so nothing else in the record looks wrong."
+msgstr "La logic:Constraint qui rejette une logic:PrescriptionVersion dont la logic:prescriptionDigest diffère du logic:enactedPrescriptionDigest qu'une exécution effective de cette version a figé au moment de l'épinglage. Cette divergence a exactement une cause — les octets de la version ont été modifiés après qu'une exécution les a épinglés — et c'est la défaillance que toute la discipline de supplantation existe pour rendre impossible : le compte rendu récupérable de ce que l'exécution a exécuté décrit désormais quelque chose qui n'existe plus, tandis que son pointeur de version continue de se résoudre, de sorte que rien d'autre dans le relevé ne paraît fautif."
 
 msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a reconciliation result carries a verdict"

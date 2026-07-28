@@ -274,24 +274,44 @@ pub fn verify_with_reasoning_result(
     // so it is held to the boundary exactly like the closure above. The boundary is enforced
     // on the broadest surface by the unconditional pass over `derived_rows` above; this pass
     // binds the gate's own output specifically.
+    //
+    // Each finding is spliced in as TWO quads, not one: the `rdf:type` marker naming the
+    // condemned record, and a `logic:violatedLaw` edge naming the authored
+    // `logic:Constraint` that condemned it. The kernel shares one failure class across all
+    // forty of its laws deliberately, so the marker alone tells an operator that a record
+    // breached enactment integrity and not WHICH obligation it broke.
+    //
+    // The law edge is the one the CHASE derived — every violation rule heads on
+    // `logic:violatedLaw` precisely so that two laws condemning one record stay two
+    // distinct derived tuples instead of collapsing into a single shared marker with one
+    // surviving provenance. The `rdf:type` marker is minted here from the law's authored
+    // `gmeow:enforcesFailureClass`: which class a law's findings carry is a property of
+    // the law, so writing it down is a projection of what the author declared and not a
+    // second decision about the record.
     let kernel_markers = crate::reason::enactment::enactment_gate_markers(edb, &derived_edges)?;
     crate::reason::enactment::reject_banned_heads(
         &kernel_markers
             .iter()
-            .map(|(subject, class)| {
+            .map(|violation| {
                 (
-                    subject.clone(),
+                    violation.subject.clone(),
                     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned(),
-                    class.clone(),
+                    violation.failure_class.clone(),
                 )
             })
             .collect::<Vec<_>>(),
     )?;
-    for (subject, failure_class) in kernel_markers {
+    for violation in kernel_markers {
         store.insert(QuadValues {
-            s: TermValue::iri(subject),
+            s: TermValue::iri(violation.subject.clone()),
             p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            o: TermValue::iri(failure_class),
+            o: TermValue::iri(violation.failure_class),
+            g: None,
+        });
+        store.insert(QuadValues {
+            s: TermValue::iri(violation.subject),
+            p: TermValue::iri("https://blackcatinformatics.ca/logic/violatedLaw"),
+            o: TermValue::iri(violation.law),
             g: None,
         });
     }

@@ -10066,11 +10066,11 @@ logic:anaCons a logic:Formula ; logic:not logic:anaAuthorizes .
 logic:anaAuthorizes a logic:Formula ; logic:relation logic:pinAuthority ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 
-logic:RefinementCandidateSetClosureConstraint
+logic:RefinementEpisodeDeclaresSearchFragmentConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a refinement episode declares its search fragment"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed. The law checks the DECLARATION, which is what the record can carry; the roster's closure itself is a property of a search that has already finished and left no other trace, so this is deliberately not named a closure law."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -10084,6 +10084,33 @@ logic:rcsGuard a logic:Formula ; logic:relation logic:producedCandidateSet ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
 logic:rcsCons a logic:Formula ; logic:relation logic:searchFragment ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frag" ] .
+
+# The roster's closedness IS checkable in one respect the declaration cannot reach: a
+# selected pin that was never in the roster means the roster was not the set the episode
+# chose from, so its completeness claim is about a different search than the one that
+# produced the commitment. That is a relation between three records and no field on any of
+# them.
+logic:RefinementPinComesFromCandidateSetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a selected pin was in the roster it was selected from"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:RefinementEpisode whose logic:selectedPin is not a logic:refinementCandidate of the logic:RefinementCandidateSet it produced. A roster is a claim about what the search FOUND, and a commitment to something outside it says the roster describes some other search — after which its closedness, its budget and its declared fragment all certify a deliberation that did not produce this decision. The failure is invisible to any check over one record, since the episode, the roster and the pin are each individually well-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:RefinementEpisode's logic:selectedPin must be a logic:refinementCandidate of the roster it produced; committing to a candidate the roster never contained makes the roster's closure a claim about a different search." ;
+    logic:integrity logic:rpcForall .
+logic:rpcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:rpcImpl .
+logic:rpcImpl a logic:Formula ; logic:antecedent logic:rpcGuard ; logic:consequent logic:rpcCons .
+logic:rpcGuard a logic:Formula ; logic:and logic:rpcSet , logic:rpcPin .
+logic:rpcSet a logic:Formula ; logic:relation logic:producedCandidateSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "roster" ] .
+logic:rpcPin a logic:Formula ; logic:relation logic:selectedPin ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pin" ] .
+logic:rpcCons a logic:Formula ; logic:relation logic:refinementCandidate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "roster" ] , [ logic:termIndex 1 ; logic:termVariable "pin" ] .
 
 # =========================================================================== #
 # === Enactment layer: the external-effect commitment layer (the saga)     === #
@@ -10952,15 +10979,15 @@ logic:csrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
 logic:csrCons a logic:Formula ; logic:relation logic:compensationReceipt ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "receipt" ] .
 
-logic:CompensationBindsExactForwardEffectConstraint
+logic:CompensationNamesForwardEffectConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "a compensation names the exact forward receipt"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:CompensationAttempt that names no forward receipt. Binding to the exact receipt rather than to an action schema is what stops one compensation being read as covering every effect of its kind, which is the reading under which a single refund appears to undo many charges."@x-gmeow-english ;
+    rdfs:label "a compensation names a forward effect"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CompensationAttempt that names no forward effect at all. It is the PRESENCE half of the exactness discipline, and it says only that: whether the named thing is the exact forward receipt rather than an action schema or an intent is decided by logic:CompensationBindsExactForwardEffectConstraint, which dereferences the binding. Coded apart so a corpus can trip the empty binding and the loose binding independently."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
-    logic:message "A logic:CompensationAttempt must bind the EXACT forward logic:ExternalEffectReceipt it addresses, never an action schema or an intent." ;
+    logic:message "A logic:CompensationAttempt must bind the forward effect it addresses with logic:compensatesEffect; a compensation naming nothing counteracts nothing." ;
     logic:integrity logic:cbeForall .
 logic:cbeForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -10970,6 +10997,64 @@ logic:cbeGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CompensationAttempt ] .
 logic:cbeCons a logic:Formula ; logic:relation logic:compensatesEffect ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "receipt" ] .
+
+# The RELATIONAL half: the thing a compensation binds must itself BE a receipt of an
+# observed attempt. The presence law above cannot tell an exact forward receipt from an
+# action schema, an intent, or a reconciliation result — every one of those satisfies
+# "logic:compensatesEffect is bound" — and it is precisely the loose binding that lets one
+# compensation read as covering every effect of its kind. Dereferencing the binding is what
+# makes "the EXACT forward effect" checkable rather than merely asserted.
+logic:CompensationBindsExactForwardEffectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a compensation binds the exact forward receipt"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CompensationAttempt whose logic:compensatesEffect names something that is not a receipt of an observed attempt. Exactness is a property of what the binding REACHES, not of the binding existing: an action schema, an intent, or a reconciliation result all satisfy a presence check while naming a CLASS of effects rather than the one committed effect, which is the reading under which a single refund appears to undo many charges. Only a logic:ExternalEffectReceipt carries logic:receiptOfAttempt, so requiring the target to carry it is exactly the exactness test."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:CompensationAttempt's logic:compensatesEffect must reach a logic:ExternalEffectReceipt reporting a specific logic:EffectAttempt; an action schema, an intent, or a reconciliation result names a class of effects, not the one committed effect being counteracted." ;
+    logic:integrity logic:cbxForall .
+logic:cbxForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cbxImpl .
+logic:cbxImpl a logic:Formula ; logic:antecedent logic:cbxGuard ; logic:consequent logic:cbxCons .
+logic:cbxGuard a logic:Formula ; logic:and logic:cbxIsCompensation , logic:cbxBinds .
+logic:cbxIsCompensation a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CompensationAttempt ] .
+logic:cbxBinds a logic:Formula ; logic:relation logic:compensatesEffect ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "forward" ] .
+logic:cbxCons a logic:Formula ; logic:relation logic:receiptOfAttempt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "forward" ] , [ logic:termIndex 1 ; logic:termVariable "attempt" ] .
+
+# The compensation's OWN receipt may not be the forward receipt it counteracts. A
+# compensation outcome that evidences itself with the very receipt of the effect it was
+# supposed to reverse records an achievement that never happened — the strictly relational
+# twin of logic:CompensationNotInverseConstraint, which forbids the same collapse when it
+# is expressed by TYPING rather than by pointing.
+logic:CompensationOutcomeReceiptIsNotTheForwardReceiptConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a compensation outcome is not evidenced by the receipt it counteracts"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CompensationOutcome whose logic:compensationReceipt is the very logic:ExternalEffectReceipt its compensation addresses. Reusing the forward receipt as the compensation's evidence is the pointing form of the guaranteed-inverse fallacy: nothing new was observed, so a compensation that never took effect reads as successful. Coded apart from the typing form because a corpus must be able to trip each alone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:CompensationOutcome's logic:compensationReceipt must not be the forward logic:ExternalEffectReceipt its logic:CompensationAttempt counteracts; a compensation evidenced by the effect it was undoing evidences nothing." ;
+    logic:integrity logic:corForall .
+logic:corForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:corImpl .
+logic:corImpl a logic:Formula ; logic:antecedent logic:corGuard ; logic:consequent logic:corCons .
+logic:corGuard a logic:Formula ; logic:and logic:corIsOutcome , logic:corOfCompensation , logic:corForward .
+logic:corIsOutcome a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CompensationOutcome ] .
+logic:corOfCompensation a logic:Formula ; logic:relation logic:outcomeOfCompensation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "compensation" ] .
+logic:corForward a logic:Formula ; logic:relation logic:compensatesEffect ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "compensation" ] , [ logic:termIndex 1 ; logic:termVariable "forward" ] .
+logic:corCons a logic:Formula ; logic:not logic:corReuses .
+logic:corReuses a logic:Formula ; logic:relation logic:compensationReceipt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "forward" ] .
 
 logic:DispatchIntentCompletenessConstraint
     a logic:Constraint ;
@@ -11065,6 +11150,61 @@ logic:acDecision a logic:Formula ; logic:relation logic:approvalDecision ;
 logic:acWindow a logic:Formula ; logic:relation logic:approvalValidityWindow ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "window" ] .
 
+# The two RELATIONAL approval laws. Completeness above says the six fields are bound; it
+# cannot say that the digest addresses anything real, nor that the thing it addresses
+# belongs to the run the authorization is scoped to. Those are exactly logic:
+# FaultDigestMismatch and logic:FaultDifferentEnactment — two of the four authored binding
+# faults — and until they are checked, "an approval binds the EXACT intent" is a claim the
+# corpus makes and nothing enforces.
+
+logic:ApprovalDigestBindsDispatchIntentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an approval's digest addresses a real dispatch intent"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ApprovalCommitment whose logic:approvalIntentDigest is not the logic:intentDigest of any logic:DispatchIntent. Exact binding is a RELATION between two records, not a field on one: a commitment addressed to a digest nothing carries detaches against nothing, which is indistinguishable — to a completeness check — from one addressed to the intent actually about to be dispatched. This is the machine-checkable form of logic:FaultDigestMismatch."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ApprovalCommitment's logic:approvalIntentDigest must equal the logic:intentDigest of an actual logic:DispatchIntent; an authorization addressed to a digest nothing carries authorizes nothing." ;
+    logic:integrity logic:adbForall .
+logic:adbForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:adbImpl .
+logic:adbImpl a logic:Formula ; logic:antecedent logic:adbGuard ; logic:consequent logic:adbCons .
+logic:adbGuard a logic:Formula ; logic:and logic:adbIsApproval , logic:adbDigest .
+logic:adbIsApproval a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalCommitment ] .
+logic:adbDigest a logic:Formula ; logic:relation logic:approvalIntentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:adbCons a logic:Formula ; logic:relation logic:intentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "intent" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+
+logic:ApprovalScopedToIntentEnactmentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an approval does not authorize another run's intent"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ApprovalCommitment whose logic:approvalEnactment is not the logic:intentOfEnactment of the intent its digest addresses. An authorization does not travel between occurrences, and the digest alone cannot stop it: two runs of one prescription can produce byte-identical intents, so the digest match is satisfied while the authorization licenses an effect in a run nobody approved. This is the machine-checkable form of logic:FaultDifferentEnactment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ApprovalCommitment's logic:approvalEnactment must be the logic:intentOfEnactment of the logic:DispatchIntent its digest addresses; authorization granted in one run licenses nothing in another." ;
+    logic:integrity logic:asiForall .
+logic:asiForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:asiImpl .
+logic:asiImpl a logic:Formula ; logic:antecedent logic:asiGuard ; logic:consequent logic:asiCons .
+logic:asiGuard a logic:Formula ; logic:and logic:asiIsApproval , logic:asiDigest , logic:asiIntentDigest , logic:asiEnactment .
+logic:asiIsApproval a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalCommitment ] .
+logic:asiDigest a logic:Formula ; logic:relation logic:approvalIntentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:asiIntentDigest a logic:Formula ; logic:relation logic:intentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "intent" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:asiEnactment a logic:Formula ; logic:relation logic:approvalEnactment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
+logic:asiCons a logic:Formula ; logic:relation logic:intentOfEnactment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "intent" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
+
 logic:EffectRecordsAreObservedNotDerivedConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -11093,11 +11233,11 @@ logic:derivationIdentifier
     skos:definition "The identifier a derived record carries naming the derivation that produced it. Domain any derived record (stated in prose). Its PRESENCE on an effect attempt or receipt is what the observed-not-derived constraint rejects: it is the machine-checkable difference between a record the world produced and one the engine did."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-logic:LeaseExclusivityConstraint
+logic:LeaseCarriesFencingIdentityConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a lease carries a fencing identity"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:ResourceLease with no fencing identity. Expiry alone does not make a lease safe: a holder paused past its expiry can still attempt a write, and only a monotonic token checked at the resource rejects it. A lease without one records an intention to be exclusive rather than a mechanism for it."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ResourceLease with no fencing identity. Expiry alone does not make a lease safe: a holder paused past its expiry can still attempt a write, and only a monotonic token checked at the resource rejects it. A lease without one records an intention to be exclusive rather than a mechanism for it. This is the MECHANISM half; exclusivity itself — one holder at a time over one scope — is logic:LeaseExclusivityConstraint, which is a relation between leases and could never be decided by looking at one lease's fields."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -11111,6 +11251,51 @@ logic:lexGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ResourceLease ] .
 logic:lexCons a logic:Formula ; logic:relation logic:fencingIdentity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "fence" ] .
+
+logic:scopeExclusiveHolder
+    a owl:ObjectProperty ;
+    rdfs:range logic:ResourceLease ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "scope exclusive holder"@x-gmeow-english ;
+    skos:definition "Relates a leased scope to the ONE logic:ResourceLease currently holding it. Domain a resource descriptor — the same term a lease names in logic:leaseScope (stated in prose, since a scope is whatever the deployment addresses exclusivity over). Functional, and that is the whole point: exclusivity is a property of the SCOPE, not of any lease, so it is recorded once at the scope and every claimant is checked against it. Without it 'exclusive' is an adjective on a lease that no second lease can contradict."@x-gmeow-english ;
+    skos:example "ex:actuatorFV104 logic:scopeExclusiveHolder ex:valveLease ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which lease currently holds a scope, so a second claimant over that scope is detectable rather than merely undesirable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid binding two holders to one scope, and avoid leaving it unbound on a contended scope: an unheld scope excludes nobody and the exclusivity law has nothing to compare a claimant against."@x-gmeow-english ;
+    gmeow:howToUse "Advance it exactly when the fencing identity advances, so the holder pointer and the monotonic token tell the same story to the resource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# Exclusivity is a RELATION between leases, so it is decided at the scope. A scope naming
+# its holder condemns every OTHER lease over that scope — which is exactly "two overlapping
+# leases on one scope", stated in a form the Horn+NAF fragment can decide. The alternative
+# reading (`leaseScope(a,s) ∧ leaseScope(b,s) ∧ a ≠ b`) needs an inequality guard, and the
+# logic:Formula AST carries no inequality construct at all: logic:distinctBody is a
+# logic:Rule surface and never reaches a logic:Constraint's integrity formula. Recording the
+# holder at the scope is not a workaround for that — it is the mechanism a real fencing
+# implementation already has (the resource knows the highest token it has seen), lifted into
+# the record so the ontology can check it.
+logic:LeaseExclusivityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "one lease at a time over one scope"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ResourceLease that claims a scope some OTHER lease holds. Exclusivity is not a field a lease can carry: two leases each carrying a fencing identity, an owner and an expiry are individually impeccable and jointly a double-claim over one actuator, one seat, one lock. The scope's logic:scopeExclusiveHolder is the single arbiter, so any lease whose logic:leaseScope names a held scope without BEING the holder is the overlap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ResourceLease over a scope that already names a logic:scopeExclusiveHolder must BE that holder; two live leases over one scope is the overlap exclusivity exists to forbid." ;
+    logic:integrity logic:lxoForall .
+logic:lxoForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:lxoImpl .
+logic:lxoImpl a logic:Formula ; logic:antecedent logic:lxoGuard ; logic:consequent logic:lxoCons .
+logic:lxoGuard a logic:Formula ; logic:and logic:lxoIsLease , logic:lxoScope , logic:lxoHeld .
+logic:lxoIsLease a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ResourceLease ] .
+logic:lxoScope a logic:Formula ; logic:relation logic:leaseScope ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] .
+logic:lxoHeld a logic:Formula ; logic:relation logic:scopeExclusiveHolder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termVariable "holder" ] .
+logic:lxoCons a logic:Formula ; logic:relation logic:scopeExclusiveHolder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 
 # =========================================================================== #
 # === Enactment layer: lens laws, the actionable frontier, derivation      === #
@@ -12118,11 +12303,11 @@ logic:assemblyGuidanceVersion
     gmeow:howToUse "Bind exactly one version, so the decision and its yardstick stay together."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-logic:FrontierClosureRequiresSaturationConstraint
+logic:FrontierCarriesSaturationWitnessConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a frontier claiming closure carries a saturation witness"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:ActionableFrontier with no saturation witness. Closedness is the frontier's whole value, and an unwitnessed claim of it is exactly how a roster truncated by a budget cut passes for complete — after which the system confidently omits the action it should have taken."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ActionableFrontier with no saturation witness. Closedness is the frontier's whole value, and an unwitnessed claim of it is exactly how a roster truncated by a budget cut passes for complete — after which the system confidently omits the action it should have taken. This law checks only that a witness is PRESENT; whether the witness actually certifies a fixed point rather than an exhaustion is logic:FrontierClosureRequiresSaturationConstraint, which reads it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -12137,11 +12322,41 @@ logic:fcsGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
 logic:fcsCons a logic:Formula ; logic:relation logic:frontierSaturationWitness ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "witness" ] .
 
-logic:ContextAssemblyRecordsExclusionsConstraint
+# A witness the frontier carries is not yet a certification. The failure the frontier layer
+# exists to prevent is a roster CUT BY A BUDGET presented as complete, and a witness that
+# records logic:BudgetExhausted says in so many words that the cut happened. Reading the
+# witness — rather than counting it — is what makes "closure is certified" true. The
+# evaluation axis is the kernel's existing one (logic:resultEvaluation over
+# logic:EvaluationStatus); a second, frontier-private exhaustion flag would be a competing
+# source of truth for the same fact.
+logic:FrontierClosureRequiresSaturationConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a frontier's witness must not record a budget cut"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ActionableFrontier whose logic:frontierSaturationWitness records logic:BudgetExhausted. A witness is evidence, and evidence has content: a frontier that cites a witness whose own evaluation status says the search hit a declared bound is citing proof of the very truncation it claims not to have suffered. Carrying such a witness is strictly worse than carrying none, because the citation reads as certification."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ActionableFrontier's logic:frontierSaturationWitness must not carry logic:resultEvaluation logic:BudgetExhausted; a roster whose own witness records the budget cut is truncated, not closed." ;
+    logic:integrity logic:fclForall .
+logic:fclForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:fclImpl .
+logic:fclImpl a logic:Formula ; logic:antecedent logic:fclGuard ; logic:consequent logic:fclCons .
+logic:fclGuard a logic:Formula ; logic:and logic:fclIsFrontier , logic:fclWitness .
+logic:fclIsFrontier a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ActionableFrontier ] .
+logic:fclWitness a logic:Formula ; logic:relation logic:frontierSaturationWitness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "witness" ] .
+logic:fclCons a logic:Formula ; logic:not logic:fclCut .
+logic:fclCut a logic:Formula ; logic:relation logic:resultEvaluation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "witness" ] , [ logic:termIndex 1 ; logic:termIri logic:BudgetExhausted ] .
+
+logic:ContextAssemblyNamesItsEnactmentConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a context assembly names the enactment it served"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:ContextAssembly with no named enactment. An assembly exists to answer what was surfaced to a PARTICULAR run; unbound, it answers nothing and the guidance-version record it carries has no subject."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ContextAssembly with no named enactment. An assembly exists to answer what was surfaced to a PARTICULAR run; unbound, it answers nothing and the guidance-version record it carries has no subject. It says nothing whatever about exclusions — that is logic:ContextAssemblyRecordsExclusionsConstraint, which reads them."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -12156,16 +12371,66 @@ logic:careGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-r
 logic:careCons a logic:Formula ; logic:relation logic:assemblyForEnactment ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
 
+# The exclusion half, which the enactment-binding law above does not touch at all. An
+# exclusion with no reason is indistinguishable from an oversight, which is precisely the
+# distinction the assembly record exists to make: "the operator saw the objection and
+# proceeded" and "the objection was never surfaced" are different situations, and an
+# unexplained withholding collapses them again.
+logic:ContextAssemblyRecordsExclusionsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an assembly that withholds material says why"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ContextAssembly that names something in logic:assemblyExcluded and records no logic:assemblyExclusionReason. Recording exclusions is what makes recorded dissent meaningful, and a bare list of withheld items does not: 'I would have objected had I seen X' is answerable only if the record says whether X was shown AND on what grounds it was not. An unexplained exclusion reads, to every later reader, exactly like an oversight."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ContextAssembly binding logic:assemblyExcluded must record a logic:assemblyExclusionReason; a deliberate omission with no stated grounds is indistinguishable from an accidental one." ;
+    logic:integrity logic:careXForall .
+logic:careXForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:careXImpl .
+logic:careXImpl a logic:Formula ; logic:antecedent logic:careXGuard ; logic:consequent logic:careXCons .
+logic:careXGuard a logic:Formula ; logic:and logic:careXIsAssembly , logic:careXExcluded .
+logic:careXIsAssembly a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContextAssembly ] .
+logic:careXExcluded a logic:Formula ; logic:relation logic:assemblyExcluded ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "withheld" ] .
+logic:careXCons a logic:Formula ; logic:relation logic:assemblyExclusionReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] .
+
+logic:ContextAssemblyExclusionIsNotInclusionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "nothing is both surfaced and withheld"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ContextAssembly that lists one item under BOTH logic:assemblyIncluded and logic:assemblyExcluded. The two halves are the record's whole evidential value — one says what reached the decider, the other says what did not — and an item on both lists makes the assembly answer the audit question both ways at once, so no later dissent can be weighed against it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ContextAssembly must not name one item in both logic:assemblyIncluded and logic:assemblyExcluded; availability and visibility are different claims and an item cannot honour both." ;
+    logic:integrity logic:careIForall .
+logic:careIForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:careIImpl .
+logic:careIImpl a logic:Formula ; logic:antecedent logic:careIGuard ; logic:consequent logic:careICons .
+logic:careIGuard a logic:Formula ; logic:and logic:careIIsAssembly , logic:careIExcluded .
+logic:careIIsAssembly a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContextAssembly ] .
+logic:careIExcluded a logic:Formula ; logic:relation logic:assemblyExcluded ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "withheld" ] .
+logic:careICons a logic:Formula ; logic:not logic:careIAlsoIncluded .
+logic:careIAlsoIncluded a logic:Formula ; logic:relation logic:assemblyIncluded ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "withheld" ] .
+
 
 # =========================================================================== #
 # === Enactment kernel: the remaining authored laws                        === #
 # =========================================================================== #
 
-logic:CheckpointRestoreIdentityConstraint
+logic:CheckpointCarriesFoldedIdentityConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a checkpoint carries its folded identity"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:EnactmentCheckpoint with no folded descriptor hash. Restore is identity-gated across seven axes, and the fold is the value the gate compares first; without it a restore would have to trust seven separate comparisons it cannot perform, which in practice means performing none."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:EnactmentCheckpoint with no folded descriptor hash. Restore is identity-gated across seven axes, and the fold is the value the gate compares first; without it a restore would have to trust seven separate comparisons it cannot perform, which in practice means performing none. This law makes the fold AVAILABLE; the comparison itself is logic:CheckpointRestoreIdentityConstraint, which needs a restore to compare against and therefore could never be a property of a checkpoint alone."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -12179,6 +12444,112 @@ logic:criGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentCheckpoint ] .
 logic:criCons a logic:Formula ; logic:relation logic:checkpointDescriptorHash ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "fold" ] .
+
+# ── Restore, as a first-class record ─────────────────────────────────────────────────
+#
+# "Restore is identity-gated" was, until now, a claim with no subject: the kernel modelled
+# the checkpoint and the continuation KIND but never the restore ACT, so there was nothing
+# whose identity could disagree with the checkpoint's and nothing for a law to condemn. A
+# checkpoint carrying a fold is not a gate; a restore carrying a fold that differs from the
+# checkpoint's is what the gate exists to reject.
+
+logic:CheckpointRestore
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Checkpoint Restore"@x-gmeow-english ;
+    skos:definition "The act of resuming an enactment from a logic:EnactmentCheckpoint, recorded as its own durable fact: which checkpoint was restored, into which enactment, and under which folded identity the restoring engine BELIEVED itself to be operating. Recording the restorer's own fold rather than reading the checkpoint's is the entire mechanism — a restore that reports the checkpoint's value back to itself compares a number with itself and gates nothing. Typed APART from logic:EnactmentCheckpoint, which is the resume POINT: many restores may be attempted from one checkpoint, and each is separately auditable."@x-gmeow-english ;
+    skos:example "ex:resumeW12 a logic:CheckpointRestore ; logic:restoresCheckpoint ex:ckptW12 ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an enactment is resumed from a checkpoint and the resumption must be auditable after the fact — a crash recovery, a deliberate pause and continue, an operator-driven rollback."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a repeat or a revision (both mint new records rather than recovering an existing run), and avoid restoring without recording the act: an unrecorded restore is exactly the one whose identity nobody checked."@x-gmeow-english ;
+    gmeow:howToUse "Bind the checkpoint, the enactment being resumed, and the restoring engine's own logic:restoreDescriptorHash computed over its seven current axes; the identity laws compare that value with the checkpoint's."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:restoresCheckpoint
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CheckpointRestore ;
+    rdfs:range logic:EnactmentCheckpoint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "restores checkpoint"@x-gmeow-english ;
+    skos:definition "Relates a logic:CheckpointRestore to the exactly-one logic:EnactmentCheckpoint it recovers. Functional. It is the join the identity gate runs over: without it the restore has no counterparty and every comparison is vacuous."@x-gmeow-english ;
+    skos:example "ex:resumeW12 logic:restoresCheckpoint ex:ckptW12 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the resume point a restore recovered from."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a restore naming a logic:StepCheckpoint as the resume point for a whole enactment; a step checkpoint is never a valid restore point for the run."@x-gmeow-english ;
+    gmeow:howToUse "One checkpoint per restore, so a disagreement names two specific records rather than two populations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:restoreDescriptorHash
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:CheckpointRestore ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "restore descriptor hash"@x-gmeow-english ;
+    skos:definition "The folded content address over the seven identity axes AS THE RESTORING ENGINE FINDS THEM — its own data, rules, slice, contract, engine, annotation algebra and fragment — computed at restore time and independently of the checkpoint. Functional. Its whole value is that it may DIFFER from logic:checkpointDescriptorHash: equality is the gate passing, and inequality is drift the run must be refused for, which is unstatable if the restore simply echoes the checkpoint's value."@x-gmeow-english ;
+    skos:example "ex:resumeW12 logic:restoreDescriptorHash \"b3:e58021ca3f9d47b6018e5c27dab9403f1c68b0a597e2d413c6f8a705b19d2e83\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the folded identity the restoring engine computed over its own current axes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying the checkpoint's hash into it: a value read from the thing being compared cannot disagree with it, and the gate silently becomes a no-op."@x-gmeow-english ;
+    gmeow:howToUse "Fold the same seven axes in the same order the checkpoint did, then let the identity law compare — never compare in the restoring code and record only the verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:restoreOfEnactment
+    a owl:ObjectProperty ;
+    rdfs:domain logic:CheckpointRestore ;
+    rdfs:range logic:Enactment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "restore of enactment"@x-gmeow-english ;
+    skos:definition "Relates a logic:CheckpointRestore to the logic:Enactment being resumed. Functional. Resume continues the SAME occurrence, so this must be the enactment the restored checkpoint was taken from; restoring one run's checkpoint into another is not a resume but an undeclared repeat wearing a resume's clothes, and it carries the earlier run's journal into a run that never committed it."@x-gmeow-english ;
+    skos:example "ex:resumeW12 logic:restoreOfEnactment ex:adrReviewW12 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the occurrence a restore resumes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a fresh enactment: that is a repeat, and repeat mints its own journal rather than inheriting one."@x-gmeow-english ;
+    gmeow:howToUse "Bind the same enactment the checkpoint names in logic:checkpointOfEnactment; the identity law checks exactly that."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:CheckpointRestoreIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a restore's folded identity must equal its checkpoint's"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CheckpointRestore whose logic:restoreDescriptorHash is not the logic:checkpointDescriptorHash of the checkpoint it restores. This is the identity gate itself, and it is irreducibly a relation between two records: resuming a run against drifted rules, a drifted engine or a drifted slice silently produces a result the run never would have produced, and the fold is the single value that makes the drift visible before the first step executes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:CheckpointRestore's logic:restoreDescriptorHash must equal the logic:checkpointDescriptorHash of the logic:EnactmentCheckpoint it restores; a mismatch on ANY of the seven identity axes is refused, never reconciled." ;
+    logic:integrity logic:crxForall .
+logic:crxForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:crxImpl .
+logic:crxImpl a logic:Formula ; logic:antecedent logic:crxGuard ; logic:consequent logic:crxCons .
+logic:crxGuard a logic:Formula ; logic:and logic:crxIsRestore , logic:crxOfCheckpoint , logic:crxFold .
+logic:crxIsRestore a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CheckpointRestore ] .
+logic:crxOfCheckpoint a logic:Formula ; logic:relation logic:restoresCheckpoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "checkpoint" ] .
+logic:crxFold a logic:Formula ; logic:relation logic:restoreDescriptorHash ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "fold" ] .
+logic:crxCons a logic:Formula ; logic:relation logic:checkpointDescriptorHash ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "checkpoint" ] , [ logic:termIndex 1 ; logic:termVariable "fold" ] .
+
+logic:RestoreStaysWithinItsEnactmentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a restore resumes the run its checkpoint came from"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:CheckpointRestore whose logic:restoreOfEnactment is not the logic:checkpointOfEnactment of the checkpoint it restores. The folded hash gates the ENGINE's identity and says nothing about WHOSE run is being continued: two occurrences of one prescription on one build fold identically, so a cross-run restore passes the fold gate while carrying one run's journal, approvals and effects into another. The second identity axis is therefore a separate law, not a detail of the first."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:CheckpointRestore's logic:restoreOfEnactment must be the logic:checkpointOfEnactment of the checkpoint it restores; resuming one run from another run's checkpoint is an undeclared repeat, not a resume." ;
+    logic:integrity logic:rseForall .
+logic:rseForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:rseImpl .
+logic:rseImpl a logic:Formula ; logic:antecedent logic:rseGuard ; logic:consequent logic:rseCons .
+logic:rseGuard a logic:Formula ; logic:and logic:rseIsRestore , logic:rseOfCheckpoint , logic:rseEnactment .
+logic:rseIsRestore a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:CheckpointRestore ] .
+logic:rseOfCheckpoint a logic:Formula ; logic:relation logic:restoresCheckpoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "checkpoint" ] .
+logic:rseEnactment a logic:Formula ; logic:relation logic:restoreOfEnactment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
+logic:rseCons a logic:Formula ; logic:relation logic:checkpointOfEnactment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "checkpoint" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
 
 logic:ContinuationKindDisjointnessConstraint
     a logic:Constraint ;
@@ -12204,11 +12575,37 @@ logic:ckdNotRevise a logic:Formula ; logic:not logic:ckdRevise .
 logic:ckdRevise a logic:Formula ; logic:relation logic:continuationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContinuationRevise ] .
 
-logic:PrescriptionVersionImmutabilityConstraint
+# The third pair. A universally-quantified implication has ONE antecedent, so the resume
+# guard above can only exclude the two kinds resume conflicts with; a record carrying repeat
+# AND revise satisfies it vacuously and passes. Three kinds have three unordered pairs, so
+# pairwise disjointness needs the repeat/revise leg as its own law — and it is the pair that
+# matters operationally, since repeat mints a new enactment while revise supersedes the
+# prescription, and a record claiming both has just done neither reproducibly.
+logic:ContinuationRepeatExcludesReviseConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "repeat and revise are not conflated"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a continuation record typed as BOTH logic:ContinuationRepeat and logic:ContinuationRevise. It completes the pairwise disjointness of the three continuation kinds, whose resume leg logic:ContinuationKindDisjointnessConstraint carries: repeat mints a new logic:Enactment against a new snapshot and leaves the prescription untouched, revise mints a new logic:PrescriptionVersion and leaves in-flight enactments on the version they pinned, and a record asserting both has said neither which occurrence continued nor which prescription governs it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A continuation record carrying logic:ContinuationRepeat must not also carry logic:ContinuationRevise: one mints a new enactment, the other supersedes the prescription, and no record does both." ;
+    logic:integrity logic:ckrForall .
+logic:ckrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ckrImpl .
+logic:ckrImpl a logic:Formula ; logic:antecedent logic:ckrRepeat ; logic:consequent logic:ckrCons .
+logic:ckrRepeat a logic:Formula ; logic:relation logic:continuationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContinuationRepeat ] .
+logic:ckrCons a logic:Formula ; logic:not logic:ckrRevise .
+logic:ckrRevise a logic:Formula ; logic:relation logic:continuationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContinuationRevise ] .
+
+logic:PrescriptionVersionIsContentAddressedConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a prescription version is content-addressed"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Immutability here is enforced by content-addressing rather than by a mutability flag: a version whose bytes are not addressed cannot be shown to be the one an enactment ran, so revising it in place becomes undetectable and the whole supersession discipline stops meaning anything."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Content-addressing is the PRECONDITION of immutability, not immutability itself: an unaddressed version cannot be shown to be the one an enactment ran, so nothing downstream can detect a revision in place. Whether a version actually stayed put is logic:PrescriptionVersionImmutabilityConstraint, which compares the address against what a run recorded."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -12223,11 +12620,55 @@ logic:pviGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
 logic:pviCons a logic:Formula ; logic:relation logic:prescriptionDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
 
-logic:JournalChainIntegrityConstraint
+logic:enactedPrescriptionDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:Enactment ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enacted prescription digest"@x-gmeow-english ;
+    skos:definition "The logic:prescriptionDigest of the version this enactment pinned, COPIED into the run's own record at start. Functional. It is the witness that makes in-place revision detectable: the version pointer follows the version wherever its bytes go, so comparing the version with itself always agrees, and only a value the run froze at pin time can disagree with the version's current address. This is the enactment-layer instance of the same discipline logic:approvalIntentDigest applies to authorization."@x-gmeow-english ;
+    skos:example "ex:adrReviewW12 logic:enactedPrescriptionDigest \"b3:4c8a03f7b25e91d6047ac35b8e1f20d9637b0ae514c92d87f30a6b15c8e04d29\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to freeze, at start, the content address of the prescription version an occurrence is running — so a later in-place edit of that version is detectable rather than invisible."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid recomputing it from the version at read time: a value derived from the thing under test cannot testify against it, and the check silently becomes a tautology."@x-gmeow-english ;
+    gmeow:howToUse "Copy logic:prescriptionDigest once at pin time and never update it; the immutability law reports every enactment whose frozen value no longer matches."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# Immutability is a claim about CHANGE OVER TIME, and a single record can never falsify one:
+# a version and its own digest agree by construction, however many times the bytes were
+# rewritten. The only witness is a value frozen elsewhere — the digest a run recorded when it
+# pinned the version — so the law joins the version to its enactments and condemns the
+# version whose current address no longer matches what a run is running against.
+logic:PrescriptionVersionImmutabilityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a landed version's address never moves"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:PrescriptionVersion whose logic:prescriptionDigest differs from the logic:enactedPrescriptionDigest an enactment of it froze at pin time. That divergence has exactly one cause — the version's bytes were edited after a run pinned them — and it is the failure the whole supersession discipline exists to make impossible: the run's recoverable account of what it executed now describes something that no longer exists, while its version pointer keeps resolving, so nothing else in the record looks wrong."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:PrescriptionVersion's logic:prescriptionDigest must equal the logic:enactedPrescriptionDigest every enactment of it froze at pin time; a divergence means the version was revised in place under a running occurrence." ;
+    logic:integrity logic:pvmForall .
+logic:pvmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pvmImpl .
+logic:pvmImpl a logic:Formula ; logic:antecedent logic:pvmGuard ; logic:consequent logic:pvmCons .
+logic:pvmGuard a logic:Formula ; logic:and logic:pvmIsVersion , logic:pvmDigest , logic:pvmEnacted , logic:pvmPinned .
+logic:pvmIsVersion a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PrescriptionVersion ] .
+logic:pvmDigest a logic:Formula ; logic:relation logic:prescriptionDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "current" ] .
+logic:pvmEnacted a logic:Formula ; logic:relation logic:enactsPrescriptionVersion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "run" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:pvmPinned a logic:Formula ; logic:relation logic:enactedPrescriptionDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "run" ] , [ logic:termIndex 1 ; logic:termVariable "pinned" ] .
+logic:pvmCons a logic:Formula ; logic:relation logic:enactedPrescriptionDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "run" ] , [ logic:termIndex 1 ; logic:termVariable "current" ] .
+
+logic:JournalEntryNamesBothHeadsConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a journal entry names both of its heads"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:JournalEntry missing either the head it was applied against or the head it establishes. The chain is the mechanism from which durability, idempotency and the no-blind-retry law all follow; an entry that names only one end cannot be linked, and a chain that cannot be linked cannot detect a stale resubmission."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:JournalEntry missing either the head it was applied against or the head it establishes. An entry that names only one end cannot be LINKED at all, so it is the precondition of chain integrity rather than chain integrity itself: whether the links actually join up is logic:JournalChainIntegrityConstraint, which compares an entry's prior head against what its predecessor established."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -12245,11 +12686,53 @@ logic:jciPrev a logic:Formula ; logic:relation logic:journalPrevHead ;
 logic:jciNew a logic:Formula ; logic:relation logic:journalNewHead ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "new" ] .
 
-logic:NoBlindRetryConstraint
+logic:journalPredecessor
+    a owl:ObjectProperty ;
+    rdfs:domain logic:JournalEntry ;
+    rdfs:range logic:JournalEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "journal predecessor"@x-gmeow-english ;
+    skos:definition "Relates a logic:JournalEntry to the entry it was appended after — the chain's SUCCESSION edge, as distinct from logic:journalPrevHead, which is the content ADDRESS that succession is supposed to reproduce. Functional. The two are deliberately separate: a chain whose only link is a hash is a chain whose links can only be checked by finding some entry with a matching head, which silently accepts a fork (two entries claiming one predecessor) and cannot distinguish a genesis entry from a broken one. The genesis entry carries none, which is exactly what makes it the genesis entry."@x-gmeow-english ;
+    skos:example "ex:entry8 logic:journalPredecessor ex:entry7 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which entry an entry was appended after, so the chain's links are checkable against the heads rather than reconstructed from them."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid binding one on the genesis entry (it succeeds nothing), and avoid pointing two entries at one predecessor — that is the fork the chain exists to make impossible."@x-gmeow-english ;
+    gmeow:howToUse "Append it alongside logic:journalPrevHead at commit time; the chain-integrity law checks the two agree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# Chain integrity is the LINK, not the ends. Two entries can each name both of their heads
+# and still form no chain — the whole point of the hash chain is that entry n's prior head
+# reproduces entry n−1's new head, and a resubmission after an interruption is refused
+# because that reproduction fails. Nothing checked it until now: the presence law above
+# passes a journal whose entries all point into the void.
+logic:JournalChainIntegrityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an entry's prior head is its predecessor's new head"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:JournalEntry whose logic:journalPrevHead is not the logic:journalNewHead of the entry it succeeds. This is the hash-chain invariant itself, and every durability property the layer claims rests on it: an entry applied against a head its predecessor never established was applied against a state the journal never reached, which is what a stale resubmission after a crash looks like from the inside. A genesis entry carries no logic:journalPredecessor and is therefore not governed — it is the one entry with nothing to reproduce."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:JournalEntry's logic:journalPrevHead must equal the logic:journalNewHead of its logic:journalPredecessor; an entry applied against a head nothing established is a stale or forked submission." ;
+    logic:integrity logic:jchForall .
+logic:jchForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:jchImpl .
+logic:jchImpl a logic:Formula ; logic:antecedent logic:jchGuard ; logic:consequent logic:jchCons .
+logic:jchGuard a logic:Formula ; logic:and logic:jchIsEntry , logic:jchPredecessor , logic:jchPrev .
+logic:jchIsEntry a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:JournalEntry ] .
+logic:jchPredecessor a logic:Formula ; logic:relation logic:journalPredecessor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "predecessor" ] .
+logic:jchPrev a logic:Formula ; logic:relation logic:journalPrevHead ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "head" ] .
+logic:jchCons a logic:Formula ; logic:relation logic:journalNewHead ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "predecessor" ] , [ logic:termIndex 1 ; logic:termVariable "head" ] .
+
+logic:UnknownOutcomeNamesItsAttemptConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "an unknown outcome names the attempt it is unknown about"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:ExternalOutcomeUnknown that names no attempt. Retry from an undetermined position is licensed only by a discharged idempotency contract or a reconciliation verdict, and both are reached THROUGH the attempt: an unknown outcome with no attempt is unresolvable in principle, so nothing could ever license a retry from it and nothing could ever close it."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ExternalOutcomeUnknown that names no attempt. An unknown outcome with no attempt is unresolvable in principle: nothing could ever probe it, and nothing could ever close it. It is a precondition of the no-blind-retry discipline rather than that discipline itself — whether a retry is actually licensed is logic:NoBlindRetryConstraint, which governs the retry record the kernel now carries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -12263,6 +12746,109 @@ logic:nbrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ExternalOutcomeUnknown ] .
 logic:nbrCons a logic:Formula ; logic:relation logic:unknownOfAttempt ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "attempt" ] .
+
+# ── Retry, as a first-class record ───────────────────────────────────────────────────
+#
+# "No blind retry" named an act the vocabulary could not express. The layer modelled the
+# undetermined position (logic:ExternalOutcomeUnknown), the two things that resolve it
+# (logic:IdempotencyContract, logic:ReconciliationResult) and the probe that reaches them —
+# but never the RETRY, which is the move the law forbids. A law about an act nothing can
+# record is a law about nothing, which is why the constraint bearing this name was in fact
+# checking that an unknown outcome had a subject.
+
+logic:RetryDispatch
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Retry Dispatch"@x-gmeow-english ;
+    skos:definition "A re-dispatch of an effect whose earlier logic:EffectAttempt did not conclusively fail — the move that turns one charge into two, one valve command into two, one enrolment into two. It is recorded as its own durable fact BEFORE the re-dispatch, exactly as logic:DispatchIntent is, so that the licence under which it proceeded is auditable afterwards rather than reconstructed from a support ticket. Typed APART from logic:DispatchIntent, which is a first dispatch and needs no licence, and APART from logic:ReconciliationProbe, which is the knowledge-increasing move an undetermined position DOES license."@x-gmeow-english ;
+    skos:example "ex:chargeRetry a logic:RetryDispatch ; logic:retryOfAttempt ex:chargeAttempt ."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an effect is re-sent after an attempt whose outcome was not conclusively negative — the single most damaging move available at the effect boundary, and therefore the one that must leave a record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the first dispatch of an intent, avoid for a reconciliation probe (that reads rather than acts), and above all avoid re-sending without minting one: an unrecorded retry is a blind retry by construction."@x-gmeow-english ;
+    gmeow:howToUse "Bind the attempt being retried and the licence that permits it; the no-blind-retry law checks the licence actually covers that attempt."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:retryOfAttempt
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RetryDispatch ;
+    rdfs:range logic:EffectAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "retry of attempt"@x-gmeow-english ;
+    skos:definition "Relates a logic:RetryDispatch to the exactly-one earlier logic:EffectAttempt it re-sends. Functional. Naming the attempt rather than the intent is what makes the licence checkable: an idempotency contract and a reconciliation verdict both attach to a specific attempt through the provider's correlation identity, and a retry that names only the intent cannot be joined to either."@x-gmeow-english ;
+    skos:example "ex:chargeRetry logic:retryOfAttempt ex:chargeAttempt ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the attempt a retry re-sends."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming the intent instead; the provider correlates on what was actually sent, and so must the licence."@x-gmeow-english ;
+    gmeow:howToUse "One attempt per retry, so a second retry of the same attempt is a separate, separately-licensed record."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:retryLicence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "retry licence"@x-gmeow-english ;
+    skos:definition "Relates a logic:RetryDispatch to the record that permits it — a discharged logic:IdempotencyContract, or a logic:ReconciliationResult whose verdict settled the earlier attempt. Range either of those (stated in prose, because the two are genuinely alternative licences and forcing a common superclass would suggest they are interchangeable, which they are not: one makes a repeat harmless, the other makes it unnecessary). Functional."@x-gmeow-english ;
+    skos:example "ex:chargeRetry logic:retryLicence ex:chargeIdempotency ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name what makes a particular retry safe."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a licence that names no attempt (it covers nothing), and avoid an operator's judgement in this position — a decision to retry is not a demonstration that retrying is safe."@x-gmeow-english ;
+    gmeow:howToUse "Bind the contract or result, and make sure it carries logic:licenceCoversAttempt for the attempt being retried; the law joins on exactly that."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:licenceCoversAttempt
+    a owl:ObjectProperty ;
+    rdfs:range logic:EffectAttempt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "licence covers attempt"@x-gmeow-english ;
+    skos:definition "Relates a retry licence — a discharged logic:IdempotencyContract or a settled logic:ReconciliationResult — to the exact logic:EffectAttempt it makes a retry safe from. Domain either licence kind (stated in prose). Multi-valued: one idempotency contract may cover several attempts against one key within its retention window, and its lapse is precisely the point at which it stops covering them. Naming the attempts is what stops a licence issued for one dispatch from being read as covering the next one."@x-gmeow-english ;
+    skos:example "ex:chargeIdempotency logic:licenceCoversAttempt ex:chargeAttempt ."@x-gmeow-english ;
+    gmeow:useWhen "Use to say exactly which attempts a licence makes retryable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extending it past the licence's own bounds — an idempotency contract whose retention window has elapsed covers nothing, and a retry after that is a second effect, not a repeat of the first."@x-gmeow-english ;
+    gmeow:howToUse "Add the attempt when the contract is discharged or the reconciliation verdict lands, and never before: a licence recorded in advance licenses the failure it was supposed to prevent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:RetryRequiresLicenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a retry names the licence it proceeded under"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:RetryDispatch that names no logic:retryLicence. Re-sending an effect whose outcome was never established is the most damaging move at the boundary, and 'we decided it was probably fine' is exactly the reasoning it must not be available under. This is the PRESENCE half; whether the named licence actually covers the attempt being retried is logic:NoBlindRetryConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:RetryDispatch must name a logic:retryLicence — a discharged logic:IdempotencyContract or a settled logic:ReconciliationResult; an unlicensed retry is the blind retry itself." ;
+    logic:integrity logic:rrlForall .
+logic:rrlForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:rrlImpl .
+logic:rrlImpl a logic:Formula ; logic:antecedent logic:rrlGuard ; logic:consequent logic:rrlCons .
+logic:rrlGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:RetryDispatch ] .
+logic:rrlCons a logic:Formula ; logic:relation logic:retryLicence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "licence" ] .
+
+# The law the name has always claimed. A retry that cites SOME licence is not a licensed
+# retry: the classic production failure is citing the idempotency contract of the previous
+# invoice, or a reconciliation verdict about a different attempt, and both satisfy a
+# presence check exactly. The licence must cover THIS attempt.
+logic:NoBlindRetryConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a retry's licence covers the attempt being retried"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:RetryDispatch whose logic:retryLicence does not carry logic:licenceCoversAttempt for the attempt the retry re-sends. Licensing is a relation between a specific licence and a specific attempt, and nothing weaker will do: an idempotency contract covers the keys and the window it actually covers, and a reconciliation verdict settles the attempt it actually probed. A licence borrowed from a neighbouring dispatch — the same provider, the same step, the previous invoice — reads identically to a real one and permits exactly the double-effect the whole commitment layer exists to prevent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:RetryDispatch's logic:retryLicence must carry logic:licenceCoversAttempt for the exact logic:EffectAttempt being retried; a licence issued for a neighbouring dispatch licenses nothing here." ;
+    logic:integrity logic:nblForall .
+logic:nblForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:nblImpl .
+logic:nblImpl a logic:Formula ; logic:antecedent logic:nblGuard ; logic:consequent logic:nblCons .
+logic:nblGuard a logic:Formula ; logic:and logic:nblIsRetry , logic:nblAttempt , logic:nblLicence .
+logic:nblIsRetry a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:RetryDispatch ] .
+logic:nblAttempt a logic:Formula ; logic:relation logic:retryOfAttempt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "attempt" ] .
+logic:nblLicence a logic:Formula ; logic:relation logic:retryLicence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "licence" ] .
+logic:nblCons a logic:Formula ; logic:relation logic:licenceCoversAttempt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "licence" ] , [ logic:termIndex 1 ; logic:termVariable "attempt" ] .
 
 logic:CompensationNotInverseConstraint
     a logic:Constraint ;
@@ -12344,11 +12930,11 @@ logic:epsVersion a logic:Formula ; logic:relation logic:enactsPrescriptionVersio
 logic:epsSnapshot a logic:Formula ; logic:relation logic:enactmentInputSnapshot ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "snapshot" ] .
 
-logic:OperationalGapCarriesProposalConstraint
+logic:OperationalGapNamesBlockedStepConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "an operational capability gap names the step it blocks"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:OperationalCapabilityGap that names no blocked step. Surfacing a gap instead of substituting a weaker capability is only worth doing if the gap is answerable to a concrete blockage; a gap with no blocked step is a general complaint about provisioning, which no operator can act on and no proposal can close."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:OperationalCapabilityGap that names no blocked step. A gap with no blocked step is a general complaint about provisioning, which no operator can act on. It says nothing about a REMEDY — whether the gap is actually answered by a logic:CapabilityGapProposal is logic:OperationalGapCarriesProposalConstraint, which joins the two through the step they share."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
@@ -12362,6 +12948,34 @@ logic:ogpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:OperationalCapabilityGap ] .
 logic:ogpCons a logic:Formula ; logic:relation logic:gapBlockedStep ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
+
+# The remedy leg. "Raise a gap instead of substituting a weaker capability" is only better
+# than substitution if the gap ARRIVES WITH what would close it; a gap that names a blockage
+# and nothing else is the complaint the discipline was supposed to replace. The proposal and
+# the gap are joined through the step: logic:proposalBlockedStep is field eight of eight for
+# exactly this reason, so no new predicate is needed to state the relation — only a law that
+# reads it.
+logic:OperationalGapCarriesProposalConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an operational capability gap arrives with its remedy"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:OperationalCapabilityGap whose blocked step is the logic:proposalBlockedStep of no logic:CapabilityGapProposal. Surfacing a gap rather than substituting a weaker capability is a discipline that pays only when the blockage comes with the statement of what would close it: an unanswered gap is a provisioning complaint, and a backlog of them is indistinguishable from a system that silently degraded instead. The join is the step, which both records already name."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:OperationalCapabilityGap's blocked step must be the logic:proposalBlockedStep of some logic:CapabilityGapProposal; a gap nobody proposed a remedy for cannot be closed and is a complaint, not a request." ;
+    logic:integrity logic:ogrForall .
+logic:ogrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ogrImpl .
+logic:ogrImpl a logic:Formula ; logic:antecedent logic:ogrGuard ; logic:consequent logic:ogrCons .
+logic:ogrGuard a logic:Formula ; logic:and logic:ogrIsGap , logic:ogrStep .
+logic:ogrIsGap a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:OperationalCapabilityGap ] .
+logic:ogrStep a logic:Formula ; logic:relation logic:gapBlockedStep ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
+logic:ogrCons a logic:Formula ; logic:relation logic:proposalBlockedStep ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "proposal" ] , [ logic:termIndex 1 ; logic:termVariable "step" ] .
 
 # =========================================================================== #
 # The well-founded materializer's intra-engine phase plan — dogfooded as data. #
@@ -16279,12 +16893,24 @@ logic:EnactmentIntegrityViolation
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Enactment Integrity Violation"@x-gmeow-english ;
-    skos:definition "The failure raised when an enactment record breaks one of the enactment kernel's authored logic:Constraint integrity laws: a logic:DispatchIntent omitting a mandatory binding, a logic:ExternalEffectReceipt naming no attempt, a logic:ResourceLease with no fencing identity, a logic:CompensationAttempt typed as the receipt it counteracts, a logic:EffectAttempt carrying derivation provenance. The native enactment gate materializes it by compiling each law's logic:integrity formula into a violation-emitting forward rule — the antecedent plus the NEGATED consequent — and typing the offending record with this class when the guard holds and the obligation fails; the logic:Constraint whose law fired travels with the derivation as its rule tag, so the marker is traceable to the authored law rather than to a Rust decision. One class across the kernel's laws rather than one per law, mirroring math:DimensionalInhomogeneity over the two dimension laws: the operator's question is always the same — which record is ill-formed — and law identity is carried by the derivation, not by a proliferation of marker classes."@x-gmeow-english ;
+    skos:definition "The failure raised when an enactment record breaks one of the enactment kernel's authored logic:Constraint integrity laws: a logic:DispatchIntent omitting a mandatory binding, a logic:ExternalEffectReceipt naming no attempt, a logic:ResourceLease claiming a scope another lease holds, a logic:CompensationAttempt typed as the receipt it counteracts, a logic:EffectAttempt carrying derivation provenance. The native enactment gate materializes it by compiling each law's logic:integrity formula into a violation-emitting forward rule — the antecedent plus the NEGATED consequent — and typing the offending record with this class when the guard holds and the obligation fails; the logic:Constraint whose law fired is published ALONGSIDE the marker on logic:violatedLaw, so a reader of the finding sees which law rejected the record and not merely that one did. One class across the kernel's laws rather than one per law, mirroring math:DimensionalInhomogeneity over the two dimension laws: the marker answers WHICH RECORD is ill-formed, logic:violatedLaw answers WHICH LAW says so, and neither question needs a proliferation of marker classes to be answerable."@x-gmeow-english ;
     skos:example "ex:lease-7 a logic:ResourceLease with no logic:fencingIdentity is typed ex:lease-7 a logic:EnactmentIntegrityViolation by the enactment gate."@x-gmeow-english ;
     gmeow:useWhen "Use to query for enactment records the kernel's integrity laws reject, and to assert in a counter-example fixture which record the gate must condemn."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it by hand on a well-formed record: it is a reasoner-materialized marker, and hand-asserting it claims a violation no law derived."@x-gmeow-english ;
-    gmeow:howToUse "Author the law as a logic:Constraint carrying gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation and a logic:integrity formula of the shape forall this. guard(this) implies obligation; the enactment gate compiles it and types the violating record."@x-gmeow-english ;
+    gmeow:howToUse "Author the law as a logic:Constraint carrying gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation and a logic:integrity formula of the shape forall this. guard(this) implies obligation; the enactment gate compiles it, types the violating record, and publishes the law's identity on logic:violatedLaw."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:violatedLaw
+    a owl:ObjectProperty ;
+    rdfs:range logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "violated law"@x-gmeow-english ;
+    skos:definition "Relates a record the native gates condemned to the authored logic:Constraint whose law condemned it. Domain a conformance-failure-marked record (stated in prose, since the marker classes are several and the relation is one). Multi-valued: one record may break several laws, and collapsing that to the first would hide the others. It exists because the failure CLASS is deliberately shared across many laws — the marker says a record is ill-formed, and without this the operator is left to re-derive which of two dozen authored obligations it broke. The gate publishes it from the same violation rule that emitted the marker, so it is derived from the authored law and can never disagree with it."@x-gmeow-english ;
+    skos:example "ex:lease-7 logic:violatedLaw logic:LeaseCarriesFencingIdentityConstraint ."@x-gmeow-english ;
+    gmeow:useWhen "Use to read, or to query for, WHICH authored law a gate-condemned record broke."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand: like the marker it accompanies it is reasoner-materialized, and a hand-written one claims a derivation no law made."@x-gmeow-english ;
+    gmeow:howToUse "Read it off the finding; it names the logic:Constraint individual, whose logic:message states the obligation in the author's own words."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:UnwiredFlagshipScenario
     a owl:Class ;

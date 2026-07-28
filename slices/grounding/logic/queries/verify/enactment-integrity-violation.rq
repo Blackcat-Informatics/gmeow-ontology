@@ -2,20 +2,25 @@
 # reasoner-materialized marker. The native enactment gate compiles every enactment-kernel
 # logic:Constraint authored in this module into a violation-emitting forward rule — the
 # law's antecedent joined with its NEGATED consequent — and drives them through the forward
-# semi-naive chase over the reasoned graph, typing each condemned record with this class.
+# semi-naive chase over the reasoned graph, typing each condemned record with this class and
+# publishing the condemning law on logic:violatedLaw.
 # This query does NOT recompute any law itself — it holds no FILTER NOT EXISTS structural
 # check of its own, which is the whole point: restating a law here would be a second source
 # of truth competing with the authored logic:Constraint. It only selects the already-derived
-# marker and projects the record's own kernel type, so the surfaced finding names WHAT kind
-# of enactment record was rejected and not merely that something was. Any returned row is a
+# marker and projects the two things an operator cannot otherwise recover: the record's own
+# kernel type (WHAT kind of enactment record was rejected) and the authored law that
+# rejected it (WHICH obligation it broke). The failure class is deliberately shared across
+# the kernel's forty laws, so without ?law a finding says a record is ill-formed and leaves
+# the reader to re-derive which of forty obligations it failed. Any returned row is a
 # violation (design/LOGIC-ENACTMENT.md).
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 
-SELECT ?subject ?recordType WHERE {
+SELECT ?subject ?law ?recordType WHERE {
     ?subject a logic:EnactmentIntegrityViolation .
+    OPTIONAL { ?subject logic:violatedLaw ?law . }
     OPTIONAL {
         ?subject a ?recordType .
         FILTER(?recordType != logic:EnactmentIntegrityViolation)
     }
 }
-ORDER BY ?subject ?recordType
+ORDER BY ?subject ?law ?recordType

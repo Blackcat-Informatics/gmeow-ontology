@@ -11019,8 +11019,8 @@ msgid "ex:refundAttempt a logic:CompensationAttempt ; logic:compensatesEffect ex
 msgstr "示例：ex:refundAttempt a logic:CompensationAttempt ; logic:compensatesEffect ex:payReceipt ."
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationBindsExactForwardEffectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a compensation names the exact forward receipt"
-msgstr "补偿指明确切的正向回执"
+msgid "a compensation binds the exact forward receipt"
+msgstr "补偿绑定确切的正向回执"
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcome|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Compensation Outcome"
@@ -11043,8 +11043,8 @@ msgid "ex:w12Context a logic:ContextAssembly ; logic:assemblyForEnactment ex:adr
 msgstr "示例：ex:w12Context a logic:ContextAssembly ; logic:assemblyForEnactment ex:adrReviewW12 ."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a context assembly names the enactment it served"
-msgstr "语境编集指明其服务的实施"
+msgid "an assembly that withholds material says why"
+msgstr "扣留材料的编集须说明缘由"
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Continuation Kind"
@@ -11299,8 +11299,8 @@ msgid "cancelled with in-flight effects"
 msgstr "取消时仍有在途效应"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierClosureRequiresSaturationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a frontier claiming closure carries a saturation witness"
-msgstr "宣称闭合的前沿须携带饱和见证"
+msgid "a frontier's witness must not record a budget cut"
+msgstr "前沿的见证不得记载预算截断"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationEligible|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "compensation eligible"
@@ -11411,8 +11411,8 @@ msgid "Journal Entry"
 msgstr "日志条目"
 
 msgctxt "https://blackcatinformatics.ca/logic/LeaseExclusivityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a lease carries a fencing identity"
-msgstr "租约须携带栅栏标识"
+msgid "one lease at a time over one scope"
+msgstr "同一范围同一时刻只得有一份租约"
 
 msgctxt "https://blackcatinformatics.ca/logic/LivenessCertificate|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Liveness Certificate"
@@ -11610,7 +11610,7 @@ msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSet|http://www.
 msgid "ex:ocrCandidates a logic:RefinementCandidateSet ; logic:refinementCandidate ex:ocrViaTesseract ."
 msgstr "示例：ex:ocrCandidates a logic:RefinementCandidateSet ; logic:refinementCandidate ex:ocrViaTesseract ."
 
-msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSetClosureConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisodeDeclaresSearchFragmentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a refinement episode declares its search fragment"
 msgstr "细化片段须声明其搜索片段"
 
@@ -12415,8 +12415,8 @@ msgid "A NEW action taken to counteract a forward effect known to have committed
 msgstr "为抵消一项已知确已提交的正向效应而采取的全新行动——它有自己的前置条件、自己的效应、自己的尝试与回执，也有自己失败的可能。它断然不是撤销：正向效应仍留存于记录之中，历史是向前更正而非改写；而一次失败的补偿会使系统处于真正不一致的状态，此时所需的是升级处置，而非重试。"
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationBindsExactForwardEffectConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:CompensationAttempt that names no forward receipt. Binding to the exact receipt rather than to an action schema is what stops one compensation being read as covering every effect of its kind, which is the reading under which a single refund appears to undo many charges."
-msgstr "拒斥未指明正向回执之 logic:CompensationAttempt 的 logic:Constraint。绑定到确切的回执而非某个动作模式，正是防止一次补偿被读作涵盖同类全部效应的关键——在那种读法下，一笔退款看似抵销了多笔扣款。"
+msgid "The logic:Constraint rejecting a logic:CompensationAttempt whose logic:compensatesEffect names something that is not a receipt of an observed attempt. Exactness is a property of what the binding REACHES, not of the binding existing: an action schema, an intent, or a reconciliation result all satisfy a presence check while naming a CLASS of effects rather than the one committed effect, which is the reading under which a single refund appears to undo many charges. Only a logic:ExternalEffectReceipt carries logic:receiptOfAttempt, so requiring the target to carry it is exactly the exactness test."
+msgstr "拒斥「其 logic:compensatesEffect 所指并非某次已观测尝试之回执」之 logic:CompensationAttempt 的 logic:Constraint。确切性是绑定所抵达之物的性质，而非绑定存在与否的性质：动作模式、意图或核实结果，皆能满足在场性检查，却指向一类效应，而非那一笔已提交的效应——在那种读法下，一笔退款看似抵销了多笔扣款。唯有 logic:ExternalEffectReceipt 携带 logic:receiptOfAttempt，故要求目标携带它，正是那项确切性检验。"
 
 msgctxt "https://blackcatinformatics.ca/logic/CompensationOutcome|http://www.w3.org/2004/02/skos/core#definition"
 msgid "What a logic:CompensationAttempt achieved, established by its own receipt exactly as a forward effect's outcome is. A compensation may not be recorded as successful on the strength of having been attempted: the asymmetry between attempting and achieving is the whole reason the saga exists, and it does not stop applying just because the action is corrective."
@@ -12431,8 +12431,8 @@ msgid "The record of what was put in front of a decider: what was included, from
 msgstr "呈交予决策者之物的记录：纳入了什么、来自何处、在何种预算之下，以及——至为关键的——排除了什么。记录排除项，正是使所记载的异议具有意义之所在，因为「操作者看到了反对意见仍然推进」与「反对意见从未被呈现」是两种截然不同的情形，而只记纳入项的记录无从分辨。与决策本身判然有别：编集是据以决策的可用之物。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ContextAssembly with no named enactment. An assembly exists to answer what was surfaced to a PARTICULAR run; unbound, it answers nothing and the guidance-version record it carries has no subject."
-msgstr "拒斥未指明所属实施之 logic:ContextAssembly 的 logic:Constraint。编集之所以存在，是为回答「向某一次特定运行呈现了什么」；若无绑定，它什么也回答不了，其所携带的指导版本记录亦无主体可言。"
+msgid "The logic:Constraint rejecting a logic:ContextAssembly that names something in logic:assemblyExcluded and records no logic:assemblyExclusionReason. Recording exclusions is what makes recorded dissent meaningful, and a bare list of withheld items does not: 'I would have objected had I seen X' is answerable only if the record says whether X was shown AND on what grounds it was not. An unexplained exclusion reads, to every later reader, exactly like an oversight."
+msgstr "拒斥「在 logic:assemblyExcluded 中指明了某物却未记载 logic:assemblyExclusionReason」之 logic:ContextAssembly 的 logic:Constraint。记载排除，才使被记载的异议有意义，而一份光秃秃的扣留清单做不到这一点：「若我当时看到 X，我本会反对」只有在记录既说明 X 是否被呈现、又说明以何理由未被呈现时，才是可裁断的。对其后每一位读者而言，一项未加解释的排除，读起来与一次疏漏别无二致。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The closed three-valued vocabulary distinguishing the three ways work continues after it has already begun: resuming the same enactment, repeating under a new input generation, or revising the prescription itself. They are pairwise disjoint and carry different required bindings, so conflating them — the common failure in which 'run it again' silently means any of the three — is structurally detectable. Its members are individuals, never subclasses."
@@ -12771,8 +12771,8 @@ msgid "The enactment was cancelled while an effect remained unresolved. Cancella
 msgstr "实施在仍有效应悬而未决时被取消。取消并不解决提交认知，故那项未了效应仍然要求核实——这大概是现实中最棘手的情形，而一个笼统的「已取消」标签恰恰把它掩盖了。"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierClosureRequiresSaturationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ActionableFrontier with no saturation witness. Closedness is the frontier's whole value, and an unwitnessed claim of it is exactly how a roster truncated by a budget cut passes for complete — after which the system confidently omits the action it should have taken."
-msgstr "拒斥无饱和见证之 logic:ActionableFrontier 的 logic:Constraint。闭合性正是前沿的全部价值所在，而对闭合性的无见证宣称，恰恰是被预算截断的名单得以充作完整名单的途径——此后系统便会信心十足地遗漏它本应采取的行动。"
+msgid "The logic:Constraint rejecting a logic:ActionableFrontier whose logic:frontierSaturationWitness records logic:BudgetExhausted. A witness is evidence, and evidence has content: a frontier that cites a witness whose own evaluation status says the search hit a declared bound is citing proof of the very truncation it claims not to have suffered. Carrying such a witness is strictly worse than carrying none, because the citation reads as certification."
+msgstr "拒斥「其 logic:frontierSaturationWitness 记载了 logic:BudgetExhausted」之 logic:ActionableFrontier 的 logic:Constraint。见证是证据，而证据有其内容：一个前沿若援引一份「其自身求值状态表明搜索撞上了已声明界限」的见证，它援引的恰是它自称未曾遭受的那次截断的证明。携带这样一份见证，严格说来比什么也不携带更糟，因为那次援引读起来就像一纸认证。"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationEligible|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A forward effect is proved committed and compensation is permitted but not demanded. Distinguished from compensation-required, where policy or a failed enactment makes it obligatory."
@@ -12871,8 +12871,8 @@ msgid "One committed transition in a logic:TransitionJournal, binding the predec
 msgstr "logic:TransitionJournal 中一次已提交的转移，绑定其所依据的前序头（logic:journalPrevHead）、所应用增量的内容地址（logic:journalDeltaIdentity）、所产生的类型化结果（logic:journalOutcomeTag），以及它所确立的新头（logic:journalNewHead）。链式不变式为：一条目的 logic:journalPrevHead 须等于其前序条目的 logic:journalNewHead。与 logic:TransactionStep 判然有别：后者是某次运行内部的基本状态更新；而日志条目是持久的、按内容寻址的提交记录，日后提交的陈旧与否正以其为凭。"
 
 msgctxt "https://blackcatinformatics.ca/logic/LeaseExclusivityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ResourceLease with no fencing identity. Expiry alone does not make a lease safe: a holder paused past its expiry can still attempt a write, and only a monotonic token checked at the resource rejects it. A lease without one records an intention to be exclusive rather than a mechanism for it."
-msgstr "拒斥无栅栏标识之 logic:ResourceLease 的 logic:Constraint。仅有到期时间并不能使租约安全：一个在到期后仍处于暂停中的持有者依然可能尝试写入，唯有在资源处校验的单调令牌才能拒绝它。缺此令牌的租约，记录的只是一个想要独占的意图，而非实现独占的机制。"
+msgid "The logic:Constraint rejecting a logic:ResourceLease that claims a scope some OTHER lease holds. Exclusivity is not a field a lease can carry: two leases each carrying a fencing identity, an owner and an expiry are individually impeccable and jointly a double-claim over one actuator, one seat, one lock. The scope's logic:scopeExclusiveHolder is the single arbiter, so any lease whose logic:leaseScope names a held scope without BEING the holder is the overlap."
+msgstr "拒斥「主张某一已由另一份租约持有之范围」之 logic:ResourceLease 的 logic:Constraint。独占并非租约所能携带的字段：两份各自携带栅栏标识、持有者与到期时间的租约，单看皆无可指摘，合起来却是对同一执行器、同一席位、同一把锁的双重主张。范围的 logic:scopeExclusiveHolder 是唯一裁断者，故凡 logic:leaseScope 指向一个已被持有的范围、而自身又并非该持有者的租约，即是那次重叠。"
 
 msgctxt "https://blackcatinformatics.ca/logic/LivenessCertificate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The record that the authored transition laws were checked for PROGRESS, not merely for safety: that every non-terminal axis tuple has at least one enabled next move (deadlock-freedom), that no state is unreachable and every state can reach a terminal one (reachability), and that no dispatch intent can sit past its deadline with no attempt, receipt or reconciliation (no orphan intent). Safety constraints alone prove that bad transitions are rejected; only this proves the system cannot get stuck, which is the dominant real failure of long-running work."
@@ -13010,9 +13010,9 @@ msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSet|http://www.
 msgid "The roster of subplans and action schemas a logic:RefinementEpisode found applicable — CLOSED, meaning the episode ran to saturation within its budget and nothing applicable was omitted. Closedness is a claim that must be earned by a saturation witness, never asserted: a roster produced under a budget cut is incomplete and must say so, because presenting a truncated roster as complete is how a system silently picks a worse action."
 msgstr "某次 logic:RefinementEpisode 判定为适用的子计划与动作模式之名单——闭合的，意即该片段在其预算之内跑到了饱和，且未遗漏任何适用者。闭合性是一项必须凭饱和见证挣得的主张，绝不可径行断言：在预算截断之下产出的名单是不完整的，且必须如实声明——因为把被截断的名单当作完整名单呈现，正是系统悄然选中较差行动的途径。"
 
-msgctxt "https://blackcatinformatics.ca/logic/RefinementCandidateSetClosureConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed."
-msgstr "拒斥「产出了候选集却未声明其搜索所处之可判定片段」的 logic:RefinementEpisode 的 logic:Constraint。片段未经声明，名单的闭合性便不可证伪，因为读者无从判断终止究竟是挣来的还是假定的。"
+msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisodeDeclaresSearchFragmentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:RefinementEpisode that produced a candidate set without declaring the decidable fragment its search ran within. An undeclared fragment makes the roster's closedness unfalsifiable, since a reader cannot tell whether termination was earned or assumed. The law checks the DECLARATION, which is what the record can carry; the roster's closure itself is a property of a search that has already finished and left no other trace, so this is deliberately not named a closure law."
+msgstr "拒斥「产出了候选集却未声明其搜索所处之可判定片段」的 logic:RefinementEpisode 的 logic:Constraint。片段未经声明，名单的闭合性便不可证伪，因为读者无从判断终止究竟是挣来的还是假定的。此律检查的是那份声明，即记录所能携带之物；名单的闭合性本身，是一次已然结束且未留下其他痕迹的搜索的性质，故此律有意不以「闭合」命名。"
 
 msgctxt "https://blackcatinformatics.ca/logic/RefinementEpisode|http://www.w3.org/2004/02/skos/core#definition"
 msgid "One bounded, attributed attempt to turn an abstract step into something executable, against a stated world snapshot and under a declared resource policy. Boundedness is definitional: means-end search is undecidable in general, so an episode that cannot report the budget it ran under cannot report an honest closed roster either. Typed APART from logic:Enactment, which carries out a plan; an episode PRODUCES the plan fragment an enactment will later carry out."
@@ -13751,12 +13751,12 @@ msgid "Relates an unsupported-fragment operation record to its typed condition. 
 msgstr "把一条「不受支持片段」的操作记录关联到它的类型化条件。定义域为操作记录（以散文陈述）。函数性。"
 
 msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a checkpoint carries its folded identity"
-msgstr "检查点携带其折叠身份"
+msgid "a restore's folded identity must equal its checkpoint's"
+msgstr "恢复的折叠身份必须等同于其检查点的折叠身份"
 
 msgctxt "https://blackcatinformatics.ca/logic/CheckpointRestoreIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:EnactmentCheckpoint with no folded descriptor hash. Restore is identity-gated across seven axes, and the fold is the value the gate compares first; without it a restore would have to trust seven separate comparisons it cannot perform, which in practice means performing none."
-msgstr "拒斥无折叠描述符哈希之 logic:EnactmentCheckpoint 的 logic:Constraint。恢复须经七个轴的身份闸门，而折叠值正是闸门首先比对之物；若无它，恢复便只能依赖七次它无法执行的单独比对——实际上等于一次也不执行。"
+msgid "The logic:Constraint rejecting a logic:CheckpointRestore whose logic:restoreDescriptorHash is not the logic:checkpointDescriptorHash of the checkpoint it restores. This is the identity gate itself, and it is irreducibly a relation between two records: resuming a run against drifted rules, a drifted engine or a drifted slice silently produces a result the run never would have produced, and the fold is the single value that makes the drift visible before the first step executes."
+msgstr "拒斥「其 logic:restoreDescriptorHash 并非其所恢复检查点之 logic:checkpointDescriptorHash」之 logic:CheckpointRestore 的 logic:Constraint。这正是身份闸门本身，且不可化约地是两条记录之间的关系：在已漂移的规则、已漂移的引擎或已漂移的切片之上续行一次运行，会静默地产出该运行本来绝不会产出的结果，而折叠值正是那唯一能在第一步执行之前使漂移显形的值。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ClockAttributionRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a clock attribution names its source"
@@ -13791,36 +13791,36 @@ msgid "The logic:Constraint rejecting a logic:Enactment that does not bind both 
 msgstr "拒斥未同时绑定「所运行的规定版本」与「所依据的封闭输入世代」之 logic:Enactment 的 logic:Constraint。正是这两项绑定使一次发生可复现、且可与其同辈相比对；缺其一者，便只是一条「有事发生过」的记录，而对它当时在做什么、依据什么，皆无可取回的交代。"
 
 msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a journal entry names both of its heads"
-msgstr "日志条目指明其两端的头"
+msgid "an entry's prior head is its predecessor's new head"
+msgstr "条目的前驱头即其前一条目所确立的新头"
 
 msgctxt "https://blackcatinformatics.ca/logic/JournalChainIntegrityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:JournalEntry missing either the head it was applied against or the head it establishes. The chain is the mechanism from which durability, idempotency and the no-blind-retry law all follow; an entry that names only one end cannot be linked, and a chain that cannot be linked cannot detect a stale resubmission."
-msgstr "拒斥「缺少其所依据之头、或缺少其所确立之头」的 logic:JournalEntry 的 logic:Constraint。该链正是持久性、幂等性与「禁止盲目重试」律令三者共同源出的机制；只指明一端的条目无法接续成链，而无法成链者，便无从检出陈旧的重新提交。"
+msgid "The logic:Constraint rejecting a logic:JournalEntry whose logic:journalPrevHead is not the logic:journalNewHead of the entry it succeeds. This is the hash-chain invariant itself, and every durability property the layer claims rests on it: an entry applied against a head its predecessor never established was applied against a state the journal never reached, which is what a stale resubmission after a crash looks like from the inside. A genesis entry carries no logic:journalPredecessor and is therefore not governed — it is the one entry with nothing to reproduce."
+msgstr "拒斥「其 logic:journalPrevHead 并非其所承接条目之 logic:journalNewHead」之 logic:JournalEntry 的 logic:Constraint。这正是哈希链不变式本身，该层所宣称的每一项持久性性质皆系于此：一条依据「其前驱从未确立之头」而应用的条目，是依据日志从未抵达过的状态而应用的，而这正是崩溃之后一次陈旧重新提交由内部看去的模样。创世条目不携带 logic:journalPredecessor，故不受此律约束——它是唯一无物可复现的条目。"
 
 msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "an unknown outcome names the attempt it is unknown about"
-msgstr "未知结果指明其所未知的那次尝试"
+msgid "a retry's licence covers the attempt being retried"
+msgstr "重试的许可覆盖所重试的那次尝试"
 
 msgctxt "https://blackcatinformatics.ca/logic/NoBlindRetryConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ExternalOutcomeUnknown that names no attempt. Retry from an undetermined position is licensed only by a discharged idempotency contract or a reconciliation verdict, and both are reached THROUGH the attempt: an unknown outcome with no attempt is unresolvable in principle, so nothing could ever license a retry from it and nothing could ever close it."
-msgstr "拒斥未指明任何尝试之 logic:ExternalOutcomeUnknown 的 logic:Constraint。自未定位置重试，唯有已履行的幂等契约或一项核实裁断方可许可，而二者皆须经由那次尝试才能抵达：没有尝试的未知结果在原则上无从解决，因而永远不会有什么能许可自它重试，也永远不会有什么能将它了结。"
+msgid "The logic:Constraint rejecting a logic:RetryDispatch whose logic:retryLicence does not carry logic:licenceCoversAttempt for the attempt the retry re-sends. Licensing is a relation between a specific licence and a specific attempt, and nothing weaker will do: an idempotency contract covers the keys and the window it actually covers, and a reconciliation verdict settles the attempt it actually probed. A licence borrowed from a neighbouring dispatch — the same provider, the same step, the previous invoice — reads identically to a real one and permits exactly the double-effect the whole commitment layer exists to prevent."
+msgstr "拒斥「其 logic:retryLicence 未对该重试所重发之尝试携带 logic:licenceCoversAttempt」之 logic:RetryDispatch 的 logic:Constraint。许可是特定许可与特定尝试之间的关系，任何更弱者皆不足取：幂等契约所覆盖的，只是它实际覆盖的键与窗口；核实裁断所了结的，只是它实际探询过的那次尝试。一份自邻近派发处借来的许可——同一提供方、同一步骤、上一张发票——读来与真许可别无二致，却恰恰放行了整个承诺层存在所要防止的双重效应。"
 
 msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "an operational capability gap names the step it blocks"
-msgstr "运行能力缺口指明其所阻塞的步骤"
+msgid "an operational capability gap arrives with its remedy"
+msgstr "运行能力缺口须与其补救方案同至"
 
 msgctxt "https://blackcatinformatics.ca/logic/OperationalGapCarriesProposalConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:OperationalCapabilityGap that names no blocked step. Surfacing a gap instead of substituting a weaker capability is only worth doing if the gap is answerable to a concrete blockage; a gap with no blocked step is a general complaint about provisioning, which no operator can act on and no proposal can close."
-msgstr "拒斥未指明任何被阻塞步骤之 logic:OperationalCapabilityGap 的 logic:Constraint。把缺口显式提出、而不以更弱的能力取而代之，唯有当该缺口对一处具体阻塞负责时才值得；没有被阻塞步骤的缺口，只是一句关于供给的泛泛抱怨——操作者无从据以行动，任何提案也无从将其填补。"
+msgid "The logic:Constraint rejecting a logic:OperationalCapabilityGap whose blocked step is the logic:proposalBlockedStep of no logic:CapabilityGapProposal. Surfacing a gap rather than substituting a weaker capability is a discipline that pays only when the blockage comes with the statement of what would close it: an unanswered gap is a provisioning complaint, and a backlog of them is indistinguishable from a system that silently degraded instead. The join is the step, which both records already name."
+msgstr "拒斥「其被阻塞步骤不是任何 logic:CapabilityGapProposal 之 logic:proposalBlockedStep」之 logic:OperationalCapabilityGap 的 logic:Constraint。把缺口显式提出、而不以更弱的能力取而代之，这一纪律唯有当阻塞连同「什么能将其填补」的陈述一并到来时才有回报：无人应答的缺口只是一句供给上的抱怨，而一堆积压的此类缺口，与一个转而静默降级的系统并无分别。二者的连接点是步骤，而这两条记录本已各自指明了它。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a prescription version is content-addressed"
-msgstr "规定版本按内容寻址"
+msgid "a landed version's address never moves"
+msgstr "已落定版本的地址永不移动"
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionImmutabilityConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Immutability here is enforced by content-addressing rather than by a mutability flag: a version whose bytes are not addressed cannot be shown to be the one an enactment ran, so revising it in place becomes undetectable and the whole supersession discipline stops meaning anything."
-msgstr "拒斥无摘要之 logic:PrescriptionVersion 的 logic:Constraint。此处的不可变性由内容寻址来施行，而非由某个可变性标志：一个字节未被寻址的版本，无法被证明就是某次实施当初所运行的那一个，于是就地修订便无从检出，整套取代纪律也随之失去意义。"
+msgid "The logic:Constraint rejecting a logic:PrescriptionVersion whose logic:prescriptionDigest differs from the logic:enactedPrescriptionDigest an enactment of it froze at pin time. That divergence has exactly one cause — the version's bytes were edited after a run pinned them — and it is the failure the whole supersession discipline exists to make impossible: the run's recoverable account of what it executed now describes something that no longer exists, while its version pointer keeps resolving, so nothing else in the record looks wrong."
+msgstr "拒斥「其 logic:prescriptionDigest 与某次实施在固定之时冻结的 logic:enactedPrescriptionDigest 不一致」之 logic:PrescriptionVersion 的 logic:Constraint。这一背离只有一个成因——该版本的字节在某次运行将其固定之后被改动过——而这正是整套取代纪律存在所要使之不可能的失效：该运行对「自己执行了什么」那份可取回的交代，如今描述的是一个已不复存在之物，而它的版本指针却仍能解析，于是记录中再无别处显得可疑。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdictConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a reconciliation result carries a verdict"

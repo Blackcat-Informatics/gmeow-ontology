@@ -138,8 +138,15 @@ use session_common::*;
 /// violation rules and chases them), so their bytes — and the folded descriptor — move. The
 /// fixed edge-only input authors no enactment record, so no reasoning verdict on it changes;
 /// only the identity moved.
+/// Re-blessed again for the enactment gate's law-identity fix: every violation rule now
+/// heads on `logic:violatedLaw <the law>` instead of the shared
+/// `rdf:type logic:EnactmentIntegrityViolation` marker, because a head tuple forty laws
+/// share is one the chase keeps once — a record breaking two laws reported one of them and
+/// silently lost the rest. `relational_core.rs` is a folded engine-source axis, so its bytes
+/// and the folded descriptor move. The fixed edge-only input authors no enactment record, so
+/// no reasoning verdict on it changes; only the identity moved.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "4058d5820d0188a327eb34ce735e1d6f5bde8bf72a0e1649af614ecca948ac57";
+    "054ae04f0e4d29b829baf051bb5060a9ce584bfd72e63eed2b9462348185e306";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -203,8 +210,11 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed once more for the same reason as the engine descriptor above: the enactment
 /// gate stopped being a stub, moving two folded engine-source axes and therefore the
 /// fixed-input session identity with them.
+/// Re-blessed again for the same reason as the engine descriptor above: the violation
+/// rules' head tuple now names the law that drew the conclusion, moving `relational_core.rs`
+/// and therefore the fixed-input session identity with it.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "ad1542b330f0788b4027a462d1139f0142871bf03df28d4fa5b49731d599bfe0";
+    "946c5b7fce7aa3c2f73b6c01cd00d8fc47d83f743910aa3fe011a430376bfd3d";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

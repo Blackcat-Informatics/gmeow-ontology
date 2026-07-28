@@ -1420,7 +1420,7 @@ ASK {
   logic:RecurrenceSuspended a owl:NamedIndividual ;
     a logic:RecurrenceState .
   logic:RefinementCandidateSet a owl:Class .
-  logic:RefinementCandidateSetClosureConstraint a logic:Constraint .
+  logic:RefinementEpisodeDeclaresSearchFragmentConstraint a logic:Constraint .
 }""" ;
     gmeow:saRationale "Signature guard 5 for the enactment kernel: each covered term must keep the type, domain, range and subsumption it was declared with. A value individual that silently loses its type still reads as a member of its closed class at every call site, and a binding a completeness constraint names but the module no longer declares makes that constraint vacuous." .
 
