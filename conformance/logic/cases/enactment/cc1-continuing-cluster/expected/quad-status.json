@@ -1,5 +1,37 @@
 [
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/InformationObject> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r1> <http://www.w3.org/2000/01/rdf-schema#label> \"ADR-0031 revision 1 — as week 12 read it\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/InformationObject> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r2> <http://www.w3.org/2000/01/rdf-schema#label> \"ADR-0031 revision 2 — changed this week\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0042> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/InformationObject> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0042> <http://www.w3.org/2000/01/rdf-schema#label> \"ADR-0042 — new this week\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adrQualityRubric> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Rubric> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/adrQualityRubric> <http://www.w3.org/2000/01/rdf-schema#label> \"ADR quality rubric\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/corpusW12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/InputSnapshot> <https://example.org/enactment/cc1-continuing-cluster/world> .",
     "status": "ok"
   },
@@ -16,11 +48,239 @@
     "status": "ok"
   },
   {
-    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/MaintenanceGoal> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Situation> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> <http://www.w3.org/2000/01/rdf-schema#label> \"Every landed decision has been reviewed against the current architecture\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Goal> <https://example.org/enactment/cc1-continuing-cluster/world> .",
     "status": "ok"
   },
   {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> <http://www.w3.org/2000/01/rdf-schema#label> \"Architectural decisions stay reviewed\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> <https://blackcatinformatics.ca/logic/hasGoalCondition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <http://www.w3.org/2000/01/rdf-schema#label> \"Maintenance: the decision record is current at every state of the interval\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <https://blackcatinformatics.ca/logic/boundSituationType> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <https://blackcatinformatics.ca/logic/goalExpressionKind> <https://blackcatinformatics.ca/logic/MaintenanceGoal> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/publishMinutesStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalCreated> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReadyApprovalRequired> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/quorumStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://blackcatinformatics.ca/logic/entryAwaits> <https://blackcatinformatics.ca/gmeow/conformance/enactment/secondReviewerAvailability> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepWaiting> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierWaitingOnEventTimeOrInput> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/retireAdr0031r1Step> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepSkipped> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierSkippedWithTypedReason> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://blackcatinformatics.ca/logic/skipReason> <https://blackcatinformatics.ca/logic/SkipNotApplicable> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0031Step> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalNull> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReadyAuthorized> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0042Step> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalNull> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReadyAuthorized> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/surfaceGuidanceStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepCompleted> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCompleted> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalEvaluation> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#label> \"The cluster's maintenance goal, judged against week 12: holds so far, not concluded\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatedAgainst> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatesGoal> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationCriterion> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adrQualityRubric> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationTime> \"2026-03-19T15:30:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/feasibilityStatus> <https://blackcatinformatics.ca/logic/Feasible> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/goalEvaluationStatus> <https://blackcatinformatics.ca/logic/GoalEvaluationUndetermined> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/lifecycleStatus> <https://blackcatinformatics.ca/logic/LifecycleActive> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/satisfactionStatus> <https://blackcatinformatics.ca/logic/Satisfied> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/publishMinutesStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/publishMinutesStep> <http://www.w3.org/2000/01/rdf-schema#label> \"Publish the week 13 minutes\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/publishMinutesStep> <https://blackcatinformatics.ca/logic/refinementRejectedOnApproval> <https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/quorumStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/quorumStep> <http://www.w3.org/2000/01/rdf-schema#label> \"Hold the review with quorum\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/retireAdr0031r1Step> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/retireAdr0031r1Step> <http://www.w3.org/2000/01/rdf-schema#label> \"Review ADR-0031 revision 1\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0031Step> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0031Step> <http://www.w3.org/2000/01/rdf-schema#label> \"Re-review ADR-0031 against its revised retention window\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0042Step> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0042Step> <http://www.w3.org/2000/01/rdf-schema#label> \"Review ADR-0042 against the quality rubric\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
     "status": "ok"
   },
   {
@@ -60,6 +320,22 @@
     "status": "ok"
   },
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/secondReviewerAvailability> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Event> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/secondReviewerAvailability> <http://www.w3.org/2000/01/rdf-schema#label> \"The second reviewer's return from leave\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/surfaceGuidanceStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/surfaceGuidanceStep> <http://www.w3.org/2000/01/rdf-schema#label> \"Surface the rubric, the checklist and the retained notes\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SnapshotDelta> <https://example.org/enactment/cc1-continuing-cluster/world> .",
     "status": "ok"
   },
@@ -68,7 +344,147 @@
     "status": "ok"
   },
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/deltaAddition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r2> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/deltaAddition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0042> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/deltaSuppression> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r1> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/snapshotDigest> \"b3:7a209fc158b3e64d0179ac250e8b3df641c07a92be5d1380f6a4c98b17e250d3\" <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionableFrontier> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <http://www.w3.org/2000/01/rdf-schema#label> \"Frontier for the week 13 review\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/frontierOfEnactment> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekThirteen> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/frontierSaturationWitness> <https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SaturationWitness> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <http://www.w3.org/2000/01/rdf-schema#label> \"Saturation witness — all frontier predicates reached fixpoint within budget\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/consumedBudget> \"72\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAction> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAwaits> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryLabel> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/skipReason> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalEvaluation> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#label> \"Week 12's own review goal: conclusively satisfied\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatedAgainst> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatesGoal> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewed> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationCriterion> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adrQualityRubric> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationTime> \"2026-03-19T15:30:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/feasibilityStatus> <https://blackcatinformatics.ca/logic/Feasible> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/goalEvaluationStatus> <https://blackcatinformatics.ca/logic/GoalEvaluationCompleted> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/lifecycleStatus> <https://blackcatinformatics.ca/logic/LifecycleActive> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/satisfactionStatus> <https://blackcatinformatics.ca/logic/Satisfied> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Situation> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> <http://www.w3.org/2000/01/rdf-schema#label> \"The week's review has been held, minuted and published\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
     "status": "ok"
   },
   {
@@ -77,6 +493,26 @@
   },
   {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewed> <http://www.w3.org/2000/01/rdf-schema#label> \"This week's review is completed\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewed> <https://blackcatinformatics.ca/logic/hasGoalCondition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <http://www.w3.org/2000/01/rdf-schema#label> \"Achievement: this week's review reaches its close\"@x-gmeow-english <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <https://blackcatinformatics.ca/logic/boundSituationType> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> <https://example.org/enactment/cc1-continuing-cluster/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <https://blackcatinformatics.ca/logic/goalExpressionKind> <https://blackcatinformatics.ca/logic/AchievementGoal> <https://example.org/enactment/cc1-continuing-cluster/world> .",
     "status": "ok"
   },
   {

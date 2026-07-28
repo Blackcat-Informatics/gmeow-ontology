@@ -8,6 +8,13 @@
 # successful week does NOT close. The last clause is the one that matters: a
 # system which marks "keep decisions reviewed" done after a good week has
 # misunderstood the goal, and this case pins the structure that prevents it.
+#
+# The week's ANSWER — what the review should do about what the delta found — is
+# DERIVED. Not one logic:entryLabel is asserted below; the entries carry only
+# their lifecycle-axis witnesses and the shipped rules profile.json names compute
+# every label. The whole shipped enactment rule set is loaded, not the handful
+# that happen to fire, so a label this case does NOT show is a label its data
+# genuinely does not license rather than one no rule was present to reach.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -21,12 +28,35 @@ e:reviewProcess a logic:Plan ;
     logic:planSuccessMode logic:StrongCyclicPlanSuccess ;
     logic:prescriptionKind logic:prescriptionKindRepeatableGuide .
 
+# The PER-WEEK goal, which a completed week does satisfy.
 e:weekReviewed a gmeow:Goal ;
-    rdfs:label "This week's review is completed"@x-gmeow-english .
+    rdfs:label "This week's review is completed"@x-gmeow-english ;
+    logic:hasGoalCondition e:weekReviewedCondition .
 
-# The CONTINUING goal, deliberately a different node from the per-week goal.
-e:decisionsStayReviewed a logic:MaintenanceGoal ;
-    rdfs:label "Architectural decisions stay reviewed"@x-gmeow-english .
+e:weekReviewedCondition a logic:GoalExpression ;
+    rdfs:label "Achievement: this week's review reaches its close"@x-gmeow-english ;
+    logic:goalExpressionKind logic:AchievementGoal ;
+    logic:boundSituationType e:weekReviewClosed .
+
+e:weekReviewClosed a logic:Situation ;
+    rdfs:label "The week's review has been held, minuted and published"@x-gmeow-english .
+
+# The CONTINUING goal, deliberately a different node from the per-week goal. The
+# maintenance reading is a VALUE on the goal's compositional expression, never a
+# type: logic:MaintenanceGoal is a logic:GoalExpressionKind individual, and using
+# it as a class forks the one canonical goal concept into a subclass per temporal
+# shape.
+e:decisionsStayReviewed a gmeow:Goal ;
+    rdfs:label "Architectural decisions stay reviewed"@x-gmeow-english ;
+    logic:hasGoalCondition e:decisionsStayReviewedCondition .
+
+e:decisionsStayReviewedCondition a logic:GoalExpression ;
+    rdfs:label "Maintenance: the decision record is current at every state of the interval"@x-gmeow-english ;
+    logic:goalExpressionKind logic:MaintenanceGoal ;
+    logic:boundSituationType e:decisionRecordCurrent .
+
+e:decisionRecordCurrent a logic:Situation ;
+    rdfs:label "Every landed decision has been reviewed against the current architecture"@x-gmeow-english .
 
 e:reviewProcessV4 a logic:PrescriptionVersion ;
     rdfs:label "ADR review process, revision 4"@x-gmeow-english ;
@@ -48,7 +78,135 @@ e:weekThirteen a logic:Enactment ;
     logic:enactmentInputSnapshot e:corpusW13 ;
     logic:enactmentState logic:EnactmentRunning .
 
-# What changed between the two closed generations — derived, not eyeballed.
+# What changed between the two closed generations — derived, not eyeballed. A
+# CHANGED decision is an addition and a suppression over the same underlying
+# decision, never an in-place edit, so the reviewers are told the decision moved
+# rather than being handed a document that quietly differs from last week's.
 e:w13Delta a logic:SnapshotDelta ;
     rdfs:label "ADRs added or changed since week 12"@x-gmeow-english ;
-    logic:snapshotDigest "b3:7a209fc158b3e64d0179ac250e8b3df641c07a92be5d1380f6a4c98b17e250d3" .
+    logic:snapshotDigest "b3:7a209fc158b3e64d0179ac250e8b3df641c07a92be5d1380f6a4c98b17e250d3" ;
+    logic:deltaAddition e:adr0042, e:adr0031r2 ;
+    logic:deltaSuppression e:adr0031r1 .
+
+e:adr0042 a gmeow:InformationObject ;
+    rdfs:label "ADR-0042 — new this week"@x-gmeow-english .
+e:adr0031r2 a gmeow:InformationObject ;
+    rdfs:label "ADR-0031 revision 2 — changed this week"@x-gmeow-english .
+e:adr0031r1 a gmeow:InformationObject ;
+    rdfs:label "ADR-0031 revision 1 — as week 12 read it"@x-gmeow-english .
+
+# --- The DERIVED frontier for week 13 -----------------------------------------
+#
+# The delta says what is new; this roster says what to DO about it. The two review
+# actions exist because the delta named two inputs, which is what "derived rather
+# than eyeballed" means operationally, and each label follows from the entry's
+# axis tuple alone.
+
+e:w13Frontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier for the week 13 review"@x-gmeow-english ;
+    logic:frontierOfEnactment e:weekThirteen ;
+    logic:frontierSaturationWitness e:w13Saturation ;
+    logic:hasFrontierEntry e:eReviewAdr0042, e:eReviewAdr0031, e:eRetireAdr0031r1,
+                           e:ePublishMinutes, e:eQuorum, e:eSurfaceGuidance .
+
+e:reviewAdr0042Step a logic:TransactionStep ;
+    rdfs:label "Review ADR-0042 against the quality rubric"@x-gmeow-english .
+e:reviewAdr0031Step a logic:TransactionStep ;
+    rdfs:label "Re-review ADR-0031 against its revised retention window"@x-gmeow-english .
+e:retireAdr0031r1Step a logic:TransactionStep ;
+    rdfs:label "Review ADR-0031 revision 1"@x-gmeow-english .
+e:publishMinutesStep a logic:TransactionStep ;
+    rdfs:label "Publish the week 13 minutes"@x-gmeow-english .
+e:quorumStep a logic:TransactionStep ;
+    rdfs:label "Hold the review with quorum"@x-gmeow-english .
+e:surfaceGuidanceStep a logic:TransactionStep ;
+    rdfs:label "Surface the rubric, the checklist and the retained notes"@x-gmeow-english .
+
+# Ready on the step axis, and the policy already authorizes reading and annotating
+# a decision record, so the approval axis is null. Policy-maximal automation is a
+# derivation here, not a habit.
+e:eReviewAdr0042 a logic:FrontierEntry ;
+    logic:entryAction e:reviewAdr0042Step ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+e:eReviewAdr0031 a logic:FrontierEntry ;
+    logic:entryAction e:reviewAdr0031Step ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+# The suppressed revision is SKIPPED, with the typed reason that makes the
+# omission auditable. The label refuses to derive without one, because an untyped
+# skip is indistinguishable from an oversight.
+e:eRetireAdr0031r1 a logic:FrontierEntry ;
+    logic:entryAction e:retireAdr0031r1Step ;
+    logic:entryAxisWitness logic:StepSkipped ;
+    logic:skipReason logic:SkipNotApplicable .
+
+# Publication leaves the review boundary, which the policy does gate. The entry is
+# ready AND gated at once — two axes, never one blended state — and the gating is
+# also what makes its step's approval obstruction derivable rather than narrated.
+e:ePublishMinutes a logic:FrontierEntry ;
+    logic:entryAction e:publishMinutesStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+# Waiting NAMES what it waits for. "Blocked" without the awaited thing tells an
+# operator nothing they can act on, and is also what keeps this entry apart from a
+# capability gap, which no amount of patience resolves.
+e:eQuorum a logic:FrontierEntry ;
+    logic:entryAction e:quorumStep ;
+    logic:entryAwaits e:secondReviewerAvailability ;
+    logic:entryAxisWitness logic:StepWaiting .
+
+e:secondReviewerAvailability a gmeow:Event ;
+    rdfs:label "The second reviewer's return from leave"@x-gmeow-english .
+
+# Already done. This asserts nothing about whether the WEEK's goal is met — that
+# is the goal-evaluation axis below, and conflating them is how a system concludes
+# it is finished because one step finished.
+e:eSurfaceGuidance a logic:FrontierEntry ;
+    logic:entryAction e:surfaceGuidanceStep ;
+    logic:entryAxisWitness logic:StepCompleted .
+
+# Which predicates the reasoner proved final, and under what budget. Typed APART
+# from logic:FrontierEntry: a witness typed as an entry joins the roster it was
+# certifying, so the operator is offered a seventh action that does not exist.
+e:w13Saturation a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction,
+                           logic:entryAwaits, logic:skipReason ;
+    logic:consumedBudget "72"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+
+# --- The pair of goal evaluations that keeps the cluster open ------------------
+#
+# Week 12's own goal is judged conclusively and is satisfied; the cluster's
+# maintenance goal, evaluated against the same successful week, holds SO FAR and
+# its evaluation status is UNDETERMINED, because a maintenance target is
+# conclusive only when its window closes. A conclusive gmeow:satisfiedBy edge is
+# licensed only by a Satisfied AND Completed evaluation, so the maintenance record
+# cannot produce one and the cluster keeps recurring by construction rather than
+# by anyone remembering to reopen it.
+e:week12GoalEvaluation a logic:GoalEvaluation ;
+    rdfs:label "Week 12's own review goal: conclusively satisfied"@x-gmeow-english ;
+    logic:evaluatesGoal e:weekReviewed ;
+    logic:evaluatedAgainst e:weekReviewClosed ;
+    logic:evaluationCriterion e:adrQualityRubric ;
+    logic:evaluationTime "2026-03-19T15:30:00Z"^^xsd:dateTime ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:feasibilityStatus logic:Feasible ;
+    logic:lifecycleStatus logic:LifecycleActive ;
+    logic:goalEvaluationStatus logic:GoalEvaluationCompleted .
+
+e:maintenanceGoalEvaluation a logic:GoalEvaluation ;
+    rdfs:label "The cluster's maintenance goal, judged against week 12: holds so far, not concluded"@x-gmeow-english ;
+    logic:evaluatesGoal e:decisionsStayReviewed ;
+    logic:evaluatedAgainst e:decisionRecordCurrent ;
+    logic:evaluationCriterion e:adrQualityRubric ;
+    logic:evaluationTime "2026-03-19T15:30:00Z"^^xsd:dateTime ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:feasibilityStatus logic:Feasible ;
+    logic:lifecycleStatus logic:LifecycleActive ;
+    logic:goalEvaluationStatus logic:GoalEvaluationUndetermined .
+
+e:adrQualityRubric a gmeow:Rubric ;
+    rdfs:label "ADR quality rubric"@x-gmeow-english .

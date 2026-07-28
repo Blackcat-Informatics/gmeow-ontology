@@ -7,6 +7,19 @@
 # weaker substitute, an invented tool call, or a step marked complete with empty
 # output — each of which converts an absent capability into a silent quality
 # loss that surfaces much later as unexplained bad data.
+#
+# Both answers are DERIVED. No logic:entryLabel is asserted: the blocked entry
+# carries the waiting position and its action, the operational gap stands on that
+# same action, and the shipped rules named in profile.json reach BOTH the frontier
+# label and the typed refinement rejection that names the missing capability.
+# That second conclusion is the one an operator acts on — it says WHICH capability
+# is absent, which is what a proposal is for.
+#
+# The entry awaits nothing, and the whole shipped rule set is loaded, so the
+# absence of logic:FrontierWaitingOnEventTimeOrInput in the golden is a fact about
+# this data rather than about which rules were present: a step blocked by a
+# capability the deployment does not have awaits nothing, because what is absent
+# does not arrive.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -36,9 +49,23 @@ e:frontier77 a logic:ActionableFrontier ;
     logic:frontierSaturationWitness e:sat77 ;
     logic:frontierOfEnactment e:run77 ;
     logic:hasFrontierEntry e:eOcrBlocked .
-e:sat77 a logic:FrontierEntry ; logic:entryLabel logic:FrontierCompleted .
+
+# The witness is a logic:SaturationWitness, never a logic:FrontierEntry: it is a
+# claim ABOUT the roster, not a member of it, and one typed as an entry becomes a
+# phantom row an operator can be asked to perform.
+e:sat77 a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — the frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction ;
+    logic:consumedBudget "32"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+
+# Waiting on the step axis, and NAMING its action. The action is the join the
+# blocked-on-capability rule needs: without it the entry is just waiting, and
+# waiting on a capability the deployment does not have is a different instruction
+# from waiting on an input that is on its way.
 e:eOcrBlocked a logic:FrontierEntry ;
-    logic:entryLabel logic:FrontierBlockedCapabilityOrResource ;
+    logic:entryAction e:ocrStep ;
     logic:entryAxisWitness logic:StepWaiting .
 
 # An operational gap — a capability the deployment does not HAVE. Deliberately

@@ -10,8 +10,48 @@ approvalOperator("https://blackcatinformatics.ca/gmeow/conformance/enactment/app
 approvalPolicy("https://blackcatinformatics.ca/gmeow/conformance/enactment/approval", "https://blackcatinformatics.ca/gmeow/conformance/enactment/policy", "default").
 approvalState("https://blackcatinformatics.ca/gmeow/conformance/enactment/approval", "https://blackcatinformatics.ca/logic/ApprovalDetached", "default").
 approvalValidityWindow("https://blackcatinformatics.ca/gmeow/conformance/enactment/approval", '2026-07-25T00:00:00Z/2026-07-25T23:59:59Z', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveArgs", "https://blackcatinformatics.ca/logic/ArgumentNormalization", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveArgs", 'Normalized archive arguments', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveEndpoint", "https://blackcatinformatics.ca/logic/EngineCapability", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveEndpoint", 'Internal archive endpoint', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIdem", "https://blackcatinformatics.ca/logic/IdempotencyContract", "default").
+idempotencyDuplicateSemantics("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIdem", 'Repeated key within the window returns the original archive record.', "default").
+idempotencyKey("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIdem", 'report:2026-07:archive', "default").
+idempotencyProviderEvidence("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIdem", 'Archive idempotency conformance probe.', "default").
+idempotencyRetention("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIdem", 'PT12H', "default").
+idempotencyScope("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIdem", 'archive:main', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/logic/DispatchIntent", "default").
+expectedJournalHead("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", 'b3:35c0a917be82d46f015a9c73be0d248f61ac0539be7d1840fa25c86b39e0d271', "default").
+intentActionSchemaVersion("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveSchema", "default").
+intentApprovalRequired("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", 'false', "default").
+intentDigest("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", 'b3:91d5a7c02e63bf4801a95c38be0d724f6c1a05397be2d840f5a6c19b37e0d2c6', "default").
+intentIdempotency("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIdem", "default").
+intentNormalizedArguments("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveArgs", "default").
+intentOfEnactment("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "default").
+intentOfStep("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveStep", "default").
+intentPolicy("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/gmeow/conformance/enactment/policy", "default").
+intentTarget("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveIntent", "https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveEndpoint", "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveSchema", "https://blackcatinformatics.ca/logic/ActionSchema", "default").
+capability("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveSchema", "https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveEndpoint", "default").
+precondition("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveSchema", "https://blackcatinformatics.ca/gmeow/conformance/enactment/reportApproved", "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveStep", "https://blackcatinformatics.ca/logic/TransactionStep", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveStep", 'Archive the report draft', "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/args", "https://blackcatinformatics.ca/logic/ArgumentNormalization", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/args", 'Normalized publish arguments', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/eArchive", "https://blackcatinformatics.ca/logic/FrontierEntry", "default").
+entryAction("https://blackcatinformatics.ca/gmeow/conformance/enactment/eArchive", "https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveStep", "default").
+entryAxisWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/eArchive", "https://blackcatinformatics.ca/logic/ApprovalNull", "default").
+entryAxisWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/eArchive", "https://blackcatinformatics.ca/logic/StepReady", "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublish", "https://blackcatinformatics.ca/logic/FrontierEntry", "default").
+entryAction("https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublish", "https://blackcatinformatics.ca/gmeow/conformance/enactment/publishStep", "default").
+entryAxisWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublish", "https://blackcatinformatics.ca/logic/ApprovalCreated", "default").
+entryAxisWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublish", "https://blackcatinformatics.ca/logic/StepReady", "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/logic/ActionableFrontier", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", 'Frontier for the publication run', "default").
+frontierOfEnactment("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "default").
+frontierSaturationWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "default").
+hasFrontierEntry("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/eArchive", "default").
+hasFrontierEntry("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublish", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/idem", "https://blackcatinformatics.ca/logic/IdempotencyContract", "default").
 idempotencyDuplicateSemantics("https://blackcatinformatics.ca/gmeow/conformance/enactment/idem", 'Repeated key within the window returns the original publication.', "default").
 idempotencyKey("https://blackcatinformatics.ca/gmeow/conformance/enactment/idem", 'report:2026-07:publish', "default").
@@ -51,7 +91,96 @@ type("https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "https://
 enactmentInputSnapshot("https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "https://blackcatinformatics.ca/gmeow/conformance/enactment/snap", "default").
 enactmentState("https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "https://blackcatinformatics.ca/logic/EnactmentRunning", "default").
 enactsPrescriptionVersion("https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "https://blackcatinformatics.ca/gmeow/conformance/enactment/processV1", "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/SaturationWitness", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", 'Saturation witness — the frontier predicates reached fixpoint within budget', "default").
+consumedBudget("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", '44', "default").
+resultEvaluation("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/EvaluationCompleted", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/entryAction", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/entryAxisWitness", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/entryLabel", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/hasFrontierEntry", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/snap", "https://blackcatinformatics.ca/logic/InputSnapshot", "default").
 snapshotDigest("https://blackcatinformatics.ca/gmeow/conformance/enactment/snap", 'b3:40c8a715be92d36f015c8a370be9d24f18a6c053be7d1940fa25c86b3e097d15', "default").
 
 % === Rules ===
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierBlockedCapabilityOrResource", ?C) :-
+    entryAction(?entry, ?step, ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepWaiting", ?C),
+    gapBlockedStep(?gap, ?step, ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierBlockedPrecondition", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepPending", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCancelled", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentCancelled", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoNotEvaluated", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepCancelled", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCancelledWithInFlightEffects", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentCancelled", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoUndetermined", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepCancelled", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompensationEligible", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectReceipted", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompensationFailedForwardCommitted", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectCompensating", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentRunning", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoSupported", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepFailed", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompensationRequired", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectReconciled", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentFailed", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoSupported", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompleted", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepCompleted", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierMutuallyExclusive", ?C) :-
+    entryExcludes(?entry, ?other, ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReadyApprovalRequired", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/ApprovalCreated", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepReady", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReadyAuthorized", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/ApprovalNull", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepReady", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReconciliationImpossible", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectAbandoned", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReconciliationRequired", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectAttempted", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierSkippedWithTypedReason", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepSkipped", ?C),
+    skipReason(?entry, ?reason, ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierTerminallyFailed", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentFailed", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepFailed", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierWaitingOnEventTimeOrInput", ?C) :-
+    entryAwaits(?entry, ?awaited, ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepWaiting", ?C).
+methodStep(?method, ?step, ?C) :-
+    first(?cell, ?step, ?C),
+    methodYieldCell(?method, ?cell, ?C).
+methodYieldCell(?method, ?cell, ?C) :-
+    methodYields(?method, ?cell, ?C).
+methodYieldCell(?method, ?next, ?C) :-
+    rest(?cell, ?next, ?C),
+    methodYieldCell(?method, ?cell, ?C).
+refinementRejectedOnApproval(?step, ?entry, ?C) :-
+    entryAction(?entry, ?step, ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/ApprovalCreated", ?C).
+refinementRejectedOnCapability(?step, ?capability, ?C) :-
+    gapBlockedStep(?gap, ?step, ?C),
+    proposalBlockedStep(?proposal, ?step, ?C),
+    proposalMissingCapability(?proposal, ?capability, ?C).
+refinementRejectedOnPrecondition(?step, ?situation, ?C) :-
+    gateVerdict(?probe, "https://blackcatinformatics.ca/logic/GateDenied", ?C),
+    probesSchema(?probe, ?step, ?C),
+    precondition(?step, ?situation, ?C).
+refinementRejectedOnResource(?step, ?lease, ?C) :-
+    entryAction(?entry, ?step, ?C),
+    entryAwaits(?entry, ?resource, ?C),
+    leaseScope(?lease, ?resource, ?C).
+refinementCandidateMethod(?task, ?method, ?C) :-
+    methodDecomposes(?method, ?task, ?C).
+refinementExpands(?task, ?step, ?C) :-
+    methodDecomposes(?method, ?task, ?C),
+    methodStep(?method, ?step, ?C).
+refinementReaches(?task, ?far, ?C) :-
+    refinementReaches(?mid, ?far, ?C),
+    refinementReaches(?task, ?mid, ?C).
+refinementReaches(?task, ?step, ?C) :-
+    refinementExpands(?task, ?step, ?C).

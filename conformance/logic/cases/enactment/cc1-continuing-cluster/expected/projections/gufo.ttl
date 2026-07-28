@@ -3,4 +3,6 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#SituationType> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#SituationType> .
 <https://blackcatinformatics.ca/gmeow/foundation/gufo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .

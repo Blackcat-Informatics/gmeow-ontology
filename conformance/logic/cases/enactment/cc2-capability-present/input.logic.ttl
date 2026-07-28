@@ -8,7 +8,16 @@
 # gated step requires approval. Pinning both halves matters: a system that marks
 # everything approval-required is not being careful, it is training its operator
 # to approve without reading.
+#
+# Both halves are DERIVED. No logic:entryLabel is asserted; the entries carry
+# their axis witnesses and the shipped rules named in profile.json compute the
+# labels, so "policy-maximal" is a consequence of the axis tuples rather than a
+# claim about them. The decomposition is derived too: the method yields ONE
+# ORDERED rdf:List and the shipped list rules walk it into the method's steps and
+# the task's expansion, which is what makes the pin below a commitment to
+# content rather than to a name.
 
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -31,29 +40,88 @@ e:run78 a logic:Enactment ;
     logic:enactmentState logic:EnactmentRunning .
 
 e:ocrStep a logic:TransactionStep ; rdfs:label "Extract text"@x-gmeow-english .
-e:ocrMethod a logic:DecompositionMethod ; logic:methodDecomposes e:ocrStep .
+
+# The decomposition. The yielded steps are ONE ORDERED rdf:List, because the order
+# IS the plan: verifying before extracting verifies nothing, and storing the
+# receipt before verifying publishes an unchecked result. Repeated triples would
+# be an unordered set, so a reader could only guess the sequence or alphabetise it
+# — and alphabetised, this plan runs extract, inspect, prepare, store, verify.
+#
+# The cells are NAMED rather than blank for the same reason the pin has a digest:
+# a pin cannot freeze a cell it cannot name.
+e:ocrMethod a logic:DecompositionMethod ;
+    rdfs:label "Method: inspect / prepare / OCR / verify / store"@x-gmeow-english ;
+    logic:methodDecomposes e:ocrStep ;
+    logic:methodDigest "b3:2f5c8d1a94b70e63f8c2a5d417e09b3c6a8f2d5e71b04c93a6d8f125e370b4ca" ;
+    logic:methodYields e:ocrCell1 .
+
+e:ocrCell1 rdf:first e:inspectStep ; rdf:rest e:ocrCell2 .
+e:ocrCell2 rdf:first e:prepareStep ; rdf:rest e:ocrCell3 .
+e:ocrCell3 rdf:first e:extractStep ; rdf:rest e:ocrCell4 .
+e:ocrCell4 rdf:first e:verifyStep ; rdf:rest e:ocrCell5 .
+e:ocrCell5 rdf:first e:storeStep ; rdf:rest rdf:nil .
+
+e:inspectStep a logic:TransactionStep ; rdfs:label "Inspect the scanned batch"@x-gmeow-english .
+e:prepareStep a logic:TransactionStep ; rdfs:label "Prepare pages for extraction"@x-gmeow-english .
+e:extractStep a logic:TransactionStep ; rdfs:label "Run OCR over the prepared pages"@x-gmeow-english .
+e:verifyStep a logic:TransactionStep ; rdfs:label "Verify the extracted text"@x-gmeow-english .
+e:storeStep a logic:TransactionStep ; rdfs:label "Store the ingest receipt"@x-gmeow-english .
+
 e:refine78 a logic:RefinementEpisode ;
     logic:refinesStep e:ocrStep ;
+    logic:refinementServesGoal e:textExtracted ;
+    logic:refinementWorldSnapshot e:batch78 ;
+    logic:searchFragment logic:FragmentAcyclicMethod ;
+    logic:producedCandidateSet e:run78Candidates ;
+    logic:selectedPin e:pinnedPlan .
+
+e:run78Candidates a logic:RefinementCandidateSet ;
+    rdfs:label "Closed roster for the batch 78 OCR refinement"@x-gmeow-english ;
     logic:refinementCandidate e:pinnedPlan .
+
+# The pin is immutable and content-addressed, so what was validated is what
+# executes — a sentence that is only true if the pin CARRIES the fragment. It
+# freezes the very list the method yields, addresses it with a digest, and names
+# the method it instantiated. A pin holding only a label is a promise about
+# content it does not have.
 e:pinnedPlan a logic:PinnedExecutableSubgraph ;
-    rdfs:label "inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english .
+    rdfs:label "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english ;
+    logic:pinInstantiatesMethod e:ocrMethod ;
+    logic:pinnedStepSequence e:ocrCell1 ;
+    logic:pinDigest "b3:7d1e4a96c05b83f27ae6410d9c3b8524f70a1e6d38c95b02f4a7d6e18c53920b" .
 
 e:frontier78 a logic:ActionableFrontier ;
     logic:frontierSaturationWitness e:sat78 ;
     logic:frontierOfEnactment e:run78 ;
     logic:hasFrontierEntry e:eInspect, e:ePrepare, e:eOcr, e:eVerify, e:eStore .
-e:sat78 a logic:FrontierEntry ; logic:entryLabel logic:FrontierCompleted .
 
-e:eInspect a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyAuthorized ;
+# The witness is a logic:SaturationWitness and emphatically NOT a
+# logic:FrontierEntry. A witness typed as an entry joins the roster it was
+# certifying, so the operator is offered a sixth action that does not exist — and,
+# being an entry, it needs a label, which is how "the derivation completed" came
+# to be published as a COMPLETED ACTION.
+e:sat78 a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction ;
+    logic:consumedBudget "64"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+
+e:eInspect a logic:FrontierEntry ;
+    logic:entryAction e:inspectStep ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
-e:ePrepare a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyAuthorized ;
+e:ePrepare a logic:FrontierEntry ;
+    logic:entryAction e:prepareStep ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
-e:eOcr a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyAuthorized ;
+e:eOcr a logic:FrontierEntry ;
+    logic:entryAction e:extractStep ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
-e:eVerify a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyAuthorized ;
+e:eVerify a logic:FrontierEntry ;
+    logic:entryAction e:verifyStep ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
 # The ONLY gated step: publishing leaves the batch boundary. Ready AND gated —
 # two axes at once, which a single flat enum could not express without inventing
 # a combined value for every such pairing.
-e:eStore a logic:FrontierEntry ; logic:entryLabel logic:FrontierReadyApprovalRequired ;
+e:eStore a logic:FrontierEntry ;
+    logic:entryAction e:storeStep ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .

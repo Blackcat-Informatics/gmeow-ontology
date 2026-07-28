@@ -4,11 +4,36 @@
 # Conformance case: enactment/budget-cut-frontier-not-closed
 #
 # A kernel A-Box reasoned under a hard cut (max_rule_firings: 2), certified. The
-# property under guard is that an incomplete roster must never present as complete:
-# an unwitnessed closure claim is exactly how a roster truncated by a budget cut
-# passes for exhaustive, after which the system confidently omits the action it
-# should have taken and reports no error, because from its own point of view it
-# finished.
+# property under guard is that an incomplete roster must never present as
+# complete: an unwitnessed closure claim is exactly how a roster truncated by a
+# budget cut passes for exhaustive, after which the system confidently omits the
+# action it should have taken and reports no error, because from its own point of
+# view it finished.
+#
+# The subject of that property is present here rather than described. A real
+# logic:ActionableFrontier carries SIX real logic:FrontierEntry members, none of
+# which asserts a logic:entryLabel, and the shipped rule set profile.json loads is
+# what would compute the six labels. Six labels cannot be reached in two firings,
+# so the run is genuinely cut — the bound is exceeded by the rules, not narrated
+# in a comment.
+#
+# What keeps the cut honest is WHICH predicates the frontier's witness names. A
+# logic:SaturationWitness certifies exactly the predicates it lists, and the
+# predicates it does not list are exactly the ones whose closure it does not
+# certify. This one names the roster membership, the axis positions and the
+# actions — all asserted, hence final — and deliberately does NOT name
+# logic:entryLabel. So nothing in the record claims the labels are complete, and
+# the engine's own budget report corroborates it: budget_status exhausted,
+# incomplete true, and every label quad the cut did reach stamped `exhausted`
+# rather than `ok` in quad-status.json.
+#
+# The witness cannot instead record the cut on itself: a frontier whose witness
+# carries logic:BudgetExhausted is the shipped required-negative
+# (frontier-closed-on-a-budget-cut-witness.ttl), because a roster claiming closure
+# over a search its own evidence says was truncated is worse than an unwitnessed
+# one. The cut is therefore recorded where it belongs — on a logic:ReasoningResult
+# for the run, with a typed cause, distinct from an out-of-fragment refusal, which
+# is a different answer.
 #
 # The budget report is blessed alongside the closure, so if a future change lets a
 # cut run claim saturation this golden moves and someone has to look at why.
@@ -34,7 +59,66 @@ e:run a logic:Enactment ;
     logic:enactmentInputSnapshot e:snap ;
     logic:enactmentState logic:EnactmentRunning .
 
+# --- The roster the cut ran over ----------------------------------------------
+
+e:frontier a logic:ActionableFrontier ;
+    rdfs:label "Candidate actions for the pipeline run"@x-gmeow-english ;
+    logic:frontierOfEnactment e:run ;
+    logic:frontierSaturationWitness e:rosterWitness ;
+    logic:hasFrontierEntry e:eIngest, e:eNormalise, e:ePublish, e:eArchive,
+                           e:eQuarantine, e:ePurge .
+
+e:ingestStep a logic:TransactionStep ; rdfs:label "Ingest the batch"@x-gmeow-english .
+e:normaliseStep a logic:TransactionStep ; rdfs:label "Normalise the records"@x-gmeow-english .
+e:publishStep a logic:TransactionStep ; rdfs:label "Publish the dataset"@x-gmeow-english .
+e:archiveStep a logic:TransactionStep ; rdfs:label "Archive the previous generation"@x-gmeow-english .
+e:quarantineStep a logic:TransactionStep ; rdfs:label "Quarantine the rejected records"@x-gmeow-english .
+e:purgeStep a logic:TransactionStep ; rdfs:label "Purge the expired generation"@x-gmeow-english .
+
+e:eIngest a logic:FrontierEntry ;
+    logic:entryAction e:ingestStep ;
+    logic:entryAxisWitness logic:StepCompleted .
+
+e:eNormalise a logic:FrontierEntry ;
+    logic:entryAction e:normaliseStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+e:ePublish a logic:FrontierEntry ;
+    logic:entryAction e:publishStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+e:eArchive a logic:FrontierEntry ;
+    logic:entryAction e:archiveStep ;
+    logic:entryAxisWitness logic:StepPending .
+
+e:eQuarantine a logic:FrontierEntry ;
+    logic:entryAction e:quarantineStep ;
+    logic:entryAxisWitness logic:StepSkipped ;
+    logic:skipReason logic:SkipNotApplicable .
+
+e:ePurge a logic:FrontierEntry ;
+    logic:entryAction e:purgeStep ;
+    logic:entryAwaits e:retentionWindowClose ;
+    logic:entryAxisWitness logic:StepWaiting .
+
+e:retentionWindowClose a gmeow:Event ;
+    rdfs:label "Close of the 90-day retention window"@x-gmeow-english .
+
+# The witness names the three predicates the author settled and NOT
+# logic:entryLabel. That omission is the whole mechanism: an uncertified predicate
+# is one whose extension no reader may treat as closed, so the six labels below
+# are open by construction whatever the run manages to reach.
+e:rosterWitness a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — roster membership, axis positions and actions are final; labels are NOT certified"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryAxisWitness,
+                           logic:entryAction ;
+    logic:consumedBudget "2"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+
 # The search was cut. The honest report is an INCOMPLETE outcome with a typed
 # cause, distinct from an out-of-fragment refusal, which is a different answer.
-e:cutOutcome a logic:OperationOutcome ;
-    rdfs:label "Incomplete — step budget exhausted before fixpoint"@x-gmeow-english .
+e:cutResult a logic:ReasoningResult ;
+    rdfs:label "Incomplete — rule-firing budget exhausted before fixpoint"@x-gmeow-english ;
+    logic:resultEvaluation logic:BudgetExhausted ;
+    logic:resultCompleteness logic:Incomplete ;
+    logic:consumedBudget "2"^^xsd:nonNegativeInteger .

@@ -1,19 +1,30 @@
 {
-  "budget_status": "ok",
-  "incomplete": false,
+  "budget_status": "exhausted",
+  "incomplete": true,
   "saturated": [
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
     "http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/logic/consumedBudget",
     "https://blackcatinformatics.ca/logic/enactmentInputSnapshot",
     "https://blackcatinformatics.ca/logic/enactmentState",
     "https://blackcatinformatics.ca/logic/enactsPrescriptionVersion",
+    "https://blackcatinformatics.ca/logic/entryAction",
+    "https://blackcatinformatics.ca/logic/entryAwaits",
+    "https://blackcatinformatics.ca/logic/entryAxisWitness",
+    "https://blackcatinformatics.ca/logic/frontierOfEnactment",
+    "https://blackcatinformatics.ca/logic/frontierSaturationWitness",
+    "https://blackcatinformatics.ca/logic/hasFrontierEntry",
     "https://blackcatinformatics.ca/logic/planGoal",
     "https://blackcatinformatics.ca/logic/planSuccessMode",
     "https://blackcatinformatics.ca/logic/prescriptionDigest",
     "https://blackcatinformatics.ca/logic/prescriptionKind",
     "https://blackcatinformatics.ca/logic/prescriptionOf",
+    "https://blackcatinformatics.ca/logic/resultCompleteness",
+    "https://blackcatinformatics.ca/logic/resultEvaluation",
+    "https://blackcatinformatics.ca/logic/settledPredicate",
+    "https://blackcatinformatics.ca/logic/skipReason",
     "https://blackcatinformatics.ca/logic/snapshotDigest"
   ],
-  "strata_completed": 1,
+  "strata_completed": 0,
   "strata_total": 1
 }

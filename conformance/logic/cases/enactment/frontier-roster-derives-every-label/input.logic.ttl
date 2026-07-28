@@ -6,9 +6,9 @@
 # The CLOSED next-action frontier, argued in full. `frontier-labels-are-derived`
 # shows that a label CAN be derived; this case shows that EVERY label is. Not one
 # logic:entryLabel appears in the data world, and all SIXTEEN logic:FrontierLabel
-# individuals come out of the sixteen shipped logic:Rule instances below — lifted
-# verbatim from slices/grounding/logic/module.ttl, so the case pins the rules that
-# actually ship rather than a restatement of them.
+# individuals come out of the sixteen logic:Rule instances profile.json names in
+# "shipped_rules", resolved by IRI out of slices/grounding/logic/module.ttl, so the
+# case reasons with the rules that actually ship rather than a restatement of them.
 #
 # A roster that enumerates sixteen positions and can compute five of them is the
 # named required-negative of the enactment kernel: an incomplete frontier presented
@@ -60,347 +60,85 @@
 # capability the deployment does not have awaits nothing, because what is absent
 # does not arrive.
 
-@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix e:     <https://blackcatinformatics.ca/gmeow/conformance/frontier-roster/> .
 
-# --- The sixteen shipped derivation rules -------------------------------------
+# --- The data world: sixteen entries, and NOT ONE logic:entryLabel -------------
+#
+# The sixteen rules are not restated here. profile.json's "shipped_rules" names
+# them, and the harness resolves each IRI against slices/grounding/logic/module.ttl,
+# hard-failing on one the module no longer declares. A copy inside this file would
+# keep the case green after the shipped rule was deleted — the roster would then
+# certify the completeness of its own copy, which is the very failure this case is
+# the required-negative for.
 
-logic:ruleFrontierReadyAuthorized
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: ready and authorized"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierReadyAuthorized for a frontier entry whose step axis is ready and whose approval axis is null — the policy already authorizes the effect, so no operator gate stands between the action and its dispatch. Positive Horn. This is the rule that makes policy-maximal automation a derivation rather than a habit: an entry is authorized because its axis tuple says so, not because nobody remembered to gate it."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierReadyAuthorized ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReadyAuthorized
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepReady
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:ApprovalNull
-    ] .
+e:preconditionBlockedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepPending .
 
-logic:ruleFrontierReadyApprovalRequired
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: ready but approval required"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierReadyApprovalRequired for a frontier entry whose step axis is ready and whose approval axis is created but not yet detached. Readiness and approval are separate axes, and this rule is where that separation earns its keep: the same entry is simultaneously ready to run and gated, which a single blended state could only express by minting a combined value for every such pairing."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierReadyApprovalRequired ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReadyApprovalRequired
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepReady
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:ApprovalCreated
-    ] .
+e:readyAuthorizedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
 
-logic:ruleFrontierReconciliationRequired
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: reconciliation required"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierReconciliationRequired for a frontier entry whose effect axis sits at attempted — an effect was dispatched and no receipt settled it. This is the no-blind-retry law stated positively: rather than only forbidding a retry, the frontier NAMES the one action that is licensed from an undetermined position, so an operator reading it is told what to do instead of merely what not to do."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierReconciliationRequired ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReconciliationRequired
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectAttempted
-    ] .
+e:approvalRequiredEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
 
-logic:ruleFrontierBlockedCapability
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: blocked on capability or resource"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierBlockedCapabilityOrResource for a frontier entry whose step axis is waiting and whose action is the blocked step of an operational capability gap. The gap is an operational one — a capability the deployment does not have — and never a reasoning-profile gap, so this rule is also where the non-conflation is enforced by construction rather than by a reviewer noticing."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierBlockedCapability ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierBlockedCapabilityOrResource
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepWaiting
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAction ;
-        rdf:object    "?step"
-    ] , [
-        rdf:subject   "?gap" ;
-        rdf:predicate logic:gapBlockedStep ;
-        rdf:object    "?step"
-    ] .
+# Waiting on a capability the deployment does not have. The gap on its action step
+# is the discriminator; waiting alone reaches no label.
+e:capabilityBlockedEntry a logic:FrontierEntry ;
+    logic:entryAction e:ocrStep ;
+    logic:entryAxisWitness logic:StepWaiting .
 
-logic:ruleFrontierCompensationEligible
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: compensation eligible"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierCompensationEligible for a frontier entry whose effect axis sits at receipted — a forward effect is known to have committed, so a counteraction is now permissible. Eligibility is all this derives: it asserts no compensation attempt, no compensation outcome, and no claim that compensating will succeed, because compensation is a new action with its own possibility of failing."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierCompensationEligible ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompensationEligible
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectReceipted
-    ] .
+e:ocrStep a logic:TransactionStep .
+e:ocrGap a logic:OperationalCapabilityGap ;
+    logic:gapBlockedStep e:ocrStep .
 
-logic:ruleFrontierBlockedPrecondition
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: blocked on an unmet precondition"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierBlockedPrecondition for a frontier entry whose step axis is pending — the step belongs to the enactment and its preconditions have not been evaluated as met, which is exactly the position the step axis mints for an unmet precondition. Positive Horn, and disjoint from every other rule by the step axis alone. The label matters because its remedy differs from every neighbouring obstruction: a precondition is remediable by changing the world, where a missing capability is not, and telling an operator to wait when the answer is to change the world is the failure this separation prevents."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierBlockedPrecondition ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierBlockedPrecondition
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepPending
-    ] .
+# The same waiting position, told apart by what is recorded about the obstruction:
+# this one NAMES what it awaits, and what is absent does not arrive.
+e:awaitingInputEntry a logic:FrontierEntry ;
+    logic:entryAwaits e:scannerCallback ;
+    logic:entryAxisWitness logic:StepWaiting .
 
-logic:ruleFrontierWaitingOnEventTimeOrInput
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: waiting on an event, a time or an input"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierWaitingOnEventTimeOrInput for a frontier entry whose step axis is waiting and which names, through logic:entryAwaits, the thing it is blocked pending. The awaited witness is what makes the label a derivation rather than a shrug: the step axis says THAT the step waits, and only the witness says what would end the wait. It is also what keeps this rule disjoint from the capability-gap rule, which shares the waiting position — a step blocked by a capability the deployment does not have awaits nothing, because what is absent does not arrive, and its remedy is a capability-gap proposal rather than patience."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierWaitingOnEventTimeOrInput ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierWaitingOnEventTimeOrInput
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepWaiting
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAwaits ;
-        rdf:object    "?awaited"
-    ] .
 
-logic:ruleFrontierMutuallyExclusive
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: mutually exclusive with another candidate"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierMutuallyExclusive for a frontier entry that logic:entryExcludes another entry. This is the one guard in the set that reads no axis, and deliberately: exclusivity is a relation between two candidates and not a position either of them occupies, so putting it on an axis would be the conflation the seven-axis discipline exists to refuse. It becomes visible only when local frontiers are glued, which is also why the withheld candidate carries no readiness position — being ready is a claim about a frontier on which the excluding candidate was not taken."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierMutuallyExclusive ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierMutuallyExclusive
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryExcludes ;
-        rdf:object    "?other"
-    ] .
+# Exclusivity is a relation between two candidates and belongs on no axis at all.
+e:excludedEntry a logic:FrontierEntry ;
+    logic:entryExcludes e:readyAuthorizedEntry .
 
-logic:ruleFrontierCompensationRequired
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: compensation required"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierCompensationRequired for a frontier entry whose effect axis sits at reconciled, whose commitment knowledge is supported, and whose enactment axis is failed — a probe settled that the forward effect committed, and the occurrence it belonged to will not complete, so the committed effect has to be counteracted for the run to reach a consistent terminal position. Three axes carry this and none of them could alone: the effect position says the question was answered, the knowledge value says which way, and the enactment position is what turns permission into obligation. That is precisely what separates it from compensation-eligible, where declining costs nothing."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierCompensationRequired ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompensationRequired
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectReconciled
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoSupported
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentFailed
-    ] .
+e:reconciliationRequiredEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectAttempted .
 
-logic:ruleFrontierCompensationFailedForwardCommitted
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: compensation failed with the forward effect committed"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierCompensationFailedForwardCommitted for a frontier entry whose exchange sits in its compensating leg, whose step axis is failed, whose commitment knowledge is still supported, and whose enactment is still running. Read together those four positions say the whole thing: a compensating action was launched, the step carrying it terminally failed, the forward effect it was launched against remains committed, and the occurrence has not given up. The last position is what separates this from terminally-failed — the enactment is still running because escalation is a continuation, and escalation rather than retry is the only move this position licenses."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierCompensationFailedForwardCommitted ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompensationFailedForwardCommitted
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepFailed
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectCompensating
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoSupported
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentRunning
-    ] .
+e:compensationEligibleEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectReceipted .
 
-logic:ruleFrontierReconciliationImpossible
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: reconciliation foreclosed"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierReconciliationImpossible for a frontier entry whose effect axis sits at abandoned — the exchange was given up without an authoritative determination because no reconciliation semantics remain available. The effect axis mints exactly one position for that, so the guard needs nothing else. The label is the honest counterpart of reconciliation-required: there, probing is still available and the frontier names it; here it is foreclosed, and naming another probe would send an operator after evidence that cannot be obtained."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierReconciliationImpossible ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierReconciliationImpossible
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EffectAbandoned
-    ] .
+e:compensationRequiredEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectReconciled, logic:InfoSupported,
+                           logic:EnactmentFailed .
 
-logic:ruleFrontierCompleted
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: completed"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierCompleted for a frontier entry whose step axis is completed — the step carried out its prescribed work and reached a terminal position, so nothing further is owed on it. The guard reads that one axis and stops there on purpose: the label asserts nothing about whether the enactment's goal is met, which is the goal-evaluation axis, and nothing about whether an external effect the step dispatched actually committed, which is the commitment-knowledge axis carried by the exchange's own entry."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierCompleted ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCompleted
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepCompleted
-    ] .
+# The enactment axis is the discriminator against terminallyFailedEntry: the run is
+# still going because escalation remains open.
+e:compensationFailedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepFailed, logic:EffectCompensating,
+                           logic:InfoSupported, logic:EnactmentRunning .
 
-logic:ruleFrontierSkippedWithTypedReason
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: skipped with a typed reason"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierSkippedWithTypedReason for a frontier entry whose step axis is skipped and which carries a logic:skipReason. The typed reason is a guard and not a decoration: the label's whole content is that the omission was deliberate and attributable, so an entry claiming a skip without one derives nothing rather than deriving a label it cannot support — which is the correct outcome, because an untyped skip is indistinguishable from an oversight and the frontier must not present the two alike."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierSkippedWithTypedReason ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierSkippedWithTypedReason
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepSkipped
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:skipReason ;
-        rdf:object    "?reason"
-    ] .
+e:reconciliationForeclosedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:EffectAbandoned .
 
-logic:ruleFrontierCancelled
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: cancelled"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierCancelled for a frontier entry whose step and enactment axes are both cancelled and whose commitment knowledge was never evaluated — the quiescent cancellation, where stopping by decision settles the matter because no external effect was ever in question. The knowledge position is the load-bearing conjunct: it is what distinguishes this from cancellation with in-flight effects, and reading a bare cancelled position as quiescent is exactly how an outstanding exchange gets closed on paper while remaining open at the provider."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierCancelled ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCancelled
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepCancelled
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentCancelled
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoNotEvaluated
-    ] .
+e:completedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepCompleted .
 
-logic:ruleFrontierCancelledWithInFlightEffects
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: cancelled with in-flight effects"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierCancelledWithInFlightEffects for a frontier entry whose step and enactment axes are both cancelled while its commitment knowledge remains undetermined. Cancellation is a decision about the occurrence and it does not resolve knowledge about the world, so the outstanding exchange still demands reconciliation; the sibling entry that positions that exchange reads reconciliation-required. It differs from plain cancelled on the commitment-knowledge axis and on nothing else, which is exactly why the two cannot share a slot — and it is arguably the hardest real position an operator meets, which a bare cancelled label hides."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierCancelledWithInFlightEffects ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierCancelledWithInFlightEffects
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepCancelled
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentCancelled
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:InfoUndetermined
-    ] .
+# A skip refuses to reach its label without a TYPED reason, because an untyped skip
+# is indistinguishable from an oversight.
+e:skippedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepSkipped ;
+    logic:skipReason logic:SkipAlreadySatisfied .
 
-logic:ruleFrontierTerminallyFailed
-    a logic:Rule ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "frontier label: terminally failed"@x-gmeow-english ;
-    skos:definition "Derives logic:FrontierTerminallyFailed for a frontier entry whose step axis is failed and whose enactment axis is failed — the step attempted its work and failed, and the occurrence stopped because no continuation is available, which is the enactment axis's own definition of failure. Both conjuncts are needed: a failed step inside a still-running enactment has a continuation somewhere, and the enactment position is what says there is none. That is also what separates it from compensation-failed-forward-committed, where the run is still going because escalation remains open."@x-gmeow-english ;
-    logic:provenance logic:ruleFrontierTerminallyFailed ;
-    logic:head [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryLabel ;
-        rdf:object    logic:FrontierTerminallyFailed
-    ] ;
-    logic:body [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:StepFailed
-    ] , [
-        rdf:subject   "?entry" ;
-        rdf:predicate logic:entryAxisWitness ;
-        rdf:object    logic:EnactmentFailed
-    ] .
+e:cancelledEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepCancelled, logic:EnactmentCancelled,
+                           logic:InfoNotEvaluated .
+
+# One axis apart from cancelledEntry — the commitment-knowledge axis — and a wholly
+# different instruction: effects may already have committed outside the system.
+e:cancelledInFlightEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepCancelled, logic:EnactmentCancelled,
+                           logic:InfoUndetermined .
+
+e:terminallyFailedEntry a logic:FrontierEntry ;
+    logic:entryAxisWitness logic:StepFailed, logic:EnactmentFailed .

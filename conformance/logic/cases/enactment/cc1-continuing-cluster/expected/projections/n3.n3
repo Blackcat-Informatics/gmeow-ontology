@@ -9,12 +9,65 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r1> <http://www.w3.org/2000/01/rdf-schema#label> 'ADR-0031 revision 1 — as week 12 read it' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r2> <http://www.w3.org/2000/01/rdf-schema#label> 'ADR-0031 revision 2 — changed this week' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0042> <http://www.w3.org/2000/01/rdf-schema#label> 'ADR-0042 — new this week' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/adrQualityRubric> <http://www.w3.org/2000/01/rdf-schema#label> 'ADR quality rubric' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/corpusW12> a <https://blackcatinformatics.ca/logic/InputSnapshot> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/corpusW12> <https://blackcatinformatics.ca/logic/snapshotDigest> 'b3:1f70b8a4c2593de6018b4c7a05e2d93f86a0c1537be24d90f5c837a1e60b492d' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/corpusW13> a <https://blackcatinformatics.ca/logic/InputSnapshot> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/corpusW13> <https://blackcatinformatics.ca/logic/snapshotDigest> 'b3:93e5c1a70bd2f846015c8b3ae209df74c60b18a52d7e930f4a1c86b05e37d92a' .
-<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> a <https://blackcatinformatics.ca/logic/MaintenanceGoal> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> a <https://blackcatinformatics.ca/logic/Situation> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> <http://www.w3.org/2000/01/rdf-schema#label> 'Every landed decision has been reviewed against the current architecture' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> <http://www.w3.org/2000/01/rdf-schema#label> 'Architectural decisions stay reviewed' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> <https://blackcatinformatics.ca/logic/hasGoalCondition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> a <https://blackcatinformatics.ca/logic/GoalExpression> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <http://www.w3.org/2000/01/rdf-schema#label> 'Maintenance: the decision record is current at every state of the interval' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <https://blackcatinformatics.ca/logic/boundSituationType> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewedCondition> <https://blackcatinformatics.ca/logic/goalExpressionKind> <https://blackcatinformatics.ca/logic/MaintenanceGoal> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> a <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/publishMinutesStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalCreated> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> a <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/quorumStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://blackcatinformatics.ca/logic/entryAwaits> <https://blackcatinformatics.ca/gmeow/conformance/enactment/secondReviewerAvailability> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepWaiting> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> a <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/retireAdr0031r1Step> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepSkipped> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> <https://blackcatinformatics.ca/logic/skipReason> <https://blackcatinformatics.ca/logic/SkipNotApplicable> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> a <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0031Step> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalNull> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> a <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0042Step> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalNull> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> a <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/surfaceGuidanceStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepCompleted> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> a <https://blackcatinformatics.ca/logic/GoalEvaluation> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#label> "The cluster's maintenance goal, judged against week 12: holds so far, not concluded" .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatedAgainst> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionRecordCurrent> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatesGoal> <https://blackcatinformatics.ca/gmeow/conformance/enactment/decisionsStayReviewed> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationCriterion> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adrQualityRubric> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationTime> '2026-03-19T15:30:00Z' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/feasibilityStatus> <https://blackcatinformatics.ca/logic/Feasible> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/goalEvaluationStatus> <https://blackcatinformatics.ca/logic/GoalEvaluationUndetermined> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/lifecycleStatus> <https://blackcatinformatics.ca/logic/LifecycleActive> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/maintenanceGoalEvaluation> <https://blackcatinformatics.ca/logic/satisfactionStatus> <https://blackcatinformatics.ca/logic/Satisfied> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/publishMinutesStep> a <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/publishMinutesStep> <http://www.w3.org/2000/01/rdf-schema#label> 'Publish the week 13 minutes' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/quorumStep> a <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/quorumStep> <http://www.w3.org/2000/01/rdf-schema#label> 'Hold the review with quorum' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/retireAdr0031r1Step> a <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/retireAdr0031r1Step> <http://www.w3.org/2000/01/rdf-schema#label> 'Review ADR-0031 revision 1' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0031Step> a <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0031Step> <http://www.w3.org/2000/01/rdf-schema#label> 'Re-review ADR-0031 against its revised retention window' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0042Step> a <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewAdr0042Step> <http://www.w3.org/2000/01/rdf-schema#label> 'Review ADR-0042 against the quality rubric' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcess> a <https://blackcatinformatics.ca/logic/Plan> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcess> <http://www.w3.org/2000/01/rdf-schema#label> 'ADR review process' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcess> <https://blackcatinformatics.ca/logic/planGoal> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewed> .
@@ -24,10 +77,53 @@
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcessV4> <http://www.w3.org/2000/01/rdf-schema#label> 'ADR review process, revision 4' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcessV4> <https://blackcatinformatics.ca/logic/prescriptionDigest> 'b3:4c8a03f7b25e91d6047ac35b8e1f20d9637b0ae514c92d87f30a6b15c8e04d29' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcessV4> <https://blackcatinformatics.ca/logic/prescriptionOf> <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcess> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/secondReviewerAvailability> <http://www.w3.org/2000/01/rdf-schema#label> "The second reviewer's return from leave" .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/surfaceGuidanceStep> a <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/surfaceGuidanceStep> <http://www.w3.org/2000/01/rdf-schema#label> 'Surface the rubric, the checklist and the retained notes' .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> a <https://blackcatinformatics.ca/logic/SnapshotDelta> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <http://www.w3.org/2000/01/rdf-schema#label> 'ADRs added or changed since week 12' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/deltaAddition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r2> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/deltaAddition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0042> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/deltaSuppression> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adr0031r1> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Delta> <https://blackcatinformatics.ca/logic/snapshotDigest> 'b3:7a209fc158b3e64d0179ac250e8b3df641c07a92be5d1380f6a4c98b17e250d3' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> a <https://blackcatinformatics.ca/logic/ActionableFrontier> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <http://www.w3.org/2000/01/rdf-schema#label> 'Frontier for the week 13 review' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/frontierOfEnactment> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekThirteen> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/frontierSaturationWitness> <https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublishMinutes> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuorum> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eRetireAdr0031r1> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0031> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eReviewAdr0042> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eSurfaceGuidance> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> a <https://blackcatinformatics.ca/logic/SaturationWitness> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <http://www.w3.org/2000/01/rdf-schema#label> 'Saturation witness — all frontier predicates reached fixpoint within budget' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/consumedBudget> '72' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAction> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAwaits> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAxisWitness> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryLabel> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/hasFrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/w13Saturation> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/skipReason> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> a <https://blackcatinformatics.ca/logic/GoalEvaluation> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#label> "Week 12's own review goal: conclusively satisfied" .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatedAgainst> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluatesGoal> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewed> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationCriterion> <https://blackcatinformatics.ca/gmeow/conformance/enactment/adrQualityRubric> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/evaluationTime> '2026-03-19T15:30:00Z' .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/feasibilityStatus> <https://blackcatinformatics.ca/logic/Feasible> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/goalEvaluationStatus> <https://blackcatinformatics.ca/logic/GoalEvaluationCompleted> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/lifecycleStatus> <https://blackcatinformatics.ca/logic/LifecycleActive> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/week12GoalEvaluation> <https://blackcatinformatics.ca/logic/satisfactionStatus> <https://blackcatinformatics.ca/logic/Satisfied> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> a <https://blackcatinformatics.ca/logic/Situation> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> <http://www.w3.org/2000/01/rdf-schema#label> "The week's review has been held, minuted and published" .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewed> <http://www.w3.org/2000/01/rdf-schema#label> "This week's review is completed" .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewed> <https://blackcatinformatics.ca/logic/hasGoalCondition> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> a <https://blackcatinformatics.ca/logic/GoalExpression> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <http://www.w3.org/2000/01/rdf-schema#label> "Achievement: this week's review reaches its close" .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <https://blackcatinformatics.ca/logic/boundSituationType> <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewClosed> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/weekReviewedCondition> <https://blackcatinformatics.ca/logic/goalExpressionKind> <https://blackcatinformatics.ca/logic/AchievementGoal> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekThirteen> a <https://blackcatinformatics.ca/logic/Enactment> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekThirteen> <https://blackcatinformatics.ca/logic/enactmentInputSnapshot> <https://blackcatinformatics.ca/gmeow/conformance/enactment/corpusW13> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekThirteen> <https://blackcatinformatics.ca/logic/enactmentState> <https://blackcatinformatics.ca/logic/EnactmentRunning> .
@@ -38,3 +134,30 @@
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/weekTwelve> <https://blackcatinformatics.ca/logic/enactsPrescriptionVersion> <https://blackcatinformatics.ca/gmeow/conformance/enactment/reviewProcessV4> .
 
 # === Rules ===
+{ ?entry <https://blackcatinformatics.ca/logic/entryAction> ?step . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepWaiting> . ?gap <https://blackcatinformatics.ca/logic/gapBlockedStep> ?step . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierBlockedCapabilityOrResource> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepPending> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierBlockedPrecondition> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EnactmentCancelled> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/InfoNotEvaluated> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepCancelled> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCancelled> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EnactmentCancelled> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/InfoUndetermined> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepCancelled> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCancelledWithInFlightEffects> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EffectReceipted> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCompensationEligible> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EffectCompensating> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EnactmentRunning> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/InfoSupported> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepFailed> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCompensationFailedForwardCommitted> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EffectReconciled> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EnactmentFailed> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/InfoSupported> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCompensationRequired> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepCompleted> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCompleted> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryExcludes> ?other . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierMutuallyExclusive> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalCreated> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReadyApprovalRequired> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalNull> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepReady> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReadyAuthorized> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EffectAbandoned> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReconciliationImpossible> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EffectAttempted> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReconciliationRequired> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepSkipped> . ?entry <https://blackcatinformatics.ca/logic/skipReason> ?reason . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierSkippedWithTypedReason> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EnactmentFailed> . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepFailed> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierTerminallyFailed> . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAwaits> ?awaited . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepWaiting> . } log:implies { ?entry <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierWaitingOnEventTimeOrInput> . } .
+{ ?cell <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> ?step . ?method <https://blackcatinformatics.ca/logic/methodYieldCell> ?cell . } log:implies { ?method <https://blackcatinformatics.ca/logic/methodStep> ?step . } .
+{ ?method <https://blackcatinformatics.ca/logic/methodYields> ?cell . } log:implies { ?method <https://blackcatinformatics.ca/logic/methodYieldCell> ?cell . } .
+{ ?cell <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> ?next . ?method <https://blackcatinformatics.ca/logic/methodYieldCell> ?cell . } log:implies { ?method <https://blackcatinformatics.ca/logic/methodYieldCell> ?next . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAction> ?step . ?entry <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/ApprovalCreated> . } log:implies { ?step <https://blackcatinformatics.ca/logic/refinementRejectedOnApproval> ?entry . } .
+{ ?gap <https://blackcatinformatics.ca/logic/gapBlockedStep> ?step . ?proposal <https://blackcatinformatics.ca/logic/proposalBlockedStep> ?step . ?proposal <https://blackcatinformatics.ca/logic/proposalMissingCapability> ?capability . } log:implies { ?step <https://blackcatinformatics.ca/logic/refinementRejectedOnCapability> ?capability . } .
+{ ?probe <https://blackcatinformatics.ca/logic/gateVerdict> <https://blackcatinformatics.ca/logic/GateDenied> . ?probe <https://blackcatinformatics.ca/logic/probesSchema> ?step . ?step <https://blackcatinformatics.ca/logic/precondition> ?situation . } log:implies { ?step <https://blackcatinformatics.ca/logic/refinementRejectedOnPrecondition> ?situation . } .
+{ ?entry <https://blackcatinformatics.ca/logic/entryAction> ?step . ?entry <https://blackcatinformatics.ca/logic/entryAwaits> ?resource . ?lease <https://blackcatinformatics.ca/logic/leaseScope> ?resource . } log:implies { ?step <https://blackcatinformatics.ca/logic/refinementRejectedOnResource> ?lease . } .
+{ ?method <https://blackcatinformatics.ca/logic/methodDecomposes> ?task . } log:implies { ?task <https://blackcatinformatics.ca/logic/refinementCandidateMethod> ?method . } .
+{ ?method <https://blackcatinformatics.ca/logic/methodDecomposes> ?task . ?method <https://blackcatinformatics.ca/logic/methodStep> ?step . } log:implies { ?task <https://blackcatinformatics.ca/logic/refinementExpands> ?step . } .
+{ ?mid <https://blackcatinformatics.ca/logic/refinementReaches> ?far . ?task <https://blackcatinformatics.ca/logic/refinementReaches> ?mid . } log:implies { ?task <https://blackcatinformatics.ca/logic/refinementReaches> ?far . } .
+{ ?task <https://blackcatinformatics.ca/logic/refinementExpands> ?step . } log:implies { ?task <https://blackcatinformatics.ca/logic/refinementReaches> ?step . } .

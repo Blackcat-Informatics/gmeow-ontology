@@ -9,10 +9,18 @@
 #
 # Binding by digest rather than by reference is what makes "approve this" mean
 # this and not its neighbour: a reference can be repointed after approval, a
-# digest cannot. The four ways this goes wrong — wrong intent, wrong enactment,
-# expired window, unauthorized operator — are four DISTINCT fault kinds rather
-# than one generic failure, because an operator debugging a refused dispatch
-# needs to know which of the four happened.
+# digest cannot. The neighbour is present in this case rather than imagined — the
+# same run carries a SECOND dispatch intent with its own digest, and the
+# commitment names exactly one of the two. The four ways this goes wrong — wrong
+# intent, wrong enactment, expired window, unauthorized operator — are four
+# DISTINCT fault kinds rather than one generic failure, because an operator
+# debugging a refused dispatch needs to know which of the four happened.
+#
+# Which of the two steps is gated is DERIVED. No logic:entryLabel is asserted: the
+# publication entry carries a created approval on the approval axis and the
+# archive entry carries a null one, and the shipped rules named in profile.json
+# reach the two different labels from those two positions. The gate is therefore a
+# consequence of the intent's effects rather than a habit of the roster's author.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -63,7 +71,39 @@ e:idem a logic:IdempotencyContract ;
     logic:idempotencyDuplicateSemantics "Repeated key within the window returns the original publication."@x-gmeow-english ;
     logic:idempotencyProviderEvidence "Publisher idempotency conformance probe."@x-gmeow-english .
 
-# All six bindings. The digest is the load-bearing one.
+# --- The NEIGHBOUR. Same run, same operator, a different action and therefore a
+#     different digest. Archiving stays inside the reporting boundary, so the
+#     policy already authorizes it and the intent requires no approval. It exists
+#     so that "the commitment binds ONE intent" is checkable against a second
+#     candidate rather than asserted about a set of one.
+e:archiveStep a logic:TransactionStep ; rdfs:label "Archive the report draft"@x-gmeow-english .
+e:archiveSchema a logic:ActionSchema ;
+    logic:capability e:archiveEndpoint ;
+    logic:precondition e:reportApproved .
+e:archiveEndpoint a logic:EngineCapability ; rdfs:label "Internal archive endpoint"@x-gmeow-english .
+e:archiveArgs a logic:ArgumentNormalization ; rdfs:label "Normalized archive arguments"@x-gmeow-english .
+
+e:archiveIntent a logic:DispatchIntent ;
+    logic:intentOfEnactment e:run ;
+    logic:intentOfStep e:archiveStep ;
+    logic:intentActionSchemaVersion e:archiveSchema ;
+    logic:intentNormalizedArguments e:archiveArgs ;
+    logic:intentTarget e:archiveEndpoint ;
+    logic:intentPolicy e:policy ;
+    logic:intentApprovalRequired false ;
+    logic:intentDigest "b3:91d5a7c02e63bf4801a95c38be0d724f6c1a05397be2d840f5a6c19b37e0d2c6" ;
+    logic:intentIdempotency e:archiveIdem ;
+    logic:expectedJournalHead "b3:35c0a917be82d46f015a9c73be0d248f61ac0539be7d1840fa25c86b39e0d271" .
+
+e:archiveIdem a logic:IdempotencyContract ;
+    logic:idempotencyKey "report:2026-07:archive" ;
+    logic:idempotencyScope "archive:main" ;
+    logic:idempotencyRetention "PT12H"^^xsd:duration ;
+    logic:idempotencyDuplicateSemantics "Repeated key within the window returns the original archive record."@x-gmeow-english ;
+    logic:idempotencyProviderEvidence "Archive idempotency conformance probe."@x-gmeow-english .
+
+# All six bindings. The digest is the load-bearing one, and it is the PUBLISH
+# intent's digest — not the archive intent's, which differs in every byte.
 e:approval a logic:ApprovalCommitment ;
     logic:approvalIntentDigest "b3:7c30a95e18bd246f01c5a97b3e0d284f61ac0539be7d2840f1a5c96b30e2d748" ;
     logic:approvalEnactment e:run ;
@@ -74,3 +114,29 @@ e:approval a logic:ApprovalCommitment ;
     logic:approvalState logic:ApprovalDetached .
 
 e:releaseManager a gmeow:Entity ; rdfs:label "Release manager on duty"@x-gmeow-english .
+
+# --- The DERIVED frontier: two steps, two approval positions, two labels -------
+
+e:frontier a logic:ActionableFrontier ;
+    rdfs:label "Frontier for the publication run"@x-gmeow-english ;
+    logic:frontierOfEnactment e:run ;
+    logic:frontierSaturationWitness e:sat ;
+    logic:hasFrontierEntry e:ePublish, e:eArchive .
+
+# Ready AND gated at once — two axes, never one blended state. The gated position
+# is also what makes the step's approval obstruction derivable, so an operator
+# reading the refusal is told WHICH entry holds the gate.
+e:ePublish a logic:FrontierEntry ;
+    logic:entryAction e:publishStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
+
+e:eArchive a logic:FrontierEntry ;
+    logic:entryAction e:archiveStep ;
+    logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
+
+e:sat a logic:SaturationWitness ;
+    rdfs:label "Saturation witness — the frontier predicates reached fixpoint within budget"@x-gmeow-english ;
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction ;
+    logic:consumedBudget "44"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .

@@ -2,5 +2,12 @@
   "reasoning_contract": {"preset": "PositiveHornProfile"},
   "world_types": ["epistemic"],
   "mode": "native",
-  "expected_decidability_class": "decidable"
+  "expected_decidability_class": "decidable",
+  "shipped_rules": [
+    "https://blackcatinformatics.ca/logic/ruleFrontierReadyAuthorized",
+    "https://blackcatinformatics.ca/logic/ruleFrontierReadyApprovalRequired",
+    "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationRequired",
+    "https://blackcatinformatics.ca/logic/ruleFrontierCompensationEligible",
+    "https://blackcatinformatics.ca/logic/ruleFrontierBlockedCapability"
+  ]
 }

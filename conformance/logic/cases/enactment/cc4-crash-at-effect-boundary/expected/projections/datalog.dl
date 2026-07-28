@@ -14,12 +14,16 @@ capability("https://blackcatinformatics.ca/gmeow/conformance/enactment/chargeSch
 precondition("https://blackcatinformatics.ca/gmeow/conformance/enactment/chargeSchema", "https://blackcatinformatics.ca/gmeow/conformance/enactment/invoiceDueUnpaid", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/chargeStep", "https://blackcatinformatics.ca/logic/TransactionStep", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/chargeStep", 'Charge the customer', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge", "https://blackcatinformatics.ca/logic/FrontierEntry", "default").
+entryAction("https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge", "https://blackcatinformatics.ca/gmeow/conformance/enactment/legacyChargeStep", "default").
+entryAxisWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge", "https://blackcatinformatics.ca/logic/EffectAbandoned", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/eReconcile", "https://blackcatinformatics.ca/logic/FrontierEntry", "default").
+entryAction("https://blackcatinformatics.ca/gmeow/conformance/enactment/eReconcile", "https://blackcatinformatics.ca/gmeow/conformance/enactment/chargeStep", "default").
 entryAxisWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/eReconcile", "https://blackcatinformatics.ca/logic/EffectAttempted", "default").
-entryLabel("https://blackcatinformatics.ca/gmeow/conformance/enactment/eReconcile", "https://blackcatinformatics.ca/logic/FrontierReconciliationRequired", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/logic/ActionableFrontier", "default").
 frontierOfEnactment("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "default").
 frontierSaturationWitness("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "default").
+hasFrontierEntry("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge", "default").
 hasFrontierEntry("https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier", "https://blackcatinformatics.ca/gmeow/conformance/enactment/eReconcile", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/idem", "https://blackcatinformatics.ca/logic/IdempotencyContract", "default").
 idempotencyDuplicateSemantics("https://blackcatinformatics.ca/gmeow/conformance/enactment/idem", 'Original result returned for a repeated key within 24h; afterwards a repeat is a NEW charge.', "default").
@@ -42,6 +46,8 @@ label("https://blackcatinformatics.ca/gmeow/conformance/enactment/invoiceDueUnpa
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/invoicesSettled", 'Due invoices settled exactly once', "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/journal", "https://blackcatinformatics.ca/logic/TransitionJournal", "default").
 journalHead("https://blackcatinformatics.ca/gmeow/conformance/enactment/journal", 'b3:0a75c93e18bd246f015c7a9b30e2df8461c05a37be91d4207f8a6c15b39e02d4', "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/legacyChargeStep", "https://blackcatinformatics.ca/logic/TransactionStep", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/legacyChargeStep", 'Charge the customer through the decommissioned provider', "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/paymentsEndpoint", "https://blackcatinformatics.ca/logic/EngineCapability", "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/paymentsEndpoint", 'Payments charge endpoint', "default").
 label("https://blackcatinformatics.ca/gmeow/conformance/enactment/policy", 'Settlement dispatch policy', "default").
@@ -54,8 +60,14 @@ enactmentInputSnapshot("https://blackcatinformatics.ca/gmeow/conformance/enactme
 enactmentJournal("https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "https://blackcatinformatics.ca/gmeow/conformance/enactment/journal", "default").
 enactmentState("https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "https://blackcatinformatics.ca/logic/EnactmentPaused", "default").
 enactsPrescriptionVersion("https://blackcatinformatics.ca/gmeow/conformance/enactment/run", "https://blackcatinformatics.ca/gmeow/conformance/enactment/settlementV5", "default").
-type("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/FrontierEntry", "default").
-entryLabel("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/FrontierCompleted", "default").
+type("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/SaturationWitness", "default").
+label("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", 'Saturation witness — the frontier predicates reached fixpoint within budget', "default").
+consumedBudget("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", '38', "default").
+resultEvaluation("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/EvaluationCompleted", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/entryAction", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/entryAxisWitness", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/entryLabel", "default").
+settledPredicate("https://blackcatinformatics.ca/gmeow/conformance/enactment/sat", "https://blackcatinformatics.ca/logic/hasFrontierEntry", "default").
 type("https://blackcatinformatics.ca/gmeow/conformance/enactment/settlement", "https://blackcatinformatics.ca/logic/Plan", "default").
 planGoal("https://blackcatinformatics.ca/gmeow/conformance/enactment/settlement", "https://blackcatinformatics.ca/gmeow/conformance/enactment/invoicesSettled", "default").
 planSuccessMode("https://blackcatinformatics.ca/gmeow/conformance/enactment/settlement", "https://blackcatinformatics.ca/logic/StrongCyclicPlanSuccess", "default").
@@ -67,3 +79,84 @@ type("https://blackcatinformatics.ca/gmeow/conformance/enactment/unknown", "http
 unknownOfAttempt("https://blackcatinformatics.ca/gmeow/conformance/enactment/unknown", "https://blackcatinformatics.ca/gmeow/conformance/enactment/attempt", "default").
 
 % === Rules ===
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierBlockedCapabilityOrResource", ?C) :-
+    entryAction(?entry, ?step, ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepWaiting", ?C),
+    gapBlockedStep(?gap, ?step, ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierBlockedPrecondition", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepPending", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCancelled", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentCancelled", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoNotEvaluated", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepCancelled", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCancelledWithInFlightEffects", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentCancelled", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoUndetermined", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepCancelled", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompensationEligible", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectReceipted", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompensationFailedForwardCommitted", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectCompensating", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentRunning", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoSupported", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepFailed", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompensationRequired", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectReconciled", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentFailed", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/InfoSupported", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierCompleted", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepCompleted", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierMutuallyExclusive", ?C) :-
+    entryExcludes(?entry, ?other, ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReadyApprovalRequired", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/ApprovalCreated", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepReady", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReadyAuthorized", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/ApprovalNull", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepReady", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReconciliationImpossible", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectAbandoned", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierReconciliationRequired", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EffectAttempted", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierSkippedWithTypedReason", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepSkipped", ?C),
+    skipReason(?entry, ?reason, ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierTerminallyFailed", ?C) :-
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/EnactmentFailed", ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepFailed", ?C).
+entryLabel(?entry, "https://blackcatinformatics.ca/logic/FrontierWaitingOnEventTimeOrInput", ?C) :-
+    entryAwaits(?entry, ?awaited, ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/StepWaiting", ?C).
+methodStep(?method, ?step, ?C) :-
+    first(?cell, ?step, ?C),
+    methodYieldCell(?method, ?cell, ?C).
+methodYieldCell(?method, ?cell, ?C) :-
+    methodYields(?method, ?cell, ?C).
+methodYieldCell(?method, ?next, ?C) :-
+    rest(?cell, ?next, ?C),
+    methodYieldCell(?method, ?cell, ?C).
+refinementRejectedOnApproval(?step, ?entry, ?C) :-
+    entryAction(?entry, ?step, ?C),
+    entryAxisWitness(?entry, "https://blackcatinformatics.ca/logic/ApprovalCreated", ?C).
+refinementRejectedOnCapability(?step, ?capability, ?C) :-
+    gapBlockedStep(?gap, ?step, ?C),
+    proposalBlockedStep(?proposal, ?step, ?C),
+    proposalMissingCapability(?proposal, ?capability, ?C).
+refinementRejectedOnPrecondition(?step, ?situation, ?C) :-
+    gateVerdict(?probe, "https://blackcatinformatics.ca/logic/GateDenied", ?C),
+    probesSchema(?probe, ?step, ?C),
+    precondition(?step, ?situation, ?C).
+refinementRejectedOnResource(?step, ?lease, ?C) :-
+    entryAction(?entry, ?step, ?C),
+    entryAwaits(?entry, ?resource, ?C),
+    leaseScope(?lease, ?resource, ?C).
+refinementCandidateMethod(?task, ?method, ?C) :-
+    methodDecomposes(?method, ?task, ?C).
+refinementExpands(?task, ?step, ?C) :-
+    methodDecomposes(?method, ?task, ?C),
+    methodStep(?method, ?step, ?C).
+refinementReaches(?task, ?far, ?C) :-
+    refinementReaches(?mid, ?far, ?C),
+    refinementReaches(?task, ?mid, ?C).
+refinementReaches(?task, ?step, ?C) :-
+    refinementExpands(?task, ?step, ?C).

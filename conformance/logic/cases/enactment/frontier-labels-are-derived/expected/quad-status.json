@@ -44,6 +44,10 @@
     "status": "ok"
   },
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/frontier/ocrStep> <http://www.w3.org/2000/01/rdf-schema#label> \"Extract text\"@x-gmeow-english <https://example.org/enactment/frontier-labels-are-derived/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/frontier/readyEntry> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/frontier-labels-are-derived/world> .",
     "status": "ok"
   },

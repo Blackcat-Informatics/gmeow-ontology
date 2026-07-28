@@ -48,7 +48,27 @@
     "status": "ok"
   },
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/legacyChargeStep> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/EffectAbandoned> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierReconciliationImpossible> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReconcile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eReconcile> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/chargeStep> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
     "status": "ok"
   },
   {
@@ -69,6 +89,10 @@
   },
   {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier> <https://blackcatinformatics.ca/logic/frontierSaturationWitness> <https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://blackcatinformatics.ca/gmeow/conformance/enactment/eLegacyCharge> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
     "status": "ok"
   },
   {
@@ -168,6 +192,14 @@
     "status": "ok"
   },
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/legacyChargeStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/legacyChargeStep> <http://www.w3.org/2000/01/rdf-schema#label> \"Charge the customer through the decommissioned provider\"@x-gmeow-english <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/paymentsEndpoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/EngineCapability> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
     "status": "ok"
   },
@@ -220,11 +252,35 @@
     "status": "ok"
   },
   {
-    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SaturationWitness> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
     "status": "ok"
   },
   {
-    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCompleted> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <http://www.w3.org/2000/01/rdf-schema#label> \"Saturation witness — the frontier predicates reached fixpoint within budget\"@x-gmeow-english <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://blackcatinformatics.ca/logic/consumedBudget> \"38\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://blackcatinformatics.ca/logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAction> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryLabel> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://example.org/enactment/cc4-crash-at-effect-boundary/world> .",
     "status": "ok"
   },
   {

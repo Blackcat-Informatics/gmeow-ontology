@@ -9,16 +9,30 @@
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ePrepare> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/eStore> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/eVerify> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/extractStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/extractStep> <http://www.w3.org/2000/01/rdf-schema#label> "Run OCR over the prepared pages"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier78> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionableFrontier> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ingest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Plan> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ingestV2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/PrescriptionVersion> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/inspectStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/inspectStep> <http://www.w3.org/2000/01/rdf-schema#label> "Inspect the scanned batch"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/DecompositionMethod> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrMethod> <http://www.w3.org/2000/01/rdf-schema#label> "Method: inspect / prepare / OCR / verify / store"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep> <http://www.w3.org/2000/01/rdf-schema#label> "Extract text"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph> .
-<https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan> <http://www.w3.org/2000/01/rdf-schema#label> "inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/pinnedPlan> <http://www.w3.org/2000/01/rdf-schema#label> "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/prepareStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/prepareStep> <http://www.w3.org/2000/01/rdf-schema#label> "Prepare pages for extraction"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/refine78> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RefinementEpisode> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/run78> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Enactment> .
-<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat78> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/run78Candidates> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/RefinementCandidateSet> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/run78Candidates> <http://www.w3.org/2000/01/rdf-schema#label> "Closed roster for the batch 78 OCR refinement"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat78> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SaturationWitness> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat78> <http://www.w3.org/2000/01/rdf-schema#label> "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/storeStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/storeStep> <http://www.w3.org/2000/01/rdf-schema#label> "Store the ingest receipt"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/textExtracted> <http://www.w3.org/2000/01/rdf-schema#label> "Scanned pages ingested with text"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/verifyStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/verifyStep> <http://www.w3.org/2000/01/rdf-schema#label> "Verify the extracted text"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/owl/gmeow-el> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .

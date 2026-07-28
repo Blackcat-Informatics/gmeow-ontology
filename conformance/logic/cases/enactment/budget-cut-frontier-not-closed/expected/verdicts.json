@@ -1,6 +1,6 @@
 {
   "https://example.org/enactment/budget-cut-frontier-not-closed/world": {
-    "quads": 17,
-    "status": "consistent"
+    "quads": 75,
+    "status": "incomplete"
   }
 }

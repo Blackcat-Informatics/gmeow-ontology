@@ -12,6 +12,10 @@
     "status": "ok"
   },
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eOcrBlocked> <https://blackcatinformatics.ca/logic/entryAction> <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/eOcrBlocked> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://blackcatinformatics.ca/logic/StepWaiting> <https://example.org/enactment/cc3-capability-absent/world> .",
     "status": "ok"
   },
@@ -88,6 +92,10 @@
     "status": "ok"
   },
   {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrStep> <https://blackcatinformatics.ca/logic/refinementRejectedOnCapability> <https://blackcatinformatics.ca/gmeow/conformance/enactment/ocrCapability> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
     "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/proposal> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/CapabilityGapProposal> <https://example.org/enactment/cc3-capability-absent/world> .",
     "status": "ok"
   },
@@ -140,11 +148,35 @@
     "status": "ok"
   },
   {
-    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SaturationWitness> <https://example.org/enactment/cc3-capability-absent/world> .",
     "status": "ok"
   },
   {
-    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <https://blackcatinformatics.ca/logic/entryLabel> <https://blackcatinformatics.ca/logic/FrontierCompleted> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <http://www.w3.org/2000/01/rdf-schema#label> \"Saturation witness — the frontier predicates reached fixpoint within budget\"@x-gmeow-english <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <https://blackcatinformatics.ca/logic/consumedBudget> \"32\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <https://blackcatinformatics.ca/logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAction> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryAxisWitness> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/entryLabel> <https://example.org/enactment/cc3-capability-absent/world> .",
+    "status": "ok"
+  },
+  {
+    "quad": "<https://blackcatinformatics.ca/gmeow/conformance/enactment/sat77> <https://blackcatinformatics.ca/logic/settledPredicate> <https://blackcatinformatics.ca/logic/hasFrontierEntry> <https://example.org/enactment/cc3-capability-absent/world> .",
     "status": "ok"
   },
   {

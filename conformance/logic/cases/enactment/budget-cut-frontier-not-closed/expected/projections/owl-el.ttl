@@ -4,10 +4,33 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/allReviewed> <http://www.w3.org/2000/01/rdf-schema#label> "Every candidate action enumerated"@x-gmeow-english .
-<https://blackcatinformatics.ca/gmeow/conformance/enactment/cutOutcome> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/OperationOutcome> .
-<https://blackcatinformatics.ca/gmeow/conformance/enactment/cutOutcome> <http://www.w3.org/2000/01/rdf-schema#label> "Incomplete — step budget exhausted before fixpoint"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/archiveStep> <http://www.w3.org/2000/01/rdf-schema#label> "Archive the previous generation"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/cutResult> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningResult> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/cutResult> <http://www.w3.org/2000/01/rdf-schema#label> "Incomplete — rule-firing budget exhausted before fixpoint"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eArchive> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eIngest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eNormalise> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePublish> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ePurge> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/eQuarantine> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/FrontierEntry> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ActionableFrontier> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/frontier> <http://www.w3.org/2000/01/rdf-schema#label> "Candidate actions for the pipeline run"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ingestStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/ingestStep> <http://www.w3.org/2000/01/rdf-schema#label> "Ingest the batch"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/normaliseStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/normaliseStep> <http://www.w3.org/2000/01/rdf-schema#label> "Normalise the records"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/plan> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Plan> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/planV1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/PrescriptionVersion> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/publishStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/publishStep> <http://www.w3.org/2000/01/rdf-schema#label> "Publish the dataset"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/purgeStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/purgeStep> <http://www.w3.org/2000/01/rdf-schema#label> "Purge the expired generation"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/quarantineStep> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TransactionStep> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/quarantineStep> <http://www.w3.org/2000/01/rdf-schema#label> "Quarantine the rejected records"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/retentionWindowClose> <http://www.w3.org/2000/01/rdf-schema#label> "Close of the 90-day retention window"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/rosterWitness> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SaturationWitness> .
+<https://blackcatinformatics.ca/gmeow/conformance/enactment/rosterWitness> <http://www.w3.org/2000/01/rdf-schema#label> "Saturation witness — roster membership, axis positions and actions are final; labels are NOT certified"@x-gmeow-english .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/run> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Enactment> .
 <https://blackcatinformatics.ca/gmeow/conformance/enactment/snap> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/InputSnapshot> .
 <https://blackcatinformatics.ca/gmeow/owl/gmeow-el> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
