@@ -750,14 +750,26 @@ pub enum CandidateCommands {
 /// The `gmeow logic` nested subcommands (native `gmeow_logic` engine).
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
-    /// Print the DERIVED actionable frontier for an enactment: one row per entry, its
-    /// derived label, and the lifecycle-axis tuple that produced it.
+    /// Print the actionable frontier for an enactment: one row per entry, its label, the
+    /// SOURCE of that label, and the lifecycle-axis tuple behind it.
     ///
-    /// The labels are not read from the input. They are computed by the shipped
-    /// `logic:Rule` set from each entry's axis witnesses, so this prints what the
-    /// reasoner concluded rather than what an author typed — and an entry whose label
-    /// an author DID assert is still re-derived, so a stale hand-written label shows up
-    /// as a disagreement rather than being echoed back.
+    /// Every label is re-computed by the shipped `logic:Rule` set from the entry's axis
+    /// witnesses, and the SOURCE column says what happened to it, because the three
+    /// outcomes are three different things for an operator to know:
+    ///
+    /// - `derived` — a rule concluded this label from the witnesses. Authoritative.
+    /// - a `DISAGREEMENT` marker — the input asserts a DIFFERENT label from the one the
+    ///   rules derive. The derived label is printed as the row and governs; the stale
+    ///   hand-written value is named in the marker rather than echoed back as fact.
+    /// - `ASSERTED-UNCHECKED` — the input asserts a label and NO shipped rule derives one
+    ///   for that entry, so nothing has verified it. An entry that carries too few
+    ///   witnesses for any rule to reach it lands here; this is how you tell an unexamined
+    ///   assertion apart from a conclusion instead of reading both as the same claim.
+    ///
+    /// The re-derivation is genuine: the labels the input asserts are WITHHELD from the
+    /// audit run, so a rule cannot be credited with a conclusion it merely found already
+    /// present. That is what makes `derived (input agrees)` a real statement about the
+    /// author's label rather than a restatement of it.
     Frontier {
         /// An RDF file carrying the frontier entries and their axis witnesses.
         input: PathBuf,

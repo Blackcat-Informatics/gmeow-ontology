@@ -5401,11 +5401,17 @@ mod entails_tests {
 // `gmeow logic frontier` / `gmeow logic saga` — the operator surface over a
 // durable enactment.
 //
-// Both commands REASON before they print. The frontier labels are derived by the
-// shipped `logic:Rule` set from each entry's lifecycle-axis tuple, so what an
-// operator reads here is the reasoner's conclusion rather than an author's
-// assertion — and a hand-written label that disagrees with the derivation shows up
-// as a disagreement instead of being echoed back unchallenged.
+// Both commands REASON before they print, and every row they print carries the
+// provenance of its own conclusion. A frontier label the shipped `logic:Rule` set
+// derived from an entry's lifecycle-axis tuple is authoritative and marked
+// `derived`; a hand-written label the rules contradict is printed as an explicit
+// DISAGREEMENT beside the derived value; a hand-written label no rule reproduces —
+// eleven of the sixteen shipped labels still have no derivation rule — is printed
+// as ASSERTED-UNCHECKED rather than dressed up as a conclusion.
+//
+// The distinction is the reasoner's own: `crates/logic` stamps every echoed EDB row
+// with `provenance::ASSERT_RULE_IRI` and every rule conclusion with the IRI of the
+// rule that fired, which is the split `derivation_graph.rs` and the chase both use.
 // ---------------------------------------------------------------------------
 
 /// The `logic:` namespace these commands read.
@@ -5422,16 +5428,35 @@ const LOGIC_MODULE_TTL: &str = include_str!("../../../slices/grounding/logic/mod
 /// The synthetic world the CLI reasons in.
 const CLI_WORLD: &str = "https://blackcatinformatics.ca/gmeow/cli/world";
 
+/// One `(subject, predicate, object)` row of the reasoning result, carrying WHERE it came
+/// from.
+///
+/// The two flags are independent rather than an either/or enum, because a row can be both:
+/// an author asserts a triple AND a rule re-derives it. That coincidence is the *agreement*
+/// case, and collapsing it into one "source" would make agreement indistinguishable from a
+/// label nothing checked. Keeping them apart is what lets the frontier command separate
+/// "the reasoner concluded this", "the reasoner concluded something else", and "an author
+/// typed this and no rule looked at it".
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct FactRow {
+    subject: String,
+    predicate: String,
+    object: String,
+    /// The row is in the asserted EDB — a human or an upstream tool wrote it.
+    asserted: bool,
+    /// A shipped `logic:Rule` concluded the row. Recognised by the derivation's `rule_iri`
+    /// being something other than [`gmeow_logic::provenance::ASSERT_RULE_IRI`], which is
+    /// the same EDB/IDB split `crates/logic` itself uses in `derivation_graph.rs` and in
+    /// the chase — not a scheme invented here.
+    derived: bool,
+}
+
 /// Parse `path`, materialize the shipped rule set over it, and return the input plus every
-/// derived triple as `(subject, predicate, object)` IRI/lexical triples.
+/// derived triple, each row tagged with its provenance.
 ///
 /// This is the same `materialize_program` path the conformance runner drives, so what the
 /// CLI prints and what a blessed golden records cannot diverge.
-fn logic_derive(
-    reporter: &dyn Reporter,
-    path: &Path,
-    code: &str,
-) -> Result<Vec<(String, String, String)>, i32> {
+fn logic_derive(reporter: &dyn Reporter, path: &Path, code: &str) -> Result<Vec<FactRow>, i32> {
     let bytes = std::fs::read(path).map_err(|e| {
         fail(
             reporter,
@@ -5453,10 +5478,111 @@ fn logic_derive(
         )
     })?;
 
-    // The rules reason over named worlds, and Turtle input lands in the default graph, so
-    // a file that plainly carries frontier entries would otherwise derive nothing at all —
-    // the least useful failure available, because it looks exactly like "no rule matched".
-    // Promote the whole input into one synthetic world instead.
+    let edb = cli_world_dataset(reporter, path, &parsed, None, code)?;
+    // The re-derivation audit world: the same input with every asserted `logic:entryLabel`
+    // WITHHELD.
+    //
+    // A second materialization is needed because the reasoner works over sets. An asserted
+    // fact that a rule would also conclude is already present, so nothing re-emits it, and
+    // the conclusion becomes indistinguishable from the assertion — an author's label would
+    // read as "unchecked" even when the rules agree with it exactly. Withholding the
+    // predicate under audit makes the derivation independent of what the author typed,
+    // which is the only reading under which "still re-derived" is a true claim.
+    let audit_edb = cli_world_dataset(
+        reporter,
+        path,
+        &parsed,
+        Some(&format!("{LOGIC_NS}entryLabel")),
+        code,
+    )?;
+
+    let (program, _diags) = gmeow_logic_compile::frontend::parse_logic_str(LOGIC_MODULE_TTL, None)
+        .map_err(|e| {
+            fail(
+                reporter,
+                code,
+                format!("cannot compile the embedded logic module: {e}"),
+            )
+        })?;
+
+    let mat = materialize_cli_world(reporter, &program, edb.as_ref(), code)?;
+    let audit = materialize_cli_world(reporter, &program, audit_edb.as_ref(), code)?;
+
+    // A row can be reached twice — once as an assertion, once as a conclusion — so the
+    // flags are OR-merged per triple rather than the rows being pushed twice and deduped.
+    // Deduping tagged rows would keep both copies and make an agreeing label look like a
+    // disagreement with itself.
+    let mut by_triple: BTreeMap<(String, String, String), (bool, bool)> = BTreeMap::new();
+    // The asserted input, so a caller sees the whole picture rather than only the delta.
+    for q in edb.quads() {
+        let (purrdf::TermRef::Iri(su), purrdf::TermRef::Iri(pr)) =
+            (edb.resolve(q.s), edb.resolve(q.p))
+        else {
+            continue;
+        };
+        let ob = match edb.resolve(q.o) {
+            purrdf::TermRef::Iri(i) => i.to_owned(),
+            purrdf::TermRef::Literal { lexical, .. } => lexical.to_owned(),
+            _ => continue,
+        };
+        by_triple
+            .entry((su.to_owned(), pr.to_owned(), ob))
+            .or_default()
+            .0 = true;
+    }
+    // The audit run contributes ONLY its `logic:entryLabel` conclusions. It is a narrower
+    // world than the full one, so letting it speak about anything else could only ever
+    // subtract information, and scoping it to the one question it was run to answer keeps
+    // the closure the other commands read identical to the single-run closure.
+    let label_predicate = format!("{LOGIC_NS}entryLabel");
+    let audited = audit
+        .quads
+        .iter()
+        .filter(|d| d.predicate == label_predicate);
+    for d in mat.quads.iter().chain(audited) {
+        let (Some(su), Some(ob)) = (
+            term_iri_or_lexical(&d.subject),
+            term_iri_or_lexical(&d.object),
+        ) else {
+            continue;
+        };
+        let slot = by_triple.entry((su, d.predicate.clone(), ob)).or_default();
+        // The materialization echoes the EDB back under the assert pseudo-rule. Treating
+        // that echo as a derivation is exactly the bug this split exists to prevent: every
+        // authored label would come back stamped "derived".
+        if d.rule_iri == gmeow_logic::provenance::ASSERT_RULE_IRI {
+            slot.0 = true;
+        } else {
+            slot.1 = true;
+        }
+    }
+    Ok(by_triple
+        .into_iter()
+        .map(
+            |((subject, predicate, object), (asserted, derived))| FactRow {
+                subject,
+                predicate,
+                object,
+                asserted,
+                derived,
+            },
+        )
+        .collect())
+}
+
+/// Promote `parsed` into the one synthetic [`CLI_WORLD`], optionally WITHHOLDING every quad
+/// carrying `withhold`.
+///
+/// The rules reason over named worlds, and Turtle input lands in the default graph, so a
+/// file that plainly carries frontier entries would otherwise derive nothing at all — the
+/// least useful failure available, because it looks exactly like "no rule matched".
+fn cli_world_dataset(
+    reporter: &dyn Reporter,
+    path: &Path,
+    parsed: &purrdf::RdfDataset,
+    withhold: Option<&str>,
+    code: &str,
+) -> Result<Arc<purrdf::RdfDataset>, i32> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     let world = builder.intern_iri(CLI_WORLD);
     for q in parsed.quads() {
@@ -5465,6 +5591,9 @@ fn logic_derive(
         else {
             continue;
         };
+        if withhold == Some(pred) {
+            continue;
+        }
         let (subj, pred) = (subj.to_owned(), pred.to_owned());
         let obj = match parsed.resolve(q.o) {
             purrdf::TermRef::Iri(i) => {
@@ -5488,7 +5617,7 @@ fn logic_derive(
         let p_id = builder.intern_iri(&pred);
         builder.push_quad(s_id, p_id, obj, Some(world));
     }
-    let edb = builder.freeze().map_err(|e| {
+    builder.freeze().map_err(|e| {
         fail(
             reporter,
             code,
@@ -5497,20 +5626,19 @@ fn logic_derive(
                 path.display()
             ),
         )
-    })?;
+    })
+}
 
-    let (program, _diags) = gmeow_logic_compile::frontend::parse_logic_str(LOGIC_MODULE_TTL, None)
-        .map_err(|e| {
-            fail(
-                reporter,
-                code,
-                format!("cannot compile the embedded logic module: {e}"),
-            )
-        })?;
-
-    let mat = gmeow_logic::materialize::materialize_program(
-        &program,
-        edb.as_ref(),
+/// Materialize the shipped rule set over one CLI world.
+fn materialize_cli_world(
+    reporter: &dyn Reporter,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+    edb: &purrdf::RdfDataset,
+    code: &str,
+) -> Result<gmeow_logic::materialize::Materialization, i32> {
+    gmeow_logic::materialize::materialize_program(
+        program,
+        edb,
         gmeow_logic::materialize::MaterializationLimits { max_steps: None },
         // The frontier rules are positive Horn. The shipped module spans six semantic
         // profiles, so the profile is declared here rather than inferred — an inferred
@@ -5518,35 +5646,7 @@ fn logic_derive(
         // than the rules were written for.
         gmeow_logic_compile::ir::SemanticProfileId::from_local("PositiveHornProfile"),
     )
-    .map_err(|e| fail(reporter, code, format!("materialization failed: {e}")))?;
-
-    let mut out: Vec<(String, String, String)> = Vec::new();
-    // The asserted input, so a caller sees the whole picture rather than only the delta.
-    for q in edb.quads() {
-        let (purrdf::TermRef::Iri(su), purrdf::TermRef::Iri(pr)) =
-            (edb.resolve(q.s), edb.resolve(q.p))
-        else {
-            continue;
-        };
-        let ob = match edb.resolve(q.o) {
-            purrdf::TermRef::Iri(i) => i.to_owned(),
-            purrdf::TermRef::Literal { lexical, .. } => lexical.to_owned(),
-            _ => continue,
-        };
-        out.push((su.to_owned(), pr.to_owned(), ob));
-    }
-    for d in &mat.quads {
-        let (Some(su), Some(ob)) = (
-            term_iri_or_lexical(&d.subject),
-            term_iri_or_lexical(&d.object),
-        ) else {
-            continue;
-        };
-        out.push((su, d.predicate.clone(), ob));
-    }
-    out.sort();
-    out.dedup();
-    Ok(out)
+    .map_err(|e| fail(reporter, code, format!("materialization failed: {e}")))
 }
 
 /// An IRI or literal lexical form from a derived term; `None` for anything else.
@@ -5558,15 +5658,162 @@ fn term_iri_or_lexical(t: &purrdf::TermValue) -> Option<String> {
     }
 }
 
-/// Every `(subject, object)` pair carrying `predicate`.
-fn iri_pairs(rows: &[(String, String, String)], predicate: &str) -> Vec<(String, String)> {
+/// Every `(subject, object)` pair carrying `predicate`, regardless of provenance.
+///
+/// The right reading for the structural predicates — axis witnesses, actions, gaps,
+/// proposals — where asserted and derived rows are equally usable input. It is the WRONG
+/// reading for `logic:entryLabel`, which is the conclusion under scrutiny; that one goes
+/// through [`label_verdicts`].
+fn iri_pairs(rows: &[FactRow], predicate: &str) -> Vec<(String, String)> {
     let mut out: Vec<(String, String)> = rows
         .iter()
-        .filter(|(_, p, _)| p == predicate)
-        .map(|(s, _, o)| (s.clone(), o.clone()))
+        .filter(|r| r.predicate == predicate)
+        .map(|r| (r.subject.clone(), r.object.clone()))
         .collect();
     out.sort();
     out.dedup();
+    out
+}
+
+/// The provenance-blind triple view, for consumers that reason over the closure as a whole
+/// rather than over who concluded what.
+fn triples(rows: &[FactRow]) -> Vec<(String, String, String)> {
+    rows.iter()
+        .map(|r| (r.subject.clone(), r.predicate.clone(), r.object.clone()))
+        .collect()
+}
+
+/// What the command knows about one frontier entry's `logic:entryLabel`.
+///
+/// The three cases are three different things to tell an operator, and flattening any pair
+/// of them is the defect this type exists to make unrepresentable.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum LabelVerdict {
+    /// A rule concluded this label. Authoritative. `also_asserted` records that the input
+    /// happens to agree — worth nothing operationally, but it is the difference between an
+    /// author who is right and an author who never spoke.
+    Derived { label: String, also_asserted: bool },
+    /// A rule concluded `derived`, and the input asserts `asserted` instead. The derived
+    /// value governs; the assertion is stale or wrong and must be shown as such.
+    Disagreement { derived: String, asserted: String },
+    /// The input asserts a label and NO shipped rule derives one for this entry. Nothing
+    /// has checked it. Not an error — several frontier labels have no derivation rule yet —
+    /// but an operator must never mistake it for a conclusion.
+    AssertedUnchecked { asserted: String },
+}
+
+impl LabelVerdict {
+    /// The `(label, source)` columns of this verdict's table row, or `None` when the
+    /// verdict is a marker attached to the rows above it rather than a row of its own.
+    ///
+    /// A disagreement gets no row because the derived label already has one: printing the
+    /// author's value in the label column, under any heading, is precisely how a
+    /// hand-typed string acquires the authority of a conclusion.
+    fn row(&self) -> Option<(&str, &'static str)> {
+        match self {
+            Self::Derived {
+                label,
+                also_asserted,
+            } => Some((
+                short(label),
+                if *also_asserted {
+                    "derived (input agrees)"
+                } else {
+                    "derived"
+                },
+            )),
+            Self::Disagreement { .. } => None,
+            Self::AssertedUnchecked { asserted } => Some((short(asserted), "ASSERTED-UNCHECKED")),
+        }
+    }
+
+    /// The marker line printed under the row, when the entry owes the operator a warning.
+    fn caveat(&self) -> Option<String> {
+        match self {
+            Self::Derived { .. } => None,
+            Self::Disagreement { derived, asserted } => Some(format!(
+                "  DISAGREEMENT  the input asserts logic:entryLabel {}, which the shipped rule \
+                 set does NOT derive from this entry's axis witnesses; the derived label {} is \
+                 authoritative",
+                short(asserted),
+                short(derived)
+            )),
+            Self::AssertedUnchecked { .. } => Some(
+                "  UNCHECKED     no shipped logic:Rule derives a label for this entry, so the \
+                 value above is an author's assertion that nothing has verified"
+                    .to_owned(),
+            ),
+        }
+    }
+}
+
+/// Split every entry's `logic:entryLabel` rows by provenance into per-entry verdicts.
+///
+/// One entry may yield several verdicts: two rules may conclude two labels, and each
+/// asserted label a rule fails to reproduce is its own disagreement. Returning a flat,
+/// entry-keyed list rather than one verdict per entry keeps every one of those visible
+/// instead of letting a first-match win.
+fn label_verdicts(rows: &[FactRow]) -> Vec<(String, LabelVerdict)> {
+    let predicate = format!("{LOGIC_NS}entryLabel");
+    let mut derived: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    let mut asserted: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    for row in rows.iter().filter(|r| r.predicate == predicate) {
+        if row.derived {
+            derived
+                .entry(row.subject.as_str())
+                .or_default()
+                .insert(row.object.as_str());
+        }
+        if row.asserted {
+            asserted
+                .entry(row.subject.as_str())
+                .or_default()
+                .insert(row.object.as_str());
+        }
+    }
+
+    let entries: BTreeSet<&str> = derived.keys().chain(asserted.keys()).copied().collect();
+    let mut out = Vec::new();
+    for entry in entries {
+        let concluded = derived.get(entry).cloned().unwrap_or_default();
+        let typed = asserted.get(entry).cloned().unwrap_or_default();
+        if concluded.is_empty() {
+            out.extend(typed.into_iter().map(|asserted| {
+                (
+                    entry.to_owned(),
+                    LabelVerdict::AssertedUnchecked {
+                        asserted: asserted.to_owned(),
+                    },
+                )
+            }));
+            continue;
+        }
+        for label in &concluded {
+            out.push((
+                entry.to_owned(),
+                LabelVerdict::Derived {
+                    label: (*label).to_owned(),
+                    also_asserted: typed.contains(label),
+                },
+            ));
+        }
+        // Whatever the author typed that no rule reproduced. Pairing it with the first
+        // derived label is deliberate: the disagreement is with the derivation as a whole,
+        // and naming one concrete conclusion is what makes it actionable.
+        let governing = concluded
+            .iter()
+            .next()
+            .expect("non-empty by the check above");
+        for stale in typed.difference(&concluded) {
+            out.push((
+                entry.to_owned(),
+                LabelVerdict::Disagreement {
+                    derived: (*governing).to_owned(),
+                    asserted: (*stale).to_owned(),
+                },
+            ));
+        }
+    }
     out
 }
 
@@ -5583,7 +5830,7 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
         Err(rc) => return rc,
     };
 
-    let labels = iri_pairs(&rows, &format!("{LOGIC_NS}entryLabel"));
+    let verdicts = label_verdicts(&rows);
     let witnesses = iri_pairs(&rows, &format!("{LOGIC_NS}entryAxisWitness"));
     let actions = iri_pairs(&rows, &format!("{LOGIC_NS}entryAction"));
 
@@ -5591,7 +5838,7 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
         // One action, in depth. The entry is named directly or reached through the
         // step it positions, because an operator asking "why not this step" should
         // not have to know the entry's IRI.
-        let entry = labels
+        let entry = verdicts
             .iter()
             .map(|(e, _)| e.clone())
             .find(|e| e == target)
@@ -5611,14 +5858,38 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
                 ),
             );
         };
-        let label = labels
-            .iter()
-            .find(|(e, _)| *e == entry)
-            .map(|(_, l)| short(l).to_owned())
-            .unwrap_or_else(|| "<no label derived>".to_owned());
         println!("action:  {target}");
         println!("entry:   {entry}");
-        println!("label:   {label}   (derived)");
+        let mut spoke = false;
+        for (_, verdict) in verdicts.iter().filter(|(e, _)| *e == entry) {
+            spoke = true;
+            match verdict {
+                // `(derived)` is reserved for a value a rule concluded. An asserted label
+                // gets the opposite stamp, naming what has NOT happened to it.
+                LabelVerdict::Derived { label, .. } => {
+                    println!("label:   {}   (derived)", short(label));
+                }
+                LabelVerdict::AssertedUnchecked { asserted } => {
+                    println!(
+                        "label:   {}   (ASSERTED — no shipped logic:Rule derives a label for \
+                         this entry, so nothing has verified this value)",
+                        short(asserted)
+                    );
+                }
+                LabelVerdict::Disagreement { derived, asserted } => {
+                    println!(
+                        "DISAGREEMENT: the input asserts logic:entryLabel {}, which the shipped \
+                         rule set does NOT derive from this entry's axis witnesses; the derived \
+                         label {} is authoritative",
+                        short(asserted),
+                        short(derived)
+                    );
+                }
+            }
+        }
+        if !spoke {
+            println!("label:   <no label derived and none asserted>");
+        }
         for (e, w) in &witnesses {
             if *e == entry {
                 println!("axis:    {}", short(w));
@@ -5647,9 +5918,11 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
                         "proposalVerificationMethod",
                         "proposalSecurityLifecycle",
                     ] {
-                        for (sub, pred, val) in &rows {
-                            if pred == &format!("{LOGIC_NS}{field}") && sub == &proposal {
-                                println!("  {field}: {val}");
+                        for row in &rows {
+                            if row.predicate == format!("{LOGIC_NS}{field}")
+                                && row.subject == proposal
+                            {
+                                println!("  {field}: {}", row.object);
                             }
                         }
                     }
@@ -5659,35 +5932,48 @@ pub fn logic_frontier(reporter: &dyn Reporter, input: &Path, why_not: Option<&st
         return 0;
     }
 
-    if labels.is_empty() {
+    if verdicts.is_empty() {
         return fail(
             reporter,
             CODE,
             format!(
-                "no frontier label was derived from {} — the input carries no \
-                 logic:FrontierEntry with axis witnesses the rule set can label",
+                "no frontier label was derived from {} and none is asserted — the input \
+                 carries no logic:FrontierEntry with axis witnesses the rule set can label",
                 input.display()
             ),
         );
     }
 
-    println!("{:<44}  {:<36}  AXIS TUPLE", "ENTRY", "DERIVED LABEL");
-    for (entry, label) in &labels {
-        let axes: Vec<&str> = witnesses
-            .iter()
-            .filter(|(e, _)| e == entry)
-            .map(|(_, w)| short(w))
-            .collect();
-        println!(
-            "{:<44}  {:<36}  {}",
-            short(entry),
-            short(label),
-            if axes.is_empty() {
-                "-".to_owned()
-            } else {
-                axes.join(" + ")
-            }
-        );
+    // SOURCE is a column rather than a heading, because the heading cannot be true of every
+    // row: eleven of the sixteen shipped frontier labels have no derivation rule yet, so an
+    // input may legitimately carry an authored label the reasoner never touched. Saying so
+    // per row is the only honest layout.
+    println!(
+        "{:<44}  {:<36}  {:<22}  AXIS TUPLE",
+        "ENTRY", "LABEL", "SOURCE"
+    );
+    for (entry, verdict) in &verdicts {
+        if let Some((label, source)) = verdict.row() {
+            let axes: Vec<&str> = witnesses
+                .iter()
+                .filter(|(e, _)| e == entry)
+                .map(|(_, w)| short(w))
+                .collect();
+            println!(
+                "{:<44}  {:<36}  {:<22}  {}",
+                short(entry),
+                label,
+                source,
+                if axes.is_empty() {
+                    "-".to_owned()
+                } else {
+                    axes.join(" + ")
+                }
+            );
+        }
+        if let Some(caveat) = verdict.caveat() {
+            println!("{caveat}");
+        }
     }
     0
 }
@@ -5765,7 +6051,10 @@ pub fn logic_refine(
         Err(rc) => return rc,
     };
 
-    let result = gmeow_logic::refine(task, &rows, fragment, budget);
+    // The search reasons over the decomposition-method closure as a whole; asserted and
+    // derived methods are equally real inputs to it, so the provenance split is not part of
+    // this question.
+    let result = gmeow_logic::refine(task, &triples(&rows), fragment, budget);
 
     match &result.status {
         gmeow_logic::RefineStatus::UnsupportedFragment { condition } => {
@@ -5825,11 +6114,31 @@ pub fn logic_explain(reporter: &dyn Reporter, input: &Path, action: &str) -> i32
         found = true;
         println!("action:      {action}");
         println!("entry:       {entry}");
-        if let Some((_, label)) = iri_pairs(&rows, &format!("{LOGIC_NS}entryLabel"))
-            .into_iter()
-            .find(|(e, _)| e == entry)
-        {
-            println!("label:       {}   (derived)", short(&label));
+        // The label is re-derived here so an explanation cannot disagree with the frontier
+        // it explains — and when the input DOES disagree, the explanation says so rather
+        // than quietly adopting the author's word.
+        for (_, verdict) in label_verdicts(&rows).iter().filter(|(e, _)| e == entry) {
+            match verdict {
+                LabelVerdict::Derived { label, .. } => {
+                    println!("label:       {}   (derived)", short(label));
+                }
+                LabelVerdict::AssertedUnchecked { asserted } => {
+                    println!(
+                        "label:       {}   (ASSERTED — no shipped logic:Rule derives a label \
+                         for this entry, so nothing has verified this value)",
+                        short(asserted)
+                    );
+                }
+                LabelVerdict::Disagreement { derived, asserted } => {
+                    println!(
+                        "DISAGREEMENT: the input asserts logic:entryLabel {}, which the shipped \
+                         rule set does NOT derive from this entry's axis witnesses; the derived \
+                         label {} is authoritative",
+                        short(asserted),
+                        short(derived)
+                    );
+                }
+            }
         }
         // R3.5's five elements, each named so a missing one is visible as missing
         // rather than silently absent from an otherwise plausible-looking report.
@@ -5842,8 +6151,10 @@ pub fn logic_explain(reporter: &dyn Reporter, input: &Path, action: &str) -> i32
         ] {
             let vals: Vec<String> = rows
                 .iter()
-                .filter(|(s, p, _)| s == explanation && *p == format!("{GMEOW_NS}{field}"))
-                .map(|(_, _, o)| o.clone())
+                .filter(|r| {
+                    r.subject == *explanation && r.predicate == format!("{GMEOW_NS}{field}")
+                })
+                .map(|r| r.object.clone())
                 .collect();
             if vals.is_empty() {
                 println!("{heading:<12} <none recorded>");

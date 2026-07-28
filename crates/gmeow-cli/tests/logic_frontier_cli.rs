@@ -4,19 +4,31 @@
 //! Production-surface proof that `gmeow logic frontier` and `gmeow logic saga` DERIVE what
 //! they print.
 //!
-//! The fixtures below assert NOT ONE `logic:entryLabel`. Every label these tests expect is
+//! Most fixtures below assert NOT ONE `logic:entryLabel`. Every label those tests expect is
 //! computed by the shipped `logic:Rule` set from the entry's lifecycle-axis witnesses, so a
 //! passing run proves the operator surface is showing the reasoner's conclusion rather than
 //! echoing an author's assertion back at them. A test that asserted the labels in its own
 //! input would pass just as happily with the whole rule set deleted.
+//!
+//! The provenance tests at the foot of the file do the complementary job: they hand the
+//! command an input that DOES assert a label — once agreeing with the rules, once flatly
+//! contradicting its own axis witness, once where no rule speaks at all — and pin the three
+//! different things the operator must be told in those three cases.
 
 use std::fs;
+use std::path::{Path, PathBuf};
 
 use assert_cmd::Command;
 use predicates::prelude::*;
 
 fn gmeow() -> Command {
     Command::cargo_bin("gmeow").expect("gmeow binary builds")
+}
+
+/// The captured stdout of a successful run of the shipped binary.
+fn stdout_of(args: &[&str]) -> String {
+    let out = gmeow().args(args).assert().success();
+    String::from_utf8(out.get_output().stdout.clone()).expect("utf-8 stdout")
 }
 
 /// Four entries, four distinct axis tuples, zero asserted labels.
@@ -285,4 +297,202 @@ e:exp a gmeow:FrontierExplanation ;
         // The label is re-derived here too, so an explanation cannot disagree with the
         // frontier it explains.
         .stdout(predicate::str::contains("(derived)"));
+}
+
+// ---------------------------------------------------------------------------
+// Provenance: what the command may and may not call "derived".
+//
+// These tests drive the SHIPPED example, not a hand-built graph, because the
+// defect they pin was invisible precisely on real input: the command unioned the
+// asserted EDB with the derived quads, printed the union under a heading that
+// said DERIVED, and had no way left to tell the two apart. Any fixture that
+// avoids asserting a label avoids the bug.
+// ---------------------------------------------------------------------------
+
+/// The shipped worked example: an OCR step blocked by an absent capability.
+fn shipped_ocr_example() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/work-orchestration/examples/ocr-capability-absent.ttl")
+}
+
+/// The shipped example plus the one structural link the blocked-on-capability rule needs to
+/// reach it: the entry's action.
+///
+/// Without it no rule concludes anything about `ex:ocrStepEntry`, which is a real and
+/// separate case — covered by [`frontier_marks_an_authored_label_no_rule_derives`] — but not
+/// the one where a derivation and an assertion can contradict each other.
+fn rule_reachable_ocr_example() -> String {
+    let base = fs::read_to_string(shipped_ocr_example()).expect("shipped example is readable");
+    assert!(
+        base.contains("logic:entryLabel logic:FrontierBlockedCapabilityOrResource"),
+        "the shipped example must ASSERT the label under audit, or this test proves nothing"
+    );
+    format!(
+        "{base}\nex:ocrStepEntry logic:entryAction ex:ocrStep .\n\
+         ex:ocrCapabilityGap logic:gapBlockedStep ex:ocrStep .\n"
+    )
+}
+
+/// The line of the frontier table that carries `entry`'s label, excluding the marker lines
+/// printed beneath it.
+fn row_for<'a>(stdout: &'a str, entry: &str) -> &'a str {
+    stdout
+        .lines()
+        .find(|line| line.starts_with(entry))
+        .unwrap_or_else(|| panic!("no frontier row for {entry} in:\n{stdout}"))
+}
+
+const OCR_ENTRY: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-absent/ocrStepEntry";
+
+#[test]
+fn frontier_prints_the_derived_label_and_flags_a_contradicting_authored_one() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let honest = rule_reachable_ocr_example();
+    // The mutation is a direct contradiction, not a near miss: the entry's own axis witness
+    // is logic:StepWaiting on a step an operational capability gap blocks, so "ready and
+    // authorized" is the one thing it demonstrably is not. An operator acting on the
+    // author's word here would dispatch a step that cannot run.
+    let mutated = honest.replace(
+        "logic:entryLabel logic:FrontierBlockedCapabilityOrResource",
+        "logic:entryLabel logic:FrontierReadyAuthorized",
+    );
+    assert_ne!(
+        honest, mutated,
+        "the mutation must actually change the file"
+    );
+
+    let honest_path = write(&dir, "ocr-honest.ttl", &honest);
+    let mutated_path = write(&dir, "ocr-mutated.ttl", &mutated);
+
+    let out = stdout_of(&[
+        "--console",
+        "text",
+        "logic",
+        "frontier",
+        mutated_path.to_str().expect("utf-8 path"),
+    ]);
+    let row = row_for(&out, OCR_ENTRY);
+    // The row is the reasoner's conclusion. The author's contradicting string may appear in
+    // the disagreement marker — that is the point of the marker — but never as the label.
+    assert!(
+        row.contains("FrontierBlockedCapabilityOrResource"),
+        "the derived label must occupy the label column, got:\n{row}"
+    );
+    assert!(
+        !row.contains("FrontierReadyAuthorized"),
+        "the hand-typed label must NOT be printed as this entry's label, got:\n{row}"
+    );
+    assert!(
+        row.contains("derived"),
+        "the row must state that the label was derived, got:\n{row}"
+    );
+    assert!(
+        out.contains("DISAGREEMENT"),
+        "a contradicted assertion must be reported, not silently dropped, got:\n{out}"
+    );
+    assert!(
+        out.contains("FrontierReadyAuthorized"),
+        "the disagreement must NAME the stale value, or an author cannot find and fix it, \
+         got:\n{out}"
+    );
+
+    // The unmutated example: the rules agree with the author, so there is nothing to warn
+    // about — and a command that cried disagreement here would be as useless as one that
+    // never did.
+    let clean = stdout_of(&[
+        "--console",
+        "text",
+        "logic",
+        "frontier",
+        honest_path.to_str().expect("utf-8 path"),
+    ]);
+    assert!(
+        !clean.contains("DISAGREEMENT"),
+        "an example whose asserted label the rules reproduce must report no disagreement, \
+         got:\n{clean}"
+    );
+    let clean_row = row_for(&clean, OCR_ENTRY);
+    assert!(
+        clean_row.contains("FrontierBlockedCapabilityOrResource") && clean_row.contains("derived"),
+        "the agreed label must still be reported as DERIVED, not merely echoed, got:\n\
+         {clean_row}"
+    );
+    // Agreement is itself information: it says the author wrote the label AND the reasoner
+    // reproduced it, which is a stronger statement than either alone.
+    assert!(
+        clean_row.contains("input agrees"),
+        "an asserted label the rules reproduce must be reported as such, got:\n{clean_row}"
+    );
+}
+
+#[test]
+fn why_not_never_stamps_a_hand_typed_label_as_derived() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let mutated = rule_reachable_ocr_example().replace(
+        "logic:entryLabel logic:FrontierBlockedCapabilityOrResource",
+        "logic:entryLabel logic:FrontierReadyAuthorized",
+    );
+    let path = write(&dir, "ocr-mutated.ttl", &mutated);
+
+    let out = stdout_of(&[
+        "--console",
+        "text",
+        "logic",
+        "frontier",
+        path.to_str().expect("utf-8 path"),
+        "--why-not",
+        "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-absent/ocrStep",
+    ]);
+    assert!(
+        out.contains("label:   FrontierBlockedCapabilityOrResource   (derived)"),
+        "the derived label must be the one stamped (derived), got:\n{out}"
+    );
+    // The original defect in one assertion: `(derived)` appended to a string an author typed.
+    assert!(
+        !out.contains("FrontierReadyAuthorized   (derived)"),
+        "an EDB-read value must never be stamped (derived), got:\n{out}"
+    );
+    assert!(
+        out.contains("DISAGREEMENT"),
+        "the single-action view owes the same warning as the table, got:\n{out}"
+    );
+}
+
+#[test]
+fn frontier_marks_an_authored_label_no_rule_derives() {
+    // The shipped example EXACTLY as it ships. Its saturation-witness entry carries an
+    // authored logic:FrontierCompleted and no axis witness at all, so no rule reaches it.
+    // That must read as an unverified assertion rather than as a conclusion: the difference
+    // between "the reasoner concluded the run is complete" and "somebody typed complete" is
+    // the difference between trusting the frontier and auditing it.
+    let out = stdout_of(&[
+        "--console",
+        "text",
+        "logic",
+        "frontier",
+        shipped_ocr_example().to_str().expect("utf-8 path"),
+    ]);
+    let row = row_for(
+        &out,
+        "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-absent/\
+         run77Saturation",
+    );
+    assert!(
+        row.contains("FrontierCompleted"),
+        "the authored label must still be shown — hiding it would be its own dishonesty, \
+         got:\n{row}"
+    );
+    assert!(
+        row.contains("ASSERTED-UNCHECKED"),
+        "an authored label no rule derives must be marked unchecked, got:\n{row}"
+    );
+    assert!(
+        !row.contains("derived"),
+        "nothing derived this label, so the row must not say derived, got:\n{row}"
+    );
+    assert!(
+        out.contains("UNCHECKED     no shipped logic:Rule derives a label for this entry"),
+        "the marker must say WHY the value is unchecked, got:\n{out}"
+    );
 }
