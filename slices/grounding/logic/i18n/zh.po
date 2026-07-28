@@ -12388,7 +12388,7 @@ msgstr "请一并阅读该记录自身的 logic: 字段：它们命名了 instan
 
 msgctxt "https://blackcatinformatics.ca/logic/keyProperty|http://www.w3.org/2004/02/skos/core#example"
 msgid "logic:keyProperty logic:characterizes instance ."
-msgstr ""
+msgstr "示例：logic:keyProperty logic:characterizes instance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."

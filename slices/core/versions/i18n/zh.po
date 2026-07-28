@@ -83,4 +83,4 @@ msgstr "在任意 gmeow:Entity 上以普通字面量表示：软件发行版、�
 
 msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
-msgstr ""
+msgstr "示例：gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
