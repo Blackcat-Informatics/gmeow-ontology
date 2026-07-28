@@ -456,6 +456,10 @@ mod tests {
             standard(axes),
             assessment(grades, rollup),
             advisories,
+            // Lint's severity grading is a textual join on the finding code by
+            // design (see `attribute_axis`); these synthetic reports carry no axis
+            // provenance so that path is what gets exercised.
+            Vec::new(),
             HashMap::new(),
         )
     }

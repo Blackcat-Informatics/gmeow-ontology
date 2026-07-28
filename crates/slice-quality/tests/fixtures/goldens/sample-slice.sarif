@@ -353,6 +353,11 @@
           "level": "warning",
           "locations": [
             {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/slices/sample-slice#i18n/fr.po"
+                }
+              ],
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "ontology/gmeow.ttl"
@@ -365,10 +370,10 @@
             }
           ],
           "message": {
-            "text": "cmn covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal."
+            "text": "fr covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "5e3261dbf84490e6"
+            "gmeowFindingHash/v2": "6c82bb20071b8e6f"
           },
           "ruleId": "slice-quality.translation.incomplete"
         },
@@ -376,6 +381,11 @@
           "level": "warning",
           "locations": [
             {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/slices/sample-slice#i18n/zh.po"
+                }
+              ],
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "ontology/gmeow.ttl"
@@ -388,12 +398,260 @@
             }
           ],
           "message": {
-            "text": "fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal."
+            "text": "cmn covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "4bf4c28445f26ad0"
+            "gmeowFindingHash/v2": "628991457ca5224e"
           },
           "ruleId": "slice-quality.translation.incomplete"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label#cmn"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0a0a0899a6498abe"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label#fr"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "87e5dcc71f20fbed"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition#cmn"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c12e03a38c17000e"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition#fr"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f71c66a6a079feb5"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label#cmn"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "10f6e4a7cb3911fd"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label#fr"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "09040c92b0bc8067"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition#cmn"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a59b2295b3bddb8d"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition#fr"
+                },
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0889f1367c4810bc"
+          },
+          "ruleId": "slice-quality.translation.uncovered-literal"
         },
         {
           "level": "note",
@@ -868,6 +1126,13 @@
               },
               "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-incomplete",
               "id": "slice-quality.translation.incomplete"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-uncovered-literal",
+              "id": "slice-quality.translation.uncovered-literal"
             }
           ]
         }

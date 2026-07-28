@@ -109,16 +109,186 @@
     {
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
-      "message": "cmn covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.",
+      "message": "fr covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal.",
       "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/slices/sample-slice#i18n/fr.po"
+        }
+      ],
       "standpoint": "advisory"
     },
     {
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
-      "message": "fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.",
+      "message": "cmn covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal.",
       "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/slices/sample-slice#i18n/zh.po"
+        }
+      ],
       "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2000/01/rdf-schema#label"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition#cmn"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.uncovered-literal",
+      "message": "fr does not cover (https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#definition): no catalog entry for this literal.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition#fr"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#definition"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
     },
     {
       "severity": "info",
@@ -294,6 +464,11 @@
     {
       "id": "slice-quality.translation.incomplete",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-incomplete",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.translation.uncovered-literal",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-uncovered-literal",
       "default_severity": "warning"
     }
   ]
