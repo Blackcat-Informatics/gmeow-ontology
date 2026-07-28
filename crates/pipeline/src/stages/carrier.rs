@@ -2594,8 +2594,12 @@ pub(crate) const GRAPH_FANOUT_OPAQUE_MANIFEST: &str =
 /// [`crate::stages::distribution_catalog`]. NOT in
 /// `gmeow_logic::reasoning_graphs::OBJECT_LEVEL_NAMED_GRAPHS`, so — like
 /// [`GRAPH_FANOUT_OPAQUE_MANIFEST`] — it stays out of the object-level reasoning EDB.
-pub(crate) const GRAPH_DISTRIBUTION_CATALOG: &str =
-    "https://blackcatinformatics.ca/gmeow/graph/distribution-catalog";
+///
+/// Defined ONCE in [`gmeow_bundle_view::graph_iris`] — the read side names this graph too
+/// (`gmeow_docs_catalog`'s distribution-matrix and concept-lattice readers), so the
+/// assembler and the readers can never drift to different IRIs. Re-exported here at its
+/// original `pub(crate)` visibility, exactly as [`GRAPH_DOCUMENTATION`] and friends are.
+pub(crate) use gmeow_bundle_view::graph_iris::GRAPH_DISTRIBUTION_CATALOG;
 
 /// The subject-IRI namespace of an emitted opaque fanout row: `…/fanout-opaque/<path>`.
 /// The committed path is already unique, so the identity mapping is collision-free by

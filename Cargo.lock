@@ -1685,6 +1685,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-docs-catalog"
+version = "0.2.0"
+dependencies = [
+ "gmeow-bundle-view",
+ "gmeow-errors",
+ "gmeow-ns",
+ "purrdf",
+]
+
+[[package]]
 name = "gmeow-docs-model"
 version = "0.2.0"
 dependencies = [
@@ -1855,6 +1865,7 @@ name = "gmeow-mcp"
 version = "0.2.0"
 dependencies = [
  "gmeow-bundle-view",
+ "gmeow-docs-catalog",
  "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
@@ -1862,6 +1873,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-ns",
  "gmeow-slice-quality",
+ "gmeow-transcode",
  "gmeow-validate",
  "jsonschema",
  "purrdf",
@@ -1912,6 +1924,7 @@ dependencies = [
  "gmeow-cli-core",
  "gmeow-conformance",
  "gmeow-docs",
+ "gmeow-docs-catalog",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-lang-form",

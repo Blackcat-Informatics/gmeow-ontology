@@ -34,7 +34,7 @@
 //!   `graph/diagnostics` projection: quads back into findings, the antecedent DAG,
 //!   the gate verdict, and the minimal fatal cut.
 //! * [`native_query`] — the native SPARQL substrate the readers query through.
-//! * [`graph_iris`] — the four named-graph IRIs the read side addresses.
+//! * [`graph_iris`] — the five named-graph IRIs the read side addresses.
 //! * [`lpg_prefixes`] — the longest-first CURIE table the projections compact with.
 //! * [`error`] — the crate's diagnostic-code catalog.
 //!

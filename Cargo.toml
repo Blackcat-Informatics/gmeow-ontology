@@ -96,6 +96,12 @@ members = [
     # bundle reader (the consumer CLI, gmeow-dev, the MCP tool surface) never
     # inherits the build executor. A LEAF, and wasm-clean.
     "crates/bundle-view",
+    # The documentation-catalog READERS over the meta-level distribution-catalog named
+    # graph: the per-format distribution matrix and the formal-concept lattice derived
+    # over the surface x capability incidence. A LEAF over gmeow-bundle-view, and
+    # wasm-clean, so `gmeow docs matrix` and the MCP `distribution_matrix` tool read the
+    # SAME catalog without either side inheriting the build executor.
+    "crates/docs-catalog",
     # The consumer-mode MCP engine: the bundle-only tool/resource surface and the
     # stdio JSON-RPC loop, split from gmeow-pipeline so the shippable `gmeow mcp`
     # never inherits the build executor. A LEAF over gmeow-bundle-view.

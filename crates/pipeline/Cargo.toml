@@ -62,6 +62,13 @@ gmeow-transcode = { path = "../transcode" }
 # graph IRIs and the blob rep labels from it (one constant, no drift), and lib.rs
 # re-exports `bundle_blobs`/`diagnostics_reader` at their historical paths.
 gmeow-bundle-view = { path = "../bundle-view" }
+# The distribution-catalog READ side, extracted to a wasm-clean leaf so `gmeow docs
+# matrix` and the MCP `distribution_matrix` tool read the catalog without either
+# inheriting this executor. The pipeline is the WRITER, so the edge points this way:
+# `stages::distribution_catalog` emits the graph and re-exports the identity/N-Triples
+# helpers from it at their original visibility, and `docs_distribution` re-exports
+# `read_distribution_matrix` / `DistributionRow` at their historical paths.
+gmeow-docs-catalog = { path = "../docs-catalog" }
 # The affect-intensity geometry compute (√(xᵀGx) over gmeow:coreAffectGram): the
 # `mappings` stage's EmotionML lowering projects the canonical schadenfreude example, so
 # the worked-<emotion> intensity + per-dimension unit-clamp values are COMPUTED from the

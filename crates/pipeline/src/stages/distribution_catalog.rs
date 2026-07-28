@@ -44,8 +44,10 @@ const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 
 /// The instance subject base every distribution/family/loss IRI this module mints
-/// lives under.
-const DISTRIBUTION_BASE: &str = "https://blackcatinformatics.ca/gmeow/distribution/";
+/// lives under. Defined ONCE in [`gmeow_docs_catalog::identity`], alongside the
+/// [`dist_iri`] built on it, and re-exported here so the emitter and the reader can never
+/// disagree about where the catalog's subjects live.
+use gmeow_docs_catalog::identity::DISTRIBUTION_BASE;
 
 /// A distribution family.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -244,12 +246,14 @@ pub fn declared_distribution_slugs() -> std::collections::BTreeSet<&'static str>
 // ── identity helpers ────────────────────────────────────────────────────────────────
 
 /// The canonical distribution-catalog subject IRI for a distribution slug
-/// (`https://blackcatinformatics.ca/gmeow/distribution/dist/<slug>`). `pub(crate)`
-/// so a release-time instance producer (`crate::docs_distribution`) can mint the
-/// SAME subject its members hang off — never a re-derived string literal.
-pub(crate) fn dist_iri(slug: &str) -> String {
-    format!("{DISTRIBUTION_BASE}dist/{slug}")
-}
+/// (`https://blackcatinformatics.ca/gmeow/distribution/dist/<slug>`).
+///
+/// Defined ONCE in [`gmeow_docs_catalog::identity`] — the catalog READER needs the same
+/// subject namespace and may not depend on this build executor to spell it — and
+/// re-exported here at its original `pub(crate)` visibility so a release-time instance
+/// producer ([`crate::docs_distribution`]) mints the SAME subject its members hang off,
+/// never a re-derived string literal.
+pub(crate) use gmeow_docs_catalog::identity::dist_iri;
 
 fn family_iri(family: Family) -> String {
     format!("{DISTRIBUTION_BASE}family/{}", family.slug())
@@ -263,6 +267,11 @@ fn loss_iri(slug: &str, cap_slug: &str) -> String {
 /// (`…/distribution/dist/site/sub-asset/<slug>`). `pub(crate)` so the release-time
 /// instance producer ([`crate::docs_distribution`]) hangs each sub-asset's
 /// `gmeow:contentDigest` off the SAME subject, never a re-derived string.
+///
+/// This is the ONE identity helper that stayed on the writer's side of the
+/// `gmeow-docs-catalog` split: it is defined over [`DocFormat::Site`], so hoisting it into
+/// the wasm-clean reader leaf would drag `gmeow-docs` (and its embedded vendored wasm) in
+/// with it. It is still a single definition site, built on the moved [`dist_iri`].
 pub(crate) fn site_sub_asset_iri(slug: &str) -> String {
     format!("{}/sub-asset/{slug}", dist_iri(DocFormat::Site.slug()))
 }
@@ -295,44 +304,17 @@ fn consumer_iri(name: &str) -> String {
     format!("{GMEOW_NS}{name}")
 }
 
-/// `pub(crate)` so [`crate::docs_distribution`] can address the SAME `gmeow:`
-/// predicate/class IRIs this module uses, rather than re-deriving the namespace
-/// concatenation.
-pub(crate) fn iri(ns: &str, local: &str) -> String {
-    format!("{ns}{local}")
-}
-
-// ── N-Triples helpers (mirroring docs_format_rendering.rs / carrier.rs) ─────────────
-
-/// `pub(crate)` — the single N-Triples subject/predicate/object-IRI triple
-/// formatter, reused by [`crate::docs_distribution`]'s release-instance emitter so
-/// the escaping/quoting convention never forks.
-pub(crate) fn triple(subject: &str, predicate: &str, object: &str) -> String {
-    format!("<{subject}> <{predicate}> <{object}> .")
-}
-
-/// `pub(crate)` — see [`triple`].
-pub(crate) fn triple_lit(subject: &str, predicate: &str, literal: &str) -> String {
-    format!("<{subject}> <{predicate}> {} .", nt_literal(literal))
-}
-
-/// Escape a string as an N-Triples quoted literal (UTF-8 passes through verbatim).
-fn nt_literal(value: &str) -> String {
-    let mut out = String::with_capacity(value.len() + 2);
-    out.push('"');
-    for ch in value.chars() {
-        match ch {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            _ => out.push(ch),
-        }
-    }
-    out.push('"');
-    out
-}
+/// The `gmeow:` predicate/class IRI builder, and the N-Triples subject/predicate/object
+/// formatters this module emits every catalog row through.
+///
+/// All three are defined ONCE in [`gmeow_docs_catalog::identity`] and re-exported here at
+/// their original `pub(crate)` visibility. The READ side needs `iri` to spell the very
+/// predicates this module writes, and it may not depend on this build executor to do it —
+/// so the shared strings live in the leaf and the emitter borrows them, never the reverse
+/// and never a second copy. That is also what keeps the N-Triples escaping/quoting
+/// convention from forking between the emitter here and
+/// [`crate::docs_distribution`]'s release-instance emitter.
+pub(crate) use gmeow_docs_catalog::identity::{iri, triple, triple_lit};
 
 /// The four a-box skeleton triples every subject this module emits carries:
 /// `rdf:type`, `rdfs:isDefinedBy <graph/distribution-catalog>`, `gmeow:graphBoxRole

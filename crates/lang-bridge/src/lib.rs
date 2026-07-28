@@ -33,6 +33,11 @@ pub mod gmn1_codec;
 pub mod gmn1_digest;
 pub mod gmn1_witness;
 pub mod gmn_consume;
+// The glyph legend (inventory joined to pinned token cost). Deliberately NOT gated on
+// `glyph-cost`: a wasm shim that selects the tokenizer OUT must still serve a complete
+// legend, which is the whole reason the costs are pinned. Only its anti-rot assertion —
+// which measures the real BPE cost — is feature-gated.
+pub mod gmn_legend;
 pub mod gmn_metrics;
 pub mod gmn_migrate;
 pub mod gmn_verbalize;
@@ -72,6 +77,9 @@ pub use gmn_consume::{
     CLASS_RING_LATTICE_MALFORMED, CLASS_RING_LEAK, ConsumeProjection, GmnConsumeError, RingLattice,
     consume_project,
 };
+#[cfg(feature = "glyph-cost")]
+pub use gmn_legend::assert_pinned_costs_match_the_real_bpe;
+pub use gmn_legend::{GLYPH_TOKEN_COSTS, glyph_legend_json, pinned_glyph_token_cost};
 pub use gmn_metrics::{TokenMetrics, compute_token_metrics};
 pub use gmn_migrate::{
     GlyphRewrite, GmnMigrateError, GmnMigration, GmnRecordSet, MigratedOperator, MigratedRecordSet,

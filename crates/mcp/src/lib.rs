@@ -64,6 +64,11 @@
 //!   the tool surface builds predicate and class IRIs from.
 //! * `gmeow-bundle-view` — the bundle READ side: blob access, the fold view and card
 //!   renderers, the diagnostics reader, the native query substrate, the graph IRIs.
+//! * `gmeow-docs-catalog` — the distribution-catalog read side behind
+//!   `distribution_matrix`: the per-format consumer-need matrix and the formal-concept
+//!   lattice, read out of the bundle's meta-level catalog graph.
+//! * `gmeow-transcode` — the RDF-1.2 transcode hub behind `convert`: the same
+//!   `Codec` / `transcode` / `realized_loss_json` triple `gmeow convert` calls.
 //! * `gmeow-docs-model` — the documentation MODEL (`card`, `llms`, `gmn1_primer`)
 //!   the `doc_card` / `llms_txt` / primer surfaces render through; never
 //!   `gmeow-docs`, whose renderer embeds vendored wasm.
@@ -2203,7 +2208,11 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  <urn:gmeow:mcp:overlay:external>) but are NEVER merged into the signed gmeow: \
                  canon and NEVER written anywhere. A missing or unrecognized `format`, or an \
                  oversized payload, is a hard error — the format is never guessed.",
-            &[("data", "string"), ("format", "string"), ("query", "string")],
+            &[
+                ("data", "string"),
+                ("format", "string"),
+                ("query", "string"),
+            ],
         ),
         tool(
             "verify_graph",
@@ -2548,6 +2557,65 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  state. A missing library is an empty list.",
             &[("slice", "string"), ("disposition", "string")],
         ),
+        tool(
+            "convert",
+            "Transcode an RDF-1.2 document from any source codec to any target codec and \
+                 report the loss the conversion actually realized. `data` is the source \
+                 document and `from`/`to` DECLARE the codecs — one of turtle|ttl, \
+                 ntriples|nt, nquads|nq, trig, jsonld|json-ld, jsonld-star, yaml-ld-star, \
+                 rdfxml|rdf-xml|xml, gts, owl-rdf12, owl-dl, owl-el, datalog|dl, n3, gufo, \
+                 canonical-rdf12. Optional `base` supplies a base IRI. Optional `encoding` \
+                 declares how to read `data` (`utf8`, the default, or `base64` for a binary \
+                 source such as gts); the response's own `encoding` says how to read \
+                 `output` and is `base64` whenever the target bytes are not valid UTF-8. \
+                 Returns {ok, from, to, encoding, output, bytes, loss} where `loss` is the \
+                 realized loss ledger — the rows this particular dataset actually lost on \
+                 this edge, empty for a lossless pair. Quoted triples survive to every \
+                 star-capable target; a target that cannot carry them says so in `loss`. An \
+                 unknown codec, an undecodable source, or a failed serialization is a hard \
+                 error.",
+            &[
+                ("data", "string"),
+                ("from", "string"),
+                ("to", "string"),
+                ("base", "string"),
+                ("encoding", "string"),
+            ],
+        ),
+        tool(
+            "gmn_glyph_legend",
+            "Return the GMN-1 glyph legend for the bundled codebook: every glyph the codec \
+                 may emit, in canonical order, with its real cl100k_base LLM-token cost \
+                 ({glyph, tokenCost}). The alphabet an agent needs before writing GMN-1 — \
+                 the companion of gmn_validate / gmn_expand / gmn_explain, and the same \
+                 legend the browser codec renders.",
+            &[],
+        ),
+        tool(
+            "distribution_matrix",
+            "Return the shipped documentation-distribution catalog read out of the bundle's \
+                 meta-level distribution-catalog graph: `distributions`, the per-format \
+                 consumer-need matrix (slug, family, media_type, consumers, \
+                 dropped_capabilities) — WHICH documentation surfaces exist, who each is \
+                 for, and what capability each doc-render surface drops — and `concepts`, \
+                 the formal-concept lattice over the surface x capability incidence \
+                 (concept, extent, intent). An empty `concepts` list means the bundle \
+                 declares no lattice, which is not an error. A bundle carrying no \
+                 distribution catalog at all is a hard error.",
+            &[],
+        ),
+        tool(
+            "action_policy",
+            "Return the canonical memory-triad action theory this engine gates its own \
+                 writes on, as N-Quads: the logic:precondition / logic:effect / \
+                 logic:compensation structure of store_claim, revise_belief, \
+                 persistConjecture, withdrawConjecture, submitCandidate and \
+                 withdrawCandidate, in the transaction world the executor reasons in. This \
+                 is the exact projection the Transaction-Logic executor reads, so what you \
+                 inspect is what the engine obeys. Also served as the \
+                 gmeow://ontology/action-policy resource.",
+            &[],
+        ),
     ]
 }
 
@@ -2599,6 +2667,10 @@ fn builtin_tool_handlers() -> Vec<(&'static str, ToolHandler)> {
         h("submit_candidate", |s, a| s.tool_submit_candidate(a)),
         h("withdraw_candidate", |s, a| s.tool_withdraw_candidate(a)),
         h("list_candidates", |s, a| s.tool_list_candidates(a)),
+        h("convert", |s, a| s.tool_convert(a)),
+        h("gmn_glyph_legend", |s, a| s.tool_gmn_glyph_legend(a)),
+        h("distribution_matrix", |s, a| s.tool_distribution_matrix(a)),
+        h("action_policy", |s, a| s.tool_action_policy(a)),
     ]
 }
 
@@ -2653,6 +2725,14 @@ fn builtin_resource_descriptors() -> Vec<Value> {
             "OKF manifest JSON envelope.",
             "application/json",
         ),
+        resource(
+            ACTION_POLICY_URI,
+            "action-policy",
+            "The canonical memory-triad action theory the engine gates its own writes on \
+                 (logic:precondition / logic:effect / logic:compensation), as N-Quads — the \
+                 resource twin of the `action_policy` tool.",
+            ACTION_POLICY_MEDIA_TYPE,
+        ),
     ]
 }
 
@@ -2679,6 +2759,13 @@ fn builtin_resource_handlers() -> Vec<(&'static str, ResourceHandler)> {
         }),
         h("gmeow://ontology/okf-index", |s, requested| {
             Ok(s.view.okf_index_json(requested.to_vec()))
+        }),
+        // The SAME `action_policy_nquads()` the transaction executor reads and the
+        // `action_policy` tool returns — one projection, three readers, no restatement.
+        // Language-independent: the projection keeps only IRI→IRI structural quads, so
+        // there is nothing here for a language selector to select.
+        h(ACTION_POLICY_URI, |_s, _requested| {
+            Ok(action_policy_nquads().to_owned())
         }),
     ]
 }
@@ -3190,6 +3277,168 @@ impl McpServer {
             "arity": form.arity,
             "gmn_surface": rendered.gmn_surface,
             "gloss": rendered.nl,
+        })
+        .to_string())
+    }
+
+    /// `gmn_glyph_legend` — the GMN-1 glyph inventory joined to each glyph's real
+    /// LLM-token cost, as a deterministic JSON array of `{glyph, tokenCost}`.
+    ///
+    /// The completion of the GMN triad on this surface: `gmn_validate` says whether a
+    /// document conforms, `gmn_expand` gives its GMN-0 normal form, `gmn_explain` explains
+    /// one operator — and this states the ALPHABET, which an agent needs before it can
+    /// write GMN-1 at all.
+    ///
+    /// The legend is composed by the ONE implementation
+    /// ([`gmeow_lang_bridge::glyph_legend_json`]) the browser codec shim also marshals, over
+    /// the glyph registry of THIS bundle's shipped `gmeow:gmnDictV3` codebook — so the
+    /// agent's legend and the docs widget's legend are the same rows in the same order, and
+    /// there is no second table to drift.
+    fn tool_gmn_glyph_legend(&self, _args: &Value) -> gmeow_errors::Result<String> {
+        let dict = self.gmn_dictionary()?;
+        let legend_text = gmeow_lang_bridge::glyph_legend_json(dict.glyph_registry())?;
+        let legend: Value = serde_json::from_str(&legend_text).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("gmn_glyph_legend: the composed legend is not valid JSON: {e}"),
+            })
+        })?;
+        Ok(json!({ "ok": true, "legend": legend }).to_string())
+    }
+
+    /// `convert` — the fourth verb of parse / reason / validate / SERIALIZE: transcode an
+    /// RDF-1.2 document from any source codec to any target codec, and report the loss the
+    /// conversion actually realized.
+    ///
+    /// This routes through [`gmeow_transcode`] — the SAME `Codec::from_cli_str` /
+    /// `transcode` / `realized_loss_json` triple `gmeow convert` calls, not a second
+    /// implementation — so the bytes an agent gets here and the bytes the CLI writes are
+    /// the same function of the same input. `gmeow-transcode` is a leaf, which is what lets
+    /// a bundle-only surface reach it without inheriting the build executor.
+    ///
+    /// RDF-1.2 is load-bearing: a quoted triple that survives to a star-capable target MUST
+    /// still be there. The hub decides that, not this tool — and the `loss` ledger states
+    /// what an RDF-1.1-shaped target dropped, rather than letting the caller assume nothing
+    /// was lost.
+    ///
+    /// Bytes, not text: `encoding` declares how to read `data` (`utf8`, the default, or
+    /// `base64` for a binary source such as `gts`), and the response's own `encoding` says
+    /// how to read `output` — `base64` whenever the target's bytes are not valid UTF-8.
+    /// Neither direction ever silently lossy-decodes.
+    fn tool_convert(&self, args: &Value) -> gmeow_errors::Result<String> {
+        use gmeow_transcode::{Codec, realized_loss_json, transcode as run_transcode};
+
+        let data = required_str(args, "data")?;
+        let from = required_str(args, "from")?;
+        let to = required_str(args, "to")?;
+        let base = optional_str(args, "base");
+        let input = match optional_str(args, "encoding").unwrap_or("utf8") {
+            "utf8" => data.as_bytes().to_vec(),
+            "base64" => base64_decode("convert: `data`", data)?,
+            other => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "convert: unknown `encoding` {other:?} — expected `utf8` or `base64`"
+                    ),
+                }));
+            }
+        };
+
+        let from_codec = Codec::from_cli_str(from)?;
+        let to_codec = Codec::from_cli_str(to)?;
+        let output = run_transcode(&input, from_codec, to_codec, base)?;
+
+        // The realized ledger is rendered by the hub's own `realized_loss_json` (which
+        // interns through the single substrate loss store) and re-read here only to nest it
+        // as structured JSON in the envelope — never re-derived off the `Vec<RealizedLoss>`.
+        let loss: Value =
+            serde_json::from_str(&realized_loss_json(&output.realized)).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("convert: the realized-loss ledger is not valid JSON: {e}"),
+                })
+            })?;
+
+        let byte_len = output.bytes.len();
+        let (encoding, text) = match String::from_utf8(output.bytes) {
+            Ok(utf8) => ("utf8", utf8),
+            Err(err) => ("base64", base64_encode(err.as_bytes())),
+        };
+        Ok(json!({
+            "ok": true,
+            "from": from_codec.name(),
+            "to": to_codec.name(),
+            "encoding": encoding,
+            "output": text,
+            "bytes": byte_len,
+            "loss": loss,
+        })
+        .to_string())
+    }
+
+    /// `distribution_matrix` — the shipped documentation-distribution catalog, read back
+    /// out of THIS bundle's meta-level `graph/distribution-catalog` named graph.
+    ///
+    /// Two row sets, because they are two shapes over one graph:
+    ///
+    /// * `distributions` — the per-format consumer-need matrix (`slug`, `family`,
+    ///   `media_type`, `consumers`, `dropped_capabilities`): WHICH documentation surfaces
+    ///   exist, who each is for, and what capability each doc-render surface drops. This is
+    ///   the same reader, over the same graph, that `gmeow docs matrix` prints.
+    /// * `concepts` — the formal-concept lattice over the surface × capability incidence
+    ///   (`concept`, `extent`, `intent`). A concept is not a distribution — it has an
+    ///   extent and an intent and no media type — so it has its own reader and its own row
+    ///   type. An empty list is the honest reading of a catalog that declares no concepts,
+    ///   not a failure.
+    ///
+    /// Both come from [`gmeow_docs_catalog`], the wasm-clean catalog leaf, so this stays a
+    /// bundle-only tool: no checkout, no build executor.
+    fn tool_distribution_matrix(&self, _args: &Value) -> gmeow_errors::Result<String> {
+        let gts = self.view.gts_bytes();
+        let distributions = gmeow_docs_catalog::read_distribution_matrix(gts)?;
+        let concepts = gmeow_docs_catalog::read_concept_lattice(gts)?;
+        Ok(json!({
+            "ok": true,
+            "distributions": distributions
+                .iter()
+                .map(|row| json!({
+                    "slug": row.slug,
+                    "family": row.family,
+                    "media_type": row.media_type,
+                    "consumers": row.consumers,
+                    "dropped_capabilities": row.dropped_capabilities,
+                }))
+                .collect::<Vec<Value>>(),
+            "concepts": concepts
+                .iter()
+                .map(|row| json!({
+                    "concept": row.concept,
+                    "extent": row.extent,
+                    "intent": row.intent,
+                }))
+                .collect::<Vec<Value>>(),
+        })
+        .to_string())
+    }
+
+    /// `action_policy` — the canonical memory-triad action theory this very engine gates
+    /// its writes on, served as N-Quads.
+    ///
+    /// [`action_policy_nquads`] is the projection the Transaction-Logic executor reads:
+    /// the `logic:precondition` / `logic:effect` / `logic:compensation` structure of every
+    /// write action, IRI→IRI only, in [`TXN_WORLD`]. The tool returns THAT function's
+    /// output verbatim — never a re-derivation off the embedded Turtle and never a second
+    /// filter — so what an agent inspects is exactly what the engine obeys.
+    ///
+    /// No existing surface can serve it: `tools/list` returns names and JSON Schemas only,
+    /// and `query_docs` is scoped to `gmeow:graph/documentation` while the policy is
+    /// authored in the agentic slice's examples graph. The mirroring
+    /// `gmeow://ontology/action-policy` resource serves the identical bytes as `text` for a
+    /// client that reads resources rather than calling tools.
+    fn tool_action_policy(&self, _args: &Value) -> gmeow_errors::Result<String> {
+        Ok(json!({
+            "ok": true,
+            "graph": TXN_WORLD,
+            "media_type": ACTION_POLICY_MEDIA_TYPE,
+            "nquads": action_policy_nquads(),
         })
         .to_string())
     }
@@ -3753,13 +4002,12 @@ impl McpServer {
     /// no `manifest.ttl` entry is a hard error naming it.
     fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
         let files = required_file_map("slice_quality", args, "files")?;
-        let report =
-            gmeow_slice_quality::score_external_slice_files(self.view.gts_bytes(), &files)
-                .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                        message: format!("slice_quality: {e}"),
-                    })
-                })?;
+        let report = gmeow_slice_quality::score_external_slice_files(self.view.gts_bytes(), &files)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("slice_quality: {e}"),
+                })
+            })?;
         let grades: Vec<Value> = report
             .assessment
             .grades
@@ -4835,6 +5083,12 @@ pub fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value
                     | "target_iri"
                     | "data"
                     | "format"
+                    // `convert` enforces the source and target codec names via
+                    // `required_str` (there is no default codec — a silent guess would be
+                    // exactly the degradation no-optionality forbids), so the advertised
+                    // schema must match.
+                    | "from"
+                    | "to"
                     // The GMN verifier tools: `gmn_validate` / `gmn_expand` require the GMN-1
                     // document `gmn`; `gmn_explain` requires the operator `glyph`. Enforced via
                     // `required_str` in each handler, so the advertised schema must match.
@@ -5567,6 +5821,113 @@ fn gmn_signature_join(
     (None, None)
 }
 
+// ── base64 (RFC 4648 §4, standard alphabet, padded) ─────────────────────────────
+//
+// The MCP wire format is JSON, which carries text; the `convert` tool carries BYTES.
+// Every codec whose output is not valid UTF-8 (`gts`) therefore needs a byte-exact text
+// encoding in both directions, and a caller that pastes a binary source needs the same on
+// the way in. This is ~40 lines of table lookup with no state — cheaper, and far easier to
+// audit at a crate boundary this strict, than a dependency edge on the consumer surface.
+
+/// The standard base64 alphabet, in index order.
+const BASE64_ALPHABET: &[u8; 64] =
+    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+/// Encode `bytes` as padded standard base64.
+fn base64_encode(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let b0 = u32::from(chunk[0]);
+        let b1 = chunk.get(1).copied().map_or(0, u32::from);
+        let b2 = chunk.get(2).copied().map_or(0, u32::from);
+        let triple = (b0 << 16) | (b1 << 8) | b2;
+        for i in 0..4 {
+            // A group of 3 input bytes yields 4 output characters; a short final group
+            // yields 2 or 3 characters plus padding.
+            if i <= chunk.len() {
+                let index = ((triple >> (18 - 6 * i)) & 0x3F) as usize;
+                out.push(char::from(BASE64_ALPHABET[index]));
+            } else {
+                out.push('=');
+            }
+        }
+    }
+    out
+}
+
+/// The 0–63 value of one base64 character, or `None` when it is not in the alphabet.
+fn base64_value(ch: u8) -> Option<u32> {
+    let value = match ch {
+        b'A'..=b'Z' => ch - b'A',
+        b'a'..=b'z' => ch - b'a' + 26,
+        b'0'..=b'9' => ch - b'0' + 52,
+        b'+' => 62,
+        b'/' => 63,
+        _ => return None,
+    };
+    Some(u32::from(value))
+}
+
+/// Decode padded standard base64, refusing anything that is not exactly that.
+///
+/// Strict by construction: ASCII whitespace is skipped (a pasted payload is routinely
+/// line-wrapped), but a stray character, a length that is not a multiple of four, and
+/// misplaced padding are each named rather than silently truncated to whatever decoded —
+/// a partial decode is exactly the silent degradation this surface forbids.
+///
+/// `what` labels the argument being decoded so the refusal points at the caller's own
+/// parameter (`convert: \`data\``) rather than at this helper.
+fn base64_decode(what: &str, text: &str) -> gmeow_errors::Result<Vec<u8>> {
+    let refuse = |detail: String| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("{what} is not valid base64: {detail}"),
+        })
+    };
+    let symbols: Vec<u8> = text
+        .bytes()
+        .filter(|b| !b.is_ascii_whitespace())
+        .collect::<Vec<u8>>();
+    if !symbols.len().is_multiple_of(4) {
+        return Err(refuse(format!(
+            "length {} is not a multiple of 4 (standard base64 is padded)",
+            symbols.len()
+        )));
+    }
+    let mut out = Vec::with_capacity(symbols.len() / 4 * 3);
+    for (group_index, group) in symbols.chunks(4).enumerate() {
+        let is_last = (group_index + 1) * 4 == symbols.len();
+        let pad = group.iter().filter(|b| **b == b'=').count();
+        if pad > 0 && !is_last {
+            return Err(refuse(format!(
+                "padding appears in group {group_index}, which is not the final group"
+            )));
+        }
+        if pad > 2 || (pad > 0 && group[4 - pad..].iter().any(|b| *b != b'=')) {
+            return Err(refuse(
+                "padding must be the final one or two characters of the last group".to_owned(),
+            ));
+        }
+        let mut acc: u32 = 0;
+        for (i, &ch) in group.iter().enumerate() {
+            let value = if ch == b'=' {
+                0
+            } else {
+                base64_value(ch).ok_or_else(|| {
+                    refuse(format!(
+                        "character {:?} is not in the base64 alphabet",
+                        char::from(ch)
+                    ))
+                })?
+            };
+            acc |= value << (18 - 6 * i);
+        }
+        for i in 0..(3 - pad) {
+            out.push(((acc >> (16 - 8 * i)) & 0xFF) as u8);
+        }
+    }
+    Ok(out)
+}
+
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
     optional_str(args, key).ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -5709,6 +6070,15 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
 /// same schema IRIs (they encode no second copy).
 const MCP_ACTION_POLICY_TTL: &str =
     include_str!("../../../slices/extensions/agentic/examples/mcp-action-policy.ttl");
+
+/// The URI of the resource mirroring the `action_policy` tool. A client that reads
+/// resources rather than calling tools gets the identical projected theory, because both
+/// sides serve [`action_policy_nquads`] and neither restates it.
+pub const ACTION_POLICY_URI: &str = "gmeow://ontology/action-policy";
+
+/// The media type the action-policy projection is served as, on BOTH the tool envelope
+/// and the resource descriptor — declared once so advertised and served cannot disagree.
+const ACTION_POLICY_MEDIA_TYPE: &str = "application/n-quads";
 
 /// The transient world the TR run reasons in — a fresh in-memory store per call, NEVER persisted.
 /// The executed verdict gates the write; the materialized outcome rides the tool response.
@@ -6864,14 +7234,14 @@ mod tests {
         );
     }
 
-    /// The CONSUMER surface is exactly 31 tools and 4 resources.
+    /// The CONSUMER surface is exactly 35 tools and 5 resources.
     ///
     /// The counts are pinned, not approximated: a later bijection gate is defined
     /// against the consumer tool list, so silently adding (or dev-promoting) a tool
     /// would change that contract without anyone noticing. The names are asserted
     /// alongside the counts so a rename cannot pass by keeping the arithmetic.
     #[test]
-    fn consumer_surface_is_thirty_one_tools_and_four_resources() {
+    fn consumer_surface_is_thirty_five_tools_and_five_resources() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG"]);
         unsafe {
@@ -6883,8 +7253,8 @@ mod tests {
         let names = consumer.surface().tool_names();
         assert_eq!(
             names.len(),
-            31,
-            "the consumer tool surface is 31 tools, got {names:?}"
+            35,
+            "the consumer tool surface is 35 tools, got {names:?}"
         );
         assert_eq!(
             names,
@@ -6920,14 +7290,18 @@ mod tests {
                 "submit_candidate",
                 "withdraw_candidate",
                 "list_candidates",
+                "convert",
+                "gmn_glyph_legend",
+                "distribution_matrix",
+                "action_policy",
             ],
             "the consumer tool list changed"
         );
         let resources = consumer.surface().resource_descriptors();
         assert_eq!(
             resources.len(),
-            4,
-            "the consumer resource surface is 4 resources, got {resources:?}"
+            5,
+            "the consumer resource surface is 5 resources, got {resources:?}"
         );
         let uris: Vec<&str> = resources
             .iter()
@@ -6940,6 +7314,7 @@ mod tests {
                 "gmeow://ontology/llms-full.txt",
                 "gmeow://ontology/gmn1-primer",
                 "gmeow://ontology/okf-index",
+                "gmeow://ontology/action-policy",
             ],
             "the consumer resource list changed"
         );
@@ -7078,7 +7453,7 @@ mod tests {
             );
         let server = McpServer::from_snapshot_with(&bytes, extension).unwrap();
 
-        assert_eq!(server.surface().tool_names().len(), 32);
+        assert_eq!(server.surface().tool_names().len(), 36);
         assert_eq!(
             server.surface().tool_names().last().copied(),
             Some("host_echo"),
@@ -7087,7 +7462,7 @@ mod tests {
         let out = text_payload(server.call_tool_result("host_echo", &json!({"a": 1})));
         assert_eq!(out["echo"], json!({"a": 1}), "{out}");
 
-        assert_eq!(server.surface().resource_descriptors().len(), 5);
+        assert_eq!(server.surface().resource_descriptors().len(), 6);
         let read = server.read_resource_result("gmeow://host/marker");
         assert!(read.get("isError").is_none(), "{read}");
         assert_eq!(read["contents"][0]["text"], json!("host body"), "{read}");
@@ -7319,10 +7694,9 @@ mod tests {
         );
 
         // A `files` value that is not a string is a distinct, separately-named defect.
-        let bad_value = text_payload(server.call_tool_result(
-            "slice_quality",
-            &json!({"files": {"manifest.ttl": 42}}),
-        ));
+        let bad_value = text_payload(
+            server.call_tool_result("slice_quality", &json!({"files": {"manifest.ttl": 42}})),
+        );
         assert_eq!(
             bad_value["ok"], false,
             "a non-string file body must hard-fail: {bad_value}"
@@ -7600,6 +7974,57 @@ mod tests {
         assert_eq!(live["claims"][0]["suppressed"], false);
     }
 
+    /// The `convert` tool's byte channel. The three residue classes (0, 1, 2 trailing
+    /// bytes) are the whole of base64's arithmetic, and each has its own padding; the
+    /// vectors are RFC 4648 §10's.
+    #[test]
+    fn base64_encodes_every_residue_class_with_the_rfc_vectors() {
+        for (plain, encoded) in [
+            ("", ""),
+            ("f", "Zg=="),
+            ("fo", "Zm8="),
+            ("foo", "Zm9v"),
+            ("foob", "Zm9vYg=="),
+            ("fooba", "Zm9vYmE="),
+            ("foobar", "Zm9vYmFy"),
+        ] {
+            assert_eq!(base64_encode(plain.as_bytes()), encoded, "encode {plain:?}");
+            assert_eq!(
+                base64_decode("test", encoded).expect("decode"),
+                plain.as_bytes(),
+                "decode {encoded:?}"
+            );
+        }
+    }
+
+    /// Round-trip over every byte value, including the ones that make `+` and `/` appear —
+    /// the two alphabet characters a naive table gets wrong.
+    #[test]
+    fn base64_round_trips_every_byte_value() {
+        let all: Vec<u8> = (0u8..=255).collect();
+        let encoded = base64_encode(&all);
+        assert_eq!(base64_decode("test", &encoded).expect("decode"), all);
+        assert!(encoded.contains('+') && encoded.contains('/'), "{encoded}");
+    }
+
+    /// Line-wrapped input decodes (a pasted payload routinely is), but malformed input is
+    /// REFUSED rather than truncated to whatever happened to decode.
+    #[test]
+    fn base64_decoding_is_strict_about_everything_except_whitespace() {
+        assert_eq!(
+            base64_decode("test", "Zm9v\n YmFy").expect("whitespace is skipped"),
+            b"foobar"
+        );
+        for bad in ["Zg=", "Zm9vYg", "Zg===", "Zm=v", "Zm9v!!!!", "Z===="] {
+            let err = base64_decode("convert: `data`", bad)
+                .expect_err("malformed base64 must be refused, not partially decoded");
+            assert!(
+                err.to_string().contains("convert: `data`"),
+                "the refusal must name the argument it is about: {err}"
+            );
+        }
+    }
+
     #[test]
     fn canonical_action_policy_is_the_single_authority_and_parses() {
         // The embedded slice file is the one source of truth for the action theory.
@@ -7608,6 +8033,81 @@ mod tests {
         assert!(policy.contains(MCP_STORE_CLAIM_SCHEMA));
         assert!(policy.contains(MCP_REVISE_BELIEF_SCHEMA));
         assert!(policy.contains(TXN_WORLD));
+    }
+
+    /// The `action_policy` TOOL returns the projected theory the engine itself reads —
+    /// the same quad set [`action_policy_nquads`] yields natively, as a SET (line order is
+    /// not the contract; membership is).
+    ///
+    /// This is the point of the tool: no other surface can serve it. `tools/list` returns
+    /// names and JSON Schemas, and `query_docs` is scoped to `gmeow:graph/documentation`
+    /// while the policy is authored in the agentic slice's examples graph. If the tool ever
+    /// re-derived the theory instead of returning it, the console's pane derivation — and
+    /// anyone auditing what the engine gates its writes on — would be reading a copy.
+    #[test]
+    fn the_action_policy_tool_returns_exactly_the_projected_theory_the_engine_reads() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let server = McpServer::from_snapshot(&snapshot()).unwrap();
+
+        let payload = text_payload(server.call_tool_result("action_policy", &json!({})));
+        assert_eq!(payload["ok"], json!(true), "{payload}");
+        assert_eq!(payload["graph"], json!(TXN_WORLD), "{payload}");
+        assert_eq!(
+            payload["media_type"],
+            json!(ACTION_POLICY_MEDIA_TYPE),
+            "{payload}"
+        );
+
+        let native = action_policy_nquads();
+        let served = payload["nquads"].as_str().expect("nquads text");
+        assert_eq!(
+            served, native,
+            "the tool must return the engine's projection verbatim, not a re-derivation"
+        );
+
+        let native_set: BTreeSet<&str> = native.lines().collect();
+        let served_set: BTreeSet<&str> = served.lines().collect();
+        assert_eq!(
+            served_set, native_set,
+            "the served quad SET must equal the natively projected quad set"
+        );
+        assert!(
+            !native_set.is_empty(),
+            "the projected theory must be non-empty, or this test proves nothing"
+        );
+    }
+
+    /// The mirroring RESOURCE serves the identical bytes under the identical media type.
+    /// Tool and resource are two readers of ONE projection, exactly as `constitution` is
+    /// on the dev side — a second copy on either side could drift.
+    #[test]
+    fn the_action_policy_resource_serves_the_same_bytes_as_the_tool() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let server = McpServer::from_snapshot(&snapshot()).unwrap();
+
+        let read = server.read_resource_result(ACTION_POLICY_URI);
+        assert!(read.get("isError").is_none(), "{read}");
+        let content = &read["contents"][0];
+        assert_eq!(content["uri"], json!(ACTION_POLICY_URI), "{read}");
+        assert_eq!(
+            content["mimeType"],
+            json!(ACTION_POLICY_MEDIA_TYPE),
+            "the served media type must be the descriptor's: {read}"
+        );
+
+        let resource_text = content["text"].as_str().expect("resource text");
+        assert_eq!(
+            resource_text,
+            action_policy_nquads(),
+            "the resource must serve the engine's projection verbatim"
+        );
+
+        let tool_text = text_payload(server.call_tool_result("action_policy", &json!({})));
+        assert_eq!(
+            tool_text["nquads"].as_str().expect("nquads"),
+            resource_text,
+            "the tool and the resource must serve the SAME bytes"
+        );
     }
 
     /// Dogfood the proof-carrying diagnostics tool surface
@@ -8155,9 +8655,10 @@ mod tests {
 
         // A tiny step budget: the credence negative test fires from the ASSERTED union
         // graph regardless of closure depth, so the budget keeps the test fast.
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 8})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 8}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         let codes: Vec<String> = out["findings"]
             .as_array()
@@ -8203,9 +8704,10 @@ mod tests {
              <urn:ex:forge-cited-iris-state> gmeow:credence \"see <urn:fake>\" .\n";
         let overlay_data = overlay_ttl;
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 8})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 8}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         let codes: Vec<String> = out["findings"]
             .as_array()
@@ -8254,9 +8756,10 @@ mod tests {
         let before_ptr = Arc::as_ptr(&server.view.dataset);
         let before_count = server.view.dataset.quad_count();
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 4})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 4}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
 
         // Canon Arc identity + quad count are unchanged — the union was transient.
@@ -8301,9 +8804,10 @@ mod tests {
 
         let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 1}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         assert_eq!(
             out["class_local_name"], "CoherenceCheckAttestation",
@@ -8343,7 +8847,10 @@ mod tests {
 
         // The exact agent-omission shape R4 forbids treating as unbounded: no `max_steps`,
         // no `max_answers` key at all in the call args.
-        let out = text_payload(server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle"})));
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle"}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         assert_eq!(
             out["class_local_name"], "CoherenceCheckAttestation",
@@ -8406,9 +8913,10 @@ mod tests {
         }
         let overlay_data = body.as_str();
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 1}),
+        ));
         assert_eq!(
             out["ok"], false,
             "an oversized overlay must hard-fail: {out}"
@@ -8449,9 +8957,10 @@ mod tests {
         let filler = "#".repeat((MAX_VERIFY_OVERLAY_BYTES + 1) as usize);
         let overlay_data = filler.as_str();
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 1}),
+        ));
         assert_eq!(
             out["ok"], false,
             "an overlay over the byte ceiling must hard-fail: {out}"
@@ -8607,7 +9116,14 @@ mod tests {
             error.contains("query_local") && error.contains("yaml-ld"),
             "the error must name the tool and the rejected token: {queried}"
         );
-        for accepted in ["turtle", "n-triples", "n-quads", "trig", "rdf+xml", "json-ld"] {
+        for accepted in [
+            "turtle",
+            "n-triples",
+            "n-quads",
+            "trig",
+            "rdf+xml",
+            "json-ld",
+        ] {
             assert!(
                 error.contains(accepted),
                 "the error must name the accepted format `{accepted}`: {queried}"
@@ -8627,7 +9143,14 @@ mod tests {
             error.contains("verify_graph") && error.contains("yaml-ld"),
             "the error must name the tool and the rejected token: {verified}"
         );
-        for accepted in ["turtle", "n-triples", "n-quads", "trig", "rdf+xml", "json-ld"] {
+        for accepted in [
+            "turtle",
+            "n-triples",
+            "n-quads",
+            "trig",
+            "rdf+xml",
+            "json-ld",
+        ] {
             assert!(
                 error.contains(accepted),
                 "the error must name the accepted format `{accepted}`: {verified}"
@@ -8650,9 +9173,10 @@ mod tests {
 
         let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 1}),
+        ));
         assert_eq!(
             out["ok"], true,
             "a normal small overlay must succeed: {out}"
@@ -8675,9 +9199,10 @@ mod tests {
 
         let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 1})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 1}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         let judgment = out["judgment_nquads"]
             .as_str()
@@ -12838,15 +13363,15 @@ mod tests {
         // x : A forces x into owl:Nothing. Un-graphed triples reason under the single
         // default world, and the whole tiny canon+overlay union closes well under the
         // governed step ceiling — CONCLUSIVE, never budget-cut.
-        let overlay_data =
-            "<http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/B> .\n\
+        let overlay_data = "<http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/B> .\n\
              <http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/C> .\n\
              <http://gmeowtest.example/B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/C> .\n\
              <http://gmeowtest.example/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/A> .\n";
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 64})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 64}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
 
         // The closure genuinely completed (conclusive), not a budget-cut — so the
@@ -12949,15 +13474,15 @@ mod tests {
         // orthogonality matrix above — so neither `axis-not-disjoint.rq` (satisfied
         // by the matrix) nor `class-in-two-disjoint-axes.rq` (requires
         // `owl:AllDisjointClasses` membership, which g4B/g4C never join) can match.
-        let overlay_data =
-            "<http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4B> .\n\
+        let overlay_data = "<http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4B> .\n\
              <http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4C> .\n\
              <http://gmeowtest.example/g4B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/g4C> .\n\
              <http://gmeowtest.example/g4x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/g4A> .\n";
 
-        let out = text_payload(
-            server.call_tool_result("verify_graph", &json!({"data": overlay_data, "format": "turtle", "max_steps": 64})),
-        );
+        let out = text_payload(server.call_tool_result(
+            "verify_graph",
+            &json!({"data": overlay_data, "format": "turtle", "max_steps": 64}),
+        ));
         assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
         assert_eq!(
             out["evaluation"], "completed",
@@ -13355,8 +13880,11 @@ mod browser_storage_tests {
         );
 
         let with_suppressed: Value = serde_json::from_str(
-            &recall_json(&store, &json!({"query": "widgets", "include_suppressed": true}))
-                .expect("recall runs"),
+            &recall_json(
+                &store,
+                &json!({"query": "widgets", "include_suppressed": true}),
+            )
+            .expect("recall runs"),
         )
         .expect("recall returns JSON");
         assert_eq!(

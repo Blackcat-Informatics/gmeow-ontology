@@ -39,7 +39,7 @@
 //! No-optionality: a missing `dcat.rq` or a projection failure is a HARD FAIL, never a
 //! silently empty manifest.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_errors::Diag;
@@ -47,7 +47,6 @@ use purrdf::{RdfDataset, RdfTerm};
 
 use crate::error::DocsDistribution as DocsDistributionError;
 use crate::projections::{TagMap, project_graph};
-use crate::stages::carrier::GRAPH_DISTRIBUTION_CATALOG;
 use crate::stages::distribution_catalog::{dist_iri, iri, site_sub_asset_iri, triple, triple_lit};
 
 fn err(message: impl Into<String>) -> Diag {
@@ -360,177 +359,20 @@ pub fn build_docs_distribution_manifest(
 
 // ── consumer-side catalog matrix (`gmeow docs matrix`) ────────────────────────────
 
-/// The IRI-namespace-local-name tail of `iri` (the segment after its final `/`).
-/// Uniformly recovers a slug from every kind of subject this module's catalog reads
-/// mint: a `…/family/<slug>` family IRI, a `…/capability/<slug>` capability IRI, and a
-/// `{GMEOW_NS}<name>` consumer IRI (`GMEOW_NS` itself ends in `/`, so the tail IS the
-/// bare local name in that case too).
-fn local_name(iri: &str) -> String {
-    iri.rsplit('/').next().unwrap_or(iri).to_string()
-}
-
-/// One resolved row of the per-format consumer-need matrix (AC2):
-/// a single `gmeow:DocumentationDistribution` from the distribution catalog, as read back
-/// by [`read_distribution_matrix`] — the production dogfooding consumer of the
-/// catalog's ontology content (`gmeow docs matrix`), never a re-authored static
-/// table.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DistributionRow {
-    pub slug: String,
-    pub family: String,
-    pub media_type: String,
-    /// Sorted, deduped consumer local names (`gmeow:eligibleForConsumer`).
-    pub consumers: Vec<String>,
-    /// Sorted, deduped dropped-capability slugs
-    /// (`gmeow:declaredLoss`/`gmeow:accountsForParameter`) — empty for the
-    /// serialization family, which declares no loss.
-    pub dropped_capabilities: Vec<String>,
-}
-
-/// Resolve the per-format consumer-need matrix by QUERYING the meta-level
-/// [`GRAPH_DISTRIBUTION_CATALOG`] named graph shipped inside `gts_bytes` (AC2),
-/// dogfooding the distribution catalog content rather than re-deriving it.
+/// The per-format consumer-need matrix reader and its row type, re-exported from the
+/// wasm-clean [`gmeow_docs_catalog`] leaf at their historical paths.
 ///
-/// The named graph survives only through the STRUCTURAL reader
-/// ([`purrdf::gts::read_graph`]) — the flattened-dataset fold collapses named graphs
-/// away (see [`crate::projections::discharged_section_cells_from_bundle`] for the same
-/// read/filter idiom over a different meta-level graph) — so this reads the raw
-/// quad/term arrays off the fold and filters by graph-name term value, never
-/// `gts_base_graph`/`flattened_dataset`.
+/// The reader MOVED there because it has consumers that must not inherit this build
+/// executor: `gmeow docs matrix` on the consumer CLI, and the MCP `distribution_matrix`
+/// tool, which is a bundle-only leaf. Reading eight rows out of a shipped catalog graph is
+/// a pure function of snapshot bytes and needs neither the stage DAG nor the scheduler nor
+/// the release signer. There is exactly ONE definition site — over there — and this
+/// re-export keeps `gmeow_pipeline::docs_distribution::read_distribution_matrix` spelled
+/// the way every existing caller already spells it.
 ///
-/// No-optionality: an absent or empty catalog graph, or a catalog subject missing a
-/// required facet, is a HARD FAIL — the shipped bundle MUST carry a complete
-/// distribution catalog, never a silently partial matrix.
-pub fn read_distribution_matrix(gts_bytes: &[u8]) -> Result<Vec<DistributionRow>, Diag> {
-    let graph = purrdf::gts::read_graph(gts_bytes, true)
-        .map_err(|e| err(format!("gts read_graph failed: {e}")))?;
-    let term = |id: usize| -> String {
-        graph
-            .terms
-            .get(id)
-            .and_then(|t| t.value.clone())
-            .unwrap_or_default()
-    };
-    // Resolve the catalog graph-name to its term-ID ONCE, then filter quads by a
-    // cheap `usize` id compare — never a per-quad string clone/compare.
-    let catalog_gid = graph
-        .terms
-        .iter()
-        .position(|t| t.value.as_deref() == Some(GRAPH_DISTRIBUTION_CATALOG));
-    let catalog: Vec<(String, String, String)> = catalog_gid
-        .map(|cgid| {
-            graph
-                .quads
-                .iter()
-                .filter_map(|&(s, p, o, gname)| {
-                    let gid = gname?;
-                    (gid == cgid).then(|| (term(s), term(p), term(o)))
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-    if catalog.is_empty() {
-        return Err(err(format!(
-            "the shipped bundle carries no <{GRAPH_DISTRIBUTION_CATALOG}> named graph — the \
-             distribution catalog is missing; re-materialize the bundle with `make regen`"
-        )));
-    }
-
-    let pred_dist_type = iri(GMEOW_NS, "DocumentationDistribution");
-    let pred_format = iri(GMEOW_NS, "distributionFormat");
-    let pred_family = iri(GMEOW_NS, "distributionFamily");
-    let pred_media = iri(GMEOW_NS, "artifactMediaType");
-    let pred_consumer = iri(GMEOW_NS, "eligibleForConsumer");
-    let pred_loss = iri(GMEOW_NS, "declaredLoss");
-    let pred_accounts = iri(GMEOW_NS, "accountsForParameter");
-
-    let subjects: BTreeSet<&str> = catalog
-        .iter()
-        .filter(|(_, p, o)| *p == RDF_TYPE && *o == pred_dist_type)
-        .map(|(s, _, _)| s.as_str())
-        .collect();
-    if subjects.is_empty() {
-        return Err(err(format!(
-            "the <{GRAPH_DISTRIBUTION_CATALOG}> named graph carries no \
-             gmeow:DocumentationDistribution subject"
-        )));
-    }
-
-    let mut rows = Vec::with_capacity(subjects.len());
-    for subject in subjects {
-        let slug = catalog
-            .iter()
-            .find(|(s, p, _)| s == subject && *p == pred_format)
-            .map(|(_, _, o)| o.clone())
-            .ok_or_else(|| {
-                err(format!(
-                    "distribution {subject} is missing gmeow:distributionFormat"
-                ))
-            })?;
-        let family = catalog
-            .iter()
-            .find(|(s, p, _)| s == subject && *p == pred_family)
-            .map(|(_, _, o)| local_name(o))
-            .ok_or_else(|| {
-                err(format!(
-                    "distribution {subject} is missing gmeow:distributionFamily"
-                ))
-            })?;
-        let media_type = catalog
-            .iter()
-            .find(|(s, p, _)| s == subject && *p == pred_media)
-            .map(|(_, _, o)| o.clone())
-            .ok_or_else(|| {
-                err(format!(
-                    "distribution {subject} is missing gmeow:artifactMediaType"
-                ))
-            })?;
-
-        let mut consumers: Vec<String> = catalog
-            .iter()
-            .filter(|(s, p, _)| s == subject && *p == pred_consumer)
-            .map(|(_, _, o)| local_name(o))
-            .collect();
-        if consumers.is_empty() {
-            return Err(err(format!(
-                "distribution {subject} is missing gmeow:eligibleForConsumer"
-            )));
-        }
-        consumers.sort();
-        consumers.dedup();
-
-        let loss_nodes: Vec<&str> = catalog
-            .iter()
-            .filter(|(s, p, _)| s == subject && *p == pred_loss)
-            .map(|(_, _, o)| o.as_str())
-            .collect();
-        let mut dropped_capabilities: Vec<String> = Vec::with_capacity(loss_nodes.len());
-        for loss_node in loss_nodes {
-            let cap = catalog
-                .iter()
-                .find(|(s, p, _)| s == loss_node && *p == pred_accounts)
-                .map(|(_, _, o)| local_name(o))
-                .ok_or_else(|| {
-                    err(format!(
-                        "loss node {loss_node} is missing gmeow:accountsForParameter"
-                    ))
-                })?;
-            dropped_capabilities.push(cap);
-        }
-        dropped_capabilities.sort();
-        dropped_capabilities.dedup();
-
-        rows.push(DistributionRow {
-            slug,
-            family,
-            media_type,
-            consumers,
-            dropped_capabilities,
-        });
-    }
-    rows.sort_by(|a, b| a.slug.cmp(&b.slug));
-    Ok(rows)
-}
+/// The `gmeow:DocumentationDistribution` filter is unchanged by the move: `gmeow docs
+/// matrix` still lists exactly the eight declared distributions.
+pub use gmeow_docs_catalog::{DistributionRow, read_distribution_matrix};
 
 // ── manifest verification (`gmeow docs verify`) ───────────────────────────────────
 

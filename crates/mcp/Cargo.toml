@@ -39,6 +39,16 @@ gmeow-ns = { path = "../ns" }
 # address). This is the crate that lets the MCP surface read a bundle without the
 # writer.
 gmeow-bundle-view = { path = "../bundle-view" }
+# The distribution-catalog READ side: `distribution_matrix` serves the per-format
+# consumer-need matrix and the formal-concept lattice straight out of the bundle's
+# meta-level catalog graph. A wasm-clean leaf over gmeow-bundle-view — never
+# `gmeow-pipeline`, which is where that reader used to live, and never `gmeow-docs`.
+gmeow-docs-catalog = { path = "../docs-catalog" }
+# The universal RDF-1.2 transcode hub: the `convert` tool calls the SAME
+# `Codec::from_cli_str` / `transcode` / `realized_loss_json` triple `gmeow convert` does,
+# so the agent surface and the CLI are one implementation. A leaf, which is what lets a
+# bundle-only surface reach it without inheriting the build executor.
+gmeow-transcode = { path = "../transcode" }
 # The documentation MODEL only — never `gmeow-docs`, whose renderer embeds ~13.6 MB
 # of vendored wasm. `doc_card` renders through the shared `card` surface, `llms_txt`
 # through `llms`, and the `gmn1-primer` resource through `gmn1_primer`, so the MCP

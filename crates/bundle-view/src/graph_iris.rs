@@ -4,10 +4,11 @@
 //! The named-graph IRIs the READ side addresses.
 //!
 //! `gmeow-pipeline`'s carrier declares 45 `GRAPH_*` constants — one per named graph
-//! the snapshot assembles. Four of them are named again on the *reading* end: by the
-//! bundle readers in this crate and by the MCP tool surface that queries a
-//! materialized `gmeow.gts`. Those four are declared here so a reader does not have
-//! to depend on the build executor to spell a graph IRI it merely selects on.
+//! the snapshot assembles. Five of them are named again on the *reading* end: by the
+//! bundle readers in this crate, by the MCP tool surface that queries a materialized
+//! `gmeow.gts`, and by `gmeow-docs-catalog`'s distribution/concept readers. Those five
+//! are declared here so a reader does not have to depend on the build executor to
+//! spell a graph IRI it merely selects on.
 //!
 //! The split is by consumer, not by importance: the other carrier graph constants
 //! are addressed only while ASSEMBLING the snapshot (choosing which stage output
@@ -44,3 +45,16 @@ pub const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/
 
 /// The named graph the release manifest and the per-artifact attestations ride in.
 pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
+
+/// The meta-level named graph carrying the canonical distribution catalog: WHICH
+/// documentation distributions exist, their family, their consumer class, and (for the
+/// doc-render family) their declared capability loss — plus the formal-concept lattice
+/// derived over the surface × capability incidence. Read back by
+/// `gmeow_docs_catalog::read_distribution_matrix` (`gmeow docs matrix`, the MCP
+/// `distribution_matrix` tool) and `gmeow_docs_catalog::read_concept_lattice`, so it is a
+/// READ-side graph IRI and lives here rather than with the assembler that writes it.
+///
+/// NOT in `gmeow_logic::reasoning_graphs::OBJECT_LEVEL_NAMED_GRAPHS`: it is a meta-level
+/// self-description corpus and stays out of the object-level reasoning EDB.
+pub const GRAPH_DISTRIBUTION_CATALOG: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/distribution-catalog";
