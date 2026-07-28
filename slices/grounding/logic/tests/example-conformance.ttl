@@ -348,6 +348,20 @@ ex:ecFrontierUnwitnessed a gmeow:ExampleConformance ;
     gmeow:expectedSourceShape logic:FrontierClosureRequiresSaturationConstraintProceduralConstraintShape ;
     gmeow:conformanceRationale "A logic:ActionableFrontier with no logic:frontierSaturationWitness. An unwitnessed closure claim is exactly how a roster truncated by a budget cut passes for complete, after which the system confidently omits the action it should have taken. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint and NO other finding." .
 
+ex:ecFrontierContentFreeWitness a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/frontier-cites-a-content-free-witness.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:FrontierClosureRequiresSaturationConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A logic:ActionableFrontier citing a logic:SaturationWitness that names no logic:settledPredicate and states no logic:consumedBudget. It passes every law that merely counts the citation, so an operator reads a certified-closed roster backed by evidence that records nothing which could be false. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint and NO other finding." .
+
+ex:ecPinStepsMismatchMethod a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/pin-freezes-steps-its-method-never-yielded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:PinStepsMatchInstantiatedMethodConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A logic:PinnedExecutableSubgraph whose logic:pinnedStepSequence is not the logic:methodYields sequence of the logic:DecompositionMethod it names. The refinement was validated against one decomposition and the pin dispatches another, so the approval licenses a step nobody reviewed — and every record involved is individually well-formed, which is why only a relational law sees it. MUST emit shacl.SPARQLConstraintComponent for logic:PinStepsMatchInstantiatedMethodConstraint and NO other finding." .
+
 ex:ecCapabilityGapNoStep a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/capability-gap-without-blocked-step.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;

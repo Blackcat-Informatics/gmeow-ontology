@@ -91,6 +91,14 @@ ex:ocrCapability a logic:EngineCapability ;
 # The saturation witness: which predicates the reasoner proved final, and under
 # what budget. Without it a roster truncated by a budget cut is indistinguishable
 # from a genuinely complete one, and the system confidently omits an action.
-ex:run77Saturation a logic:FrontierEntry ;
+#
+# It matters most in THIS scene, the declining one. A blocked roster whose closure
+# is unwitnessed cannot be told apart from a roster that simply never reached the
+# alternative it should have offered — so the honest refusal below rests entirely
+# on the witness naming logic:gapBlockedStep among the predicates it settled.
+ex:run77Saturation a logic:SaturationWitness ;
     rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
-    logic:entryLabel logic:FrontierCompleted .
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:gapBlockedStep ;
+    logic:consumedBudget "32"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .

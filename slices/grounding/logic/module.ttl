@@ -9534,11 +9534,11 @@ logic:methodYields
     rdfs:domain logic:DecompositionMethod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "method yields"@x-gmeow-english ;
-    skos:definition "Relates a logic:DecompositionMethod to a subtask its decomposition produces. Range a plan step or action schema (stated in prose). Multi-valued and ORDERED through the yielded steps' own flow edges rather than by list position."@x-gmeow-english ;
-    skos:example "ex:ocrMethod logic:methodYields ex:extract , ex:verify ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the subtasks a method reduces its task to."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid relying on triple order for step sequence: repeated triples are an unordered set, so a totally-ordered method needs an ordered carrier."@x-gmeow-english ;
-    gmeow:howToUse "Yield at least one subtask; a method reducing a task to nothing is a claim an author should make explicitly."@x-gmeow-english ;
+    skos:definition "Relates a logic:DecompositionMethod to the ORDERED sequence of subtasks its decomposition produces, carried as ONE rdf:List whose position is semantic. Single-valued; range an rdf:List of plan steps or action schemas (stated in prose, as for logic:joinPath). Repeated unordered triples are deliberately NOT the carrier: RDF multi-values are a set, so inspect-then-prepare-then-extract stated that way loses its sequence at the first reader, and a reader forced to impose one can only guess or alphabetise. The order is the plan, so it is carried where a reader can find it."@x-gmeow-english ;
+    skos:example "ex:ocrMethod logic:methodYields ( ex:extract ex:verify ) ."@x-gmeow-english ;
+    gmeow:useWhen "Use for the ordered sequence of subtasks a method reduces its task to."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a second logic:methodYields list on one method, and avoid a chain terminating anywhere but rdf:nil; either makes the sequence depend on which triple a reader happened to see first."@x-gmeow-english ;
+    gmeow:howToUse "Give exactly one rdf:List in execution order, yielding at least one subtask; NAME the list cells whenever the decomposition must be pinned or content-addressed, because a pin cannot freeze a cell it cannot name."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:methodDigest
@@ -9780,7 +9780,7 @@ logic:PinnedExecutableSubgraph
     skos:example "ex:ocrPin a logic:PinnedExecutableSubgraph ; logic:pinInstantiatesMethod ex:ocrByPagePartition ."@x-gmeow-english ;
     gmeow:useWhen "Use when a refinement is selected and the resulting fragment must be exactly what executes."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid editing a landed pin, and avoid pinning without recording which method version produced it."@x-gmeow-english ;
-    gmeow:howToUse "Content-address the fragment, bind the method version it instantiates, and carry the proof term that authorized it on logic:pinAuthority."@x-gmeow-english ;
+    gmeow:howToUse "Freeze the ordered steps on logic:pinnedStepSequence, content-address them on logic:pinDigest, bind the method version it instantiates, and carry the proof term that authorized it on logic:pinAuthority."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:pinInstantiatesMethod
@@ -9807,6 +9807,18 @@ logic:pinDigest
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "pin digest"@x-gmeow-english ;
     skos:definition "The algorithm-prefixed content address of the pinned fragment — the value an approval binds to and a dispatch is checked against, so a revised fragment cannot satisfy an authorization issued for its predecessor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:pinnedStepSequence
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "pinned step sequence"@x-gmeow-english ;
+    skos:definition "The ordered rdf:List of steps a logic:PinnedExecutableSubgraph froze — the executable content its logic:pinDigest addresses and the content an approval was granted against. Single-valued; range an rdf:List of plan steps (stated in prose). It is what makes the pin a COMMITMENT rather than a name: a pin carrying only a label and a digest asserts an immutability it has no content to be immutable about, so 'what was validated is what executes' becomes a claim no reader can check and no law can test."@x-gmeow-english ;
+    skos:example "ex:ocrPin logic:pinnedStepSequence ( ex:inspect ex:extract ex:verify ) ."@x-gmeow-english ;
+    gmeow:useWhen "Use to freeze the exact ordered steps a refinement committed to, so the dispatched fragment can be compared against the authorized one."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid restating the steps in a label and calling the pin content-addressed; prose is not a fragment a digest can address or a law can join against."@x-gmeow-english ;
+    gmeow:howToUse "Give exactly one rdf:List of NAMED cells in execution order — the same list the instantiated method's logic:methodYields carries, since a pin whose steps differ from the method's is executing something other than what was validated."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:selectedPin
@@ -10111,6 +10123,59 @@ logic:rpcPin a logic:Formula ; logic:relation logic:selectedPin ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pin" ] .
 logic:rpcCons a logic:Formula ; logic:relation logic:refinementCandidate ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "roster" ] , [ logic:termIndex 1 ; logic:termVariable "pin" ] .
+
+# The pin's own two laws. Immutability is only a security property if the pin HAS content:
+# a record carrying a label and nothing else is immutable the way an empty box is locked.
+# The first law says the content exists; the second says it is the content that was
+# validated. They are separate because a relational body needs the bindings in its GUARD,
+# which puts the missing-binding case outside it.
+logic:PinnedSubgraphCompletenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a pinned subgraph binds content, address and method"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:PinnedExecutableSubgraph that omits its logic:pinnedStepSequence, its logic:pinDigest, or the logic:pinInstantiatesMethod it was produced from. Each omission empties the pin of the thing it exists to carry: with no step sequence there is no fragment, with no digest the fragment has no address an approval can bind to, and with no method the fragment cannot be checked against the schema it claims to instantiate. A pin missing all three is a label asserting that what was validated is what executes, which is precisely the claim the pin was introduced to make checkable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:PinnedExecutableSubgraph must bind logic:pinnedStepSequence, logic:pinDigest and logic:pinInstantiatesMethod; a pin with no frozen content, no content address and no method is a label, not a commitment." ;
+    logic:integrity logic:pscForall .
+logic:pscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pscImpl .
+logic:pscImpl a logic:Formula ; logic:antecedent logic:pscGuard ; logic:consequent logic:pscCons .
+logic:pscGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PinnedExecutableSubgraph ] .
+logic:pscCons a logic:Formula ; logic:and logic:pscSteps , logic:pscDigest , logic:pscMethod .
+logic:pscSteps a logic:Formula ; logic:relation logic:pinnedStepSequence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "steps" ] .
+logic:pscDigest a logic:Formula ; logic:relation logic:pinDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:pscMethod a logic:Formula ; logic:relation logic:pinInstantiatesMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "method" ] .
+
+logic:PinStepsMatchInstantiatedMethodConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a pin freezes the steps the method it names yields"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:PinnedExecutableSubgraph whose logic:pinnedStepSequence is not the logic:methodYields sequence of the logic:DecompositionMethod its logic:pinInstantiatesMethod names. Naming a method and freezing some OTHER sequence is the exact failure pinning exists to prevent: the approval was reasoned about against the method's decomposition, and the dispatch runs the pin's, so the authorized argument set and the executed one differ while every record involved stays individually well-formed. Because both sides are one ordered rdf:List, the join is over the whole sequence at once — a pin that keeps the method's steps but reorders them is a different list and is condemned, which is the point of carrying order at all."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:PinnedExecutableSubgraph's logic:pinnedStepSequence must be the logic:methodYields sequence of the logic:DecompositionMethod it instantiates; a pin freezing other steps, or the same steps in another order, executes something the validation never saw." ;
+    logic:integrity logic:pmmForall .
+logic:pmmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pmmImpl .
+logic:pmmImpl a logic:Formula ; logic:antecedent logic:pmmGuard ; logic:consequent logic:pmmCons .
+logic:pmmGuard a logic:Formula ; logic:and logic:pmmIsPin , logic:pmmMethod , logic:pmmSteps .
+logic:pmmIsPin a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PinnedExecutableSubgraph ] .
+logic:pmmMethod a logic:Formula ; logic:relation logic:pinInstantiatesMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "method" ] .
+logic:pmmSteps a logic:Formula ; logic:relation logic:pinnedStepSequence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "steps" ] .
+logic:pmmCons a logic:Formula ; logic:relation logic:methodYields ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "method" ] , [ logic:termIndex 1 ; logic:termVariable "steps" ] .
 
 # =========================================================================== #
 # === Enactment layer: the external-effect commitment layer (the saga)     === #
@@ -11372,16 +11437,41 @@ logic:frontierOfEnactment
     gmeow:howToUse "One enactment per frontier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:SaturationWitness
+    a owl:Class ;
+    rdfs:subClassOf logic:ReasoningResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Saturation Witness"@x-gmeow-english ;
+    skos:definition "The evidence that a derivation reached a FIXED POINT rather than a budget cut: the predicates whose extensions it proved final (logic:settledPredicate) and the budget they were proved under (logic:consumedBudget). It is a logic:ReasoningResult, so its computation axis is the kernel's existing logic:resultEvaluation rather than a second, witness-private notion of having finished. Typed APART from logic:FrontierEntry, and the distinction is operational, not tidiness: an entry is a candidate ACTION offered to an operator, a witness is a claim ABOUT the roster of them, so a witness typed as an entry becomes a phantom row an operator can be asked to perform."@x-gmeow-english ;
+    skos:example "ex:run78Saturation a logic:SaturationWitness ; logic:settledPredicate logic:entryLabel ; logic:consumedBudget \"64\"^^xsd:nonNegativeInteger ; logic:resultEvaluation logic:EvaluationCompleted ."@x-gmeow-english ;
+    gmeow:useWhen "Use to certify that a derivation whose closedness matters — most characteristically a logic:ActionableFrontier's roster — settled rather than stopped."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a witness carrying neither settled predicates nor a budget: a citation with no content reads as certification and is strictly worse than no witness at all. Avoid typing one as a logic:FrontierEntry."@x-gmeow-english ;
+    gmeow:howToUse "Name every predicate proved final, record the budget it was proved under, and carry the logic:EvaluationStatus the run reached; a witness naming no predicate certifies the closure of nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:settledPredicate
+    a owl:ObjectProperty ;
+    rdfs:domain logic:SaturationWitness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "settled predicate"@x-gmeow-english ;
+    skos:definition "Relates a logic:SaturationWitness to one predicate whose extension the derivation proved FINAL — no further rule application adds a tuple to it. Multi-valued and deliberately enumerated rather than summarized: the predicates a witness does not name are exactly the ones whose closure it does not certify, so 'everything settled' is a claim that must be spelled out predicate by predicate to be falsifiable. Range a predicate (stated in prose)."@x-gmeow-english ;
+    skos:example "ex:run78Saturation logic:settledPredicate logic:hasFrontierEntry , logic:entryLabel ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name each predicate a saturation run drove to a fixed point."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a predicate the run never reached, and avoid leaving the witness empty; an unnamed predicate is an uncertified one, and no named predicate is no certification."@x-gmeow-english ;
+    gmeow:howToUse "List every predicate the closure claim depends on — for a frontier, at minimum the roster edge and the label the roster is read through."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:frontierSaturationWitness
     a owl:ObjectProperty ;
     rdfs:domain logic:ActionableFrontier ;
+    rdfs:range logic:SaturationWitness ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "frontier saturation witness"@x-gmeow-english ;
-    skos:definition "The evidence that the frontier derivation reached a fixed point rather than a budget cut — the settled predicate set and the steps consumed. Range a saturation witness (stated in prose). Functional and MANDATORY for any frontier claiming closure: without it, closedness is an assertion the reader cannot check."@x-gmeow-english ;
+    skos:definition "The evidence that the frontier derivation reached a fixed point rather than a budget cut — the settled predicate set and the budget consumed. Range logic:SaturationWitness, declared rather than left to prose: an undeclared range is how the position came to be filled by a logic:FrontierEntry, which put a phantom action on the very roster the witness was certifying. Functional and MANDATORY for any frontier claiming closure: without it, closedness is an assertion the reader cannot check."@x-gmeow-english ;
     skos:example "ex:frontier logic:frontierSaturationWitness ex:saturation ."@x-gmeow-english ;
     gmeow:useWhen "Use to certify that a frontier's roster is genuinely closed."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid claiming closure without one: an unwitnessed claim is exactly how a roster truncated by a budget cut passes for exhaustive, after which the system confidently omits the action it should have taken."@x-gmeow-english ;
-    gmeow:howToUse "Carry the predicates proved final and the budget they were proved under."@x-gmeow-english ;
+    gmeow:howToUse "Bind exactly one logic:SaturationWitness carrying the predicates proved final and the budget they were proved under."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:FrontierEntry
@@ -12329,15 +12419,20 @@ logic:fcsCons a logic:Formula ; logic:relation logic:frontierSaturationWitness ;
 # evaluation axis is the kernel's existing one (logic:resultEvaluation over
 # logic:EvaluationStatus); a second, frontier-private exhaustion flag would be a competing
 # source of truth for the same fact.
+#
+# Reading it means reading its CONTENT, not only its status. A witness naming no settled
+# predicate and no consumed budget records nothing that could be false, so it satisfies a
+# not-exhausted test trivially — and a citation that cannot be wrong is a citation that
+# certifies nothing while reading, to an operator, exactly like one that does.
 logic:FrontierClosureRequiresSaturationConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "a frontier's witness must not record a budget cut"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:ActionableFrontier whose logic:frontierSaturationWitness records logic:BudgetExhausted. A witness is evidence, and evidence has content: a frontier that cites a witness whose own evaluation status says the search hit a declared bound is citing proof of the very truncation it claims not to have suffered. Carrying such a witness is strictly worse than carrying none, because the citation reads as certification."@x-gmeow-english ;
+    rdfs:label "a frontier's witness carries the closure it certifies"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ActionableFrontier whose logic:frontierSaturationWitness fails to certify a fixed point — because it records logic:BudgetExhausted, because it names no logic:settledPredicate, or because it states no logic:consumedBudget. A witness is evidence, and evidence has content, so all three failures are one failure read three ways: a witness whose evaluation status says the search hit a declared bound is proof of the truncation the frontier claims not to have suffered, and a witness that names no settled predicate and no budget proves nothing at all while reading exactly like proof. That last case is the dangerous one, because it satisfies any law that merely COUNTS the witness — which is why this law reads it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
-    logic:message "A logic:ActionableFrontier's logic:frontierSaturationWitness must not carry logic:resultEvaluation logic:BudgetExhausted; a roster whose own witness records the budget cut is truncated, not closed." ;
+    logic:message "A logic:ActionableFrontier's logic:frontierSaturationWitness must name at least one logic:settledPredicate, state its logic:consumedBudget, and not carry logic:resultEvaluation logic:BudgetExhausted; a content-free witness certifies nothing and a budget-cut one certifies the truncation." ;
     logic:integrity logic:fclForall .
 logic:fclForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -12348,9 +12443,14 @@ logic:fclIsFrontier a logic:Formula ; logic:relation <http://www.w3.org/1999/02/
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ActionableFrontier ] .
 logic:fclWitness a logic:Formula ; logic:relation logic:frontierSaturationWitness ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "witness" ] .
-logic:fclCons a logic:Formula ; logic:not logic:fclCut .
+logic:fclCons a logic:Formula ; logic:and logic:fclNotCut , logic:fclSettled , logic:fclBudget .
+logic:fclNotCut a logic:Formula ; logic:not logic:fclCut .
 logic:fclCut a logic:Formula ; logic:relation logic:resultEvaluation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "witness" ] , [ logic:termIndex 1 ; logic:termIri logic:BudgetExhausted ] .
+logic:fclSettled a logic:Formula ; logic:relation logic:settledPredicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "witness" ] , [ logic:termIndex 1 ; logic:termVariable "settled" ] .
+logic:fclBudget a logic:Formula ; logic:relation logic:consumedBudget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "witness" ] , [ logic:termIndex 1 ; logic:termVariable "budget" ] .
 
 logic:ContextAssemblyNamesItsEnactmentConstraint
     a logic:Constraint ;

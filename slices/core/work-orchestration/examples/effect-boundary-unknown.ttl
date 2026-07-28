@@ -123,9 +123,17 @@ ex:chargeProbeResult a logic:ReconciliationResult ;
 # The saturation witness: which predicates the reasoner proved final, and under
 # what budget. Without it a roster truncated by a budget cut is indistinguishable
 # from a genuinely complete one, and the system confidently omits an action.
-ex:settlementSaturation a logic:FrontierEntry ;
+#
+# The witness is a logic:SaturationWitness, not a logic:FrontierEntry: it is a
+# claim ABOUT the roster, and typing it as a member of the roster offers the
+# operator an action that does not exist — in this scene, an extra "completed"
+# beside the one reconciliation that is genuinely owed.
+ex:settlementSaturation a logic:SaturationWitness ;
     rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
-    logic:entryLabel logic:FrontierCompleted .
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:unknownOfAttempt ;
+    logic:consumedBudget "24"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
 
 ex:settlementProcess a logic:Plan ;
     rdfs:label "Nightly settlement process"@x-gmeow-english ;

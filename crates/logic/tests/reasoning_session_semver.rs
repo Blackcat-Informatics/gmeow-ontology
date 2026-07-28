@@ -140,7 +140,7 @@ use session_common::*;
 /// only the identity moved.
 /// Re-blessed again for the enactment gate's law-identity fix: every violation rule now
 /// heads on `logic:violatedLaw <the law>` instead of the shared
-/// `rdf:type logic:EnactmentIntegrityViolation` marker, because a head tuple forty laws
+/// `rdf:type logic:EnactmentIntegrityViolation` marker, because a head tuple forty-two laws
 /// share is one the chase keeps once — a record breaking two laws reported one of them and
 /// silently lost the rest. `relational_core.rs` is a folded engine-source axis, so its bytes
 /// and the folded descriptor move. The fixed edge-only input authors no enactment record, so

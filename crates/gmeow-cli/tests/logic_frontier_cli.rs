@@ -163,12 +163,22 @@ e:receipt2 a logic:ExternalEffectReceipt ; logic:receiptOfAttempt e:attempt2 .
 /// The three search outcomes must stay three. A budget cut invites a bigger budget; an
 /// out-of-fragment method set invites an authoring fix; only a complete run may be read
 /// as exhaustive. Collapsing any pair of them sends an operator to the wrong remedy.
+///
+/// `logic:methodYields` carries ONE ordered `rdf:List`. The cells are NAMED rather than
+/// blank because the CLI's reasoning world is built from IRI-subject quads, and because a
+/// decomposition that may be pinned must be addressable cell by cell.
 const METHODS: &str = r#"
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
-e:top a logic:DecompositionMethod ; logic:methodDecomposes e:ingest ; logic:methodYields e:ocr , e:store .
-e:sub a logic:DecompositionMethod ; logic:methodDecomposes e:ocr ; logic:methodYields e:extract , e:verify .
-e:alt a logic:DecompositionMethod ; logic:methodDecomposes e:ocr ; logic:methodYields e:quickExtract .
+e:top a logic:DecompositionMethod ; logic:methodDecomposes e:ingest ; logic:methodYields e:topCell1 .
+e:topCell1 rdf:first e:ocr ; rdf:rest e:topCell2 .
+e:topCell2 rdf:first e:store ; rdf:rest rdf:nil .
+e:sub a logic:DecompositionMethod ; logic:methodDecomposes e:ocr ; logic:methodYields e:subCell1 .
+e:subCell1 rdf:first e:extract ; rdf:rest e:subCell2 .
+e:subCell2 rdf:first e:verify ; rdf:rest rdf:nil .
+e:alt a logic:DecompositionMethod ; logic:methodDecomposes e:ocr ; logic:methodYields e:altCell1 .
+e:altCell1 rdf:first e:quickExtract ; rdf:rest rdf:nil .
 "#;
 
 fn write(dir: &tempfile::TempDir, name: &str, body: &str) -> std::path::PathBuf {
@@ -226,9 +236,12 @@ fn refine_refuses_an_out_of_fragment_method_set_rather_than_reporting_a_thin_res
         "cyclic.ttl",
         r#"
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix e:     <https://blackcatinformatics.ca/gmeow/clitest/> .
-e:a a logic:DecompositionMethod ; logic:methodDecomposes e:t ; logic:methodYields e:u .
-e:b a logic:DecompositionMethod ; logic:methodDecomposes e:u ; logic:methodYields e:t .
+e:a a logic:DecompositionMethod ; logic:methodDecomposes e:t ; logic:methodYields e:aCell1 .
+e:aCell1 rdf:first e:u ; rdf:rest rdf:nil .
+e:b a logic:DecompositionMethod ; logic:methodDecomposes e:u ; logic:methodYields e:bCell1 .
+e:bCell1 rdf:first e:t ; rdf:rest rdf:nil .
 "#,
     );
     // Exiting 0 with an empty candidate list would read as "no decomposition exists",
@@ -461,11 +474,19 @@ fn why_not_never_stamps_a_hand_typed_label_as_derived() {
 
 #[test]
 fn frontier_marks_an_authored_label_no_rule_derives() {
-    // The shipped example EXACTLY as it ships. Its saturation-witness entry carries an
-    // authored logic:FrontierCompleted and no axis witness at all, so no rule reaches it.
+    // The shipped example EXACTLY as it ships — the case [`rule_reachable_ocr_example`]
+    // exists to distinguish itself FROM. Nothing in the file as shipped links the entry to
+    // the step a capability gap blocks, so no shipped rule reaches ex:ocrStepEntry and its
+    // authored logic:FrontierBlockedCapabilityOrResource is a value nothing has checked.
+    //
     // That must read as an unverified assertion rather than as a conclusion: the difference
-    // between "the reasoner concluded the run is complete" and "somebody typed complete" is
+    // between "the reasoner concluded this step is blocked" and "somebody typed blocked" is
     // the difference between trusting the frontier and auditing it.
+    //
+    // The subject is a genuine candidate ACTION. It used to be the file's saturation
+    // witness, which was typed as a frontier entry and so appeared on the roster as a
+    // phantom completed action; a witness is a claim ABOUT the roster and no longer joins
+    // it, so this test asserts the same behaviour over a row that is really there.
     let out = stdout_of(&[
         "--console",
         "text",
@@ -473,13 +494,14 @@ fn frontier_marks_an_authored_label_no_rule_derives() {
         "frontier",
         shipped_ocr_example().to_str().expect("utf-8 path"),
     ]);
-    let row = row_for(
-        &out,
-        "https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-absent/\
-         run77Saturation",
-    );
     assert!(
-        row.contains("FrontierCompleted"),
+        !out.contains("run77Saturation"),
+        "the saturation witness certifies the roster and is not a member of it; a witness \
+         on the frontier is an action an operator can be asked to take and cannot, got:\n{out}"
+    );
+    let row = row_for(&out, OCR_ENTRY);
+    assert!(
+        row.contains("FrontierBlockedCapabilityOrResource"),
         "the authored label must still be shown — hiding it would be its own dishonesty, \
          got:\n{row}"
     );

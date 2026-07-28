@@ -11299,8 +11299,8 @@ msgid "cancelled with in-flight effects"
 msgstr "取消时仍有在途效应"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierClosureRequiresSaturationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "a frontier's witness must not record a budget cut"
-msgstr "前沿的见证不得记载预算截断"
+msgid "a frontier's witness carries the closure it certifies"
+msgstr "前沿的见证须承载它所认证的闭合性"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationEligible|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "compensation eligible"
@@ -11458,6 +11458,10 @@ msgctxt "https://blackcatinformatics.ca/logic/OutcomeUnsupportedFragment|http://
 msgid "unsupported fragment"
 msgstr "不受支持片段"
 
+msgctxt "https://blackcatinformatics.ca/logic/PinStepsMatchInstantiatedMethodConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a pin freezes the steps the method it names yields"
+msgstr "固定所冻结的，须是它所指名方法产出的那些步骤"
+
 msgctxt "https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Pinned Executable Subgraph"
 msgstr "已固定可执行子图"
@@ -11465,6 +11469,18 @@ msgstr "已固定可执行子图"
 msgctxt "https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:ocrPin a logic:PinnedExecutableSubgraph ; logic:pinInstantiatesMethod ex:ocrByPagePartition ."
 msgstr "示例：ex:ocrPin a logic:PinnedExecutableSubgraph ; logic:pinInstantiatesMethod ex:ocrByPagePartition ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PinnedSubgraphCompletenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a pinned subgraph binds content, address and method"
+msgstr "固定子图须绑定内容、地址与方法"
+
+msgctxt "https://blackcatinformatics.ca/logic/SaturationWitness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Saturation Witness"
+msgstr "饱和见证"
+
+msgctxt "https://blackcatinformatics.ca/logic/SaturationWitness|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run78Saturation a logic:SaturationWitness ; logic:settledPredicate logic:entryLabel ; logic:consumedBudget \"64\"^^xsd:nonNegativeInteger ; logic:resultEvaluation logic:EvaluationCompleted ."
+msgstr "示例：ex:run78Saturation a logic:SaturationWitness ; logic:settledPredicate logic:entryLabel ; logic:consumedBudget \"64\"^^xsd:nonNegativeInteger ; logic:resultEvaluation logic:EvaluationCompleted ."
 
 msgctxt "https://blackcatinformatics.ca/logic/PreparationReceipt|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Preparation Receipt"
@@ -12146,6 +12162,14 @@ msgctxt "https://blackcatinformatics.ca/logic/pinDigest|http://www.w3.org/2000/0
 msgid "pin digest"
 msgstr "固定摘要"
 
+msgctxt "https://blackcatinformatics.ca/logic/pinnedStepSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pinned step sequence"
+msgstr "已固定步骤序列"
+
+msgctxt "https://blackcatinformatics.ca/logic/settledPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "settled predicate"
+msgstr "已稳定谓词"
+
 msgctxt "https://blackcatinformatics.ca/logic/pinInstantiatesMethod|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pin instantiates method"
 msgstr "固定实例化方法"
@@ -12771,8 +12795,8 @@ msgid "The enactment was cancelled while an effect remained unresolved. Cancella
 msgstr "实施在仍有效应悬而未决时被取消。取消并不解决提交认知，故那项未了效应仍然要求核实——这大概是现实中最棘手的情形，而一个笼统的「已取消」标签恰恰把它掩盖了。"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierClosureRequiresSaturationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ActionableFrontier whose logic:frontierSaturationWitness records logic:BudgetExhausted. A witness is evidence, and evidence has content: a frontier that cites a witness whose own evaluation status says the search hit a declared bound is citing proof of the very truncation it claims not to have suffered. Carrying such a witness is strictly worse than carrying none, because the citation reads as certification."
-msgstr "拒斥「其 logic:frontierSaturationWitness 记载了 logic:BudgetExhausted」之 logic:ActionableFrontier 的 logic:Constraint。见证是证据，而证据有其内容：一个前沿若援引一份「其自身求值状态表明搜索撞上了已声明界限」的见证，它援引的恰是它自称未曾遭受的那次截断的证明。携带这样一份见证，严格说来比什么也不携带更糟，因为那次援引读起来就像一纸认证。"
+msgid "The logic:Constraint rejecting a logic:ActionableFrontier whose logic:frontierSaturationWitness fails to certify a fixed point — because it records logic:BudgetExhausted, because it names no logic:settledPredicate, or because it states no logic:consumedBudget. A witness is evidence, and evidence has content, so all three failures are one failure read three ways: a witness whose evaluation status says the search hit a declared bound is proof of the truncation the frontier claims not to have suffered, and a witness that names no settled predicate and no budget proves nothing at all while reading exactly like proof. That last case is the dangerous one, because it satisfies any law that merely COUNTS the witness — which is why this law reads it."
+msgstr "拒斥「其 logic:frontierSaturationWitness 未能认证不动点」之 logic:ActionableFrontier 的 logic:Constraint——或因其记载了 logic:BudgetExhausted，或因其未指名任何 logic:settledPredicate，或因其未陈述 logic:consumedBudget。见证是证据，而证据有其内容，故此三种失败实为同一失败的三种读法：一份「其求值状态表明搜索撞上了已声明界限」的见证，正是前沿自称未曾遭受的那次截断的证明；而一份既不指名已稳定谓词、亦不给出预算的见证，什么也证明不了，读起来却与证明别无二致。最后一种最为危险，因为它满足任何仅仅「清点」见证的法则——这正是本法则要去阅读它的缘由。"
 
 msgctxt "https://blackcatinformatics.ca/logic/FrontierCompensationEligible|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A forward effect is proved committed and compensation is permitted but not demanded. Distinguished from compensation-required, where policy or a failed enactment makes it obligatory."
@@ -12913,6 +12937,18 @@ msgstr "输入落在引擎受认证的片段之外。须与「不完整」相区
 msgctxt "https://blackcatinformatics.ca/logic/PinnedExecutableSubgraph|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The immutable, content-addressed plan fragment a refinement committed to — one instantiation of a logic:DecompositionMethod against one situation, frozen so that what was authorized is exactly what runs. Immutability is a SECURITY property, not tidiness: a mutable pin means an approval was granted against a moving target, and the authorized argument set could differ from the dispatched one."
 msgstr "某次细化所锁定的、不可变且按内容寻址的计划片段——某个 logic:DecompositionMethod 针对某一情境的一次实例化，被冻结起来，以使「所授权者」恰为「所运行者」。不可变性是一项安全属性，而非整洁与否的问题：可变的固定意味着批准是针对一个移动靶发出的，而被授权的参数集可能与被派发的参数集并不相同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PinStepsMatchInstantiatedMethodConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:PinnedExecutableSubgraph whose logic:pinnedStepSequence is not the logic:methodYields sequence of the logic:DecompositionMethod its logic:pinInstantiatesMethod names. Naming a method and freezing some OTHER sequence is the exact failure pinning exists to prevent: the approval was reasoned about against the method's decomposition, and the dispatch runs the pin's, so the authorized argument set and the executed one differ while every record involved stays individually well-formed. Because both sides are one ordered rdf:List, the join is over the whole sequence at once — a pin that keeps the method's steps but reorders them is a different list and is condemned, which is the point of carrying order at all."
+msgstr "拒斥「其 logic:pinnedStepSequence 并非其 logic:pinInstantiatesMethod 所指名之 logic:DecompositionMethod 的 logic:methodYields 序列」之 logic:PinnedExecutableSubgraph 的 logic:Constraint。指名一个方法却冻结「另一条」序列，正是固定机制所要防止的那种失败：批准是就该方法的分解而作出推理的，而派发运行的却是固定所载者；于是被授权的参数集与被执行的参数集彼此有别，而所涉每一条记录单独看来又都良构。由于两侧同为一条有序的 rdf:List，连接是一次性地就整条序列进行的——一个保留了方法各步骤却重排其次序的固定，是另一条列表，因而被判违规；这正是承载次序的意义所在。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PinnedSubgraphCompletenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:PinnedExecutableSubgraph that omits its logic:pinnedStepSequence, its logic:pinDigest, or the logic:pinInstantiatesMethod it was produced from. Each omission empties the pin of the thing it exists to carry: with no step sequence there is no fragment, with no digest the fragment has no address an approval can bind to, and with no method the fragment cannot be checked against the schema it claims to instantiate. A pin missing all three is a label asserting that what was validated is what executes, which is precisely the claim the pin was introduced to make checkable."
+msgstr "拒斥「省略其 logic:pinnedStepSequence、其 logic:pinDigest，或其所由产生之 logic:pinInstantiatesMethod」之 logic:PinnedExecutableSubgraph 的 logic:Constraint。每一处省略都把固定掏空，使其失去它存在所要承载之物：无步骤序列则无片段；无摘要则片段没有可供批准绑定的地址；无方法则片段无从与它自称所实例化的模式相互对照。三者俱缺的固定，不过是一张断言「所验证者即所执行者」的标签——而这恰是引入固定所要使之可核验的那一断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/SaturationWitness|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The evidence that a derivation reached a FIXED POINT rather than a budget cut: the predicates whose extensions it proved final (logic:settledPredicate) and the budget they were proved under (logic:consumedBudget). It is a logic:ReasoningResult, so its computation axis is the kernel's existing logic:resultEvaluation rather than a second, witness-private notion of having finished. Typed APART from logic:FrontierEntry, and the distinction is operational, not tidiness: an entry is a candidate ACTION offered to an operator, a witness is a claim ABOUT the roster of them, so a witness typed as an entry becomes a phantom row an operator can be asked to perform."
+msgstr "表明一次推导抵达的是「不动点」而非预算截断的证据：它已证明其外延为终态的那些谓词（logic:settledPredicate），以及证明所依凭的预算（logic:consumedBudget）。它是一个 logic:ReasoningResult，故其计算轴即内核既有的 logic:resultEvaluation，而非另起一套见证专属的「已完成」概念。与 logic:FrontierEntry 判然有别，而此别属操作层面，无关整洁：条目是提交给操作员的候选「动作」，见证则是关于这些动作之名单的一项断言；因此，被类型化为条目的见证会变成一行幽灵记录，操作员可能被要求去执行它。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PreparationReceipt|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The durable record that a logic:PreparationStep completed and what it produced, so a resumed enactment does not redo preparation it already paid for. Typed APART from logic:ExternalEffectReceipt, which records an outcome observed OUTSIDE the system: a preparation receipt records internal readiness work whose outcome is not in doubt."
@@ -13355,8 +13391,8 @@ msgid "Relates a logic:ActionableFrontier to the enactment it was derived for. F
 msgstr "把 logic:ActionableFrontier 关联到它所为之派生的那次实施。函数性。"
 
 msgctxt "https://blackcatinformatics.ca/logic/frontierSaturationWitness|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The evidence that the frontier derivation reached a fixed point rather than a budget cut — the settled predicate set and the steps consumed. Range a saturation witness (stated in prose). Functional and MANDATORY for any frontier claiming closure: without it, closedness is an assertion the reader cannot check."
-msgstr "表明前沿推导抵达的是不动点而非预算截断的证据——已稳定的谓词集合及所消耗的步数。值域为一个饱和见证（以散文陈述）。函数性，且对任何宣称闭合的前沿为必备：若无它，闭合性便是一句读者无从核验的断言。"
+msgid "The evidence that the frontier derivation reached a fixed point rather than a budget cut — the settled predicate set and the budget consumed. Range logic:SaturationWitness, declared rather than left to prose: an undeclared range is how the position came to be filled by a logic:FrontierEntry, which put a phantom action on the very roster the witness was certifying. Functional and MANDATORY for any frontier claiming closure: without it, closedness is an assertion the reader cannot check."
+msgstr "表明前沿推导抵达的是不动点而非预算截断的证据——已稳定的谓词集合及所消耗的预算。值域为 logic:SaturationWitness，明确声明而非留给散文：正是未声明的值域，才使该位置被一个 logic:FrontierEntry 占据，从而在见证本欲认证的那份名单上添了一条幽灵动作。函数性，且对任何宣称闭合的前沿为必备：若无它，闭合性便是一句读者无从核验的断言。"
 
 msgctxt "https://blackcatinformatics.ca/logic/frontierVantage|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The standpoint a frontier entry's label is relative to. Range a standpoint (stated in prose). Whether an action requires approval is a claim UNDER a policy, and two governing policies can disagree, so classifications coexist as attributed observations rather than collapsing to one global verdict."
@@ -13511,8 +13547,8 @@ msgid "The algorithm-prefixed content address of a logic:DecompositionMethod's f
 msgstr "某个 logic:DecompositionMethod 冻结形式的带算法前缀内容地址，从而使由它产生的固定能够指明所实例化的确切方法版本，并使日后的方法修订无法悄然重新解释一个既有的固定。"
 
 msgctxt "https://blackcatinformatics.ca/logic/methodYields|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:DecompositionMethod to a subtask its decomposition produces. Range a plan step or action schema (stated in prose). Multi-valued and ORDERED through the yielded steps' own flow edges rather than by list position."
-msgstr "把 logic:DecompositionMethod 关联到其分解所产出的某个子任务。值域为一个计划步骤或动作模式（以散文陈述）。多值，且其次序由所产出步骤自身的流边确定，而非由列表位置确定。"
+msgid "Relates a logic:DecompositionMethod to the ORDERED sequence of subtasks its decomposition produces, carried as ONE rdf:List whose position is semantic. Single-valued; range an rdf:List of plan steps or action schemas (stated in prose, as for logic:joinPath). Repeated unordered triples are deliberately NOT the carrier: RDF multi-values are a set, so inspect-then-prepare-then-extract stated that way loses its sequence at the first reader, and a reader forced to impose one can only guess or alphabetise. The order is the plan, so it is carried where a reader can find it."
+msgstr "把 logic:DecompositionMethod 关联到其分解所产出的、有序的子任务序列，由「一条」rdf:List 承载，其位置具有语义。单值；值域为一条由计划步骤或动作模式构成的 rdf:List（以散文陈述，一如 logic:joinPath）。重复而无序的三元组被有意排除于承载之外：RDF 的多值是一个集合，故「先查验、再准备、后抽取」若如此陈述，在第一位读者那里便已丢失其次序，而被迫强加次序的读者只能猜测或按字母排序。次序即计划，故须承载在读者找得到的地方。"
 
 msgctxt "https://blackcatinformatics.ca/logic/normalizationRecipe|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The named, domain-tagged canonicalization the arguments were reduced under. Functional. Recording the recipe rather than only its output is what lets a verifier recompute the digest instead of trusting it."
@@ -13533,6 +13569,14 @@ msgstr "把 logic:PinnedExecutableSubgraph 关联到授权该次固定之物—�
 msgctxt "https://blackcatinformatics.ca/logic/pinDigest|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The algorithm-prefixed content address of the pinned fragment — the value an approval binds to and a dispatch is checked against, so a revised fragment cannot satisfy an authorization issued for its predecessor."
 msgstr "被固定片段的带算法前缀内容地址——批准所绑定、派发所据以校验的正是此值，故经修订的片段无法满足为其前身签发的授权。"
+
+msgctxt "https://blackcatinformatics.ca/logic/pinnedStepSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ordered rdf:List of steps a logic:PinnedExecutableSubgraph froze — the executable content its logic:pinDigest addresses and the content an approval was granted against. Single-valued; range an rdf:List of plan steps (stated in prose). It is what makes the pin a COMMITMENT rather than a name: a pin carrying only a label and a digest asserts an immutability it has no content to be immutable about, so 'what was validated is what executes' becomes a claim no reader can check and no law can test."
+msgstr "某个 logic:PinnedExecutableSubgraph 所冻结之步骤的有序 rdf:List——即其 logic:pinDigest 所寻址的可执行内容，也是批准据以授出的内容。单值；值域为一条由计划步骤构成的 rdf:List（以散文陈述）。正是它使固定成为一项「承诺」而非一个名字：仅携标签与摘要的固定，所断言的不可变性并无内容可资不可变，于是「所验证者即所执行者」便成了无人可核验、无法则可检验的一句断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/settledPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:SaturationWitness to one predicate whose extension the derivation proved FINAL — no further rule application adds a tuple to it. Multi-valued and deliberately enumerated rather than summarized: the predicates a witness does not name are exactly the ones whose closure it does not certify, so 'everything settled' is a claim that must be spelled out predicate by predicate to be falsifiable. Range a predicate (stated in prose)."
+msgstr "把 logic:SaturationWitness 关联到某个其外延已被推导证明为「终态」的谓词——再无任何规则应用能向其添加元组。多值，且刻意逐一列举而非概括：见证未曾指名的谓词，恰是它并未认证其闭合性的那些；因此「一切均已稳定」这一断言，须逐个谓词地写明，方才可被证伪。值域为一个谓词（以散文陈述）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/pinInstantiatesMethod|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:PinnedExecutableSubgraph to the logic:DecompositionMethod it instantiates. Functional. Naming the method version keeps a later method revision from silently re-interpreting an existing pin."
@@ -14162,6 +14206,14 @@ msgctxt "https://blackcatinformatics.ca/logic/frontierVantage|http://www.w3.org/
 msgid "ex:frontier logic:frontierVantage ex:opsStandpoint ."
 msgstr "示例：ex:frontier logic:frontierVantage ex:opsStandpoint ."
 
+msgctxt "https://blackcatinformatics.ca/logic/pinnedStepSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrPin logic:pinnedStepSequence ( ex:inspect ex:extract ex:verify ) ."
+msgstr "示例：ex:ocrPin logic:pinnedStepSequence ( ex:inspect ex:extract ex:verify ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/settledPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run78Saturation logic:settledPredicate logic:hasFrontierEntry , logic:entryLabel ."
+msgstr "示例：ex:run78Saturation logic:settledPredicate logic:hasFrontierEntry , logic:entryLabel ."
+
 msgctxt "https://blackcatinformatics.ca/logic/gapBlockedStep|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:ocrGap logic:gapBlockedStep ex:ocrStep ."
 msgstr "示例：ex:ocrGap logic:gapBlockedStep ex:ocrStep ."
@@ -14267,8 +14319,8 @@ msgid "ex:ocrMethod logic:methodDigest \"b3:1a2b3c…\" ."
 msgstr "示例：ex:ocrMethod logic:methodDigest \"b3:1a2b3c…\" ."
 
 msgctxt "https://blackcatinformatics.ca/logic/methodYields|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:ocrMethod logic:methodYields ex:extract , ex:verify ."
-msgstr "示例：ex:ocrMethod logic:methodYields ex:extract , ex:verify ."
+msgid "ex:ocrMethod logic:methodYields ( ex:extract ex:verify ) ."
+msgstr "示例：ex:ocrMethod logic:methodYields ( ex:extract ex:verify ) ."
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:reviewV4 logic:prescriptionDigest \"b3:4c8a03…\" ."

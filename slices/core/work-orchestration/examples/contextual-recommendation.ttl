@@ -149,6 +149,15 @@ ex:onCallEngineerVantage a gmeow:Entity ;
 # The saturation witness: which predicates the reasoner proved final, and under
 # what budget. Without it a roster truncated by a budget cut is indistinguishable
 # from a genuinely complete one, and the system confidently omits an action.
-ex:remediationSaturation a logic:FrontierEntry ;
+#
+# A single-entry roster is exactly where an unwitnessed closure claim does its
+# damage: "roll back is the recommendation" and "roll back is the only option the
+# search got to" are indistinguishable without the witness, and the second is not
+# a recommendation at all. So the witness names the explanation predicate too —
+# the roster's one entry is closed AND fully explained, or neither claim holds.
+ex:remediationSaturation a logic:SaturationWitness ;
     rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
-    logic:entryLabel logic:FrontierCompleted .
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, gmeow:explainsEntry ;
+    logic:consumedBudget "48"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .

@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A logic:ActionableFrontier citing a witness that witnesses NOTHING: no settled
+# predicate, no consumed budget. It is strictly worse than the frontier that cites
+# no witness at all, because this one satisfies every law that merely COUNTS the
+# citation — the presence law passes, the not-budget-exhausted test passes
+# vacuously (there is no evaluation status to be exhausted), and an operator reads
+# a certified-closed roster.
+#
+# A witness with no content records nothing that could be false, and evidence that
+# cannot be wrong is not evidence.
+#
+# MUST trip logic:FrontierClosureRequiresSaturationConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:frontierEmptyWitness a logic:ActionableFrontier ;
+    rdfs:label "a frontier citing a witness that certifies nothing"@en ;
+    logic:frontierSaturationWitness ex:emptySaturation .
+
+ex:emptySaturation a logic:SaturationWitness ;
+    rdfs:label "a saturation witness carrying neither settled predicates nor a budget"@en .

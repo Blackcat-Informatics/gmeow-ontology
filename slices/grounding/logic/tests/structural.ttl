@@ -1376,7 +1376,9 @@ ASK {
     a logic:OperationOutcome .
   logic:OutcomeUnsupportedFragment a owl:NamedIndividual ;
     a logic:OperationOutcome .
+  logic:PinStepsMatchInstantiatedMethodConstraint a logic:Constraint .
   logic:PinnedExecutableSubgraph a owl:Class .
+  logic:PinnedSubgraphCompletenessConstraint a logic:Constraint .
   logic:PreparationReceipt a owl:Class .
   logic:PreparationStep a owl:Class .
   logic:PrescriptionKind a logic:AbstractIndividualType ;
@@ -1448,6 +1450,8 @@ ASK {
     logic:subClassOf logic:QualityValue .
   logic:ResourceLease a owl:Class .
   logic:RevisionLens a owl:Class .
+  logic:SaturationWitness a owl:Class ;
+    rdfs:subClassOf logic:ReasoningResult .
   logic:SearchFragment a logic:AbstractIndividualType ;
     a owl:Class ;
     logic:subClassOf logic:QualityValue .
@@ -1660,7 +1664,8 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
   logic:frontierSaturationWitness a owl:ObjectProperty ;
-    rdfs:domain logic:ActionableFrontier .
+    rdfs:domain logic:ActionableFrontier ;
+    rdfs:range logic:SaturationWitness .
   logic:frontierVantage a owl:ObjectProperty ;
     rdfs:domain logic:FrontierEntry .
   logic:gapBlockedStep a owl:ObjectProperty ;
@@ -1790,6 +1795,8 @@ ASK {
   logic:pinInstantiatesMethod a owl:ObjectProperty ;
     rdfs:domain logic:PinnedExecutableSubgraph ;
     rdfs:range logic:DecompositionMethod .
+  logic:pinnedStepSequence a owl:ObjectProperty ;
+    rdfs:domain logic:PinnedExecutableSubgraph .
   logic:preparationOf a owl:ObjectProperty ;
     rdfs:domain logic:PreparationStep .
   logic:prescriptionDigest a owl:DatatypeProperty ;
@@ -1923,6 +1930,8 @@ ASK {
   logic:searchFragment a owl:ObjectProperty ;
     rdfs:domain logic:RefinementEpisode ;
     rdfs:range logic:SearchFragment .
+  logic:settledPredicate a owl:ObjectProperty ;
+    rdfs:domain logic:SaturationWitness .
   logic:selectedPin a owl:ObjectProperty ;
     rdfs:domain logic:RefinementEpisode ;
     rdfs:range logic:PinnedExecutableSubgraph .

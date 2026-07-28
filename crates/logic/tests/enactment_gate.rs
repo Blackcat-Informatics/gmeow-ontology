@@ -64,6 +64,19 @@ const FRONTIER_WITHOUT_SATURATION_WITNESS: &str = include_str!(
     "../../../slices/grounding/logic/tests/counter-examples/frontier-closed-without-saturation-witness.ttl"
 );
 
+/// A `logic:ActionableFrontier` citing a witness that carries no settled predicate and no
+/// budget. Trips `logic:FrontierClosureRequiresSaturationConstraint` — the presence sibling
+/// passes, which is exactly why counting the witness was never enough.
+const FRONTIER_WITH_CONTENT_FREE_WITNESS: &str = include_str!(
+    "../../../slices/grounding/logic/tests/counter-examples/frontier-cites-a-content-free-witness.ttl"
+);
+
+/// A `logic:PinnedExecutableSubgraph` freezing a sequence its named method never yielded.
+/// Trips `logic:PinStepsMatchInstantiatedMethodConstraint`.
+const PIN_MISMATCHED_WITH_ITS_METHOD: &str = include_str!(
+    "../../../slices/grounding/logic/tests/counter-examples/pin-freezes-steps-its-method-never-yielded.ttl"
+);
+
 fn parse(ttl: &str) -> Arc<RdfDataset> {
     purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("fixture is valid Turtle")
 }
@@ -371,6 +384,8 @@ ex:thing rdfs:label \"a datum no kernel law governs\" .
 
 const PREFIXES: &str = "\
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
 ";
 
@@ -852,13 +867,25 @@ ex:chargeAttempt a logic:EffectAttempt .
 
 // ── Frontier closure: read the witness, do not count it ───────────────────────────────
 
+/// The complete witness the green halves below are built from: settled predicates, the
+/// budget they were proved under, and a completed evaluation.
+const WITNESSED_CLOSURE: &str = "
+ex:saturation1 a logic:SaturationWitness ;
+    logic:settledPredicate logic:hasFrontierEntry ;
+    logic:consumedBudget \"64\"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+";
+
 #[test]
 fn a_frontier_whose_witness_records_a_budget_cut_fires_on_verify() {
     let report = run_verify(&scene(
         "
 ex:frontier1 a logic:ActionableFrontier ;
     logic:frontierSaturationWitness ex:saturation1 .
-ex:saturation1 logic:resultEvaluation logic:BudgetExhausted .
+ex:saturation1 a logic:SaturationWitness ;
+    logic:settledPredicate logic:hasFrontierEntry ;
+    logic:consumedBudget \"64\"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:BudgetExhausted .
 ",
     ));
     assert_condemns_under(
@@ -868,19 +895,152 @@ ex:saturation1 logic:resultEvaluation logic:BudgetExhausted .
     );
 }
 
+/// The witness that is CITED but says nothing.
+///
+/// This is the case the law was extended to reach, and it is worse than the frontier that
+/// cites nothing: the presence sibling passes, and the not-exhausted test passes vacuously
+/// because there is no evaluation status to be exhausted. A citation that cannot be wrong
+/// reads to an operator exactly like one that has been checked.
 #[test]
-fn a_frontier_whose_witness_ran_to_completion_passes_on_verify() {
+fn a_frontier_citing_a_witness_with_no_settled_predicate_fires_on_verify() {
     let report = run_verify(&scene(
         "
 ex:frontier1 a logic:ActionableFrontier ;
     logic:frontierSaturationWitness ex:saturation1 .
-ex:saturation1 logic:resultEvaluation logic:EvaluationCompleted .
+ex:saturation1 a logic:SaturationWitness ;
+    logic:consumedBudget \"64\"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+",
+    ));
+    assert_condemns_under(
+        &report,
+        "frontier1",
+        "FrontierClosureRequiresSaturationConstraint",
+    );
+}
+
+/// The other content leg: predicates named, but no budget they were proved under.
+///
+/// Separate from the settled-predicate case because they fail independently — a witness may
+/// name what settled while omitting how much search that took, and "settled" without a
+/// bound is not a fixed-point claim a reader can rerun.
+#[test]
+fn a_frontier_citing_a_witness_with_no_budget_fires_on_verify() {
+    let report = run_verify(&scene(
+        "
+ex:frontier1 a logic:ActionableFrontier ;
+    logic:frontierSaturationWitness ex:saturation1 .
+ex:saturation1 a logic:SaturationWitness ;
+    logic:settledPredicate logic:hasFrontierEntry ;
+    logic:resultEvaluation logic:EvaluationCompleted .
+",
+    ));
+    assert_condemns_under(
+        &report,
+        "frontier1",
+        "FrontierClosureRequiresSaturationConstraint",
+    );
+}
+
+/// The SHIPPED content-free-witness counter-example fires through the real entrypoint.
+///
+/// Driving the artifact rather than an inline string is what keeps the slice's own named
+/// fail witness and the gate from drifting apart.
+#[test]
+fn the_shipped_content_free_witness_fixture_fires_on_verify() {
+    let report = run_verify(FRONTIER_WITH_CONTENT_FREE_WITNESS);
+    assert_condemns_under(
+        &report,
+        "frontierEmptyWitness",
+        "FrontierClosureRequiresSaturationConstraint",
+    );
+}
+
+#[test]
+fn a_frontier_whose_witness_ran_to_completion_passes_on_verify() {
+    let report = run_verify(&scene(&format!(
+        "
+ex:frontier1 a logic:ActionableFrontier ;
+    logic:frontierSaturationWitness ex:saturation1 .
+{WITNESSED_CLOSURE}"
+    )));
+    assert_law_silent(
+        &report,
+        "FrontierClosureRequiresSaturationConstraint",
+        "a witness that names what settled, the budget it settled under, and a completed \
+         evaluation certifies the fixed point the frontier claims",
+    );
+}
+
+// ── The pin: it has content, and the content is what was validated ────────────────────
+
+/// A pin carrying only a label breaks the completeness law.
+///
+/// "Immutable and content-addressed" is a claim about content, and a record with none is
+/// immutable the way an empty box is locked.
+#[test]
+fn a_pin_with_no_frozen_content_fires_on_verify() {
+    let report = run_verify(&scene(
+        "
+ex:labelOnlyPin a logic:PinnedExecutableSubgraph .
+",
+    ));
+    assert_condemns_under(
+        &report,
+        "labelOnlyPin",
+        "PinnedSubgraphCompletenessConstraint",
+    );
+}
+
+/// The SHIPPED mismatch counter-example: the pin freezes steps its method never yielded.
+///
+/// Every record in that fixture is individually well-formed — the completeness law cannot
+/// fire on it — so a green here proves the RELATIONAL body ran rather than its presence
+/// sibling picking up the slack.
+#[test]
+fn a_pin_freezing_steps_its_method_never_yielded_fires_on_verify() {
+    let report = run_verify(PIN_MISMATCHED_WITH_ITS_METHOD);
+    assert_condemns_under(
+        &report,
+        "pinMismatchedWithMethod",
+        "PinStepsMatchInstantiatedMethodConstraint",
+    );
+    assert_law_silent(
+        &report,
+        "PinnedSubgraphCompletenessConstraint",
+        "the fixture's pin binds all three mandatory fields, so only the relation is wrong",
+    );
+}
+
+/// The relational law's green half: the pin freezes the very list the method yields.
+///
+/// Without this, the red half above would be satisfied by a law condemning every pin that
+/// names a method at all.
+#[test]
+fn a_pin_freezing_exactly_its_method_s_sequence_passes_on_verify() {
+    let report = run_verify(&scene(
+        "
+ex:goodPin a logic:PinnedExecutableSubgraph ;
+    logic:pinInstantiatesMethod ex:goodMethod ;
+    logic:pinnedStepSequence ex:goodCell1 ;
+    logic:pinDigest \"b3:0e5c\" .
+ex:goodMethod a logic:DecompositionMethod ;
+    logic:methodDecomposes ex:someTask ;
+    logic:methodYields ex:goodCell1 .
+ex:goodCell1 rdf:first ex:inspect ; rdf:rest ex:goodCell2 .
+ex:goodCell2 rdf:first ex:extract ; rdf:rest rdf:nil .
 ",
     ));
     assert_law_silent(
         &report,
-        "FrontierClosureRequiresSaturationConstraint",
-        "a witness whose evaluation completed certifies the fixed point the frontier claims",
+        "PinStepsMatchInstantiatedMethodConstraint",
+        "a pin whose frozen sequence IS the method's yielded sequence is exactly what \
+         pinning models",
+    );
+    assert_law_silent(
+        &report,
+        "PinnedSubgraphCompletenessConstraint",
+        "the pin binds its step sequence, its digest and its method",
     );
 }
 
@@ -999,7 +1159,7 @@ ex:roster1 a logic:RefinementCandidateSet ;
 
 /// The marker-identity fix, pinned on the production surface.
 ///
-/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across forty
+/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across forty-two
 /// laws, so before the law identity was carried out of the chase an operator saw only that
 /// a record breached enactment integrity. This asserts the finding carries the ABSOLUTE IRI
 /// of the authored `logic:Constraint` — the thing whose `logic:message` states the

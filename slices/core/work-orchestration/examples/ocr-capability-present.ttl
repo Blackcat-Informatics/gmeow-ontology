@@ -18,6 +18,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/ocr-present/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -48,9 +49,29 @@ ex:ingestRun78 a logic:Enactment ;
 # --- The decomposition method: a REUSABLE, versioned schema, not a one-off.
 #     This is what lets a continuing cluster learn: next batch refines through
 #     the same method rather than rediscovering the decomposition.
+#
+#     The yielded steps are carried as ONE ORDERED rdf:List, because the order IS
+#     the plan: verifying before extracting verifies nothing, and storing the
+#     receipt before verifying publishes an unchecked result. Repeated
+#     logic:methodYields triples would be an unordered SET, so a reader could only
+#     guess the sequence or alphabetise it — and alphabetised, this plan runs
+#     extract, inspect, prepare, store, verify.
+#
+#     The list cells are NAMED rather than blank for the same reason the pin has a
+#     digest: a pin cannot freeze a cell it cannot name, and an executable fragment
+#     addressed by content must be addressable at all.
 ex:scannedIngestMethod a logic:DecompositionMethod ;
     rdfs:label "Method: decompose scanned ingest into inspect/prepare/OCR/verify/store"@x-gmeow-english ;
-    logic:methodDecomposes ex:ocrStep .
+    logic:methodDecomposes ex:ocrStep ;
+    logic:methodDigest "b3:2f5c8d1a94b70e63f8c2a5d417e09b3c6a8f2d5e71b04c93a6d8f125e370b4ca" ;
+    logic:methodYields ex:scannedIngestCell1 .
+
+# The ordered carrier itself: inspect -> prepare -> OCR -> verify -> store receipt.
+ex:scannedIngestCell1 rdf:first ex:inspectStep ; rdf:rest ex:scannedIngestCell2 .
+ex:scannedIngestCell2 rdf:first ex:prepareStep ; rdf:rest ex:scannedIngestCell3 .
+ex:scannedIngestCell3 rdf:first ex:extractTextStep ; rdf:rest ex:scannedIngestCell4 .
+ex:scannedIngestCell4 rdf:first ex:verifyStep ; rdf:rest ex:scannedIngestCell5 .
+ex:scannedIngestCell5 rdf:first ex:storeReceiptStep ; rdf:rest rdf:nil .
 
 ex:refineRun78 a logic:RefinementEpisode ;
     rdfs:label "Refinement of the OCR step for batch 78"@x-gmeow-english ;
@@ -60,10 +81,30 @@ ex:refineRun78 a logic:RefinementEpisode ;
 ex:ocrStep a logic:TransactionStep ;
     rdfs:label "Extract text from scanned pages"@x-gmeow-english .
 
+# The five steps the method yields. They are the ABSTRACT step the frontier's five
+# entries position, which is why the decomposition and the roster below have the
+# same shape: the roster is what the decomposition became once a run existed.
+ex:inspectStep a logic:TransactionStep ;
+    rdfs:label "Inspect the scanned batch"@x-gmeow-english .
+ex:prepareStep a logic:TransactionStep ;
+    rdfs:label "Prepare pages for extraction"@x-gmeow-english .
+ex:extractTextStep a logic:TransactionStep ;
+    rdfs:label "Run OCR over the prepared pages"@x-gmeow-english .
+ex:verifyStep a logic:TransactionStep ;
+    rdfs:label "Verify the extracted text"@x-gmeow-english .
+ex:storeReceiptStep a logic:TransactionStep ;
+    rdfs:label "Store the ingest receipt"@x-gmeow-english .
+
 # --- The pinned subgraph: immutable and content-addressed, so what was
-#     validated is what executes.
+#     validated is what executes. That sentence is only true if the pin CARRIES
+#     the fragment: it freezes the very list the method yields, addresses it with
+#     a digest, and names the method version it instantiated. A pin holding only a
+#     label is a promise about content it does not have.
 ex:pinnedOcrPlan a logic:PinnedExecutableSubgraph ;
-    rdfs:label "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english .
+    rdfs:label "Pinned: inspect -> prepare -> OCR -> verify -> store receipt"@x-gmeow-english ;
+    logic:pinInstantiatesMethod ex:scannedIngestMethod ;
+    logic:pinnedStepSequence ex:scannedIngestCell1 ;
+    logic:pinDigest "b3:7d1e4a96c05b83f27ae6410d9c3b8524f70a1e6d38c95b02f4a7d6e18c53920b" .
 
 # --- The frontier. Four authorized steps, ONE approval-gated step.
 ex:run78Frontier a logic:ActionableFrontier ;
@@ -75,21 +116,25 @@ ex:run78Frontier a logic:ActionableFrontier ;
 
 ex:inspectEntry a logic:FrontierEntry ;
     rdfs:label "Inspect — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:inspectStep ;
     logic:entryLabel logic:FrontierReadyAuthorized ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
 
 ex:prepareEntry a logic:FrontierEntry ;
     rdfs:label "Prepare — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:prepareStep ;
     logic:entryLabel logic:FrontierReadyAuthorized ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
 
 ex:ocrEntry a logic:FrontierEntry ;
     rdfs:label "OCR — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:extractTextStep ;
     logic:entryLabel logic:FrontierReadyAuthorized ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
 
 ex:verifyEntry a logic:FrontierEntry ;
     rdfs:label "Verify — ready, authorized"@x-gmeow-english ;
+    logic:entryAction ex:verifyStep ;
     logic:entryLabel logic:FrontierReadyAuthorized ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalNull .
 
@@ -98,12 +143,23 @@ ex:verifyEntry a logic:FrontierEntry ;
 # gated on the approval axis simultaneously — two axes, not one blended state.
 ex:storeReceiptEntry a logic:FrontierEntry ;
     rdfs:label "Store receipt — ready, but publishing requires approval"@x-gmeow-english ;
+    logic:entryAction ex:storeReceiptStep ;
     logic:entryLabel logic:FrontierReadyApprovalRequired ;
     logic:entryAxisWitness logic:StepReady, logic:ApprovalCreated .
 
 # The saturation witness: which predicates the reasoner proved final, and under
 # what budget. Without it a roster truncated by a budget cut is indistinguishable
 # from a genuinely complete one, and the system confidently omits an action.
-ex:run78Saturation a logic:FrontierEntry ;
+#
+# It is a logic:SaturationWitness and emphatically NOT a logic:FrontierEntry. A
+# witness typed as an entry joins the roster it was certifying, so the operator is
+# offered a sixth action that does not exist — and, being an entry, it needs an
+# entry label, which is how "the derivation completed" came to be published as a
+# COMPLETED ACTION. The claim about the roster and the members of the roster are
+# different kinds of thing.
+ex:run78Saturation a logic:SaturationWitness ;
     rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
-    logic:entryLabel logic:FrontierCompleted .
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness, logic:entryAction ;
+    logic:consumedBudget "64"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .

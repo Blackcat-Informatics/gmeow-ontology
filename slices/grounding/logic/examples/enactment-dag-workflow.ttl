@@ -115,6 +115,13 @@ ex:publishStageEntry a logic:FrontierEntry ;
 # The saturation witness: which predicates the reasoner proved final, and under
 # what budget. Without it a roster truncated by a budget cut is indistinguishable
 # from a genuinely complete one, and the system confidently omits an action.
-ex:run884Saturation a logic:FrontierEntry ;
+#
+# Typed logic:SaturationWitness, never logic:FrontierEntry. The two are different
+# kinds of claim — one entry positions an ACTION, the witness certifies the roster
+# of them — and collapsing them puts a phantom row on the very list it certifies.
+ex:run884Saturation a logic:SaturationWitness ;
     rdfs:label "Saturation witness — all frontier predicates reached fixpoint within budget"@x-gmeow-english ;
-    logic:entryLabel logic:FrontierCompleted .
+    logic:settledPredicate logic:hasFrontierEntry, logic:entryLabel,
+                           logic:entryAxisWitness ;
+    logic:consumedBudget "16"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:EvaluationCompleted .
