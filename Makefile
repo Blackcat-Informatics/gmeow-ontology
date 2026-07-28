@@ -223,16 +223,7 @@ commit: ## Synchronize artifacts, stage generator-owned outputs, and commit.
 	@# as a prerequisite: a prerequisite executes at the SAME MAKELEVEL as its target,
 	@# so `commit: regen` would trip the direct-invocation guard for every human.
 	$(MAKE) regen
-	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
-	for p in $${REGENERATED_PATHS}; do \
-	  if [ -e "$$p" ]; then git add "$$p"; fi; \
-	done; \
-	if git diff --cached --quiet; then \
-		echo "Nothing to commit."; exit 1; \
-	else \
-		git commit -m "$(MESSAGE)"; \
-	fi
-	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them separately if needed."
+	@GMEOW_DEV="$(GMEOW_DEV)" MESSAGE="$(MESSAGE)" scripts/commit-generated.sh
 
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize

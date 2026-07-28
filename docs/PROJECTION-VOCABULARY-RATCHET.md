@@ -153,7 +153,7 @@ working <= relocation_adjusted_base
 
 **No tool ever creates headroom.** A raise beyond the adjustment still reds, and is
 still a maintainer-only decision authorized out-of-band by merging past that red —
-there is no in-repo permit to raise a ceiling, exactly as there is none to lower a
+there is no in-repo permit to raise a ceiling, just as there is none to lower a
 floor. Every unit of `inflow` must clear four independent tests:
 
 - **Declared.** A `gmeow:CeilingRelocation` — a dated record modelled on
@@ -166,7 +166,7 @@ floor. Every unit of `inflow` must clear four independent tests:
   `|departed ∩ arrived ∩ declared|` over the residue constructs' relocation-invariant
   subject anchors. **The departure requirement is load-bearing:** without it a
   construct merely *copied* into a second slice — two second-sources-of-truth,
-  strictly worse than one, and exactly what the ratchet exists to prevent — would be
+  strictly worse than one, and what the ratchet exists to prevent — would be
   indistinguishable from a relocated one. A construct whose subject is a blank node
   with no named ancestor has no cross-view identity and can never witness anything.
 - **Paid.** Feasibility is a **transport problem**, solved per vocabulary as
@@ -190,7 +190,7 @@ buy nothing.
 
 **Self-cleaning.** A declaration whose relocation is fully **absorbed at base** (its
 terms sit at the destination on *both* sides) is dead and reds until deleted —
-otherwise declarations accumulate into standing permits, which is exactly what the
+otherwise declarations accumulate into standing permits, which is what the
 doctrine forbids. A declared term that did not move likewise reds.
 
 ### 4.2 The floor/ceiling asymmetry — why floors are not netted
