@@ -1,7 +1,7 @@
 {
-  "name": "@blackcatinformatics/gmeow-validate-wasm",
+  "name": "@blackcatinformatics/gmeow-reason-wasm",
   "version": "0.2.0",
-  "description": "The repo-free GMEOW Tier-1 validator (SHACL + OntoUML disciplines over a gmeow.gts bundle, plus the GMN-1 codec validator) compiled to wasm32 for client-side validation in editors, browsers, and LLM clients.",
+  "description": "The native GMEOW structured-DL reasoner (reasoned closure + the symmetric conjecture engine) compiled to wasm32 for client-side reasoning in browsers, editors, and LLM clients.",
   "type": "module",
   "license": "AGPL-3.0-only",
   "author": "Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>",
@@ -12,8 +12,8 @@
   "keywords": [
     "rdf",
     "rdf-1.2",
-    "validation",
-    "shacl",
+    "reasoner",
+    "description-logic",
     "wasm",
     "knowledge-graph"
   ],
@@ -29,10 +29,10 @@
   "files": [
     "index.mjs",
     "index.d.ts",
-    "pkg/gmeow_validate_wasm.js",
-    "pkg/gmeow_validate_wasm.d.ts",
-    "pkg/gmeow_validate_wasm_bg.wasm",
-    "pkg/gmeow_validate_wasm_bg.wasm.d.ts"
+    "pkg/gmeow_reason_wasm.js",
+    "pkg/gmeow_reason_wasm.d.ts",
+    "pkg/gmeow_reason_wasm_bg.wasm",
+    "pkg/gmeow_reason_wasm_bg.wasm.d.ts"
   ],
   "scripts": {
     "test": "node --test tests/*.test.mjs"

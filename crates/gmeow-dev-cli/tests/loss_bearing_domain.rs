@@ -123,8 +123,10 @@ fn assert_every_subject_is_loss_bearing(
     }
 }
 
-/// The distribution catalog: `gmeow:DocumentationDistribution` subjects plus the console's
-/// directly-typed `gmeow:LossBearingProfile` surface.
+/// The distribution catalog: `gmeow:DocumentationDistribution` subjects, the console
+/// included — it is a shipped distribution, and `gmeow:DocumentationDistribution` is
+/// `logic:subClassOf gmeow:LossBearingProfile`, which is what makes it a legal subject of
+/// `gmeow:declaredLoss`.
 #[test]
 fn the_distribution_catalog_declares_loss_only_on_loss_bearing_subjects() {
     let nt = gmeow_pipeline::stages::distribution_catalog::distribution_catalog_ntriples()
@@ -133,17 +135,18 @@ fn the_distribution_catalog_declares_loss_only_on_loss_bearing_subjects() {
     let subjects = loss_subjects(&text);
     assert_every_subject_is_loss_bearing("distribution_catalog", &subjects);
 
-    // The console really is in there, and it is NOT typed as a distribution — that is what
-    // keeps `gmeow docs matrix` at eight rows while still giving the console a ledger.
+    // The console really is in there — it declares a loss like any other surface — and it
+    // reaches the loss-bearing category through its DISTRIBUTION typing rather than by
+    // asserting `gmeow:LossBearingProfile` directly. That is the whole point of promoting
+    // it: one row shape for every shipped surface, and `gmeow docs matrix` lists it.
     let console = subjects
         .keys()
-        .find(|s| s.ends_with("/surface/console"))
-        .unwrap_or_else(|| panic!("the console surface declares no loss: {subjects:?}"));
+        .find(|s| s.ends_with("/dist/console"))
+        .unwrap_or_else(|| panic!("the console distribution declares no loss: {subjects:?}"));
     let types = &subjects[console];
-    assert!(types.contains(&format!("{GMEOW_NS}LossBearingProfile")));
     assert!(
-        !types.contains(&format!("{GMEOW_NS}DocumentationDistribution")),
-        "the console must not be typed as a shipped distribution"
+        types.contains(&format!("{GMEOW_NS}DocumentationDistribution")),
+        "the console must be typed as a shipped distribution: {types:?}"
     );
 }
 

@@ -5041,13 +5041,16 @@ pub fn docs_matrix(reporter: &dyn Reporter) -> i32 {
             );
         }
     };
+    // The family column is 20 wide because `interactive-runtime` is 19 characters: the
+    // previous 14 made the console's row overflow its column and knocked every field after
+    // it out of alignment.
     println!(
-        "{:<10} {:<14} {:<40} {:<24} dropped-capabilities",
+        "{:<10} {:<20} {:<40} {:<24} dropped-capabilities",
         "slug", "family", "consumers", "media-type"
     );
     for row in &rows {
         println!(
-            "{:<10} {:<14} {:<40} {:<24} {}",
+            "{:<10} {:<20} {:<40} {:<24} {}",
             row.slug,
             row.family,
             row.consumers.join(","),

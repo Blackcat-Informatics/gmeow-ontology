@@ -1,0 +1,48 @@
+{
+  "name": "@blackcatinformatics/gmeow-console",
+  "version": "0.2.0",
+  "description": "<gmeow-console> — the standalone, offline, zero-runtime-dependency GMEOW console as one custom element: the same consumer tool surface an agent drives, in a browser tab, with no server and no network.",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "author": "Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology"
+  },
+  "keywords": [
+    "rdf",
+    "rdf-1.2",
+    "custom-element",
+    "web-component",
+    "knowledge-graph",
+    "offline"
+  ],
+  "main": "./element.mjs",
+  "module": "./element.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./element.mjs"
+    },
+    "./session.mjs": {
+      "types": "./session.d.ts",
+      "import": "./session.mjs"
+    }
+  },
+  "files": [
+    "element.mjs",
+    "index.d.ts",
+    "engine.worker.mjs",
+    "session.mjs",
+    "session.d.ts",
+    "examples/gallery.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -18,7 +18,7 @@
 //! The reader used to live inside the writer, so anything that wanted a distribution row
 //! inherited the entire build executor — its stage DAG, scheduler, cache, release signer,
 //! network client, and the docs renderer's embedded multi-megabyte wasm. That is a hard
-//! blocker for a wasm target and a very poor deal for a consumer that wants eight rows of
+//! blocker for a wasm target and a very poor deal for a consumer that wants nine rows of
 //! a table. This crate is the extraction: the catalog read side, and only the read side.
 //!
 //! # What it holds
@@ -74,14 +74,14 @@
 //!    its original `pub(crate)` visibility, exactly as it already does for
 //!    `GRAPH_DOCUMENTATION` / `GRAPH_DIAGNOSTICS` / `GRAPH_AUTHORING_BRIEFS`. One
 //!    definition site; the assembler and the readers cannot drift to different IRIs.
-//! 4. **`crate::stages::distribution_catalog::{dist_iri, iri, site_sub_asset_iri, triple,
+//! 4. **`crate::stages::distribution_catalog::{dist_iri, iri, sub_asset_iri, triple,
 //!    triple_lit}`** → [`identity`] takes over `dist_iri`, `iri`, `triple`, `triple_lit`
 //!    (plus the `DISTRIBUTION_BASE` they hang off and the N-Triples literal escaper they
 //!    share), and the pipeline module re-exports each at its original `pub(crate)`
-//!    visibility. `site_sub_asset_iri` deliberately did NOT move: it is defined over
-//!    `gmeow_docs::formats::DocFormat::Site`, so hoisting it would drag `gmeow-docs` into
-//!    a wasm-clean leaf. It stays with the emitter, defined in terms of the moved
-//!    [`identity::dist_iri`] — one definition site either way, never a copy.
+//!    visibility. `sub_asset_iri` deliberately did NOT move: it is defined over the
+//!    emitter's own sub-asset vocabulary, which is authored beside the distribution table
+//!    in `gmeow-pipeline`. It stays with the emitter, defined in terms of the moved
+//!    [`identity::DISTRIBUTION_BASE`] — one definition site either way, never a copy.
 
 pub mod catalog_graph;
 pub mod concept_lattice;

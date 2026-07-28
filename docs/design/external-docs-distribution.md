@@ -16,7 +16,7 @@ rendered documentation/serialization projection permanently out of the carrier.
 | Re-embed docs in `gmeow.gts` | **FORBIDDEN** (user directive, 2026-07-19) — enforced as a permanent contract invariant, not a default |
 | Canonical schema | ONE distribution catalog authored as meta-level ontology content (`graph/distribution-catalog`), digest-free |
 | Per-release digests | A separate release-time DCAT **instance** manifest under `dist/` — never in the carrier |
-| Source-backed export | Preserved: `make regen SYNC_OUTPUTS=docs` → `sync_docs` renders all eight distributions |
+| Source-backed export | Preserved: `make regen SYNC_OUTPUTS=docs` → `sync_docs` renders all nine distributions (four doc-render, four serialization, and the interactive-runtime console) |
 | `zstd-rsyncable` level-12 | Preserved; positively asserted over the shipped bundle's real payload frames |
 | Size budget | **None reintroduced** — a byte-count ceiling is not a gate that matters; the forbidden-embed invariant is the gate |
 
@@ -157,10 +157,102 @@ have to be known before THIS bundle is serialized). The design splits accordingl
 - `crates/pipeline/src/stages/distribution_catalog.rs` + `graph/distribution-catalog` — the
   canonical schema, folded into `gmeow.gts`, digest-free.
 - `crates/pipeline/src/docs_distribution.rs` + extended `sync_docs` — full external render of
-  all eight distributions + the content-addressed DCAT release manifest.
+  all nine distributions + the content-addressed DCAT release manifest. The nine are
+  declared ONCE, in `distribution_catalog::DISTRIBUTIONS`; `sync_docs` iterates that table
+  for its destinations and release rows rather than restating them.
 - `gmeow-dev docs-package` + `make release-publish` wiring — the content-addressed release
   assets (docs tarball + manifest + `blake3` sidecars) beside the signed `.gts`.
 - `gmeow docs matrix` / `gmeow docs verify` — the repo-free consumer verbs that query the
   shipped catalog and verify the manifest digests.
 - `crates/gmeow-dev-cli/tests/docs_distribution_contract.rs` — the test-gated distribution
   contract enforcing every criterion above.
+
+## npm distribution — the six published packages
+
+The release-asset channel above distributes **rendered documentation**. A second,
+disjoint channel distributes the **executable surfaces**: six scoped npm packages, all at
+the workspace version, all published from the `v*` tag by `.github/workflows/release.yml`
+*after* the native≡wasm parity lanes pass.
+
+The split is by kind, not by taste. Five packages are **engines** — a `wasm32` image plus
+the thin ESM shim that adds the one-time async instantiation the synchronous wasm boundary
+cannot express. The sixth is an **element** — plain JavaScript, no wasm of its own, which
+drives two of those engines.
+
+| Package | Kind | What it is |
+|---|---|---|
+| `@blackcatinformatics/gmeow-validate-wasm` | engine | Tier-1 conformance (SHACL + OntoUML disciplines) over a `gmeow.gts` bundle, plus the GMN-1 codec validator against an embedded codebook |
+| `@blackcatinformatics/gmeow-reason-wasm` | engine | the native structured-DL chase (reasoned closure) and the symmetric conjecture engine |
+| `@blackcatinformatics/gmeow-gmn-wasm` | engine | the GMN-0↔GMN-1 codec and its glyph legend |
+| `@blackcatinformatics/gmeow-mcp-core-wasm` | engine | the LEAN first-load MCP engine: the whole tool surface, reasoning segment demand-loaded |
+| `@blackcatinformatics/gmeow-mcp-wasm` | engine | the demand-loaded REASONING segment the lean core dispatches into |
+| `@blackcatinformatics/gmeow-console` | element | `<gmeow-console>` — the standalone console as one custom element, plus its DOM-free session module |
+
+**Why exactly these.** The set is not curated; it is the set of surfaces that already ship
+a `js/` ESM shim over a `wasm-bindgen` build (the five `*-wasm-pkg` Make lanes) plus the
+one browser element that ships as source. Nothing else in the tree is consumable off the
+repository: `crates/docs/assets/purrdf/` is a **vendored** copy of an upstream package this
+repository does not author or publish, `crates/docs/assets/mcp{,-core}/` are re-vendored
+copies of two of the packages above (the documentation site and the console share one
+7 MB image rather than carrying a second), `crates/docs/assets/console/smoke/` is a
+dev-only Playwright manifest that declares itself `private`, and `editors/vscode/` is a
+Visual Studio Marketplace extension published by `vsce`, on that registry's cadence and
+metadata contract, not to npm.
+
+The package set is **discovered from the shipped bytes** — every `package.json` that is
+neither `"private": true` nor a VS Code extension manifest — by
+`scripts/npm-packaging.mjs` and, independently, by
+`crates/gmeow-dev-cli/tests/npm_packaging_contract.rs`. There is no list of names in any
+source file, so a package cannot be added without every gate below quantifying over it.
+
+### CDN templates
+
+Both public npm CDNs serve these packages directly. Pin the version: an unpinned specifier
+resolves to whatever is latest at fetch time, which is a moving engine underneath a
+reasoned result.
+
+| Package | jsDelivr | unpkg |
+|---|---|---|
+| console element | `https://cdn.jsdelivr.net/npm/@blackcatinformatics/gmeow-console@0.2.0/element.mjs` | `https://unpkg.com/@blackcatinformatics/gmeow-console@0.2.0/element.mjs` |
+| Tier-1 validator | `https://cdn.jsdelivr.net/npm/@blackcatinformatics/gmeow-validate-wasm@0.2.0/index.mjs` | `https://unpkg.com/@blackcatinformatics/gmeow-validate-wasm@0.2.0/index.mjs` |
+| DL reasoner | `https://cdn.jsdelivr.net/npm/@blackcatinformatics/gmeow-reason-wasm@0.2.0/index.mjs` | `https://unpkg.com/@blackcatinformatics/gmeow-reason-wasm@0.2.0/index.mjs` |
+| GMN codec | `https://cdn.jsdelivr.net/npm/@blackcatinformatics/gmeow-gmn-wasm@0.2.0/index.mjs` | `https://unpkg.com/@blackcatinformatics/gmeow-gmn-wasm@0.2.0/index.mjs` |
+| MCP lean core | `https://cdn.jsdelivr.net/npm/@blackcatinformatics/gmeow-mcp-core-wasm@0.2.0/index.mjs` | `https://unpkg.com/@blackcatinformatics/gmeow-mcp-core-wasm@0.2.0/index.mjs` |
+| MCP reasoning segment | `https://cdn.jsdelivr.net/npm/@blackcatinformatics/gmeow-mcp-wasm@0.2.0/index.mjs` | `https://unpkg.com/@blackcatinformatics/gmeow-mcp-wasm@0.2.0/index.mjs` |
+
+This table is **drift-gated**: `cdn_documentation_names_exactly_the_published_packages`
+parses the names out of these URLs and requires them to be exactly the discovered package
+set, at exactly the workspace version. A package added, renamed, or version-bumped
+without editing this table is a hard failure, not a stale doc.
+
+### No runtime CDN loading
+
+**No shipped surface fetches code from a CDN at runtime.** The URLs above are an
+*install-time* convenience for a hand-written page; nothing this repository produces
+contains one.
+
+The reason is the offline contract, not preference. The console is a cache-first PWA whose
+service-worker `SHELL` is generated from the assembled key set and pre-cached with
+`cache.addAll` — a member that lives on a third-party origin would be an install that
+fails, or worse, an offline console whose engine silently is not there. It is also an
+integrity contract: the vendored engine images are pinned by a BLAKE3 manifest and their
+digests are verified against the bytes that shipped, which a third-party origin can
+neither offer nor be held to. And it is a licensing/provenance contract: the release
+publishes with `--provenance`, so the trustworthy artifact is the one the consumer
+installed, not one a CDN resolved for them later.
+
+Concretely: `gmeow-dev console-assemble` emits a self-contained tree in which every module
+the console imports is a same-origin relative path, and the documentation site's
+`assets/` tree carries its engines the same way. A consumer who wants the CDN form must
+place the sibling `assets/` engine tree themselves, or point the transport at their own
+origin with `configure({ assetBase })`.
+
+### Gates
+
+| Lane | What it proves |
+|---|---|
+| `crates/gmeow-dev-cli/tests/npm_packaging_contract.rs` | the discovered set is scoped, versioned, typed; export sets agree; Playwright is dev-only; the release workflow publishes fail-closed with parity FIRST; this table cannot drift |
+| `crates/*/tests/npm_package_version.rs`, `crates/docs/tests/console_npm_package.rs` | each manifest's `version` equals its own crate's `CARGO_PKG_VERSION` |
+| `crates/*/js/tests/exports.test.mjs` | export-set equality against the GENERATED `wasm-bindgen` `.d.ts` |
+| `make npm-publish-dry` | every manifest packs cleanly, with no registry contact |
+| `make npm-consumable` | every package installs from its own tarball and its witness passes against the INSTALLED bytes |

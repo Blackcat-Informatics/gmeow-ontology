@@ -85,11 +85,11 @@ fn the_tool_rows_are_the_shared_catalog_readers_rows() {
 }
 
 /// The `gmeow:DocumentationDistribution` filter is unchanged by the crate move: the matrix
-/// is exactly the eight declared distributions, sorted by slug. This is the property that
+/// is exactly the nine declared distributions, sorted by slug. This is the property that
 /// would break first if the reader started selecting on a broader type — the same graph
-/// also carries family, capability, loss and site-sub-asset subjects.
+/// also carries family, capability, loss and sub-asset subjects.
 #[test]
-fn the_matrix_is_exactly_the_eight_declared_distributions() {
+fn the_matrix_is_exactly_the_nine_declared_distributions() {
     let server = McpServer::from_snapshot(&snapshot()).expect("consumer server constructs");
     let served = payload(&server);
     let slugs: Vec<&str> = served["distributions"]
@@ -101,12 +101,12 @@ fn the_matrix_is_exactly_the_eight_declared_distributions() {
     assert_eq!(
         slugs,
         [
-            "jsonld", "mdbook", "okf", "pdf", "pydantic", "site", "snippets", "yamlld"
+            "console", "jsonld", "mdbook", "okf", "pdf", "pydantic", "site", "snippets", "yamlld"
         ],
-        "the matrix must carry exactly the eight declared distributions, sorted by slug"
+        "the matrix must carry exactly the nine declared distributions, sorted by slug"
     );
 
-    // Two spot-checks that the FACETS survived the move, not just the row count.
+    // Three spot-checks that the FACETS survived the move, not just the row count.
     let rows = served["distributions"].as_array().expect("array");
     let site = rows
         .iter()
@@ -115,6 +115,21 @@ fn the_matrix_is_exactly_the_eight_declared_distributions() {
     assert_eq!(site["family"], json!("doc-render"));
     assert_eq!(site["media_type"], json!("text/html"));
     assert_eq!(site["consumers"], json!(["consumerPublicSite"]));
+
+    // The console is a first-class row with a DERIVED loss set — an agent asking what
+    // surfaces the bundle ships now learns the interactive one exists, and what it costs.
+    let console = rows
+        .iter()
+        .find(|row| row["slug"] == json!("console"))
+        .expect("console row");
+    assert_eq!(console["family"], json!("interactive-runtime"));
+    assert_eq!(console["media_type"], json!("text/html"));
+    assert_eq!(console["consumers"], json!(["consumerInteractiveConsole"]));
+    assert_eq!(
+        console["dropped_capabilities"],
+        json!(["capabilityCrossLinkFidelity", "capabilitySearchIndex"]),
+        "the console's loss is derived from the surface lattice"
+    );
 
     let okf = rows
         .iter()

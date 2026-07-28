@@ -147,17 +147,42 @@ documentation site's standalone SPARQL/describe surfaces, not the console.
 ## Install
 
 ```sh
-npm install @gmeow/console          # not yet published
+npm install @blackcatinformatics/gmeow-console
 ```
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@gmeow/console/element.mjs"></script>
+<script type="module" src="./node_modules/@blackcatinformatics/gmeow-console/element.mjs"></script>
 <gmeow-console></gmeow-console>
 ```
 
-The CDN form still needs the sibling `assets/` tree reachable one level up from
-`element.mjs`; point the transport elsewhere with
-`configure({ assetBase })` from `assets/mcp-transport.mjs` if your layout differs.
+The package ships the element (`element.mjs`), its engine worker, the DOM-free session
+module (a second entry, `@blackcatinformatics/gmeow-console/session.mjs`), the vignette
+gallery, and the TypeScript declarations for both entries. It does **not** ship
+`index.html`, `manifest.webmanifest` or `sw.mjs`: those three are the standalone *site*
+shell, and `sw.mjs` in particular carries a `SHELL` array that only
+`gmeow-dev console-assemble` can fill in from the assembled key set. Publishing the
+unsubstituted worker would ship an offline surface that caches nothing.
+
+The element needs the sibling `assets/` engine tree reachable one level up from
+`element.mjs` — that is the layout `gmeow-dev console-assemble` emits, and the layout the
+documentation site already has. Point the transport elsewhere with
+`configure({ assetBase })` from `assets/mcp-transport.mjs` if yours differs. The engines
+themselves are published beside this package as
+`@blackcatinformatics/gmeow-mcp-core-wasm` (first load) and
+`@blackcatinformatics/gmeow-mcp-wasm` (the demand-loaded reasoning segment).
+
+### No runtime CDN loading
+
+The console **never fetches code from a CDN at runtime**, and neither does anything else
+this repository ships. A CDN URL is an install-time convenience for a hand-written page;
+no module here contains one.
+
+That is a consequence of the offline contract above, not a preference. `sw.mjs` pre-caches
+every shell member with `cache.addAll`, which rejects the whole install if any member is
+missing — a member on a third-party origin would be an install that fails, or an offline
+console whose engine silently is not there. The engine images are additionally pinned by a
+BLAKE3 digest manifest and verified against the bytes that shipped, which a third-party
+origin can neither offer nor be held to.
 
 ## `smoke/`
 

@@ -47,7 +47,7 @@ use purrdf::{RdfDataset, RdfTerm};
 
 use crate::error::DocsDistribution as DocsDistributionError;
 use crate::projections::{TagMap, project_graph};
-use crate::stages::distribution_catalog::{dist_iri, iri, site_sub_asset_iri, triple, triple_lit};
+use crate::stages::distribution_catalog::{dist_iri, iri, sub_asset_iri, triple, triple_lit};
 
 fn err(message: impl Into<String>) -> Diag {
     Diag::of_kind(DocsDistributionError {
@@ -280,12 +280,15 @@ fn release_instance_ntriples(
     for entry in entries {
         emit_member(&mut lines, dist_iri(&entry.slug), entry);
     }
-    // Each `site` sub-asset (the vendored interactive engines + the browser bundle) is a
-    // corpus member keyed by its site_sub_asset subject, so its per-release content
-    // digest rides HERE — the release-instance manifest — and NOT in the carrier catalog
-    // (which stays digest-free; a render-derived digest there is a non-converging fixpoint).
+    // Each shared sub-asset (the vendored interactive engines, the browser bundle, the
+    // demo library) is a corpus member keyed by its sub_asset subject, so its per-release
+    // content digest rides HERE — the release-instance manifest — and NOT in the carrier
+    // catalog (which stays digest-free; a render-derived digest there is a non-converging
+    // fixpoint). The subject is SHARED across owning distributions, so one sub-asset shipped
+    // by both `site` and `console` contributes one digest and two `gmeow:sourceLocation`
+    // values — an honest "one component, two locations", not two components.
     for entry in sub_asset_entries {
-        emit_member(&mut lines, site_sub_asset_iri(&entry.slug), entry);
+        emit_member(&mut lines, sub_asset_iri(&entry.slug), entry);
     }
     lines.sort();
     lines.dedup();
@@ -364,14 +367,16 @@ pub fn build_docs_distribution_manifest(
 ///
 /// The reader MOVED there because it has consumers that must not inherit this build
 /// executor: `gmeow docs matrix` on the consumer CLI, and the MCP `distribution_matrix`
-/// tool, which is a bundle-only leaf. Reading eight rows out of a shipped catalog graph is
+/// tool, which is a bundle-only leaf. Reading nine rows out of a shipped catalog graph is
 /// a pure function of snapshot bytes and needs neither the stage DAG nor the scheduler nor
 /// the release signer. There is exactly ONE definition site — over there — and this
 /// re-export keeps `gmeow_pipeline::docs_distribution::read_distribution_matrix` spelled
 /// the way every existing caller already spells it.
 ///
 /// The `gmeow:DocumentationDistribution` filter is unchanged by the move: `gmeow docs
-/// matrix` still lists exactly the eight declared distributions.
+/// matrix` lists exactly the declared distributions
+/// ([`crate::stages::distribution_catalog::DISTRIBUTIONS`], nine of them since the console
+/// became a first-class distribution).
 pub use gmeow_docs_catalog::{DistributionRow, read_distribution_matrix};
 
 // ── manifest verification (`gmeow docs verify`) ───────────────────────────────────
@@ -716,7 +721,7 @@ mod tests {
 
     #[test]
     fn site_sub_asset_digests_ride_the_release_instance_on_the_sub_asset_subject() {
-        use crate::stages::distribution_catalog::site_sub_asset_iri;
+        use crate::stages::distribution_catalog::sub_asset_iri;
         let sub_assets = vec![DistributionEntry {
             slug: "mcp-wasm".to_string(),
             rel_path: "dist/gmeow-docs/site/assets/mcp/".to_string(),
@@ -724,7 +729,7 @@ mod tests {
             media_type: "application/wasm".to_string(),
         }];
         let nt = release_instance_ntriples(&sample_entries(), &sub_assets);
-        let node = site_sub_asset_iri("mcp-wasm");
+        let node = sub_asset_iri("mcp-wasm");
         // The sub-asset digest hangs off its site_sub_asset subject (NOT a dist_iri),
         // as a corpus member — so dcat.rq projects it exactly like a distribution.
         assert!(
@@ -747,7 +752,7 @@ mod tests {
 
     #[test]
     fn build_manifest_projects_site_sub_asset_digests_through_dcat_rq() {
-        use crate::stages::distribution_catalog::site_sub_asset_iri;
+        use crate::stages::distribution_catalog::sub_asset_iri;
         // Exercise the FULL projection (release_instance_ntriples -> dcat.rq), not just
         // the pre-projection input the sibling test checks: a dcat.rq regression that
         // dropped the SiteSubAsset corpus-member branch would publish no sub-asset digest
@@ -761,7 +766,7 @@ mod tests {
         }];
         let manifest = build_docs_distribution_manifest(&sample_entries(), &sub_assets, &gts_bytes)
             .expect("manifest with a site sub-asset");
-        let node = site_sub_asset_iri("mcp-wasm");
+        let node = sub_asset_iri("mcp-wasm");
         assert!(
             manifest.contains(&format!("<{node}>")),
             "the projected manifest must carry the site_sub_asset subject {node}:\n{manifest}"
@@ -804,33 +809,95 @@ mod tests {
     }
 
     #[test]
-    fn read_distribution_matrix_over_a_synthetic_bundle_returns_all_eight_slugs() {
+    fn read_distribution_matrix_over_a_synthetic_bundle_returns_all_nine_slugs() {
+        use crate::stages::distribution_catalog::DISTRIBUTIONS;
         let gts_bytes = synthetic_gts_with_catalog();
         let rows = read_distribution_matrix(&gts_bytes).expect("read distribution matrix");
         let slugs: Vec<&str> = rows.iter().map(|r| r.slug.as_str()).collect();
         assert_eq!(
             slugs,
             vec![
-                "jsonld", "mdbook", "okf", "pdf", "pydantic", "site", "snippets", "yamlld"
+                "console", "jsonld", "mdbook", "okf", "pdf", "pydantic", "site", "snippets",
+                "yamlld"
             ],
-            "matrix must carry exactly the eight declared distributions, sorted by slug"
+            "matrix must carry exactly the nine declared distributions, sorted by slug"
         );
 
-        let site = rows.iter().find(|r| r.slug == "site").expect("site row");
-        assert_eq!(site.family, "doc-render");
-        assert_eq!(site.media_type, "text/html");
-        assert_eq!(site.consumers, vec!["consumerPublicSite".to_string()]);
+        // Every row's facets ARE the table's — no restated expectations here.
+        for row in &rows {
+            let declared = DISTRIBUTIONS
+                .iter()
+                .find(|d| d.slug == row.slug)
+                .unwrap_or_else(|| panic!("matrix row {} is not a declared row", row.slug));
+            assert_eq!(row.family, declared.family.slug(), "{}", row.slug);
+            assert_eq!(row.media_type, declared.media_type, "{}", row.slug);
+            assert_eq!(
+                row.consumers,
+                vec![declared.consumer.to_string()],
+                "{}",
+                row.slug
+            );
+            // The dropped set is DERIVED from the surface lattice, never authored.
+            let expected: Vec<String> = match declared.surface {
+                Some(surface) => {
+                    let mut dropped: Vec<String> =
+                        gmeow_docs::formats::surface_capabilities(surface)
+                            .dropped
+                            .into_iter()
+                            .map(|cap| format!("capability{}", capability_local_suffix(cap)))
+                            .collect();
+                    dropped.sort();
+                    dropped
+                }
+                None => Vec::new(),
+            };
+            assert_eq!(
+                row.dropped_capabilities, expected,
+                "{}: the matrix's dropped set must be the lattice's",
+                row.slug
+            );
+        }
+
+        // The console is a genuine row with a DERIVED, non-empty loss set — the property
+        // that most easily regresses to "declared but empty".
+        let console = rows
+            .iter()
+            .find(|r| r.slug == "console")
+            .expect("console row");
+        assert_eq!(console.family, "interactive-runtime");
+        assert_eq!(console.media_type, "text/html");
+        assert_eq!(
+            console.consumers,
+            vec!["consumerInteractiveConsole".to_string()]
+        );
+        assert_eq!(
+            console.dropped_capabilities,
+            vec![
+                "capabilityCrossLinkFidelity".to_string(),
+                "capabilitySearchIndex".to_string()
+            ],
+            "the console's dropped capabilities must be derived from the surface lattice"
+        );
 
         let okf = rows.iter().find(|r| r.slug == "okf").expect("okf row");
-        assert_eq!(okf.family, "serialization");
-        assert_eq!(
-            okf.consumers,
-            vec!["consumerKnowledgeFederation".to_string()]
-        );
         assert!(
             okf.dropped_capabilities.is_empty(),
             "serialization family declares no loss: {okf:?}"
         );
+    }
+
+    /// The `gmeow:ProjectionCapability` individual local-name suffix for a capability —
+    /// the kernel's declared spelling, mirroring `distribution_catalog::capability_iri`.
+    fn capability_local_suffix(cap: gmeow_docs::formats::Capability) -> &'static str {
+        use gmeow_docs::formats::Capability;
+        match cap {
+            Capability::SearchIndex => "SearchIndex",
+            Capability::LiveSparql => "LiveSparql",
+            Capability::Interactivity => "Interactivity",
+            Capability::LiveReasoning => "LiveReasoning",
+            Capability::Diagrams => "Diagrams",
+            Capability::CrossLinkFidelity => "CrossLinkFidelity",
+        }
     }
 
     /// The EMITTER half of the concept-lattice pair, read back through the reader that was
@@ -896,19 +963,29 @@ mod tests {
             "the emitted lattice must be the four concepts the incidence admits"
         );
 
-        // The console is an OBJECT of the lattice but NOT a distribution: the matrix over
-        // the very same bytes still returns exactly the eight shipped surfaces.
+        // Emitting the lattice must not widen the matrix: the matrix is exactly the
+        // DECLARED table, no more. The console appears in both now — as an object of the
+        // lattice and as the ninth shipped distribution — but a lattice concept node is
+        // still never a matrix row.
+        use crate::stages::distribution_catalog::DISTRIBUTIONS;
         let matrix = read_distribution_matrix(&gts_bytes).expect("read distribution matrix");
         assert_eq!(
             matrix.len(),
-            8,
-            "emitting the lattice must not widen the distribution matrix: {:?}",
+            DISTRIBUTIONS.len(),
+            "the matrix must be exactly the declared table: {:?}",
             matrix.iter().map(|r| &r.slug).collect::<Vec<_>>()
         );
         assert!(
-            !matrix.iter().any(|row| row.slug == "console"),
-            "the console is a projection surface, never a shipped distribution"
+            matrix.iter().any(|row| row.slug == "console"),
+            "the console is a shipped distribution and an object of the lattice"
         );
+        for row in &rows {
+            assert!(
+                !matrix.iter().any(|m| m.slug == row.concept),
+                "a formal concept must never surface as a distribution row: {}",
+                row.concept
+            );
+        }
     }
 
     #[test]

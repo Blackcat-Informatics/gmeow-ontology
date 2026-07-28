@@ -1,0 +1,4 @@
+# npm install + pack artifacts for the published `@blackcatinformatics/gmeow-console`
+# package. The console's own sources are all tracked; these are not.
+/node_modules/
+/*.tgz

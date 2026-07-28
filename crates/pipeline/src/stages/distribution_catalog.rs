@@ -2,27 +2,46 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The canonical **distribution catalog** — a meta-level named graph declaring WHICH
-//! documentation distributions exist, their FAMILY, their CONSUMER class, and (for the
-//! doc-render family) their declared capability LOSS.
+//! documentation distributions exist, their FAMILY, their CONSUMER class, and (for a
+//! distribution that IS a capability-bearing projection surface) its declared capability
+//! LOSS.
 //!
-//! This is a SCHEMA, not a release record: it declares the eight distributions gmeow
+//! This is a SCHEMA, not a release record: it declares the nine distributions gmeow
 //! ships and their static properties. It carries NO per-release digests — a shipped
 //! release's concrete `gmeow:contentDigest` is a later release-time instance, never
 //! folded into this carrier-time graph (a render-derived digest here would be a
 //! non-converging fixpoint: the digest of THIS bundle would have to be known before
 //! THIS bundle is serialized).
 //!
-//! ## The two families
+//! ## One table, nine rows
+//!
+//! [`DISTRIBUTIONS`] is the SINGLE declaration of what a shipped distribution is. Every
+//! other per-distribution answer in this repo is a fold over it and nothing else:
+//! [`declared_distribution_slugs`], [`media_type_for_slug`], the emitted catalog rows,
+//! and (across the crate seam) `gmeow-dev sync`'s rendered destinations and
+//! content-addressed release entries. There is deliberately no second array anywhere that
+//! restates a slug, a family, a media type, or a consumer: the previous shape carried the
+//! same nine facts in five separate places (two enums here, two array literals in
+//! `dev_project.rs`, and a `CANONICAL_SLUGS` literal in the contract gate), so a new
+//! surface could be declared in one and silently absent from the rest.
+//!
+//! ## The three families
 //!
 //! * **doc-render** — `site`, `mdbook`, `pdf`, `snippets`. These are EXACTLY the
-//!   [`gmeow_docs::formats::DocFormat`] variants, and their declared loss is read from
-//!   the SINGLE authority ([`gmeow_docs::formats::format_capabilities`]) — the same
-//!   table [`crate::stages::docs_format_rendering`] reads — so the catalog's loss
-//!   claims can never drift from the renderer's.
+//!   [`gmeow_docs::formats::DocFormat`] variants.
 //! * **serialization** — `okf`, `jsonld`, `yamlld`, `pydantic`. These are structured
 //!   re-serializations of the ontology, not lossy prose renderings; they carry no
-//!   `gmeow:declaredLoss` here (their own loss lattice, if any, is a future
-//!   declaration on their own graphs, never fabricated here).
+//!   capability partition at all (`surface: None`) and so declare no
+//!   `gmeow:declaredLoss` here.
+//! * **interactive-runtime** — `console`. The standalone in-browser console: a live
+//!   runtime over the shipped bundle rather than a rendered document, and — like the four
+//!   doc-render surfaces — a [`DistributionSurface`] with a capability partition.
+//!
+//! A row whose `surface` is `Some` gets its BOTH-SIDED capability ledger from the SINGLE
+//! authority ([`gmeow_docs::formats::surface_capabilities`]) — the same table
+//! [`crate::stages::docs_format_rendering`] reads — so the catalog's loss claims can never
+//! drift from the renderer's, and the console's loss is DERIVED from the lattice exactly
+//! the way `site`'s and `pdf`'s are, never authored here.
 //!
 //! Every subject this module emits (distribution nodes, family nodes, loss nodes)
 //! carries the proven generated-aBox skeleton (mirroring the carrier's
@@ -52,77 +71,181 @@ const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefined
 /// disagree about where the catalog's subjects live.
 use gmeow_docs_catalog::identity::DISTRIBUTION_BASE;
 
-/// A distribution family.
+/// A distribution family — the coarse KIND of artifact a distribution is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum Family {
+pub enum Family {
+    /// A lossy prose/document rendering of the documentation model.
     DocRender,
+    /// A structured re-serialization of the ontology: no capability partition at all.
     Serialization,
+    /// A live in-browser runtime over the shipped bundle.
+    InteractiveRuntime,
 }
 
 impl Family {
-    fn slug(&self) -> &'static str {
+    /// Every family, in emission order.
+    ///
+    /// [`emit_ntriples`] iterates THIS rather than an inline array literal. Before this
+    /// constant existed the emitter walked a hand-written `[Family::DocRender,
+    /// Family::Serialization]`, so a family variant added for a new distribution row would
+    /// have emitted NO family node at all and every row referencing it would have pointed
+    /// at a dangling IRI — a silent capability degradation with no gate on it.
+    pub const ALL: [Family; 3] = [
+        Family::DocRender,
+        Family::Serialization,
+        Family::InteractiveRuntime,
+    ];
+
+    /// The stable machine slug (the `…/distribution/family/<slug>` tail, and the `family`
+    /// column `gmeow docs matrix` prints).
+    #[must_use]
+    pub fn slug(self) -> &'static str {
         match self {
             Family::DocRender => "doc-render",
             Family::Serialization => "serialization",
+            Family::InteractiveRuntime => "interactive-runtime",
         }
     }
 }
 
-/// A serialization-family distribution (the doc-render family is exactly
-/// [`DocFormat::ALL`]; this covers the remaining four).
+/// One row of [`DISTRIBUTIONS`]: everything the repo knows, statically, about one shipped
+/// documentation distribution.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DistRow {
+    /// The stable machine slug. When [`DistRow::surface`] is `Some`, this MUST equal that
+    /// surface's own slug — gated by `the_table_agrees_with_the_surface_vocabulary`.
+    pub slug: &'static str,
+    /// The family this distribution belongs to.
+    pub family: Family,
+    /// The declared `gmeow:artifactMediaType`.
+    pub media_type: &'static str,
+    /// The `gmeow:ProjectionContext` consumer local name (`gmeow:eligibleForConsumer`).
+    pub consumer: &'static str,
+    /// The capability-bearing projection surface this distribution IS, when it is one.
+    ///
+    /// `Some` ⟹ the row's BOTH-SIDED capability ledger (`gmeow:representableParameter` +
+    /// `gmeow:declaredLoss`) is DERIVED from [`surface_capabilities`], never authored
+    /// here. `None` ⟹ a structured re-serialization, which carries no capability partition
+    /// and therefore declares no loss.
+    pub surface: Option<DistributionSurface>,
+    /// The release-relative path the rendered tree ships at — the destination
+    /// `gmeow-dev sync`'s docs fanout reconciles to and the `gmeow:sourceLocation` the
+    /// release manifest records.
+    pub rel_path: &'static str,
+    /// Whether this distribution ships the shared interactive-engine [`SubAsset`]s.
+    ///
+    /// The sub-assets are ONE set of shared subjects; every owner links to them with
+    /// `gmeow:hasSubAsset` and prices them out of its OWN rendered tree, so the
+    /// byte-identity of the engine across owners is a checkable release-time fact rather
+    /// than an assumption.
+    pub sub_assets: bool,
+}
+
+/// **The** distribution table: the single declaration of the nine shipped documentation
+/// distributions. See the module docs — everything per-distribution folds over this and
+/// nothing restates it.
+pub const DISTRIBUTIONS: [DistRow; 9] = [
+    DistRow {
+        slug: "site",
+        family: Family::DocRender,
+        media_type: "text/html",
+        consumer: "consumerPublicSite",
+        surface: Some(DistributionSurface::Format(DocFormat::Site)),
+        rel_path: "dist/gmeow-docs/site",
+        sub_assets: true,
+    },
+    DistRow {
+        slug: "mdbook",
+        family: Family::DocRender,
+        media_type: "text/markdown",
+        consumer: "consumerOfflineBook",
+        surface: Some(DistributionSurface::Format(DocFormat::Mdbook)),
+        rel_path: "dist/gmeow-docs/mdbook",
+        sub_assets: false,
+    },
+    DistRow {
+        slug: "pdf",
+        family: Family::DocRender,
+        media_type: "application/pdf",
+        consumer: "consumerPrintArchive",
+        surface: Some(DistributionSurface::Format(DocFormat::Pdf)),
+        rel_path: "dist/gmeow-docs/pdf",
+        sub_assets: false,
+    },
+    DistRow {
+        slug: "snippets",
+        family: Family::DocRender,
+        media_type: "text/markdown",
+        consumer: "consumerAgentMemory",
+        surface: Some(DistributionSurface::Format(DocFormat::Snippets)),
+        rel_path: "dist/gmeow-docs/snippets",
+        sub_assets: false,
+    },
+    // The standalone interactive console. Its capability ledger — including its declared
+    // loss of `search-index` and `cross-link-fidelity` — is DERIVED from the surface
+    // lattice below exactly the way every other surface row's is; nothing about the
+    // console's loss is authored in this table.
+    DistRow {
+        slug: "console",
+        family: Family::InteractiveRuntime,
+        media_type: "text/html",
+        consumer: "consumerInteractiveConsole",
+        surface: Some(DistributionSurface::Console),
+        rel_path: "dist/gmeow-docs/console",
+        sub_assets: true,
+    },
+    DistRow {
+        slug: "okf",
+        family: Family::Serialization,
+        media_type: "application/json",
+        consumer: "consumerKnowledgeFederation",
+        surface: None,
+        rel_path: "dist/gmeow-docs/okf",
+        sub_assets: false,
+    },
+    DistRow {
+        slug: "jsonld",
+        family: Family::Serialization,
+        media_type: "application/ld+json",
+        consumer: "consumerLinkedDataTooling",
+        surface: None,
+        rel_path: "dist/gmeow-docs/jsonld",
+        sub_assets: false,
+    },
+    DistRow {
+        slug: "yamlld",
+        family: Family::Serialization,
+        media_type: "application/yaml",
+        consumer: "consumerLinkedDataTooling",
+        surface: None,
+        rel_path: "dist/gmeow-docs/yamlld",
+        sub_assets: false,
+    },
+    DistRow {
+        slug: "pydantic",
+        family: Family::Serialization,
+        media_type: "text/x-python",
+        consumer: "consumerTypedModelClient",
+        surface: None,
+        rel_path: "dist/gmeow-docs/pydantic",
+        sub_assets: false,
+    },
+];
+
+/// A shared sub-asset: one of the vendored interactive engines, the object-level browser
+/// bundle, or the conjecture demo library that ships INSIDE an interactive distribution
+/// rather than as one of its own, content-addressed at a known path in the rendered tree.
+///
+/// These are SUB-ASSETS — never top-level distributions — so they are NOT in
+/// [`declared_distribution_slugs`] and the nine-slug bijection is preserved. Their schema
+/// rows (family / consumer / media-type) ride here DIGEST-FREE; the per-release content
+/// digests live only in the `dist/` instance manifest ([`crate::docs_distribution`]).
+///
+/// The subjects are SHARED across owners: `site` and `console` ship the byte-identical
+/// engine set (`gmeow_docs::console_files` folds `interactive_asset_files` in), so they
+/// name the same [`sub_asset_iri`] rather than each minting a private copy of it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum SerializationDist {
-    Okf,
-    Jsonld,
-    Yamlld,
-    Pydantic,
-}
-
-impl SerializationDist {
-    const ALL: [SerializationDist; 4] = [
-        SerializationDist::Okf,
-        SerializationDist::Jsonld,
-        SerializationDist::Yamlld,
-        SerializationDist::Pydantic,
-    ];
-
-    fn slug(&self) -> &'static str {
-        match self {
-            SerializationDist::Okf => "okf",
-            SerializationDist::Jsonld => "jsonld",
-            SerializationDist::Yamlld => "yamlld",
-            SerializationDist::Pydantic => "pydantic",
-        }
-    }
-
-    fn media_type(&self) -> &'static str {
-        match self {
-            SerializationDist::Okf => "application/json",
-            SerializationDist::Jsonld => "application/ld+json",
-            SerializationDist::Yamlld => "application/yaml",
-            SerializationDist::Pydantic => "text/x-python",
-        }
-    }
-
-    fn consumer(&self) -> &'static str {
-        match self {
-            SerializationDist::Okf => "consumerKnowledgeFederation",
-            SerializationDist::Jsonld => "consumerLinkedDataTooling",
-            SerializationDist::Yamlld => "consumerLinkedDataTooling",
-            SerializationDist::Pydantic => "consumerTypedModelClient",
-        }
-    }
-}
-
-/// A `site` sub-asset: one of the vendored interactive engines or the browser bundle
-/// the site (and the packed mdbook) ships EXTERNALLY, content-addressed. These are
-/// SUB-ASSETS of the `site` distribution — never new top-level distributions — so they
-/// are NOT in [`declared_distribution_slugs`] and the eight-slug bijection is preserved.
-/// Their schema rows (family / consumer / media-type) ride here DIGEST-FREE; the
-/// per-release content digests live only in the `dist/` instance manifest
-/// ([`crate::docs_distribution`]).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum SiteSubAsset {
+enum SubAsset {
     PurrdfWasm,
     McpCoreWasm,
     McpWasm,
@@ -130,82 +253,64 @@ enum SiteSubAsset {
     ConjectureDemo,
 }
 
-impl SiteSubAsset {
-    const ALL: [SiteSubAsset; 5] = [
-        SiteSubAsset::PurrdfWasm,
-        SiteSubAsset::McpCoreWasm,
-        SiteSubAsset::McpWasm,
-        SiteSubAsset::CoreBundle,
-        SiteSubAsset::ConjectureDemo,
+impl SubAsset {
+    const ALL: [SubAsset; 5] = [
+        SubAsset::PurrdfWasm,
+        SubAsset::McpCoreWasm,
+        SubAsset::McpWasm,
+        SubAsset::CoreBundle,
+        SubAsset::ConjectureDemo,
     ];
 
-    fn slug(&self) -> &'static str {
+    fn slug(self) -> &'static str {
         match self {
-            SiteSubAsset::PurrdfWasm => "purrdf-wasm",
-            SiteSubAsset::McpCoreWasm => "mcp-core-wasm",
-            SiteSubAsset::McpWasm => "mcp-wasm",
-            SiteSubAsset::CoreBundle => "core-bundle",
-            SiteSubAsset::ConjectureDemo => "conjectures",
+            SubAsset::PurrdfWasm => "purrdf-wasm",
+            SubAsset::McpCoreWasm => "mcp-core-wasm",
+            SubAsset::McpWasm => "mcp-wasm",
+            SubAsset::CoreBundle => "core-bundle",
+            SubAsset::ConjectureDemo => "conjectures",
         }
     }
 
     /// The wasm engines are `application/wasm`; the browser bundle is object-level
     /// N-Quads text; the conjecture demo library is Turtle.
-    fn media_type(&self) -> &'static str {
+    fn media_type(self) -> &'static str {
         match self {
-            SiteSubAsset::CoreBundle => "application/n-quads",
-            SiteSubAsset::ConjectureDemo => "text/turtle",
+            SubAsset::CoreBundle => "application/n-quads",
+            SubAsset::ConjectureDemo => "text/turtle",
             _ => "application/wasm",
         }
     }
 
-    /// The site-tree path (or directory prefix) the sub-asset's bytes ship at, so the
-    /// release-time digest producer content-addresses exactly what the catalog prices.
-    fn site_path_prefix(&self) -> &'static str {
+    /// The OWNER-tree-relative path (or directory prefix) the sub-asset's bytes ship at,
+    /// so the release-time digest producer content-addresses exactly what the catalog
+    /// prices. The prefix is the same in every owner's tree, which is what makes the
+    /// cross-owner byte-identity check meaningful.
+    fn tree_path_prefix(self) -> &'static str {
         match self {
-            SiteSubAsset::PurrdfWasm => "assets/purrdf/",
-            SiteSubAsset::McpCoreWasm => "assets/mcp-core/",
-            SiteSubAsset::McpWasm => "assets/mcp/",
-            SiteSubAsset::CoreBundle => "assets/gmeow-core.nq",
-            SiteSubAsset::ConjectureDemo => "assets/conjectures.ttl",
+            SubAsset::PurrdfWasm => "assets/purrdf/",
+            SubAsset::McpCoreWasm => "assets/mcp-core/",
+            SubAsset::McpWasm => "assets/mcp/",
+            SubAsset::CoreBundle => "assets/gmeow-core.nq",
+            SubAsset::ConjectureDemo => "assets/conjectures.ttl",
         }
     }
 
     /// A human label for the schema row.
-    fn label(&self) -> &'static str {
+    fn label(self) -> &'static str {
         match self {
-            SiteSubAsset::PurrdfWasm => "vendored purrdf SPARQL/RDF wasm engine",
-            SiteSubAsset::McpCoreWasm => "MCP core segment (the console's first-load engine)",
-            SiteSubAsset::McpWasm => "MCP reasoning segment (demand-loaded)",
-            SiteSubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
-            SiteSubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
+            SubAsset::PurrdfWasm => "vendored purrdf SPARQL/RDF wasm engine",
+            SubAsset::McpCoreWasm => "MCP core segment (the console's first-load engine)",
+            SubAsset::McpWasm => "MCP reasoning segment (demand-loaded)",
+            SubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
+            SubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
         }
     }
 }
 
-/// The doc-render family's per-format media type.
-fn doc_render_media_type(fmt: DocFormat) -> &'static str {
-    match fmt {
-        DocFormat::Site => "text/html",
-        DocFormat::Mdbook => "text/markdown",
-        DocFormat::Pdf => "application/pdf",
-        DocFormat::Snippets => "text/markdown",
-    }
-}
-
-/// The doc-render family's per-format consumer.
-fn doc_render_consumer(fmt: DocFormat) -> &'static str {
-    match fmt {
-        DocFormat::Site => "consumerPublicSite",
-        DocFormat::Mdbook => "consumerOfflineBook",
-        DocFormat::Pdf => "consumerPrintArchive",
-        DocFormat::Snippets => "consumerAgentMemory",
-    }
-}
-
-/// Build the distribution catalog graph: the eight distributions, their two families,
-/// and (doc-render only) their declared capability loss, folded into
-/// [`GRAPH_DISTRIBUTION_CATALOG`].
+/// Build the distribution catalog graph: the nine distributions, their three families,
+/// the shared sub-assets, and (for every surface-bearing row) its declared capability
+/// loss, folded into [`GRAPH_DISTRIBUTION_CATALOG`].
 pub fn build_distribution_catalog() -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag>
 {
     let nt = emit_ntriples()?;
@@ -223,33 +328,30 @@ pub fn distribution_catalog_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
     emit_ntriples()
 }
 
-/// The declared `gmeow:artifactMediaType` for a distribution slug — the SAME
-/// media type this module folds onto the carrier-time catalog subject, exposed as
-/// the single cross-crate authority so a release-time producer (the external docs
-/// fanout, `gmeow-dev sync`) never re-authors a second media-type table that could
-/// drift from the schema. Returns `None` for an unrecognized slug (not one of the
-/// eight declared distributions).
-pub fn media_type_for_slug(slug: &str) -> Option<&'static str> {
-    if let Some(fmt) = DocFormat::ALL.into_iter().find(|fmt| fmt.slug() == slug) {
-        return Some(doc_render_media_type(fmt));
-    }
-    SerializationDist::ALL
-        .into_iter()
-        .find(|dist| dist.slug() == slug)
-        .map(|dist| dist.media_type())
+/// The [`DISTRIBUTIONS`] row for `slug`, or `None` for a slug the catalog does not
+/// declare. The one lookup every other by-slug answer folds through.
+#[must_use]
+pub fn distribution_row(slug: &str) -> Option<&'static DistRow> {
+    DISTRIBUTIONS.iter().find(|row| row.slug == slug)
 }
 
-/// Every distribution slug the catalog declares — the doc-render family
-/// ([`DocFormat::ALL`]) plus the serialization family ([`SerializationDist::ALL`]),
-/// the two authorities [`emit_ntriples`] folds. Exposed so a bijection gate can compare
-/// against the WHOLE declared set: an added or dropped distribution surfaces as a
-/// set-size mismatch rather than passing a subset-presence check.
+/// The declared `gmeow:artifactMediaType` for a distribution slug — read straight off
+/// [`DISTRIBUTIONS`], the SAME row this module folds onto the carrier-time catalog
+/// subject, so a release-time producer (the external docs fanout, `gmeow-dev sync`) can
+/// never consult a second media-type table that drifts from the schema. Returns `None`
+/// for an unrecognized slug.
+#[must_use]
+pub fn media_type_for_slug(slug: &str) -> Option<&'static str> {
+    distribution_row(slug).map(|row| row.media_type)
+}
+
+/// Every distribution slug the catalog declares — the keys of [`DISTRIBUTIONS`], the ONE
+/// authority [`emit_ntriples`] folds. Exposed so a bijection gate can compare against the
+/// WHOLE declared set: an added or dropped distribution surfaces as a set-size mismatch
+/// rather than passing a subset-presence check.
+#[must_use]
 pub fn declared_distribution_slugs() -> std::collections::BTreeSet<&'static str> {
-    DocFormat::ALL
-        .into_iter()
-        .map(|fmt| fmt.slug())
-        .chain(SerializationDist::ALL.into_iter().map(|dist| dist.slug()))
-        .collect()
+    DISTRIBUTIONS.iter().map(|row| row.slug).collect()
 }
 
 // ── identity helpers ────────────────────────────────────────────────────────────────
@@ -272,36 +374,77 @@ fn loss_iri(slug: &str, cap_slug: &str) -> String {
     format!("{DISTRIBUTION_BASE}loss/{slug}/{cap_slug}")
 }
 
-/// The canonical catalog subject for a `site` sub-asset
-/// (`…/distribution/dist/site/sub-asset/<slug>`). `pub(crate)` so the release-time
-/// instance producer ([`crate::docs_distribution`]) hangs each sub-asset's
-/// `gmeow:contentDigest` off the SAME subject, never a re-derived string.
+/// The canonical catalog subject for a shared sub-asset
+/// (`…/distribution/sub-asset/<slug>`). `pub(crate)` so the release-time instance producer
+/// ([`crate::docs_distribution`]) hangs each sub-asset's `gmeow:contentDigest` off the SAME
+/// subject, never a re-derived string.
+///
+/// The subject deliberately sits OUTSIDE the `…/distribution/dist/` namespace, for two
+/// reasons. It is now shared by every owning distribution (`site` and `console` both link
+/// to it with `gmeow:hasSubAsset`), so nesting it under one owner would have been a false
+/// identity claim. And the previous `…/dist/site/sub-asset/<slug>` shape was actively
+/// broken on the consumer side: [`crate::docs_distribution::verify_docs_distribution`]
+/// recovers a distribution slug by stripping `…/distribution/dist/` off every manifest
+/// subject, so a real release manifest handed it the pseudo-slug
+/// `site/sub-asset/purrdf-wasm` and it hard-failed looking for a `site/sub-asset/…`
+/// directory that never existed. Out of the `dist/` namespace, the strip correctly
+/// declines and sub-assets no longer masquerade as distributions.
 ///
 /// This is the ONE identity helper that stayed on the writer's side of the
-/// `gmeow-docs-catalog` split: it is defined over [`DocFormat::Site`], so hoisting it into
-/// the wasm-clean reader leaf would drag `gmeow-docs` (and its embedded vendored wasm) in
-/// with it. It is still a single definition site, built on the moved [`dist_iri`].
-pub(crate) fn site_sub_asset_iri(slug: &str) -> String {
-    format!("{}/sub-asset/{slug}", dist_iri(DocFormat::Site.slug()))
+/// `gmeow-docs-catalog` split, alongside the sub-asset vocabulary it is defined over. It
+/// is still a single definition site, built on the moved [`DISTRIBUTION_BASE`].
+pub(crate) fn sub_asset_iri(slug: &str) -> String {
+    format!("{DISTRIBUTION_BASE}sub-asset/{slug}")
 }
 
-/// Every `site` sub-asset slug the catalog declares (the vendored interactive engines +
-/// the browser bundle). Exposed so the release-time instance producer prices the SAME
-/// set, and a contract gate can assert these are sub-assets of `site` — NOT members of
-/// the eight-slug distribution bijection.
-pub fn declared_site_sub_asset_slugs() -> std::collections::BTreeSet<&'static str> {
-    SiteSubAsset::ALL.into_iter().map(|s| s.slug()).collect()
+/// Every sub-asset slug the catalog declares (the vendored interactive engines, the
+/// browser bundle, the demo library). Exposed so the release-time instance producer prices
+/// the SAME set, and a contract gate can assert these are sub-assets — NOT members of the
+/// nine-slug distribution bijection.
+#[must_use]
+pub fn declared_sub_asset_slugs() -> std::collections::BTreeSet<&'static str> {
+    SubAsset::ALL.into_iter().map(SubAsset::slug).collect()
 }
 
-/// The `(slug, site-tree path prefix, media type)` pricing tuple for every `site`
-/// sub-asset, in a fixed order. The release-time digest producer (`gmeow-dev sync`)
-/// iterates this to content-address each sub-asset from the rendered site tree and hang
-/// its `gmeow:contentDigest` off the SAME [`site_sub_asset_iri`] subject the carrier
-/// catalog prices digest-free — the single authority for what a site sub-asset IS.
-pub fn site_sub_asset_pricing() -> Vec<(&'static str, &'static str, &'static str)> {
-    SiteSubAsset::ALL
-        .into_iter()
-        .map(|s| (s.slug(), s.site_path_prefix(), s.media_type()))
+/// Every [`DISTRIBUTIONS`] row that ships the shared sub-assets, in table order.
+fn sub_asset_owners() -> impl Iterator<Item = &'static DistRow> {
+    DISTRIBUTIONS.iter().filter(|row| row.sub_assets)
+}
+
+/// The distribution slugs that own the shared sub-assets (`site`, `console`), derived
+/// from [`DISTRIBUTIONS`]. Exposed so a contract gate can check ownership without
+/// restating it.
+#[must_use]
+pub fn sub_asset_owner_slugs() -> std::collections::BTreeSet<&'static str> {
+    sub_asset_owners().map(|row| row.slug).collect()
+}
+
+/// The DISTRIBUTION-PARAMETERIZED `(owner slug, sub-asset slug, owner-tree path prefix,
+/// media type)` pricing tuples: one per (owner, sub-asset) pair, in a fixed order.
+///
+/// The release-time digest producer (`gmeow-dev sync`) iterates this to content-address
+/// each sub-asset OUT OF ITS OWNER'S OWN rendered tree and hang its `gmeow:contentDigest`
+/// off the SAME shared [`sub_asset_iri`] subject the carrier catalog prices digest-free.
+/// Because the subject is shared, two owners pricing the same sub-asset to two different
+/// digests is a contradiction the producer must refuse rather than silently publish — see
+/// `gmeow-dev-cli`'s `price_sub_assets`.
+///
+/// This replaced a site-only `site_sub_asset_pricing()`: with the console a shipped
+/// distribution that ships the identical engine set, a site-only pricing would have left
+/// the console's copy of a 7 MB wasm image with no release digest at all.
+#[must_use]
+pub fn sub_asset_pricing() -> Vec<(&'static str, &'static str, &'static str, &'static str)> {
+    sub_asset_owners()
+        .flat_map(|owner| {
+            SubAsset::ALL.into_iter().map(move |sub| {
+                (
+                    owner.slug,
+                    sub.slug(),
+                    sub.tree_path_prefix(),
+                    sub.media_type(),
+                )
+            })
+        })
         .collect()
 }
 
@@ -323,16 +466,14 @@ fn capability_iri(cap: Capability) -> String {
 }
 
 /// The catalog subject for a capability-bearing projection SURFACE — the object column of
-/// the formal context. For a rendered format that IS its distribution subject; the console
-/// is a surface without being a shipped distribution, so it gets its own subject outside the
-/// eight-slug bijection.
+/// the formal context.
+///
+/// Every surface IS a shipped distribution now (the console became the ninth), so this is
+/// exactly [`dist_iri`] over the surface's slug — one subject per surface, not a parallel
+/// `…/surface/<slug>` namespace shadowing the distribution one.
+/// `every_surface_is_a_declared_distribution` gates the correspondence.
 fn surface_iri(surface: DistributionSurface) -> String {
-    match surface {
-        DistributionSurface::Format(fmt) => dist_iri(fmt.slug()),
-        DistributionSurface::Console => {
-            format!("{DISTRIBUTION_BASE}surface/{}", surface.slug())
-        }
-    }
+    dist_iri(surface.slug())
 }
 
 /// The subject of one derived formal concept, named by its extent so the identity is
@@ -443,27 +584,49 @@ fn emit_capability_ledger(lines: &mut Vec<String>, subject: &str, surface: Distr
     }
 }
 
-/// Emit the interactive console as a capability-bearing projection SURFACE.
+/// Emit the shared sub-assets: one digest-free schema row per [`SubAsset`], linked from
+/// EVERY owning distribution ([`sub_asset_owners`]) with `gmeow:hasSubAsset`.
 ///
-/// It is typed `gmeow:LossBearingProfile` directly rather than
-/// `gmeow:DocumentationDistribution`: the console is not one of the eight artifacts the
-/// release ships, so typing it as a distribution would silently widen
-/// `read_distribution_matrix` to nine rows. It still needs a loss ledger and an audience,
-/// because it is an object of the formal context the concept lattice is derived over.
-fn emit_console_surface(lines: &mut Vec<String>) {
-    let console = surface_iri(DistributionSurface::Console);
-    skeleton(
-        lines,
-        &console,
-        &iri(GMEOW_NS, "LossBearingProfile"),
-        "interactive console projection surface",
-    );
-    lines.push(triple(
-        &console,
-        &iri(GMEOW_NS, "eligibleForConsumer"),
-        &consumer_iri("consumerInteractiveConsole"),
-    ));
-    emit_capability_ledger(lines, &console, DistributionSurface::Console);
+/// One subject per sub-asset, not one per (owner, sub-asset) pair: `site` and `console`
+/// ship the byte-identical engine set, so two subjects would have asserted that the two
+/// copies are different components and would have doubled the release-manifest rows for a
+/// single shipped artifact. Each owner's consumer rides onto the shared node, so the
+/// sub-asset's audience is the union of its owners' audiences rather than a hard-coded one.
+fn emit_sub_assets(lines: &mut Vec<String>) {
+    for sub in SubAsset::ALL {
+        let node = sub_asset_iri(sub.slug());
+        skeleton(lines, &node, &iri(GMEOW_NS, "SiteSubAsset"), sub.label());
+        lines.push(triple_lit(
+            &node,
+            &iri(GMEOW_NS, "distributionFormat"),
+            sub.slug(),
+        ));
+        // The engines, the browser bundle, and the demo library are emitted ONLY by an
+        // interactive render — they are what makes a surface a live runtime — so the
+        // interactive-runtime family is their honest classification.
+        lines.push(triple(
+            &node,
+            &iri(GMEOW_NS, "distributionFamily"),
+            &family_iri(Family::InteractiveRuntime),
+        ));
+        lines.push(triple_lit(
+            &node,
+            &iri(GMEOW_NS, "artifactMediaType"),
+            sub.media_type(),
+        ));
+        for owner in sub_asset_owners() {
+            lines.push(triple(
+                &dist_iri(owner.slug),
+                &iri(GMEOW_NS, "hasSubAsset"),
+                &node,
+            ));
+            lines.push(triple(
+                &node,
+                &iri(GMEOW_NS, "eligibleForConsumer"),
+                &consumer_iri(owner.consumer),
+            ));
+        }
+    }
 }
 
 /// Emit the COMPLETE concept-lattice element set: every formal concept of the
@@ -710,8 +873,8 @@ fn emit_capability_laws(lines: &mut Vec<String>) -> Result<(), gmeow_errors::Dia
 fn emit_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut lines: Vec<String> = Vec::new();
 
-    // ── family nodes ──
-    for family in [Family::DocRender, Family::Serialization] {
+    // ── family nodes: Family::ALL, never an inline literal ──
+    for family in Family::ALL {
         let fam = family_iri(family);
         skeleton(
             &mut lines,
@@ -721,115 +884,52 @@ fn emit_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
         );
     }
 
-    // ── doc-render distributions: EXACTLY the DocFormat variants ──
-    for fmt in DocFormat::ALL {
-        let slug = fmt.slug();
-        let dist = dist_iri(slug);
+    // ── the distributions: one loop over the ONE table ──
+    for row in DISTRIBUTIONS {
+        let dist = dist_iri(row.slug);
         skeleton(
             &mut lines,
             &dist,
             &iri(GMEOW_NS, "DocumentationDistribution"),
-            &format!("documentation distribution {slug}"),
+            &format!("documentation distribution {}", row.slug),
         );
         lines.push(triple_lit(
             &dist,
             &iri(GMEOW_NS, "distributionFormat"),
-            slug,
+            row.slug,
         ));
         lines.push(triple(
             &dist,
             &iri(GMEOW_NS, "distributionFamily"),
-            &family_iri(Family::DocRender),
+            &family_iri(row.family),
         ));
         lines.push(triple_lit(
             &dist,
             &iri(GMEOW_NS, "artifactMediaType"),
-            doc_render_media_type(fmt),
+            row.media_type,
         ));
         lines.push(triple(
             &dist,
             &iri(GMEOW_NS, "eligibleForConsumer"),
-            &consumer_iri(doc_render_consumer(fmt)),
+            &consumer_iri(row.consumer),
         ));
 
         // The capability ledger, SOURCED FROM the single authority — never re-authored
-        // here. `gmeow:DocumentationDistribution` is a `gmeow:LossBearingProfile`, which is
-        // what makes it a legal subject of `gmeow:declaredLoss`.
-        emit_capability_ledger(&mut lines, &dist, DistributionSurface::Format(fmt));
+        // here, and identical in kind for the console and for `site`.
+        // `gmeow:DocumentationDistribution` is a `gmeow:LossBearingProfile`, which is what
+        // makes it a legal subject of `gmeow:declaredLoss`. A serialization row has no
+        // surface and therefore no ledger at all.
+        if let Some(surface) = row.surface {
+            emit_capability_ledger(&mut lines, &dist, surface);
+        }
     }
 
-    // ── serialization distributions: no declaredLoss ──
-    for dist_enum in SerializationDist::ALL {
-        let slug = dist_enum.slug();
-        let dist = dist_iri(slug);
-        skeleton(
-            &mut lines,
-            &dist,
-            &iri(GMEOW_NS, "DocumentationDistribution"),
-            &format!("documentation distribution {slug}"),
-        );
-        lines.push(triple_lit(
-            &dist,
-            &iri(GMEOW_NS, "distributionFormat"),
-            slug,
-        ));
-        lines.push(triple(
-            &dist,
-            &iri(GMEOW_NS, "distributionFamily"),
-            &family_iri(Family::Serialization),
-        ));
-        lines.push(triple_lit(
-            &dist,
-            &iri(GMEOW_NS, "artifactMediaType"),
-            dist_enum.media_type(),
-        ));
-        lines.push(triple(
-            &dist,
-            &iri(GMEOW_NS, "eligibleForConsumer"),
-            &consumer_iri(dist_enum.consumer()),
-        ));
-    }
-
-    // ── site sub-assets: the vendored interactive engines + the browser bundle ──
+    // ── the shared sub-assets: the vendored engines, the browser bundle, the demo ──
     // First-class schema rows, DIGEST-FREE (the per-release content digests ride only in
-    // the `dist/` instance manifest). Hung off the `site` distribution via
+    // the `dist/` instance manifest). Hung off EVERY owning distribution via
     // gmeow:hasSubAsset, so they are sub-assets — NOT top-level distributions — and the
-    // eight-slug bijection is untouched.
-    let site_dist = dist_iri(DocFormat::Site.slug());
-    for sub in SiteSubAsset::ALL {
-        let slug = sub.slug();
-        let node = site_sub_asset_iri(slug);
-        skeleton(
-            &mut lines,
-            &node,
-            &iri(GMEOW_NS, "SiteSubAsset"),
-            sub.label(),
-        );
-        lines.push(triple(&site_dist, &iri(GMEOW_NS, "hasSubAsset"), &node));
-        lines.push(triple_lit(
-            &node,
-            &iri(GMEOW_NS, "distributionFormat"),
-            slug,
-        ));
-        lines.push(triple(
-            &node,
-            &iri(GMEOW_NS, "distributionFamily"),
-            &family_iri(Family::DocRender),
-        ));
-        lines.push(triple_lit(
-            &node,
-            &iri(GMEOW_NS, "artifactMediaType"),
-            sub.media_type(),
-        ));
-        lines.push(triple(
-            &node,
-            &iri(GMEOW_NS, "eligibleForConsumer"),
-            &consumer_iri(doc_render_consumer(DocFormat::Site)),
-        ));
-    }
-
-    // ── the interactive console: a capability-bearing surface, NOT a distribution ──
-    emit_console_surface(&mut lines);
+    // nine-slug bijection is untouched.
+    emit_sub_assets(&mut lines);
 
     // ── the DERIVED half: the complete concept lattice and its implication basis ──
     // Both are computed from the surface × capability incidence, never authored here.
@@ -865,14 +965,116 @@ mod tests {
     fn every_slug_appears_as_a_distribution_format() {
         let nt = ntriples_text();
         let pred = iri(GMEOW_NS, "distributionFormat");
-        let expected = [
-            "site", "mdbook", "pdf", "snippets", "okf", "jsonld", "yamlld", "pydantic",
-        ];
-        for slug in expected {
-            let needle = format!("<{}> \"{slug}\" .", pred);
+        for row in DISTRIBUTIONS {
+            let needle = format!("<{}> \"{}\" .", pred, row.slug);
             assert!(
                 nt.lines().any(|l| l.contains(&needle)),
-                "missing gmeow:distributionFormat for slug {slug:?}"
+                "missing gmeow:distributionFormat for slug {:?}",
+                row.slug
+            );
+        }
+    }
+
+    /// The table's own internal consistency: slugs are unique, a row that claims a surface
+    /// agrees with that surface's slug, and EVERY declared surface is a row. Without this,
+    /// `surface_iri` could mint a subject no distribution row backs (or two rows could
+    /// claim the same one) and the concept lattice's extents would point at nothing.
+    #[test]
+    fn the_table_agrees_with_the_surface_vocabulary() {
+        let slugs = declared_distribution_slugs();
+        assert_eq!(
+            slugs.len(),
+            DISTRIBUTIONS.len(),
+            "DISTRIBUTIONS carries a duplicate slug: {slugs:?}"
+        );
+        for row in DISTRIBUTIONS {
+            if let Some(surface) = row.surface {
+                assert_eq!(
+                    row.slug,
+                    surface.slug(),
+                    "row {:?} claims surface {surface:?}, whose slug disagrees",
+                    row.slug
+                );
+            }
+            assert_eq!(
+                row.rel_path,
+                format!("dist/gmeow-docs/{}", row.slug),
+                "row {:?} must ship under the shared docs-distribution base",
+                row.slug
+            );
+        }
+        // Every capability-bearing surface is a shipped distribution — which is what makes
+        // `surface_iri` = `dist_iri` sound.
+        for surface in DistributionSurface::ALL {
+            assert!(
+                slugs.contains(surface.slug()),
+                "surface {surface:?} is not a declared distribution; surface_iri would mint \
+                 a subject no row backs"
+            );
+        }
+        // …and only a serialization row lacks one.
+        for row in DISTRIBUTIONS {
+            assert_eq!(
+                row.surface.is_none(),
+                row.family == Family::Serialization,
+                "row {:?}: a surface-free row must be exactly a serialization row",
+                row.slug
+            );
+        }
+    }
+
+    /// `Family::ALL` really is every family the table uses — the D-j guard. A row naming a
+    /// family absent from `ALL` would emit a dangling `gmeow:distributionFamily` IRI.
+    #[test]
+    fn every_row_family_has_an_emitted_family_node() {
+        let nt = ntriples_text();
+        for row in DISTRIBUTIONS {
+            assert!(
+                Family::ALL.contains(&row.family),
+                "row {:?} names family {:?}, which is absent from Family::ALL — its family \
+                 node would never be emitted",
+                row.slug,
+                row.family
+            );
+            assert!(
+                nt.contains(&triple(
+                    &family_iri(row.family),
+                    RDF_TYPE,
+                    &iri(GMEOW_NS, "DistributionFamily")
+                )),
+                "family {:?} has no emitted gmeow:DistributionFamily node",
+                row.family.slug()
+            );
+        }
+        for family in Family::ALL {
+            assert!(
+                nt.contains(&triple(
+                    &family_iri(family),
+                    RDF_TYPE,
+                    &iri(GMEOW_NS, "DistributionFamily")
+                )),
+                "Family::ALL member {:?} emits no family node",
+                family.slug()
+            );
+        }
+    }
+
+    /// `media_type_for_slug` and `declared_distribution_slugs` are FOLDS over the table,
+    /// not parallel copies: every row answers with its own media type, and nothing else
+    /// answers at all.
+    #[test]
+    fn the_by_slug_lookups_fold_over_the_table() {
+        for row in DISTRIBUTIONS {
+            assert_eq!(media_type_for_slug(row.slug), Some(row.media_type));
+            assert_eq!(distribution_row(row.slug), Some(&row));
+        }
+        assert_eq!(media_type_for_slug("not-a-distribution"), None);
+        assert_eq!(distribution_row("not-a-distribution"), None);
+        for slug in declared_sub_asset_slugs() {
+            assert_eq!(
+                media_type_for_slug(slug),
+                None,
+                "sub-asset {slug:?} must not answer as a distribution"
             );
         }
     }
@@ -893,8 +1095,10 @@ mod tests {
             }
         }
         assert!(
-            subjects.len() >= 8 + 2,
-            "expected at least 8 distributions + 2 families, got {}",
+            subjects.len() >= DISTRIBUTIONS.len() + Family::ALL.len(),
+            "expected at least {} distributions + {} families, got {}",
+            DISTRIBUTIONS.len(),
+            Family::ALL.len(),
             subjects.len()
         );
         for subject in &subjects {
@@ -926,31 +1130,53 @@ mod tests {
     }
 
     #[test]
-    fn site_sub_assets_are_priced_digest_free_and_outside_the_bijection() {
+    fn sub_assets_are_priced_digest_free_and_outside_the_bijection() {
         let nt = ntriples_text();
-        let site_dist = dist_iri(DocFormat::Site.slug());
         let bijection = declared_distribution_slugs();
         assert_eq!(
             bijection.len(),
-            8,
-            "the eight-slug bijection must be untouched"
+            9,
+            "the nine-slug bijection must hold: {bijection:?}"
         );
 
-        for slug in declared_site_sub_asset_slugs() {
+        // Ownership is SHARED: both `site` and `console` ship the identical engine set, so
+        // both must link to the same subjects. A single owner here would leave the other
+        // distribution's copy of a 7 MB wasm image unpriced on the release path.
+        let owners = sub_asset_owner_slugs();
+        assert_eq!(
+            owners,
+            std::collections::BTreeSet::from(["site", "console"]),
+            "the shared sub-assets must be owned by exactly the two interactive surfaces"
+        );
+
+        for slug in declared_sub_asset_slugs() {
             // NOT a top-level distribution — the bijection is preserved.
             assert!(
                 !bijection.contains(slug),
-                "site sub-asset {slug:?} must NOT be a top-level distribution slug"
+                "sub-asset {slug:?} must NOT be a top-level distribution slug"
             );
-            let node = site_sub_asset_iri(slug);
-            // Typed as a SiteSubAsset and hung off the site distribution.
+            let node = sub_asset_iri(slug);
+            // Typed as a SiteSubAsset and hung off EVERY owning distribution.
             assert!(
                 nt.contains(&triple(&node, RDF_TYPE, &iri(GMEOW_NS, "SiteSubAsset"))),
                 "sub-asset {slug:?} missing rdf:type gmeow:SiteSubAsset"
             );
+            for owner in &owners {
+                assert!(
+                    nt.contains(&triple(
+                        &dist_iri(owner),
+                        &iri(GMEOW_NS, "hasSubAsset"),
+                        &node
+                    )),
+                    "{owner} distribution must declare gmeow:hasSubAsset {slug:?}"
+                );
+            }
+            // The subject sits OUTSIDE the `dist/` namespace, so the consumer-side
+            // `verify_docs_distribution` slug strip cannot mistake it for a distribution
+            // directory (it used to, and hard-failed on every real release manifest).
             assert!(
-                nt.contains(&triple(&site_dist, &iri(GMEOW_NS, "hasSubAsset"), &node)),
-                "site distribution must declare gmeow:hasSubAsset {slug:?}"
+                !node.starts_with(&format!("{DISTRIBUTION_BASE}dist/")),
+                "sub-asset subject {node} must not live under the distribution namespace"
             );
             // Schema row present, DIGEST-FREE (no contentDigest in the carrier catalog).
             assert!(
@@ -1004,28 +1230,50 @@ mod tests {
         }
     }
 
-    /// The console rides as a capability-bearing SURFACE: it has an audience and a loss
-    /// ledger, and it is deliberately not a distribution, so the eight-slug bijection and
-    /// the consumer-facing matrix are untouched by its arrival.
+    /// The console is the NINTH shipped distribution: a full catalog row (family, media
+    /// type, audience, format slug) whose capability ledger is DERIVED from the surface
+    /// lattice, exactly like `site`'s — not authored anywhere in this module.
     #[test]
-    fn the_console_is_a_surface_with_a_ledger_and_not_a_distribution() {
+    fn the_console_is_the_ninth_distribution_with_a_derived_ledger() {
         let nt = ntriples_text();
-        let console = surface_iri(DistributionSurface::Console);
+        let console = dist_iri("console");
+        let row = distribution_row("console").expect("the console is a declared distribution");
+        assert_eq!(row.family, Family::InteractiveRuntime);
+        assert_eq!(row.media_type, "text/html");
+        assert_eq!(row.consumer, "consumerInteractiveConsole");
+        assert_eq!(row.surface, Some(DistributionSurface::Console));
+
         assert!(
             nt.contains(&triple(
                 &console,
                 RDF_TYPE,
-                &iri(GMEOW_NS, "LossBearingProfile")
-            )),
-            "the console surface must be typed gmeow:LossBearingProfile"
-        );
-        assert!(
-            !nt.contains(&triple(
-                &console,
-                RDF_TYPE,
                 &iri(GMEOW_NS, "DocumentationDistribution")
             )),
-            "the console must NOT be typed as a shipped distribution"
+            "the console must be typed as a shipped distribution"
+        );
+        assert!(
+            nt.contains(&triple_lit(
+                &console,
+                &iri(GMEOW_NS, "distributionFormat"),
+                "console"
+            )),
+            "the console must carry its distribution format slug"
+        );
+        assert!(
+            nt.contains(&triple(
+                &console,
+                &iri(GMEOW_NS, "distributionFamily"),
+                &family_iri(Family::InteractiveRuntime)
+            )),
+            "the console must belong to the interactive-runtime family"
+        );
+        assert!(
+            nt.contains(&triple_lit(
+                &console,
+                &iri(GMEOW_NS, "artifactMediaType"),
+                "text/html"
+            )),
+            "the console must declare its media type"
         );
         assert!(
             nt.contains(&triple(
@@ -1033,29 +1281,36 @@ mod tests {
                 &iri(GMEOW_NS, "eligibleForConsumer"),
                 &consumer_iri("consumerInteractiveConsole")
             )),
-            "the console surface must name its declared audience"
-        );
-        assert!(
-            !nt.lines().any(|line| line.starts_with(&format!(
-                "<{console}> <{}>",
-                iri(GMEOW_NS, "distributionFormat")
-            ))),
-            "the console carries no distribution format slug — it is outside the bijection"
+            "the console must name its declared audience"
         );
         assert_eq!(
             declared_distribution_slugs().len(),
-            8,
-            "the eight-slug bijection must survive the console's arrival"
+            9,
+            "the nine-slug bijection must include the console"
         );
 
-        // Its ledger is the authored partition, both halves.
+        // Its ledger is the DERIVED partition, both halves — read from the same authority
+        // `site` and `pdf` read, never restated in this table.
         let caps = surface_capabilities(DistributionSurface::Console);
+        assert!(
+            !caps.dropped.is_empty() && !caps.representable.is_empty(),
+            "a vacuous console partition would make this gate meaningless: {caps:?}"
+        );
         for cap in &caps.dropped {
             let loss_node = loss_iri("console", cap.slug());
+            assert!(
+                nt.contains(&triple(
+                    &console,
+                    &iri(GMEOW_NS, "declaredLoss"),
+                    &loss_node
+                )),
+                "the console's derived loss of {:?} is missing from the catalog",
+                cap.slug()
+            );
             assert!(nt.contains(&triple(
-                &console,
-                &iri(GMEOW_NS, "declaredLoss"),
-                &loss_node
+                &loss_node,
+                &iri(GMEOW_NS, "accountsForParameter"),
+                &capability_iri(*cap)
             )));
         }
         for cap in &caps.representable {
@@ -1248,14 +1503,22 @@ mod tests {
     #[test]
     fn serialization_family_has_no_declared_loss() {
         let nt = ntriples_text();
-        for dist_enum in SerializationDist::ALL {
-            let dist = dist_iri(dist_enum.slug());
+        let serializations: Vec<&DistRow> = DISTRIBUTIONS
+            .iter()
+            .filter(|row| row.family == Family::Serialization)
+            .collect();
+        assert!(
+            !serializations.is_empty(),
+            "the serialization family must be non-empty, or this gate is vacuous"
+        );
+        for row in serializations {
+            let dist = dist_iri(row.slug);
             let pred = iri(GMEOW_NS, "declaredLoss");
             let needle = format!("<{dist}> <{pred}>");
             assert!(
                 !nt.lines().any(|l| l.starts_with(&needle)),
                 "{} (serialization family) must not declare loss",
-                dist_enum.slug()
+                row.slug
             );
         }
     }
@@ -1272,32 +1535,80 @@ mod tests {
     #[test]
     fn every_distribution_has_a_family_and_consumer() {
         let nt = ntriples_text();
-        let all_slugs = [
-            ("site", Family::DocRender),
-            ("mdbook", Family::DocRender),
-            ("pdf", Family::DocRender),
-            ("snippets", Family::DocRender),
-            ("okf", Family::Serialization),
-            ("jsonld", Family::Serialization),
-            ("yamlld", Family::Serialization),
-            ("pydantic", Family::Serialization),
-        ];
-        for (slug, family) in all_slugs {
-            let dist = dist_iri(slug);
+        for row in DISTRIBUTIONS {
+            let dist = dist_iri(row.slug);
             assert!(
                 nt.contains(&triple(
                     &dist,
                     &iri(GMEOW_NS, "distributionFamily"),
-                    &family_iri(family)
+                    &family_iri(row.family)
                 )),
-                "{slug} missing distributionFamily {}",
-                family.slug()
+                "{} missing distributionFamily {}",
+                row.slug,
+                row.family.slug()
             );
-            let pred = iri(GMEOW_NS, "eligibleForConsumer");
-            let needle = format!("<{dist}> <{pred}>");
             assert!(
-                nt.lines().any(|l| l.starts_with(&needle)),
-                "{slug} missing eligibleForConsumer"
+                nt.contains(&triple(
+                    &dist,
+                    &iri(GMEOW_NS, "eligibleForConsumer"),
+                    &consumer_iri(row.consumer)
+                )),
+                "{} missing eligibleForConsumer {}",
+                row.slug,
+                row.consumer
+            );
+            assert!(
+                nt.contains(&triple_lit(
+                    &dist,
+                    &iri(GMEOW_NS, "artifactMediaType"),
+                    row.media_type
+                )),
+                "{} missing artifactMediaType {}",
+                row.slug,
+                row.media_type
+            );
+        }
+    }
+
+    /// The distribution-parameterized pricing set is exactly `owners × sub-assets`, and it
+    /// stays disjoint from the distribution bijection.
+    #[test]
+    fn sub_asset_pricing_is_owner_parameterized_and_complete() {
+        let owners = sub_asset_owner_slugs();
+        let subs = declared_sub_asset_slugs();
+        let priced = sub_asset_pricing();
+        assert_eq!(
+            priced.len(),
+            owners.len() * subs.len(),
+            "pricing must cover every (owner, sub-asset) pair: {priced:?}"
+        );
+        for owner in &owners {
+            for sub in &subs {
+                assert!(
+                    priced.iter().any(|(o, s, _, _)| o == owner && s == sub),
+                    "no pricing row for owner {owner:?} sub-asset {sub:?}"
+                );
+            }
+        }
+        // Every priced media type agrees with the emitted schema row, and every priced
+        // owner really is a declared distribution.
+        let nt = ntriples_text();
+        for (owner, sub, prefix, media_type) in &priced {
+            assert!(
+                distribution_row(owner).is_some(),
+                "pricing owner {owner:?} is not a declared distribution"
+            );
+            assert!(
+                !prefix.is_empty(),
+                "sub-asset {sub:?} has an empty tree prefix"
+            );
+            assert!(
+                nt.contains(&triple_lit(
+                    &sub_asset_iri(sub),
+                    &iri(GMEOW_NS, "artifactMediaType"),
+                    media_type
+                )),
+                "priced media type for {sub:?} disagrees with the emitted schema row"
             );
         }
     }

@@ -14,11 +14,11 @@
 //! at its original `pub(crate)` visibility, so the writer is unchanged and the two sides
 //! can never fork an escaping rule or a subject namespace.
 //!
-//! One helper deliberately did NOT move: `site_sub_asset_iri`. It is defined over
-//! `gmeow_docs::formats::DocFormat::Site`, so hoisting it here would pull `gmeow-docs`
-//! (and its ~13.6 MB of embedded vendored wasm) into a wasm-clean leaf. It stays with the
-//! emitter, defined in terms of [`dist_iri`] — still one definition site, on the side of
-//! the seam that already owns the `DocFormat` vocabulary.
+//! One helper deliberately did NOT move: `sub_asset_iri`. It is defined over the
+//! emitter's own sub-asset vocabulary (which slug ships at which owner-tree prefix), and
+//! that vocabulary is authored beside the distribution table in `gmeow-pipeline`. It stays
+//! with the emitter, defined in terms of [`DISTRIBUTION_BASE`] — still one definition
+//! site, on the side of the seam that owns the thing being named.
 
 /// The instance subject base every distribution / family / loss / capability IRI the
 /// catalog mints lives under.

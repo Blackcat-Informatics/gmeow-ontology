@@ -26,8 +26,24 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+/// Read a committed source/config file this gate scrapes.
+///
+/// Scraping gates DIAGNOSE rather than panic. A bare `panic!`/`expect` here reports "the
+/// file moved" as an unlabelled crash with no remediation, which is exactly the failure
+/// mode that makes a structural gate look broken instead of informative: the reader cannot
+/// tell a real regression from a rename. Every reader below therefore fails through an
+/// `assert!` carrying the path it wanted and what a maintainer should do.
 fn read(rel: &str) -> String {
-    std::fs::read_to_string(repo_root().join(rel)).unwrap_or_else(|e| panic!("read {rel}: {e}"))
+    let path = repo_root().join(rel);
+    match std::fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(e) => panic!(
+            "distribution contract: cannot read the committed source {rel} at {} ({e}). This \
+             gate reads that file to check a structural property; if the file MOVED, update \
+             this reader to its new path — do not delete the assertion.",
+            path.display()
+        ),
+    }
 }
 
 fn makefile() -> String {
@@ -66,17 +82,26 @@ fn gts_profile_source() -> String {
 
 fn target_header_index(source: &str, target: &str) -> usize {
     let prefix = format!("{target}:");
-    source
-        .lines()
-        .position(|line| line.starts_with(&prefix))
-        .unwrap_or_else(|| panic!("missing Make target {target}"))
+    let found = source.lines().position(|line| line.starts_with(&prefix));
+    assert!(
+        found.is_some(),
+        "distribution contract: the Makefile declares no `{target}:` target. This gate \
+         checks that target's recipe; if the target was RENAMED, point this reader at the \
+         new name — if it was removed, the contract it enforced is gone and that needs a \
+         decision, not a deleted assertion."
+    );
+    found.unwrap_or_default()
 }
 
 fn target_header<'a>(source: &'a str, target: &str) -> &'a str {
-    source
-        .lines()
-        .nth(target_header_index(source, target))
-        .expect("target header index is in bounds")
+    let index = target_header_index(source, target);
+    let header = source.lines().nth(index);
+    assert!(
+        header.is_some(),
+        "distribution contract: the `{target}:` header index {index} is out of bounds — the \
+         Makefile reader is broken, not the Makefile"
+    );
+    header.unwrap_or_default()
 }
 
 fn target_recipe(source: &str, target: &str) -> String {
@@ -141,138 +166,194 @@ fn ac3_makefile_release_publish_attaches_docs_tar_via_docs_package() {
 
 // ── AC2 / AC6 — segmentation, single authority, bijection, boundary ────────────────
 
-/// The eight canonical distribution slugs this contract ships: the four doc-render
-/// formats (`gmeow_docs::formats::DocFormat::ALL`) plus the four serialization
-/// formats.
-const CANONICAL_SLUGS: [&str; 8] = [
-    "site", "mdbook", "pdf", "snippets", "pydantic", "okf", "jsonld", "yamlld",
-];
-
-/// Extract every `dist/gmeow-docs/<slug>` literal's `<slug>` from `source`
-/// (deduped). Used against `dev_project.rs` to recover the set of destinations
-/// `sync_docs` actually reconciles to disk — an extraction, not a hardcoded list,
-/// so this test tracks the real destinations array rather than a copy of it.
-fn dist_gmeow_docs_slugs(source: &str) -> BTreeSet<String> {
-    let needle = "dist/gmeow-docs/";
-    source
-        .match_indices(needle)
-        .filter_map(|(pos, matched)| {
-            let tail = &source[pos + matched.len()..];
-            let slug: String = tail
-                .chars()
-                .take_while(|c| c.is_ascii_alphanumeric() || *c == '-')
-                .collect();
-            (!slug.is_empty()).then_some(slug)
-        })
+/// The nine canonical distribution slugs, READ OFF the exported table rather than
+/// restated here.
+///
+/// This used to be a `const CANONICAL_SLUGS: [&str; 8]` literal — a third copy of the same
+/// nine facts, sitting beside a text-scrape of `dev_project.rs`'s destinations array. That
+/// shape could only ever assert "the copies still agree", and a genuine new distribution
+/// made the gate red for the wrong reason. Reading
+/// [`gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS`] makes this gate check
+/// the real property: the ONE table drives the rendered destinations, and the counts are
+/// non-vacuous.
+fn canonical_slugs() -> BTreeSet<String> {
+    gmeow_pipeline::stages::distribution_catalog::declared_distribution_slugs()
+        .into_iter()
+        .map(str::to_string)
         .collect()
 }
 
 #[test]
-fn ac2_ac6_eight_canonical_slugs_bijection_between_producers() {
-    let expected: BTreeSet<String> = CANONICAL_SLUGS.iter().map(|s| s.to_string()).collect();
+fn ac2_ac6_canonical_slugs_bijection_between_producers() {
+    use gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS;
 
-    // Producer 1: the rendered destinations `sync_docs` reconciles to disk.
-    let dev_project = dev_project_source();
-    let mut rendered_slugs = dist_gmeow_docs_slugs(&dev_project);
-    let had_manifest = rendered_slugs.remove("manifest");
-    assert!(
-        had_manifest,
-        "AC2/AC6: dev_project.rs `sync_docs` must reconcile a \
-         `dist/gmeow-docs/manifest` destination for the DCAT release manifest, separate from the \
-         8 canonical distributions — slug extraction found none"
+    let expected = canonical_slugs();
+    assert_eq!(
+        expected.len(),
+        9,
+        "AC2/AC6: the distribution catalog must declare exactly nine distributions (the \
+         eight documents/serializations plus the interactive console); found {expected:?}"
     );
+    assert!(
+        expected.contains("console"),
+        "AC2/AC6: the standalone interactive console is a shipped distribution and must be \
+         in the bijection: {expected:?}"
+    );
+
+    // Producer 1: the destinations `sync_docs` reconciles to disk. These are the table's
+    // OWN `rel_path` column now — `sync_docs` iterates `DISTRIBUTIONS` and cannot render a
+    // destination the catalog does not declare (nor skip one it does), which is exactly the
+    // property the old `dist/gmeow-docs/<slug>` text-scrape was a proxy for.
+    let rendered_slugs: BTreeSet<String> = DISTRIBUTIONS
+        .iter()
+        .map(|row| {
+            let slug = row.rel_path.strip_prefix("dist/gmeow-docs/");
+            assert!(
+                slug.is_some(),
+                "AC2/AC6: distribution {:?} ships at {:?}, outside the shared \
+                 `dist/gmeow-docs/` docs-distribution base",
+                row.slug,
+                row.rel_path
+            );
+            slug.unwrap_or_default().to_string()
+        })
+        .collect();
     assert_eq!(
         rendered_slugs, expected,
-        "AC2/AC6 (single segmentation authority): sync_docs's rendered \
-         `dist/gmeow-docs/<slug>` destinations must be EXACTLY the 8 canonical distribution slugs \
-         {CANONICAL_SLUGS:?}; got {rendered_slugs:?}"
+        "AC2/AC6 (single segmentation authority): every declared distribution's rel_path \
+         tail must be its own slug; rendered={rendered_slugs:?} declared={expected:?}"
     );
 
-    // Producer 2: the catalog schema — the WHOLE declared set, so a ninth declared
-    // distribution is caught as a set mismatch instead of being silently subsumed by a
-    // subset-presence check.
-    let catalog_slugs: BTreeSet<String> =
-        gmeow_pipeline::stages::distribution_catalog::declared_distribution_slugs()
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect();
-    assert_eq!(
-        catalog_slugs, expected,
-        "AC2/AC6: distribution_catalog.rs must declare EXACTLY the 8 canonical distribution \
-         slugs {CANONICAL_SLUGS:?}; found {catalog_slugs:?}"
+    // Producer 2: `sync_docs` really does consume that table, rather than carrying its own
+    // destinations literal. This is the ONE structural claim about dev_project.rs left, and
+    // it is a positive read of the shared symbol, not a scrape of a restated list.
+    let dev_project = dev_project_source();
+    assert!(
+        dev_project.contains("distribution_catalog::DISTRIBUTIONS"),
+        "AC2/AC6: dev_project.rs's sync_docs must derive its docs destinations by iterating \
+         `gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS`, never a local array \
+         literal that restates the slug/path pairs"
     );
-
-    // Bijection both directions: rendered slugs == catalog-declared slugs == canonical set.
-    assert_eq!(
-        rendered_slugs, catalog_slugs,
-        "AC2/AC6: the rendered docs destinations and the distribution catalog schema must \
-         name the SAME slug set (bijection catalog <-> rendered); rendered={rendered_slugs:?} \
-         catalog={catalog_slugs:?}"
+    assert!(
+        dev_project.contains("dist/gmeow-docs/manifest"),
+        "AC2/AC6: dev_project.rs `sync_docs` must reconcile a `dist/gmeow-docs/manifest` \
+         destination for the DCAT release manifest, separate from the declared distributions"
     );
 }
 
 #[test]
-fn site_sub_assets_are_priced_but_never_enter_the_eight_slug_bijection() {
-    let bijection: BTreeSet<String> = CANONICAL_SLUGS.iter().map(|s| s.to_string()).collect();
-    let sub_assets: BTreeSet<String> =
-        gmeow_pipeline::stages::distribution_catalog::declared_site_sub_asset_slugs()
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect();
+fn sub_assets_are_priced_but_never_enter_the_nine_slug_bijection() {
+    use gmeow_pipeline::stages::distribution_catalog as catalog;
+
+    let bijection = canonical_slugs();
+    let sub_assets: BTreeSet<String> = catalog::declared_sub_asset_slugs()
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     // The interactive engines + browser bundle ARE priced as first-class sub-assets…
     assert!(
         !sub_assets.is_empty(),
-        "the vendored interactive engines + browser bundle must be priced as site sub-assets"
+        "the vendored interactive engines + browser bundle must be priced as sub-assets"
     );
-    // …but they are SUB-ASSETS of `site`, never top-level distributions, so the
-    // eight-slug bijection is untouched (a sub-asset leaking into it would be a ninth
-    // distribution, which the bijection test above would also catch).
+    // …but they are SUB-ASSETS, never top-level distributions, so the nine-slug bijection
+    // is untouched (a sub-asset leaking into it would be a tenth distribution, which the
+    // bijection test above would also catch).
     assert!(
         sub_assets.is_disjoint(&bijection),
-        "AC2/AC6: site sub-assets {sub_assets:?} must be DISJOINT from the eight-slug \
-         distribution bijection {CANONICAL_SLUGS:?} — they are sub-assets, not distributions"
+        "AC2/AC6: sub-assets {sub_assets:?} must be DISJOINT from the nine-slug distribution \
+         bijection {bijection:?} — they are sub-assets, not distributions"
     );
-    // The release-time digest producer prices exactly the declared set (one authority).
-    let priced: BTreeSet<String> =
-        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
-            .into_iter()
-            .map(|(slug, _, _)| slug.to_string())
-            .collect();
+
+    // Ownership is distribution-parameterized and every owner is itself a declared
+    // distribution: the release-time producer prices each sub-asset out of each owner's own
+    // tree, so a site-only pricing can no longer leave the console's identical copy of a
+    // 7 MB wasm image with no release digest.
+    let owners: BTreeSet<String> = catalog::sub_asset_owner_slugs()
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert!(
+        owners.is_subset(&bijection),
+        "AC2/AC6: every sub-asset owner must be a declared distribution; owners={owners:?}"
+    );
+    assert!(
+        owners.contains("site") && owners.contains("console"),
+        "AC2/AC6: the two interactive surfaces both ship the shared engine set and must both \
+         own it; owners={owners:?}"
+    );
+
+    // The release-time digest producer prices exactly the declared set, for every owner
+    // (one authority, parameterized — never a second sub-asset list).
+    let priced = catalog::sub_asset_pricing();
+    let priced_slugs: BTreeSet<String> = priced
+        .iter()
+        .map(|(_, slug, _, _)| (*slug).to_string())
+        .collect();
     assert_eq!(
-        priced, sub_assets,
+        priced_slugs, sub_assets,
         "the release-time sub-asset pricing set must equal the catalog-declared sub-asset set"
     );
+    assert_eq!(
+        priced.len(),
+        owners.len() * sub_assets.len(),
+        "the pricing must cover every (owner, sub-asset) pair: {priced:?}"
+    );
 }
 
-/// The exact `let destinations = [ ... ];` array-literal slice of `sync_docs`,
-/// isolated from the rest of the file (which legitimately references unrelated
-/// `generated/…` INPUT sources, e.g. the `AXIOMS` array feeding the print render).
-fn destinations_block(source: &str) -> &str {
-    let start = source
-        .find("let destinations = [")
-        .expect("dev_project.rs sync_docs declares `let destinations = [...]`");
-    let tail = &source[start..];
-    let end = tail
-        .find("];")
-        .expect("the `destinations` array literal is closed with `];`");
-    &tail[..end]
-}
-
+/// AC2/AC6 (boundary) — every docs destination lives under `dist/` or `ontology-docs`,
+/// NEVER `generated/`.
+///
+/// This used to isolate `dev_project.rs`'s `let destinations = [ … ];` array literal by
+/// substring search and `expect` on both delimiters, which meant a refactor that made the
+/// destinations DERIVED (as they now are) crashed the gate with "the `destinations` array
+/// literal is closed with `];`" — a panic about the scraper, telling a maintainer nothing
+/// about the boundary it was supposed to protect. The destinations are now the table's own
+/// `rel_path` column, so the boundary is checked where it actually lives.
 #[test]
 fn ac2_ac6_docs_destinations_stay_under_dist_or_ontology_docs_never_generated() {
+    use gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS;
+    for row in DISTRIBUTIONS {
+        assert!(
+            row.rel_path.starts_with("dist/"),
+            "AC2/AC6 (boundary): distribution {:?} ships at {:?}; every docs destination must \
+             live under `dist/` (or the `ontology-docs` Pages root)",
+            row.slug,
+            row.rel_path
+        );
+        assert!(
+            !row.rel_path.contains("generated/"),
+            "AC2/AC6 (boundary): distribution {:?} ships at {:?} — a docs destination must \
+             NEVER be written into `generated/`, which is the pipeline's own output tree",
+            row.slug,
+            row.rel_path
+        );
+    }
+    // The two destination bases that are NOT table rows — the Pages upload root and the
+    // manifest subdir — are read POSITIVELY, by their exact `destinations` push/seed form.
+    // A blanket "no `generated/` anywhere in this file" scan would be a false gate:
+    // `sync_docs` legitimately READS `generated/…` inputs (the axiom set and the
+    // bibliography feeding the print render), and conflating an input read with a
+    // reconciliation base is exactly the kind of proxy that reds for the wrong reason.
     let source = dev_project_source();
-    let block = destinations_block(&source);
-    assert!(
-        block.contains("\"ontology-docs\"") && block.contains("\"dist/gmeow-docs/"),
-        "AC2/AC6: `destinations` array extraction looks broken (found neither an \
-         ontology-docs nor a dist/gmeow-docs base): {block}"
-    );
-    assert!(
-        !block.contains("generated/"),
-        "AC2/AC6 (boundary): every docs destination base in sync_docs's \
-         `destinations` array must live under `dist/` or `ontology-docs`, NEVER `generated/`; \
-         found a `generated/` literal in the destinations block: {block}"
-    );
+    for (base, role) in [
+        ("(\"ontology-docs\", &site)", "the Pages upload root"),
+        (
+            "(\"dist/gmeow-docs/manifest\", &manifest)",
+            "the DCAT release-manifest subdir",
+        ),
+    ] {
+        assert!(
+            source.contains(base),
+            "AC2/AC6 (boundary): sync_docs must reconcile {role} via the exact destination \
+             entry `{base}`. If that base was renamed, retarget this reader; every \
+             reconciliation base must stay outside `generated/`, which is the pipeline's own \
+             output tree."
+        );
+        assert!(
+            !base.contains("generated/"),
+            "AC2/AC6 (boundary): {role} must never be written into `generated/`"
+        );
+    }
 }
 
 #[test]
@@ -417,10 +498,23 @@ fn ac5_forbidden_embed_gate_stays_present() {
 /// Recursively collect every `.rs` file under `dir` (skipping `target/` build
 /// output directories, which are not committed source).
 fn walk_rust_files(dir: &Path, out: &mut Vec<PathBuf>) {
-    let entries =
-        std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read dir {}: {e}", dir.display()));
-    for entry in entries {
-        let entry = entry.expect("read a directory entry");
+    let entries = std::fs::read_dir(dir);
+    assert!(
+        entries.is_ok(),
+        "AC5: cannot walk {} for the banned-identifier sweep ({:?}) — the sweep must cover \
+         every committed crate, so a partial walk would pass vacuously",
+        dir.display(),
+        entries.as_ref().err()
+    );
+    for entry in entries.into_iter().flatten() {
+        let Ok(entry) = entry else {
+            panic!(
+                "AC5: cannot read a directory entry under {} — the banned-identifier sweep \
+                 must be complete, and a skipped entry would let a reintroduced size-budget \
+                 gate pass unnoticed",
+                dir.display()
+            )
+        };
         let path = entry.path();
         if path.is_dir() {
             if path.file_name().and_then(|n| n.to_str()) == Some("target") {
@@ -485,14 +579,24 @@ fn ac5_catalog_is_digest_free_and_outside_reasoning_closure() {
     );
 
     let reasoning_graphs = reasoning_graphs_source();
-    let array_start = reasoning_graphs
-        .find("pub const OBJECT_LEVEL_NAMED_GRAPHS")
-        .expect("crates/logic/src/reasoning_graphs.rs declares OBJECT_LEVEL_NAMED_GRAPHS");
-    let array_tail = &reasoning_graphs[array_start..];
-    let array_end = array_tail
-        .find("];")
-        .expect("OBJECT_LEVEL_NAMED_GRAPHS array literal is closed with `];`");
-    let array = &array_tail[..array_end];
+    let array_start = reasoning_graphs.find("pub const OBJECT_LEVEL_NAMED_GRAPHS");
+    assert!(
+        array_start.is_some(),
+        "AC5: crates/logic/src/reasoning_graphs.rs no longer declares \
+         `pub const OBJECT_LEVEL_NAMED_GRAPHS` — this gate checks that the distribution \
+         catalog stays OUT of the object-level reasoning EDB. If the constant was renamed or \
+         moved, retarget this reader; if the EDB boundary is now expressed some other way, \
+         re-express this check against it rather than dropping it."
+    );
+    let array_tail = &reasoning_graphs[array_start.unwrap_or_default()..];
+    let array_end = array_tail.find("];");
+    assert!(
+        array_end.is_some(),
+        "AC5: the `OBJECT_LEVEL_NAMED_GRAPHS` declaration in \
+         crates/logic/src/reasoning_graphs.rs is no longer an array literal closed with `];` \
+         — this gate's extraction needs retargeting to the new form, not deleting"
+    );
+    let array = &array_tail[..array_end.unwrap_or(array_tail.len())];
     assert!(
         !array.contains("distribution-catalog"),
         "AC5: the distribution-catalog named graph must stay OUT of \

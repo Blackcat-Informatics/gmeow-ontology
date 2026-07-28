@@ -288,6 +288,14 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
         .map_err(|e| fail(format!("cannot render print docs: {e}")))?;
     let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
         .map_err(|e| fail(format!("cannot render Pydantic docs: {e}")))?;
+    // The standalone interactive console — the ninth distribution. Assembled off the SAME
+    // `exec` the site render uses, through the SAME single producer `console-assemble`
+    // calls, so the console distribution and the site's `console/` subtree are the
+    // identical bytes by construction rather than by a copy step. Its keys keep their
+    // `console/…` + `assets/…` prefixes: the generated service-worker SHELL resolves
+    // `../assets/…` relative to `console/sw.mjs`, so flattening the prefix here would
+    // silently break the offline cache of the tree we ship.
+    let console = gmeow_docs::console_files(&exec);
 
     // The OKF serialization distribution (AC2 payload segmentation): rendered off the
     // SAME committed-bundle carrier dataset the site's reasoned playground reads,
@@ -337,82 +345,29 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
         ))
     })?;
 
-    // Content-address every one of the eight external documentation/serialization
-    // distributions and build the release-time DCAT manifest linking each to its
-    // distribution-catalog subject. Rendered in memory unconditionally (even in
-    // check mode) — no-optionality forbids a silent skip of the manifest.
-    type DistTree<'a> = (&'a str, &'a str, &'a BTreeMap<String, Vec<u8>>);
-    let format_trees: [DistTree<'_>; 8] = [
-        ("site", "dist/gmeow-docs/site", &site),
-        ("mdbook", "dist/gmeow-docs/mdbook", &mdbook),
-        ("pdf", "dist/gmeow-docs/pdf", &pdf),
-        ("snippets", "dist/gmeow-docs/snippets", &snippets),
-        ("pydantic", "dist/gmeow-docs/pydantic", &pydantic),
-        ("okf", "dist/gmeow-docs/okf", &okf),
-        ("jsonld", "dist/gmeow-docs/jsonld", &jsonld),
-        ("yamlld", "dist/gmeow-docs/yamlld", &yamlld),
-    ];
-    let mut entries = Vec::with_capacity(format_trees.len());
-    for (slug, rel_path, tree) in format_trees {
-        let blake3 = gmeow_pipeline::docs_distribution::distribution_blake3(tree).map_err(|e| {
-            fail(format!(
-                "cannot content-address the {slug} distribution: {e}"
-            ))
-        })?;
-        let media_type = gmeow_pipeline::stages::distribution_catalog::media_type_for_slug(slug)
-            .ok_or_else(|| {
-                fail(format!(
-                    "no declared media type for distribution catalog slug {slug:?}"
-                ))
-            })?;
-        entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
-            slug: slug.to_string(),
-            rel_path: rel_path.to_string(),
-            blake3,
-            media_type: media_type.to_string(),
-        });
-    }
-    // Price the `site` sub-assets (the vendored interactive engines + the browser
-    // bundle) into the release-instance manifest: content-address each from the rendered
-    // site tree and hang its digest off the SAME site_sub_asset subject the carrier
-    // catalog prices digest-free. This release render is unconditionally interactive —
-    // `exec` (the playground data) is hard-required above, so the vendored engines + the
-    // browser bundle are ALWAYS emitted here. `site_sub_asset_pricing()` DECLARES every
-    // one; no-optionality makes each a mandatory output of this selected profile. A
-    // declared sub-asset that produced zero files is therefore a HARD FAIL (an incomplete
-    // interactive site with a missing release digest), never a silent skip — a silent
-    // skip would make a shipped engine and a dropped engine indistinguishable on the
-    // release path.
-    let mut sub_asset_entries = Vec::new();
-    for (slug, prefix, media_type) in
-        gmeow_pipeline::stages::distribution_catalog::site_sub_asset_pricing()
-    {
-        let subtree: BTreeMap<String, Vec<u8>> = site
-            .iter()
-            .filter(|(p, _)| p.as_str() == prefix || p.starts_with(prefix))
-            .map(|(p, b)| (p.clone(), b.clone()))
-            .collect();
-        if subtree.is_empty() {
-            return Err(fail(format!(
-                "declared site sub-asset {slug:?} produced no files under {prefix:?}: the \
-                 release site render is interactive, so this engine/bundle is a mandatory \
-                 output — its absence is a degraded site with a missing release digest, not \
-                 a silent skip"
-            )));
-        }
-        let blake3 =
-            gmeow_pipeline::docs_distribution::distribution_blake3(&subtree).map_err(|e| {
-                fail(format!(
-                    "cannot content-address the {slug} site sub-asset: {e}"
-                ))
-            })?;
-        sub_asset_entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
-            slug: slug.to_string(),
-            rel_path: format!("dist/gmeow-docs/site/{prefix}"),
-            blake3,
-            media_type: media_type.to_string(),
-        });
-    }
+    // The PRODUCER registry: slug → the bytes that realize it. This is the one binding
+    // that genuinely belongs here and nowhere else — it restates no facet of the catalog
+    // (no family, media type, path, or consumer), and `content_address_distributions`
+    // iterates the CATALOG rather than this map, so a declared distribution missing a
+    // producer is a hard fail instead of a silently absent release row.
+    let rendered: RenderedTrees<'_> = BTreeMap::from([
+        ("site", &site),
+        ("mdbook", &mdbook),
+        ("pdf", &pdf),
+        ("snippets", &snippets),
+        ("console", &console),
+        ("pydantic", &pydantic),
+        ("okf", &okf),
+        ("jsonld", &jsonld),
+        ("yamlld", &yamlld),
+    ]);
+
+    // Content-address every declared distribution and build the release-time DCAT
+    // manifest linking each to its distribution-catalog subject. Rendered in memory
+    // unconditionally (even in check mode) — no-optionality forbids a silent skip of the
+    // manifest.
+    let entries = content_address_distributions(&rendered).map_err(fail)?;
+    let sub_asset_entries = price_sub_assets(&rendered).map_err(fail)?;
     let manifest_nt = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
         &entries,
         &sub_asset_entries,
@@ -421,21 +376,25 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     .map_err(|e| fail(format!("cannot build the docs distribution manifest: {e}")))?;
     let manifest = BTreeMap::from([("docs-manifest.ttl".to_string(), manifest_nt.into_bytes())]);
 
-    let destinations = [
-        ("ontology-docs", &site),
-        ("dist/gmeow-docs/site", &site),
-        ("dist/gmeow-docs/mdbook", &mdbook),
-        ("dist/gmeow-docs/pdf", &pdf),
-        ("dist/gmeow-docs/snippets", &snippets),
-        ("dist/gmeow-docs/pydantic", &pydantic),
-        ("dist/gmeow-docs/okf", &okf),
-        ("dist/gmeow-docs/jsonld", &jsonld),
-        ("dist/gmeow-docs/yamlld", &yamlld),
-        // The manifest gets its OWN subdir base — never the shared `dist/gmeow-docs`
-        // parent, which `reconcile_docs_projection_tree` would otherwise prune of
-        // every sibling format's files not present in THIS tree.
-        ("dist/gmeow-docs/manifest", &manifest),
-    ];
+    // The reconciliation destinations, DERIVED from the same catalog table: `ontology-docs`
+    // (the Pages upload root, which is the site tree under a second base), then one base
+    // per declared distribution at its declared `rel_path`, then the manifest.
+    let mut destinations: Vec<(&str, &BTreeMap<String, Vec<u8>>)> = vec![("ontology-docs", &site)];
+    for row in gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS {
+        let tree = rendered.get(row.slug).copied().ok_or_else(|| {
+            fail(format!(
+                "distribution {:?} is declared in the catalog but sync_docs renders no tree \
+                 for it",
+                row.slug
+            ))
+        })?;
+        destinations.push((row.rel_path, tree));
+    }
+    // The manifest gets its OWN subdir base — never the shared `dist/gmeow-docs`
+    // parent, which `reconcile_docs_projection_tree` would otherwise prune of
+    // every sibling format's files not present in THIS tree.
+    destinations.push(("dist/gmeow-docs/manifest", &manifest));
+
     let mut outputs = Vec::new();
     let mut reconciliation = DocsProjectionReport::default();
     for (base, tree) in destinations {
@@ -457,6 +416,156 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
         output_paths: outputs,
         reconciliation,
     })
+}
+
+/// The rendered documentation trees `sync_docs` produced, keyed by distribution slug.
+type RenderedTrees<'a> = BTreeMap<&'a str, &'a BTreeMap<String, Vec<u8>>>;
+
+/// Content-address every distribution the catalog DECLARES against the trees `sync_docs`
+/// rendered, producing the release-manifest rows.
+///
+/// The loop runs over
+/// [`DISTRIBUTIONS`](gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS) — the one
+/// table — and never over the producer registry, so the bijection is enforced in BOTH
+/// directions at run time: a declared distribution with no rendered tree is a hard fail,
+/// and a rendered tree no row declares is a hard fail too.
+///
+/// **An empty tree is refused BEFORE it is content-addressed.** An empty `BTreeMap` tars
+/// and hashes perfectly happily, so the digest is exactly the wrong thing to notice with:
+/// a distribution that rendered nothing would sail into the release manifest carrying a
+/// well-formed `blake3:` of an empty archive, and `gmeow docs verify` would then confirm
+/// the emptiness as correct. This mirrors the sub-asset guard in [`price_sub_assets`].
+pub(crate) fn content_address_distributions(
+    rendered: &RenderedTrees<'_>,
+) -> Result<Vec<gmeow_pipeline::docs_distribution::DistributionEntry>, gmeow_errors::Diag> {
+    use gmeow_pipeline::stages::distribution_catalog::{
+        DISTRIBUTIONS, declared_distribution_slugs,
+    };
+
+    let declared = declared_distribution_slugs();
+    for slug in rendered.keys() {
+        if !declared.contains(slug) {
+            return Err(error::sync(format!(
+                "sync_docs rendered a tree for {slug:?}, which the distribution catalog does \
+                 not declare — a shipped surface outside the catalog has no media type, no \
+                 audience, and no release row. Add it to \
+                 `gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS`."
+            )));
+        }
+    }
+
+    let mut entries = Vec::with_capacity(DISTRIBUTIONS.len());
+    for row in DISTRIBUTIONS {
+        let tree = rendered.get(row.slug).copied().ok_or_else(|| {
+            error::sync(format!(
+                "distribution {:?} is declared in the distribution catalog but sync_docs \
+                 renders no tree for it — a declared distribution with no producer would ship \
+                 as a missing release row, not as a smaller release",
+                row.slug
+            ))
+        })?;
+        if tree.is_empty() {
+            return Err(error::sync(format!(
+                "declared distribution {:?} rendered an EMPTY tree: refusing to \
+                 content-address it. Its render is a mandatory output of this selected \
+                 profile, and an empty tree still hashes to a perfectly well-formed digest — \
+                 publishing it would make a dropped distribution and a shipped one \
+                 indistinguishable in the release manifest",
+                row.slug
+            )));
+        }
+        let blake3 = gmeow_pipeline::docs_distribution::distribution_blake3(tree).map_err(|e| {
+            error::sync(format!(
+                "cannot content-address the {} distribution: {e}",
+                row.slug
+            ))
+        })?;
+        entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
+            slug: row.slug.to_string(),
+            rel_path: row.rel_path.to_string(),
+            blake3,
+            media_type: row.media_type.to_string(),
+        });
+    }
+    Ok(entries)
+}
+
+/// Price the shared sub-assets (the vendored interactive engines, the object-level browser
+/// bundle, the conjecture demo library) into the release-instance manifest.
+///
+/// Pricing is DISTRIBUTION-PARAMETERIZED: `sub_asset_pricing()` yields one
+/// `(owner, sub-asset, prefix, media type)` row per owning distribution, and each is
+/// content-addressed out of THAT OWNER'S rendered tree. A site-only pricing would have
+/// left the console's copy of the same 7 MB wasm image with no release digest at all.
+///
+/// The digest hangs off the SHARED `sub_asset_iri` subject the carrier catalog prices
+/// digest-free. Because that subject is shared, two owners pricing one sub-asset to two
+/// different digests is a contradiction — the site and the console assemble the identical
+/// engine set from the identical `interactive_asset_files` producer — so a disagreement is
+/// refused here rather than published as an ambiguous release row.
+///
+/// This release render is unconditionally interactive (`exec` is hard-required by
+/// `sync_docs`), so every declared sub-asset is a mandatory output: one that produced zero
+/// files is a HARD FAIL, never a silent skip, because a silent skip makes a shipped engine
+/// and a dropped engine indistinguishable on the release path.
+pub(crate) fn price_sub_assets(
+    rendered: &RenderedTrees<'_>,
+) -> Result<Vec<gmeow_pipeline::docs_distribution::DistributionEntry>, gmeow_errors::Diag> {
+    use gmeow_pipeline::stages::distribution_catalog::{distribution_row, sub_asset_pricing};
+
+    let mut entries = Vec::new();
+    let mut digest_by_slug: BTreeMap<&str, String> = BTreeMap::new();
+    for (owner, slug, prefix, media_type) in sub_asset_pricing() {
+        let owner_row = distribution_row(owner).ok_or_else(|| {
+            error::sync(format!(
+                "sub-asset owner {owner:?} is not a declared distribution"
+            ))
+        })?;
+        let tree = rendered.get(owner).copied().ok_or_else(|| {
+            error::sync(format!(
+                "sub-asset owner {owner:?} has no rendered tree — its sub-assets cannot be \
+                 content-addressed"
+            ))
+        })?;
+        let subtree: BTreeMap<String, Vec<u8>> = tree
+            .iter()
+            .filter(|(p, _)| p.as_str() == prefix || p.starts_with(prefix))
+            .map(|(p, b)| (p.clone(), b.clone()))
+            .collect();
+        if subtree.is_empty() {
+            return Err(error::sync(format!(
+                "declared sub-asset {slug:?} produced no files under {prefix:?} in the \
+                 {owner:?} distribution: this render is interactive, so the engine/bundle is a \
+                 mandatory output — its absence is a degraded surface with a missing release \
+                 digest, not a silent skip"
+            )));
+        }
+        let blake3 =
+            gmeow_pipeline::docs_distribution::distribution_blake3(&subtree).map_err(|e| {
+                error::sync(format!(
+                    "cannot content-address the {slug} sub-asset of {owner}: {e}"
+                ))
+            })?;
+        if let Some(previous) = digest_by_slug.get(slug)
+            && previous != &blake3
+        {
+            return Err(error::sync(format!(
+                "sub-asset {slug:?} prices to {blake3} in the {owner:?} distribution but to \
+                 {previous} in an earlier owner: the owners share ONE catalog subject, so two \
+                 digests for it is a contradiction. Every owner assembles this asset from the \
+                 same `interactive_asset_files` producer — a disagreement means one of them \
+                 re-cut or post-processed the bytes."
+            )));
+        }
+        digest_by_slug.insert(slug, blake3.clone());
+        entries.push(gmeow_pipeline::docs_distribution::DistributionEntry {
+            slug: slug.to_string(),
+            rel_path: format!("{}/{prefix}", owner_row.rel_path),
+            blake3,
+            media_type: media_type.to_string(),
+        });
+    }
+    Ok(entries)
 }
 
 fn pick_source_lang(
@@ -502,15 +611,14 @@ fn render_source_print(
         axioms.insert(rel.to_string(), std::fs::read(root.join(rel))?);
     }
     let bib = std::fs::read(root.join("generated/references/references.bib"))?;
-    let losses = [
-        gmeow_docs::formats::DocFormat::Site,
-        gmeow_docs::formats::DocFormat::Mdbook,
-        gmeow_docs::formats::DocFormat::Pdf,
-        gmeow_docs::formats::DocFormat::Snippets,
-    ]
-    .into_iter()
-    .map(gmeow_docs::formats::format_capabilities)
-    .collect::<Vec<_>>();
+    // `DocFormat::ALL`, never a re-typed variant list: the PDF's loss appendix must cover
+    // EVERY rendered format, and a hand-written array silently omits any format added
+    // later — the appendix would then claim a complete cross-format loss table while
+    // missing a row, with nothing to catch it.
+    let losses = gmeow_docs::formats::DocFormat::ALL
+        .into_iter()
+        .map(gmeow_docs::formats::format_capabilities)
+        .collect::<Vec<_>>();
     let typ = docs_print::render_typ(model, &axioms, &bib, &losses);
     let pdf = docs_print::compile_pdf(&typ, &bib)?;
     Ok(BTreeMap::from([
@@ -1058,5 +1166,185 @@ mod tests {
     #[test]
     fn explicit_unknown_docs_language_hard_fails() {
         assert!(pick_source_lang(Some("not-a-language"), &Default::default()).is_err());
+    }
+
+    // ── the release-row producers, over the REAL catalog table ─────────────────────
+
+    /// A non-empty tree carrying every declared sub-asset prefix, so a fixture built from
+    /// it exercises the real pricing loop rather than a stub.
+    fn interactive_tree() -> BTreeMap<String, Vec<u8>> {
+        let mut tree = BTreeMap::from([("index.html".to_string(), b"<html/>".to_vec())]);
+        for (_, slug, prefix, _) in
+            gmeow_pipeline::stages::distribution_catalog::sub_asset_pricing()
+        {
+            // A directory prefix ends in `/`; a file prefix IS the key.
+            let key = if prefix.ends_with('/') {
+                format!("{prefix}engine.wasm")
+            } else {
+                prefix.to_string()
+            };
+            tree.insert(key, format!("bytes-for-{slug}").into_bytes());
+        }
+        tree
+    }
+
+    /// Every declared distribution gets a tree, so the happy path is genuinely complete.
+    fn full_rendered<'a>(
+        trees: &'a BTreeMap<&'static str, BTreeMap<String, Vec<u8>>>,
+    ) -> RenderedTrees<'a> {
+        trees.iter().map(|(slug, tree)| (*slug, tree)).collect()
+    }
+
+    fn every_slug_rendered() -> BTreeMap<&'static str, BTreeMap<String, Vec<u8>>> {
+        gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS
+            .iter()
+            .map(|row| (row.slug, interactive_tree()))
+            .collect()
+    }
+
+    /// The happy path: one release row per DECLARED distribution, each carrying the
+    /// catalog's own `rel_path` and media type — no restated table on this side of the
+    /// crate seam.
+    #[test]
+    fn content_addressing_emits_one_row_per_declared_distribution() {
+        let trees = every_slug_rendered();
+        let entries =
+            content_address_distributions(&full_rendered(&trees)).expect("full render prices");
+        let declared = gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS;
+        assert_eq!(entries.len(), declared.len());
+        for (entry, row) in entries.iter().zip(declared.iter()) {
+            assert_eq!(entry.slug, row.slug);
+            assert_eq!(entry.rel_path, row.rel_path);
+            assert_eq!(entry.media_type, row.media_type);
+            assert!(entry.blake3.starts_with("blake3:"));
+        }
+        assert!(
+            entries.iter().any(|e| e.slug == "console"),
+            "the console must get a release row: {entries:?}"
+        );
+    }
+
+    /// An EMPTY console tree is refused, by slug, BEFORE it is content-addressed — an
+    /// empty tree hashes fine, so the digest can never be what notices.
+    #[test]
+    fn an_empty_console_tree_hard_fails_naming_the_slug() {
+        let mut trees = every_slug_rendered();
+        trees.insert("console", BTreeMap::new());
+        let err = content_address_distributions(&full_rendered(&trees))
+            .expect_err("an empty declared distribution must hard-fail")
+            .to_string();
+        assert!(
+            err.contains("console"),
+            "the refusal must name the empty distribution: {err}"
+        );
+        assert!(
+            err.contains("EMPTY"),
+            "the refusal must say what went wrong: {err}"
+        );
+    }
+
+    /// The same guard is not console-specific: it holds for every declared slug.
+    #[test]
+    fn an_empty_tree_hard_fails_for_every_declared_distribution() {
+        for row in gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS {
+            let mut trees = every_slug_rendered();
+            trees.insert(row.slug, BTreeMap::new());
+            let err = content_address_distributions(&full_rendered(&trees))
+                .unwrap_err()
+                .to_string();
+            assert!(
+                err.contains(row.slug),
+                "an empty {} tree must hard-fail naming the slug: {err}",
+                row.slug
+            );
+        }
+    }
+
+    /// A declared distribution with no producer, and a producer with no declared row, are
+    /// both hard fails — the bijection is enforced in both directions at run time.
+    #[test]
+    fn the_producer_registry_and_the_catalog_must_be_a_bijection() {
+        let mut trees = every_slug_rendered();
+        trees.remove("console");
+        let err = content_address_distributions(&full_rendered(&trees))
+            .expect_err("a declared distribution with no producer must hard-fail")
+            .to_string();
+        assert!(err.contains("console") && err.contains("no tree"), "{err}");
+
+        let mut trees = every_slug_rendered();
+        trees.insert("not-a-distribution", interactive_tree());
+        let err = content_address_distributions(&full_rendered(&trees))
+            .expect_err("a producer with no catalog row must hard-fail")
+            .to_string();
+        assert!(err.contains("not-a-distribution"), "{err}");
+    }
+
+    /// Sub-assets are priced from EVERY owner's own tree, onto the shared subject, with
+    /// the cross-owner byte-identity invariant enforced.
+    #[test]
+    fn sub_assets_are_priced_from_every_owners_tree() {
+        use gmeow_pipeline::stages::distribution_catalog as catalog;
+        let trees = every_slug_rendered();
+        let entries = price_sub_assets(&full_rendered(&trees)).expect("full render prices");
+        let owners = catalog::sub_asset_owner_slugs();
+        let subs = catalog::declared_sub_asset_slugs();
+        assert_eq!(
+            entries.len(),
+            owners.len() * subs.len(),
+            "one row per (owner, sub-asset) pair: {entries:?}"
+        );
+        for owner in &owners {
+            let row = catalog::distribution_row(owner).expect("owner is declared");
+            for sub in &subs {
+                assert!(
+                    entries
+                        .iter()
+                        .any(|e| e.slug == *sub && e.rel_path.starts_with(row.rel_path)),
+                    "sub-asset {sub:?} is unpriced in the {owner:?} tree: {entries:?}"
+                );
+            }
+        }
+        assert!(
+            entries
+                .iter()
+                .any(|e| e.rel_path.starts_with("dist/gmeow-docs/console/")),
+            "the console's copy of the shared engines must be priced: {entries:?}"
+        );
+    }
+
+    /// An owner whose tree is missing a declared sub-asset hard-fails naming both.
+    #[test]
+    fn a_missing_sub_asset_hard_fails_naming_the_owner_and_the_asset() {
+        let mut trees = every_slug_rendered();
+        trees.insert(
+            "console",
+            BTreeMap::from([("index.html".to_string(), b"<html/>".to_vec())]),
+        );
+        let err = price_sub_assets(&full_rendered(&trees))
+            .expect_err("a console tree with no engines must hard-fail")
+            .to_string();
+        assert!(err.contains("console"), "{err}");
+        assert!(err.contains("mandatory output"), "{err}");
+    }
+
+    /// Two owners whose copies of one shared sub-asset DIFFER is refused: the subject is
+    /// shared, so two digests for it is a contradiction rather than two release rows.
+    #[test]
+    fn divergent_copies_of_a_shared_sub_asset_are_refused() {
+        let mut trees = every_slug_rendered();
+        let mut console = interactive_tree();
+        for (_, _, prefix, _) in gmeow_pipeline::stages::distribution_catalog::sub_asset_pricing() {
+            let key = if prefix.ends_with('/') {
+                format!("{prefix}engine.wasm")
+            } else {
+                prefix.to_string()
+            };
+            console.insert(key, b"DIFFERENT BYTES".to_vec());
+        }
+        trees.insert("console", console);
+        let err = price_sub_assets(&full_rendered(&trees))
+            .expect_err("two digests for one shared subject must be refused")
+            .to_string();
+        assert!(err.contains("contradiction"), "{err}");
     }
 }

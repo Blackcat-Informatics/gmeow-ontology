@@ -19,8 +19,13 @@ const INPUT =
   "ex:Animal rdfs:subClassOf ex:Organism .\n" +
   "ex:felix rdf:type ex:Cat .\n";
 
-test("version() returns the crate semver", () => {
-  assert.match(version(), /^\d+\.\d+\.\d+/);
+// The published manifest, read from the shipped bytes — never a literal restated here.
+const packageJson = JSON.parse(
+  await readFile(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"),
+);
+
+test("version() equals the published package version", () => {
+  assert.equal(version(), packageJson.version);
 });
 
 test("wasm reasoned closure is byte-identical to the native witness attestation", async () => {
