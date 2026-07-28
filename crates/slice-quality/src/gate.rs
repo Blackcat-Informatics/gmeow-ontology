@@ -538,74 +538,183 @@ struct CellWitness {
 }
 
 /// The deterministic bipartite transport network for ONE vocabulary.
+///
+/// `pub`: this is also the shared surface [`solve_transport`] exposes to callers
+/// OUTSIDE the ratchet gate (e.g. the `gmeow-dev slice-quality-relocation-preview`
+/// command) that need to answer "would the gate accept this move?" without
+/// standing up a second, hand-rolled flow computation. Building a `Transport` and
+/// calling [`solve_transport`] is the ONLY sanctioned way to answer that question —
+/// a caller that instead re-derives credit/demand/unpaid arithmetic on its own
+/// risks promising an acceptance the gate then refuses, exactly the divergence
+/// this type exists to make impossible.
 #[derive(Debug, Default)]
-struct Transport {
+pub struct Transport {
     /// `source slice -> available supply` (already `min`-clamped against the declared,
     /// witnessed departure set).
-    supply: BTreeMap<String, u64>,
+    pub supply: BTreeMap<String, u64>,
     /// `destination slice -> requested demand`.
-    demand: BTreeMap<String, u64>,
+    pub demand: BTreeMap<String, u64>,
     /// `(source, destination) -> witnessed capacity`.
-    capacity: BTreeMap<(String, String), u64>,
+    pub capacity: BTreeMap<(String, String), u64>,
     /// `(source, destination) -> the witnessed anchor IRIs backing that capacity`.
-    witnesses: BTreeMap<(String, String), BTreeSet<String>>,
+    pub witnesses: BTreeMap<(String, String), BTreeSet<String>>,
     /// `(source, destination) -> the declaration IRIs authorizing that edge`.
-    declarations: BTreeMap<(String, String), BTreeSet<String>>,
+    pub declarations: BTreeMap<(String, String), BTreeSet<String>>,
 }
 
 /// The resolved flow: `(source, destination) -> units`, plus each destination's
 /// residual (unsaturated) demand.
 #[derive(Debug, Default)]
-struct Flow {
-    edges: BTreeMap<(String, String), u64>,
-    residual: BTreeMap<String, u64>,
+pub struct Flow {
+    /// `(source, destination) -> units actually pushed along that edge.`
+    pub edges: BTreeMap<(String, String), u64>,
+    /// `destination -> demand this flow left unsatisfied (0 == fully paid).`
+    pub residual: BTreeMap<String, u64>,
 }
 
-/// Solve the transport feasibility problem by DETERMINISTIC augmenting-path search:
-/// for each destination in `BTreeMap` order, repeatedly walk its in-edges in
-/// `BTreeMap` order and pull as much as the edge capacity and the source's remaining
-/// supply allow.
+/// A node in the [`Transport`] network's residual graph: a super-source feeding
+/// every source slice, a super-sink drained by every destination slice, and the
+/// source/destination slices themselves in between. `Ord` is derived (variant
+/// declaration order, then the wrapped slice name) purely to give `BTreeMap`/
+/// `BTreeSet` a total, deterministic order to iterate in — it carries no semantic
+/// weight.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum FlowNode {
+    SuperSource,
+    Source(String),
+    Destination(String),
+    SuperSink,
+}
+
+/// Solve the transport feasibility problem by REAL DETERMINISTIC MAX FLOW
+/// (Edmonds-Karp: repeated breadth-first shortest-augmenting-path search over the
+/// residual graph, including `destination -> source` back-edges) — not a
+/// per-destination greedy sum.
 ///
-/// This is a max-flow feasibility test, NOT a per-destination greedy sum, and the
-/// difference is load-bearing: a greedy accounting that lets one source's lowering
-/// satisfy two destinations independently accepts a change the aggregate conservation
-/// check then reds with "Σ increased" — a verdict that contradicts its own audit lines
-/// and names no culprit. Because the network is bipartite with a single source layer
-/// and a single sink layer, a single forward pass per destination with a shared
-/// remaining-supply pool IS the max flow (no residual back-edge can ever improve it:
-/// every augmenting path has length 2, so pushing flow on one edge never blocks a
-/// strictly better assignment that a back-edge would recover — the bipartite b-matching
-/// with unit-divisible flow is a transportation polytope whose greedy-with-shared-pool
-/// solution is optimal when every destination is processed to exhaustion).
+/// A single forward pass that visits each destination once and pulls from a
+/// shared remaining-supply pool is NOT max flow whenever a source has out-edges
+/// to more than one destination: the greedy pass can spend that source's supply
+/// on whichever destination it happens to process first, even when a DIFFERENT
+/// source could have paid that same destination instead and freed the shared
+/// source for a destination with no other option. That reassignment — undo the
+/// first source's edge to the first destination, route a different source there
+/// instead, and use the freed supply on the second destination — is exactly a
+/// residual back-edge augmenting path; a search with no back-edges can never find
+/// it and falsely refuses a feasible relocation. (Concretely: supply `s1 = 1,
+/// s2 = 1`; capacity `s1→d1 = 1, s1→d2 = 1, s2→d1 = 1`; demand `d1 = 1, d2 = 1`.
+/// The unique max flow is `s2→d1, s1→d2`, but a greedy pass that reaches `d1`
+/// first and prefers `s1` spends `s1` on `d1` and then has nothing left for `d2`.)
 ///
-/// Graphs here are single-digit-sized (a relocation touches a handful of slices), so
-/// the cost is irrelevant; determinism is what matters.
-fn solve_transport(network: &Transport) -> Flow {
-    let mut remaining: BTreeMap<&str, u64> = network
-        .supply
-        .iter()
-        .map(|(s, v)| (s.as_str(), *v))
-        .collect();
-    let mut flow = Flow::default();
-    for (dst, wanted) in &network.demand {
-        let mut need = *wanted;
-        for ((src, edge_dst), cap) in &network.capacity {
-            if need == 0 {
+/// The network is modelled with an explicit super-source (capacity-`supply` edges
+/// into every source) and super-sink (capacity-`demand` edges out of every
+/// destination) so ONE shortest-path search per iteration finds a global
+/// augmenting path rather than requiring bespoke per-destination bookkeeping.
+/// Every adjacency and residual-capacity lookup iterates in `BTreeMap`/`BTreeSet`
+/// key order — over [`FlowNode`], whose `Ord` is total and stable — so the
+/// discovered augmenting path (and therefore the final flow) is bit-identical
+/// across runs on the same input, independent of hashing or memory layout.
+///
+/// Graphs here are single-digit-sized (a relocation touches a handful of slices),
+/// so Edmonds-Karp's `O(V E^2)` bound is irrelevant; determinism is what matters.
+pub fn solve_transport(network: &Transport) -> Flow {
+    use FlowNode::{Destination, SuperSink, SuperSource, Source};
+
+    // Residual capacity for every directed edge, forward AND back. `add_edge`
+    // seeds the back-edge at 0 capacity so the adjacency list already carries it —
+    // augmenting a forward edge can then always increase its back-edge in place.
+    let mut residual: BTreeMap<(FlowNode, FlowNode), i64> = BTreeMap::new();
+    let mut add_edge = |a: FlowNode, b: FlowNode, cap: u64| {
+        *residual.entry((a.clone(), b.clone())).or_insert(0) += i64::try_from(cap).unwrap_or(i64::MAX);
+        residual.entry((b, a)).or_insert(0);
+    };
+    for (src, cap) in &network.supply {
+        add_edge(SuperSource, Source(src.clone()), *cap);
+    }
+    for ((src, dst), cap) in &network.capacity {
+        add_edge(Source(src.clone()), Destination(dst.clone()), *cap);
+    }
+    for (dst, cap) in &network.demand {
+        add_edge(Destination(dst.clone()), SuperSink, *cap);
+    }
+
+    let mut adjacency: BTreeMap<FlowNode, BTreeSet<FlowNode>> = BTreeMap::new();
+    for (from, to) in residual.keys() {
+        adjacency.entry(from.clone()).or_default().insert(to.clone());
+    }
+
+    loop {
+        // BFS shortest augmenting path from the super-source, in deterministic
+        // adjacency order — the Edmonds-Karp refinement of Ford-Fulkerson, which
+        // is what guarantees termination and the polynomial edge bound.
+        let mut parent: BTreeMap<FlowNode, FlowNode> = BTreeMap::new();
+        let mut queue: std::collections::VecDeque<FlowNode> = std::collections::VecDeque::new();
+        queue.push_back(SuperSource);
+        parent.insert(SuperSource, SuperSource); // marks SuperSource as visited
+        while let Some(node) = queue.pop_front() {
+            if node == SuperSink {
                 break;
             }
-            if edge_dst != dst {
+            let Some(neighbors) = adjacency.get(&node) else {
                 continue;
+            };
+            for next in neighbors {
+                if parent.contains_key(next) {
+                    continue;
+                }
+                let cap = residual.get(&(node.clone(), next.clone())).copied().unwrap_or(0);
+                if cap <= 0 {
+                    continue;
+                }
+                parent.insert(next.clone(), node.clone());
+                queue.push_back(next.clone());
             }
-            let avail = remaining.get(src.as_str()).copied().unwrap_or(0);
-            let push = need.min(*cap).min(avail);
-            if push == 0 {
-                continue;
-            }
-            *remaining.entry(src.as_str()).or_insert(0) -= push;
-            *flow.edges.entry((src.clone(), dst.clone())).or_insert(0) += push;
-            need -= push;
         }
-        flow.residual.insert(dst.clone(), need);
+        if !parent.contains_key(&SuperSink) {
+            break; // no augmenting path left — current flow is maximum
+        }
+
+        // Walk the discovered path back from the sink, find its bottleneck
+        // residual capacity, then push that much flow along every edge on the
+        // path (and pull it back on every corresponding back-edge).
+        let mut path: Vec<(FlowNode, FlowNode)> = Vec::new();
+        let mut cur = SuperSink;
+        while cur != SuperSource {
+            let prev = parent[&cur].clone();
+            path.push((prev.clone(), cur.clone()));
+            cur = prev;
+        }
+        let bottleneck = path
+            .iter()
+            .map(|edge| residual[edge])
+            .min()
+            .expect("a discovered path has at least one edge");
+        for (a, b) in &path {
+            *residual.get_mut(&(a.clone(), b.clone())).expect("edge exists") -= bottleneck;
+            *residual.get_mut(&(b.clone(), a.clone())).expect("back-edge exists") += bottleneck;
+        }
+    }
+
+    // The flow on a source->destination edge is exactly its original capacity
+    // minus what remains in the residual graph.
+    let mut flow = Flow::default();
+    for ((src, dst), cap) in &network.capacity {
+        let left = residual
+            .get(&(Source(src.clone()), Destination(dst.clone())))
+            .copied()
+            .unwrap_or(0);
+        let pushed = i64::try_from(*cap).unwrap_or(i64::MAX) - left;
+        if pushed > 0 {
+            flow.edges.insert((src.clone(), dst.clone()), pushed as u64);
+        }
+    }
+    for (dst, wanted) in &network.demand {
+        let delivered: u64 = flow
+            .edges
+            .iter()
+            .filter(|((_, d), _)| d == dst)
+            .map(|(_, units)| *units)
+            .sum();
+        flow.residual.insert(dst.clone(), wanted.saturating_sub(delivered));
     }
     flow
 }
@@ -2304,6 +2413,82 @@ mod tests {
             ceiling_conservation("module.ttl", &base, &working).is_empty(),
             "the refusal is the flow's, not a contradictory Σ red"
         );
+    }
+
+    #[test]
+    fn two_sources_fund_two_destinations_via_a_residual_path() {
+        // The shape a single FORWARD pass over each destination gets wrong: TWO
+        // sources and TWO destinations, where `ex:s1` has out-edges to BOTH
+        // destinations (capacity 1 each) and `ex:s2` has an out-edge to ONLY
+        // `ex:d1` (capacity 1). Supply is `ex:s1 = 1`, `ex:s2 = 1`; demand is
+        // `ex:d1 = 1`, `ex:d2 = 1`.
+        //
+        // `ex:d2` can ONLY ever be paid by `ex:s1` (it is `ex:s1`'s sole other
+        // edge), so the unique max flow is `ex:s2 -> ex:d1` and `ex:s1 -> ex:d2`
+        // (2 of 2 units, both destinations saturated). A greedy walk that
+        // processes `ex:d1` first in `BTreeMap` order and always prefers the
+        // alphabetically-first source spends `ex:s1`'s only unit on `ex:d1` — a
+        // choice that is REVERSIBLE (a max-flow solver would walk the residual
+        // `ex:d1 -> ex:s1` back-edge to undo it once it discovers `ex:d2` is
+        // starved) — and then finds `ex:s1` exhausted for `ex:d2`, with `ex:s2`
+        // unable to help (it has no edge there). A feasible relocation is FALSELY
+        // REFUSED.
+        let base = BTreeMap::from([(ck("ex:s1", "sh"), 1_u64), (ck("ex:s2", "sh"), 1_u64)]);
+        let working = BTreeMap::from([
+            (ck("ex:s1", "sh"), 0_u64),
+            (ck("ex:s2", "sh"), 0_u64),
+            (ck("ex:d1", "sh"), 1_u64),
+            (ck("ex:d2", "sh"), 1_u64),
+        ]);
+        let base_measured = BTreeMap::new();
+        let working_measured = BTreeMap::from([
+            (ck("ex:s1", "sh"), 0_u64),
+            (ck("ex:s2", "sh"), 0_u64),
+            (ck("ex:d1", "sh"), 1_u64),
+            (ck("ex:d2", "sh"), 1_u64),
+        ]);
+        let base_constructs = constructs(&[
+            ("ex:s1", "sh", &[anchored("ex:tA"), anchored("ex:tB")]),
+            ("ex:s2", "sh", &[anchored("ex:tA")]),
+        ]);
+        let working_constructs = constructs(&[
+            ("ex:d1", "sh", &[anchored("ex:tA")]),
+            ("ex:d2", "sh", &[anchored("ex:tB")]),
+        ]);
+        let defaults = BTreeMap::from([("sh".to_owned(), 0_u64)]);
+        let decls = vec![
+            declaration("ex:relocA1", &["ex:tA"], "ex:s1", "ex:d1"),
+            declaration("ex:relocA2", &["ex:tA"], "ex:s2", "ex:d1"),
+            declaration("ex:relocB1", &["ex:tB"], "ex:s1", "ex:d2"),
+        ];
+        let reasons = BTreeMap::new();
+        let out = projection_ceiling_monotonicity(&CeilingComparison {
+            file_label: "module.ttl",
+            base_ceilings: &base,
+            working_ceilings: &working,
+            base_measured: &base_measured,
+            working_measured: &working_measured,
+            base_constructs: &base_constructs,
+            working_constructs: &working_constructs,
+            default_ceilings: &defaults,
+            declarations: &decls,
+            edge_reasons: &reasons,
+        });
+        assert!(
+            out.violations.is_empty(),
+            "the real max flow saturates both destinations: {out:#?}"
+        );
+        assert_eq!(
+            out.accepted.len(),
+            2,
+            "both destinations are funded: {out:#?}"
+        );
+        let by_to: BTreeMap<&str, &AcceptedTransfer> =
+            out.accepted.iter().map(|t| (t.to.as_str(), t)).collect();
+        let d1 = by_to["ex:d1"];
+        assert_eq!((d1.from.as_str(), d1.units), ("ex:s2", 1));
+        let d2 = by_to["ex:d2"];
+        assert_eq!((d2.from.as_str(), d2.units), ("ex:s1", 1));
     }
 
     fn vocab(prefix: &str, ns: &[&str], dc: u64) -> crate::model::ProjectionVocabulary {

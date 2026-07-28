@@ -2169,6 +2169,21 @@ struct RelocationPlan {
 /// source's `gmeow:ceilingCount` to its post-move measured residue, and pin the
 /// destination's to ITS post-move measured residue.
 ///
+/// The `demand`/supply-headroom ARITHMETIC below is the same per-cell bookkeeping
+/// [`gmeow_slice_quality::gate::projection_ceiling_monotonicity`] performs before it
+/// ever asks whether a raise is payable — that part is not "the solver", it is
+/// deriving this single proposed move's inputs. But WHETHER the raise is payable is
+/// answered by building a [`gmeow_slice_quality::gate::Transport`] (one source, one
+/// destination, one witnessed edge) and calling
+/// [`gmeow_slice_quality::gate::solve_transport`] on it — the EXACT function the gate
+/// itself calls. `gmeow-dev-cli/src/lib.rs`'s seed-command doctrine states the
+/// discipline this exists to uphold: "seed and gate can never diverge" — a second,
+/// hand-rolled flow computation here could promise an acceptance the gate then
+/// refuses, which is exactly the bug this delegation forecloses. (A single `--from`/
+/// `--to` pair is always a one-source/one-destination network, where a greedy pass
+/// and a true max flow agree — but the point is there is now only ONE algorithm that
+/// could ever answer this question, not two that happen to agree today.)
+///
 /// Note the structural consequence, which the preview states in its legend rather than
 /// leaving implicit: on a corpus where the COUNT gate is green (`to_measured <=
 /// to_ceiling` everywhere), `demand = to_measured + moving - to_ceiling <= moving` and
@@ -2182,14 +2197,48 @@ fn relocation_plan(
     to_measured: u64,
     to_ceiling: u64,
 ) -> RelocationPlan {
-    let credit = from_ceiling
+    // The source's lowering-to-post-move-measured headroom, clamped to what
+    // actually moves — the same `lowering.min(live)` supply the gate computes per
+    // source cell before it ever builds a `Transport`.
+    let supply = from_ceiling
         .saturating_sub(from_measured.saturating_sub(moving))
         .min(moving);
     let demand = (to_measured + moving).saturating_sub(to_ceiling);
+    if demand == 0 {
+        // The gate's own per-vocabulary loop `continue`s before building a
+        // `Transport` at all when nothing is being raised (`gate.rs`:
+        // `if network.demand.is_empty() { continue; }`) — there is nothing to
+        // solve, so `credit` here is purely informational: the headroom the
+        // source's lowering COULD pay, not what a flow actually delivered.
+        return RelocationPlan {
+            credit: supply,
+            demand: 0,
+            unpaid: 0,
+        };
+    }
+    const FROM: &str = "from";
+    const TO: &str = "to";
+    let mut network = gmeow_slice_quality::gate::Transport::default();
+    if supply > 0 {
+        network.supply.insert(FROM.to_owned(), supply);
+    }
+    network.demand.insert(TO.to_owned(), demand);
+    if moving > 0 {
+        network
+            .capacity
+            .insert((FROM.to_owned(), TO.to_owned()), moving);
+    }
+    let flow = gmeow_slice_quality::gate::solve_transport(&network);
+    let credit = flow
+        .edges
+        .get(&(FROM.to_owned(), TO.to_owned()))
+        .copied()
+        .unwrap_or(0);
+    let unpaid = flow.residual.get(TO).copied().unwrap_or(demand);
     RelocationPlan {
         credit,
         demand,
-        unpaid: demand.saturating_sub(credit),
+        unpaid,
     }
 }
 
