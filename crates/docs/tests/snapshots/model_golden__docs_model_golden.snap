@@ -168,7 +168,7 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "6f5bb7917ce3c8f8124d6daf5d17c2e3934bcea03a2a611817fea7d2d00f42f8",
+        "raw_digest": "2ffd23a0c6899de722e639715ef8264d64d1bda099e6668c65109dae1faebbab",
         "semantic_digest": "a95701fd11e58120728718c300fd499042fca737c0fd423dae5396b13e2a8bf3"
       },
       {
