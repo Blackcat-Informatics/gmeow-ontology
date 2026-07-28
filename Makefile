@@ -452,11 +452,12 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 				exit 1; \
 			fi; \
 		done; \
-		echo "== MCP engine proof: gmeow-mcp-wasm (the consumer 35-tool / 5-resource JSON-RPC surface) builds for wasm32 =="; \
+		echo "== MCP engine proof: gmeow-mcp-wasm (the demand-loaded REASONING segment) builds for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-mcp-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no native-only crate may appear in the MCP engine wasm dep tree (gmeow-logic + rayon ARE allowed — the engine reasons serially on wasm) =="; \
 		: "tempfile is the NATIVE half of the mcp storage seam (atomic library appends). It does not cross-compile to wasm32, so it is cfg(not(target_arch = \"wasm32\"))-gated in crates/mcp; forbidding it here proves that gate holds and the browser backend is the one in play."; \
-		for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer tempfile; do \
+		: "gmeow-transcode / gmeow-docs-catalog are the two dependencies ONLY the core segment reaches, and tiktoken-rs is the ~1.7 MB cl100k vocabulary lang-bridge's glyph-cost feature carries. All three forbidden here is what makes this image a genuine DELTA rather than a superset of the core image — the exact regression that made the old heavy segment duplicate every core byte on disk."; \
+		for forbidden in gmeow-transcode gmeow-docs-catalog tiktoken-rs oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer tempfile; do \
 			if $(WASM_CARGO) tree -p gmeow-mcp-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
 				echo "FAIL: gmeow-mcp-wasm leaked $$forbidden into its wasm dependency tree:"; \
 				$(WASM_CARGO) tree -p gmeow-mcp-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
@@ -466,15 +467,15 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 		echo "== lean-core proof: gmeow-mcp-core-wasm (the SAME 35-tool surface, reasoning segment demand-loaded) builds for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-mcp-core-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== segment gate: the reasoning segment must be ABSENT from the lean core's wasm dep tree =="; \
-		: "This is the whole claim of the crate, so it is a dep-tree assertion rather than a comment. gmeow-logic (the DL reasoner) and gmeow-slice-quality (the rubric kernel over it) are what the first-load image exists to NOT carry; if either reappears the byte win is gone and the tiering is theatre. The native-only forbidden set is checked too, exactly as for the full image."; \
-		for forbidden in gmeow-logic gmeow-slice-quality oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer tempfile; do \
+		: "This is the whole claim of the crate, so it is a dep-tree assertion rather than a comment. gmeow-logic (the DL reasoner) and gmeow-slice-quality (the rubric kernel over it) are what the first-load image exists to NOT carry; if either reappears the byte win is gone and the tiering is theatre. tiktoken-rs is forbidden on BOTH sides: no image may carry the cl100k vocabulary. The native-only forbidden set is checked too, exactly as for the reasoning segment."; \
+		for forbidden in gmeow-logic gmeow-slice-quality tiktoken-rs oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer tempfile; do \
 			if $(WASM_CARGO) tree -p gmeow-mcp-core-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
 				echo "FAIL: gmeow-mcp-core-wasm leaked $$forbidden into its wasm dependency tree:"; \
 				$(WASM_CARGO) tree -p gmeow-mcp-core-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
 				exit 1; \
 			fi; \
 		done; \
-		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec + the full wasm MCP engine + its lean core build for wasm32 (dep trees are native-runtime-free; the core carries no reasoning segment)"; \
+		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec + the wasm MCP reasoning segment + its lean core build for wasm32 (dep trees are native-runtime-free; the two segments are DISJOINT and neither carries the cl100k vocabulary)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — gmeow's wasm-clean criterion cannot be verified; CI must install it"; exit 1; \
 	else \

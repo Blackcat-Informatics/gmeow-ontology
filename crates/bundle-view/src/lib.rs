@@ -56,6 +56,14 @@ pub mod bundle_blobs;
 pub mod diagnostics_reader;
 pub mod error;
 pub mod export;
-pub mod graph_iris;
+// The named-graph IRIs a READER addresses moved to `gmeow-ns`, the declared single site
+// for GMEOW term declarations, and are re-exported here at their original path so every
+// existing `gmeow_bundle_view::graph_iris::…` reference is unchanged and there is still
+// exactly ONE definition. The move was forced by the tiered MCP engine: the reasoning
+// segment names `GRAPH_ATTESTATIONS` to read the bundle's coherence certificate, and
+// linking this whole read side for one constant string is precisely the superset the
+// segmentation exists to avoid. `gmeow-ns` is a zero-dependency leaf both sides already
+// link.
+pub use gmeow_ns::graph_iris;
 pub mod lpg_prefixes;
 pub mod native_query;

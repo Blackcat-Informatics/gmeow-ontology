@@ -123,13 +123,23 @@ pub mod extension;
 pub mod fold_arena;
 pub mod storage;
 
+// `Reverse` orders the `docs_search` relevance ranking — a CORE-segment surface only.
+#[cfg(feature = "core")]
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, OnceLock};
+// The CORE segment's per-view term cache is the only lock this crate takes.
+#[cfg(feature = "core")]
+use std::sync::Mutex;
 
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
+// The CORE segment's GMN-1 codec imports: the four `gmn_*` tools are core tools, so the
+// reasoning image names none of these. `gmeow-lang-bridge` itself stays linked there —
+// `gmeow-slice-quality`'s rubric axes read its dictionary and coverage primitives — so this
+// is a REACHABILITY gate, not a dependency one.
+#[cfg(feature = "core")]
 use gmeow_lang_bridge::{
     Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
     gmn1_write, resolve_operator_forms,
@@ -165,6 +175,10 @@ use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result}
 // envelope, the conjecture library reader), hence the gate on this import alone.
 #[cfg(feature = "reasoning")]
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
+// The CORE segment's validator imports (`validate_local` / `advise` / `explain_finding`).
+// As with lang-bridge, `gmeow-validate` stays linked in the reasoning image through
+// `gmeow-slice-quality`; only these readers are gated.
+#[cfg(feature = "core")]
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
 // `recall` is a core read over the grounded-memory triad; the three WRITE option types
 // belong to the WRITE tools, which are segment tools because their commit gate is a TR
@@ -185,7 +199,16 @@ use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 #[cfg(feature = "reasoning")]
 use sha2::{Digest, Sha256};
 
-use gmeow_bundle_view::export::{self, ConsumerResolution, FoldView, Term};
+// The bundle READ side is a CORE-segment dependency in full: the fold view, the consumer
+// term record, and the export renderers are reached only by core tools and core resources.
+// The reasoning image reads the carrier dataset straight off `purrdf::import_gts_events`
+// and needs none of it.
+#[cfg(feature = "core")]
+use gmeow_bundle_view::export::{self, FoldView, Term};
+// The consumer RESOLUTION algebra: only CORE tools resolve a caller-supplied term to its
+// canonical IRI, so only they can hit an ambiguity or a miss.
+#[cfg(feature = "core")]
+use gmeow_bundle_view::export::ConsumerResolution;
 
 use crate::extension::{
     Extension, ResourceHandler, Surface, ToolHandler, zip_resources, zip_tools,
@@ -204,6 +227,17 @@ use crate::storage::{LibraryLock, SegmentLibrary};
 /// A stable wire identifier, not a display string: a host reads it to decide WHICH
 /// segment image to fetch before re-dispatching the frame.
 pub const REASONING_SEGMENT: &str = "reasoning";
+
+/// The name of the always-resident core segment, as it appears in the
+/// [`SegmentNotLoaded`](crate::error::SegmentNotLoaded) signal's `segment` field.
+///
+/// The twin of [`REASONING_SEGMENT`], and it exists because the two browser images are
+/// DISJOINT halves of one surface rather than a superset and a subset. The reasoning image
+/// carries the twelve [`REASONING_SEGMENT_TOOLS`] and defers the other twenty-three back to
+/// core, exactly as core defers those twelve forward. Without this identifier the reasoning
+/// image would have had to be a superset — which is what made the old "heavy segment"
+/// duplicate the whole core image on disk.
+pub const CORE_SEGMENT: &str = "core";
 
 /// The tools the [`REASONING_SEGMENT`] serves, in advertised order.
 ///
@@ -257,9 +291,16 @@ pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
 /// the host uses to load that segment and re-dispatch the SAME frame. The caller sees a
 /// slower answer; it never sees a missing tool, an empty result, or a refusal.
 ///
+/// The surface is PARTITIONED into two segments, not layered into a base and an extension:
+/// the twelve [`REASONING_SEGMENT_TOOLS`] belong to [`REASONING_SEGMENT`] and the other
+/// twenty-three tools plus all five resources belong to [`CORE_SEGMENT`]. The two browser
+/// images select one each and defer the other's half back, so neither is a superset of the
+/// other and no byte is paid twice. The native build selects BOTH and is one whole engine.
+///
 /// Two axes decide whether a segment is served, and BOTH must hold:
-/// * the build LINKS it (the `reasoning` cargo feature), and
-/// * the deployment SELECTS it ([`SegmentSet::core`] vs [`SegmentSet::linked`]).
+/// * the build LINKS it (the `core` / `reasoning` cargo features), and
+/// * the deployment SELECTS it ([`SegmentSet::core`] / [`SegmentSet::reasoning_only`] vs
+///   [`SegmentSet::linked`]).
 ///
 /// The second axis exists because "lean core" is a deployment shape, not merely a
 /// compilation artifact: it must be observable — and therefore testable — from a build
@@ -267,20 +308,27 @@ pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
 /// exercised by the image nobody runs the test suite against.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SegmentSet {
+    /// Serve every tool OUTSIDE [`REASONING_SEGMENT_TOOLS`] locally rather than deferring
+    /// it back to the always-resident core image.
+    ///
+    /// Can only ever be `true` on a build with the `core` feature — the constructors below
+    /// are the only way to set it, and each folds in `cfg!(feature = "core")`.
+    pub core: bool,
     /// Serve [`REASONING_SEGMENT_TOOLS`] locally rather than deferring them.
     ///
     /// Can only ever be `true` on a build with the `reasoning` feature — the constructors
-    /// below are the only way to set it, and both fold in `cfg!(feature = "reasoning")`.
+    /// below are the only way to set it, and each folds in `cfg!(feature = "reasoning")`.
     pub reasoning: bool,
 }
 
 impl SegmentSet {
     /// Every segment this BUILD links — the default for [`McpServer::from_snapshot`], and
-    /// therefore what the native `gmeow mcp`, `gmeow-mcp-dev`, and the full browser image
-    /// all get. On a build with `reasoning` on this is the whole engine, unchanged.
+    /// therefore what the native `gmeow mcp` and `gmeow-mcp-dev` get. On a build with both
+    /// features on this is the whole engine, unchanged.
     #[must_use]
     pub const fn linked() -> Self {
         Self {
+            core: cfg!(feature = "core"),
             reasoning: cfg!(feature = "reasoning"),
         }
     }
@@ -292,23 +340,58 @@ impl SegmentSet {
     /// a core deployment is.
     #[must_use]
     pub const fn core() -> Self {
-        Self { reasoning: false }
+        Self {
+            core: cfg!(feature = "core"),
+            reasoning: false,
+        }
+    }
+
+    /// The DEMAND-LOADED reasoning deployment: the mirror image of [`Self::core`].
+    ///
+    /// It serves the twelve [`REASONING_SEGMENT_TOOLS`] and defers everything else BACK to
+    /// the core image the host already has resident. That symmetry is the point: the
+    /// reasoning image is a genuine DELTA, not a superset, so the two images share no tool
+    /// implementation and the bytes are not paid twice.
+    #[must_use]
+    pub const fn reasoning_only() -> Self {
+        Self {
+            core: false,
+            reasoning: cfg!(feature = "reasoning"),
+        }
     }
 
     /// Whether `tool` runs here, or is deferred to a segment this deployment has not
-    /// loaded. Total: a tool outside [`REASONING_SEGMENT_TOOLS`] is core and always served.
+    /// loaded. TOTAL over the surface: every tool belongs to exactly one segment, so this
+    /// answers for all 35 without a fallthrough.
     #[must_use]
     pub fn serves(self, tool: &str) -> bool {
-        self.reasoning || !REASONING_SEGMENT_TOOLS.contains(&tool)
+        if REASONING_SEGMENT_TOOLS.contains(&tool) {
+            self.reasoning
+        } else {
+            self.core
+        }
+    }
+
+    /// The segment that serves `tool` — the wire identifier a host fetches an image by.
+    #[must_use]
+    pub fn segment_of(tool: &str) -> &'static str {
+        if REASONING_SEGMENT_TOOLS.contains(&tool) {
+            REASONING_SEGMENT
+        } else {
+            CORE_SEGMENT
+        }
     }
 }
 
 /// The deferral signal for one `tools/call` against a segment this deployment has not
 /// loaded — the ONE construction site, so every deferred tool reports identically.
-fn segment_not_loaded(tool: &'static str) -> gmeow_errors::Diag {
+///
+/// `segment` is the wire name of the image that DOES serve `tool`, so a host can route on
+/// the signal alone without a second lookup.
+fn segment_not_loaded(tool: &'static str, segment: &'static str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::SegmentNotLoaded {
         tool: tool.to_owned(),
-        segment: REASONING_SEGMENT.to_owned(),
+        segment: segment.to_owned(),
     })
 }
 
@@ -333,45 +416,58 @@ const EXTERNAL_OVERLAY_GRAPH: &str = "urn:gmeow:mcp:overlay:external";
 /// The GMEOW namespace the native validation surface reasons in — the SAME
 /// namespace the CLI `gmeow validate` passes to `gmeow_validate::data_validate`, so
 /// `validate_local` never diverges from the shipped validator.
+#[cfg(feature = "core")]
 const MCP_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// The origin marker stamped on every `validate_local` finding's primary location —
 /// the transient, inline data has no file path, so this synthetic origin identifies
 /// the tool that produced the finding.
+#[cfg(feature = "core")]
 const VALIDATE_LOCAL_ORIGIN: &str = "mcp:validate_local";
 
 /// The origin marker stamped on every `advise` finding's primary location — the
 /// `advise`-tool twin of [`VALIDATE_LOCAL_ORIGIN`].
+#[cfg(feature = "core")]
 const ADVISE_ORIGIN: &str = "mcp:advise";
 
 /// A generous ceiling on the inline `data` payload `validate_local` accepts (8 MiB).
 /// A larger payload is a HARD FAIL with a finding-style error — never silently
 /// truncated (a truncated RDF graph would mis-parse and mislead).
+#[cfg(feature = "core")]
 const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
 
 /// `rdfs:label` — the controlled-NL nucleus the GMN verbalizer joins each operator
 /// form to; harvested from the bundle dataset for `gmn_explain`'s gloss.
+#[cfg(feature = "core")]
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 /// `x-gmeow-english` — the preferred label language tag (mirrors the pipeline's
 /// verbalizer label harvest: a GMEOW-English label wins, ties break to the smallest
 /// lexical form), so the gloss the tool serves is byte-identical to Task 8's.
+#[cfg(feature = "core")]
 const GMEOW_ENGLISH: &str = "x-gmeow-english";
 /// `lang:Denotation` — the typed meaning-assignment node `gmn_explain` resolves a
 /// glyph back to (its denoted form supplies fixity/precedence/arity).
+#[cfg(feature = "core")]
 const LANG_DENOTATION: &str = "https://blackcatinformatics.ca/lang/Denotation";
 /// `lang:denotedForm` — the Denotation → Form edge carrying the operator signature.
+#[cfg(feature = "core")]
 const LANG_DENOTED_FORM: &str = "https://blackcatinformatics.ca/lang/denotedForm";
 /// `lang:denotationTarget` — the Denotation → denoted term (the operator's meaning).
+#[cfg(feature = "core")]
 const LANG_DENOTATION_TARGET: &str = "https://blackcatinformatics.ca/lang/denotationTarget";
 /// `gmeow:gmnFixity` — the operator Form's fixity individual IRI.
+#[cfg(feature = "core")]
 const GMN_FIXITY: &str = "https://blackcatinformatics.ca/gmeow/gmnFixity";
 /// `gmeow:gmnPrecedence` — the operator Form's binding-strength integer.
+#[cfg(feature = "core")]
 const GMN_PRECEDENCE: &str = "https://blackcatinformatics.ca/gmeow/gmnPrecedence";
 /// `gmeow:gmnArity` — the operator Form's operand count.
+#[cfg(feature = "core")]
 const GMN_ARITY: &str = "https://blackcatinformatics.ca/gmeow/gmnArity";
 /// The honest typed miss `gmn_explain` returns for an input that is not a covered GMN
 /// operator glyph — the SAME `lang:` uncovered-term class the codec raises for a term
 /// the dictionary does not mint, never a fabricated answer.
+#[cfg(feature = "core")]
 const LANG_GMN_UNCOVERED_TERM: &str = "https://blackcatinformatics.ca/lang/GmnUncoveredTerm";
 
 /// The pre-reasoning hard ceiling on the `verify_graph` overlay size (quad count).
@@ -470,6 +566,7 @@ fn governed_budget(max_steps: Option<u64>, max_answers: Option<usize>) -> Budget
 /// SELECT the counter-example conformance fixtures from the documentation graph: the
 /// fixture IRI, its authored violation code, the full Turtle body, its label, the
 /// authored outcome/rationale, and each referenced documented term (repeatable).
+#[cfg(feature = "core")]
 const COUNTER_EXAMPLE_FIXTURE_QUERY: &str = "\
 PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -488,6 +585,7 @@ SELECT ?f ?code ?text ?label ?outcome ?rationale ?term WHERE {
 /// documentation graph: the fixture IRI, the full Turtle body, its label, the
 /// authored outcome, and each referenced documented term (the well-formed↔term join
 /// key). A well-formed fixture carries no violation code.
+#[cfg(feature = "core")]
 const WELLFORMED_FIXTURE_QUERY: &str = "\
 PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -503,6 +601,7 @@ SELECT ?f ?text ?label ?outcome ?term WHERE {
 /// SELECT the entailment records from the documentation graph: the entailment IRI,
 /// the documented term it grounds on, the rule, the conclusion, and each premise
 /// (repeatable).
+#[cfg(feature = "core")]
 const ENTAILMENT_QUERY: &str = "\
 PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
 SELECT ?e ?term ?rule ?conclusion ?premise WHERE {
@@ -519,6 +618,7 @@ SELECT ?e ?term ?rule ?conclusion ?premise WHERE {
 /// advisory fields. `term_iri` is a canonical term IRI already resolved from the
 /// bundle's own term set, so embedding it as an IRI ref is not a caller-injected
 /// value.
+#[cfg(feature = "core")]
 fn fixtures_by_term_query(term_iri: &str) -> String {
     format!(
         "\
@@ -540,6 +640,7 @@ SELECT ?f ?kind ?text ?label ?outcome ?code ?rationale WHERE {{
 /// SELECT the entailment records documenting one specific term, for the
 /// `entailments` tool: the entailment IRI, its rule, its conclusion, and each
 /// premise (repeatable). See [`fixtures_by_term_query`] on the embedded IRI.
+#[cfg(feature = "core")]
 fn entailments_by_term_query(term_iri: &str) -> String {
     format!(
         "\
@@ -559,6 +660,7 @@ SELECT ?e ?rule ?conclusion ?premise WHERE {{
 /// The `gmeow:docEvidenceKindDiagnostics` evidence node is projected into the
 /// documentation graph per term that a finding structurally concerns. See
 /// [`fixtures_by_term_query`] on the embedded IRI.
+#[cfg(feature = "core")]
 fn diagnostics_by_term_query(term_iri: &str) -> String {
     format!(
         "\
@@ -578,6 +680,7 @@ SELECT ?claim ?code WHERE {{
 /// judgment (`gmeow:docJudgment`). The `gmeow:docEvidenceKindLoss` evidence node
 /// is projected per term that degrades under one or more projections. See
 /// [`fixtures_by_term_query`] on the embedded IRI.
+#[cfg(feature = "core")]
 fn loss_by_term_query(term_iri: &str) -> String {
     format!(
         "\
@@ -595,6 +698,7 @@ SELECT ?target ?judgment WHERE {{
 /// The output format of the `doc_card` tool: rendered Markdown or the neutral
 /// [`gmeow_docs_model::card::Card`] serialized to JSON.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg(feature = "core")]
 enum CardFormat {
     /// The card rendered through the single shared Markdown renderer.
     Markdown,
@@ -602,9 +706,11 @@ enum CardFormat {
     Json,
 }
 
+#[cfg(feature = "core")]
 impl CardFormat {
     /// Parse the `format` argument — an UNKNOWN value is a HARD FAIL listing the
     /// valid values (never a silent default).
+    #[cfg(feature = "core")]
     fn parse(raw: Option<&str>) -> gmeow_errors::Result<Self> {
         match raw.unwrap_or("markdown") {
             "markdown" => Ok(Self::Markdown),
@@ -618,6 +724,7 @@ impl CardFormat {
     }
 
     /// The canonical label echoed back in the response envelope.
+    #[cfg(feature = "core")]
     fn label(self) -> &'static str {
         match self {
             Self::Markdown => "markdown",
@@ -628,6 +735,7 @@ impl CardFormat {
 
 /// Parse the `detail` argument into a [`gmeow_docs_model::card::CardDetail`] tier — an
 /// UNKNOWN value is a HARD FAIL listing the valid values (never a silent default).
+#[cfg(feature = "core")]
 fn parse_card_detail(
     raw: Option<&str>,
 ) -> gmeow_errors::Result<gmeow_docs_model::card::CardDetail> {
@@ -645,6 +753,7 @@ fn parse_card_detail(
 }
 
 /// The canonical `detail` label echoed back in the response envelope.
+#[cfg(feature = "core")]
 fn card_detail_label(detail: gmeow_docs_model::card::CardDetail) -> &'static str {
     use gmeow_docs_model::card::CardDetail;
     match detail {
@@ -657,6 +766,7 @@ fn card_detail_label(detail: gmeow_docs_model::card::CardDetail) -> &'static str
 /// One-line and cap a fixture Turtle body to a short snippet for the full-tier
 /// `doc_card` Do / Don't panels (the card is token-budgeted; the full body is
 /// available through the `counter_examples` tool).
+#[cfg(feature = "core")]
 fn fixture_body_snippet(text: &str) -> String {
     let one_line = text.split_whitespace().collect::<Vec<_>>().join(" ");
     gmeow_docs_model::llms::cap_note(&one_line)
@@ -666,6 +776,7 @@ fn fixture_body_snippet(text: &str) -> String {
 /// every `gmeow:DocumentedCompetency` carrying a runnable `gmeow:cqQueryText`, or —
 /// when `term_iri` is `Some` — only those documenting that term. `cqQueryText` is a
 /// required pattern (not OPTIONAL), so every returned record is a runnable question.
+#[cfg(feature = "core")]
 fn competency_query(term_iri: Option<&str>) -> String {
     let documents = term_iri
         .map(|iri| format!("     gm:documents <{iri}> ;\n"))
@@ -689,6 +800,7 @@ SELECT ?c ?q ?rationale ?count ?exact WHERE {{
 /// alignment / missing-coverage facets. The `docSearchLabel` pattern is required (not
 /// OPTIONAL), so only genuine documentation-entry records (gmeow:DocumentedTerm /
 /// DocumentedSlice / DocumentedConcern) match — never a bare evidence node.
+#[cfg(feature = "core")]
 const DOC_SEARCH_QUERY: &str = "\
 PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -708,6 +820,7 @@ SELECT ?s ?type ?label ?definition ?url ?documents ?advice ?alignment ?missing W
 /// `definition`, `url`, `advice`, `alignments`, `missing_coverage`) plus a private
 /// match `rank` used only for the deterministic ordering.
 #[derive(Debug)]
+#[cfg(feature = "core")]
 struct SearchHit {
     /// The record kind (`term`, `slice`, `concern`) from its `rdf:type` local name.
     kind: String,
@@ -735,7 +848,9 @@ struct SearchHit {
     rank: u8,
 }
 
+#[cfg(feature = "core")]
 impl SearchHit {
+    #[cfg(feature = "core")]
     fn to_json(&self) -> Value {
         json!({
             "kind": self.kind,
@@ -753,6 +868,7 @@ impl SearchHit {
 /// Whether a lowercased searchable field matches the query: a substring hit on the
 /// whole lowercased query, OR (token mode) every whitespace-split query token appears
 /// somewhere in the field. Case-insensitive by construction (both sides lowercased).
+#[cfg(feature = "core")]
 fn field_matches(field_lc: &str, query_lc: &str, tokens: &[&str]) -> bool {
     field_lc.contains(query_lc)
         || (!tokens.is_empty() && tokens.iter().all(|t| field_lc.contains(t)))
@@ -760,6 +876,7 @@ fn field_matches(field_lc: &str, query_lc: &str, tokens: &[&str]) -> bool {
 
 /// The local name of an IRI: the tail after the last `/` or `#` (the whole string when
 /// neither is present).
+#[cfg(feature = "core")]
 fn iri_local_name(iri: &str) -> &str {
     match iri.rfind(['/', '#']) {
         Some(i) => &iri[i + 1..],
@@ -780,6 +897,7 @@ fn iri_local_name(iri: &str) -> &str {
 /// Ranking is deterministic: records are ordered by match quality (a label match
 /// outranks a definition match, which outranks an advice-only match) then by `id`
 /// (the documented IRI), so the same query twice yields the same order.
+#[cfg(feature = "core")]
 fn search_documentation(
     docs: &Arc<purrdf::RdfDataset>,
     query: &str,
@@ -895,6 +1013,7 @@ fn search_documentation(
 /// Extract the `results.bindings` of a SPARQL-1.1 JSON envelope into flat
 /// `var → lexical-value` rows (each binding's `"value"`). Shared by
 /// [`McpView::docs_select_rows`] and [`search_documentation`].
+#[cfg(feature = "core")]
 fn select_rows(value: &Value) -> Vec<BTreeMap<String, String>> {
     value
         .get("results")
@@ -922,6 +1041,7 @@ fn select_rows(value: &Value) -> Vec<BTreeMap<String, String>> {
 /// The string value of `key` in a JSON object, or `""` when absent / non-string.
 /// A small adapter so the full-tier `doc_card` panels can reuse the Task-4
 /// `term_entailments` / `term_fixtures` JSON records without re-querying the graph.
+#[cfg(feature = "core")]
 fn value_str(value: &Value, key: &str) -> String {
     value
         .get(key)
@@ -932,6 +1052,7 @@ fn value_str(value: &Value, key: &str) -> String {
 
 /// The string members of the `key` array in a JSON object, in order; empty when
 /// absent or not an array. (Values are already deterministically ordered upstream.)
+#[cfg(feature = "core")]
 fn value_str_array(value: &Value, key: &str) -> Vec<String> {
     value
         .get(key)
@@ -949,6 +1070,7 @@ fn value_str_array(value: &Value, key: &str) -> Vec<String> {
 /// Render one fixture record as the tool's JSON object. The advisory fields are
 /// emitted as `null` when the slice authored none (a stable shape callers can read
 /// without probing for key presence).
+#[cfg(feature = "core")]
 fn fixture_json(view: &FixtureView) -> Value {
     json!({
         "title": view.title,
@@ -963,6 +1085,7 @@ fn fixture_json(view: &FixtureView) -> Value {
 /// expectations are included only when authored; the row-count and exact-flag are
 /// typed back to a JSON number / boolean from their `xsd:integer` / `xsd:boolean`
 /// lexical forms (the raw lexeme is kept only if it is somehow not well-typed).
+#[cfg(feature = "core")]
 fn competency_json(query_text: &str, row: &BTreeMap<String, String>) -> Value {
     let mut obj = serde_json::Map::new();
     obj.insert("query_text".to_string(), json!(query_text));
@@ -997,31 +1120,38 @@ pub struct McpView {
     /// Ontology title / version — language-independent (`fold_meta` reads the
     /// header via a token-minimal `value`, not a language selector), so they are
     /// resolved once at construction.
+    #[cfg(feature = "core")]
     title: String,
+    #[cfg(feature = "core")]
     version: String,
     /// `requested.join(",")` → collected terms, mirroring `_TERMS_CACHE`. Stored
     /// behind an `Arc` so the cache mutex is released before the (potentially
     /// large) render runs — concurrent reads of a cached entry never serialize
     /// behind one another's rendering.
+    #[cfg(feature = "core")]
     cache: Mutex<HashMap<String, Arc<Vec<Term>>>>,
     /// `term-IRI → published site URL`, built once from the
     /// `gmeow:graph/documentation` graph — language-independent, so it is cached
     /// across all `requested` lists. Empty when the doc graph is absent (then the
     /// `llms.txt` index renders linkless).
+    #[cfg(feature = "core")]
     doc_urls: OnceLock<Arc<HashMap<String, String>>>,
     /// The documentation named graph projected to a default-graph dataset once per
     /// server. Every documentation tool and full-card panel queries this immutable
     /// view; rebuilding it for each SPARQL query copies the same whole graph and turns
     /// a single card into several bundle-scale scans.
+    #[cfg(feature = "core")]
     documentation: OnceLock<Arc<purrdf::RdfDataset>>,
     /// The authoring-briefs named graph projected to a default-graph dataset once per
     /// server — the per-slice `gmeow:AuthoringPacket` corpus the `slice_brief` tool
     /// serves straight out of the bundle. Cached like `documentation`: projecting the
     /// whole (bundle-scale) briefs graph per call would rescan the entire corpus.
+    #[cfg(feature = "core")]
     authoring_briefs: OnceLock<Arc<purrdf::RdfDataset>>,
     /// The JSON Schema `$defs` key set folded into this bundle's `schemas-archive`
     /// blob — the model-existence signal `export::term_to_card`'s `python_model`
     /// gate reads (built once from `gts`, like `doc_urls`; see [`Self::modeled_defs`]).
+    #[cfg(feature = "core")]
     modeled_defs: OnceLock<Arc<BTreeSet<String>>>,
     /// The raw `gmeow.gts` snapshot bytes this view was imported from, retained
     /// verbatim. `from_snapshot` parses the bundle to the carrier dataset and
@@ -1036,6 +1166,7 @@ pub struct McpView {
     /// subsequent call. The bundle decode + shape parse dominates a Tier-1 run
     /// (whole-bundle seconds vs the milliseconds the validation itself takes),
     /// and the shapes are immutable per bundle (see [`Self::tier1_shapes`]).
+    #[cfg(feature = "core")]
     tier1_shapes: OnceLock<gmeow_validate::data_validate::Tier1Shapes>,
 }
 
@@ -1044,20 +1175,34 @@ impl McpView {
         dataset: Arc<purrdf::RdfDataset>,
         gts: Arc<[u8]>,
     ) -> gmeow_errors::Result<Self> {
+        // The header fold is a CORE-segment read: `title`/`version` reach the caller only
+        // through the documentation surfaces (`llms.txt`, the card, the OKF index), all of
+        // which are core tools or core resources. Folding it in the reasoning image would
+        // keep `export::fold_meta` — and behind it the whole fold view — reachable for a
+        // string nothing there can return.
+        #[cfg(feature = "core")]
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
             export::fold_meta(&view)?
         };
         Ok(Self {
             dataset,
+            #[cfg(feature = "core")]
             title,
+            #[cfg(feature = "core")]
             version,
+            #[cfg(feature = "core")]
             cache: Mutex::new(HashMap::new()),
+            #[cfg(feature = "core")]
             doc_urls: OnceLock::new(),
+            #[cfg(feature = "core")]
             documentation: OnceLock::new(),
+            #[cfg(feature = "core")]
             authoring_briefs: OnceLock::new(),
+            #[cfg(feature = "core")]
             modeled_defs: OnceLock::new(),
             gts,
+            #[cfg(feature = "core")]
             tier1_shapes: OnceLock::new(),
         })
     }
@@ -1070,6 +1215,7 @@ impl McpView {
 
     /// Resolve a CURIE / local name / IRI / unambiguous prefix to its public
     /// metadata record (JSON envelope with `"ok"`), or a not-found envelope.
+    #[cfg(feature = "core")]
     fn lookup_term_json(&self, term: &str, requested: Vec<String>) -> String {
         self.with_terms(requested, |terms| export::lookup_envelope(terms, term))
     }
@@ -1082,6 +1228,7 @@ impl McpView {
     /// silent pick. `export::resolve_term_iri` borrows zero-copy; this wrapper must
     /// allocate ONE owned `String` here because the resolved IRI has to outlive the
     /// cached `terms` slice that `with_terms` only lends for the closure's duration.
+    #[cfg(feature = "core")]
     fn resolve_term_iri(&self, term: &str, requested: Vec<String>) -> ConsumerResolution<String> {
         self.with_terms(requested, |terms| {
             match export::resolve_term_iri(terms, term) {
@@ -1101,6 +1248,7 @@ impl McpView {
     /// code, conformance rationale) — `null` when the slice authored none. Both lists
     /// are ordered by fixture IRI, so the surface is deterministic. A term that
     /// documents no fixtures yields two empty lists (honest empty-but-ok).
+    #[cfg(feature = "core")]
     fn term_fixtures(&self, term_iri: &str) -> gmeow_errors::Result<(Vec<Value>, Vec<Value>)> {
         let query = fixtures_by_term_query(term_iri);
         // One record per fixture IRI: the fixture-scoped columns are single-valued,
@@ -1146,6 +1294,7 @@ impl McpView {
     /// record — its rule, its conclusion, and ALL its premises (every
     /// `gmeow:entailmentPremise`, sorted). Records are ordered by entailment IRI, so
     /// the surface is deterministic. A term with no entailments yields an empty list.
+    #[cfg(feature = "core")]
     fn term_entailments(&self, term_iri: &str) -> gmeow_errors::Result<Vec<Value>> {
         let query = entailments_by_term_query(term_iri);
         // Aggregate the (repeatable-premise) rows back per entailment IRI.
@@ -1184,6 +1333,7 @@ impl McpView {
     /// (`gmeow:cqRationale`, `gmeow:cqExpectRowCount`, `gmeow:cqExactRows`) when
     /// present. Records are ordered by competency IRI, so the surface is
     /// deterministic.
+    #[cfg(feature = "core")]
     fn competency_questions(&self, term_iri: Option<&str>) -> gmeow_errors::Result<Vec<Value>> {
         let query = competency_query(term_iri);
         // One record per competency IRI (all columns single-valued). BTreeMap →
@@ -1202,6 +1352,7 @@ impl McpView {
 
     /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
     /// with bullets linking into the published docs site.
+    #[cfg(feature = "core")]
     fn llms_txt_text(&self, requested: Vec<String>) -> String {
         let title = self.title.clone();
         let version = self.version.clone();
@@ -1214,6 +1365,7 @@ impl McpView {
     /// The complete inlined index (`llms-full.txt`) for `requested`, carrying the graph-derived
     /// GMN-1 teachability primer. A carrier that fails to yield the primer's GMN-1 codebook is a
     /// HARD FAIL (no-optionality), never a silently primer-less complete form.
+    #[cfg(feature = "core")]
     fn llms_full_text(&self, requested: Vec<String>) -> gmeow_errors::Result<String> {
         let title = self.title.clone();
         let version = self.version.clone();
@@ -1226,6 +1378,7 @@ impl McpView {
 
     /// The graph-derived GMN-1 teachability primer over THIS view's carrier dataset — shared by
     /// the `llms_full` surface and the `gmeow://ontology/gmn1-primer` resource.
+    #[cfg(feature = "core")]
     fn gmn1_primer(&self) -> gmeow_errors::Result<gmeow_docs_model::gmn1_primer::Gmn1Primer> {
         gmeow_docs_model::gmn1_primer::build_primer(self.dataset.as_ref()).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -1248,6 +1401,7 @@ impl McpView {
     /// `format=markdown` renders through `render_card` (tier-gated); `format=json`
     /// serializes the tier-projected `Card`. `bytes`/`tokens` measure the returned
     /// card payload so callers can budget by tier.
+    #[cfg(feature = "core")]
     fn doc_card(
         &self,
         term: &str,
@@ -1313,6 +1467,7 @@ impl McpView {
     /// The full-tier entailment panel for `term_iri`: the reasoner derivations
     /// documenting the term, mapped from the SAME `term_entailments` query the
     /// `entailments` tool serves. Empty for a term with no derivations.
+    #[cfg(feature = "core")]
     fn card_entailments(
         &self,
         term_iri: &str,
@@ -1333,6 +1488,7 @@ impl McpView {
     /// query the `counter_examples` tool serves. Each fixture body is one-lined and
     /// capped to a short snippet (the full body stays available via
     /// `counter_examples`). Both empty for a term documenting no fixtures.
+    #[cfg(feature = "core")]
     fn card_fixtures(
         &self,
         term_iri: &str,
@@ -1355,6 +1511,7 @@ impl McpView {
     /// may hit, read from the `gmeow:docEvidenceKindDiagnostics` evidence in the
     /// documentation graph. Rows are ordered by finding code, so the panel is
     /// deterministic. Empty for a term no finding concerns.
+    #[cfg(feature = "core")]
     fn card_diagnostics(
         &self,
         term_iri: &str,
@@ -1377,6 +1534,7 @@ impl McpView {
     /// `gmeow:docEvidenceKindLoss` evidence in the documentation graph. Rows are
     /// ordered by target, so the panel is deterministic. Empty for a term that
     /// degrades under no projection.
+    #[cfg(feature = "core")]
     fn card_loss(
         &self,
         term_iri: &str,
@@ -1400,6 +1558,7 @@ impl McpView {
     }
 
     /// The OKF manifest JSON envelope for `requested`.
+    #[cfg(feature = "core")]
     fn okf_index_json(&self, requested: Vec<String>) -> String {
         self.with_terms(requested, export::okf_index_envelope)
     }
@@ -1409,6 +1568,7 @@ impl McpView {
     /// clause reaches it), returning a standard SPARQL-1.1 JSON-results envelope
     /// under `"ok"`. CONSTRUCT / DESCRIBE are rejected — the tool serves one result
     /// shape (bindings or a boolean), never a graph.
+    #[cfg(feature = "core")]
     fn query_docs_json(&self, sparql: &str) -> String {
         match self.run_docs_query(sparql) {
             Ok(value) => value.to_string(),
@@ -1416,6 +1576,7 @@ impl McpView {
         }
     }
 
+    #[cfg(feature = "core")]
     fn run_docs_query(&self, sparql: &str) -> gmeow_errors::Result<Value> {
         let docs = self.documentation();
         let result = gmeow_bundle_view::native_query::query(docs, sparql)?;
@@ -1426,6 +1587,7 @@ impl McpView {
     /// `var → lexical-value` maps (the `results.bindings` of the SPARQL-1.1 JSON
     /// envelope, with each binding's `"value"` extracted). A missing/optional
     /// variable is simply absent from a row's map.
+    #[cfg(feature = "core")]
     fn docs_select_rows(
         &self,
         sparql: &str,
@@ -1441,6 +1603,7 @@ impl McpView {
     /// deterministic: a code that repeats across fixtures resolves to the
     /// lexicographically-first fixture IRI, and the well-formed sibling is the
     /// lexicographically-first well-formed fixture sharing a referenced term.
+    #[cfg(feature = "core")]
     fn fixture_maps(
         &self,
     ) -> gmeow_errors::Result<(BTreeMap<String, FixtureView>, BTreeMap<String, FixtureView>)> {
@@ -1543,6 +1706,7 @@ impl McpView {
     /// records (`gmeow:Entailment`), aggregating each record's premises and grouping
     /// by the `gmeow:documents` term. Entailment records are iterated in sorted IRI
     /// order and each entailment's premises are sorted, so the map is deterministic.
+    #[cfg(feature = "core")]
     fn entailment_map(&self) -> gmeow_errors::Result<BTreeMap<String, Vec<EntailmentView>>> {
         // Aggregate the (possibly multi-premise) rows back per entailment IRI.
         let mut by_entailment: BTreeMap<String, (String, String, String, BTreeSet<String>)> =
@@ -1588,6 +1752,7 @@ impl McpView {
     /// EXPLICITLY declared `format`, returning a standard SPARQL-1.1 JSON-results
     /// envelope under `"ok"`. See [`Self::run_local_query`] for the read-only /
     /// external-provenance contract.
+    #[cfg(feature = "core")]
     fn query_local_json(&self, data: &str, format: &str, sparql: &str) -> String {
         match self.run_local_query(data, format, sparql) {
             Ok(value) => value.to_string(),
@@ -1614,6 +1779,7 @@ impl McpView {
     ///   NEVER folded into `gmeow.gts`, and NEVER written back to the canon or the
     ///   overlay file (the memory-write triad only ever touches `memory.gts`);
     /// * only SELECT / ASK are accepted (CONSTRUCT / DESCRIBE are rejected).
+    #[cfg(feature = "core")]
     fn run_local_query(
         &self,
         data: &str,
@@ -1978,6 +2144,7 @@ impl McpView {
     /// [`FindingIndex`]: gmeow_bundle_view::diagnostics_reader::FindingIndex
     /// [`verdict`]: gmeow_bundle_view::diagnostics_reader::verdict
     /// [`minimal_fatal_cut`]: gmeow_bundle_view::diagnostics_reader::minimal_fatal_cut
+    #[cfg(feature = "core")]
     fn explain_finding_json(&self, target: &str) -> gmeow_errors::Result<String> {
         use gmeow_bundle_view::diagnostics_reader::{
             explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
@@ -2095,6 +2262,7 @@ impl McpView {
 /// SELECT bindings (SPARQL-1.1 JSON-results shape), or — for a CONSTRUCT / DESCRIBE
 /// graph result — a hard error (these tools serve bindings or a boolean, never a
 /// graph).
+#[cfg(feature = "core")]
 fn sparql_result_to_json(result: purrdf::SparqlResult) -> gmeow_errors::Result<Value> {
     match result {
         purrdf::SparqlResult::Boolean(value) => Ok(json!({"ok": true, "boolean": value})),
@@ -2132,6 +2300,7 @@ fn sparql_result_to_json(result: purrdf::SparqlResult) -> gmeow_errors::Result<V
 /// One SPARQL binding rendered as a SPARQL-1.1 JSON-results term object. A quoted
 /// triple term (rare in the documentation graph) has no standard binding shape and
 /// is omitted.
+#[cfg(feature = "core")]
 fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
     const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
     match term {
@@ -2160,6 +2329,7 @@ fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
 impl McpView {
     /// The documentation graph re-rooted to the default graph, projected once and
     /// shared by every query surface for this server.
+    #[cfg(feature = "core")]
     fn documentation(&self) -> &Arc<purrdf::RdfDataset> {
         self.documentation.get_or_init(|| {
             Arc::new(
@@ -2171,6 +2341,7 @@ impl McpView {
 
     /// The authoring-briefs graph re-rooted to the default graph, projected once and
     /// shared by every `slice_brief` call for this server.
+    #[cfg(feature = "core")]
     fn authoring_briefs(&self) -> &Arc<purrdf::RdfDataset> {
         self.authoring_briefs.get_or_init(|| {
             Arc::new(
@@ -2182,6 +2353,7 @@ impl McpView {
 
     /// The `term-IRI → site URL` map, built once from the documentation graph and
     /// cached (language-independent).
+    #[cfg(feature = "core")]
     fn doc_urls(&self) -> Arc<HashMap<String, String>> {
         Arc::clone(self.doc_urls.get_or_init(|| {
             let view = FoldView::new(self.dataset.as_ref());
@@ -2197,6 +2369,7 @@ impl McpView {
     /// `schemas-archive` rep, mirroring `gmeow_bundle_view::bundle_blobs::Bundle`'s own
     /// wheel-only-install contract for this accessor — a card's `python_model`
     /// line is ancillary, never worth a hard crash of the whole server.
+    #[cfg(feature = "core")]
     fn modeled_defs(&self) -> Arc<BTreeSet<String>> {
         Arc::clone(self.modeled_defs.get_or_init(|| {
             let defs = gmeow_bundle_view::bundle_blobs::Bundle::from_snapshot(&self.gts)
@@ -2213,6 +2386,7 @@ impl McpView {
     /// or malformed is a HARD FAIL surfaced to the caller — the failure is never
     /// cached, so a (theoretically impossible) transient failure never poisons
     /// the view.
+    #[cfg(feature = "core")]
     fn tier1_shapes(&self) -> gmeow_errors::Result<&gmeow_validate::data_validate::Tier1Shapes> {
         if let Some(shapes) = self.tier1_shapes.get() {
             return Ok(shapes);
@@ -2223,6 +2397,7 @@ impl McpView {
 
     /// Run `f` over the terms collected for `requested`, collecting (and caching)
     /// on first use per requested-tag list.
+    #[cfg(feature = "core")]
     fn with_terms<R>(&self, requested: Vec<String>, f: impl FnOnce(&[Term]) -> R) -> R {
         let key = requested.join(",");
         let terms = {
@@ -2363,6 +2538,7 @@ impl McpServer {
         &self.surface
     }
 
+    #[cfg(feature = "core")]
     fn requested_from_args(&self, args: &Value) -> gmeow_errors::Result<Vec<String>> {
         match args.get("lang").and_then(Value::as_str) {
             Some(lang) => resolve_lang(Some(lang), &self.tag_map, &self.available),
@@ -2901,8 +3077,9 @@ macro_rules! reasoning_tool {
         } else {
             (
                 name,
-                Box::new(move |_: &McpServer, _: &Value| Err(segment_not_loaded(name)))
-                    as ToolHandler,
+                Box::new(move |_: &McpServer, _: &Value| {
+                    Err(segment_not_loaded(name, REASONING_SEGMENT))
+                }) as ToolHandler,
             )
         };
         #[cfg(not(feature = "reasoning"))]
@@ -2910,8 +3087,97 @@ macro_rules! reasoning_tool {
             let _ = &$segments;
             (
                 name,
-                Box::new(move |_: &McpServer, _: &Value| Err(segment_not_loaded(name)))
-                    as ToolHandler,
+                Box::new(move |_: &McpServer, _: &Value| {
+                    Err(segment_not_loaded(name, REASONING_SEGMENT))
+                }) as ToolHandler,
+            )
+        };
+        entry
+    }};
+}
+
+/// Bind one CORE-segment tool to a handler, given the deployment's `segments` — the exact
+/// mirror of [`reasoning_tool!`], and it exists for the same reason.
+///
+/// The reasoning image is a DELTA, not a superset: it links the DL reasoner and the rubric
+/// kernel and NOTHING of the core tool surface, so in that build `s.tool_convert(a)` is not
+/// a method that exists to be named. Two expansions, and the cargo feature picks which:
+/// * with `core` linked, the real method is named and — when the deployment serves the
+///   segment — called; when it does not, the deferral signal routes the caller back to the
+///   always-resident core image;
+/// * without it, the method does not exist at all, and the only expansion is the signal.
+///
+/// The tool stays ADVERTISED in both, so `tools/list` is byte-identical across the tiers
+/// and no caller can observe which half of the engine it is talking to except in latency.
+macro_rules! core_tool {
+    ($segments:expr, $name:literal, $method:ident) => {{
+        let name: &'static str = $name;
+        debug_assert!(
+            !REASONING_SEGMENT_TOOLS.contains(&name),
+            "`{name}` is bound as a core-segment tool but is present in \
+             REASONING_SEGMENT_TOOLS, so `SegmentSet::serves` would route it as reasoning"
+        );
+        #[cfg(feature = "core")]
+        // ONE routing predicate, shared with every host that asks the same question ahead
+        // of time — see `reasoning_tool!`.
+        let entry: (&'static str, ToolHandler) = if $segments.serves(name) {
+            (
+                name,
+                Box::new(|s: &McpServer, a: &Value| s.$method(a)) as ToolHandler,
+            )
+        } else {
+            (
+                name,
+                Box::new(move |_: &McpServer, _: &Value| {
+                    Err(segment_not_loaded(name, CORE_SEGMENT))
+                }) as ToolHandler,
+            )
+        };
+        #[cfg(not(feature = "core"))]
+        let entry: (&'static str, ToolHandler) = {
+            let _ = &$segments;
+            (
+                name,
+                Box::new(move |_: &McpServer, _: &Value| {
+                    Err(segment_not_loaded(name, CORE_SEGMENT))
+                }) as ToolHandler,
+            )
+        };
+        entry
+    }};
+}
+
+/// Bind one CORE-segment RESOURCE to a handler — the [`core_tool!`] shape, for the other
+/// half of the surface.
+///
+/// All five builtin resources are core: each renders the bundle's documentation view
+/// (`llms.txt`, the full inlined index, the GMN-1 primer, the OKF index) or the action
+/// policy, and none of them reasons. Leaving them served in the reasoning image would keep
+/// the whole term-card and `llms` renderer REACHABLE there — measured at ~3.7 MB of image —
+/// which is exactly the superset the delta exists to avoid. They defer back to the
+/// always-resident core image instead, with the same typed signal a deferred tool gets.
+macro_rules! core_resource {
+    ($segments:expr, $uri:expr, $handler:expr) => {{
+        let uri: &'static str = $uri;
+        #[cfg(feature = "core")]
+        let entry: (&'static str, ResourceHandler) = if $segments.core {
+            (uri, Box::new($handler) as ResourceHandler)
+        } else {
+            (
+                uri,
+                Box::new(move |_: &McpServer, _: &[String]| {
+                    Err(segment_not_loaded(uri, CORE_SEGMENT))
+                }) as ResourceHandler,
+            )
+        };
+        #[cfg(not(feature = "core"))]
+        let entry: (&'static str, ResourceHandler) = {
+            let _ = &$segments;
+            (
+                uri,
+                Box::new(move |_: &McpServer, _: &[String]| {
+                    Err(segment_not_loaded(uri, CORE_SEGMENT))
+                }) as ResourceHandler,
             )
         };
         entry
@@ -2928,23 +3194,15 @@ macro_rules! reasoning_tool {
 /// [`REASONING_SEGMENT_TOOLS`] entries dispatch TO: their real implementation when the
 /// segment is served, the [`segment_not_loaded`] routing signal when it is not.
 fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler)> {
-    /// Box one handler at its declaration site (the closures have distinct opaque
-    /// types, so the vec needs them already coerced).
-    fn h<F>(name: &'static str, f: F) -> (&'static str, ToolHandler)
-    where
-        F: Fn(&McpServer, &Value) -> gmeow_errors::Result<String> + Send + Sync + 'static,
-    {
-        (name, Box::new(f))
-    }
     vec![
-        h("lookup_term", |s, a| s.tool_lookup_term(a)),
-        h("llms_txt", |s, a| s.tool_llms_txt(a)),
-        h("llms_full", |s, a| s.tool_llms_full(a)),
-        h("doc_card", |s, a| s.tool_doc_card(a)),
-        h("okf_index", |s, a| s.tool_okf_index(a)),
-        h("query_docs", |s, a| s.tool_query_docs(a)),
-        h("docs_search", |s, a| s.tool_docs_search(a)),
-        h("query_local", |s, a| s.tool_query_local(a)),
+        core_tool!(segments, "lookup_term", tool_lookup_term),
+        core_tool!(segments, "llms_txt", tool_llms_txt),
+        core_tool!(segments, "llms_full", tool_llms_full),
+        core_tool!(segments, "doc_card", tool_doc_card),
+        core_tool!(segments, "okf_index", tool_okf_index),
+        core_tool!(segments, "query_docs", tool_query_docs),
+        core_tool!(segments, "docs_search", tool_docs_search),
+        core_tool!(segments, "query_local", tool_query_local),
         reasoning_tool!(segments, "verify_graph", tool_verify_graph),
         reasoning_tool!(segments, "explain_quad", tool_explain_quad),
         reasoning_tool!(
@@ -2952,32 +3210,30 @@ fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler
             "coherence_certificate",
             tool_coherence_certificate
         ),
-        h("validate_local", |s, a| s.tool_validate_local(a)),
-        h("gmn_validate", |s, a| s.tool_gmn_validate(a)),
-        h("gmn_expand", |s, a| s.tool_gmn_expand(a)),
-        h("gmn_explain", |s, a| s.tool_gmn_explain(a)),
-        h("advise", |s, a| s.tool_advise(a)),
-        h("explain_finding", |s, a| s.tool_explain_finding(a)),
+        core_tool!(segments, "validate_local", tool_validate_local),
+        core_tool!(segments, "gmn_validate", tool_gmn_validate),
+        core_tool!(segments, "gmn_expand", tool_gmn_expand),
+        core_tool!(segments, "gmn_explain", tool_gmn_explain),
+        core_tool!(segments, "advise", tool_advise),
+        core_tool!(segments, "explain_finding", tool_explain_finding),
         reasoning_tool!(segments, "store_claim", tool_store_claim),
         reasoning_tool!(segments, "conjecture_test", tool_conjecture_test),
         reasoning_tool!(segments, "store_conjecture", tool_store_conjecture),
         reasoning_tool!(segments, "refute_conjecture", tool_refute_conjecture),
-        h("recall", |s, a| s.tool_recall(a)),
+        core_tool!(segments, "recall", tool_recall),
         reasoning_tool!(segments, "revise_belief", tool_revise_belief),
-        h("counter_examples", |s, a| s.tool_counter_examples(a)),
-        h("entailments", |s, a| s.tool_entailments(a)),
-        h("competency_questions", |s, a| {
-            s.tool_competency_questions(a)
-        }),
+        core_tool!(segments, "counter_examples", tool_counter_examples),
+        core_tool!(segments, "entailments", tool_entailments),
+        core_tool!(segments, "competency_questions", tool_competency_questions),
         reasoning_tool!(segments, "slice_quality", tool_slice_quality),
-        h("slice_brief", |s, a| s.tool_slice_brief(a)),
+        core_tool!(segments, "slice_brief", tool_slice_brief),
         reasoning_tool!(segments, "submit_candidate", tool_submit_candidate),
         reasoning_tool!(segments, "withdraw_candidate", tool_withdraw_candidate),
         reasoning_tool!(segments, "list_candidates", tool_list_candidates),
-        h("convert", |s, a| s.tool_convert(a)),
-        h("gmn_glyph_legend", |s, a| s.tool_gmn_glyph_legend(a)),
-        h("distribution_matrix", |s, a| s.tool_distribution_matrix(a)),
-        h("action_policy", |s, a| s.tool_action_policy(a)),
+        core_tool!(segments, "convert", tool_convert),
+        core_tool!(segments, "gmn_glyph_legend", tool_gmn_glyph_legend),
+        core_tool!(segments, "distribution_matrix", tool_distribution_matrix),
+        core_tool!(segments, "action_policy", tool_action_policy),
     ]
 }
 
@@ -2993,7 +3249,10 @@ fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler
 fn builtin_extension(segments: SegmentSet) -> gmeow_errors::Result<Extension> {
     Ok(Extension::from_parts(
         zip_tools(builtin_tool_descriptors(), builtin_tool_handlers(segments))?,
-        zip_resources(builtin_resource_descriptors(), builtin_resource_handlers())?,
+        zip_resources(
+            builtin_resource_descriptors(),
+            builtin_resource_handlers(segments),
+        )?,
     ))
 }
 
@@ -3048,34 +3307,39 @@ fn builtin_resource_descriptors() -> Vec<Value> {
 /// The CONSUMER `resources/read` handlers, in the SAME order as
 /// [`builtin_resource_descriptors`]. The media type is NOT restated here — it comes
 /// from the descriptor, so advertised and served can never disagree.
-fn builtin_resource_handlers() -> Vec<(&'static str, ResourceHandler)> {
-    /// Box one resource handler at its declaration site.
-    fn h<F>(uri: &'static str, f: F) -> (&'static str, ResourceHandler)
-    where
-        F: Fn(&McpServer, &[String]) -> gmeow_errors::Result<String> + Send + Sync + 'static,
-    {
-        (uri, Box::new(f))
-    }
+fn builtin_resource_handlers(segments: SegmentSet) -> Vec<(&'static str, ResourceHandler)> {
     vec![
-        h("gmeow://ontology/llms.txt", |s, requested| {
-            Ok(s.view.llms_txt_text(requested.to_vec()))
-        }),
-        h("gmeow://ontology/llms-full.txt", |s, requested| {
-            s.view.llms_full_text(requested.to_vec())
-        }),
-        h("gmeow://ontology/gmn1-primer", |s, _requested| {
-            s.view.gmn1_primer().map(|p| p.resource_text())
-        }),
-        h("gmeow://ontology/okf-index", |s, requested| {
-            Ok(s.view.okf_index_json(requested.to_vec()))
-        }),
+        core_resource!(
+            segments,
+            "gmeow://ontology/llms.txt",
+            |s: &McpServer, requested: &[String]| { Ok(s.view.llms_txt_text(requested.to_vec())) }
+        ),
+        core_resource!(
+            segments,
+            "gmeow://ontology/llms-full.txt",
+            |s: &McpServer, requested: &[String]| { s.view.llms_full_text(requested.to_vec()) }
+        ),
+        core_resource!(
+            segments,
+            "gmeow://ontology/gmn1-primer",
+            |s: &McpServer, _requested: &[String]| {
+                s.view.gmn1_primer().map(|p| p.resource_text())
+            }
+        ),
+        core_resource!(
+            segments,
+            "gmeow://ontology/okf-index",
+            |s: &McpServer, requested: &[String]| { Ok(s.view.okf_index_json(requested.to_vec())) }
+        ),
         // The SAME `action_policy_nquads()` the transaction executor reads and the
         // `action_policy` tool returns — one projection, three readers, no restatement.
         // Language-independent: the projection keeps only IRI→IRI structural quads, so
         // there is nothing here for a language selector to select.
-        h(ACTION_POLICY_URI, |_s, _requested| {
-            Ok(action_policy_nquads().to_owned())
-        }),
+        core_resource!(
+            segments,
+            ACTION_POLICY_URI,
+            |_s: &McpServer, _requested: &[String]| { Ok(action_policy_nquads().to_owned()) }
+        ),
     ]
 }
 
@@ -3209,22 +3473,26 @@ impl McpServer {
         Ok(())
     }
 
+    #[cfg(feature = "core")]
     fn tool_lookup_term(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
         let requested = self.requested_from_args(args)?;
         Ok(self.view.lookup_term_json(term, requested))
     }
 
+    #[cfg(feature = "core")]
     fn tool_llms_txt(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         Ok(self.view.llms_txt_text(requested))
     }
 
+    #[cfg(feature = "core")]
     fn tool_llms_full(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         self.view.llms_full_text(requested)
     }
 
+    #[cfg(feature = "core")]
     fn tool_doc_card(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
         let detail = parse_card_detail(optional_str(args, "detail"))?;
@@ -3233,6 +3501,7 @@ impl McpServer {
         self.view.doc_card(term, detail, format, requested)
     }
 
+    #[cfg(feature = "core")]
     fn tool_okf_index(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         Ok(self.view.okf_index_json(requested))
@@ -3242,6 +3511,7 @@ impl McpServer {
     /// the well-formed exemplars and the counter-examples. An UNKNOWN term is a HARD
     /// FAIL (`Err` → error envelope); a KNOWN term that simply documents no fixtures
     /// is an honest empty-but-ok result (both lists empty).
+    #[cfg(feature = "core")]
     fn tool_counter_examples(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
         let iri = self.resolve_term_or_err(term, args)?;
@@ -3258,6 +3528,7 @@ impl McpServer {
     /// `entailments`: the reasoner derivations documenting a term, each with its
     /// rule, conclusion, and every premise. Unknown term → hard error; a known term
     /// with no derivations → empty-but-ok.
+    #[cfg(feature = "core")]
     fn tool_entailments(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
         let iri = self.resolve_term_or_err(term, args)?;
@@ -3273,6 +3544,7 @@ impl McpServer {
     /// `competency_questions`: the runnable competency questions. With a `term`, only
     /// that term's questions (unknown term → hard error); without a `term`, the whole
     /// index of documented competency questions.
+    #[cfg(feature = "core")]
     fn tool_competency_questions(&self, args: &Value) -> gmeow_errors::Result<String> {
         match optional_str(args, "term") {
             Some(term) => {
@@ -3293,6 +3565,7 @@ impl McpServer {
     /// `competency_questions`). Ambiguity carries the TYPED `McpAmbiguousTerm`
     /// diagnostic (sorted candidate CURIEs); an unknown term keeps the generic
     /// unknown-term diagnostic — never a silent pick.
+    #[cfg(feature = "core")]
     fn resolve_term_or_err(&self, term: &str, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         match self.view.resolve_term_iri(term, requested) {
@@ -3304,6 +3577,7 @@ impl McpServer {
         }
     }
 
+    #[cfg(feature = "core")]
     fn tool_query_docs(&self, args: &Value) -> gmeow_errors::Result<String> {
         let query = required_str(args, "query")?;
         Ok(self.view.query_docs_json(query))
@@ -3313,6 +3587,7 @@ impl McpServer {
     /// facets match `query` over the `gmeow:graph/documentation` projection. An
     /// absent/empty documentation graph is a HARD FAIL; a query matching nothing is an
     /// honest empty-but-ok result.
+    #[cfg(feature = "core")]
     fn tool_docs_search(&self, args: &Value) -> gmeow_errors::Result<String> {
         let query = required_str(args, "query")?;
         let limit = optional_limit(args, "limit")?.unwrap_or(20);
@@ -3322,6 +3597,7 @@ impl McpServer {
         Ok(json!({"ok": true, "query": query, "results": results}).to_string())
     }
 
+    #[cfg(feature = "core")]
     fn tool_query_local(&self, args: &Value) -> gmeow_errors::Result<String> {
         let data = required_str(args, "data")?;
         let format = required_str(args, "format")?;
@@ -3399,6 +3675,7 @@ impl McpServer {
     /// arg (unlike `query_local`, which reads a file), is validated against the
     /// retained snapshot bytes, and is discarded. An unrecognized `format` or an
     /// oversized payload is a HARD FAIL, never a silent mis-parse or truncation.
+    #[cfg(feature = "core")]
     fn tool_validate_local(&self, args: &Value) -> gmeow_errors::Result<String> {
         let data = required_str(args, "data")?;
         let format = required_str(args, "format")?;
@@ -3465,6 +3742,7 @@ impl McpServer {
     /// `gmeow gmn` CLI folds from `BUNDLE_GTS`, so the MCP verifier tools an external LLM
     /// calls share ONE dictionary with the shipped CLI and gates. A load failure is a HARD
     /// FAIL, never a degraded default.
+    #[cfg(feature = "core")]
     fn gmn_dictionary(&self) -> gmeow_errors::Result<GmnDictionary> {
         GmnDictionary::from_dataset(self.view.dataset.as_ref()).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -3481,6 +3759,7 @@ impl McpServer {
     /// conformance or the TYPED `lang:Gmn*Failure` class (+ message) of the first defect.
     /// A defect is a VALID result (`ok:true, conformant:false`), never a tool error — the
     /// caller repairs against the named class.
+    #[cfg(feature = "core")]
     fn tool_gmn_validate(&self, args: &Value) -> gmeow_errors::Result<String> {
         let gmn = required_str(args, "gmn")?;
         guard_gmn_size(gmn, "gmn_validate")?;
@@ -3507,6 +3786,7 @@ impl McpServer {
     /// carries an internal round-trip WITNESS: the decoded model is re-encoded and re-read,
     /// and canonical equality is asserted, so the tool never returns an unstable expansion.
     /// A non-conformant input, or a round-trip that does not hold, is a HARD FAIL.
+    #[cfg(feature = "core")]
     fn tool_gmn_expand(&self, args: &Value) -> gmeow_errors::Result<String> {
         let gmn = required_str(args, "gmn")?;
         guard_gmn_size(gmn, "gmn_expand")?;
@@ -3554,6 +3834,7 @@ impl McpServer {
     /// signature, plus its controlled-NL gloss (the SAME Task 8 verbalizer rendering).
     /// An input that is not a covered operator glyph returns an HONEST typed miss
     /// (`found:false` + `lang:GmnUncoveredTerm`), never a fabricated answer.
+    #[cfg(feature = "core")]
     fn tool_gmn_explain(&self, args: &Value) -> gmeow_errors::Result<String> {
         let glyph = required_str(args, "glyph")?;
         let dataset = self.view.dataset.as_ref();
@@ -3627,6 +3908,7 @@ impl McpServer {
     /// the glyph registry of THIS bundle's shipped `gmeow:gmnDictV3` codebook — so the
     /// agent's legend and the docs widget's legend are the same rows in the same order, and
     /// there is no second table to drift.
+    #[cfg(feature = "core")]
     fn tool_gmn_glyph_legend(&self, _args: &Value) -> gmeow_errors::Result<String> {
         let dict = self.gmn_dictionary()?;
         let legend_text = gmeow_lang_bridge::glyph_legend_json(dict.glyph_registry())?;
@@ -3657,6 +3939,12 @@ impl McpServer {
     /// `base64` for a binary source such as `gts`), and the response's own `encoding` says
     /// how to read `output` — `base64` whenever the target's bytes are not valid UTF-8.
     /// Neither direction ever silently lossy-decodes.
+    ///
+    /// Gated on the `core` feature: `gmeow-transcode` is one of the two dependencies the
+    /// core segment alone reaches, so the demand-loaded reasoning image links no transcode
+    /// hub and this method does not exist there to be named. `core_tool!` binds the wire
+    /// name to the deferral signal instead, and the tool stays advertised.
+    #[cfg(feature = "core")]
     fn tool_convert(&self, args: &Value) -> gmeow_errors::Result<String> {
         use gmeow_transcode::{Codec, realized_loss_json, transcode as run_transcode};
 
@@ -3724,6 +4012,10 @@ impl McpServer {
     ///
     /// Both come from [`gmeow_docs_catalog`], the wasm-clean catalog leaf, so this stays a
     /// bundle-only tool: no checkout, no build executor.
+    ///
+    /// Gated on the `core` feature, exactly as `tool_convert` is and for the same reason:
+    /// `gmeow-docs-catalog` is the other dependency only this segment reaches.
+    #[cfg(feature = "core")]
     fn tool_distribution_matrix(&self, _args: &Value) -> gmeow_errors::Result<String> {
         let gts = self.view.gts_bytes();
         let distributions = gmeow_docs_catalog::read_distribution_matrix(gts)?;
@@ -3771,6 +4063,7 @@ impl McpServer {
     /// authored in the agentic slice's examples graph. The mirroring
     /// `gmeow://ontology/action-policy` resource serves the identical bytes as `text` for a
     /// client that reads resources rather than calling tools.
+    #[cfg(feature = "core")]
     fn tool_action_policy(&self, _args: &Value) -> gmeow_errors::Result<String> {
         Ok(json!({
             "ok": true,
@@ -3788,6 +4081,7 @@ impl McpServer {
     /// multi-minute cost), keeps only the advisory tier, and serializes each as a
     /// contrary-to-duty-shaped recommendation. ALWAYS `ok:true`: advice is a
     /// recommendation, so a clean claim returns an empty list, never a failure.
+    #[cfg(feature = "core")]
     fn tool_advise(&self, args: &Value) -> gmeow_errors::Result<String> {
         let data = required_str(args, "data")?;
         let format = required_str(args, "format")?;
@@ -3871,6 +4165,7 @@ impl McpServer {
         })
     }
 
+    #[cfg(feature = "core")]
     fn tool_explain_finding(&self, args: &Value) -> gmeow_errors::Result<String> {
         let target = required_str(args, "target_iri")?;
         self.view.explain_finding_json(target)
@@ -3950,6 +4245,7 @@ impl McpServer {
         Ok(response)
     }
 
+    #[cfg(feature = "core")]
     fn tool_recall(&self, args: &Value) -> gmeow_errors::Result<String> {
         recall_json(self.claim_store()?.as_ref(), args)
     }
@@ -4382,6 +4678,7 @@ impl McpServer {
     /// A slice/axis/batch with no packet in the bundle is a hard error (never a vacuous
     /// empty pass). The covered-term IRIs the packet lists resolve to their full
     /// definition/axiom content through the existing `lookup_term` / `doc_card` tools.
+    #[cfg(feature = "core")]
     fn tool_slice_brief(&self, args: &Value) -> gmeow_errors::Result<String> {
         let slice = required_str(args, "slice")?;
         let axis = optional_str(args, "axis");
@@ -5574,6 +5871,7 @@ fn rpc_error(id: Value, code: i64, message: &str) -> String {
 
 /// The shared unknown-term hard fail for the resolution guard and `doc_card`: a
 /// query that resolves to no bundled GMEOW term.
+#[cfg(feature = "core")]
 fn unknown_term_err(term: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Mcp {
         message: format!(
@@ -5587,6 +5885,7 @@ fn unknown_term_err(term: &str) -> gmeow_errors::Diag {
 /// names terms in more than one namespace. Carries the TYPED `McpAmbiguousTerm`
 /// code (distinct from the generic unknown-term `Mcp`), naming the query and listing
 /// the sorted candidate CURIEs — the MCP twin of `gmeow-cli.describe.ambiguous`.
+#[cfg(feature = "core")]
 fn ambiguous_term_err(term: &str, candidates: &[String]) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::McpAmbiguousTerm {
         message: format!(
@@ -5655,7 +5954,7 @@ fn completeness_refused(result: &ReasoningResult) -> bool {
 fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<Value> {
     use purrdf::RdfTerm;
 
-    let graph = gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
+    let graph = gmeow_ns::graph_iris::GRAPH_ATTESTATIONS;
     let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     let cert_type = format!("{LOGIC_NAMESPACE}CoherenceCertificate");
     let att_type = format!("{LOGIC_NAMESPACE}CoherenceCheckAttestation");
@@ -6065,6 +6364,7 @@ fn locate_explain_target(
 /// HARD-FAIL a GMN document argument that exceeds the inline payload ceiling, mirroring
 /// `validate_local`'s size guard — never a silent truncation (a truncated GMN-1 document
 /// would mis-parse and mislead the repair loop).
+#[cfg(feature = "core")]
 fn guard_gmn_size(gmn: &str, tool: &str) -> gmeow_errors::Result<()> {
     if gmn.len() > MAX_VALIDATE_DATA_BYTES {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -6082,6 +6382,7 @@ fn guard_gmn_size(gmn: &str, tool: &str) -> gmeow_errors::Result<()> {
 /// Harvest the `rdfs:label` index (`IRI → label`) from the bundle dataset — the SAME
 /// deterministic pick the pipeline verbalizer uses (a `@x-gmeow-english` label wins; ties
 /// break to the smallest lexical form), so `gmn_explain`'s gloss nucleus matches Task 8.
+#[cfg(feature = "core")]
 fn harvest_dataset_labels(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
     // (is_gmeow_english, lexical_form) per IRI — the preference key.
     let mut best: BTreeMap<String, (bool, String)> = BTreeMap::new();
@@ -6116,6 +6417,7 @@ fn harvest_dataset_labels(dataset: &purrdf::RdfDataset) -> BTreeMap<String, Stri
 /// by matching the `(denotationTarget, gmnFixity, gmnArity)` signature the operator's
 /// denoted Form authors in the dataset. Returns `(precedence, denotation_iri)`, each `None`
 /// when the codebook authors no matching record (surfaced honestly, never fabricated).
+#[cfg(feature = "core")]
 fn gmn_signature_join(
     dataset: &purrdf::RdfDataset,
     target: &str,
@@ -6200,10 +6502,12 @@ fn gmn_signature_join(
 // audit at a crate boundary this strict, than a dependency edge on the consumer surface.
 
 /// The standard base64 alphabet, in index order.
+#[cfg(feature = "core")]
 const BASE64_ALPHABET: &[u8; 64] =
     b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 /// Encode `bytes` as padded standard base64.
+#[cfg(feature = "core")]
 fn base64_encode(bytes: &[u8]) -> String {
     let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
     for chunk in bytes.chunks(3) {
@@ -6226,6 +6530,7 @@ fn base64_encode(bytes: &[u8]) -> String {
 }
 
 /// The 0–63 value of one base64 character, or `None` when it is not in the alphabet.
+#[cfg(feature = "core")]
 fn base64_value(ch: u8) -> Option<u32> {
     let value = match ch {
         b'A'..=b'Z' => ch - b'A',
@@ -6247,6 +6552,7 @@ fn base64_value(ch: u8) -> Option<u32> {
 ///
 /// `what` labels the argument being decoded so the refusal points at the caller's own
 /// parameter (`convert: \`data\``) rather than at this helper.
+#[cfg(feature = "core")]
 fn base64_decode(what: &str, text: &str) -> gmeow_errors::Result<Vec<u8>> {
     let refuse = |detail: String| {
         gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -7211,6 +7517,7 @@ fn claim_json(claim: &purrdf::gts::examples::agent_memory::Claim) -> Value {
 /// Expand a `slice_brief` slice argument to a full slice IRI: a value already carrying a
 /// scheme is used verbatim; a bare short-name (`ai`) becomes `{GMEOW_NS}slices/{name}` —
 /// the `gmeow:packetSourceSlice` shape the bundle carries.
+#[cfg(feature = "core")]
 fn expand_slice_iri(slice: &str) -> String {
     if slice.contains("://") {
         slice.to_string()
@@ -7489,6 +7796,9 @@ pub fn extract_authoring_packets(
 /// `gmeow slice brief --from-bundle` path. Imports the bundle, projects the
 /// authoring-briefs graph, and runs the SAME [`extract_authoring_packets`] core the MCP
 /// `slice_brief` tool uses (one implementation, not two).
+///
+/// Gated on the `core` feature with the tool it shares its core with.
+#[cfg(feature = "core")]
 pub fn slice_brief_from_bundle(
     snapshot: &[u8],
     slice: &str,

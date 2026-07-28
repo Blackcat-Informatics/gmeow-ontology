@@ -15,8 +15,16 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::LazyLock;
 
+// `pinned_symbol_audit_token_cost` — NOT `gmn_symbology::gmn_glyph_token_cost`. Both
+// return the same number for every token this axis weighs (proven by
+// `gmeow_lang_bridge::assert_pinned_audit_costs_match_the_real_bpe`, run on native from
+// `tests/gmn_token_cost_pin.rs`), but the measuring primitive lives behind lang-bridge's
+// `glyph-cost` feature and embeds `tiktoken-rs`' ~1.7 MB `cl100k_base` vocabulary. This
+// crate is linked by the browser reasoning segment, so it takes the pinned table and the
+// vocabulary rides in as a DEV-dependency only. The axis measures the same thing; only
+// the source of the (gate-enforced identical) integers changed.
 use gmeow_lang_bridge::{
-    Gmn0Model, GmnDictionary, GmnGlyphRegistry, gmn_glyph_token_cost, measure_coverage,
+    Gmn0Model, GmnDictionary, GmnGlyphRegistry, measure_coverage, pinned_symbol_audit_token_cost,
 };
 use gmeow_logic_compile::projections::correspondence::extract_correspondences;
 use gmeow_logic_compile::projections::correspondence_frontend::alignment_provenance_iri;
@@ -1534,6 +1542,21 @@ const GROUNDING_SLICE_IRIS: &[&str] = &[
     "https://blackcatinformatics.ca/gmeow/slices/math",
 ];
 
+/// The pinned `cl100k_base` token costs of one audited (candidate glyph, ASCII fallback)
+/// pair — the two numbers the token-cost basis compares.
+///
+/// # Errors
+///
+/// Propagates the named `GmnUnpinnedGlyphCost` when EITHER side is outside
+/// `GMN_SYMBOL_AUDIT_TOKEN_COSTS`. Both sides are resolved before either is used, so a
+/// half-priced pair can never be compared: an unpinned token is a named defect, never a
+/// zero, which would fabricate a token win for an expensive glyph.
+fn audited_pair_costs(glyph: &str, fallback: &str) -> gmeow_errors::Result<(usize, usize)> {
+    let glyph_cost = pinned_symbol_audit_token_cost(glyph)?;
+    let fallback_cost = pinned_symbol_audit_token_cost(fallback)?;
+    Ok((glyph_cost, fallback_cost))
+}
+
 /// Measure whether every explicitly audited symbol candidate owned by this slice has a
 /// complete, evidence-backed disposition, whether every executable glyph target has such
 /// a candidate, and whether adopted/named-key decisions agree with the executable registry
@@ -1786,10 +1809,17 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
                 if b != token_basis {
                     defects.push("adopted glyph is not backed by the token-cost basis".to_owned());
                 }
-                if gmn_glyph_token_cost(glyph) > gmn_glyph_token_cost(fallback) {
-                    defects.push(format!(
-                        "adopted glyph {glyph:?} costs more than fallback {fallback:?}"
-                    ));
+                match audited_pair_costs(glyph, fallback) {
+                    Ok((glyph_cost, fallback_cost)) if glyph_cost > fallback_cost => {
+                        defects.push(format!(
+                            "adopted glyph {glyph:?} costs more than fallback {fallback:?}"
+                        ));
+                    }
+                    Ok(_) => {}
+                    Err(error) => defects.push(format!(
+                        "adopted glyph/fallback pair is outside the pinned token-cost \
+                         inventory: {error}"
+                    )),
                 }
                 match &registry {
                     Ok(registry)
@@ -1807,8 +1837,18 @@ fn gmn_glyph_optimality_axis(ctx: &ScoreContext) -> AxisScore {
                 }
             }
             (d, b, Some(glyph), Some(fallback)) if d == named => {
-                let measured_win = b == token_basis
-                    && gmn_glyph_token_cost(glyph) > gmn_glyph_token_cost(fallback);
+                let measured_win = match audited_pair_costs(glyph, fallback) {
+                    Ok((glyph_cost, fallback_cost)) => {
+                        b == token_basis && glyph_cost > fallback_cost
+                    }
+                    Err(error) => {
+                        defects.push(format!(
+                            "named-key glyph/fallback pair is outside the pinned token-cost \
+                             inventory: {error}"
+                        ));
+                        false
+                    }
+                };
                 let safety_win = b == ambiguity_basis || b == confusable_basis;
                 if !measured_win && !safety_win {
                     defects.push(

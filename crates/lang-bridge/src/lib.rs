@@ -77,9 +77,14 @@ pub use gmn_consume::{
     CLASS_RING_LATTICE_MALFORMED, CLASS_RING_LEAK, ConsumeProjection, GmnConsumeError, RingLattice,
     consume_project,
 };
+pub use gmn_legend::{
+    GLYPH_TOKEN_COSTS, GMN_SYMBOL_AUDIT_TOKEN_COSTS, glyph_legend_json, pinned_glyph_token_cost,
+    pinned_symbol_audit_token_cost,
+};
 #[cfg(feature = "glyph-cost")]
-pub use gmn_legend::assert_pinned_costs_match_the_real_bpe;
-pub use gmn_legend::{GLYPH_TOKEN_COSTS, glyph_legend_json, pinned_glyph_token_cost};
+pub use gmn_legend::{
+    assert_pinned_audit_costs_match_the_real_bpe, assert_pinned_costs_match_the_real_bpe,
+};
 pub use gmn_metrics::{TokenMetrics, compute_token_metrics};
 pub use gmn_migrate::{
     GlyphRewrite, GmnMigrateError, GmnMigration, GmnRecordSet, MigratedOperator, MigratedRecordSet,

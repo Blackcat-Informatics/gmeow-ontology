@@ -135,7 +135,7 @@ export async function tieredMcp(requestFrame, { loadSegment, onSegmentLoad } = {
 
   if (typeof loadSegment !== "function") {
     throw new Error(
-      `tool \`${deferral.tool}\` is served by the \`${deferral.segment}\` segment; ` +
+      `\`${deferral.tool}\` is served by the \`${deferral.segment}\` segment; ` +
         "pass `loadSegment` to tieredMcp() so it can be fetched and the frame re-dispatched",
     );
   }

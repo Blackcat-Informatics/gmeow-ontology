@@ -205,9 +205,24 @@ fn the_mcp_convert_tool_routes_through_the_same_gmeow_transcode_crate() {
          gmeow_pipeline, not even to reach the transcode hub"
     );
     let manifest = read("crates/mcp/Cargo.toml");
+    // `optional = true` is the SEGMENT selector, not a weakening of the edge: `convert` is
+    // a core-segment tool and `gmeow-transcode` is one of the two dependencies nothing
+    // else in this crate reaches, so the demand-loaded reasoning image links no transcode
+    // hub at all. What this contract owns is unchanged — when the tool is compiled, its
+    // hub is a DIRECT dependency of `gmeow-mcp` and never reached through
+    // `gmeow-pipeline`.
     assert!(
-        manifest.contains("gmeow-transcode = { path = \"../transcode\" }"),
+        manifest.contains("gmeow-transcode = { path = \"../transcode\", optional = true }"),
         "the transcode edge must be a declared direct dependency of gmeow-mcp"
+    );
+    assert!(
+        manifest.contains("core = [")
+            && manifest
+                .lines()
+                .find(|l| l.starts_with("core = ["))
+                .is_some_and(|l| l.contains("\"dep:gmeow-transcode\"")),
+        "the optional transcode edge must be selected by the `core` segment feature, so a \
+         default build still links it and `convert` is never silently unavailable"
     );
 }
 

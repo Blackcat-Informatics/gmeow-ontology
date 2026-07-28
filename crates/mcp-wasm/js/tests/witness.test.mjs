@@ -17,12 +17,23 @@ import { init, loaded, mcp, ready, version } from "../index.mjs";
 
 await ready();
 
-// Byte-for-byte the `REQUEST` constant of the native half.
+// Byte-for-byte the `REQUEST` constant of the native half. A REASONING-segment tool,
+// because this image IS the demand-loaded reasoning segment: the frame runs the native
+// structured-DL conjecture engine over the KB carried in the request, so the attestation
+// pins an ANSWER rather than the `mcp.segment-not-loaded` a core tool would return here.
 const REQUEST =
-  '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"convert",' +
-  '"arguments":{"data":"<http://example.org/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ' +
-  "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>> .\\n\"," +
-  '"from":"nt","to":"turtle"}}}';
+  '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"conjecture_test",' +
+  '"arguments":{"formula":"@prefix logic: <https://blackcatinformatics.ca/logic/> .\\n' +
+  "@prefix ex: <http://ex/> .\\n" +
+  "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\\n" +
+  "ex:phi a logic:Formula ;\\n" +
+  "    logic:relation rdf:type ;\\n" +
+  "    logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;\\n" +
+  '    logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .\\n",' +
+  '"kb":"@prefix ex: <http://ex/> .\\n' +
+  "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\\n" +
+  'ex:a rdf:type ex:B .\\n",' +
+  '"standpoint":"https://blackcatinformatics.ca/gmeow/examples/conjecture/demo-standpoint"}}}';
 
 const snapshot = await readFile(
   fileURLToPath(new URL("../../../../generated/dist/gmeow.gts", import.meta.url)),

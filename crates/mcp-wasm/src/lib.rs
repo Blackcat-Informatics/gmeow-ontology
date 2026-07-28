@@ -1,22 +1,29 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! # gmeow-mcp-wasm — the consumer MCP engine, in the browser
+//! # gmeow-mcp-wasm — the DEMAND-LOADED reasoning segment, in the browser
 //!
-//! Compiles the shipped consumer MCP engine ([`gmeow_mcp`]) to
-//! `wasm32-unknown-unknown` and exposes it to JavaScript/TypeScript, so a browser
-//! console, an editor plugin, or an in-page LLM client can drive the SAME 35-tool /
-//! 5-resource JSON-RPC surface the native `gmeow mcp` serves — client-side, with no
-//! server, no stdio, and no repository.
+//! Compiles the reasoning half of the shipped consumer MCP engine ([`gmeow_mcp`]) to
+//! `wasm32-unknown-unknown` and exposes it to JavaScript/TypeScript. It is the second tier
+//! of the console: the host loads it on the first `tools/call` the always-resident core
+//! image ([`gmeow-mcp-core-wasm`]) deferred, and replays the identical frame against it.
 //!
 //! ## Scope
 //!
-//! - **The whole surface, not a subset.** The engine is linked in its entirety and
-//!   every frame is dispatched through [`gmeow_mcp::McpServer::handle_message`], the
-//!   one protocol implementation. `initialize`, `tools/list`, `resources/list`,
-//!   `tools/call`, `resources/read`, `shutdown`, and the `notifications/*` sink all
-//!   behave exactly as they do natively, because they ARE the native code paths.
-//!   Nothing here selects, trims, or degrades the tool registry.
+//! - **A genuine DELTA, not a superset.** This image links `gmeow-logic` (the DL
+//!   reasoner) and `gmeow-slice-quality` (the rubric kernel over it) and NOTHING of the
+//!   core tool surface: `gmeow-mcp` is taken with `default-features = false, features =
+//!   ["reasoning"]`, so the transcode hub and the distribution-catalog reader are not in
+//!   this crate's dependency tree at all and the twenty-three core tool bodies are not
+//!   compiled. It used to be built with the `reasoning` feature ON TOP of the defaults —
+//!   i.e. the whole core image plus the reasoner — which duplicated every core byte on
+//!   disk. That was the bug; this is the fix.
+//! - **The whole surface is still ADVERTISED.** `tools/list` returns all 35 descriptors,
+//!   byte-identical to the core image's and to native, and every frame is dispatched
+//!   through [`gmeow_mcp::McpServer::handle_message`], the one protocol implementation. A
+//!   `tools/call` for a CORE tool answers with the typed `mcp.segment-not-loaded` signal
+//!   naming the `core` segment — the exact mirror of what core does for a reasoning tool.
+//!   A deployment tier is not a reduced theory.
 //! - **The bundle is passed IN, never embedded.** A `gmeow.gts` snapshot is tens of
 //!   megabytes; baking one into the wasm image would freeze the engine to one bundle
 //!   version and make the module unusable against any other. The caller hands the
@@ -55,7 +62,7 @@
 
 use std::cell::RefCell;
 
-use gmeow_mcp::McpServer;
+use gmeow_mcp::{McpServer, SegmentSet};
 use wasm_bindgen::prelude::*;
 
 thread_local! {
@@ -94,7 +101,10 @@ pub fn ready() -> bool {
 /// `snapshot` is the raw bundle bytes — the identical artifact the native `gmeow mcp`
 /// embeds and the docs site serves. The bytes are parsed to the carrier dataset, the
 /// bundle view is folded, and the builtin tool/resource surface is assembled, exactly
-/// as [`gmeow_mcp::McpServer::from_snapshot`] does natively.
+/// as [`gmeow_mcp::McpServer::from_snapshot`] does natively; the ONLY difference is
+/// [`SegmentSet::reasoning_only`], which routes the twenty-three CORE tools back to the
+/// always-resident core image with the typed `mcp.segment-not-loaded` signal instead of
+/// answering them here. The twelve reasoning tools answer for real.
 ///
 /// Calling this again REPLACES the engine wholesale (a new bundle is a new session).
 /// A failed load installs nothing, so [`ready`] stays `false` and [`mcp`] keeps
@@ -106,7 +116,8 @@ pub fn ready() -> bool {
 /// language is unresolvable, or if the builtin surface does not assemble.
 #[wasm_bindgen]
 pub fn init(snapshot: &[u8]) -> Result<(), JsError> {
-    let server = McpServer::from_snapshot(snapshot).map_err(|e| JsError::new(e.message()))?;
+    let server = McpServer::from_snapshot_segmented(snapshot, SegmentSet::reasoning_only())
+        .map_err(|e| JsError::new(e.message()))?;
     ENGINE.with_borrow_mut(|slot| *slot = Some(server));
     Ok(())
 }

@@ -27,7 +27,7 @@ path = "src/lib.rs"
 # first-load byte win this crate exists for. The tool surface is NOT reduced: all 35 tools
 # are advertised and dispatchable, and the twelve reasoning-segment tools answer with the
 # typed `mcp.segment-not-loaded` signal the host re-dispatches against `gmeow-mcp-wasm`.
-gmeow-mcp = { path = "../mcp", default-features = false }
+gmeow-mcp = { path = "../mcp", default-features = false, features = ["core"] }
 # EXACT pin: the `wasm-bindgen` CLI that generates the JS bindings must match the
 # library version byte-for-byte or it refuses to run. `make mcp-core-wasm-pkg` and the CI
 # Node lane install the matching `wasm-bindgen-cli` version.

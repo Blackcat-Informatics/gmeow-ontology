@@ -22,11 +22,25 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [features]
-# The DEFAULT is the whole engine: every native consumer (`gmeow mcp`), `gmeow-mcp-dev`,
-# and the full browser segment (`gmeow-mcp-wasm`) build with `reasoning` on and are
-# therefore bit-for-bit the engine they were before this feature existed. Nothing in the
-# workspace selects it out except the LEAN browser core (`gmeow-mcp-core-wasm`).
-default = ["reasoning"]
+# The DEFAULT is the whole engine: every native consumer (`gmeow mcp`) and `gmeow-mcp-dev`
+# build with BOTH segments on and are therefore bit-for-bit the engine they were before
+# these features existed — 35 tools, 5 resources, one image. Only the two BROWSER images
+# select a single segment, and each selects a DISJOINT one.
+default = ["core", "reasoning"]
+# The core SEGMENT: the twenty-three tools and all five resources that answer off the
+# bundle alone — documentation lookup/cards/`llms.txt`, the SPARQL surfaces, the GMN-1
+# codec, the shipped validator, the transcode hub, and the distribution catalog. Selecting
+# it out is an EXPLICIT deployment choice (the demand-loaded reasoning image, whose
+# governing metric is the DELTA it adds over the always-resident core), never a capability
+# downgrade: the surface stays total at 35, `tools/list` is identical, and a `tools/call`
+# for a core tool returns the typed `mcp.segment-not-loaded` signal naming the tool and the
+# `core` segment.
+#
+# `gmeow-transcode` and `gmeow-docs-catalog` are OPTIONAL under it because they are the two
+# dependencies NOTHING else in this crate reaches — `convert` and `distribution_matrix` are
+# their sole readers — so selecting the segment out removes them from the reasoning image's
+# dependency tree outright rather than merely leaving them unreferenced.
+core = ["dep:gmeow-bundle-view", "dep:gmeow-transcode", "dep:gmeow-docs-catalog"]
 # The reasoning SEGMENT: the native DL reasoner (`gmeow-logic`) and the rubric kernel
 # built on it (`gmeow-slice-quality`), plus the ten tools that cannot answer without
 # them. Selecting it out is an EXPLICIT deployment choice (a tiered browser image whose
@@ -53,17 +67,26 @@ gmeow-ns = { path = "../ns" }
 # `native_query` (the SPARQL substrate) and `graph_iris` (the named graphs the tools
 # address). This is the crate that lets the MCP surface read a bundle without the
 # writer.
-gmeow-bundle-view = { path = "../bundle-view" }
+# OPTIONAL, selected by the `core` feature (default ON). The reasoning image imports the
+# snapshot with `purrdf::import_gts_events` and reasons over the carrier dataset directly;
+# the fold view, the term surface, the export renderers, the diagnostics reader and the
+# SPARQL substrate are all reached ONLY by core tools and core resources, so the delta
+# links none of them.
+gmeow-bundle-view = { path = "../bundle-view", optional = true }
 # The distribution-catalog READ side: `distribution_matrix` serves the per-format
 # consumer-need matrix and the formal-concept lattice straight out of the bundle's
 # meta-level catalog graph. A wasm-clean leaf over gmeow-bundle-view — never
 # `gmeow-pipeline`, which is where that reader used to live, and never `gmeow-docs`.
-gmeow-docs-catalog = { path = "../docs-catalog" }
+# OPTIONAL, selected by the `core` feature (default ON): `distribution_matrix` is its only
+# reader, so the reasoning-segment image links no catalog reader at all.
+gmeow-docs-catalog = { path = "../docs-catalog", optional = true }
 # The universal RDF-1.2 transcode hub: the `convert` tool calls the SAME
 # `Codec::from_cli_str` / `transcode` / `realized_loss_json` triple `gmeow convert` does,
 # so the agent surface and the CLI are one implementation. A leaf, which is what lets a
 # bundle-only surface reach it without inheriting the build executor.
-gmeow-transcode = { path = "../transcode" }
+# OPTIONAL, selected by the `core` feature (default ON): `convert` is its only reader, so
+# the reasoning-segment image links no transcode hub at all.
+gmeow-transcode = { path = "../transcode", optional = true }
 # The documentation MODEL only — never `gmeow-docs`, whose renderer embeds ~13.6 MB
 # of vendored wasm. `doc_card` renders through the shared `card` surface, `llms_txt`
 # through `llms`, and the `gmn1-primer` resource through `gmn1_primer`, so the MCP

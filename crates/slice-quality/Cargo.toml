@@ -46,7 +46,18 @@ gmeow-logic = { path = "../logic" }
 # gmn1_coverage_axis composes it directly rather than duplicating the codec's term
 # encoder. A leaf crate with no reasoning-runtime or pipeline deps (lang-bridge does
 # NOT depend on slice-quality), so no dependency cycle.
-gmeow-lang-bridge = { path = "../lang-bridge" }
+#
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature, and with it
+# `tiktoken-rs`' ~1.7 MB embedded `cl100k_base` vocabulary. This crate is linked by the
+# browser reasoning segment (`gmeow-mcp` → `gmeow-mcp-wasm`), and cargo unifies features
+# per package: taking lang-bridge with defaults here silently DEFEATED the deliberate
+# `default-features = false` that `crates/mcp` and every wasm shim already make, and put
+# the whole vocabulary in the shipped image. The glyph-optimality axis still weighs real
+# BPE costs — it reads them from `GMN_SYMBOL_AUDIT_TOKEN_COSTS`, the pinned table whose
+# agreement with the measuring primitive is asserted on native by
+# `tests/gmn_token_cost_pin.rs`. Measured cost in, measured cost out; only the vocabulary
+# moved to a dev-dependency.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 
 # rayon: native-only. wasm32 has no threads, and the browser engine that
 # consumes this crate (through the MCP tool surface) must build for wasm32, so
@@ -66,3 +77,11 @@ tempfile = "3"
 [dev-dependencies]
 pretty_assertions = "1"
 insta = { version = "1.48", features = ["json"] }
+# The token-cost anti-rot gate measures the REAL `cl100k_base` cost of every token the
+# glyph-optimality axis weighs and asserts `GMN_SYMBOL_AUDIT_TOKEN_COSTS` equals it, so it
+# needs the `glyph-cost` feature the shipped reasoning segment deliberately drops. A
+# dev-dependency is exactly the right seam — it is absent from `cargo tree -e no-dev` and
+# from every non-test build, so the wasm image is unaffected while the pin stays
+# machine-checked on native. The same seam `crates/gmn-wasm` already uses for the codec
+# legend's pin.
+gmeow-lang-bridge = { path = "../lang-bridge" }

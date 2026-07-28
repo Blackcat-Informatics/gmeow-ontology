@@ -16,7 +16,11 @@
 //! each of the remaining constants was individually reviewed for read-side use — it
 //! is the set the current readers reference.
 //!
-//! Each constant has exactly ONE definition site, here; `gmeow_pipeline`'s
+//! Each constant has exactly ONE definition site, here — in `gmeow-ns`, the zero-dependency
+//! leaf that already owns the single declaration of every GMEOW term namespace.
+//! `gmeow_bundle_view::graph_iris` re-exports this module at its original path, so a reader
+//! that already links the bundle read side is unchanged, while one that only needs to spell
+//! a graph IRI (the MCP reasoning segment) does not have to link it. `gmeow_pipeline`'s
 //! `stages::carrier` and `stages::release` re-export them at their original
 //! visibility, so the assembly side is unchanged and the two sides can never drift
 //! to different IRIs.

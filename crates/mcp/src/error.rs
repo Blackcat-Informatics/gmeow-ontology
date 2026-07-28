@@ -113,10 +113,16 @@ define_diag_kind! {
     /// Raised ONLY when the deployment's [`SegmentSet`](crate::SegmentSet) excludes the
     /// segment. A build carrying the segment can never produce it, which is why the
     /// native surface and `gmeow-mcp-dev` are unaffected.
+    ///
+    /// `tool` is the DISPATCH KEY the frame asked for: a `tools/call` name, or a
+    /// `resources/read` URI. Both halves of the surface are partitioned by segment — the
+    /// reasoning image defers all five resources back to core exactly as core defers the
+    /// twelve reasoning tools forward — and a caller routes on the same two fields either
+    /// way, so one signal serves both rather than two codes a host would have to learn.
     pub struct SegmentNotLoaded { tool: String, segment: String }
     code = "mcp.segment-not-loaded";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "tool `{}` is served by the `{}` engine segment, which this deployment has not loaded; load that segment and re-dispatch the same frame", tool, segment;
+    message = "`{}` is served by the `{}` engine segment, which this deployment has not loaded; load that segment and re-dispatch the same frame", tool, segment;
 }
 
 /// The complete MCP diagnostic-code catalog, in registration order.
