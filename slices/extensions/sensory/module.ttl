@@ -12,7 +12,7 @@ gmeow:ObservableProperty
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Observable Property"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
+    logic:subClassOf logic:QualityValue ;
     skos:definition "A physical, chemical, biological, or environmental property that can be observed or measured by a sensor. A value vocabulary (individuals, never subclasses) so any new property — from temperature to neural activation to social sentiment — is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -21,7 +21,8 @@ gmeow:Sensor
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensor"@x-gmeow-english ;
-    rdfs:subClassOf logic:FunctionalComplex ,
+    logic:subClassOf logic:FunctionalComplex ;
+    rdfs:subClassOf
         gmeow:Agent ;
     skos:definition "An agent that produces observations by responding to a stimulus — a physical device, a software process, or a biological perceiver. The observer in a sensory observation; the vantage of a SensoryObservation may be a Sensor, a person, or an organization. Co-equal: no sensor is privileged as the 'primary' observer (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -31,7 +32,8 @@ gmeow:SensorPlatform
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensor Platform"@x-gmeow-english ;
-    rdfs:subClassOf logic:Object ,
+    logic:subClassOf logic:Object ;
+    rdfs:subClassOf
         gmeow:Entity ;
     skos:definition "A physical entity that hosts one or more sensors — a weather station, a satellite, a buoy, a drone, a vehicle, or a building-mounted instrument. The platform is situated at a place and carries sensors that observe properties of the environment. Distinct from the Sensor itself (the observing agent) and from the Place (the location)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -63,7 +65,7 @@ gmeow:SensoryQuantity
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensory Quantity"@x-gmeow-english ;
-    rdfs:subClassOf math:Quantity ;
+    logic:subClassOf math:Quantity ;
     skos:definition "A math:Quantity produced as the scalar numeric result of a sensory observation, further qualified by its dimension, any applicable unit and reference frame, determinacy, granularity, provenance, and uncertainty axes. It is a domain specialization of the math-owned quantity authority, not an equivalent alias."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -179,7 +181,7 @@ gmeow:sensoryObservationOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory observation of"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
+    logic:subPropertyOf gmeow:observedFeature ;
     skos:definition "The entity whose property is being observed — the observedFeature of a sensory observation. Subproperty of gmeow:observedFeature so generic consumers can query all observations without knowing the domain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -198,7 +200,7 @@ gmeow:sensoryResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory result"@x-gmeow-english ;
     rdfs:range gmeow:SensoryQuantity ;
-    rdfs:subPropertyOf gmeow:observationResult ;
+    logic:subPropertyOf gmeow:observationResult ;
     skos:definition "The scalar quantity result of a sensory observation — a value with unit, determinacy, and granularity. Subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain. The reference frame in which the quantity is expressed is carried on the observation via gmeow:hasReferenceFrame and propagates to the result via the existing isResultOf ∘ hasReferenceFrame chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
