@@ -18,6 +18,7 @@ gmeow:InquiryKind
     gmeow:avoidWhen "Avoid using it for the erotetic kind of a question (that is the closed gmeow:QuestionType) and avoid minting a subclass of gmeow:Question for a new operational kind — the kind is a value individual, never a class (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Reference a seeded gmeow:InquiryKind individual from a gmeow:Question through gmeow:inquiryKind; mint a fresh individual with rdfs:label and skos:definition when a genuinely new operational kind appears, rather than subclassing the question."@x-gmeow-english ;
+    skos:scopeNote "Records how the inquiry is being run, not what would count as an answer. It is orthogonal to the erotetic question type, so the two co-apply: the same wh-question can be pursued as a scan or as a deep dive without changing what would answer it."@x-gmeow-english ;
     gmeow:useWhen "Use to record how an open question is being pursued operationally — a planned inquiry with a priority, theme and resolving artifact — so a research queue can be selected off the value rather than off a bespoke class."@x-gmeow-english .
 
 gmeow:InquiryStatus
@@ -31,6 +32,7 @@ gmeow:InquiryStatus
     gmeow:avoidWhen "Avoid reading a status as an epistemic verdict — gmeow:inquiryStatusResolved says the pursuit stopped, not that the answer is true — and avoid overtyping a status as an owl:Class (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Point a gmeow:Question at exactly the statuses that genuinely apply through gmeow:inquiryStatus, letting competing monitoring vantages coexist; record the ANSWER's standing separately through the epistemics acceptance spine."@x-gmeow-english ;
+    skos:scopeNote "Records the state of the PURSUIT and never the epistemic standing of an answer. Whether an answer is believed or known lives on the epistemics spine, so a settled inquiry may still carry an answer nobody believes."@x-gmeow-english ;
     gmeow:useWhen "Use to record where an open inquiry stands in its pursuit, so an inquiry queue can filter the still-open ones without consulting the epistemics layer."@x-gmeow-english .
 
 gmeow:InquiryTenure
@@ -142,6 +144,7 @@ gmeow:inquiryKind
     gmeow:avoidWhen "Avoid using it to carry the erotetic kind (that is gmeow:questionType over the closed gmeow:QuestionType) and avoid forcing exactly one value — the property is non-functional by design."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach as many gmeow:InquiryKind individuals as genuinely apply to the gmeow:Question; select a research queue by matching gmeow:inquiryKindResearchPlan together with an open gmeow:inquiryStatus."@x-gmeow-english ;
+    skos:scopeNote "Classifies the question by the operational kind of the inquiry pursuing it, drawn from an OPEN value vocabulary. It is not the erotetic question type: the two axes co-apply, and using one where the other belongs makes an answerhood condition look like a work style."@x-gmeow-english ;
     gmeow:useWhen "Use to mark how an open question is being pursued operationally, so a consumer can select the planned inquiries from among all open questions."@x-gmeow-english .
 
 gmeow:inquiryKindResearchPlan

@@ -15,27 +15,100 @@
 
 ex:cqFrontierLabels a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-frontier-labels.rq" ;
-    gmeow:cqRationale "The frontier label set is closed and DERIVED from the axis tuple, so its membership is a contract rather than a convenience. Three of the sixteen have no home in a bare twelve-state reading — compensation failed with the forward effect still committed, reconciliation foreclosed rather than pending, and cancellation with effects in flight — and those are exactly the positions an operator most needs surfaced, so a pin that tolerated their loss would be worthless."@x-gmeow-english ;
+    gmeow:cqRationale "The frontier label set is closed and DERIVED from the axis tuple, so its membership is a contract rather than a convenience. Three of the sixteen have no home in a bare twelve-state reading — compensation failed with the forward effect still committed, reconciliation foreclosed rather than pending, and cancellation with effects in flight — and those are exactly the positions an operator most needs surfaced, so a pin that tolerated their loss would be worthless. Each label is therefore pinned BY IRI rather than by a bare count: a count of sixteen survives a rename or a swap that silently substitutes a twelfth-state paraphrase for one of those three, and the substitution is exactly the drift this question exists to catch."@x-gmeow-english ;
     gmeow:cqResultShape ex:cqFrontierLabelsShape ;
-    gmeow:cqExpectRowCount 16 .
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow
+        ex:cqFrontierRowReadyAuthorized , ex:cqFrontierRowReadyApprovalRequired ,
+        ex:cqFrontierRowBlockedPrecondition , ex:cqFrontierRowBlockedCapabilityOrResource ,
+        ex:cqFrontierRowWaitingOnEventTimeOrInput , ex:cqFrontierRowMutuallyExclusive ,
+        ex:cqFrontierRowReconciliationRequired , ex:cqFrontierRowCompensationEligible ,
+        ex:cqFrontierRowCompensationRequired , ex:cqFrontierRowCompleted ,
+        ex:cqFrontierRowSkippedWithTypedReason , ex:cqFrontierRowCancelled ,
+        ex:cqFrontierRowTerminallyFailed , ex:cqFrontierRowCompensationFailedForwardCommitted ,
+        ex:cqFrontierRowReconciliationImpossible , ex:cqFrontierRowCancelledWithInFlightEffects .
 
 ex:cqFrontierLabelsShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "label" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:shapeCardinality logic:RowsCount ;
-    logic:shapeRowCount 16 .
+    logic:shapeCardinality logic:RowsExact .
+
+# The twelve positions a bare state-machine reading can express …
+ex:cqFrontierRowReadyAuthorized a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReadyAuthorized ] .
+ex:cqFrontierRowReadyApprovalRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReadyApprovalRequired ] .
+ex:cqFrontierRowBlockedPrecondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierBlockedPrecondition ] .
+ex:cqFrontierRowBlockedCapabilityOrResource a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierBlockedCapabilityOrResource ] .
+ex:cqFrontierRowWaitingOnEventTimeOrInput a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierWaitingOnEventTimeOrInput ] .
+ex:cqFrontierRowMutuallyExclusive a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierMutuallyExclusive ] .
+ex:cqFrontierRowReconciliationRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReconciliationRequired ] .
+ex:cqFrontierRowCompensationEligible a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompensationEligible ] .
+ex:cqFrontierRowCompensationRequired a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompensationRequired ] .
+ex:cqFrontierRowCompleted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompleted ] .
+ex:cqFrontierRowSkippedWithTypedReason a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierSkippedWithTypedReason ] .
+ex:cqFrontierRowCancelled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCancelled ] .
+ex:cqFrontierRowTerminallyFailed a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierTerminallyFailed ] .
+
+# … and the three the rationale names, which a twelve-state reading cannot host.
+ex:cqFrontierRowCompensationFailedForwardCommitted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCompensationFailedForwardCommitted ] .
+ex:cqFrontierRowReconciliationImpossible a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierReconciliationImpossible ] .
+ex:cqFrontierRowCancelledWithInFlightEffects a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueIri logic:FrontierCancelledWithInFlightEffects ] .
 
 ex:cqReviewContents a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-review-contents.rq" ;
-    gmeow:cqRationale "The operator review projection must carry all eight required contents plus its projection receipt. Pinning the count is what stops a surface that silently omits effect status or dissent from looking complete: partial completeness is the failure mode here, because the omission is invisible to the reader it misleads."@x-gmeow-english ;
+    gmeow:cqRationale "The operator review projection must carry all eight required contents plus its cluster subject and its projection receipt. Pinning each content BY IRI is what stops a surface that silently omits effect status or dissent from looking complete: partial completeness is the failure mode here, because the omission is invisible to the reader it misleads, and a bare count of ten cannot tell a review that dropped gmeow:reviewEffectStatus apart from one that added an eleventh convenience edge and lost it."@x-gmeow-english ;
     gmeow:cqResultShape ex:cqReviewContentsShape ;
-    gmeow:cqExpectRowCount 10 .
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow
+        ex:cqReviewRowOfCluster , ex:cqReviewRowReceipt ,
+        ex:cqReviewRowGoalAndRecurrence , ex:cqReviewRowPrescriptionLineage ,
+        ex:cqReviewRowCurrentEnactment , ex:cqReviewRowFrontier ,
+        ex:cqReviewRowApprovalsAndPending , ex:cqReviewRowEffectStatus ,
+        ex:cqReviewRowAccumulatedRecord , ex:cqReviewRowTimelineRepresentation .
 
 ex:cqReviewContentsShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "content" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:shapeCardinality logic:RowsCount ;
-    logic:shapeRowCount 10 .
+    logic:shapeCardinality logic:RowsExact .
+
+# The cluster the review is OF, and the receipt that discloses the collapse it performs.
+ex:cqReviewRowOfCluster a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewOfCluster ] .
+ex:cqReviewRowReceipt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewReceipt ] .
+
+# The eight required contents.
+ex:cqReviewRowGoalAndRecurrence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewGoalAndRecurrence ] .
+ex:cqReviewRowPrescriptionLineage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewPrescriptionLineage ] .
+ex:cqReviewRowCurrentEnactment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewCurrentEnactment ] .
+ex:cqReviewRowFrontier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewFrontier ] .
+ex:cqReviewRowApprovalsAndPending a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewApprovalsAndPending ] .
+ex:cqReviewRowEffectStatus a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewEffectStatus ] .
+ex:cqReviewRowAccumulatedRecord a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewAccumulatedRecord ] .
+ex:cqReviewRowTimelineRepresentation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "content" ; gmeow:cellValueIri gmeow:reviewTimelineRepresentation ] .
 
 ex:cqContributionKinds a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-contribution-kinds.rq" ;

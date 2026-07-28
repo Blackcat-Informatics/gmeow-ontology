@@ -565,3 +565,191 @@ msgstr "Module GMEOW d'orchestration du travail"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/work-orchestration|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The work-orchestration module — the domain binding of the prescription/enactment/commitment kernel onto continuing work: the gmeow:WorkCluster spine, versioned guidance, contribution attribution, the frontier's bindings into the preference apparatus, and the operator review projection with its disclosed preservation judgment."
 msgstr "Le module d'orchestration du travail — la liaison de domaine du noyau prescription/exécution/engagement sur le travail continu : l'ossature gmeow:WorkCluster, l'orientation versionnée, l'attribution des contributions, les liaisons de la frontière vers l'appareil de préférences, et la projection de revue d'opérateur avec son jugement de préservation divulgué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Names the PROVENANCE of a contribution, not its quality or its correctness. A model contribution may be better reasoned than an operator one and still may not decide: the kind fixes what authority the contribution can carry, and advice is the ceiling for this kind regardless of how good the advice is."
+msgstr "Désigne la PROVENANCE d'une contribution, non sa qualité ni sa justesse. Une contribution de modèle peut être mieux raisonnée qu'une contribution d'opérateur sans pouvoir décider : le genre fixe l'autorité que la contribution peut porter, et le conseil demeure le plafond de ce genre, quelle qu'en soit la valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c-114 gmeow:contributionKind gmeow:contributionModel ; gmeow:clusterNote ex:cluster-migration ."
+msgstr "Exemple : ex:c-114 gmeow:contributionKind gmeow:contributionModel ; gmeow:clusterNote ex:cluster-migration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records that a human authored the contribution; it does not by itself record WHICH human, nor that the human was entitled to decide. Attribution and entitlement are separate facts carried by the approval commitment, so this kind is a necessary and not a sufficient condition for a decision."
+msgstr "Consigne qu'un être humain est l'auteur de la contribution ; en soi, cela ne consigne ni QUEL humain, ni qu'il avait le droit de décider. L'attribution et l'habilitation sont des faits distincts portés par l'engagement d'approbation : ce genre est donc une condition nécessaire, non suffisante, d'une décision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c-115 gmeow:contributionKind gmeow:contributionOperator ; gmeow:approvalGoverningNorm ex:change-policy-v3 ."
+msgstr "Exemple : ex:c-115 gmeow:contributionKind gmeow:contributionOperator ; gmeow:approvalGoverningNorm ex:change-policy-v3 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTool|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Covers deterministic tools whose output is reproducible from their inputs — a linter, a digest, a query. It does not cover a sampling or otherwise non-reproducible tool: whatever cannot be re-derived is advice, not observation, and belongs under the model kind however mechanical its packaging."
+msgstr "Couvre les outils déterministes dont la sortie est reproductible à partir de leurs entrées — un linter, une empreinte, une requête. Ne couvre pas un outil d'échantillonnage ou autrement non reproductible : ce qui ne peut être re-dérivé relève du conseil et non de l'observation, et se range sous le genre modèle, si mécanique qu'en soit l'emballage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTool|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c-116 gmeow:contributionKind gmeow:contributionTool ; gmeow:explanationEvidence ex:digest-check-run-9 ."
+msgstr "Exemple : ex:c-116 gmeow:contributionKind gmeow:contributionTool ; gmeow:explanationEvidence ex:digest-check-run-9 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Closed and mandatory, so there is no unclassified contribution and no room to add a fourth kind locally. The three values differ in authority rather than in quality, so a contribution is never promoted from one kind to another by being good."
+msgstr "Fermée et obligatoire : aucune contribution n'est non classée et nul ne peut ajouter localement un quatrième genre. Les trois valeurs diffèrent par l'autorité et non par la qualité ; une contribution ne passe donc jamais d'un genre à l'autre parce qu'elle est bonne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Carries five required contents, and dissent is one of them rather than a courtesy. An explanation that omits the disagreeing observations manufactures a consensus, so completeness here is a correctness property and not a presentation preference."
+msgstr "Porte cinq contenus requis, la dissidence étant l'un d'eux et non une politesse. Une explication omettant les observations divergentes fabrique un consensus : la complétude est ici une propriété d'exactitude, non une préférence de présentation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GuidanceSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Versioned through the standard version-membership relator rather than a bespoke mechanism, because which guidance governed THAT occurrence must stay answerable after the guidance has moved on. An unversioned guidance set makes every past occurrence unauditable."
+msgstr "Versionné au moyen du relateur d'appartenance de version standard plutôt que d'un mécanisme sur mesure, car la question de savoir quelle orientation régissait CETTE occurrence doit rester soluble après l'évolution de l'orientation. Un ensemble non versionné rend inauditable toute occurrence passée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkCluster|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The thing that persists between occurrences, so it is never itself enacted. Enacting a cluster is a category error: occurrences are enacted, and the cluster is what makes them comparable to one another."
+msgstr "Ce qui persiste entre les occurrences : il n'est donc jamais lui-même exécuté. Exécuter un agrégat est une erreur de catégorie ; ce sont les occurrences qui s'exécutent, et l'agrégat est ce qui les rend comparables entre elles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkReviewProjection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A projection, so it is lossy by construction and must disclose what it dropped through its receipt. A view that presents eight contents without a receipt is claiming completeness it cannot support."
+msgstr "Une projection : lossy par construction, elle doit divulguer ce qu'elle a écarté au moyen de son reçu. Une vue présentant huit contenus sans reçu revendique une complétude qu'elle ne peut étayer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalGoverningNorm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A domain specialization of the kernel seam, so it narrows the kernel property rather than competing with it. Using the kernel property directly in this slice would leave the policy an opaque reference instead of a real norm."
+msgstr "Spécialisation de domaine de la couture du noyau : elle restreint la propriété du noyau au lieu de la concurrencer. Utiliser directement la propriété du noyau dans cette tranche laisserait la politique à l'état de référence opaque plutôt que de norme réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterActivePrescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Deliberately a POINTER, not a record of what any occurrence ran. An enactment pins its version at start, so moving this pointer mid-flight revises what happens next without rewriting what is already running."
+msgstr "Délibérément un POINTEUR et non le relevé de ce qu'une occurrence a exécuté. Une exécution fixe sa version au démarrage : déplacer ce pointeur en cours de route révise donc la suite sans réécrire ce qui tourne déjà."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterEnactment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Append-only history: a prior occurrence stays readable and comparable after later ones begin. Removing an occurrence to tidy the cluster destroys the comparison the cluster exists to support."
+msgstr "Historique en ajout seul : une occurrence antérieure reste lisible et comparable après le démarrage des suivantes. Retirer une occurrence pour faire propre détruit la comparaison que l'agrégat existe pour rendre possible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterGoal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Where the goal is a maintenance goal, a successful occurrence never closes it: the goal holds only while its condition does, so the cluster keeps recurring by design rather than by oversight."
+msgstr "Lorsque le but est un but de maintien, une occurrence réussie ne le clôt jamais : il ne tient que tant que sa condition tient, et l'agrégat récurre donc par conception et non par négligence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterGuidanceSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A pointer like the active prescription, so an occurrence records the version it actually ran under rather than inheriting whatever this later points at. Reading guidance through this pointer retroactively rewrites history."
+msgstr "Un pointeur comme la prescription active : une occurrence consigne la version sous laquelle elle a réellement tourné au lieu d'hériter de ce que ceci désignera plus tard. Lire l'orientation par ce pointeur réécrit l'histoire rétroactivement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterNote|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retention between occurrences is the point: a cluster that forgets what the last occurrence learned is a schedule, not a continuing body of work. Notes are therefore cluster-scoped rather than occurrence-scoped."
+msgstr "La rétention entre occurrences est l'essentiel : un agrégat qui oublie ce qu'a appris la dernière occurrence n'est qu'un calendrier, non un corps de travail continu. Les notes relèvent donc de l'agrégat et non de l'occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterOccurrenceSeries|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reused from the events spine, never re-minted: the recurrence rule belongs to the series, so a skipped occurrence is a schedule exception rather than a missing member of a list."
+msgstr "Réutilisée depuis la colonne des événements et jamais reforgée : la règle de récurrence appartient à la série, si bien qu'une occurrence sautée est une exception de calendrier et non un membre manquant d'une liste."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Non-functional on purpose: several norms may govern one cluster, and where they disagree the disagreement is data rather than an error to resolve by picking one. Collapsing them would hide a real governance conflict."
+msgstr "Non fonctionnelle à dessein : plusieurs normes peuvent régir un agrégat, et leur désaccord est une donnée et non une erreur à trancher en en choisissant une. Les fusionner masquerait un conflit de gouvernance réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterSchedule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schedule is the GENERATOR: an enactment is generated by an occurrence rather than being one. Reading the schedule as the work itself is what makes an active recurrence over failing occurrences look healthy."
+msgstr "Le calendrier est le GÉNÉRATEUR : une exécution est engendrée par une occurrence, elle n'en est pas une. Lire le calendrier comme le travail lui-même est ce qui fait paraître saine une récurrence active au-dessus d'occurrences en échec."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional and mandatory, so a contribution without a kind is not merely under-annotated but unusable: the whole authority chain reads this value, and its absence leaves advice and decision indistinguishable."
+msgstr "Fonctionnelle et obligatoire : une contribution sans genre n'est pas seulement sous-annotée, elle est inutilisable, toute la chaîne d'autorité lisant cette valeur, dont l'absence rend conseil et décision indiscernables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/criterionMagnitude|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Grounds in the mathematical quantity spine so the magnitude travels with its dimension rather than as a bare number. A quantitative claim without a dimension cannot be compared across criteria, which is the only thing a criterion is for."
+msgstr "S'ancre dans la colonne des grandeurs mathématiques afin que la magnitude voyage avec sa dimension et non comme un nombre nu. Une affirmation quantitative sans dimension ne peut être comparée entre critères, ce qui est pourtant la seule raison d'être d'un critère."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/enactmentContextAssembly|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records what was WITHHELD as well as what was surfaced, so the answer to which notes this run saw is complete rather than one-sided. Functional: one assembly per occurrence, because two would make the answer ambiguous."
+msgstr "Consigne ce qui a été RETENU autant que ce qui a été présenté, de sorte que la réponse à la question des notes vues par cette exécution soit complète et non partielle. Fonctionnelle : un assemblage par occurrence, deux rendant la réponse ambiguë."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryHardFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reuses the preference slice's hard-constraint apparatus, which already guarantees that a hard failure may not be traded away by a favourable score elsewhere. Minting a local severity flag here would lose exactly that guarantee."
+msgstr "Réutilise l'appareil de contraintes dures de la tranche des préférences, qui garantit déjà qu'un échec dur ne peut être compensé par un bon score ailleurs. Forger ici un indicateur de sévérité local perdrait précisément cette garantie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explainsEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional, so an explanation accounts for exactly one entry. An explanation covering several entries would let the proof offered for one position be read as support for another."
+msgstr "Fonctionnelle : une explication rend compte d'exactement une entrée. Une explication couvrant plusieurs entrées laisserait la preuve avancée pour une position passer pour un appui à une autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationCriterion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reuses the norms criterion vocabulary rather than minting a local one, and its magnitudes ground in the mathematical quantity spine. Bare numbers here would be incomparable across entries, which defeats the point of ranking them."
+msgstr "Réutilise le vocabulaire de critères des normes au lieu d'en forger un local, ses magnitudes s'ancrant dans la colonne des grandeurs mathématiques. Des nombres nus seraient ici incomparables d'une entrée à l'autre, ce qui ruine l'intérêt du classement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationDissent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required wherever dissent exists, not offered as a courtesy. Suppressing an attributed disagreement turns coexisting standpoints into a manufactured consensus, which is the specific failure this content was added to prevent."
+msgstr "Requis partout où la dissidence existe, et non offert par politesse. Étouffer un désaccord attribué transforme des points de vue coexistants en consensus fabriqué, échec précis que ce contenu a été ajouté pour prévenir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and about the entry's position rather than about the enactment as a whole. Evidence for the run at large belongs on the run; putting it here would make every entry look equally supported."
+msgstr "Multivaluée et portant sur la position de l'entrée, non sur l'exécution dans son ensemble. Les preuves relatives à l'exécution entière lui reviennent ; les placer ici ferait paraître toutes les entrées également étayées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued because several norms may bear on one action and disagree; all are surfaced rather than reconciled. Choosing one here would present a governance judgment as if it were a fact about the entry."
+msgstr "Multivaluée, car plusieurs normes peuvent porter sur une même action et diverger ; toutes sont exposées plutôt que conciliées. En choisir une ici présenterait un jugement de gouvernance comme un fait relatif à l'entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationProof|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A model-generated narrative may never occupy this position. The slot is for a checkable derivation, and admitting prose here would let a plausible story stand where a verifiable argument is required."
+msgstr "Un récit produit par un modèle ne peut jamais occuper cette position. L'emplacement est réservé à une dérivation vérifiable, et y admettre de la prose laisserait une histoire plausible tenir lieu d'argument vérifiable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierCandidateSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding that gives the frontier ties, incomparability and transparent comparison for free, by routing through the existing preference apparatus instead of a second recommendation model. A local ranking here would be that forbidden second model."
+msgstr "La liaison qui offre gratuitement à la frontière les ex aequo, l'incomparabilité et la comparaison transparente, en passant par l'appareil de préférences existant plutôt que par un second modèle de recommandation. Un classement local serait ce second modèle proscrit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierComparisonContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Recommendations without a context are the context-free global winner the preference apparatus exists to forbid, so this binding is what keeps a ranking honest. Functional: two contexts would produce two rankings presented as one."
+msgstr "Des recommandations sans contexte constituent le vainqueur global hors contexte que l'appareil de préférences existe pour interdire : cette liaison est donc ce qui garde un classement honnête. Fonctionnelle, deux contextes produisant deux classements présentés comme un seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceChecklist|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its content is an information object whose textual surface grounds in the linguistic form vocabulary, not a bare string on the guidance set. That indirection is what lets a checklist be rendered, translated and versioned like any other authored text."
+msgstr "Son contenu est un objet d'information dont la surface textuelle s'ancre dans le vocabulaire des formes linguistiques, et non une chaîne nue portée par l'ensemble d'orientation. Cette indirection permet à une liste d'être rendue, traduite et versionnée comme tout autre texte rédigé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceRendering|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The seam through which this slice's prose content gets a linguistic form rather than floating as an untyped literal. It applies to any item carrying authored prose — guidance, notes, dissent, review renderings — and not only to guidance items."
+msgstr "La couture par laquelle le contenu en prose de cette tranche reçoit une forme linguistique au lieu de flotter comme littéral non typé. Elle vaut pour tout élément portant de la prose rédigée — orientation, notes, dissidence, rendus de revue — et non pour les seuls éléments d'orientation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceRubric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reuses the norms rubric rather than minting a parallel assessment vocabulary, so a rubric applied here scores exactly as it does everywhere else. A local rubric would silently diverge as the shared one improves."
+msgstr "Réutilise la grille des normes au lieu de forger un vocabulaire d'évaluation parallèle : une grille appliquée ici note exactement comme partout ailleurs. Une grille locale divergerait en silence à mesure que la grille partagée s'améliore."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceVersionMembership|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reused rather than re-minted, so guidance versioning behaves exactly as every other versioned entity does. The membership is standpoint-scoped, which is what lets two standpoints disagree about which version was in force without one overwriting the other."
+msgstr "Réutilisée plutôt que reforgée, de sorte que le versionnement de l'orientation se comporte comme celui de toute autre entité versionnée. L'appartenance est cantonnée à un point de vue, ce qui permet à deux points de vue de diverger sur la version en vigueur sans que l'un efface l'autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preparationActivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain binding of the kernel's preparation seam onto the provenance activity spine, specializing the kernel property rather than duplicating it. That direction is the one every bridge in this slice runs, and reversing it would make the domain the authority."
+msgstr "La liaison de domaine reliant la couture de préparation du noyau à la colonne des activités de provenance, en spécialisant la propriété du noyau plutôt qu'en la dupliquant. C'est le sens que suit tout pont de cette tranche, et l'inverser ferait du domaine l'autorité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewAccumulatedRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content seven of eight, and the only one that reaches backwards: it carries the comparison with prior occurrences. A review that drops it still shows the current run but loses the reason the cluster is a cluster."
+msgstr "Septième contenu sur huit, et le seul à regarder en arrière : il porte la comparaison avec les occurrences antérieures. Une revue qui l'omet montre encore l'exécution courante mais perd la raison pour laquelle l'agrégat en est un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewApprovalsAndPending|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content five of eight, covering outstanding authorizations and awaited inputs together because both are things the run is waiting on. Separating them would hide that an operator decision and an external arrival block work in the same way."
+msgstr "Cinquième contenu sur huit, réunissant autorisations en souffrance et entrées attendues, les deux étant ce sur quoi l'exécution attend. Les séparer masquerait qu'une décision d'opérateur et une arrivée externe bloquent le travail de la même manière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewCurrentEnactment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content three of eight, and it reaches the exact input generation the occurrence pinned rather than the current one. Showing the live inputs instead would make a past run look as though it read data it never saw."
+msgstr "Troisième contenu sur huit, atteignant la génération d'entrées exacte fixée par l'occurrence et non la génération courante. Montrer les entrées actuelles ferait paraître qu'une exécution passée a lu des données qu'elle n'a jamais vues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewEffectStatus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content six of eight, and the content an operator needs most when something went wrong at the boundary. It carries effect, reconciliation and compensation together because a boundary problem is never legible from any one of the three alone."
+msgstr "Sixième contenu sur huit, et celui dont un opérateur a le plus besoin lorsque quelque chose a mal tourné à la frontière. Il réunit effet, réconciliation et compensation, un problème de frontière n'étant jamais lisible à partir d'un seul des trois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewFrontier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content four of eight, presenting the DERIVED frontier with its recommendations and blockers. A review that presents a hand-curated action list in its place shows an opinion where the projection promises a derivation."
+msgstr "Quatrième contenu sur huit, présentant la frontière DÉRIVÉE avec ses recommandations et ses blocages. Une revue qui lui substitue une liste d'actions choisie à la main montre une opinion là où la projection promet une dérivation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewGoalAndRecurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content one of eight, pairing the continuing goal with the recurrence that issues occurrences. The pairing is deliberate: a goal shown without its recurrence invites the reader to expect a closing run that will never come."
+msgstr "Premier contenu sur huit, appariant le but continu et la récurrence qui émet les occurrences. L'appariement est délibéré : un but montré sans sa récurrence invite le lecteur à attendre une exécution finale qui ne viendra jamais."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewOfCluster|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional, so one projection presents one cluster. A projection spanning several clusters would leave its receipt unable to say what it dropped from which, which is the disclosure the projection exists to make."
+msgstr "Fonctionnelle : une projection présente un agrégat. Une projection couvrant plusieurs agrégats laisserait son reçu incapable de dire ce qu'elle a écarté et d'où, alors que cette divulgation est sa raison d'être."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewPrescriptionLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content two of eight: the current prescription AND how it was revised to get here. The lineage is what lets a reader judge whether a surprising instruction is new or long-standing, which the current version alone cannot say."
+msgstr "Deuxième contenu sur huit : la prescription courante ET la manière dont elle a été révisée pour en arriver là. La lignée permet de juger si une instruction surprenante est récente ou ancienne, ce que la seule version courante ne peut dire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewReceipt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional and MANDATORY, because an operator view that collapses coexisting standpoints without saying so misrepresents disagreement as agreement. The receipt is what makes the projection's losses visible rather than silent."
+msgstr "Fonctionnel et OBLIGATOIRE, car une vue d'opérateur qui fusionne des points de vue coexistants sans le dire fait passer le désaccord pour un accord. Le reçu rend visibles les pertes de la projection au lieu de les taire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewTimelineRepresentation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content eight of eight, and required to be exact as well as accessible: a rendering that simplifies the graph for legibility is a different projection with its own losses, which its own receipt would have to disclose."
+msgstr "Huitième contenu sur huit, tenu d'être exact autant qu'accessible : un rendu simplifiant le graphe pour la lisibilité est une autre projection, avec ses propres pertes, que son propre reçu devrait divulguer."

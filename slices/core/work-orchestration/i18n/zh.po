@@ -565,3 +565,191 @@ msgstr "GMEOW 工作编排模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/work-orchestration|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The work-orchestration module — the domain binding of the prescription/enactment/commitment kernel onto continuing work: the gmeow:WorkCluster spine, versioned guidance, contribution attribution, the frontier's bindings into the preference apparatus, and the operator review projection with its disclosed preservation judgment."
 msgstr "工作编排模块——把「规定／实施／承诺」内核绑定到持续性工作之上的领域绑定：gmeow:WorkCluster 骨架、经版本化的指导、贡献归属、前沿通往偏好装置的各项绑定，以及带有已披露保全判断的操作者复核投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Names the PROVENANCE of a contribution, not its quality or its correctness. A model contribution may be better reasoned than an operator one and still may not decide: the kind fixes what authority the contribution can carry, and advice is the ceiling for this kind regardless of how good the advice is."
+msgstr "它标注贡献的来源，而非其质量或正确性。模型贡献可能比操作者贡献推理得更好，却仍然不能作出决定：种类决定了贡献可承载的权威，而对本种类而言，建议就是上限，无论建议本身多么出色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c-114 gmeow:contributionKind gmeow:contributionModel ; gmeow:clusterNote ex:cluster-migration ."
+msgstr "示例：ex:c-114 gmeow:contributionKind gmeow:contributionModel ; gmeow:clusterNote ex:cluster-migration 。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionOperator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records that a human authored the contribution; it does not by itself record WHICH human, nor that the human was entitled to decide. Attribution and entitlement are separate facts carried by the approval commitment, so this kind is a necessary and not a sufficient condition for a decision."
+msgstr "它记录该贡献出自人类之手；但其本身既不记录出自哪一位人类，也不记录此人是否有权作出决定。归属与授权是由批准承诺所承载的另外两项事实，因此本种类只是决定的必要条件，而非充分条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionOperator|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c-115 gmeow:contributionKind gmeow:contributionOperator ; gmeow:approvalGoverningNorm ex:change-policy-v3 ."
+msgstr "示例：ex:c-115 gmeow:contributionKind gmeow:contributionOperator ; gmeow:approvalGoverningNorm ex:change-policy-v3 。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTool|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Covers deterministic tools whose output is reproducible from their inputs — a linter, a digest, a query. It does not cover a sampling or otherwise non-reproducible tool: whatever cannot be re-derived is advice, not observation, and belongs under the model kind however mechanical its packaging."
+msgstr "涵盖那些输出可由输入复现的确定性工具——代码检查器、摘要计算、查询。不涵盖抽样式或其他不可复现的工具：凡不能重新推导者，即属建议而非观察，无论其外壳多么机械，都应归入模型种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionTool|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c-116 gmeow:contributionKind gmeow:contributionTool ; gmeow:explanationEvidence ex:digest-check-run-9 ."
+msgstr "示例：ex:c-116 gmeow:contributionKind gmeow:contributionTool ; gmeow:explanationEvidence ex:digest-check-run-9 。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Closed and mandatory, so there is no unclassified contribution and no room to add a fourth kind locally. The three values differ in authority rather than in quality, so a contribution is never promoted from one kind to another by being good."
+msgstr "它是封闭且强制的，因此不存在未分类的贡献，也无从在本地添加第四个种类。三个取值的区别在于权威而非质量，所以一项贡献绝不会因为出色而由此种类升入彼种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Carries five required contents, and dissent is one of them rather than a courtesy. An explanation that omits the disagreeing observations manufactures a consensus, so completeness here is a correctness property and not a presentation preference."
+msgstr "它承载五项必备内容，其中异议是必备之一，而非出于礼貌。若解释省略了持异见的观察，便是在制造共识，因此此处的完备性是正确性属性，而非呈现风格上的偏好。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GuidanceSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Versioned through the standard version-membership relator rather than a bespoke mechanism, because which guidance governed THAT occurrence must stay answerable after the guidance has moved on. An unversioned guidance set makes every past occurrence unauditable."
+msgstr "它通过标准的版本归属关系体来版本化，而非另立机制，因为在指引本身演进之后，那一次occurrence究竟由哪一版指引所治理，必须仍然可以回答。未加版本的指引集会使所有过往occurrence无法审计。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkCluster|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The thing that persists between occurrences, so it is never itself enacted. Enacting a cluster is a category error: occurrences are enacted, and the cluster is what makes them comparable to one another."
+msgstr "它是在各次occurrence之间持存之物，因此其本身从不被执行。执行一个工作簇属于范畴错误：被执行的是occurrence，而工作簇是使这些occurrence彼此可比的东西。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkReviewProjection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A projection, so it is lossy by construction and must disclose what it dropped through its receipt. A view that presents eight contents without a receipt is claiming completeness it cannot support."
+msgstr "它是一种投影，按构造即有损，必须凭其回执披露自己舍弃了什么。若某视图罗列八项内容却不附回执，便是在主张一种它无从支撑的完备性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/approvalGoverningNorm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A domain specialization of the kernel seam, so it narrows the kernel property rather than competing with it. Using the kernel property directly in this slice would leave the policy an opaque reference instead of a real norm."
+msgstr "它是内核接缝的领域特化，因而是收窄内核属性，而非与之竞争。若在本切片中直接使用内核属性，政策便只是一个不透明的引用，而非真正的规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterActivePrescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Deliberately a POINTER, not a record of what any occurrence ran. An enactment pins its version at start, so moving this pointer mid-flight revises what happens next without rewriting what is already running."
+msgstr "它有意被设计为指针，而非任何一次occurrence实际运行内容的记录。执行在启动时便固定其版本，因此中途移动此指针只会改变此后发生之事，而不会改写正在运行之事。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterEnactment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Append-only history: a prior occurrence stays readable and comparable after later ones begin. Removing an occurrence to tidy the cluster destroys the comparison the cluster exists to support."
+msgstr "这是只增不删的历史：后来的occurrence开始之后，先前的occurrence仍然可读、可比。为整洁而删去某次occurrence，恰恰摧毁了工作簇赖以存在的那种比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterGoal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Where the goal is a maintenance goal, a successful occurrence never closes it: the goal holds only while its condition does, so the cluster keeps recurring by design rather than by oversight."
+msgstr "若该目标属于维持型目标，则一次成功的occurrence绝不会将其关闭：目标只在其条件成立期间成立，因此工作簇的反复出现出于设计，而非出于疏忽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterGuidanceSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A pointer like the active prescription, so an occurrence records the version it actually ran under rather than inheriting whatever this later points at. Reading guidance through this pointer retroactively rewrites history."
+msgstr "它与活动处方一样是指针，因此occurrence记录的是自己实际据以运行的版本，而不承袭此指针日后所指之物。若透过此指针去读取指引，便会追溯性地改写历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterNote|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retention between occurrences is the point: a cluster that forgets what the last occurrence learned is a schedule, not a continuing body of work. Notes are therefore cluster-scoped rather than occurrence-scoped."
+msgstr "要害在于跨occurrence的留存：若某工作簇遗忘了上一次occurrence所学到的东西，那它便只是一份日程，而非持续的工作体。因此笔记的作用域是工作簇，而非单次occurrence。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterOccurrenceSeries|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reused from the events spine, never re-minted: the recurrence rule belongs to the series, so a skipped occurrence is a schedule exception rather than a missing member of a list."
+msgstr "它复用事件主干而绝不另铸：周期规则属于该序列，因此被跳过的occurrence是日程上的例外，而不是名单中缺失的一员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Non-functional on purpose: several norms may govern one cluster, and where they disagree the disagreement is data rather than an error to resolve by picking one. Collapsing them would hide a real governance conflict."
+msgstr "它有意不设为函数性：同一个工作簇可能受多条规范治理，而它们的分歧本身就是数据，并非靠择一而定即可消解的错误。若将其合并，就会掩盖真实存在的治理冲突。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/clusterSchedule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schedule is the GENERATOR: an enactment is generated by an occurrence rather than being one. Reading the schedule as the work itself is what makes an active recurrence over failing occurrences look healthy."
+msgstr "日程是生成器：执行由occurrence所生成，而其本身并非occurrence。把日程当作工作本身来读，正是活跃的周期设定即便其下occurrence接连失败也仍显得一切正常的原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional and mandatory, so a contribution without a kind is not merely under-annotated but unusable: the whole authority chain reads this value, and its absence leaves advice and decision indistinguishable."
+msgstr "它既是函数性的也是强制的，因此没有种类的贡献不只是注记不足，而是根本无法使用：整条权威链条都要读取此值，缺了它，建议与决定便无从分辨。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/criterionMagnitude|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Grounds in the mathematical quantity spine so the magnitude travels with its dimension rather than as a bare number. A quantitative claim without a dimension cannot be compared across criteria, which is the only thing a criterion is for."
+msgstr "它以数学量纲主干为根基，使数值随其量纲一同传递，而不是以裸数字出现。没有量纲的定量主张无法在不同准则之间比较，而比较恰恰是准则唯一的用处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/enactmentContextAssembly|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Records what was WITHHELD as well as what was surfaced, so the answer to which notes this run saw is complete rather than one-sided. Functional: one assembly per occurrence, because two would make the answer ambiguous."
+msgstr "它既记录被呈现之物，也记录被扣留之物，从而使这一次运行看到了哪些笔记这一问题得到完整而非片面的答复。它是函数性的：每次occurrence只有一份装配，若有两份，答案便含混不清。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryHardFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reuses the preference slice's hard-constraint apparatus, which already guarantees that a hard failure may not be traded away by a favourable score elsewhere. Minting a local severity flag here would lose exactly that guarantee."
+msgstr "它复用偏好切片的硬约束机制，该机制已经保证硬性失败不可用别处的高分来抵换。若在此另铸一个本地的严重程度标志，失去的恰恰是这项保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explainsEntry|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional, so an explanation accounts for exactly one entry. An explanation covering several entries would let the proof offered for one position be read as support for another."
+msgstr "它是函数性的，因此一份解释恰好交代一个条目。若一份解释涵盖多个条目，为某一立场所提供的证明便可能被读作对另一立场的支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationCriterion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reuses the norms criterion vocabulary rather than minting a local one, and its magnitudes ground in the mathematical quantity spine. Bare numbers here would be incomparable across entries, which defeats the point of ranking them."
+msgstr "它复用规范切片的准则词汇，而不另铸本地词汇，其量值以数学量纲主干为根基。此处若用裸数字，各条目之间便无从比较，排序也就失去了意义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationDissent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required wherever dissent exists, not offered as a courtesy. Suppressing an attributed disagreement turns coexisting standpoints into a manufactured consensus, which is the specific failure this content was added to prevent."
+msgstr "凡有异议之处即为必备，而非出于礼貌的附赠。压下已具名的异议，会把并存的立场变成人为制造的共识，而这正是增设此项内容所要防止的具体失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and about the entry's position rather than about the enactment as a whole. Evidence for the run at large belongs on the run; putting it here would make every entry look equally supported."
+msgstr "它是多值的，且针对该条目的立场，而非针对整次执行。关乎整次执行的证据应挂在执行之上；若放在此处，每个条目看起来都会同样有据可依。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationPolicy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued because several norms may bear on one action and disagree; all are surfaced rather than reconciled. Choosing one here would present a governance judgment as if it were a fact about the entry."
+msgstr "它是多值的，因为可能有多条规范同时作用于一个动作并彼此分歧；这些规范一律被呈现，而不加以调和。若在此择一，便是把治理判断当作关于该条目的事实来呈现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/explanationProof|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A model-generated narrative may never occupy this position. The slot is for a checkable derivation, and admitting prose here would let a plausible story stand where a verifiable argument is required."
+msgstr "由模型生成的叙述绝不可占据此位置。此槽位专供可核验的推导，若在此接纳散文，便会让一段听来合理的说辞取代本该提供的可验证论证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierCandidateSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding that gives the frontier ties, incomparability and transparent comparison for free, by routing through the existing preference apparatus instead of a second recommendation model. A local ranking here would be that forbidden second model."
+msgstr "正是这一绑定，使前沿无偿获得并列、不可比与透明比较，因为它取道既有的偏好机制，而非另设一套推荐模型。若在此自行排序，那就是被禁止的第二套模型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/frontierComparisonContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Recommendations without a context are the context-free global winner the preference apparatus exists to forbid, so this binding is what keeps a ranking honest. Functional: two contexts would produce two rankings presented as one."
+msgstr "没有语境的推荐，正是偏好机制所要禁止的那种脱离语境的全局赢家，因此这一绑定才是排序得以诚实的保障。它是函数性的：两个语境会产出两份排序，却被当作一份呈现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceChecklist|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Its content is an information object whose textual surface grounds in the linguistic form vocabulary, not a bare string on the guidance set. That indirection is what lets a checklist be rendered, translated and versioned like any other authored text."
+msgstr "其内容是一个信息对象，其文本表层以语言形式词汇为根基，而不是挂在指引集上的裸字符串。正是这层间接，使清单能够像其他撰写文本一样被渲染、翻译与版本化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceRendering|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The seam through which this slice's prose content gets a linguistic form rather than floating as an untyped literal. It applies to any item carrying authored prose — guidance, notes, dissent, review renderings — and not only to guidance items."
+msgstr "它是本切片的散文内容得以获得语言形式、而非以无类型字面量漂浮的接缝。它适用于任何承载撰写散文的项目——指引、笔记、异议、评审呈现——而不限于指引项目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceRubric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reuses the norms rubric rather than minting a parallel assessment vocabulary, so a rubric applied here scores exactly as it does everywhere else. A local rubric would silently diverge as the shared one improves."
+msgstr "它复用规范切片的评分量表，而不另铸一套并行的评估词汇，因此在此处套用的量表与别处评分完全一致。若自设本地量表，随着共享量表的改进，二者便会悄然分歧。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceVersionMembership|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reused rather than re-minted, so guidance versioning behaves exactly as every other versioned entity does. The membership is standpoint-scoped, which is what lets two standpoints disagree about which version was in force without one overwriting the other."
+msgstr "它是复用而非另铸，因此指引的版本化行为与其他任何被版本化的实体完全一致。该归属受立场限定，正因如此，两种立场才能就当时生效的是哪一版本各执一词，而不至于彼此覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preparationActivity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The domain binding of the kernel's preparation seam onto the provenance activity spine, specializing the kernel property rather than duplicating it. That direction is the one every bridge in this slice runs, and reversing it would make the domain the authority."
+msgstr "它把内核的准备接缝绑定到溯源活动主干之上，是对内核属性的特化而非复制。本切片中每一座桥梁都循此方向，若方向倒置，领域切片便反客为主成了权威。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewAccumulatedRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content seven of eight, and the only one that reaches backwards: it carries the comparison with prior occurrences. A review that drops it still shows the current run but loses the reason the cluster is a cluster."
+msgstr "这是八项内容中的第七项，也是唯一回溯既往的一项：它承载与先前occurrence的比较。评审若舍去此项，仍能展示当前运行，却失去了工作簇之所以成其为工作簇的理由。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewApprovalsAndPending|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content five of eight, covering outstanding authorizations and awaited inputs together because both are things the run is waiting on. Separating them would hide that an operator decision and an external arrival block work in the same way."
+msgstr "这是八项内容中的第五项，把尚待授权与所待输入合并呈现，因为二者都是该次运行正在等待之物。若将它们拆开，就会掩盖操作者决定与外部到达以同样方式阻塞工作这一事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewCurrentEnactment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content three of eight, and it reaches the exact input generation the occurrence pinned rather than the current one. Showing the live inputs instead would make a past run look as though it read data it never saw."
+msgstr "这是八项内容中的第三项，且它触及的是该occurrence所固定的那一确切输入世代，而非当前世代。若改为展示实时输入，过去的运行看起来就像读取了它从未见过的数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewEffectStatus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content six of eight, and the content an operator needs most when something went wrong at the boundary. It carries effect, reconciliation and compensation together because a boundary problem is never legible from any one of the three alone."
+msgstr "这是八项内容中的第六项，也是边界处出岔子时操作者最需要的内容。它把效果、对账与补偿一并承载，因为边界问题绝无可能仅凭三者之一读懂。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewFrontier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content four of eight, presenting the DERIVED frontier with its recommendations and blockers. A review that presents a hand-curated action list in its place shows an opinion where the projection promises a derivation."
+msgstr "这是八项内容中的第四项，呈现的是推导得出的前沿及其推荐与阻碍。评审若以人工挑选的行动清单取而代之，便是在投影承诺推导之处摆上了一份意见。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewGoalAndRecurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content one of eight, pairing the continuing goal with the recurrence that issues occurrences. The pairing is deliberate: a goal shown without its recurrence invites the reader to expect a closing run that will never come."
+msgstr "这是八项内容中的第一项，把持续性目标与签发occurrence的周期设定并列呈现。这一并列出于刻意：若只显示目标而不显示其周期，读者便会期待一次永远不会到来的收官运行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewOfCluster|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional, so one projection presents one cluster. A projection spanning several clusters would leave its receipt unable to say what it dropped from which, which is the disclosure the projection exists to make."
+msgstr "它是函数性的，因此一份投影只呈现一个工作簇。若某份投影横跨多个工作簇，其回执便无从说明它从哪一个之中舍弃了什么，而这项披露正是投影存在的意义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewPrescriptionLineage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content two of eight: the current prescription AND how it was revised to get here. The lineage is what lets a reader judge whether a surprising instruction is new or long-standing, which the current version alone cannot say."
+msgstr "这是八项内容中的第二项：当前处方，以及它如何一路修订至此。正是这条谱系，使读者能够判断某条出人意料的指示究竟是新近添加还是由来已久，而仅凭当前版本无从知晓。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewReceipt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functional and MANDATORY, because an operator view that collapses coexisting standpoints without saying so misrepresents disagreement as agreement. The receipt is what makes the projection's losses visible rather than silent."
+msgstr "它既是函数性的，也是强制的，因为若操作者视图把并存的立场悄然压平，就会把分歧误现为一致。回执使投影的损失显露在外，而非无声无息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reviewTimelineRepresentation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Content eight of eight, and required to be exact as well as accessible: a rendering that simplifies the graph for legibility is a different projection with its own losses, which its own receipt would have to disclose."
+msgstr "这是八项内容中的第八项，既要求可访问，也要求精确：若某种呈现为了易读而简化了图，那它就是另一种投影，带有自己的损失，须由其自身的回执加以披露。"
