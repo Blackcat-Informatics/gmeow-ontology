@@ -44,7 +44,6 @@ const GMEOW_PREFIX: &str = "gmeow:";
 
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
-const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
@@ -498,6 +497,13 @@ fn intern_object(
 }
 
 /// Whether a quad is a structural axiom or an `rdf:type` naming a property kind.
+///
+/// Only called from [`fetch_target_axioms`], which filters an EXTERNALLY fetched
+/// dataset (BFO/SUMO/…) to quads whose subject is in the *target*'s own namespace —
+/// never GMEOW's authored surface. Those vocabularies only ever speak `rdfs:`, so
+/// the projected spelling alone is correct here; there is no canonical
+/// `logic:subClassOf` to miss (gmeow_ns doctrine + terminal-condition note;
+/// crates/ns/src/lib.rs:106-166).
 fn is_axiom_or_property_type(pred: &str, obj: &TermRef<'_>) -> bool {
     if matches!(
         pred,
@@ -507,11 +513,11 @@ fn is_axiom_or_property_type(pred: &str, obj: &TermRef<'_>) -> bool {
             | SCHEMA_INVERSE_OF
             | SCHEMA_DOMAIN_INCLUDES
             | SCHEMA_RANGE_INCLUDES
-            | RDFS_SUB_CLASS_OF
             | OWL_EQUIVALENT_CLASS
             | OWL_EQUIVALENT_PROPERTY
             | SKOS_EXACT_MATCH
-    ) {
+    ) || pred == gmeow_ns::RDFS_SUB_CLASS_OF
+    {
         return true;
     }
     if pred == RDF_TYPE

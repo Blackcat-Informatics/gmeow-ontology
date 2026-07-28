@@ -142,7 +142,6 @@ const GMEOW_PREFIX: &str = "gmeow:";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
-const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
@@ -1366,11 +1365,20 @@ fn build_class_bridge(
         }
     }
 
+    // `onto` is the merged AUTHORED ontology view (ontology/gmeow.ttl ⊕ every
+    // slice module.ttl — see the file-reading edge in
+    // crates/pipeline/src/stages/correspondence_soundness.rs), so it must scan
+    // both the canonical `logic:subClassOf` edge and its `rdfs:` projection
+    // (gmeow_ns::SUB_CLASS_OF doctrine; crates/ns/src/lib.rs:106-166); the vendored
+    // `target_graphs` are external vocabularies that only ever speak `rdfs:`, so the
+    // extra canonical-predicate scan there is a harmless no-op.
     let mut graphs: Vec<&DslView<'_>> = vec![onto];
     graphs.extend(target_graphs.values());
     for graph in graphs {
-        for (sub, sup) in subject_objects_iri(graph, RDFS_SUB_CLASS_OF) {
-            link(sub, sup);
+        for predicate in gmeow_ns::SUB_CLASS_OF {
+            for (sub, sup) in subject_objects_iri(graph, predicate) {
+                link(sub, sup);
+            }
         }
         for (a, b) in subject_objects_iri(graph, OWL_EQUIVALENT_CLASS) {
             link(a.clone(), b.clone());

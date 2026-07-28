@@ -844,10 +844,15 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
 /// where `b` is reachable from `a` or `a` from `b` over the
 /// subPropertyOf/equivalentProperty adjacency (mirrors the Python double loop).
 fn bridged_pairs(ds: &RdfDataset, axes: &[String]) -> Vec<(String, String)> {
-    // adjacency: directed subPropertyOf + symmetric equivalentProperty.
+    // adjacency: directed subPropertyOf (both the canonical `logic:subPropertyOf`
+    // edge and its `rdfs:` projection — gmeow_ns::SUB_PROPERTY_OF doctrine;
+    // crates/ns/src/lib.rs:106-166) + symmetric equivalentProperty.
     use std::collections::HashMap;
     let mut adjacency: HashMap<String, HashSet<String>> = HashMap::new();
-    if let Some(subprop_id) = iri_id(ds, gmeow_ns::RDFS_SUB_PROPERTY_OF) {
+    for pred in gmeow_ns::SUB_PROPERTY_OF {
+        let Some(subprop_id) = iri_id(ds, pred) else {
+            continue;
+        };
         for q in ds.quads_for_pattern(None, Some(subprop_id), None, GraphMatch::Any) {
             if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
                 adjacency
@@ -904,12 +909,16 @@ pub fn frame_declaration_completeness(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<
     let requires = format!("{}requiresFrame", cfg.namespace);
     let requires_id = iri_id(ds, &requires);
 
-    // props = sorted transitive_subjects(subPropertyOf, has_frame) minus has_frame.
-    let mut props: Vec<String> =
-        transitive_subjects(ds, gmeow_ns::RDFS_SUB_PROPERTY_OF, &has_frame)
-            .into_iter()
-            .filter(|p| p != &has_frame)
-            .collect();
+    // props = sorted union of transitive_subjects(subPropertyOf, has_frame) over BOTH
+    // the canonical `logic:subPropertyOf` edge and its `rdfs:` projection
+    // (gmeow_ns::SUB_PROPERTY_OF doctrine; crates/ns/src/lib.rs:106-166), minus
+    // has_frame itself — a frame-pointing property re-authored to `logic:subPropertyOf`
+    // must still be found.
+    let mut props_set: HashSet<String> = HashSet::new();
+    for pred in gmeow_ns::SUB_PROPERTY_OF {
+        props_set.extend(transitive_subjects(ds, pred, &has_frame));
+    }
+    let mut props: Vec<String> = props_set.into_iter().filter(|p| p != &has_frame).collect();
     props.sort();
 
     let mut problems: Vec<Finding> = Vec::new();
@@ -1285,19 +1294,44 @@ mod tests {
             "proper_ancestors must traverse the canonical subsumption edge"
         );
 
-        // RelComp: the relator is a subclass of logic:Relator only over the
-        // canonical edge, and its single mediating property is found the same way.
+        // RelComp: a two-level chain — AbstractBond specializes logic:Relator, and
+        // LonelyBond specializes AbstractBond — with EVERY edge authored only over
+        // the canonical `logic:subClassOf` spelling (no `rdfs:` anywhere). This
+        // pins `gmeow_subclasses` (not just `proper_ancestors`): a mutation to
+        // RDFS-only `gmeow_subclasses` REDS this exact fixture, because AbstractBond
+        // would then look concrete (no subclass found) and wrongly earn its own
+        // RelComp finding instead of being skipped as the abstract base. (Verified:
+        // reverting `gmeow_subclasses` to `[gmeow_ns::RDFS_SUB_CLASS_OF]` alone kept
+        // the ORIGINAL single-level fixture green — LonelyBond had no subclasses
+        // either way, so it never exercised `gmeow_subclasses` at all — which is
+        // exactly why this fixture was extended to a second level.)
         let store = store_from(&format!(
             "{PREFIXES}\
-             gmeow:LonelyBond a owl:Class , logic:Kind ; logic:subClassOf logic:Relator .\n\
+             gmeow:AbstractBond a owl:Class , logic:Kind ; logic:subClassOf logic:Relator .\n\
+             gmeow:LonelyBond a owl:Class , logic:Kind ; logic:subClassOf gmeow:AbstractBond .\n\
              gmeow:bondParty a owl:ObjectProperty , owl:FunctionalProperty ;\n\
                rdfs:domain gmeow:LonelyBond ; rdfs:range gmeow:Person .\n"
         ));
+
+        let abstract_bond = format!("{NS}AbstractBond");
+        let lonely_bond = format!("{NS}LonelyBond");
         assert!(
-            relator_mediation(&store, &cfg())
+            gmeow_subclasses(&store, &abstract_bond).contains(&lonely_bond),
+            "gmeow_subclasses must match LonelyBond as a subclass of AbstractBond over \
+             the canonical logic:subClassOf edge"
+        );
+
+        let findings = relator_mediation(&store, &cfg());
+        assert!(
+            findings
                 .iter()
                 .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond")),
-            "gmeow_subclasses must match on the canonical subsumption edge"
+            "the concrete child LonelyBond must get the RelComp finding: {findings:?}"
+        );
+        assert!(
+            !findings.iter().any(|p| p.message.contains("gmeow:AbstractBond")),
+            "the abstract base AbstractBond must NOT get its own finding — its concrete \
+             subtype carries the mediation: {findings:?}"
         );
     }
 

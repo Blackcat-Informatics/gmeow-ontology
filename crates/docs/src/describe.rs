@@ -43,8 +43,6 @@ const GUFO: &str = "http://purl.org/nemo/gufo#";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-const RDFS_SUBPROPERTY_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
@@ -523,10 +521,16 @@ pub fn build_card(
         .unwrap_or_else(|| local.clone());
 
     // Super-terms (subclass ∪ subproperty), display CURIEs, sorted + deduped.
-    let mut parents: Vec<String> = graph
-        .named_objects(term, RDFS_SUBCLASS_OF)
-        .into_iter()
-        .chain(graph.named_objects(term, RDFS_SUBPROPERTY_OF))
+    //
+    // Scans BOTH the canonical `logic:subClassOf`/`logic:subPropertyOf` edges and
+    // their `rdfs:` projection (gmeow_ns::SUB_CLASS_OF / SUB_PROPERTY_OF doctrine;
+    // crates/ns/src/lib.rs:106-166) — `DescribeGraph` reads the GTS default graph,
+    // the authored, import-free ontology, so a term re-authored to `logic:subClassOf`
+    // must still render its parents in `gmeow describe` on the shipped CLI.
+    let mut parents: Vec<String> = gmeow_ns::SUB_CLASS_OF
+        .iter()
+        .chain(gmeow_ns::SUB_PROPERTY_OF.iter())
+        .flat_map(|pred| graph.named_objects(term, pred))
         .map(|iri| short(&iri))
         .collect();
     parents.sort();
@@ -948,6 +952,52 @@ mod tests {
         );
     }
 
+    /// G7 canonical-subsumption sweep: `gmeow describe` on the shipped CLI must
+    /// still render a term's parent when the taxonomy is re-authored to the
+    /// canonical `logic:subClassOf`/`logic:subPropertyOf` edge — `DescribeGraph`
+    /// reads the GTS default graph (the authored, import-free ontology), so an
+    /// `rdfs:`-only read would silently render the term parent-less
+    /// (crates/ns/src/lib.rs:106-166).
+    #[test]
+    fn describe_renders_parents_over_canonical_logic_subsumption_edges() {
+        let term = format!("{NAMESPACE}Cyborg");
+        let class_parent = format!("{NAMESPACE}Animal");
+        let prop = format!("{NAMESPACE}bondParty");
+        let prop_parent = format!("{NAMESPACE}mediates");
+        const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
+        const LOGIC_SUB_CLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+        const LOGIC_SUB_PROPERTY_OF: &str = "https://blackcatinformatics.ca/logic/subPropertyOf";
+        let nt = format!(
+            "<{term}> <{RD}> <{OWL_CLASS}> .\n\
+             <{term}> <{RDFS_LABEL}> \"Cyborg\" .\n\
+             <{class_parent}> <{RD}> <{OWL_CLASS}> .\n\
+             <{term}> <{LOGIC_SUB_CLASS_OF}> <{class_parent}> .\n\
+             <{prop}> <{RD}> <{OWL_OBJECT_PROPERTY}> .\n\
+             <{prop}> <{RDFS_LABEL}> \"bondParty\" .\n\
+             <{prop_parent}> <{RD}> <{OWL_OBJECT_PROPERTY}> .\n\
+             <{prop}> <{LOGIC_SUB_PROPERTY_OF}> <{prop_parent}> .\n",
+            RD = RDF_TYPE,
+        );
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("fixture N-Triples must parse");
+        let gts = purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
+            .expect("fixture must serialize to GTS");
+
+        let (text, code) = describe_prose("Cyborg", &gts, None);
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
+        assert!(
+            text.contains("gmeow:Animal"),
+            "Cyborg's canonical logic:subClassOf parent must render: {text}"
+        );
+
+        let (text, code) = describe_prose("bondParty", &gts, None);
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
+        assert!(
+            text.contains("gmeow:mediates"),
+            "bondParty's canonical logic:subPropertyOf parent must render: {text}"
+        );
+    }
+
     #[test]
     fn describe_known_term_returns_prose_and_zero() {
         let gts = multilingual_gts(true, true);
@@ -1312,9 +1362,9 @@ mod tests {
 
         let mut checked = 0usize;
         for term in terms.iter().filter(|t| is_grounding(t)).take(200) {
-            for reference in graph
-                .named_objects(term, RDFS_SUBCLASS_OF)
-                .into_iter()
+            for reference in gmeow_ns::SUB_CLASS_OF
+                .iter()
+                .flat_map(|pred| graph.named_objects(term, pred))
                 .chain(graph.named_objects(term, RDFS_DOMAIN))
                 .chain(graph.named_objects(term, RDFS_RANGE))
             {

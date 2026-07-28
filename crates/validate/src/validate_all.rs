@@ -1797,8 +1797,13 @@ const SHACL_NS: &str = "http://www.w3.org/ns/shacl#";
 
 fn example_allows_focus_pruning(example: &RdfDataset) -> bool {
     for quad in example.owned_quads() {
-        if quad.predicate == gmeow_ns::RDFS_SUB_CLASS_OF
-            || quad.predicate == gmeow_ns::RDFS_SUB_PROPERTY_OF
+        // Scan both the canonical `logic:subClassOf`/`logic:subPropertyOf` edges and
+        // their `rdfs:` projection (gmeow_ns::subsumption_predicates doctrine;
+        // crates/ns/src/lib.rs:106-166) — an example whose only structural content
+        // is a re-authored canonical subsumption edge must be treated the same as
+        // one authored in `rdfs:`, or focus pruning silently drops it.
+        if gmeow_ns::SUB_CLASS_OF.contains(&quad.predicate.as_str())
+            || gmeow_ns::SUB_PROPERTY_OF.contains(&quad.predicate.as_str())
             || quad.predicate.starts_with(SHACL_NS)
         {
             return false;
@@ -2115,6 +2120,44 @@ mod tests {
                 .quads_for_pattern(None, None, None, GraphMatch::Default)
                 .count(),
             2
+        );
+    }
+
+    /// G9 canonical-subsumption sweep: an example whose only structural content is a
+    /// canonical `logic:subClassOf` edge must disable focus pruning exactly like an
+    /// `rdfs:subClassOf` example does — otherwise the node under validation could be
+    /// silently pruned away (crates/ns/src/lib.rs:106-166).
+    #[test]
+    fn example_with_canonical_logic_subclass_of_disallows_focus_pruning() {
+        let example = parse_dataset(
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              gmeow:Cyborg logic:subClassOf gmeow:Animal .\n",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        assert!(
+            !example_allows_focus_pruning(example.as_ref()),
+            "a canonical logic:subClassOf edge must disable focus pruning"
+        );
+    }
+
+    /// The `rdfs:subPropertyOf` projected spelling must also disable pruning (the
+    /// existing arm this migration preserves).
+    #[test]
+    fn example_with_rdfs_subproperty_of_disallows_focus_pruning() {
+        let example = parse_dataset(
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+              gmeow:mediatesRole rdfs:subPropertyOf gmeow:mediates .\n",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        assert!(
+            !example_allows_focus_pruning(example.as_ref()),
+            "a projected rdfs:subPropertyOf edge must disable focus pruning"
         );
     }
 
