@@ -11011,6 +11011,16 @@ math:MathematicalExpression logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:allValuesFrom xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
+# math:alphaEquivalenceClass carries the SAME single-valued discipline its own definition
+# promises ("Single-valued, exactly as math:structuralKey is"), stated here rather than left to
+# prose. It is deliberately NOT mandatory: the edge is materialized by the expression-identity
+# reasoned gate for every root that LOWERS CLEANLY, and a root the grammar refutes gets none —
+# a structural identity cannot be claimed for an expression that is not well formed, which is
+# the same reason math:StructuralKeyOnRejectedExpression exists. So max-1, never min-1.
+math:MathematicalExpression logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:alphaEquivalenceClass ; logic:allValuesFrom math:AlphaEquivalenceClass ] ,
+    [ a logic:Restriction ; logic:onProperty math:alphaEquivalenceClass ; logic:maxQualifiedCardinality 1 ; logic:onClass math:AlphaEquivalenceClass ] .
+
 # math:normalizationStrength, unlike math:structuralKey, is declared MANDATORY as well
 # as functional: every math:NormalizationDeclaration names exactly one strength — a
 # strength-less declaration is a bare, unattributed edge, exactly the vacuous-contract

@@ -44,7 +44,10 @@ fn reasoned(turtle: &str) -> gmeow_logic::verify::ReasonedGraph {
         ReasonedGraphOutcome::Ready(graph) => graph,
         ReasonedGraphOutcome::IncompleteClosure(findings) => panic!(
             "the reference example must close completely; DL coverage gap: {:?}",
-            findings.iter().map(|f| f.message.clone()).collect::<Vec<_>>()
+            findings
+                .iter()
+                .map(|f| f.message.clone())
+                .collect::<Vec<_>>()
         ),
     }
 }
@@ -98,5 +101,35 @@ fn structurally_identical_expressions_under_different_iris_share_one_key() {
     assert!(
         check_math_expression_findings(&graph.dataset).is_empty(),
         "the shared key must survive the reasoned substrate"
+    );
+}
+
+/// Two CONFORMING α-equivalent expressions resolve to ONE joinable node.
+///
+/// This is the deliverable `math:alphaEquivalenceClass` exists for, and it is the half that was
+/// missing: the α-class IRI used to reach production only as a finding's `cited_iris` on the
+/// DRIFT branch, so two WRONG expressions shared a node and two RIGHT ones never did — exactly
+/// backwards for an identity edge. The gate now materializes the edge for every cleanly-lowered
+/// root, so a consumer can JOIN on it rather than string-compare `math:structuralKey` literals.
+#[test]
+fn conforming_alpha_equivalent_expressions_share_one_materialized_class_node() {
+    const ALPHA_CLASS: &str = "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
+    let graph = reasoned(REFERENCE_AST_ACT);
+
+    let mut by_root: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    for quad in graph.dataset.flat_default_graph_quads() {
+        if format!("{:?}", quad.p).contains(ALPHA_CLASS) {
+            by_root.insert(format!("{:?}", quad.s), format!("{:?}", quad.o));
+        }
+    }
+    assert!(
+        by_root.len() >= 2,
+        "the gate must materialize an alpha-equivalence class for each lowered root, saw {by_root:?}"
+    );
+    let distinct: std::collections::BTreeSet<&String> = by_root.values().collect();
+    assert_eq!(
+        distinct.len(),
+        1,
+        "the example's two structurally identical expressions must resolve to ONE class node, saw {by_root:?}"
     );
 }

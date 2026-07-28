@@ -265,11 +265,70 @@ pub fn materialize_reasoned_graph(
             detail: format!("freeze reasoned graph failed: {e}"),
         })
     })?;
+
+    // Materialize `math:alphaEquivalenceClass` for every expression that LOWERS CLEANLY.
+    //
+    // The term's own definition says it is "materialized by the math: expression-identity
+    // reasoned gate, never an independently authored edge", and that its purpose is to give a
+    // consumer a node to JOIN on where math:structuralKey offers only a literal to compare.
+    // Emitting it solely alongside a drift finding would invert that: two WRONG expressions
+    // would share a joinable node and two CONFORMING ones never would, which is precisely
+    // backwards for an identity edge. So it is spliced here for every successfully lowered
+    // root, exactly as the dimension-gate markers are spliced above — an ordinary triple in
+    // the reasoned graph, not a Rust side-channel.
+    //
+    // Rejected roots get no edge: a structural identity cannot be claimed for an expression
+    // the grammar refutes (the same reason math:StructuralKeyOnRejectedExpression exists).
+    let alpha_edges: Vec<(String, String)> =
+        crate::physical::lower::math_expression_structural_keys(&dataset)
+            .into_iter()
+            .filter_map(|(root, keyed)| {
+                keyed.ok().map(|digest| {
+                    (
+                        root,
+                        crate::physical::lower::alpha_class_iri_for_digest(&digest),
+                    )
+                })
+            })
+            .collect();
+    if alpha_edges.is_empty() {
+        return Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
+            dataset,
+            derived_predicates,
+        }));
+    }
+    let mut with_alpha = MutableDataset::new(Arc::clone(&dataset));
+    for (root, alpha_class) in alpha_edges {
+        with_alpha.insert(QuadValues {
+            s: TermValue::iri(root),
+            p: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS),
+            o: TermValue::iri(alpha_class.clone()),
+            g: None,
+        });
+        with_alpha.insert(QuadValues {
+            s: TermValue::iri(alpha_class),
+            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            o: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE),
+            g: None,
+        });
+    }
+    let dataset = with_alpha.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Verify {
+            detail: format!("freeze reasoned graph with alpha-equivalence classes failed: {e}"),
+        })
+    })?;
     Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
         dataset,
         derived_predicates,
     }))
 }
+
+/// `math:alphaEquivalenceClass` — the expression-to-identity edge the gate materializes.
+const MATH_ALPHA_EQUIVALENCE_CLASS: &str =
+    "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
+/// `math:AlphaEquivalenceClass` — the content-addressed individual that edge resolves to.
+const MATH_ALPHA_EQUIVALENCE_CLASS_TYPE: &str =
+    "https://blackcatinformatics.ca/math/AlphaEquivalenceClass";
 
 /// Run the reasoned-graph negative tests natively over `edb` and an already-built closure.
 ///
