@@ -629,6 +629,17 @@ gmeow:CeilingRelocation
     gmeow:howToUse "Mint one gmeow:CeilingRelocation naming every gmeow:relocationTerm that moved, the gmeow:relocationFromSlice it left, the gmeow:relocationToSlice it reached, a gmeow:relocationDate, and optionally the single gmeow:relocationVocabulary the move is scoped to; then lower the source's gmeow:ceilingCount to its new measured residue and pin the destination's to its new measured residue, so the transported units are both witnessed and funded."@x-gmeow-english ;
     gmeow:useWhen "Use when a genuine migration carries authored terms across a slice boundary and the ratchet would otherwise book the destination's inherited residue as freshly-authored debt."@x-gmeow-english .
 
+# --- CeilingRelocation cardinality restoration: each of these four fields is
+# mandatory on a relocation declaration (a declaration missing any one of them
+# cannot be corroborated), so the native coherence gate enforces the same
+# obligation the loader hard-fails on; the loader check is the DERIVED
+# enforcement of this authored axiom, never a second, Rust-only source of truth.
+gmeow:CeilingRelocation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:relocationTerm ; logic:minCardinality 1 ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:relocationFromSlice ; logic:minCardinality 1 ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:relocationToSlice ; logic:minCardinality 1 ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:relocationDate ; logic:minCardinality 1 ] .
+
 gmeow:relocationTerm
     a owl:ObjectProperty ;
     rdfs:domain gmeow:CeilingRelocation ;

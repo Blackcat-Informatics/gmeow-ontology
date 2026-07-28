@@ -540,6 +540,16 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     // binding is a hard fail when missing — a declaration with no term, no source, no
     // destination, or no date cannot be corroborated against the derived witness, and a
     // silently-defaulted one would be an unbounded permit (.goals no-optionality).
+    //
+    // The AUTHORITY for the four required-binding checks below (relocationTerm,
+    // relocationFromSlice, relocationToSlice, relocationDate all minCardinality 1)
+    // is the `gmeow:CeilingRelocation logic:subClassOf [ a logic:Restriction ; ... ]`
+    // EL-safe axiom authored on `gmeow:CeilingRelocation` in
+    // slices/core/slice-quality-rubric/module.ttl — this loader's hard fail is that
+    // axiom's DERIVED enforcement, not a second, Rust-only source of truth. The
+    // cross-node `from_slice == to_slice` rejection and the unknown-vocabulary-
+    // reference rejections below are genuinely procedural checks with no declarative
+    // cardinality/class/datatype form, so they remain enforced here only.
     let reloc_term_p = id(ds, &g("relocationTerm"));
     let reloc_from_p = id(ds, &g("relocationFromSlice"));
     let reloc_to_p = id(ds, &g("relocationToSlice"));
