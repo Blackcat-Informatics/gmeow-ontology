@@ -278,7 +278,7 @@ const PROPERTY_PATH_LABEL_PREFIX: &str = "property-path:";
 /// The `logic:` namespace the compiler's projection ledger mints its vocabulary
 /// under (`crate::ir::LOGIC_NAMESPACE`, duplicated here as a literal so this reader
 /// needs no dependency on `gmeow-logic-compile`'s internal IR module).
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 const LOGIC_PROJECTION_TARGET_TYPE: &str = "https://blackcatinformatics.ca/logic/ProjectionTarget";
 const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
 const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
@@ -580,7 +580,7 @@ pub(crate) fn schema_fragments_from_json(
         .pointer("/components/schemas")
         .and_then(|v| v.as_object());
 
-    let ns = crate::gmeow_ns::gmeow_json_schema_namespaces();
+    let ns = gmeow_ns::gmeow_json_schema_namespaces();
     // The emitter's synthetic def keys (a whole-schema discriminator + the RDF-1.2
     // reifier-metadata fragment) are NOT per-term schemas — never join them.
     const SYNTHETIC_KEYS: &[&str] = &["Node", "Annotation"];

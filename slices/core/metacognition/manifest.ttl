@@ -15,11 +15,8 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
-        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
-        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/cognition> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ;
     gmeow:sliceProfile "claims" , "memory" ;
     gmeow:sliceConsumer "AI-memory calibration and trustworthiness (Principle 15) — flagging 'I might be wrong', surfacing known-unknowns as inquiries (the inquiry-slice gmeow:evokes bridge), recording the boundary of the agent's knowledge, and defeating one's own inference on reflection; the headline trustworthy-agent demo that separates a calibrated agent from a confabulating one."@x-gmeow-english .

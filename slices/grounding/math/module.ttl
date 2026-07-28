@@ -5853,6 +5853,137 @@ math:inParameterSpace
     skos:definition "Relates a math:WeightTensor to the math:ParameterSpace it lives in. Domain math:WeightTensor, range math:ParameterSpace (stated in prose). Weights live in a declared parameter space; a weight tensor without one is ill-formed (math:UnframedWeightTensor)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Tensor shape and element type: what a tensor slot actually declares ----- #
+# A tensor's SHAPE and its ELEMENT DATATYPE are stated exactly, not interpreted,
+# by every interchange format that carries a computation graph. They are shape
+# facts about the tensor, never its payload: naming an extent says how long an
+# axis is, and a math:WeightTensor that names its shape still holds its values by
+# reference. The idiom mirrors the expression AST's indexed operand cells
+# (math:ArgumentSlot + math:slotIndex) rather than reusing them, because an axis
+# owes an extent where a slot owes an expression.
+
+math:TensorShape
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor Shape"@x-gmeow-english ;
+    skos:definition "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use whenever a tensor's per-axis extents are stated by the source or by the author, so the shape is queryable axis by axis rather than readable only from a label."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mint one to record that a rank is UNKNOWN — that is the absence of a math:tensorShape edge, not a shape with no axis (which is rank 0, a scalar). Do not use it as a stand-in for a vector space's math:spaceDimension or a quantity's physical math:hasDimension."@x-gmeow-english ;
+    gmeow:howToUse "Mint one per distinct shape, give it its math:tensorRank and one math:shapeAxis per axis, and point every typed slot and weight tensor of that shape at the SAME node."@x-gmeow-english ;
+    skos:example "exf:shape43 a math:TensorShape ; math:tensorRank 2 ; math:shapeAxis exf:shape43Axis0 , exf:shape43Axis1 ."@x-gmeow-english ;
+    skos:scopeNote "Shape is metadata about a tensor; the tensor's values are a separate matter held by reference (math:WeightTensor). Carrying the shape is therefore not a breach of the blob-by-reference doctrine but the reason that doctrine is affordable — the structure crosses, the bytes do not."@x-gmeow-english .
+
+math:TensorAxis
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor Axis"@x-gmeow-english ;
+    skos:definition "One indexed axis of a math:TensorShape: it carries exactly one zero-based integer math:axisIndex and at most one extent — a concrete math:axisExtent, or a math:symbolicExtent naming the math:FreeVariableDeclaration a named, unresolved extent stands for. Axis order is carried by these indexes, not by RDF list ordering, so [4,3] and [3,4] are different shapes and a transposed tensor is a different shape object rather than a coincidentally equal one. Indexes under one shape are unique, non-negative, zero-based, and contiguous, exactly as math:ArgumentSlot's are within one application. An axis carrying NEITHER extent is well-formed and informative: it says the rank counts this axis while the source declares nothing about how long it is."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use for each axis of a math:TensorShape, so an extent is addressable by its position instead of by its place in a rendered bracket list."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not reuse math:ArgumentSlot for an axis: a slot owes exactly one math:slotExpression, an axis extent is not an expression, and an axis typed as a slot is a math:MalformedArgumentSlot by construction. Do not give one axis both a concrete and a symbolic extent."@x-gmeow-english ;
+    gmeow:howToUse "Mint one per axis under its shape, set math:axisIndex to its zero-based position, and set math:axisExtent or math:symbolicExtent when the source states one."@x-gmeow-english ;
+    skos:example "exf:shape43Axis0 a math:TensorAxis ; math:axisIndex 0 ; math:axisExtent 4 ."@x-gmeow-english ;
+    skos:scopeNote "The shape-side counterpart of math:ArgumentSlot: the same indexed-cell idiom, a different obligation (an extent rather than an operand expression), and therefore a separate class and a separate index property."@x-gmeow-english .
+
+math:TensorElementType
+    a owl:Class ;
+    logic:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor Element Type"@x-gmeow-english ;
+    skos:definition "The datatype of a tensor's elements AS A TERM — a 32-bit float, a bfloat16, an int8, a bool, a complex or string element — rather than as a fragment of a rendered type label. A subclass of math:MathematicalObject, named through math:tensorElementType and bearing its format's spelling as its rdfs:label. It is a term so that 'every float16 tensor in this model' is a graph query over one shared node instead of a substring match, and so that an element format with no RDF datatype image (bfloat16, an 8-bit float, a 4-bit integer) has exactly the standing of one that has (xsd:float). Distinct from math:numericDatatype, which names the RDF datatype an approximate value's LITERAL is carried in: no literal is carried here, because a tensor element type describes a tensor whose values never cross."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use whenever a tensor's element format is stated, so the format is a shared, queryable node rather than a substring of a type rendering."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it where an RDF datatype for a carried literal is meant — that is math:numericDatatype on a math:ApproximateValue — and do not mint one per mention; one node per format, shared by every tensor of that format."@x-gmeow-english ;
+    gmeow:howToUse "Mint one per distinct element format, label it with the format's spelling, and name it from each typed tensor slot and weight tensor through math:tensorElementType."@x-gmeow-english ;
+    skos:example "exf:elemFloat a math:TensorElementType ; rdfs:label \"float\" ."@x-gmeow-english ;
+    skos:scopeNote "An element type constrains the tensor's entries without asserting any of them; it is shape-and-format metadata, on the same footing as math:TensorShape and equally payload-free."@x-gmeow-english .
+
+math:tensorShape
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor shape"@x-gmeow-english ;
+    skos:definition "Relates a math:ExpressionType typing a tensor slot, or a math:WeightTensor, to the math:TensorShape it declares. Domain a math:ExpressionType or a math:WeightTensor, range math:TensorShape (stated in prose). Naming no shape is the positive claim that the source declared none — an unknown rank, which is strictly weaker than rank 0 and must never be conflated with a shape carrying no axis."@x-gmeow-english ;
+    skos:example "exf:tensorFloat43 a math:ExpressionType ; math:tensorShape exf:shape43 ."@x-gmeow-english ;
+    skos:scopeNote "Distinct from math:spaceDimension, the LINEAR dimension of an explicitly linear object (the total parameter count of a math:ParameterSpace, say), and from math:hasDimension, a physical SI dimension. A shape is a per-axis structure; neither of those is."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not emit it to say a rank is unknown; omit the edge instead. Do not point two tensors of the same shape at two distinct shape nodes — that discards the identity the class exists to carry."@x-gmeow-english ;
+    gmeow:howToUse "Emit at most one per typed tensor slot and per weight tensor; where a slot and the tensor filling it have the same shape, name the SAME math:TensorShape from both."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a tensor's extents are stated, so a consumer reads the shape from the graph rather than by parsing a label."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tensorRank
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor rank"@x-gmeow-english ;
+    skos:definition "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than left to be counted, for two reasons: rank 0 (a scalar — a shape with no axis) must be positively assertable and not indistinguishable from a shape node whose axes were dropped, and a counting aggregate is outside the decidable fragment the native constraints are written in, so a rank that a constraint can compare against the math:shapeAxis family has to be present as a value."@x-gmeow-english ;
+    skos:example "exf:shapeScalar a math:TensorShape ; math:tensorRank 0 ."@x-gmeow-english ;
+    skos:scopeNote "Not math:rankValue: that is the value of a math:Rank, the dimension of the IMAGE of a math:LinearMap, a wholly different invariant that happens to share the English word."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for the rank of a linear map (math:Rank / math:rankValue) nor for a root system's math:rootSystemRank, and never emit a rank that disagrees with the number of math:shapeAxis edges."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly one per math:TensorShape, equal to the count of its math:shapeAxis edges."@x-gmeow-english ;
+    gmeow:useWhen "Use on every math:TensorShape, including the rank-0 scalar shape, so the rank claim is explicit rather than inferred from an absence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:shapeAxis
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "shape axis"@x-gmeow-english ;
+    skos:definition "Relates a math:TensorShape to one math:TensorAxis — one indexed axis of the shape. Domain math:TensorShape, range math:TensorAxis (stated in prose). Axis order is carried by each axis's math:axisIndex, never by RDF list ordering: the same discipline math:argumentSlot applies to operand order, applied here to axis order, because a tensor's axes are as order-sensitive as a non-commutative operator's operands."@x-gmeow-english ;
+    skos:example "exf:shape43 math:shapeAxis exf:shape43Axis0 , exf:shape43Axis1 ."@x-gmeow-english ;
+    skos:scopeNote "Multi-valued by nature: a rank-n shape names n axes, and a rank-0 shape names none."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not order axes by an RDF list or by emission order; the index on each axis is the only ordering, and a shape whose axis indexes have a gap has lost an axis rather than acquired a sparse one."@x-gmeow-english ;
+    gmeow:howToUse "Emit one per axis, contiguous from index 0, and keep the count equal to the shape's math:tensorRank."@x-gmeow-english ;
+    gmeow:useWhen "Use on every math:TensorShape of non-zero rank, once per axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:axisIndex
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "axis index"@x-gmeow-english ;
+    skos:definition "The zero-based integer position of a math:TensorAxis within its math:TensorShape. Domain math:TensorAxis, range xsd:nonNegativeInteger (stated in prose). Indexes under one shape are unique, non-negative, zero-based, and contiguous. Deliberately distinct from math:slotIndex, whose domain is a math:ArgumentSlot: a slot additionally owes exactly one math:slotExpression, an axis extent is not a math:MathematicalExpression, and an axis reusing that class would be a math:MalformedArgumentSlot by construction."@x-gmeow-english ;
+    skos:example "exf:shape43Axis1 a math:TensorAxis ; math:axisIndex 1 ; math:axisExtent 3 ."@x-gmeow-english ;
+    skos:scopeNote "The shape-side twin of math:slotIndex. Two index properties, because the two indexed cells carry different obligations; one shared property would have to abandon one of the two domains."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it on a math:ArgumentSlot (that is math:slotIndex), and do not start an axis family at 1 — the first axis of a tensor is axis 0."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly one per math:TensorAxis, giving the axis's position from the outermost axis inward as the source states it."@x-gmeow-english ;
+    gmeow:useWhen "Use on every math:TensorAxis; an axis without a position is not an axis of any particular shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:axisExtent
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "axis extent"@x-gmeow-english ;
+    skos:definition "The concrete non-negative integer length of one math:TensorAxis. Domain math:TensorAxis, range xsd:nonNegativeInteger (stated in prose). A shape fact — how many positions the axis has — never a value read out of the tensor, so carrying it is compatible with holding the tensor itself by reference. An axis carries this, OR a math:symbolicExtent, OR neither (the source states the axis exists but not its length); never both, because an extent that is at once 4 and 'batch' is two incompatible claims about one axis."@x-gmeow-english ;
+    skos:example "exf:shape43Axis0 math:axisExtent 4 ."@x-gmeow-english ;
+    skos:scopeNote "A negative extent is not a shape at all and is a hard failure at ingest, not a value to be recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a symbolic or unresolved length (that is math:symbolicExtent) and do not mint a placeholder 0 or -1 to mean 'unknown' — an unstated extent is the absence of both extent properties."@x-gmeow-english ;
+    gmeow:howToUse "Emit at most one per math:TensorAxis, as the non-negative integer the source states for that axis."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever the source fixes an axis's length to a concrete number."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:symbolicExtent
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "symbolic extent"@x-gmeow-english ;
+    skos:definition "Relates a math:TensorAxis whose length the source leaves open to the math:FreeVariableDeclaration naming it — the 'batch' or 'sequence' axis of a model that is not fixed until the tensor is supplied. Domain math:TensorAxis, range math:FreeVariableDeclaration (stated in prose). A declaration rather than a bare string, so that two axes sharing a symbolic extent share ONE declaration and therefore genuinely denote the same unknown length; equality of two label strings would leave that co-identity to be re-derived by every consumer, which is the flattening this property exists to avoid."@x-gmeow-english ;
+    skos:example "exf:shapeBatchedAxis0 a math:TensorAxis ; math:axisIndex 0 ; math:symbolicExtent exf:batchExtent ."@x-gmeow-english ;
+    skos:scopeNote "The declaration is free precisely because nothing in the shape binds it: a symbolic extent is an open parameter of the tensor's type, so it is a math:FreeVariableDeclaration and not a binder-introduced math:VariableDeclaration."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for an axis whose length is simply unstated (leave both extent properties off) and do not pair it with a math:axisExtent on the same axis."@x-gmeow-english ;
+    gmeow:howToUse "Mint one math:FreeVariableDeclaration per distinct symbol name, label it with the name, and point every axis bearing that symbol at it."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an axis's length is a named, unresolved parameter rather than a number."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tensorElementType
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor element type"@x-gmeow-english ;
+    skos:definition "Relates a math:ExpressionType typing a tensor slot, or a math:WeightTensor, to the math:TensorElementType of its elements. Domain a math:ExpressionType or a math:WeightTensor, range math:TensorElementType (stated in prose). The element format is stated by every interchange format that carries a computation graph, so leaving it inside a rendered type label would discard a fact the source makes explicit."@x-gmeow-english ;
+    skos:example "exf:tensorFloat43 a math:ExpressionType ; math:tensorElementType exf:elemFloat ."@x-gmeow-english ;
+    skos:scopeNote "Companion of math:tensorShape: together they are the whole of what a tensor type states — the element format and the per-axis structure — with the payload deliberately absent from both."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to name an RDF datatype for a carried literal (math:numericDatatype) and do not use it on a non-tensor expression type."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly one per typed tensor slot and per weight tensor, pointing at the shared node for that format."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a tensor's element format is stated by the source or fixed by the author."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- Conformance-failure classes (LINEAR-ALGEBRA-AND-LEARNING) --------------- #
 
 math:UnqualifiedOrthogonalComplement
@@ -5960,6 +6091,90 @@ math:parseSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "parse source"@x-gmeow-english ;
     skos:definition "Relates a math:IngestRun to the in-band source witness it retains — the mnemomorphic complement that lets the up-projection (put) leg recover the source rather than synthesize a plausible one. Domain math:IngestRun; range the retained source witness, a structured node marked logic:loadBearing true and carrying enough of the source to recover what the lift did not map (never a bare droppable string — an opaque blob is the amnesic case), stated in prose. The witness is why 'retain the source' is a law (the Mnemomorphism gate), not a decoration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:retainedSource
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "retained source"@x-gmeow-english ;
+    skos:definition "The source artifact a math:parseSource witness retains, verbatim. Domain the retained source witness, range a literal (stated in prose): the source text for a textual artifact, or xsd:base64Binary for a binary one. This is what makes the witness mnemomorphic rather than amnesic — math:parseSource requires a witness 'carrying enough of the source to recover what the lift did not map', and a witness bearing only a type and logic:loadBearing carries strictly less than the opaque blob that definition already rejects. It is the retained half of the put leg: with it, get is a projection along a witness; without it, get is a reconstruction."@x-gmeow-english ;
+    skos:example "ex:rSrc a math:MathematicalObject ; logic:loadBearing true ; math:retainedSource \"fit <- lm(mpg ~ wt, data = mtcars)\" ."@x-gmeow-english ;
+    skos:scopeNote "It carries the SOURCE, never the lifted structure — the structure is the codomain the run generated. Retaining both is the point: the correspondence's get and put legs need different halves."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it on a lifted math: object to stash the prose it came from; that is the amnesic string-placeholder pattern the ingestion rules forbid. It belongs on the witness, once per run."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly one per math:parseSource witness, alongside logic:loadBearing true and any math:unmappedConstruct enumeration."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a lift claims logic:mnemomorphic true — that flag is what discharges the section law, and it is only true if the source is actually retained."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:sourceDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "source digest"@x-gmeow-english ;
+    skos:definition "A content digest identifying the source artifact a math:parseSource witness refers to, for a source whose bytes are NOT retained. Domain the retained source witness, range a literal digest (stated in prose). It is the blob-by-reference complement of math:retainedSource: a binary artifact — an ONNX model's weight payload, a data matrix, an MCMC sample — is held by reference and never inlined, so the witness names the artifact instead of embedding it. A digest identifies; it does not retain, so a witness carrying only this one does NOT support a logic:mnemomorphic claim and cannot climb to a section/retraction rung."@x-gmeow-english ;
+    skos:example "exf:onnxSrc a math:MathematicalObject ; logic:loadBearing true ; math:sourceDigest \"7978a9f31743d3c2\" ."@x-gmeow-english ;
+    skos:scopeNote "Mutually exclusive with math:retainedSource in practice: a witness either retains the source or references it. A textual source is retained; a blob-scale binary is referenced."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to shrink a TEXTUAL source that could simply be retained — that would make the witness amnesic to save bytes, which is the trade math:parseSource's definition forbids."@x-gmeow-english ;
+    gmeow:howToUse "Pair it with a math:unmappedConstruct enumeration naming what the lift could not carry, so a consumer knows both which artifact this was and what did not cross."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a source is blob-scale binary, so inlining it would put a payload in the bundle that the lift's own residue says did not cross."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:unmappedConstruct
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "unmapped construct"@x-gmeow-english ;
+    skos:definition "Names a construct present in the retained source that the lift did NOT carry into the math: codomain — MULTI-valued. Domain the math:parseSource witness, range a literal naming the construct (stated in prose). The second half of what math:parseSource demands: the witness must let a consumer recover WHAT THE LIFT DID NOT MAP, which the source alone answers only by re-parsing it. Enumerating the residue makes a lossy lens's loss queryable rather than merely declared by its logic:preservationKind rung."@x-gmeow-english ;
+    skos:example "ex:rSrc math:unmappedConstruct \"r-call: message(...)\" , \"r-call: warning(...)\" ."@x-gmeow-english ;
+    skos:scopeNote "It records what was NOT carried. A construct routed elsewhere — to logic: through math:compilesToLogicFormula, say — was carried and is not residue."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it as a general diagnostics channel; a malformed source is a typed hard failure, not residue. Residue is what a WELL-FORMED source legitimately loses at this rung."@x-gmeow-english ;
+    gmeow:howToUse "Emit one per distinct unmapped construct on the witness. An exact lift emits none, which is itself the claim that nothing was lost."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a lift's correspondence declares a rung weaker than logic:ExactPreservation, so the declared loss is accompanied by its actual content."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:SourceAnnotation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Source Annotation"@x-gmeow-english ;
+    skos:definition "A reified free-form annotation an ingested source carried on ITSELF: a machine key (math:annotationKey), its value (math:annotationValue), and a human rendering (rdfs:label). It rides on the math:parseSource witness through math:sourceAnnotation, so a producer's own metadata — an exporter's declared IR version, a licence, an author, a 'converted from' note — survives the lift as a queryable pair rather than as prose a consumer must re-split. Reification is what keeps several annotations from being cross-paired: flat key and value properties on one bearer produce a cross product the moment a second annotation appears. It is deliberately NOT a gmeow:Identifier — an Identifier is a reified EXTERNAL-identifier record whose value resolves an entity within a named scheme (an ORCID, an LEI, a ROR ID), and typing a producer's free-form note as one would assert an external-identity claim the source never made."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use whenever an ingested artifact carries its own key/value metadata that the lift reads but that no domain term in the codomain denotes."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not stamp one onto a lifted math: object to stash the prose it came from — that is the amnesic string-placeholder pattern the ingestion rules forbid; it belongs on the retained witness. Do not use it for an external identifier (gmeow:Identifier), a name borne by an entity (gmeow:Appellation), or a residue enumeration (math:unmappedConstruct)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one per distinct key/value pair the source declares, set math:annotationKey and math:annotationValue, label it with the pair as the source spells it, and name it from the math:parseSource witness through math:sourceAnnotation."@x-gmeow-english ;
+    skos:example "exf:onnxSrc math:sourceAnnotation [ a math:SourceAnnotation ; math:annotationKey \"model_license\" ; math:annotationValue \"AGPL-3.0-only\" ] ."@x-gmeow-english ;
+    skos:scopeNote "The schema:PropertyValue shape, re-minted here for the ingest witness rather than borrowed from gmeow:ExifTag (whose two properties and only attachment path are domain-locked to a gmeow:MediaObject's EXIF block)."@x-gmeow-english .
+
+math:sourceAnnotation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "source annotation"@x-gmeow-english ;
+    skos:definition "Relates a math:parseSource witness to one math:SourceAnnotation the ingested source carried — MULTI-valued. Domain the math:parseSource witness, range math:SourceAnnotation (stated in prose). The witness already retains the source verbatim (math:retainedSource) and enumerates what the lift did not carry (math:unmappedConstruct); this is the third leg, the metadata the source declared about itself that the lift DID read. An annotation reaching here is carried, so it is never also residue."@x-gmeow-english ;
+    skos:example "exf:onnxSrc math:sourceAnnotation exf:onnxLicenceAnnotation ."@x-gmeow-english ;
+    skos:scopeNote "Complement of math:unmappedConstruct: that property names what was NOT carried, this one carries what was. A construct appearing under both would be a contradiction in the witness."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it as a general diagnostics channel or as a place to park a construct the lift failed to structure; a construct with a real image in the codomain belongs in the codomain, and one with none belongs in math:unmappedConstruct."@x-gmeow-english ;
+    gmeow:howToUse "Emit one per annotation the source declares, all on the same witness, alongside math:retainedSource and any math:unmappedConstruct."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an ingested artifact declares free-form metadata about itself and the lift reads it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:annotationKey
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "annotation key"@x-gmeow-english ;
+    skos:definition "The machine key of a math:SourceAnnotation — the name under which the source filed the annotation. Domain math:SourceAnnotation, range a literal (stated in prose). It is the source's own spelling, unnormalized: rewriting a producer's key would make the retained annotation disagree with the retained source it is drawn from."@x-gmeow-english ;
+    skos:example "exf:onnxLicenceAnnotation math:annotationKey \"model_license\" ."@x-gmeow-english ;
+    skos:scopeNote "A key, not an identifier scheme: it names a slot in the producer's own metadata block and resolves nothing. That is the distinction from gmeow:identifierScheme."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not normalize, lower-case, or namespace the key, and do not fold key and value into one string — the pair is reified precisely so the two stay separable."@x-gmeow-english ;
+    gmeow:howToUse "Take the key exactly as the source spells it — an ONNX metadata_props key, a header field name — and do not normalize its case or punctuation; the key is how a consumer finds the entry again in the retained source."@x-gmeow-english ;
+    gmeow:useWhen "Use on every math:SourceAnnotation; an annotation without a key is an unattributable string."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:annotationValue
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "annotation value"@x-gmeow-english ;
+    skos:definition "The value of a math:SourceAnnotation — what the source filed under its math:annotationKey. Domain math:SourceAnnotation, range a literal (stated in prose). Carried verbatim, including the empty string where the source declared an empty value, because an annotation's presence with an empty value is a different fact from its absence."@x-gmeow-english ;
+    skos:example "exf:onnxLicenceAnnotation math:annotationValue \"AGPL-3.0-only\" ."@x-gmeow-english ;
+    skos:scopeNote "A free-form value, not a member of a closed vocabulary: unlike logic:closureValue or lang:featureValue, nothing constrains what a producer may write here."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not coerce it to a typed literal by guessing (a version string is not thereby an integer) and do not drop an annotation whose value is empty."@x-gmeow-english ;
+    gmeow:howToUse "Carry the value as an opaque literal — it is the source's own payload for that key, so it is never parsed into a number, a date, or an IRI here; a consumer that knows the key's schema interprets it."@x-gmeow-english ;
+    gmeow:useWhen "Use on every math:SourceAnnotation, paired with its math:annotationKey."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:ingestCorrespondence
@@ -6641,6 +6856,30 @@ math:dependsOnAxiom
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "depends on axiom"@x-gmeow-english ;
     skos:definition "Relates a math:Proof or math:ProofStep to a math:Axiom it depends on. Domain a math:Proof or math:ProofStep, range math:Axiom (stated in prose). The axiom dependencies are what a proof dependency DAG records, so a theorem's foundations are first-class and queryable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:dependencyGraphOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dependency graph of"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofDependencyGraph to the math:Proof it underlies. Domain math:ProofDependencyGraph, range math:Proof (stated in prose). math:ProofDependencyGraph's own definition names the proof it underlies, so without this property that naming is prose only and the DAG floats unattached in the lifted graph — a consumer asking which proof a DAG belongs to would have to infer it from co-generation by the same math:ProofIngestRun, which is a run-scoped coincidence rather than the structural fact."@x-gmeow-english ;
+    skos:example "ex:pDag a math:ProofDependencyGraph ; math:dependencyGraphOf ex:pProof ."@x-gmeow-english ;
+    skos:scopeNote "Direction follows the math: *Of convention (math:parameterSpaceOf, math:architectureOf, math:weightOf): the subject is the derived structure, the object the thing it is derived from."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it to relate a DAG to a statement or a goal — a dependency graph underlies the derivation, not the claim; that is math:provesStatement's and math:provesGoal's job."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly one per lifted dependency graph, alongside the math:proofStep edges that give the proof its steps."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a proof-assistant or prover dependency DAG is lifted beside the proof it records, so the pair is queryable as one structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:usesInferenceRule
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uses inference rule"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."@x-gmeow-english ;
+    skos:example "ex:pStep a math:ProofStep ; math:usesInferenceRule ex:resolution ."@x-gmeow-english ;
+    skos:scopeNote "Range is deliberately open, mirroring gmeow:appliedRule's scope note. That property is NOT reusable here: it asserts rdfs:domain gmeow:InferenceApplication, so applying it to a math:ProofStep would entail typing a math:MathematicalObject as a logic:Relator."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use it for a proof's overall strategy (direct, by induction, by contradiction) — that is math:usesProofMethod on the math:Proof."@x-gmeow-english ;
+    gmeow:howToUse "Emit one per derived step. An asserted leaf has no inference rule and carries math:dependsOnAxiom instead."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever a lifted derivation records WHICH rule fired at a step, so a proof DAG is queryable by inference rule rather than only by shape."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:provesStatement
@@ -15446,6 +15685,7 @@ math:SigmaAlgebra a logic:AbstractIndividualType .
 math:SimpleRoot a logic:AbstractIndividualType .
 math:SingularValueDecomposition a logic:AbstractIndividualType .
 math:SmoothManifold a logic:AbstractIndividualType .
+math:SourceAnnotation a logic:AbstractIndividualType .
 math:SpecialFunction a logic:AbstractIndividualType .
 math:StabilityCalibrationRecord a logic:AbstractIndividualType .
 math:Statistic a logic:AbstractIndividualType .
@@ -15465,7 +15705,9 @@ math:SymmetricBilinearForm a logic:AbstractIndividualType .
 math:SymmetricMatrix a logic:AbstractIndividualType .
 math:TangentSpace a logic:AbstractIndividualType .
 math:TensorComputationGraph a logic:AbstractIndividualType .
+math:TensorElementType a logic:AbstractIndividualType .
 math:TensorField a logic:AbstractIndividualType .
+math:TensorShape a logic:AbstractIndividualType .
 math:Theorem a logic:AbstractIndividualType .
 math:ToleranceInterval a logic:AbstractIndividualType .
 math:TopologicalSpace a logic:AbstractIndividualType .
@@ -15623,6 +15865,7 @@ math:ArgumentSlot a logic:Role .
 math:DistributionParameterRole a logic:Role .
 math:ObservationUnit a logic:Role .
 math:StatementRole a logic:Role .
+math:TensorAxis a logic:Role .
 math:VariableRole a logic:Role .
 
 # Relator

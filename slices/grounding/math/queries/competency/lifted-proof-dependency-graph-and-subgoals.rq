@@ -1,0 +1,31 @@
+# Competency (executable lift): "What proof dependency DAG underlies this theorem, and how
+# does its proof decompose into sub-goals and steps?" — asked of the OUTPUT OF THE REAL
+# LIFTER, not of a hand-authored example graph.
+#
+# The producer-namespace twin of proof-dependency-graph-and-subgoals.rq. That query
+# interrogates the prose-authored tests/fixtures/bridges.ttl scene; this one interrogates
+# tests/fixtures/lifted-proof.ttl — the byte-exact output of
+# gmeow_math::producers::proof_lift, which parses the committed TSTP derivation
+# crates/math-lift/fixtures/theorem-subclass.tstp. This is the one bridge whose law spine
+# claims a section/retraction rung, so it is also the sharpest evidence: every step name,
+# inference rule, and parent edge here came out of a parser, and the DAG's shape is a fact
+# about the derivation rather than an authored illustration.
+#
+# One row per proof step: the run produces a math:ProofDependencyGraph and a math:Proof,
+# and the proof decomposes into a logic:GoalExpression sub-goal (math:provesGoal) and its
+# math:ProofStep members.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?run ?dag ?proof ?goal ?step WHERE {
+    ?run a math:ProofIngestRun .
+    ?dag gmeow:wasGeneratedBy ?run ;
+         a math:ProofDependencyGraph .
+    ?proof gmeow:wasGeneratedBy ?run ;
+           a math:Proof ;
+           math:provesGoal ?goal ;
+           math:proofStep ?step .
+    FILTER(STRSTARTS(STR(?run), "https://blackcatinformatics.ca/gmeow/examples/math/producers/"))
+}
+ORDER BY ?run ?goal ?step

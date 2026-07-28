@@ -192,6 +192,51 @@ fn slice_examples_use_only_declared_terms() {
     );
 }
 
+/// R9 over the real corpus: every slice mints its vocabulary inside one of the
+/// registered term namespaces, so purrdf's ownership analyzer can see every term
+/// GMEOW owns. A slice minting elsewhere is invisible to the analyzer — it gets no
+/// owner and no dependency edge into it is computable — which is precisely how the
+/// `math` slice's entire vocabulary went unseen.
+///
+/// Guarded for non-vacuity two ways: the vocabulary of the corpus must be visible
+/// through the shared vocab, and the `math:` namespace specifically must be owned
+/// by it (the namespace whose absence caused the defect).
+#[test]
+fn every_slice_mints_into_a_registered_term_namespace() {
+    let root = repo_root();
+    let slices = root.join("slices");
+
+    // Non-vacuity 1: the shared vocab really declares all four namespaces, so a
+    // green result below is a real check and not a check against an empty set.
+    let vocab = gmeow_ns::gmeow_slice_vocab();
+    for ns in gmeow_ns::TERM_NAMESPACES {
+        assert!(
+            vocab.term_namespaces().contains(ns),
+            "{ns} must be an owned term namespace"
+        );
+    }
+    assert!(vocab.owns_term("https://blackcatinformatics.ca/math/Quantity"));
+
+    // Non-vacuity 2: the walk finds real authored files.
+    let catalog = purrdf::slice::SliceCatalog::discover(&slices, gmeow_ns::gmeow_slice_vocab())
+        .expect("discover the real slice catalog");
+    assert!(
+        catalog.records().len() > 50,
+        "implausibly few slices discovered ({}) — the walk is vacuous",
+        catalog.records().len()
+    );
+
+    let findings = authoring_integrity::registered_minting_namespace_findings(&slices)
+        .expect("registered minting namespaces");
+    assert!(
+        findings.is_empty(),
+        "slices mint vocabulary terms outside the registered term namespaces \
+         ({:?}) — such terms are invisible to the ownership analyzer:\n{}",
+        gmeow_ns::TERM_NAMESPACES,
+        joined(&findings)
+    );
+}
+
 #[test]
 fn slice_source_localizable_literals_are_language_tagged() {
     let root = repo_root();

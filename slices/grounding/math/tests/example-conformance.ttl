@@ -765,9 +765,9 @@ ex:ecIngestRunGrounded a gmeow:ExampleConformance ;
     gmeow:conformanceRationale "A math:IngestRun that retains its source through math:parseSource and carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan satisfies math:IngestRunShape and validates with no findings." .
 
 ex:ecIngestRunLifted a gmeow:ExampleConformance ;
-    gmeow:exampleFile "tests/conformance-fixtures/ingest-run-lifted.ttl" ;
+    gmeow:exampleFile "tests/fixtures/lifted-r.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "The rBridge flagship's worked example (the output of the native math::producers::r_bridge_lift producer): a math:RIngestRun that both satisfies math:IngestRunShape and produces a structured math: codomain — a math:FittedModel and one math:Residual per lifted observation, each gmeow:wasGeneratedBy the run — so it is clean under the native math:UnliftableIngest lint as well as SHACL." .
+    gmeow:conformanceRationale "The rBridge flagship's worked example, and the byte-exact output of the native math::producers::r_lift producer — which runs the shipped executable R front-end over the committed mtcars.R script, so no author wrote this graph. The emitted math:RIngestRun retains its source (math:parseSource, with the script held verbatim in math:retainedSource), carries the process-layer witness and its law-spine, and produces a structured math: codomain each node of which is gmeow:wasGeneratedBy the run, so it satisfies math:IngestRunShape and is clean under the native math:UnliftableIngest lint as well as SHACL." .
 
 ex:ecIngestRunUngrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/ingest-run-ungrounded.ttl" ;

@@ -30,7 +30,7 @@ const GM_APPRAISAL_DIMENSION: &str = "https://blackcatinformatics.ca/gmeow/Appra
 const GM_CORE_AFFECT_DIMENSION: &str = "https://blackcatinformatics.ca/gmeow/CoreAffectDimension";
 
 const EMOTIONML_NS: &str = "http://www.w3.org/2009/10/emotionml";
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+use gmeow_ns::GMEOW_NS;
 
 const CATEGORY_SET_ID: &str = "gmeow-emotion-categories";
 const DIMENSION_SET_ID: &str = "gmeow-appraisal-dimensions";

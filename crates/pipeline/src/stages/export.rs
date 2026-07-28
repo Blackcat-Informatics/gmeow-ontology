@@ -65,7 +65,7 @@ const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it become the term's logic stereotypes. Mirrors
 /// `gmeow_docs::model::LOGIC_NS`.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 /// The carrier variety class: the internal `x-gmeow-*` tag rides `lang:carrierTag`
 /// on a `lang:LanguageVariety` since the lang: graft, and the generated
@@ -999,14 +999,14 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// Whether `iri` names a `$defs` entry in `modeled_defs` (the JSON Schema
 /// `$defs` key set — [`crate::bundle_blobs::Bundle::modeled_def_keys`]), keyed
 /// through the SAME namespace table the SHACL→JSON-Schema compiler used
-/// ([`crate::gmeow_ns::gmeow_json_schema_namespaces`]) — the "this class has a
+/// ([`gmeow_ns::gmeow_json_schema_namespaces`]) — the "this class has a
 /// generated Pydantic model" existence signal `term_to_card`'s `python_model`
 /// gate reads. Shared with `gmeow_docs::render::doc_term_card` and
 /// `gmeow_docs::describe::build_card` in spirit (never in code — the crate
 /// boundary is one-directional), so all three builders agree (issue: Pydantic
 /// model surface, finding F3).
 fn class_is_modeled(iri: &str, modeled_defs: &BTreeSet<String>) -> bool {
-    modeled_defs.contains(&crate::gmeow_ns::gmeow_json_schema_namespaces().def_key(iri))
+    modeled_defs.contains(&gmeow_ns::gmeow_json_schema_namespaces().def_key(iri))
 }
 
 pub(crate) fn term_to_card(t: &Term, modeled_defs: &BTreeSet<String>) -> gmeow_docs::card::Card {

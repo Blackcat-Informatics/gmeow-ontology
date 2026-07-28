@@ -65,7 +65,7 @@ use crate::up_projection_corpus::{
 };
 
 /// The `logic:` namespace the minted audit-correspondence and leg IRIs live under.
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LOGIC_NS;
 
 /// The four-tier liftability counts for one vocabulary (or the whole audit).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize)]

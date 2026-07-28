@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: diagnostics, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "existentialOrdinal is functional"
+msgstr "existentialOrdinal 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:existentialOrdinal is functional: a chase-invented gmeow:InventedWitness discharges exactly one existential head-variable of its firing rule, so it carries a single 0-based ordinal that is one of the three components of its content-addressed identity. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:existentialOrdinal 是函数性的：由 chase 过程发明的 gmeow:InventedWitness 恰好消解其触发规则中的一个存在性头变量，因此它携带一个从零开始的唯一序号，这是其内容寻址身份三个组成部分之一。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingCode is functional"
+msgstr "findingCode 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingCode is functional: a gmeow:Finding carries exactly one stable rule identifier, serving as its SARIF ruleId and the single key by which findings are grouped and suppressed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:findingCode 是函数性的：一个 gmeow:Finding 恰好携带一个稳定的规则标识符，作为其 SARIF ruleId，也是用于对发现项进行分组与抑制的唯一键。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingMessage is functional"
+msgstr "findingMessage 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingMessage is functional: a gmeow:Finding carries exactly one human-readable message describing that occurrence, distinct from its single stable code."
+msgstr "在规范载体上断言 gmeow:findingMessage 是函数性的：一个 gmeow:Finding 恰好携带一条描述该发生实例的、人类可读的消息，它不同于其唯一的稳定代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "findingSeverity is functional"
+msgstr "findingSeverity 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:findingSeverity is functional: a gmeow:Finding has exactly one verdict grade, a single gmeow:DiagnosticSeverity that is its observation result. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:findingSeverity 是函数性的：一个 gmeow:Finding 恰好具有一个裁定等级，即作为其观察结果的唯一 gmeow:DiagnosticSeverity。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:existentialOrdinal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:existentialOrdinal 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:existentialOrdinal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:existentialOrdinal, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:existentialOrdinalFunctionality logic:characterizes gmeow:existentialOrdinal ."
+msgstr "gmeow:existentialOrdinalFunctionality logic:characterizes gmeow:existentialOrdinal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:findingCode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:findingCode 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingCode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:findingCode, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:findingCodeFunctionality logic:characterizes gmeow:findingCode ."
+msgstr "gmeow:findingCodeFunctionality logic:characterizes gmeow:findingCode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:findingMessage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:findingMessage 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingMessage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:findingMessage, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:findingMessageFunctionality logic:characterizes gmeow:findingMessage ."
+msgstr "gmeow:findingMessageFunctionality logic:characterizes gmeow:findingMessage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:findingSeverity names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:findingSeverity 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:findingSeverity, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:findingSeverity, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:findingSeverityFunctionality logic:characterizes gmeow:findingSeverity ."
+msgstr "gmeow:findingSeverityFunctionality logic:characterizes gmeow:findingSeverity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/existentialOrdinalFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:existentialOrdinal and nothing else. It is not a definition of gmeow:existentialOrdinal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:existentialOrdinal 的一项完整性义务，别无其他。它不是 gmeow:existentialOrdinal 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCodeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:findingCode and nothing else. It is not a definition of gmeow:findingCode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:findingCode 的一项完整性义务，别无其他。它不是 gmeow:findingCode 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingMessageFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:findingMessage and nothing else. It is not a definition of gmeow:findingMessage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:findingMessage 的一项完整性义务，别无其他。它不是 gmeow:findingMessage 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSeverityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:findingSeverity and nothing else. It is not a definition of gmeow:findingSeverity (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:findingSeverity 的一项完整性义务，别无其他。它不是 gmeow:findingSeverity 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

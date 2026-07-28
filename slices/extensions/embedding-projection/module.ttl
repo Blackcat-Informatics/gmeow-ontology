@@ -17,7 +17,7 @@ gmeow:ByteOrder
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "Byte Order"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "The byte order an embedding family's stored matrix is serialized under — a small value vocabulary a gmeow:EmbeddingFamily draws from via gmeow:vectorByteOrder. The .purremb v1 container is canonically little-endian (gmeow:byteOrderLittleEndian). Modelled like graphrag's gmeow:DistanceMetric: a value class whose members are minted individuals, not subclasses (P9). Left OPEN (no owl:oneOf) so a future big-endian target can join by minting an individual."@x-gmeow-english ;
+    skos:definition "The byte order an embedding family's stored matrix is serialized under — a small value vocabulary a gmeow:EmbeddingFamily draws from via gmeow:vectorByteOrder. The .purremb v1 container is canonically little-endian (gmeow:byteOrderLittleEndian). Modelled like the core ai slice's gmeow:DistanceMetric: a value class whose members are minted individuals, not subclasses (P9). Left OPEN (no owl:oneOf) so a future big-endian target can join by minting an individual."@x-gmeow-english ;
     skos:example "gmeow:byteOrderLittleEndian a gmeow:ByteOrder ; rdfs:label \"little-endian\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a byte-order SUBCLASS of gmeow:EmbeddingFamily (the byte order is a value, P9) and avoid closing the vocabulary with owl:oneOf — it is open even though v1 fixes little-endian."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -63,7 +63,7 @@ gmeow:DerivedVectorIndex
             logic:onProperty gmeow:indexOfProjection ;
             logic:allValuesFrom gmeow:EmbeddingProjection ;
         ] ;
-    skos:definition "A non-authoritative accelerator built OVER an exact embedding projection (gmeow:indexOfProjection) and one exact effective/PREFIX space (gmeow:indexOverSpace) — a specialization of graphrag's gmeow:VectorIndex whose contents are opaque, derived, and rebuildable, never a source of truth: the authoritative vectors live in the gmeow:EmbeddingProjection, and the index only speeds retrieval over them. Its guards bind the exact matrix projection and Matryoshka prefix dimension (gmeow:indexOverSpace), its algorithm and parameters (REUSED graphrag gmeow:indexAlgorithm/gmeow:indexParameters), and its loss contract (gmeow:indexLossContract); its approximation/determinism profile (gmeow:approximationRecall, gmeow:indexNondeterminism) is recorded so a retrieval's imperfection is auditable, and its build provenance rides the EXISTING gmeow:wasGeneratedBy."@x-gmeow-english ;
+    skos:definition "A non-authoritative accelerator built OVER an exact embedding projection (gmeow:indexOfProjection) and one exact effective/PREFIX space (gmeow:indexOverSpace) — a specialization of the core ai slice's gmeow:VectorIndex whose contents are opaque, derived, and rebuildable, never a source of truth: the authoritative vectors live in the gmeow:EmbeddingProjection, and the index only speeds retrieval over them. Its guards bind the exact matrix projection and Matryoshka prefix dimension (gmeow:indexOverSpace), its algorithm and parameters (REUSED graphrag gmeow:indexAlgorithm/gmeow:indexParameters), and its loss contract (gmeow:indexLossContract); its approximation/determinism profile (gmeow:approximationRecall, gmeow:indexNondeterminism) is recorded so a retrieval's imperfection is auditable, and its build provenance rides the EXISTING gmeow:wasGeneratedBy."@x-gmeow-english ;
     skos:example "ex:idx1 a gmeow:DerivedVectorIndex ; gmeow:indexOfProjection ex:proj1 ; gmeow:indexOverSpace ex:vsc1 ; gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ; gmeow:indexParameters \"{\\\"m\\\":16}\" ; gmeow:indexLossContract \"recall@10>=0.98\" ; gmeow:approximationRecall ex:recall98 ; gmeow:indexNondeterminism true ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating the index as authoritative (the projection is the source of truth — the index is a rebuildable accelerator) and avoid omitting its approximation metadata or its bound effective space when it is an approximate-nearest-neighbour structure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -86,11 +86,11 @@ gmeow:EmbeddingFamily
             logic:onProperty gmeow:embeddingModel ;
             logic:allValuesFrom gmeow:SoftwareAgent ;
         ] ;
-    skos:definition "The model plus the FULL generation contract that produces a projection's highest-dimensional vectors — the deterministic recipe a .purremb family stores its top-dimensional matrix ONCE under. It gathers the model (REUSED graphrag gmeow:embeddingModel), inference engine (gmeow:inferenceEngine), execution configuration (gmeow:executionContract — precision mode / deterministic-inference settings), tokenizer (gmeow:tokenizerContract), subject-projection / text-serialization (gmeow:subjectProjectionContract), preprocessing (gmeow:preprocessingContract), chunking (gmeow:chunkingContract), pooling (gmeow:poolingKind), generation-time normalization (gmeow:generationNormalizationContract), truncation (gmeow:truncationContract), dtype (gmeow:vectorDtype), byte order (gmeow:vectorByteOrder), and quantization (gmeow:quantizationContract). Its IDENTITY is the REUSED gmeow:contentDigest over the whole generation contract: same family ⇔ same digest. A family is DISTINCT from a gmeow:VectorSpaceContract (the comparable effective/prefix space): the family produces and stores the top-dimensional vectors, while each effective space is the full family space or a declared leading-prefix over it (Matryoshka) that reuses the family's stored matrix without duplication."@x-gmeow-english ;
+    skos:definition "The model plus the FULL generation contract that produces a projection's highest-dimensional vectors — the deterministic recipe a .purremb family stores its top-dimensional matrix ONCE under. It gathers the model (REUSED the core ai slice's gmeow:embeddingModel), inference engine (gmeow:inferenceEngine), execution configuration (gmeow:executionContract — precision mode / deterministic-inference settings), tokenizer (gmeow:tokenizerContract), subject-projection / text-serialization (gmeow:subjectProjectionContract), preprocessing (gmeow:preprocessingContract), chunking (gmeow:chunkingContract), pooling (gmeow:poolingKind), generation-time normalization (gmeow:generationNormalizationContract), truncation (gmeow:truncationContract), dtype (gmeow:vectorDtype), byte order (gmeow:vectorByteOrder), and quantization (gmeow:quantizationContract). Its IDENTITY is the REUSED gmeow:contentDigest over the whole generation contract: same family ⇔ same digest. A family is DISTINCT from a gmeow:VectorSpaceContract (the comparable effective/prefix space): the family produces and stores the top-dimensional vectors, while each effective space is the full family space or a declared leading-prefix over it (Matryoshka) that reuses the family's stored matrix without duplication."@x-gmeow-english ;
     skos:example "ex:fam1 a gmeow:EmbeddingFamily ; gmeow:embeddingModel ex:bgeM3 ; gmeow:inferenceEngine ex:onnxRuntime ; gmeow:poolingKind ex:poolingMean ; gmeow:vectorDtype \"float32\" ; gmeow:vectorByteOrder gmeow:byteOrderLittleEndian ; gmeow:quantizationContract \"none\" ; gmeow:contentDigest \"blake3:5c1e…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding the effective/prefix dimension, distance metric, or per-prefix normalization into the family (those name the comparable space on a gmeow:VectorSpaceContract) and avoid minting a separate familyId — the REUSED gmeow:contentDigest over the generation contract IS the identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the generation contract gmeow:EmbeddingFamily, fill its components (model reused from graphrag; inference engine, execution configuration, tokenizer, subject-projection/text-serialization, preprocessing, chunking, pooling, generation-time normalization, truncation, dtype, byte order, quantization minted here), and content-address the whole with the existing gmeow:contentDigest — that digest is the family's identity and the anchor an effective gmeow:VectorSpaceContract points back to via gmeow:effectiveOfFamily. The enforced core is the gmeow:contentDigest identity plus the irreducible model artifact gmeow:embeddingModel: BOTH are individually required (allValuesFrom carrier + ClosedWorldClosure). The remaining generation-contract components are DECLARED (they fold into the digest and bear on comparability) but are NOT each individually mandated — the digest, not per-component requiredness, is the comparability identity."@x-gmeow-english ;
+    gmeow:howToUse "Type the generation contract gmeow:EmbeddingFamily, fill its components (model reused from the core ai slice; inference engine, execution configuration, tokenizer, subject-projection/text-serialization, preprocessing, chunking, pooling, generation-time normalization, truncation, dtype, byte order, quantization minted here), and content-address the whole with the existing gmeow:contentDigest — that digest is the family's identity and the anchor an effective gmeow:VectorSpaceContract points back to via gmeow:effectiveOfFamily. The enforced core is the gmeow:contentDigest identity plus the irreducible model artifact gmeow:embeddingModel: BOTH are individually required (allValuesFrom carrier + ClosedWorldClosure). The remaining generation-contract components are DECLARED (they fold into the digest and bear on comparability) but are NOT each individually mandated — the digest, not per-component requiredness, is the comparability identity."@x-gmeow-english ;
     gmeow:useWhen "Use to declare the model and full generation contract that produces a family's highest-dimensional vectors — the once-stored matrix that one or more effective (prefix) vector spaces are declared over."@x-gmeow-english .
 
 gmeow:EmbeddingProjection
@@ -119,12 +119,12 @@ gmeow:EmbeddingProjection
             logic:onProperty gmeow:projectionSourceDigest ;
             logic:allValuesFrom rdfs:Literal ;
         ] ;
-    skos:definition "A generated, content-addressed, LOSSY pack-level projection over an exact source pack — the .purremb payload treated as first-class ontology content. It AGGREGATES graphrag's per-object gmeow:Embedding rows (via gmeow:aggregatesEmbedding) into one shippable, comparable pack; it is deliberately NOT a subclass of gmeow:Embedding (an Embedding is one object's vector; a projection is the pack that gathers many), so the two are non-duplicative. It carries ONE stored highest-dimensional matrix per gmeow:EmbeddingFamily and may expose MULTIPLE effective (prefix) vector spaces over that single stored matrix without duplication (Matryoshka), each named by a gmeow:VectorSpaceContract; it commits its primary comparable space via gmeow:hasVectorSpaceContract, and every effective space reaches its family through gmeow:effectiveOfFamily. It is lossy because the float payloads live outside the graph by reference (P12) and quantization/pooling discard information; it is content-addressed via the EXISTING gmeow:contentDigest, so 'which exact projection?' is answerable. Its source is bound by gmeow:projectionSource (an artifact carrying gmeow:contentDigest and, when a certified GTS artifact, gmeow:gtsHeadId); its disclosure sensitivity (gmeow:hasSensitivity) may sit below the source's ONLY under an explicit gmeow:DeclassificationAct."@x-gmeow-english ;
+    skos:definition "A generated, content-addressed, LOSSY pack-level projection over an exact source pack — the .purremb payload treated as first-class ontology content. It AGGREGATES the core ai slice's per-object gmeow:Embedding rows (via gmeow:aggregatesEmbedding) into one shippable, comparable pack; it is deliberately NOT a subclass of gmeow:Embedding (an Embedding is one object's vector; a projection is the pack that gathers many), so the two are non-duplicative. It carries ONE stored highest-dimensional matrix per gmeow:EmbeddingFamily and may expose MULTIPLE effective (prefix) vector spaces over that single stored matrix without duplication (Matryoshka), each named by a gmeow:VectorSpaceContract; it commits its primary comparable space via gmeow:hasVectorSpaceContract, and every effective space reaches its family through gmeow:effectiveOfFamily. It is lossy because the float payloads live outside the graph by reference (P12) and quantization/pooling discard information; it is content-addressed via the EXISTING gmeow:contentDigest, so 'which exact projection?' is answerable. Its source is bound by gmeow:projectionSource (an artifact carrying gmeow:contentDigest and, when a certified GTS artifact, gmeow:gtsHeadId); its disclosure sensitivity (gmeow:hasSensitivity) may sit below the source's ONLY under an explicit gmeow:DeclassificationAct."@x-gmeow-english ;
     skos:example "ex:proj1 a gmeow:EmbeddingProjection ; gmeow:hasVectorSpaceContract ex:vsc1 ; gmeow:projectionSource ex:pack1 ; gmeow:hasSensitivity gmeow:sensitivityInternal ; gmeow:contentDigest \"blake3:1f0c…\" ; gmeow:aggregatesEmbedding ex:emb1 , ex:emb2 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing it as a gmeow:Embedding subclass or a single object's vector (it AGGREGATES many rows via gmeow:aggregatesEmbedding — the two constructs are non-duplicative) and avoid asserting a sensitivity below its source's without a gmeow:DeclassificationAct."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the pack gmeow:EmbeddingProjection, bind its comparability contract with gmeow:hasVectorSpaceContract, its source pack with gmeow:projectionSource, its disclosure classification with the existing gmeow:hasSensitivity, aggregate its rows with gmeow:aggregatesEmbedding, content-address it with the existing gmeow:contentDigest, and declare its get-leg determinism with gmeow:reproducibilityLevel."@x-gmeow-english ;
-    gmeow:useWhen "Use for a whole embedding pack — the .purremb projection over one exact source pack — that must ship as auditable, content-addressed, sensitivity-guarded ontology content while aggregating (not replacing) graphrag's per-object gmeow:Embedding rows."@x-gmeow-english .
+    gmeow:useWhen "Use for a whole embedding pack — the .purremb projection over one exact source pack — that must ship as auditable, content-addressed, sensitivity-guarded ontology content while aggregating (not replacing) the core ai slice's per-object gmeow:Embedding rows."@x-gmeow-english .
 
 gmeow:ExternalBinding
     a logic:Kind ,
@@ -150,7 +150,7 @@ gmeow:MatryoshkaPolicy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "Matryoshka Policy"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "The prefix policy an effective vector space commits to — gmeow:matryoshkaFixed (the full family space, no prefix truncation) or gmeow:matryoshkaPrefix (a declared leading-prefix of the family space, sharing the stored matrix without duplication). Referenced from a gmeow:VectorSpaceContract via gmeow:matryoshkaPolicy. Modelled like graphrag's gmeow:DistanceMetric: a value class whose members are minted individuals, not subclasses (P9)."@x-gmeow-english ;
+    skos:definition "The prefix policy an effective vector space commits to — gmeow:matryoshkaFixed (the full family space, no prefix truncation) or gmeow:matryoshkaPrefix (a declared leading-prefix of the family space, sharing the stored matrix without duplication). Referenced from a gmeow:VectorSpaceContract via gmeow:matryoshkaPolicy. Modelled like the core ai slice's gmeow:DistanceMetric: a value class whose members are minted individuals, not subclasses (P9)."@x-gmeow-english ;
     skos:example "gmeow:matryoshkaPrefix a gmeow:MatryoshkaPolicy ; rdfs:label \"prefix\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a policy SUBCLASS of gmeow:VectorSpaceContract (the policy is a value, P9) and avoid reading gmeow:matryoshkaPrefix as duplicating the matrix — a prefix space reuses the family's stored matrix."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -163,7 +163,7 @@ gmeow:NormalizationKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "Normalization Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "An open value vocabulary of vector-normalization strategies applied when a projection is built (e.g. L2 normalization, none) — part of a gmeow:VectorSpaceContract because normalized and un-normalized vectors are not comparable under the same metric. Open like graphrag's gmeow:DistanceMetric/gmeow:IndexAlgorithm: a new strategy joins by minting an individual, never an owl:oneOf closure."@x-gmeow-english ;
+    skos:definition "An open value vocabulary of vector-normalization strategies applied when a projection is built (e.g. L2 normalization, none) — part of a gmeow:VectorSpaceContract because normalized and un-normalized vectors are not comparable under the same metric. Open like the core ai slice's gmeow:DistanceMetric / graphrag's gmeow:IndexAlgorithm: a new strategy joins by minting an individual, never an owl:oneOf closure."@x-gmeow-english ;
     skos:example "ex:normalizationL2 a gmeow:NormalizationKind ; rdfs:label \"L2\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a normalization-kind SUBCLASS of a contract (the kind is a value, P9) and avoid closing the vocabulary with owl:oneOf — it is open."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -176,7 +176,7 @@ gmeow:PoolingKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "Pooling Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "An open value vocabulary of token-to-sequence pooling strategies used to reduce a model's token embeddings to one vector (e.g. mean pooling, CLS-token, max pooling) — part of a gmeow:VectorSpaceContract because two projections that pool differently do not share a vector space even under one model. Open like graphrag's gmeow:DistanceMetric/gmeow:IndexAlgorithm: a new strategy joins by minting an individual, never an owl:oneOf closure."@x-gmeow-english ;
+    skos:definition "An open value vocabulary of token-to-sequence pooling strategies used to reduce a model's token embeddings to one vector (e.g. mean pooling, CLS-token, max pooling) — part of a gmeow:VectorSpaceContract because two projections that pool differently do not share a vector space even under one model. Open like the core ai slice's gmeow:DistanceMetric / graphrag's gmeow:IndexAlgorithm: a new strategy joins by minting an individual, never an owl:oneOf closure."@x-gmeow-english ;
     skos:example "ex:poolingMean a gmeow:PoolingKind ; rdfs:label \"mean\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a pooling-kind SUBCLASS of a contract (the kind is a value, P9) and avoid closing the vocabulary with owl:oneOf — it is open."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -276,7 +276,7 @@ gmeow:VectorTargetKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "Vector Target Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "An open value vocabulary of what a vector row embeds — the kind axis a gmeow:VectorTarget draws from, seeded with purrdf's two subject families: TEXT (gmeow:vectorTargetCorpus, gmeow:vectorTargetDocument, gmeow:vectorTargetChunk), RDF 1.2 (gmeow:vectorTargetDataset, gmeow:vectorTargetGraph, gmeow:vectorTargetStatement, gmeow:vectorTargetReifier, gmeow:vectorTargetAnnotation, gmeow:vectorTargetTerm), and the GMEOW extension flavour gmeow:vectorTargetSummary. Open like graphrag's gmeow:DistanceMetric/gmeow:IndexAlgorithm: a new target flavour joins by minting an individual, never an owl:oneOf closure."@x-gmeow-english ;
+    skos:definition "An open value vocabulary of what a vector row embeds — the kind axis a gmeow:VectorTarget draws from, seeded with purrdf's two subject families: TEXT (gmeow:vectorTargetCorpus, gmeow:vectorTargetDocument, gmeow:vectorTargetChunk), RDF 1.2 (gmeow:vectorTargetDataset, gmeow:vectorTargetGraph, gmeow:vectorTargetStatement, gmeow:vectorTargetReifier, gmeow:vectorTargetAnnotation, gmeow:vectorTargetTerm), and the GMEOW extension flavour gmeow:vectorTargetSummary. Open like the core ai slice's gmeow:DistanceMetric / graphrag's gmeow:IndexAlgorithm: a new target flavour joins by minting an individual, never an owl:oneOf closure."@x-gmeow-english ;
     skos:example "ex:vectorTargetChunk a gmeow:VectorTargetKind ; rdfs:label \"chunk\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a target-kind SUBCLASS of gmeow:VectorTarget (the kind is a value, P9) and avoid closing the vocabulary with owl:oneOf — it is open."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -294,12 +294,12 @@ gmeow:aggregatesEmbedding
     rdfs:label "aggregates embedding"@x-gmeow-english ;
     rdfs:range gmeow:Embedding ;
     logic:subPropertyOf gmeow:hasPart ;
-    skos:definition "Relates an embedding projection to one graphrag gmeow:Embedding row it gathers — the WITNESS that a gmeow:EmbeddingProjection is NOT a subclass of gmeow:Embedding but an AGGREGATE over many. Non-functional: a projection aggregates many rows, and one row may be gathered by several projections. This is the non-duplication seam between the pack-level projection here and graphrag's per-object embedding."@x-gmeow-english ;
+    skos:definition "Relates an embedding projection to one core ai gmeow:Embedding row it gathers — the WITNESS that a gmeow:EmbeddingProjection is NOT a subclass of gmeow:Embedding but an AGGREGATE over many. Non-functional: a projection aggregates many rows, and one row may be gathered by several projections. This is the non-duplication seam between the pack-level projection here and the core ai slice's per-object embedding."@x-gmeow-english ;
     skos:example "ex:proj1 gmeow:aggregatesEmbedding ex:emb1 , ex:emb2 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating aggregation as subsumption (the projection is not an Embedding — it collects Embeddings) and avoid making it functional; a projection gathers many rows."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:aggregatesEmbedding from the projection to each graphrag gmeow:Embedding it packs; the relation, not a subclass edge, is how the projection relates to per-object vectors."@x-gmeow-english ;
-    gmeow:useWhen "Use to gather graphrag's per-object gmeow:Embedding rows into a pack-level gmeow:EmbeddingProjection — the aggregation that keeps the two constructs non-duplicative."@x-gmeow-english .
+    gmeow:howToUse "Assert gmeow:aggregatesEmbedding from the projection to each core ai gmeow:Embedding it packs; the relation, not a subclass edge, is how the projection relates to per-object vectors."@x-gmeow-english ;
+    gmeow:useWhen "Use to gather the core ai slice's per-object gmeow:Embedding rows into a pack-level gmeow:EmbeddingProjection — the aggregation that keeps the two constructs non-duplicative."@x-gmeow-english .
 
 gmeow:approximationRecall
     a owl:ObjectProperty ;
@@ -541,11 +541,11 @@ gmeow:withMetric
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "with metric"@x-gmeow-english ;
     rdfs:range gmeow:DistanceMetric ;
-    skos:definition "The distance/similarity metric under which a gmeow:SimilarityObservation's proximity was computed — a reuse of graphrag's gmeow:DistanceMetric value vocabulary (gmeow:distanceMetricCosine, gmeow:distanceMetricDotProduct, …). It is the metric the OBSERVATION was stated under, which must match the metric its gmeow:overVectorSpace contract declares via gmeow:distanceMetric; recording it on the observation makes a proximity number self-describing (a cosine 0.9 and a dot-product 0.9 are not the same claim). Functional: one observation, one metric."@x-gmeow-english ;
+    skos:definition "The distance/similarity metric under which a gmeow:SimilarityObservation's proximity was computed — a reuse of the core ai slice's gmeow:DistanceMetric value vocabulary (gmeow:distanceMetricCosine, gmeow:distanceMetricDotProduct, …). It is the metric the OBSERVATION was stated under, which must match the metric its gmeow:overVectorSpace contract declares via gmeow:distanceMetric; recording it on the observation makes a proximity number self-describing (a cosine 0.9 and a dot-product 0.9 are not the same claim). Functional: one observation, one metric."@x-gmeow-english ;
     skos:example "ex:sim1 gmeow:withMetric gmeow:distanceMetricCosine ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it (a bare gmeow:similarityScore is uninterpretable without the metric) and avoid stating a metric that disagrees with the observation's gmeow:overVectorSpace contract's gmeow:distanceMetric — gmeow:WithMetricAgreementConstraint rejects a disagreeing metric as a hard fail."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert exactly one gmeow:withMetric from a gmeow:SimilarityObservation to a graphrag gmeow:DistanceMetric individual; it names the measure under which the proximity is a logic:Vague graded claim."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:withMetric from a gmeow:SimilarityObservation to a core ai gmeow:DistanceMetric individual; it names the measure under which the proximity is a logic:Vague graded claim."@x-gmeow-english ;
     gmeow:useWhen "Use to record the metric a similarity proximity was computed under, so the score is self-describing."@x-gmeow-english .
 
 gmeow:poolingKind
@@ -800,7 +800,7 @@ gmeow:vectorTargetKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "vector target kind"@x-gmeow-english ;
     rdfs:range gmeow:VectorTargetKind ;
-    skos:definition "The kind of resource a vector target embeds (open value vocabulary gmeow:VectorTargetKind — the TEXT family corpus/document/chunk, the RDF 1.2 family dataset/graph/statement/reifier/annotation/term, and the extension summary). Functional: one target is of one kind. Mirrors graphrag's gmeow:distanceMetric→gmeow:DistanceMetric pattern (a lowercase property naming a value from its CamelCase vocab class)."@x-gmeow-english ;
+    skos:definition "The kind of resource a vector target embeds (open value vocabulary gmeow:VectorTargetKind — the TEXT family corpus/document/chunk, the RDF 1.2 family dataset/graph/statement/reifier/annotation/term, and the extension summary). Functional: one target is of one kind. Mirrors the core ai slice's gmeow:distanceMetric→gmeow:DistanceMetric pattern (a lowercase property naming a value from its CamelCase vocab class)."@x-gmeow-english ;
     skos:example "ex:vt1 gmeow:vectorTargetKind gmeow:vectorTargetChunk ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid two kinds on one target (it is functional) and avoid minting a kind SUBCLASS of gmeow:VectorTarget; the kind is a value (P9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1092,7 +1092,7 @@ gmeow:ProfileSurfaceKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "Profile Surface Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "The value vocabulary of profile-surface views — gmeow:surfaceContainer (the packaged .purremb container) and gmeow:surfaceManifest (the accompanying sidecar manifest). Modelled like graphrag's gmeow:DistanceMetric: a value class whose members are minted individuals, not subclasses (P9)."@x-gmeow-english ;
+    skos:definition "The value vocabulary of profile-surface views — gmeow:surfaceContainer (the packaged .purremb container) and gmeow:surfaceManifest (the accompanying sidecar manifest). Modelled like the core ai slice's gmeow:DistanceMetric: a value class whose members are minted individuals, not subclasses (P9)."@x-gmeow-english ;
     skos:example "gmeow:surfaceContainer a gmeow:ProfileSurfaceKind ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a surface-kind SUBCLASS of gmeow:ProfileSurface (the kind is a value, P9) and avoid conflating the container view with the manifest view — they are the two operands the agreement constraints compare."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -1635,17 +1635,17 @@ logic:psdpDigAtom a logic:Formula ; logic:relation gmeow:contentDigest ;
 
 <https://blackcatinformatics.ca/gmeow/slices/embedding-projection>
     a owl:Ontology ;
-    rdfs:comment "A gmeow:EmbeddingProjection is a pack-level AGGREGATE over graphrag's per-object gmeow:Embedding rows (gmeow:aggregatesEmbedding), never a subclass of gmeow:Embedding — the two are non-duplicative. Comparability is decided by the gmeow:VectorSpaceContract's REUSED gmeow:contentDigest (same space ⇔ same digest). Ranked retrieval is a logic:Vague gmeow:SimilarityObservation, disjoint from graphrag's gmeow:RetrievalEvent; get-leg determinism (gmeow:reproducibilityLevel) is orthogonal to correspondence preservation; and a projection's sensitivity drops below its source's only under an explicit gmeow:DeclassificationAct (P12, P15)."@x-gmeow-english ;
+    rdfs:comment "A gmeow:EmbeddingProjection is a pack-level AGGREGATE over the core ai slice's per-object gmeow:Embedding rows (gmeow:aggregatesEmbedding), never a subclass of gmeow:Embedding — the two are non-duplicative. Comparability is decided by the gmeow:VectorSpaceContract's REUSED gmeow:contentDigest (same space ⇔ same digest). Ranked retrieval is a logic:Vague gmeow:SimilarityObservation, disjoint from the core ai slice's gmeow:RetrievalEvent; get-leg determinism (gmeow:reproducibilityLevel) is orthogonal to correspondence preservation; and a projection's sensitivity drops below its source's only under an explicit gmeow:DeclassificationAct (P12, P15)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
     rdfs:label "GMEOW Embedding Projection Module"@x-gmeow-english ;
-    skos:definition "The .purremb pack-level embedding projection as auditable ontology content: a generated, content-addressed, lossy projection over an exact source pack that aggregates graphrag's per-object gmeow:Embedding rows under a comparability contract (gmeow:VectorSpaceContract, identified by its reused gmeow:contentDigest), binds each vector row to its exact target (gmeow:VectorTarget over the open gmeow:VectorTargetKind vocabulary), records operational ranked-retrieval as gmeow:SimilarityObservation (logic:Vague, never entailment, disjoint from graphrag's gmeow:RetrievalEvent), carries get-leg determinism (gmeow:reproducibilityLevel, distinct from correspondence preservation) with an explicit gmeow:DeclassificationAct guarding disclosure sensitivity, and exposes non-authoritative accelerators (gmeow:DerivedVectorIndex) whose approximation profile stays explicit. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english ;
+    skos:definition "The .purremb pack-level embedding projection as auditable ontology content: a generated, content-addressed, lossy projection over an exact source pack that aggregates the core ai slice's per-object gmeow:Embedding rows under a comparability contract (gmeow:VectorSpaceContract, identified by its reused gmeow:contentDigest), binds each vector row to its exact target (gmeow:VectorTarget over the open gmeow:VectorTargetKind vocabulary), records operational ranked-retrieval as gmeow:SimilarityObservation (logic:Vague, never entailment, disjoint from the core ai slice's gmeow:RetrievalEvent), carries get-leg determinism (gmeow:reproducibilityLevel, distinct from correspondence preservation) with an explicit gmeow:DeclassificationAct guarding disclosure sensitivity, and exposes non-authoritative accelerators (gmeow:DerivedVectorIndex) whose approximation profile stays explicit. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
 # =========================================================================== #
 # Boundary / non-duplication axioms (make AC2 checkable)                       #
 # A gmeow:SimilarityObservation is a pairwise similarity CLAIM; a              #
-# graphrag gmeow:RetrievalEvent is a retrieval activity. They are disjoint —   #
+# the core ai slice's gmeow:RetrievalEvent is a retrieval activity. Disjoint —   #
 # a similarity observation is never a retrieval event and vice versa.          #
 # gmeow:EmbeddingProjection is deliberately NOT logic:subClassOf gmeow:Embedding #
 # (it uses gmeow:aggregatesEmbedding); no axiom redeclares a reused term.      #
@@ -1684,3 +1684,330 @@ gmeow:EmbeddingProjection logic:subClassOf
 [ a logic:Restriction ; logic:onProperty gmeow:reproducibilityLevel ; logic:hasValue gmeow:reproducibleWithinTolerance ]
     logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:reproducibilityTolerance ; logic:someValuesFrom math:Quantity ] .
+
+# ── logic: assertion carriers for this slice's own terms ────────────────────────
+# The canonical logic: carriers for the characteristics and integrity conditions of the
+# terms THIS slice owns. Each record names one of this slice's own properties or classes
+# through a logic: RBox predicate; the native coherence gate joins the record to enforce
+# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# from it. Authored here rather than in the logic slice because the fact asserted is a
+# fact about this slice's own term, and a grounding slice never depends on a non-grounding
+# slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
+# here (gmeow:sliceDependsOn logic), never owned.
+#   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
+
+gmeow:comparesLeftTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "comparesLeftTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:comparesLeftTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one left operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second left row would be a second, distinct observation, not one claim with two left operands."@x-gmeow-english ;
+    logic:characterizes gmeow:comparesLeftTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:comparesLeftTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:comparesLeftTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:comparesLeftTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:comparesLeftTarget and nothing else. It is not a definition of gmeow:comparesLeftTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:comparesLeftTargetFunctionality logic:characterizes gmeow:comparesLeftTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:comparesRightTargetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "comparesRightTarget is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:comparesRightTarget is functional: a pairwise similarity observation scores exactly one operand pair, so it names exactly one right operand row — the single gmeow:VectorTarget whose vector its gmeow:similarityScore is a proximity of; a second right row would be a second, distinct observation, not one claim with two right operands."@x-gmeow-english ;
+    logic:characterizes gmeow:comparesRightTarget ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:comparesRightTarget ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:comparesRightTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:comparesRightTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:comparesRightTarget and nothing else. It is not a definition of gmeow:comparesRightTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:comparesRightTargetFunctionality logic:characterizes gmeow:comparesRightTarget ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:effectiveOfFamilyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "effectiveOfFamily is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:effectiveOfFamily is functional: an effective vector space is a space of exactly one embedding family, so its identity digest folds in exactly one family digest and a prefix space resolves to the single stored matrix it shares; two families would be two distinct effective spaces, never one contract bound to both."@x-gmeow-english ;
+    logic:characterizes gmeow:effectiveOfFamily ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:effectiveOfFamily ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:effectiveOfFamily names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:effectiveOfFamily, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:effectiveOfFamily and nothing else. It is not a definition of gmeow:effectiveOfFamily (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:effectiveOfFamilyFunctionality logic:characterizes gmeow:effectiveOfFamily ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasTargetSetFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "hasTargetSet is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasTargetSet is functional: a projection's stored matrix realizes exactly one ordered target namespace, so its row mapping resolves to a single content-addressed gmeow:TargetSet; a different subject projection over the same source is a different projection with its own target set, never one projection matrix bearing two."@x-gmeow-english ;
+    logic:characterizes gmeow:hasTargetSet ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasTargetSet ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hasTargetSet names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasTargetSet, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hasTargetSet and nothing else. It is not a definition of gmeow:hasTargetSet (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hasTargetSetFunctionality logic:characterizes gmeow:hasTargetSet ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasVectorSpaceContractFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "hasVectorSpaceContract is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:hasVectorSpaceContract is functional: a projection commits to exactly one comparability contract, because vectors obeying two contracts cannot be compared under one metric and so are two projections, never one; the single contract's digest is the join key for cross-projection comparability."@x-gmeow-english ;
+    logic:characterizes gmeow:hasVectorSpaceContract ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:hasVectorSpaceContract ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:hasVectorSpaceContract names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:hasVectorSpaceContract, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:hasVectorSpaceContract and nothing else. It is not a definition of gmeow:hasVectorSpaceContract (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:hasVectorSpaceContractFunctionality logic:characterizes gmeow:hasVectorSpaceContract ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:indexOfProjectionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "indexOfProjection is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:indexOfProjection is functional: a derived index is built over exactly one embedding projection, so it always resolves to the single authoritative source of the vectors it accelerates; a federated accelerator spanning several projections is several gmeow:DerivedVectorIndex individuals, never one index bound to two projections."@x-gmeow-english ;
+    logic:characterizes gmeow:indexOfProjection ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:indexOfProjection ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:indexOfProjection names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:indexOfProjection, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:indexOfProjection and nothing else. It is not a definition of gmeow:indexOfProjection (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:indexOfProjectionFunctionality logic:characterizes gmeow:indexOfProjection ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:indexOverSpaceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "indexOverSpace is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:indexOverSpace is functional: a derived index is built over exactly one effective/prefix vector space, the single space it states what it approximates; an index over a 256-dim prefix and an index over the full family space are distinct gmeow:DerivedVectorIndex individuals even over one projection, never one index over two spaces."@x-gmeow-english ;
+    logic:characterizes gmeow:indexOverSpace ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:indexOverSpace ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:indexOverSpace names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:indexOverSpace, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:indexOverSpace and nothing else. It is not a definition of gmeow:indexOverSpace (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:indexOverSpaceFunctionality logic:characterizes gmeow:indexOverSpace ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:matryoshkaPolicyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "matryoshkaPolicy is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:matryoshkaPolicy is functional: an effective vector space commits to exactly one prefix policy that folds into its identity digest, because the full-space (fixed) reading and a leading-prefix reading are distinct effective spaces with distinct digests; a single space cannot be both, so it fixes one gmeow:MatryoshkaPolicy."@x-gmeow-english ;
+    logic:characterizes gmeow:matryoshkaPolicy ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:matryoshkaPolicy ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:matryoshkaPolicy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:matryoshkaPolicy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:matryoshkaPolicy and nothing else. It is not a definition of gmeow:matryoshkaPolicy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:matryoshkaPolicyFunctionality logic:characterizes gmeow:matryoshkaPolicy ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:normalizationKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "normalizationKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:normalizationKind is functional: an effective vector space commits to exactly one postprocessing/normalization strategy that folds into its digest identity, because normalized and un-normalized vectors are not one comparable space; a single gmeow:VectorSpaceContract therefore fixes one gmeow:NormalizationKind, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:normalizationKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:normalizationKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:normalizationKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:normalizationKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:normalizationKind and nothing else. It is not a definition of gmeow:normalizationKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:normalizationKindFunctionality logic:characterizes gmeow:normalizationKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:overVectorSpaceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "overVectorSpace is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overVectorSpace is functional: a similarity observation's proximity is meaningful only within a single vector space, since a proximity stated across two contracts is ill-formed; the observation therefore names exactly one gmeow:VectorSpaceContract its vectors share, never two."@x-gmeow-english ;
+    logic:characterizes gmeow:overVectorSpace ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:overVectorSpace ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:overVectorSpace names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:overVectorSpace, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:overVectorSpace and nothing else. It is not a definition of gmeow:overVectorSpace (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:overVectorSpaceFunctionality logic:characterizes gmeow:overVectorSpace ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:poolingKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "poolingKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:poolingKind is functional: an embedding family commits to exactly one token-to-sequence pooling strategy as a generation-contract choice, because differently-pooled vectors are not one family even under one model; the family therefore fixes a single gmeow:PoolingKind that folds into its digest identity."@x-gmeow-english ;
+    logic:characterizes gmeow:poolingKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:poolingKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:poolingKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:poolingKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:poolingKind and nothing else. It is not a definition of gmeow:poolingKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:poolingKindFunctionality logic:characterizes gmeow:poolingKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:profileSurfaceKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "profileSurfaceKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceKind is functional: a profile surface is exactly one view kind — container or manifest — so that the agreement constraints can pick out a projection's container operand and manifest operand unambiguously; a surface that were two kinds at once would collapse the very operands the container/manifest cross-check compares. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:profileSurfaceKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:profileSurfaceKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:profileSurfaceKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:profileSurfaceKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:profileSurfaceKind and nothing else. It is not a definition of gmeow:profileSurfaceKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:profileSurfaceKindFunctionality logic:characterizes gmeow:profileSurfaceKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:profileSurfaceOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "profileSurfaceOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:profileSurfaceOf is functional: a profile surface is a view of exactly one embedding projection, so the container and manifest agreement constraints join two surfaces precisely through the single projection they share; a surface viewing two projections would have no well-defined projection to be cross-checked against. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:profileSurfaceOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:profileSurfaceOf ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:profileSurfaceOf names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:profileSurfaceOf, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:profileSurfaceOf and nothing else. It is not a definition of gmeow:profileSurfaceOf (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:profileSurfaceOfFunctionality logic:characterizes gmeow:profileSurfaceOf ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:projectionSourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "projectionSource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:projectionSource is functional: a projection is generated over exactly one source artifact, so 'from which exact source?' resolves to a single content-addressed pack carrying its own gmeow:contentDigest; a projection bound to two sources would have no verifiable provenance anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:projectionSource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:projectionSource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:projectionSource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:projectionSource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:projectionSource and nothing else. It is not a definition of gmeow:projectionSource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:projectionSourceFunctionality logic:characterizes gmeow:projectionSource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reproducibilityLevelFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "reproducibilityLevel is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reproducibilityLevel is functional: a projection sits at exactly one point on the get-leg determinism axis — bit-exact, within-tolerance, or merely regenerable — drawn from a closed value set; regeneration cannot be simultaneously two of these, so a projection declares one level, not two."@x-gmeow-english ;
+    logic:characterizes gmeow:reproducibilityLevel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reproducibilityLevel ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:reproducibilityLevel names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reproducibilityLevel, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:reproducibilityLevel and nothing else. It is not a definition of gmeow:reproducibilityLevel (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:reproducibilityLevelFunctionality logic:characterizes gmeow:reproducibilityLevel ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reproducibilityToleranceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "reproducibilityTolerance is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reproducibilityTolerance is functional: a within-tolerance projection is deemed reproduced under exactly one numeric bound, the single math:Quantity that makes gmeow:reproducibleWithinTolerance checkable; two competing tolerances would leave the within-tolerance claim ambiguous, so a projection carries one. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:reproducibilityTolerance ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reproducibilityTolerance ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:reproducibilityTolerance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reproducibilityTolerance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:reproducibilityTolerance and nothing else. It is not a definition of gmeow:reproducibilityTolerance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:reproducibilityToleranceFunctionality logic:characterizes gmeow:reproducibilityTolerance ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:similarityScoreFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "similarityScore is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:similarityScore is functional: a similarity observation carries exactly one magnitude — the graded proximity of its one operand pair under its one metric, grounded as a single math:Quantity; a second score would describe a different observation, not one claim with two proximities."@x-gmeow-english ;
+    logic:characterizes gmeow:similarityScore ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:similarityScore ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:similarityScore names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:similarityScore, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:similarityScore and nothing else. It is not a definition of gmeow:similarityScore (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:similarityScoreFunctionality logic:characterizes gmeow:similarityScore ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:targetsResourceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "targetsResource is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:targetsResource is functional: one vector row embeds exactly one resource — the single term, document, chunk, summary, or statement reifier the row stands for, which is that row's identity; a row targeting two resources would be two distinct rows, never one slot bound to both."@x-gmeow-english ;
+    logic:characterizes gmeow:targetsResource ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:targetsResource ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:targetsResource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:targetsResource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:targetsResource and nothing else. It is not a definition of gmeow:targetsResource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:targetsResourceFunctionality logic:characterizes gmeow:targetsResource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vectorByteOrderFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "vectorByteOrder is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vectorByteOrder is functional: an embedding family serializes its stored matrix under exactly one byte order that folds into its gmeow:contentDigest identity, so a byte-order difference is a family difference rather than a silent reinterpretation of the same stored bytes; the family therefore fixes a single gmeow:ByteOrder."@x-gmeow-english ;
+    logic:characterizes gmeow:vectorByteOrder ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vectorByteOrder ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vectorByteOrder names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vectorByteOrder, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vectorByteOrder and nothing else. It is not a definition of gmeow:vectorByteOrder (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vectorByteOrderFunctionality logic:characterizes gmeow:vectorByteOrder ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:vectorTargetKindFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "vectorTargetKind is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:vectorTargetKind is functional: a vector target embeds exactly one kind of resource — a row is a corpus, document, chunk, dataset, graph, statement, reifier, annotation, term, or summary, but one flavour, not two; the target therefore folds in a single gmeow:VectorTargetKind."@x-gmeow-english ;
+    logic:characterizes gmeow:vectorTargetKind ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:vectorTargetKind ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:vectorTargetKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:vectorTargetKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:vectorTargetKind and nothing else. It is not a definition of gmeow:vectorTargetKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:vectorTargetKindFunctionality logic:characterizes gmeow:vectorTargetKind ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:withMetricFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/embedding-projection> ;
+    rdfs:label "withMetric is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:withMetric is functional: a similarity observation's proximity was computed under exactly one distance metric, because a cosine 0.9 and a dot-product 0.9 are not the same claim; the observation therefore names the single metric its score was measured under, which must in turn agree with its gmeow:overVectorSpace contract's metric."@x-gmeow-english ;
+    logic:characterizes gmeow:withMetric ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:withMetric ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:withMetric names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:withMetric, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:withMetric and nothing else. It is not a definition of gmeow:withMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:withMetricFunctionality logic:characterizes gmeow:withMetric ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .

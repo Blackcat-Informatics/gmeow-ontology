@@ -442,7 +442,7 @@ impl ReasonStage {
     /// [`ENGINE_RESOURCE`] (the sole resource-bearing build stage), so the scheduler
     /// serializes it against any stage competing for the reasoning engine.
     ///
-    /// The `stage-math-producers` edge (G13) is a whole-product dependency, exactly like
+    /// The `stage-math-producers` edge is a whole-product dependency, exactly like
     /// `stage-source-load` / `stage-statements`: it supplies the math slice's
     /// positive-demonstrator ABox (`graph/math-examples`), admitted to object-level
     /// reasoning so the expression-identity gate has a real witness to decide over the

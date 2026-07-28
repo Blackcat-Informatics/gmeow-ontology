@@ -47,6 +47,11 @@ const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+/// Characteristic-assertion CARRIERS are authored in the slice that owns the property they
+/// characterize, so they are minted in that slice's namespace — `gmeow:` for every domain
+/// slice. Only the characteristic SORT they name (`logic:transitiveProperty`, …) stays
+/// `logic:`-namespaced, because the sort vocabulary is the reasoning core's own.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC_SUBCLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
 const LOGIC_MEDIATES: &str = "https://blackcatinformatics.ca/logic/mediates";
 const LOGIC_VIOLATION: &str = "https://blackcatinformatics.ca/logic/violation";
@@ -490,25 +495,25 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
         ),
     ];
     for (prop, marker, rec_local, sort_local) in production {
-        let rec = format!("{LOGIC_NS}{rec_local}");
+        let rec = format!("{GMEOW_NS}{rec_local}");
         assert!(
             facts.contains(&marker_fact(prop, marker)),
             "the committed gmeow.gts must declare {prop} with OWL characteristic {marker}"
         );
         assert!(
             facts.contains(&characterizes_fact(&rec, prop)),
-            "the committed gmeow.gts must carry the logic: record {rec} characterizing {prop}"
+            "the committed gmeow.gts must carry the carrier record {rec} characterizing {prop}"
         );
         assert!(
             facts.contains(&sort_fact(&rec, sort_local)),
-            "the logic: record {rec} must assert characteristic sort logic:{sort_local}"
+            "the carrier record {rec} must assert characteristic sort logic:{sort_local}"
         );
     }
     // counterGoal irreflexivity is a logic:-only carrier (no OWL projection, DL-clean).
-    let cg_irr = format!("{LOGIC_NS}counterGoalIrreflexivity");
+    let cg_irr = format!("{GMEOW_NS}counterGoalIrreflexivity");
     assert!(
         facts.contains(&characterizes_fact(&cg_irr, GMEOW_COUNTER_GOAL)),
-        "the committed gmeow.gts must carry the logic:-only counterGoal irreflexivity record"
+        "the committed gmeow.gts must carry the counterGoal irreflexivity carrier record"
     );
     assert!(
         facts.contains(&sort_fact(&cg_irr, "irreflexiveProperty")),
@@ -525,14 +530,14 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
         (GMEOW_EDITION_OF, "editionOfFunctionality"),
     ];
     for (prop, rec_local) in functional_only {
-        let rec = format!("{LOGIC_NS}{rec_local}");
+        let rec = format!("{GMEOW_NS}{rec_local}");
         assert!(
             facts.contains(&characterizes_fact(&rec, prop)),
-            "the committed gmeow.gts must carry the logic:-only record {rec} characterizing {prop}"
+            "the committed gmeow.gts must carry the carrier-only record {rec} characterizing {prop}"
         );
         assert!(
             facts.contains(&sort_fact(&rec, "functionalProperty")),
-            "the logic: record {rec} must assert characteristic sort logic:functionalProperty"
+            "the carrier record {rec} must assert characteristic sort logic:functionalProperty"
         );
     }
 

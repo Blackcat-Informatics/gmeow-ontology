@@ -1,33 +1,47 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `math_producers` stage: fold the eight `math:` producers' output into the carrier
+//! The `math_producers` stage: fold the ten `math:` producers' output into the carrier
 //! (Design A).
 //!
 //! Each flagship-acceptance scenario in
 //! `slices/grounding/math/examples/flagship-acceptance.ttl` names a native producer entrypoint
-//! (`gmeow:demonstratedByProducer`). Those entrypoints are five deterministic,
-//! exact-arithmetic functions in [`gmeow_math::producers`]; each returns a byte-deterministic
-//! RDF graph fragment (Turtle) built from constants + formatted exact integers/rationals. A
-//! SIXTH producer, [`gmeow_math::producers::probability_model_seam`], folds the same way but
+//! (`gmeow:demonstratedByProducer`). Those entrypoints are five deterministic functions in
+//! [`gmeow_math::producers`]; four build a byte-deterministic RDF graph fragment (Turtle) from
+//! constants + formatted exact integers/rationals, and the fifth — the `rBridge` flagship's
+//! [`gmeow_math::producers::r_lift`] — RUNS the shipped R front-end over a real committed
+//! script. [`gmeow_math::producers::probability_model_seam`] folds the same way but
 //! is NOT bound to a flagship scenario — it exists solely to carry the probability layer's
-//! live `logic:probabilityModel` A-box crossing triple inside `gmeow.gts`. A SEVENTH producer,
+//! live `logic:probabilityModel` A-box crossing triple inside `gmeow.gts`.
 //! [`gmeow_math::producers::pvalue_tri_slice`], likewise non-flagship, carries the signature
-//! `lang:` → `logic:` → `math:` p-value round-trip inside `gmeow.gts`.
-//! An EIGHTH producer, [`gmeow_math::producers::clifford_twelve_thirteen`], calculates both
+//! `lang:` → `logic:` → `math:` p-value round-trip inside `gmeow.gts`, and
+//! [`gmeow_math::producers::clifford_twelve_thirteen`] calculates both
 //! exact `Cl(12)` → `Cl(13)` positive extensions without changing the five-flagship contract.
+//! [`gmeow_math::producers::r_lift`], [`onnx_lift`](gmeow_math::producers::onnx_lift), and
+//! [`proof_lift`](gmeow_math::producers::proof_lift) are the EXECUTABLE ingestion lifts:
+//! each runs the shipped `gmeow_math_lift` front-end (the same entrypoint the `gmeow` CLI
+//! calls) over a real committed artifact embedded in the binary at compile time, so the
+//! bundle carries the output of the actual R / ONNX / TSTP parsers rather than a hand-written
+//! imitation of them. Only `r_lift` is flagship-bound; the manifest stays at exactly five.
 //!
-//! This stage RUNS all eight and parses each producer's `.turtle` into its own named carrier
+//! This stage RUNS all ten and parses each producer's `.turtle` into its own named carrier
 //! graph ([`crate::stages::carrier::MATH_PRODUCER_GRAPHS`], in producer order). The snapshot
 //! presenter reads those graphs back via `producer_graph` and folds them into `gmeow.gts`, so
 //! the producer output ships in the bundle — the shippable deliverable, maximal dogfooding —
 //! rather than living only behind a test-side equality gate.
 //!
-//! The graph content comes ONLY from the producers: no hand-typed constant, no clock, no
-//! randomness (the producers are pure), so the eight producer graphs are byte-deterministic.
+//! The producer graph content comes ONLY from the producers: no hand-typed constant, no disk
+//! read, no clock, no randomness (the producers are pure), so those graphs are byte-deterministic.
+//! That holds for the three lift producers precisely BECAUSE their sources are `include_str!` /
+//! `include_bytes!` compile-time embeddings — the bytes ride the binary, never the machine that
+//! ran the build, and every IRI they mint is a content digest of those bytes.
+//! `graph/math-examples` is the one attached graph READ rather than computed: it is the union of
+//! the committed `slices/grounding/math/examples/*.ttl` sources. That is deterministic for the
+//! same reason the embeddings are — the bytes are committed, not environmental — and the stage
+//! declares those files in `input_files()` so editing any of them invalidates the cache.
 //! A producer/parse failure is a HARD FAIL — propagated, never swallowed (no-optionality).
 //!
-//! **The math-examples ABox (G13).** This stage ALSO reads every
+//! **The math-examples ABox.** This stage ALSO reads every
 //! `slices/grounding/math/examples/*.ttl` file — the slice's authored positive-demonstrator
 //! corpus — and unions them into [`gmeow_logic::reasoning_graphs::GRAPH_MATH_EXAMPLES`], a
 //! ninth named graph this stage attaches. That graph is admitted to the object-level
@@ -106,10 +120,10 @@ fn math_examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_error
     )
 }
 
-/// Run the eight producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
+/// Run the ten producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
 /// target graph IRI. The order is the SINGLE source of the producer→graph mapping shared with
 /// the snapshot presenter (both index into `MATH_PRODUCER_GRAPHS`).
-fn producer_turtles() -> [(&'static str, String); 8] {
+fn producer_turtles() -> [(&'static str, String); 10] {
     [
         (
             MATH_PRODUCER_GRAPHS[0],
@@ -125,31 +139,39 @@ fn producer_turtles() -> [(&'static str, String); 8] {
         ),
         (
             MATH_PRODUCER_GRAPHS[3],
-            gmeow_math::producers::r_bridge_lift().turtle,
-        ),
-        (
-            MATH_PRODUCER_GRAPHS[4],
             gmeow_math::producers::exact_pca_residual().turtle,
         ),
         (
-            MATH_PRODUCER_GRAPHS[5],
+            MATH_PRODUCER_GRAPHS[4],
             gmeow_math::producers::probability_model_seam().turtle,
         ),
         (
-            MATH_PRODUCER_GRAPHS[6],
+            MATH_PRODUCER_GRAPHS[5],
             gmeow_math::producers::pvalue_tri_slice().turtle,
         ),
         (
-            MATH_PRODUCER_GRAPHS[7],
+            MATH_PRODUCER_GRAPHS[6],
             gmeow_math::producers::clifford_twelve_thirteen().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[7],
+            gmeow_math::producers::r_lift().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[8],
+            gmeow_math::producers::onnx_lift().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[9],
+            gmeow_math::producers::proof_lift().turtle,
         ),
     ]
 }
 
-/// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream
-/// STAGE product (the producers are self-contained native functions and the
-/// math-examples corpus is read directly off disk, not off another stage's product) and
-/// attaches the eight producer graphs plus `graph/math-examples` to its carrier dataset.
+/// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream STAGE
+/// product (the producers are self-contained native functions and the math-examples corpus is
+/// read directly off disk, not off another stage's product) and attaches the ten producer graphs
+/// plus `graph/math-examples` to its carrier dataset.
 pub struct MathProducersStage {
     consumes: Vec<String>,
 }
@@ -197,11 +219,18 @@ impl Stage for MathProducersStage {
         // non-flagship producer carrying the signature lang: -> logic: -> math: round-trip).
         // v4: additionally fold the exact Cl(12) -> Cl(13) producer's graph (an eighth,
         // non-flagship producer carrying both positive-extension calculations).
-        // v5 (G13): additionally read every slices/grounding/math/examples/*.ttl file and
-        // fold their union into graph/math-examples, a ninth attached graph admitted to
-        // the object-level reasoning EDB — the math slice's positive-demonstrator ABox now
-        // reaches the shipped bundle's reasoned closure instead of only the docs/CQ harvest.
-        "math_producers.v5"
+        // v5: additionally fold the three EXECUTABLE lift producers' graphs (r_lift,
+        // onnx_lift, proof_lift) — the shipped gmeow_math_lift front-ends run over real
+        // committed artifacts embedded at compile time.
+        // v6: RETIRE the r_bridge_lift graph (graph/math-producers/r-bridge). That producer
+        // parsed nothing — it pushed a fixed Turtle string — and r_lift, which runs the real
+        // R front-end over a committed script and emits a strictly richer math:RIngestRun,
+        // fully subsumes it. Ten graphs now, and the rBridge flagship names r_lift.
+        // v7: additionally read every slices/grounding/math/examples/*.ttl file and fold their
+        // union into graph/math-examples, an extra attached graph admitted to the object-level
+        // reasoning EDB — the math slice's positive-demonstrator ABox now reaches the shipped
+        // bundle's reasoned closure instead of only the docs/competency-question harvest.
+        "math_producers.v7"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The eight producers are self-contained native functions whose bytes ride the
@@ -251,11 +280,11 @@ mod tests {
             .unwrap()
     }
 
-    /// The stage attaches EXACTLY the eight producer graphs, each non-empty and carrying its
+    /// The stage attaches EXACTLY the ten producer graphs, each non-empty and carrying its
     /// producer's pinned content — the proof the producer output reaches the carrier (and thence
     /// `gmeow.gts`), not merely a test.
     #[test]
-    fn run_attaches_the_eight_producer_graphs() {
+    fn run_attaches_the_ten_producer_graphs() {
         let stage = MathProducersStage::new();
         let upstream = BTreeMap::new();
         let root = repo_root();
@@ -277,7 +306,7 @@ mod tests {
 
     /// The math-examples corpus reaches its own named graph, non-empty, carrying a real
     /// authored witness: `ex:matrixProductAst`'s `math:structuralKey` from
-    /// `reference-ast-act.ttl` — the G13 non-vacuous-gate fix's load-bearing proof that the
+    /// `reference-ast-act.ttl` — the load-bearing proof that the
     /// slice's positive-demonstrator ABox actually reaches the carrier (and thence
     /// `gmeow.gts` and the object-level reasoning EDB), not merely the docs/CQ harvest.
     #[test]
@@ -356,6 +385,44 @@ mod tests {
             files
                 .iter()
                 .any(|p| p.file_name().unwrap() == "reference-ast-act.ttl")
+        );
+    }
+
+    /// [`producer_turtles`] and [`MATH_PRODUCER_GRAPHS`] are INDEX-ALIGNED: the pairing is
+    /// the single source of the producer→graph mapping the snapshot presenter also indexes
+    /// into, so a producer appended to one array and not the other would silently reroute a
+    /// graph's content. The arrays are equal length and slot `i` carries `graphs[i]`.
+    #[test]
+    fn producer_turtles_is_index_aligned_with_the_graph_table() {
+        let turtles = producer_turtles();
+        assert_eq!(
+            turtles.len(),
+            MATH_PRODUCER_GRAPHS.len(),
+            "every producer must have exactly one target graph"
+        );
+        for (i, (graph_iri, turtle)) in turtles.iter().enumerate() {
+            assert_eq!(
+                *graph_iri, MATH_PRODUCER_GRAPHS[i],
+                "producer slot {i} must target MATH_PRODUCER_GRAPHS[{i}]"
+            );
+            assert!(
+                !turtle.is_empty(),
+                "producer slot {i} (<{graph_iri}>) emitted no Turtle"
+            );
+        }
+    }
+
+    /// Every producer graph IRI is DISTINCT. Two producers sharing a graph would union their
+    /// content into one named graph and drop the other's slot entirely — a silent merge the
+    /// per-graph quad-count check above could not see.
+    #[test]
+    fn every_producer_graph_iri_is_distinct() {
+        let distinct: std::collections::BTreeSet<&str> =
+            MATH_PRODUCER_GRAPHS.iter().copied().collect();
+        assert_eq!(
+            distinct.len(),
+            MATH_PRODUCER_GRAPHS.len(),
+            "the ten math-producer graph IRIs must be pairwise distinct"
         );
     }
 }

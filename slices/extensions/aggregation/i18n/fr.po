@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: aggregation, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "aggregationFunction is functional"
+msgstr "aggregationFunction est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:aggregationFunction is functional: a spatial aggregation applies exactly one statistical function — count, sum, average, density, minimum, maximum, or centroid — so computing a different function over the same region is a different aggregation. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:aggregationFunction est fonctionnelle : une agrégation spatiale applique exactement une fonction statistique — comptage, somme, moyenne, densité, minimum, maximum, ou centroïde — de sorte que le calcul d'une fonction différente sur la même région constitue une agrégation différente. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimumPopulation is functional"
+msgstr "minimumPopulation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:minimumPopulation is functional: a spatial aggregation carries exactly one k-anonymity threshold, the single minimum population size below which its result is suppressed at projection time. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:minimumPopulation est fonctionnelle : une agrégation spatiale porte exactement un seuil de k-anonymat, l'unique taille de population minimale en deçà de laquelle son résultat est supprimé au moment de la projection. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:aggregationFunction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:aggregationFunction nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:aggregationFunction, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:aggregationFunction, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:aggregationFunctionFunctionality logic:characterizes gmeow:aggregationFunction ."
+msgstr "gmeow:aggregationFunctionFunctionality logic:characterizes gmeow:aggregationFunction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:minimumPopulation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:minimumPopulation nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:minimumPopulation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:minimumPopulation, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:minimumPopulationFunctionality logic:characterizes gmeow:minimumPopulation ."
+msgstr "gmeow:minimumPopulationFunctionality logic:characterizes gmeow:minimumPopulation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/aggregationFunctionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:aggregationFunction and nothing else. It is not a definition of gmeow:aggregationFunction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:aggregationFunction, et rien d'autre. Ce n'est pas une définition de gmeow:aggregationFunction (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumPopulationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:minimumPopulation and nothing else. It is not a definition of gmeow:minimumPopulation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:minimumPopulation, et rien d'autre. Ce n'est pas une définition de gmeow:minimumPopulation (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."

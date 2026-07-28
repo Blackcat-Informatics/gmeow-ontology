@@ -203,11 +203,12 @@ pub fn full_spec() -> PipelineSpec {
             "compile_logic",
             &["stage-source-load"],
         ),
-        // Leaf compute: RUN the eight math producers (five flagship producers plus the
-        // probability-model seam, p-value tri-slice, and Clifford producers) and attach each
+        // Leaf compute: RUN the ten math producers (five flagship producers — the rBridge
+        // one being the executable r_lift — plus the probability-model seam, p-value
+        // tri-slice, Clifford, and the ONNX / proof lift producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot). Also reads the math slice's examples/*.ttl positive-demonstrator
-        // ABox corpus into graph/math-examples (G13), which BOTH stage-snapshot folds into
+        // ABox corpus into graph/math-examples, which BOTH stage-snapshot folds into
         // gmeow.gts and stage-reason admits to the object-level reasoning EDB.
         st("stage-math-producers", "math_producers", &[]),
         // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
@@ -373,10 +374,11 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
-                // The eight math producer graphs (five flagship producers plus the
-                // probability-model seam, p-value tri-slice, and Clifford producers) plus
+                // The ten math producer graphs (five flagship producers — the rBridge one
+                // being the executable r_lift — plus the probability-model seam, p-value
+                // tri-slice, Clifford, and the ONNX / proof lift producers), plus
                 // graph/math-examples (the math slice's examples/*.ttl positive-demonstrator
-                // corpus, G13), folded into gmeow.gts.
+                // corpus), folded into gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",
                 // The authoring-packet corpus (graph/authoring-briefs), folded into

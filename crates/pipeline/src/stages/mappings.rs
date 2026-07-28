@@ -254,7 +254,7 @@ pub struct CompiledMappings {
 /// projections) plus the DSL surface-count summary from `root`, returning
 /// `{logical_path → bytes}`. The mappings stage is now complete.
 pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::Diag> {
-    let vocab = crate::gmeow_ns::gmeow_slice_vocab();
+    let vocab = gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     // Discover the slice catalog ONCE, here, and share the single in-memory instance across
@@ -266,16 +266,13 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(
-            purrdf::slice::SliceCatalog::discover(
-                &slices_dir,
-                crate::gmeow_ns::gmeow_slice_vocab(),
-            )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!("slice catalog discovery: {e}"),
-                })
-            })?,
+            purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "stage-mappings".to_string(),
+                        message: format!("slice catalog discovery: {e}"),
+                    })
+                })?,
         )
     } else {
         None
@@ -687,16 +684,13 @@ pub fn discharged_section_cells_from_root(
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(
-            purrdf::slice::SliceCatalog::discover(
-                &slices_dir,
-                crate::gmeow_ns::gmeow_slice_vocab(),
-            )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "stage-mappings".to_string(),
-                    message: format!("slice catalog discovery: {e}"),
-                })
-            })?,
+            purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "stage-mappings".to_string(),
+                        message: format!("slice catalog discovery: {e}"),
+                    })
+                })?,
         )
     } else {
         None
@@ -1656,7 +1650,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // undercount the `.put.rq` oracle).
         let catalog = purrdf::slice::SliceCatalog::discover(
             &root.join("slices"),
-            crate::gmeow_ns::gmeow_slice_vocab(),
+            gmeow_ns::gmeow_slice_vocab(),
         )
         .expect("slice catalog discovery");
         let expected_put = correspondence_lower::lower_all(&root, Some(&catalog))
@@ -2226,7 +2220,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             LintConfig, default_annotation_predicates, structural_lint_dataset,
         };
 
-        let vocab = crate::gmeow_ns::gmeow_slice_vocab();
+        let vocab = gmeow_ns::gmeow_slice_vocab();
         let subject = vocab.core_prefixes_iri();
         let completed = complete_core_prefixes_abox(&emit_core_prefixes(&vocab), &vocab);
         // The real bundle supplies `gmeow:boxTBox a gmeow:GraphBoxRole` from the
@@ -2243,8 +2237,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             .expect("parse the completed core-prefixes turtle");
 
         let cfg = LintConfig {
-            namespace: crate::gmeow_ns::GMEOW_NS.to_string(),
-            ontology_iri: crate::gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
+            namespace: gmeow_ns::GMEOW_NS.to_string(),
+            ontology_iri: gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
             selector_tokens: Default::default(),
             core_slice_iris: Default::default(),
             annotation_predicates: default_annotation_predicates().into_iter().collect(),
@@ -2286,7 +2280,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     fn list_functions_completion_satisfies_the_structural_contract() {
         use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 
-        let vocab = crate::gmeow_ns::gmeow_slice_vocab();
+        let vocab = gmeow_ns::gmeow_slice_vocab();
         let catalog = purrdf::slice::list_functions::list_functions_catalog(&vocab);
         let completed = complete_list_functions_abox(&emit_list_functions(&vocab), &vocab);
         // The real bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the
@@ -2300,8 +2294,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             .expect("parse the completed list-functions turtle");
 
         let cfg = LintConfig {
-            namespace: crate::gmeow_ns::GMEOW_NS.to_string(),
-            ontology_iri: crate::gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
+            namespace: gmeow_ns::GMEOW_NS.to_string(),
+            ontology_iri: gmeow_ns::GMEOW_NS.trim_end_matches('/').to_string(),
             selector_tokens: Default::default(),
             core_slice_iris: Default::default(),
             annotation_predicates: Default::default(),
@@ -2349,7 +2343,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let root = repo_root();
         let catalog = purrdf::slice::SliceCatalog::discover(
             &root.join("slices"),
-            crate::gmeow_ns::gmeow_slice_vocab(),
+            gmeow_ns::gmeow_slice_vocab(),
         )
         .expect("slice catalog discovery");
         correspondence_lower::lower_all(&root, Some(&catalog)).expect("lower_all over the repo")

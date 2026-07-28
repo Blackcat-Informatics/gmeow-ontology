@@ -216,11 +216,8 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
     }
 
     // 5/6. CROSS-LINGUAL JOIN inputs.
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        slice_dir,
-        purrdf::SliceVocab::for_namespace(ns::GMEOW),
-    )
-    .map_err(|e| {
+    let catalog = purrdf::slice::SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab())
+        .map_err(|e| {
         gmeow_errors::Diag::of_kind(error::Io {
             detail: format!(
                 "{}: slice-catalog discovery failed: {e}",

@@ -32,6 +32,9 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use crate::dispatch::dispatch_query;
+// The sealed engine-tier accessor for the arena-branded `StructNode` handle: a
+// structured argument enters the plan/scenario key by its dense node ordinal, which is
+// only reachable through this trait.
 use crate::entrenchment::{Entrenchment, LeastEntrenched};
 use crate::physical::IncrementalQuerySession;
 use crate::query_ir::{Binding, Budget, QAtom, QProgram, QTerm};
@@ -39,6 +42,7 @@ use crate::result::ReasoningResult;
 use crate::seam::{BudgetStatus, WorldFactSnapshot};
 use crate::store::WorldStore;
 use crate::versioning::{CounterfactualKeyInputs, counterfactual_world_key};
+use gmeow_term_arena::engine::StructNodeParts;
 
 /// Wrap a counterfactual-construction condition message as a typed diagnostic on
 /// the shared substrate, preserving the authored text verbatim.

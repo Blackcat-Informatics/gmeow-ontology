@@ -1,0 +1,462 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: calendar, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "availabilitySlot is functional"
+msgstr "availabilitySlot 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:availabilitySlot is functional: an availability statement holds over exactly one time interval — the single bounded free-busy slot across which its status applies uniformly. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:availabilitySlot 是函数性的:一条可用性声明恰好在一个时间区间内成立——即其状态统一适用的单一有界忙闲时段。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "calendarTimeZone is functional"
+msgstr "calendarTimeZone 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:calendarTimeZone is functional: a calendar collection has exactly one default time zone — the single fallback IANA offset its members are reckoned in when an individual event states no zone of its own. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:calendarTimeZone 是函数性的:一个日历集合恰好具有一个默认时区——即当某个具体事件未声明自身时区时,其成员据以计算的单一后备 IANA 偏移。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "eventTimeZone is functional"
+msgstr "eventTimeZone 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:eventTimeZone is functional: an event's temporal placement is expressed in exactly one time zone — the single civil offset its wall-clock time is read in, overriding the calendar default. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:eventTimeZone 是函数性的：一个事件的时间定位恰好以一个时区表达——即其挂钟时间据以读取的唯一民用偏移量，覆盖日历的默认值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionOriginalDate is functional"
+msgstr "exceptionOriginalDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionOriginalDate is functional: a schedule exception overrides exactly one generated occurrence, pinned by the single original date/time the recurrence rule would have produced — its RFC 5545 RECURRENCE-ID anchor. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:exceptionOriginalDate 是函数性的：一个日程例外恰好覆盖一个生成的发生实例，由该重复规则本应生成的唯一原始日期/时间锚定——即其 RFC 5545 RECURRENCE-ID 锚点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionReplacementEvent is functional"
+msgstr "exceptionReplacementEvent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionReplacementEvent is functional: a rescheduled occurrence moves to exactly one replacement event — the single new placement standing in for the one at the original date (absent entirely for a pure cancellation). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:exceptionReplacementEvent 是函数性的：一个被改期的发生实例恰好迁移到一个替代事件——即替代原日期那一次发生的唯一新安排（在纯粹取消的情况下则完全缺失）。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionSchedule is functional"
+msgstr "exceptionSchedule 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionSchedule is functional: a schedule exception applies to exactly one event schedule — the single recurring series whose one occurrence it overrides. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:exceptionSchedule 是函数性的：一个日程例外恰好适用于一个事件日程——即它所覆盖的那一次发生所属的唯一重复系列。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exceptionType is functional"
+msgstr "exceptionType 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:exceptionType is functional: a schedule exception is exactly one kind — either a cancellation or a rescheduling of its occurrence, never both at once."
+msgstr "在规范载体上断言 gmeow:exceptionType 是函数性的：一个日程例外恰好属于一种类型——要么是取消，要么是对其发生实例的改期，绝不能两者兼具。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invitationEvent is functional"
+msgstr "invitationEvent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:invitationEvent is functional: a reified invitation concerns exactly one event — the single concrete occurrence the invitee is asked to attend, never a recurrence generator."
+msgstr "在规范载体上断言 gmeow:invitationEvent 是函数性的:一个具体化的邀请恰好涉及一个事件——即受邀者被要求出席的那个单一具体场合,而绝不是一个循环发生器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reminderAction is functional"
+msgstr "reminderAction 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reminderAction is functional: a reminder fires exactly one action — a single iCalendar ACTION (display, email, or audio) when it triggers. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:reminderAction 是函数性的:一个提醒触发时恰好执行一个动作——一个单一的 iCalendar ACTION(显示、电子邮件或音频)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reminderTarget is functional"
+msgstr "reminderTarget 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:reminderTarget is functional: a reminder is attached to exactly one event — the single concrete occurrence whose start an offset trigger is measured from. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:reminderTarget 是函数性的:一个提醒恰好附着于一个事件——即偏移触发器据以计算的那个唯一具体发生实例的起始时间。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scheduleTemplateEvent is functional"
+msgstr "scheduleTemplateEvent 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scheduleTemplateEvent is functional: a schedule clones exactly one template event — the single anchor carrying the title, location, participants, and duration every generated occurrence inherits. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:scheduleTemplateEvent 是函数性的:一个日程恰好克隆一个模板事件——即每个生成的发生实例都继承其标题、地点、参与者和时长的唯一锚点。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scheduleTimeZone is functional"
+msgstr "scheduleTimeZone 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scheduleTimeZone is functional: a schedule expands its recurrence in exactly one time zone — the single IANA offset the occurrence engine reads when turning the rule into dated occurrences across DST boundaries. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:scheduleTimeZone 是函数性的:一个日程恰好在一个时区中展开其重复规则——即发生实例引擎在将规则转换为跨越夏令时边界的带日期发生实例时所读取的唯一 IANA 偏移量。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taskDueDate is functional"
+msgstr "taskDueDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taskDueDate is functional: a task has exactly one due date — the single xsd:dateTime deadline, the iCalendar VTODO DUE moment, by which it should be completed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:taskDueDate 是函数性的:一项任务恰好有一个到期日——即唯一的 xsd:dateTime 截止时刻,亦即 iCalendar VTODO 的 DUE 时刻,任务应在此之前完成。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taskPriority is functional"
+msgstr "taskPriority 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taskPriority is functional: a task carries exactly one priority — a single value on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest). This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:taskPriority 是函数性的:一项任务恰好携带一个优先级——即 iCalendar PRIORITY 量表上的单一数值(0 表示未定义,1 为最高,9 为最低)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "taskRecurrenceUntilDone is functional"
+msgstr "taskRecurrenceUntilDone 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:taskRecurrenceUntilDone is functional: a task bears exactly one until-done recurrence flag — the single boolean deciding whether it re-arms until marked completed rather than ending at a fixed count or date."
+msgstr "在规范载体上断言 gmeow:taskRecurrenceUntilDone 是函数性的:一项任务恰好携带一个直至完成的重复标志——即那唯一的布尔值,决定它是重新武装直至被标记完成,而不是在固定次数或日期处终止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "timeZoneIanaId is functional"
+msgstr "timeZoneIanaId 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:timeZoneIanaId is functional: a time zone is named by exactly one IANA tzid — the single identifier (e.g. America/Toronto) that libraries resolve to its full DST ruleset. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:timeZoneIanaId 是函数性的:一个时区仅由恰好一个 IANA tzid 命名——即各类库据以解析出其完整夏令时规则集的唯一标识符(例如 America/Toronto)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:availabilitySlot names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:availabilitySlot 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:availabilitySlot, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:availabilitySlot, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:availabilitySlotFunctionality logic:characterizes gmeow:availabilitySlot ."
+msgstr "gmeow:availabilitySlotFunctionality logic:characterizes gmeow:availabilitySlot ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:calendarTimeZone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:calendarTimeZone 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:calendarTimeZone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:calendarTimeZone, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:calendarTimeZoneFunctionality logic:characterizes gmeow:calendarTimeZone ."
+msgstr "gmeow:calendarTimeZoneFunctionality logic:characterizes gmeow:calendarTimeZone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:eventTimeZone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:eventTimeZone 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:eventTimeZone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:eventTimeZone, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:eventTimeZoneFunctionality logic:characterizes gmeow:eventTimeZone ."
+msgstr "gmeow:eventTimeZoneFunctionality logic:characterizes gmeow:eventTimeZone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:exceptionOriginalDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:exceptionOriginalDate 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionOriginalDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:exceptionOriginalDate, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:exceptionOriginalDateFunctionality logic:characterizes gmeow:exceptionOriginalDate ."
+msgstr "gmeow:exceptionOriginalDateFunctionality logic:characterizes gmeow:exceptionOriginalDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:exceptionReplacementEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:exceptionReplacementEvent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionReplacementEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:exceptionReplacementEvent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:exceptionReplacementEventFunctionality logic:characterizes gmeow:exceptionReplacementEvent ."
+msgstr "gmeow:exceptionReplacementEventFunctionality logic:characterizes gmeow:exceptionReplacementEvent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:exceptionSchedule names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:exceptionSchedule 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionSchedule, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:exceptionSchedule, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:exceptionScheduleFunctionality logic:characterizes gmeow:exceptionSchedule ."
+msgstr "gmeow:exceptionScheduleFunctionality logic:characterizes gmeow:exceptionSchedule ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:exceptionType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:exceptionType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:exceptionType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:exceptionType, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:exceptionTypeFunctionality logic:characterizes gmeow:exceptionType ."
+msgstr "gmeow:exceptionTypeFunctionality logic:characterizes gmeow:exceptionType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:invitationEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:invitationEvent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:invitationEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:invitationEvent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:invitationEventFunctionality logic:characterizes gmeow:invitationEvent ."
+msgstr "gmeow:invitationEventFunctionality logic:characterizes gmeow:invitationEvent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:reminderAction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:reminderAction 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reminderAction, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:reminderAction, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reminderActionFunctionality logic:characterizes gmeow:reminderAction ."
+msgstr "gmeow:reminderActionFunctionality logic:characterizes gmeow:reminderAction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:reminderTarget names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:reminderTarget 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reminderTarget, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:reminderTarget, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reminderTargetFunctionality logic:characterizes gmeow:reminderTarget ."
+msgstr "gmeow:reminderTargetFunctionality logic:characterizes gmeow:reminderTarget ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:scheduleTemplateEvent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:scheduleTemplateEvent 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scheduleTemplateEvent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:scheduleTemplateEvent, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:scheduleTemplateEventFunctionality logic:characterizes gmeow:scheduleTemplateEvent ."
+msgstr "gmeow:scheduleTemplateEventFunctionality logic:characterizes gmeow:scheduleTemplateEvent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:scheduleTimeZone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:scheduleTimeZone 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scheduleTimeZone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:scheduleTimeZone, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:scheduleTimeZoneFunctionality logic:characterizes gmeow:scheduleTimeZone ."
+msgstr "gmeow:scheduleTimeZoneFunctionality logic:characterizes gmeow:scheduleTimeZone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:taskDueDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:taskDueDate 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taskDueDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:taskDueDate, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:taskDueDateFunctionality logic:characterizes gmeow:taskDueDate ."
+msgstr "gmeow:taskDueDateFunctionality logic:characterizes gmeow:taskDueDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:taskPriority names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:taskPriority 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taskPriority, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:taskPriority, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:taskPriorityFunctionality logic:characterizes gmeow:taskPriority ."
+msgstr "gmeow:taskPriorityFunctionality logic:characterizes gmeow:taskPriority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:taskRecurrenceUntilDone names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:taskRecurrenceUntilDone 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:taskRecurrenceUntilDone, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:taskRecurrenceUntilDone, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:taskRecurrenceUntilDoneFunctionality logic:characterizes gmeow:taskRecurrenceUntilDone ."
+msgstr "gmeow:taskRecurrenceUntilDoneFunctionality logic:characterizes gmeow:taskRecurrenceUntilDone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:timeZoneIanaId names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:timeZoneIanaId 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:timeZoneIanaId, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:timeZoneIanaId, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:timeZoneIanaIdFunctionality logic:characterizes gmeow:timeZoneIanaId ."
+msgstr "gmeow:timeZoneIanaIdFunctionality logic:characterizes gmeow:timeZoneIanaId ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/availabilitySlotFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:availabilitySlot and nothing else. It is not a definition of gmeow:availabilitySlot (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:availabilitySlot 的一项完整性义务，别无其他。它不是 gmeow:availabilitySlot 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/calendarTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:calendarTimeZone and nothing else. It is not a definition of gmeow:calendarTimeZone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:calendarTimeZone 的一项完整性义务，别无其他。它不是 gmeow:calendarTimeZone 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:eventTimeZone and nothing else. It is not a definition of gmeow:eventTimeZone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:eventTimeZone 的一项完整性义务，别无其他。它不是 gmeow:eventTimeZone 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionOriginalDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:exceptionOriginalDate and nothing else. It is not a definition of gmeow:exceptionOriginalDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:exceptionOriginalDate 的一项完整性义务，别无其他。它不是 gmeow:exceptionOriginalDate 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionReplacementEventFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:exceptionReplacementEvent and nothing else. It is not a definition of gmeow:exceptionReplacementEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:exceptionReplacementEvent 的一项完整性义务，别无其他。它不是 gmeow:exceptionReplacementEvent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionScheduleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:exceptionSchedule and nothing else. It is not a definition of gmeow:exceptionSchedule (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:exceptionSchedule 的一项完整性义务，别无其他。它不是 gmeow:exceptionSchedule 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exceptionTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:exceptionType and nothing else. It is not a definition of gmeow:exceptionType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:exceptionType 的一项完整性义务，别无其他。它不是 gmeow:exceptionType 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invitationEventFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:invitationEvent and nothing else. It is not a definition of gmeow:invitationEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:invitationEvent 的一项完整性义务，别无其他。它不是 gmeow:invitationEvent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderActionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:reminderAction and nothing else. It is not a definition of gmeow:reminderAction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:reminderAction 的一项完整性义务，别无其他。它不是 gmeow:reminderAction 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reminderTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:reminderTarget and nothing else. It is not a definition of gmeow:reminderTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:reminderTarget 的一项完整性义务，别无其他。它不是 gmeow:reminderTarget 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTemplateEventFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:scheduleTemplateEvent and nothing else. It is not a definition of gmeow:scheduleTemplateEvent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:scheduleTemplateEvent 的一项完整性义务，别无其他。它不是 gmeow:scheduleTemplateEvent 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scheduleTimeZoneFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:scheduleTimeZone and nothing else. It is not a definition of gmeow:scheduleTimeZone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:scheduleTimeZone 的一项完整性义务，别无其他。它不是 gmeow:scheduleTimeZone 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskDueDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:taskDueDate and nothing else. It is not a definition of gmeow:taskDueDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:taskDueDate 的一项完整性义务，别无其他。它不是 gmeow:taskDueDate 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskPriorityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:taskPriority and nothing else. It is not a definition of gmeow:taskPriority (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:taskPriority 的一项完整性义务，别无其他。它不是 gmeow:taskPriority 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDoneFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:taskRecurrenceUntilDone and nothing else. It is not a definition of gmeow:taskRecurrenceUntilDone (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:taskRecurrenceUntilDone 的一项完整性义务，别无其他。它不是 gmeow:taskRecurrenceUntilDone 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/timeZoneIanaIdFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:timeZoneIanaId and nothing else. It is not a definition of gmeow:timeZoneIanaId (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:timeZoneIanaId 的一项完整性义务，别无其他。它不是 gmeow:timeZoneIanaId 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"

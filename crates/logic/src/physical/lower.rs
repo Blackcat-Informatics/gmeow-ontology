@@ -5,7 +5,7 @@
 //!
 //! # One arena, three surfaces
 //!
-//! [`TermDag`](crate::physical::term_dag::TermDag) is the single structured-term arena.
+//! [`TermDag`](gmeow_term_arena::engine::TermDag) is the single structured-term arena.
 //! Three surfaces lower INTO it, and because the arena is content-addressed and
 //! locally-nameless, alpha-equivalent inputs authored in ANY of the three surfaces intern
 //! to the SAME [`NodeId`] and the SAME content key:
@@ -49,7 +49,7 @@ use gmeow_logic_compile::ir::{Formula, Term};
 use purrdf::TermValue;
 
 use crate::physical::id::NodeId;
-use crate::physical::term_dag::TermDag;
+use gmeow_term_arena::engine::TermDag;
 
 /// The shared canonical operator / sort IRIs every consumer's lowering emits, so that
 /// alpha-equivalent inputs authored in `logic:`, `math:`, or `lang:` intern to one node.
@@ -630,6 +630,12 @@ impl std::fmt::Display for MathLoweringError {
         }
     }
 }
+
+/// A lowering rejection is a real error, not just something printable: the shared term
+/// arena's `intern_math_graph` propagates it with `?` into `gmeow_errors::Result`, which
+/// needs the `Diag` conversion this unlocks. `Display` already carries the whole message,
+/// so there is no source chain to expose.
+impl std::error::Error for MathLoweringError {}
 
 impl MathLoweringError {
     /// The full `math:` failure-class IRI this rejection decides. Exhaustive with NO
@@ -1343,7 +1349,7 @@ pub(crate) fn lower_lang_denotation(
 mod tests {
     use super::*;
 
-    use crate::physical::term_dag::TermDag;
+    use gmeow_term_arena::engine::TermDag;
 
     fn forall_p_x() -> Formula {
         // ∀x. p(x)

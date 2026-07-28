@@ -88,6 +88,14 @@ impl Store {
         Ok(Self { ds })
     }
 
+    /// Wrap an already-parsed dataset — e.g. a slice's frozen
+    /// `purrdf::slice::SliceRecord::manifest_graph` — as a [`Store`], with no
+    /// re-parse. Used by the seam-registry extractor, which reads the lossless
+    /// per-slice manifest IR the catalog already carries in memory.
+    pub(crate) fn from_dataset(ds: Arc<RdfDataset>) -> Self {
+        Self { ds }
+    }
+
     /// The underlying parsed dataset, including its RDF-1.2 reifier/annotation side tables —
     /// needed by consumers that read native alignment cells through
     /// [`gmeow_logic_compile::ingest::DslView`] (the flat query helpers cannot see reifier

@@ -15,12 +15,9 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
-        <https://blackcatinformatics.ca/gmeow/slices/events> ,
-        <https://blackcatinformatics.ca/gmeow/slices/cognition> ,
-        <https://blackcatinformatics.ca/gmeow/slices/expertise> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
-        <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+        <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     gmeow:sliceProfile "memory" ;
     gmeow:sliceConsumer "How agent memory GROWS (Principle 14): when, from whom, and how an agent came to know something — the GTS ai-package belief-acquisition log. A gmeow:LearningEvent records the transition that raised a gmeow:KnowledgeProficiency or gmeow:SkillProficiency; gmeow:learnedFrom carries the provenance of acquired knowledge; pedagogy and rubric consumers (the teleology / rubrics slices) read gmeow:Teaching. Forgetting is suppression (cognition's gmeow:remembers + gmeow:displayable false), referenced here, never re-minted."@x-gmeow-english .

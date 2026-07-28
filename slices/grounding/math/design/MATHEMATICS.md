@@ -92,9 +92,15 @@ preservation declared ([`MATHEMATICS-EXPRESSIONS.md`](MATHEMATICS-EXPRESSIONS.md
 lingua franca is category theory, present as `math:Category`/`math:Functor`/`math:NaturalTransformation`
 and already used by `logic:`'s correspondence calculus. The bridge runs **one way**: `math:` → `logic:`
 (expressions lower into the IR; probability-model objects *satisfy* `logic:probabilityModel`).
-`logic:` never depends back on `math:` — its quantitative facets stay abstract requirements that
+`logic:` does not depend back on `math:` — its quantitative facets stay abstract requirements that
 `math:` objects satisfy — so the complementarity is realized without a dependency cycle and the slice
-DAG stays acyclic.
+DAG stays acyclic. The one `logic:` → `math:` reference in the corpus is not a dependency but a
+registered seam: `logic:` owns the SUMO boundary, and because the
+[`GROUNDING.md`](../../../../docs/GROUNDING.md) tier rule makes `math:Quantity` the sole authority
+for dimensioned magnitude, the SUMO `Quantity` bridge row must name `math:Quantity` as its
+GMEOW-side source endpoint rather than mint a rival in `logic:`. That crossing is the
+**quantity-boundary seam**, carrying exactly one term
+([`LOGIC-CORRESPONDENCE.md`](../../logic/design/LOGIC-CORRESPONDENCE.md), "The quantity boundary").
 
 The symmetry is made concrete in the namespace. The grounding layer's terms live in the **`math:`**
 namespace (`https://blackcatinformatics.ca/math/`), peer to **`logic:`**

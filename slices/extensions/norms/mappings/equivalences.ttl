@@ -4,27 +4,22 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
-@prefix schema: <https://schema.org/> .
 
 # Term equivalences for the norms extension — GMEOW authoring source.
 # Compiled to mappings/gmeow-norms.sssom.tsv by the mapping compiler.
+#
+# This set seeds NO alignment cells. Its two former cells aligned
+# gmeow:assessmentTarget and gmeow:assessmentScoreValue to schema.org's review
+# cluster; both properties are core-owned by the observations slice alongside
+# gmeow:Assessment, and an alignment belongs to the slice that owns the term it
+# aligns, so both cells now live in slices/core/observations/mappings/
+# equivalences.ttl. The terms norms still owns (Norm, Duty, Persona, StyleGuide,
+# the deontic and precedence machinery) have no stable external IRI vocabulary
+# to map to; the same intentional prose-only shape the metacognition and inquiry
+# slices apply.
 
 gmeow:mapsetNorms a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-norms.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/norms" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Assessment/rubric alignments to schema.org's review cluster (PROV activity alignment): the Assessment relator is per-review — its vantage is the review author — so the schema review idiom carries coexisting verdicts faithfully (Principle 9).".
-
-gmeow:assessmentTarget skos:closeMatch schema:itemReviewed {|
-    gmeow:sssomFile "gmeow-norms.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "the assessed target is what a schema review reviews; closeMatch — itemReviewed scopes to Review acts where assessmentTarget covers any scored observation (PROV activity alignment: declares the per-review ClaimReview projection)"
-|} .
-
-gmeow:assessmentScoreValue skos:closeMatch schema:ratingValue {|
-    gmeow:sssomFile "gmeow-norms.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "the score literal as schema's rating value; closeMatch — ratingValue rides a Rating node where the score sits on the Assessment (PROV activity alignment)"
-|} .
+    gmeow:setComment "Norms-slice alignments are intentionally cell-free: the Assessment/rubric alignments to schema.org's review cluster ride gmeow:assessmentTarget and gmeow:assessmentScoreValue, which are core-owned by the observations slice, so they are authored there (mappings/equivalences.ttl) rather than re-mapped here — an alignment belongs to the slice that owns the term. The norms-owned deontic vocabulary (Norm, Duty, deonticModality, the precedence and persona machinery) has no stable external IRI vocabulary to align to.".

@@ -886,8 +886,8 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
 }
 
 /// Namespace roots for the `lang:`/`logic:` meaning-stratum invariants.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+use gmeow_ns::LANG_NS;
+use gmeow_ns::LOGIC_NS;
 
 /// The document-scale threshold, in bytes, for the `lang:InlineBlobPayload` gate: a
 /// `lang:SurfaceForm` whose inline `lang:surfaceText` exceeds this holds document-scale
@@ -1536,7 +1536,7 @@ fn check_exact_preservation_violated(ds: &RdfDataset, report: &mut LintReport) {
 }
 
 /// Namespace root for the `math:` measure-and-dimension invariants.
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+use gmeow_ns::MATH_NS;
 
 fn math_iri(term: &str) -> String {
     format!("{MATH_NS}{term}")
@@ -1636,7 +1636,7 @@ fn check_math_ingest_invariants(ds: &RdfDataset, report: &mut LintReport) {
 /// enumerating the residue — is the correspondence Overclaim gate's job in the `logic:` layer. This
 /// native twin catches the produced-nothing case bundle-wide.)
 fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    use gmeow_ns::GMEOW_NS;
     let parse_source = math_iri("parseSource");
     let was_generated_by = format!("{GMEOW_NS}wasGeneratedBy");
     let wgb_pid = ds_iri_id(ds, &was_generated_by);

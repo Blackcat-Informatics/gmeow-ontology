@@ -134,7 +134,7 @@ fn szs_provenance_failure(case_dir: &Path) -> Option<String> {
 /// only here, at the gate — never at ingest.
 fn fired_disciplines_in_golden(case_dir: &Path) -> BTreeSet<String> {
     const VIOLATION: &str = "<https://blackcatinformatics.ca/logic/violation>";
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    use gmeow_ns::LOGIC_NS;
     let path = case_dir.join("expected").join("materialized.nq");
     let text =
         std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));

@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-ns"
+description = "GMEOW's registered ontology term namespaces — the single declaration site the slice/ownership analyzer, the emitters, and the authoring gates all read"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["namespace", "rdf", "ontology", "slice", "gmeow"]
+
+[lib]
+# The workspace's lowest first-party rlib: it depends on NOTHING first-party, so
+# every gmeow crate — however low in the layering — may depend on it.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+purrdf.workspace = true

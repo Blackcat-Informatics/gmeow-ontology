@@ -47,7 +47,7 @@ use crate::registry::{
 
 /// The `lang:` namespace base, byte-identical to the other `lang:` producers so every
 /// `lang:` local name resolves to the same IRI across bridges.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+use gmeow_ns::LANG_NS;
 
 /// The single Universal-Dependencies sign-system IRI a CoNLL-U lift declares for the forms
 /// it projects. A per-language sign system would be more precise; a single constant is the

@@ -202,8 +202,26 @@ use session_common::*;
 /// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
 /// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
 /// changes (all additions are inert on it).
+/// Re-blessed once more when the hash-consed structured-term arena was relocated out of
+/// this runtime into the reasoner-free `gmeow-term-arena` crate: `EXTERNAL_BACKWARD_SOURCE`
+/// (`runtime.rs`) `include_str!`s that crate's `src/` tree into `backward_source_hash`, so
+/// moving `physical/term_dag.rs` + `physical/term_key.rs` to `term-arena/src/` — and
+/// splitting the atom dictionary into `interner.rs` and the term rendering into
+/// `display.rs` — changes the folded source-content digest on that axis. The relocation is
+/// byte-for-byte behaviour-preserving (the same netstring fold, the same de-Bruijn
+/// encoding, the same interning constructors), so no reasoning verdict on any input
+/// changes.
+/// Re-blessed once more for the public STRUCTURED proof view (`proof_tree.rs`): reading a
+/// checked proof term as a step TREE requires `physical/proof.rs`'s `ProofShape` decoder and
+/// its `classify` entry to be `pub(crate)` (a second decode of the `App` proof framing would
+/// be a forked duplicate of the one place it is parsed), and `physical/proof.rs` is folded via
+/// `include_str!` into `backward_source_hash`, so the raw source-content digest moves. The
+/// change is visibility-only — no constructor, checker rule, or minting recipe is touched — so
+/// no reasoning verdict on any input changes. (`proof_tree.rs` itself is a downstream READER of
+/// an already-decided proof and is classified in `NOT_BACKWARD_SOURCE` alongside
+/// `goal_directed.rs`, so it adds nothing to the digest.)
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "b40168ed6edec360a28630236543ed542a785f98e796dacce51c9ff13a9657d3";
+    "01be0673502bde1a2918b5bf01076e1be2dbab29bd2a5b4f410a536fd2bd81d6";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -290,8 +308,16 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// test-only `physical::lower::tests::interning` addition moves the native contract hash,
 /// one of the seven folded identity axes, while the fixed edge-only input (authoring no
 /// `math:` expression graph) has an unchanged reasoning verdict.
+/// Re-blessed once more for the term-arena relocation (see the engine-descriptor golden
+/// above): the backward-source digest is one of the seven folded identity axes and moves
+/// with the arena's new crate-relative source paths, while the fixed edge-only input's
+/// reasoning verdict is unchanged.
+/// Re-blessed once more for the public structured proof view (see the engine-descriptor
+/// golden above): the backward-source digest is one of the seven folded identity axes and
+/// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
+/// edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "2ccc4bf00740cfe368ebc9fe616f70ee74fb94ca2fb55f9c2a7a22feea90bbc1";
+    "c0f731c19f340a1ea6c24aa6cde447c52f67a01a44184fb9461fda67285094a0";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
