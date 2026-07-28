@@ -76,7 +76,75 @@ ex:scannedIngestCell5 rdf:first ex:storeReceiptStep ; rdf:rest rdf:nil .
 ex:refineRun78 a logic:RefinementEpisode ;
     rdfs:label "Refinement of the OCR step for batch 78"@x-gmeow-english ;
     logic:refinesStep ex:ocrStep ;
+    logic:refinementServesGoal ex:scansIngestedWithText ;
+    logic:refinementWorldSnapshot ex:scanBatch78 ;
+    logic:refinementBudget ex:generousSearchBudget ;
+    logic:searchFragment logic:FragmentAcyclicMethod ;
+    logic:producedCandidateSet ex:run78Candidates ;
+    logic:selectedPin ex:pinnedOcrPlan .
+
+ex:run78Candidates a logic:RefinementCandidateSet ;
+    rdfs:label "Closed roster for the batch 78 OCR refinement"@x-gmeow-english ;
     logic:refinementCandidate ex:pinnedOcrPlan .
+
+ex:generousSearchBudget a logic:ResourcePolicy ;
+    rdfs:label "Refinement search budget: 1000 method applications"@x-gmeow-english .
+
+# --- The SAME step, the SAME method set, a TIGHTER budget — and therefore a
+#     different, still honest answer. Boundedness is definitional for means-end
+#     search: it is undecidable in general, so an episode reports what it ran
+#     under and what that bought.
+#
+#     This episode was cut. It says so on the kernel's own computation axis —
+#     the search hit its bound, the answer is incomplete relative to the
+#     fragment — and it names NO selected pin, because committing to the best
+#     option a truncated search happened to reach is exactly the silent
+#     quality loss the budget vocabulary exists to prevent. The closed episode
+#     above pins; this one declines to, and the difference between them is one
+#     number.
+#
+#     The engine reproduces this over this very file:
+#       gmeow logic refine <this file> --task …/ocrStep --budget 0
+#     prints INCOMPLETE and withholds the roster rather than showing a partial
+#     one, which would be read as the roster.
+ex:refineRun78UnderTightBudget a logic:RefinementEpisode , gmeow:Activity ;
+    rdfs:label "Refinement of the OCR step for batch 78, under the tight interactive budget"@x-gmeow-english ;
+    logic:refinesStep ex:ocrStep ;
+    logic:refinementServesGoal ex:scansIngestedWithText ;
+    logic:refinementWorldSnapshot ex:scanBatch78 ;
+    logic:refinementBudget ex:tightSearchBudget ;
+    logic:searchFragment logic:FragmentAcyclicMethod .
+
+ex:tightSearchBudget a logic:ResourcePolicy ;
+    rdfs:label "Interactive search budget: 0 method applications"@x-gmeow-english .
+
+ex:tightBudgetSearchResult a logic:ReasoningResult ;
+    rdfs:label "The tight-budget search: cut, and incomplete by construction"@x-gmeow-english ;
+    logic:resultEvaluation logic:BudgetExhausted ;
+    logic:resultCompleteness logic:Incomplete ;
+    logic:consumedBudget "0"^^xsd:nonNegativeInteger ;
+    gmeow:wasGeneratedBy ex:refineRun78UnderTightBudget .
+
+# --- Preparation is work that was already PAID FOR, and a resumed run must not
+#     pay for it twice. Staging the batch — fetching the page images out of cold
+#     storage and normalising them to 300dpi — is expensive and its outcome is
+#     not in doubt, which is exactly what separates a preparation receipt from an
+#     external-effect receipt: one records internal readiness, the other records
+#     something observed outside the system where the outcome IS in doubt.
+ex:stageForOcr a logic:PreparationStep ;
+    rdfs:label "Stage the batch: fetch page images and normalise them to 300dpi"@x-gmeow-english ;
+    logic:preparationOf ex:extractTextStep ;
+    gmeow:preparationActivity ex:stagingRun78 .
+
+ex:stagingRun78 a gmeow:Activity ;
+    rdfs:label "Staging run for batch 78"@x-gmeow-english .
+
+# The receipt is what a restore READS to skip the staging it already completed.
+# Without it, "preparation finished" is inferred from the absence of an error —
+# and a preparation that silently did nothing looks identical.
+ex:stagingReceipt78 a logic:PreparationReceipt ;
+    rdfs:label "Batch 78 staged: 412 pages normalised and readable"@x-gmeow-english ;
+    logic:receiptOfPreparation ex:stageForOcr .
 
 ex:ocrStep a logic:TransactionStep ;
     rdfs:label "Extract text from scanned pages"@x-gmeow-english .

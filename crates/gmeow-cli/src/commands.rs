@@ -5981,6 +5981,11 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path) -> i32 {
     let attempts = iri_pairs(&rows, &format!("{LOGIC_NS}attemptOfIntent"));
     let receipts = iri_pairs(&rows, &format!("{LOGIC_NS}receiptOfAttempt"));
     let unknowns = iri_pairs(&rows, &format!("{LOGIC_NS}unknownOfAttempt"));
+    // The foreclosed position. It is NOT an unknown: an unknown is not-yet-probed and
+    // still resolvable, this one has no reconciliation semantics left to reach for. The
+    // two owe different next actions, so the reader that says what is owed must tell
+    // them apart or it silently sends an operator after evidence that cannot be got.
+    let foreclosed = iri_pairs(&rows, &format!("{LOGIC_NS}impossibleOfAttempt"));
     let probes = iri_pairs(&rows, &format!("{LOGIC_NS}probesAttempt"));
     let verdicts = iri_pairs(&rows, &format!("{LOGIC_NS}reconciliationVerdict"));
 
@@ -5994,9 +5999,18 @@ pub fn logic_saga(reporter: &dyn Reporter, input: &Path) -> i32 {
         println!("  intent:      {}", short(intent));
         let settled = receipts.iter().any(|(_, a)| a == attempt);
         let undetermined = unknowns.iter().any(|(_, a)| a == attempt);
+        let unresolvable = foreclosed.iter().any(|(_, a)| a == attempt);
         let probed = probes.iter().any(|(_, a)| a == attempt);
         if settled {
             println!("  outcome:     receipted");
+        } else if unresolvable {
+            println!("  outcome:     FORECLOSED");
+            println!(
+                "  owed:        ESCALATION — the means of determining what happened no \
+                 longer exist, so no probe can settle this and no retry is licensed. \
+                 This is not an undetermined outcome awaiting reconciliation; it is one \
+                 that can never be reconciled, and it needs a human decision on record."
+            );
         } else if undetermined {
             // The whole point of the boundary state: say what is owed, not merely
             // that the outcome is unknown.

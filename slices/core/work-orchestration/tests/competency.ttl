@@ -11,6 +11,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/tests/> .
+@prefix exr:   <https://blackcatinformatics.ca/gmeow/examples/work-orchestration/recommendation/> .
 
 ex:cqFrontierLabels a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-frontier-labels.rq" ;
@@ -54,3 +55,119 @@ ex:cqContributionOperatorRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionOperator ] .
 ex:cqContributionToolRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:contributionTool ] .
+
+# =========================================================================== #
+# === The three contextual verdicts, read back off the shipped example    === #
+# =========================================================================== #
+#
+# Three questions over ONE candidate field and ONE example scene. Together they
+# are the executable form of the slice's central claim: a recommendation is
+# relative to a context, and the three contexts reach three DIFFERENT and
+# non-interchangeable verdicts — a strict order, a tie, and a positive
+# incomparability. Each question is pinned to its exact rows, so a scene that
+# quietly collapsed the tie into the order, or the Pareto void into the tie,
+# fails here rather than reading as a tidier answer.
+
+ex:cqContextStrictOrder a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-strict-order.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "The frontier must be able to answer 'under this policy, what is the order?' — and answer it as an ORDER rather than as a list of recorded opinions. The scene asserts only the two covering edges (feature flag over rollback, rollback over hotfix); the third row, feature flag over hotfix, is closed here by the transitive path and appears in no triple of the file. Pinning all three rows exactly is what makes the derivation probative: drop the transitivity and the pin loses a row, assert the third edge by hand and the file has stopped demonstrating an order. The two other contexts contribute nothing, which is the second half of the claim — a tie and a Pareto void are not orders, and this question refuses to manufacture one for them."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextStrictOrderShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqStrictRowFlagHotfix , ex:cqStrictRowFlagRollback ,
+                      ex:cqStrictRowRollbackHotfix .
+
+ex:cqContextStrictOrderShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "winner" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "loser" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqStrictRowFlagRollback a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "winner" ; gmeow:cellValueIri exr:featureFlag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loser" ; gmeow:cellValueIri exr:rollback ] .
+
+# The DERIVED row: no triple in the scene says this, and the order does.
+ex:cqStrictRowFlagHotfix a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "winner" ; gmeow:cellValueIri exr:featureFlag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loser" ; gmeow:cellValueIri exr:hotfix ] .
+
+ex:cqStrictRowRollbackHotfix a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "winner" ; gmeow:cellValueIri exr:rollback ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "loser" ; gmeow:cellValueIri exr:hotfix ] .
+
+ex:cqContextTie a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-tie.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "A tie is a comparable indifference and must survive as one: 'these are equally good, pick either' is a more useful answer than a tiebreak the policy never authorized. The pin is exactly one row — rollback and the feature flag under minimise-customer-impact — and its value lies in what does NOT come back. The same two candidates are strictly ordered under the fastest-restore context, and that context's observations are excluded here because each of them names a winner, which a tie observation cannot. A scene that recorded the tie as a zero-length preference, or that let the strict context's rows leak in, fails on this row count."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextTieShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqTieRowRollbackFlag .
+
+ex:cqContextTieShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqTieRowRollbackFlag a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseImpact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "a" ; gmeow:cellValueIri exr:rollback ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri exr:featureFlag ] .
+
+ex:cqContextIncomparable a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-incomparable.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "An incomparability is a positive verdict, not missing data: this policy names no exchange rate between reportable exposure and reversibility, so neither candidate dominates and a human must choose knowing that. The query demands the structure that MAKES it one — two observations under a single context preferring opposite sides of the same pair — before it will read the incomparability relation, which is why the fastest-restore context, whose order also spans rollback and the hotfix, contributes no row. The single pinned row is what stops the void being written up as a tie: a tie says the choice does not matter, and this says the policy will not make it."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextIncomparableShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqIncomparableRowHotfixRollback .
+
+ex:cqContextIncomparableShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "a" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "b" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqIncomparableRowHotfixRollback a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseExposure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "a" ; gmeow:cellValueIri exr:hotfix ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri exr:rollback ] .
+
+# --- The standpoint index the operator view collapses -------------------------
+ex:cqContextStandpointIndex a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/work-orchestration/queries/competency/cq-context-standpoint-index.rq" ;
+    gmeow:cqDataFile "examples/contextual-recommendation.ttl" ;
+    gmeow:cqRationale "The slice claims that collapsing coexisting standpoint-indexed classifications into one operator view is a real loss, and ships a projection receipt to disclose it. This question is that claim's uncollapsed form: three contexts, three standpoints, one shared interval. The shared interval is load-bearing — it is what makes the three verdicts a genuine coexistence at one decision moment rather than a change of mind over time, and only a recorded time scope can tell those apart. Both indexes are reused rather than re-minted (the core gmeow:Standpoint and the core gmeow:TimeScopedRelation), which is also what makes the slice's dependency on those two vocabularies real rather than declared."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqContextStandpointIndexShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqStandpointRowCommander , ex:cqStandpointRowSupport ,
+                      ex:cqStandpointRowCompliance .
+
+ex:cqContextStandpointIndexShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "context" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "standpoint" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "interval" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqStandpointRowCommander a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:fastestRestore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exr:incidentCommanderStandpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exr:incident4412Interval ] .
+
+ex:cqStandpointRowSupport a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseImpact ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exr:supportLeadStandpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exr:incident4412Interval ] .
+
+ex:cqStandpointRowCompliance a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "context" ; gmeow:cellValueIri exr:minimiseExposure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "standpoint" ; gmeow:cellValueIri exr:complianceOfficerStandpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exr:incident4412Interval ] .
