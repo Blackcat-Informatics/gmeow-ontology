@@ -1894,6 +1894,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-mcp-wasm"
+version = "0.2.0"
+dependencies = [
+ "gmeow-mcp",
+ "serde_json",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-music"
 version = "0.2.0"
 dependencies = [

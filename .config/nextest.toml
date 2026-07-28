@@ -96,6 +96,14 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-dev-cli) & ( binary(docs_distribution_contract) | test(/dev_slice_quality::gate_enforcement_tests::the_real_repository_slice_quality_gate_is_green_end_to_end/) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The MCP native≡wasm parity witness builds the consumer engine over the WHOLE
+# gmeow.gts snapshot TWICE (once directly, once through the shim's `init`) — the same
+# bundle-assembly class as the proofs above, running ~26s standalone and starving past
+# the 60s default under gate parallelism. Same 300s runaway backstop.
+[[profile.default.overrides]]
+filter = 'package(gmeow-mcp-wasm) & binary(witness_mcp)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }

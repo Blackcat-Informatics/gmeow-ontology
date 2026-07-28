@@ -163,6 +163,10 @@ members = [
     # wasm32 bindings for the native logic reasoner (browser entailment panel).
     "crates/reason-wasm",
     "crates/gmn-wasm",
+    # wasm32 bindings for the consumer MCP engine: the whole 35-tool / 5-resource
+    # JSON-RPC surface driven a frame at a time over a caller-supplied gmeow.gts
+    # snapshot (never an embedded one — a bundle is caller data, not a build constant).
+    "crates/mcp-wasm",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
     # oxigraph-family `oxsdatatypes` (purrdf S1, EPIC #906).

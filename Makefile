@@ -75,10 +75,11 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
+	mcp-wasm-pkg mcp-wasm-pkg-test \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
-	maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-wikidata-live \
+	maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-mcp-asset maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
@@ -399,7 +400,7 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 
 CAPI_HEADER := crates/rdf-capi/include/purrdf.h
 
-wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) build for wasm32.
+wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + reasoner + GMN codec + MCP engine) build for wasm32.
 	@# gmeow's own wasm-first crates MUST compile to wasm32 with a reasoning-runtime-free
 	@# dep tree. The RDF/wasm engine is the sibling `purrdf` package (gated by its own
 	@# CI), so this target proves only gmeow's own crates. The target's absence is a SKIP
@@ -451,7 +452,18 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 				exit 1; \
 			fi; \
 		done; \
-		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec build for wasm32 (dep trees are native-runtime-free)"; \
+		echo "== MCP engine proof: gmeow-mcp-wasm (the consumer 35-tool / 5-resource JSON-RPC surface) builds for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-mcp-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "== purity gate: no native-only crate may appear in the MCP engine wasm dep tree (gmeow-logic + rayon ARE allowed — the engine reasons serially on wasm) =="; \
+		: "tempfile is the NATIVE half of the mcp storage seam (atomic library appends). It does not cross-compile to wasm32, so it is cfg(not(target_arch = \"wasm32\"))-gated in crates/mcp; forbidding it here proves that gate holds and the browser backend is the one in play."; \
+		for forbidden in oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer tempfile; do \
+			if $(WASM_CARGO) tree -p gmeow-mcp-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+				echo "FAIL: gmeow-mcp-wasm leaked $$forbidden into its wasm dependency tree:"; \
+				$(WASM_CARGO) tree -p gmeow-mcp-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec + the wasm MCP engine build for wasm32 (dep trees are native-runtime-free)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — gmeow's wasm-clean criterion cannot be verified; CI must install it"; exit 1; \
 	else \
@@ -524,17 +536,53 @@ gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its N
 	cd crates/gmn-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-gmn-wasm Node native↔wasm parity witness lane passed"
 
-wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the three Node lanes that RUN the shipped wasm and assert byte-identity to native.
-	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the three `*-pkg-test`
-	@# lanes RUN the shipped wasm (validate/reason/gmn) and assert byte-identity to the
-	@# native engine — the "every gmeow surface proven native≡wasm" contract (#1406).
+mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+	$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_mcp_wasm.wasm \
+		--out-dir crates/mcp-wasm/js/pkg --target web
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	@# `--enable-nontrapping-float-to-int` is REQUIRED here and absent from the three
+	@# sibling lanes because this image genuinely uses that instruction family: the MCP
+	@# engine links the transcode hub + the numeric-literal canonicalization paths, whose
+	@# codegen emits `i64.trunc_sat_f64_{s,u}`. binaryen validates the input against
+	@# exactly the feature set named on the command line, so without the flag wasm-opt
+	@# HARD-FAILS ("all used features should be allowed") — the flag DECLARES what rustc
+	@# emitted, it does not relax a check.
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
+	@echo "OK: wasm-opt -Oz applied"
+	@echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
+
+maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm engine into crates/docs/assets/mcp/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	@# The re-pin step drives the SHARED vendored-wasm-asset harness through the
+	@# `MCP_ASSET` descriptor (`gmeow_docs::vendored_asset`), exactly as the validate /
+	@# reason / gmn refresh lanes do. That descriptor `include_bytes!`s the vendored blob,
+	@# so it lands with the engine-consolidation change that first commits these bytes —
+	@# this lane is the copy+bless ritual that change drives, defined here once with its
+	@# siblings rather than invented alongside it.
+	mkdir -p crates/docs/assets/mcp
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.js            crates/docs/assets/mcp/gmeow_mcp_wasm.js
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm       crates/docs/assets/mcp/gmeow_mcp_wasm_bg.wasm
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.d.ts          crates/docs/assets/mcp/gmeow_mcp_wasm.d.ts
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm.d.ts  crates/docs/assets/mcp/gmeow_mcp_wasm_bg.wasm.d.ts
+	GMEOW_MCP_BLESS=1 cargo test -p gmeow-docs --test mcp_asset
+	@echo "OK: re-vendored gmeow-mcp-wasm into crates/docs/assets/mcp/ (DIGESTS.blake3 re-pinned)"
+
+mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
+	cd crates/mcp-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-mcp-wasm Node native↔wasm parity witness lane passed"
+
+wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the four Node lanes that RUN the shipped wasm and assert byte-identity to native.
+	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the four `*-pkg-test`
+	@# lanes RUN the shipped wasm (validate/reason/gmn/mcp) and assert byte-identity to
+	@# the native engine — the "every gmeow surface proven native≡wasm" contract.
 	@# On-gate so the vendored digest that gates the shipped bytes is exactly the one a
 	@# parity run blessed (the `maint-refresh-*-asset` targets now depend on `*-pkg-test`,
 	@# so re-vendoring cannot re-pin bytes that never passed parity). Locally this SKIPs
 	@# when the wasm32 target or node is absent; CI hard-fails — the parity criterion is
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
-		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test; \
+		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test mcp-wasm-pkg-test; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target or node absent in CI — the native≡wasm parity witnesses cannot run; CI must install both"; exit 1; \
 	else \

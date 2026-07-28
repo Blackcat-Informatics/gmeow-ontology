@@ -32,6 +32,7 @@ repos:
             crates/docs/assets/validate/.*|
             crates/docs/assets/reason/.*|
             crates/docs/assets/gmn/.*|
+            crates/mcp-wasm/tests/WITNESS\.mcp\.json|
             .*\.(tsv|svg|conllu)
           )$
       - id: end-of-file-fixer
