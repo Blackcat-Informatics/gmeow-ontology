@@ -1536,7 +1536,7 @@ logic:ReasoningPreset
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Reasoning Preset"@x-gmeow-english ;
-    logic:subClassOf logic:ReasoningContract ;
+    rdfs:subClassOf logic:ReasoningContract ;
     skos:definition "A named ReasoningContract that fixes a common, supported facet selection — sugar the compiler expands to the full facet bundle before reasoning. The historical profile names (positive-Horn, stratified-negation, well-founded, stable-model, procedural, probabilistic) survive only as presets, not as indivisible alternatives."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
