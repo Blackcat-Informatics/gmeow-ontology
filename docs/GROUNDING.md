@@ -91,13 +91,22 @@ The shipped grounding surface is split by semantic owner:
 - `logic:` carries 140 core correspondences for gUFO, BFO, OBO/RO, SUMO,
   OWL/RDFS, and SHACL Core/AF in
   [`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl),
-  plus 23 commitment-shifting DUL, IAO, PATO, YAMATO, and OpenCyc rows in
+  plus 25 commitment-shifting DUL, IAO, OBI, PATO, YAMATO, and OpenCyc rows in
   [`foundation-bridges.ttl`](../slices/grounding/logic/mappings/foundation-bridges.ttl).
+  OBI's catalog is `logic:`-owned because its backbone is a planned-process
+  upper ontology: the prescription and enactment bridges
+  (`logic:Plan` → OBI protocol, `logic:Enactment` → OBI planned process) are
+  authored there once, and every downstream `obi:` surface is a generated
+  projection of them.
 - `math:` carries its identity catalog, six direct quantity/value bridges to
   SOSA, OM 1.8, IVOA ObsCore, LOINC, and QUDT in
   [`quantity-bridges.ttl`](../slices/grounding/math/mappings/quantity-bridges.ttl),
   plus 13 validation-only Data Cube, STATO, OBCS, SIO, and OBI rows in
   [`statistical-bridges.ttl`](../slices/grounding/math/mappings/statistical-bridges.ttl).
+  The single OBI row there (`math:DataTransformation` → OBI data transformation)
+  predates the ownership split and sits off the owner boundary, so it is an
+  explicitly ceilinged residue of exactly one (`gmeow:pcc-math-obi`) that may
+  only fall — never a second OBI authoring home.
 - `lang:` carries its identity catalog plus 21 validation-only OntoLex-Lemon,
   LexInfo, Global WordNet schema, NIF, and Web Annotation rows in
   [`lexical-bridges.ttl`](../slices/grounding/lang/mappings/lexical-bridges.ttl).

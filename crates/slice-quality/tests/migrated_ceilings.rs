@@ -74,8 +74,14 @@ fn every_committed_projection_ceiling_is_reproduced_integer_exactly() {
     let rows = golden_rows("projection-ceilings.golden.tsv");
     assert_eq!(
         rows.len(),
-        140,
-        "the frozen projection-ceiling golden has 140 rows"
+        141,
+        // 141, not 140: the math/obi row was ADDED when OBI's catalog ownership moved to
+        // the logic: grounding slice, where its planned-process backbone belongs and where
+        // this vocabulary was already declared subsumed. math: keeps its one pre-existing
+        // OBI_0200000 data-transformation bridge, which is now an off-owner residue of
+        // exactly one and is bounded here. Extending the record is what a newly bounded
+        // residue looks like; no committed historical value moved.
+        "the frozen projection-ceiling golden has 141 rows"
     );
     let live = live_rows(&rows);
     assert_eq!(

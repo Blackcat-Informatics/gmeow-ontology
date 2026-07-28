@@ -143,7 +143,7 @@ list, never a hardcoded set in Rust.
 | `rdfs` | RDFS (subsumption taxonomy) | logic | `countKindStructuralAxiom` | Enforced |
 | `gufo` | gUFO | logic | `countKindTypedAxiom` | Enforced |
 | `bfo` | Basic Formal Ontology (`obo/BFO_`) | logic | `countKindTypedAxiom` | Enforced |
-| `ro`/`iao`/`pato`/`so`/`mfoem` | OBO families | logic | `countKindTypedAxiom` | Enforced |
+| `ro`/`iao`/`obi`/`pato`/`so`/`mfoem` | OBO families | logic | `countKindTypedAxiom` | Enforced |
 | `stato`/`obcs` | OBO statistics | math | `countKindTypedAxiom` | Enforced |
 | `dul` | DOLCE Ultra-Lite | logic | `countKindTypedAxiom` | Enforced |
 | `sumo` | SUMO | logic | `countKindTypedAxiom` | Enforced |
