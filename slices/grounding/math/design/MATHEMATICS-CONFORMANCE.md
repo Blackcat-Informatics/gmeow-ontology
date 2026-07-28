@@ -103,7 +103,7 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
 | A signed-extended-real slot holds a finite number (either sign), `math:PositiveInfinity`, or `math:NegativeInfinity` | SHACL-SPARQL (`math:ExtendedRealValueConstraint`, a literal-or-one-of-two-poles disjunction) | `math:MalformedExtendedReal` |
-| An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
+| An intensional set's member condition denotes a `logic:` formula, not a string | SHACL-SPARQL (`math:SetBuilderMemberConditionNodeKindConstraint`, the `logic:` node-kind gate) | `math:StringOnlyMemberCondition` |
 | A complement names its ambient space and its complement-semantics | SHACL Core | `math:UnqualifiedComplement` |
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
 | A `math:Interval` names both endpoints and both endpoint inclusions (inclusion is never silently omitted) | SHACL Core (paired `owl:maxQualifiedCardinality`/`owl:minQualifiedCardinality` exact-one restrictions on all four properties in `module.ttl`) | `math:UnderspecifiedInterval` |
@@ -190,7 +190,7 @@ flat relational join SHACL/Datalog can express:
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| A `math:RationalValue` declares a non-zero `math:denominator` — `p/0` is not a rational value | SHACL Core (`math:RationalValueDenominatorNonZeroConstraint`, the `logic:` forbidden-value gate, projected as `sh:not [ sh:hasValue 0 ]`) | `math:ZeroDenominator` |
+| A `math:RationalValue` declares a non-zero `math:denominator` — `p/0` is not a rational value | SHACL-SPARQL (`math:RationalValueDenominatorNonZeroConstraint`, the `logic:` forbidden-value gate) | `math:ZeroDenominator` |
 | A `math:GramMatrix` is symmetric — every `math:MatrixEntry` at (row, column) has a transpose entry at (column, row) carrying the same `math:entryValue` | Rust validator (the exact-rational transpose-equality sweep; declarative twin `math:GramMatrixSymmetryConstraint` → SHACL-SPARQL) | `math:AsymmetricGramMatrix` |
 | A `math:Norm` induced by a symmetric bilinear form, or a `math:GramMatrix` authored `math:definiteness math:positiveDefinite`, is genuinely positive-definite — certified by the exact-rational LDLᵀ factorization (all pivots `> 0` by Sylvester's criterion), the sole positive-definiteness enforcement point the runtime distance builtin trusts | Rust validator (declarative twin `math:NormPositiveDefiniteConstraint` / `math:GramPositiveDefiniteConstraint` → SHACL Core / SHACL-SPARQL) | `math:NonPositiveDefiniteNorm` |
 
