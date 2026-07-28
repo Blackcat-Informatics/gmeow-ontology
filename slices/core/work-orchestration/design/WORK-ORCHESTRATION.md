@@ -212,13 +212,25 @@ the authorized operator identity, the governing policy, the decision, and the va
 kernel obligations and are not restated here.
 
 **Every recorded contribution is attributed.** `gmeow:ContributionKind` is a closed three-value class —
-model, operator, tool — with an exactly-one binding on every recorded contribution and a negative
-fixture for an unattributed one (`gmeow:ContributionAttributionConstraint`). The reason it is closed
+model, operator, tool — bound exactly once on every recorded contribution. The reason it is closed
 and mandatory rather than open and optional: an unattributed contribution in a review record is
 indistinguishable from a human judgment, which is precisely the confusion that makes a
 model-generated draft dangerous. Attribution is carried natively as statement-level metadata rather
 than as a parallel reification, so an attributed claim is one triple term and not a hand-rolled
 quad-shaped stand-in.
+
+The closure of the value set is enforced by `gmeow:contributionKind`'s range. Its **presence** is
+not, and the honest reason is structural rather than an omission to be back-filled: the records that
+carry a contribution are typed by *what they are* — a `logic:Advisory`, a `gmeow:Note`, a
+`gmeow:Observation` — and the slice deliberately mints no `gmeow:Contribution` supertype to hang a
+guard on, because a class whose only content is "something was contributed" would be a second
+identity for records that already have one. A presence law therefore has no domain to quantify over,
+and stating it as a law over one of the three carriers would enforce it exactly where it is least
+needed. The consequence attribution is meant to prevent is enforced directly instead, and does not
+depend on the attribution being written down: `logic:AdvisoryNeverAuthorityConstraint` keeps a
+`logic:Advisory` out of all three authority positions — authorizing a pin, carrying a proof, deciding
+an approval — so model output cannot become a decision whether or not anyone recorded that it was
+model output.
 
 `gmeow:preparationActivity` → `gmeow:Activity`, a sub-property of the kernel's `logic:preparationOf`,
 closes the other half of preparation: the kernel says *this step prepares for that one*; the binding

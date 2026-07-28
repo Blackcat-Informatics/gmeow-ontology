@@ -3,7 +3,10 @@
 #
 # N5 - an unknown outcome naming no attempt. Retry from an undetermined position is
 # licensed only through the attempt, so this record can never be resolved and can never
-# license the retry it invites. MUST trip logic:NoBlindRetryConstraint.
+# license the retry it invites. MUST trip logic:UnknownOutcomeNamesItsAttemptConstraint.
+# NOT logic:NoBlindRetryConstraint: that law governs a logic:RetryDispatch and its licence,
+# and there is no retry here for it to bind. The retry is
+# unknown-outcome-retried-on-a-borrowed-licence.ttl.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .

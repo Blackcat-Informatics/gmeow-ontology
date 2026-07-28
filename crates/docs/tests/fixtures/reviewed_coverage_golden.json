@@ -6783,13 +6783,13 @@
     "https://blackcatinformatics.ca/gmeow/versionSetFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
   ],
   "slices/core/work-orchestration/i18n/fr.po": [
-    "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label",
-    "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2004/02/skos/core#example",
     "https://blackcatinformatics.ca/gmeow/EnactmentIsNotOccurrenceConstraint|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/EnactmentIsNotOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2004/02/skos/core#example",
@@ -6925,13 +6925,13 @@
     "https://blackcatinformatics.ca/gmeow/slices/work-orchestration|http://www.w3.org/2004/02/skos/core#definition"
   ],
   "slices/core/work-orchestration/i18n/zh.po": [
-    "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label",
-    "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2004/02/skos/core#example",
     "https://blackcatinformatics.ca/gmeow/EnactmentIsNotOccurrenceConstraint|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/EnactmentIsNotOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2004/02/skos/core#example",

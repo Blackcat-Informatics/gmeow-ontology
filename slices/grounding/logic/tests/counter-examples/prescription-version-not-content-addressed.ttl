@@ -3,7 +3,11 @@
 #
 # N3 - a prescription version with no content address. Immutability is enforced by
 # content addressing rather than a flag, so an unaddressed version makes in-place
-# revision undetectable. MUST trip logic:PrescriptionVersionImmutabilityConstraint.
+# revision undetectable. MUST trip logic:PrescriptionVersionIsContentAddressedConstraint.
+# NOT logic:PrescriptionVersionImmutabilityConstraint: that law compares the version's
+# current address with what a run froze, and its guard binds both, so an unaddressed
+# version falls outside it. The overwrite is
+# prescription-version-revised-under-a-running-enactment.ttl.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .

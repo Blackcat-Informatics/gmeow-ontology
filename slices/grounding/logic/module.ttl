@@ -10442,11 +10442,11 @@ logic:AdvisoryNeverAuthorityConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "an advisory never occupies an authority position"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:Advisory that authorizes a pin. Model-generated content is attributed evidence and may never be the thing that licenses an action; the separation is enforced structurally rather than left to convention, because a convention is exactly what fails under time pressure."@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:Advisory that occupies ANY of the three authority positions logic:Advisory's own definition bars it from: authorizing a pin (logic:pinAuthority), carrying the proof that licensed an intent (logic:proofEstablishes), or standing as the decision an approval reached (logic:approvalDecision). Model-generated content is attributed evidence and may never be the thing that licenses an action; the separation is enforced structurally rather than left to convention, because a convention is exactly what fails under time pressure. The three legs are one law rather than three because they are one prohibition read at three seams — and a law that guarded only the pin seam would leave the other two open while its name claimed all of them, which is how advice arrives as proof."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
-    logic:message "A logic:Advisory may not authorize a pin: model-generated advice is evidence, never authority." ;
+    logic:message "A logic:Advisory may not authorize a pin (logic:pinAuthority), establish an intent's licensing (logic:proofEstablishes), or be an approval's decision (logic:approvalDecision): model-generated advice is evidence, never authority." ;
     logic:integrity logic:anaForall .
 logic:anaForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -10454,9 +10454,16 @@ logic:anaForall a logic:Formula ;
 logic:anaImpl a logic:Formula ; logic:antecedent logic:anaGuard ; logic:consequent logic:anaCons .
 logic:anaGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Advisory ] .
-logic:anaCons a logic:Formula ; logic:not logic:anaAuthorizes .
+logic:anaCons a logic:Formula ; logic:and logic:anaNotAuthority , logic:anaNotProof , logic:anaNotDecision .
+logic:anaNotAuthority a logic:Formula ; logic:not logic:anaAuthorizes .
 logic:anaAuthorizes a logic:Formula ; logic:relation logic:pinAuthority ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:anaNotProof a logic:Formula ; logic:not logic:anaProves .
+logic:anaProves a logic:Formula ; logic:relation logic:proofEstablishes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "licensed" ] .
+logic:anaNotDecision a logic:Formula ; logic:not logic:anaDecides .
+logic:anaDecides a logic:Formula ; logic:relation logic:approvalDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "approval" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 
 logic:RefinementEpisodeDeclaresSearchFragmentConstraint
     a logic:Constraint ;

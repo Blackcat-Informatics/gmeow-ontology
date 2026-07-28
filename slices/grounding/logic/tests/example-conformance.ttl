@@ -272,18 +272,44 @@ ex:ecTypedIrDatatypeWithoutLiteral a gmeow:ExampleConformance ;
 # fire. It does NOT prove nothing else fired: the harness's `violates` branch requires
 # only that SOME finding carry the expected code AND originate from the pinned shape;
 # it never asserts the finding set is a singleton. The isolation was therefore
-# established by MEASUREMENT rather than assumed — each fixture's full finding set was
-# enumerated, and ten of the eleven emit exactly one finding, from their own shape.
-# The eleventh (ex:ecCompensationAsInverse) emits three, all entailed by its single
-# authored defect; its rationale states that outright instead of claiming an isolation
-# the data does not have.
+# established by MEASUREMENT rather than assumed — every fixture's full finding set was
+# enumerated by driving it through the production verify() entrypoint, and all but one
+# emit exactly one enactment-integrity finding, from their own law. The exception is
+# ex:ecCompensationAsInverse, which emits three, all entailed by its single authored
+# defect; its rationale states that outright instead of claiming an isolation the data
+# does not have. ex:ecAdvisoryAsAProof emits one finding carrying two ROWS — the same
+# law and subject reported once per kernel class the node is typed by — and says so.
+
+# PRESENCE / RELATIONAL PAIRING — read this before editing a pin below.
+#
+# Five kernel record kinds are governed by a PAIR of laws: a presence law that says the
+# binding exists, and a relational law that reads the binding against a second record. The
+# relational law's guard REQUIRES the binding, so a fixture that omits it falls outside that
+# guard entirely and can only ever trip the presence law. Pinning an absence fixture to a
+# relational law therefore pins it to a law that cannot fire on it — the cell would pass
+# only while the harness compared the shared component code, and prove nothing once it
+# compared source shapes.
+#
+# Each pair below is therefore registered TWICE: the absence fixture pinned to the presence
+# law, and a mismatch/substitution fixture — every record in it individually well-formed —
+# pinned to the relational law. The pairing is asserted, not assumed: the Rust acceptance
+# harness crates/logic/tests/enactment_gate.rs drives all ten through the production
+# verify() entrypoint and asserts, by law IRI, that each fixture trips its own law and that
+# its twin's law stays SILENT on it.
 
 ex:ecCheckpointNoFoldedIdentity a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/checkpoint-no-folded-identity.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:CheckpointCarriesFoldedIdentityConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A logic:EnactmentCheckpoint with no logic:checkpointDescriptorHash. Restore is identity-gated across seven axes and the fold is what the gate compares first, so an unfolded checkpoint cannot be gated at all. MUST emit shacl.SPARQLConstraintComponent for logic:CheckpointCarriesFoldedIdentityConstraint — the law that MAKES the fold available — and NO other finding. It is deliberately NOT pinned to logic:CheckpointRestoreIdentityConstraint, whose guard binds the restore's fold and the checkpoint's before it compares them: a checkpoint carrying no fold falls outside that guard, so the comparison law is silent here and the mismatch case is registered separately as ex:ecCheckpointFoldDrift." .
+
+ex:ecCheckpointFoldDrift a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/checkpoint-restored-under-a-drifted-fold.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:CheckpointRestoreIdentityConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "A logic:EnactmentCheckpoint with no logic:checkpointDescriptorHash. Restore is identity-gated across seven axes and the fold is what the gate compares first, so an unfolded checkpoint cannot be gated at all. MUST emit shacl.SPARQLConstraintComponent for logic:CheckpointRestoreIdentityConstraint and NO other finding." .
+    gmeow:conformanceRationale "A logic:CheckpointRestore whose logic:restoreDescriptorHash is not the logic:checkpointDescriptorHash of the logic:EnactmentCheckpoint it restores — the identity gate FAILING, which is the case the gate exists for. The checkpoint carries its fold and names its run; the restore carries its own fold and resumes that same run, so both presence laws and the second identity axis (logic:RestoreStaysWithinItsEnactmentConstraint) pass. Resuming anyway executes against drifted rules and records the result as a continuation of the run that was reviewed. MUST emit shacl.SPARQLConstraintComponent for logic:CheckpointRestoreIdentityConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecContinuationConflated a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/continuation-resume-and-repeat-conflated.ttl" ;
@@ -296,8 +322,15 @@ ex:ecPrescriptionNotAddressed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/prescription-version-not-content-addressed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:PrescriptionVersionIsContentAddressedConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A logic:PrescriptionVersion with no logic:prescriptionDigest. Content addressing is the PRECONDITION of immutability rather than immutability itself, so an unaddressed version makes in-place revision undetectable. MUST emit shacl.SPARQLConstraintComponent for logic:PrescriptionVersionIsContentAddressedConstraint and NO other finding. It is deliberately NOT pinned to logic:PrescriptionVersionImmutabilityConstraint, whose guard binds the version's current address, the run that enacts it and the address that run froze: a version with no address falls outside that guard, and the overwrite case is registered separately as ex:ecPrescriptionRevisedInPlace." .
+
+ex:ecPrescriptionRevisedInPlace a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/prescription-version-revised-under-a-running-enactment.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:PrescriptionVersionImmutabilityConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "A logic:PrescriptionVersion with no logic:prescriptionDigest. Immutability is enforced by content addressing rather than a flag, so an unaddressed version makes in-place revision undetectable. MUST emit shacl.SPARQLConstraintComponent for logic:PrescriptionVersionImmutabilityConstraint and NO other finding." .
+    gmeow:conformanceRationale "A landed logic:PrescriptionVersion whose logic:prescriptionDigest no longer equals the logic:enactedPrescriptionDigest a running logic:Enactment froze at pin time — the mutable history overwritten IN PLACE. The version is content-addressed and the enactment pins both its version and its input snapshot, so every presence law passes and the version pointer still resolves; nothing else in the record looks wrong. A version and its own address agree by construction however many times the bytes were rewritten, which is why the only possible witness is a value frozen elsewhere before the edit. MUST emit shacl.SPARQLConstraintComponent for logic:PrescriptionVersionImmutabilityConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecReceiptWithoutAttempt a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/receipt-without-attempt.ttl" ;
@@ -310,8 +343,15 @@ ex:ecUnknownWithoutAttempt a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/unknown-outcome-without-attempt.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:UnknownOutcomeNamesItsAttemptConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A logic:ExternalOutcomeUnknown naming no attempt. Retry from an undetermined position is licensed only through the attempt, so this record can never be resolved and can never license the retry it invites. MUST emit shacl.SPARQLConstraintComponent for logic:UnknownOutcomeNamesItsAttemptConstraint — the precondition of the no-blind-retry discipline — and NO other finding. It is deliberately NOT pinned to logic:NoBlindRetryConstraint, which governs a logic:RetryDispatch and its licence: this fixture contains no retry at all, so that law has nothing to bind here, and the retry case is registered separately as ex:ecUnknownOutcomeRetried." .
+
+ex:ecUnknownOutcomeRetried a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/unknown-outcome-retried-on-a-borrowed-licence.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:NoBlindRetryConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "A logic:ExternalOutcomeUnknown naming no attempt. Retry from an undetermined position is licensed only through the attempt, so this record can never be resolved and can never license the retry it invites. MUST emit shacl.SPARQLConstraintComponent for logic:NoBlindRetryConstraint and NO other finding." .
+    gmeow:conformanceRationale "An undetermined outcome treated as an ordinary failure AND RETRIED: the logic:RetryDispatch re-sends ex:invoice901Charge under a logic:IdempotencyContract whose logic:licenceCoversAttempt names ex:invoice902Charge. Every record is individually well-formed — the unknown outcome names its attempt, the retry names both its attempt and a licence, and the contract binds all five of its fields — so the presence laws (logic:UnknownOutcomeNamesItsAttemptConstraint, logic:RetryRequiresLicenceConstraint, logic:IdempotencyContractCompletenessConstraint) all pass. A licence borrowed from a neighbouring dispatch reads identically to a real one and permits exactly the double charge the commitment layer exists to prevent. MUST emit shacl.SPARQLConstraintComponent for logic:NoBlindRetryConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecCompensationAsInverse a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compensation-typed-as-its-forward-receipt.ttl" ;
@@ -339,14 +379,28 @@ ex:ecAdvisoryAuthorizesPin a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:AdvisoryNeverAuthorityConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "A logic:Advisory occupying the logic:pinAuthority position. Model output is attributed evidence and may never license an action; the separation is structural rather than conventional because a convention is what fails under time pressure. MUST emit shacl.SPARQLConstraintComponent for logic:AdvisoryNeverAuthorityConstraint and NO other finding." .
+    gmeow:conformanceRationale "A logic:Advisory occupying the logic:pinAuthority position. Model output is attributed evidence and may never license an action; the separation is structural rather than conventional because a convention is what fails under time pressure. logic:AdvisoryNeverAuthorityConstraint bars an advisory from all three authority positions logic:Advisory's definition names — authorizing a pin, carrying a proof, deciding an approval — and this cell isolates the PIN leg: the pin is otherwise impeccable, freezing the exact ordered steps its method yields and addressing them with a digest, so the only thing wrong is who authorized it. MUST emit shacl.SPARQLConstraintComponent for logic:AdvisoryNeverAuthorityConstraint and NO other finding." .
+
+ex:ecAdvisoryAsAProof a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/advisory-laundered-into-an-authorization-proof.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:AdvisoryNeverAuthorityConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A model recommendation asserted AS PROOF: the same node typed logic:Advisory and logic:AuthorizationProof, carrying logic:proofEstablishes for the intent whose licensing it claims to settle. This is the PROOF leg of logic:AdvisoryNeverAuthorityConstraint, and no pin is involved — which is what makes it the more dangerous substitution of the two, because nothing about the record looks like an authorization. Downstream, 'the intent has a proof' is true, checkable, and worthless: a checker asked to recompute the proof term can only re-run the model. MUST emit shacl.SPARQLConstraintComponent from logic:AdvisoryNeverAuthorityConstraintProceduralConstraintShape and NO finding from any other law. Measured through the production verify() entrypoint the scene yields exactly one enactment-integrity finding, whose detail carries TWO rows — one per kernel class the node is typed by, logic:Advisory and logic:AuthorizationProof — both naming this same law and this same subject; the doubled row is the double typing being reported, not a second defect." .
 
 ex:ecFrontierUnwitnessed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/frontier-closed-without-saturation-witness.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:FrontierCarriesSaturationWitnessConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A logic:ActionableFrontier with no logic:frontierSaturationWitness. An unwitnessed closure claim is exactly how a roster truncated by a budget cut passes for complete, after which the system confidently omits the action it should have taken. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierCarriesSaturationWitnessConstraint — the law that requires the witness to be PRESENT — and NO other finding. It is deliberately NOT pinned to logic:FrontierClosureRequiresSaturationConstraint, which READS a witness and whose guard therefore binds one: a frontier citing nothing falls outside that guard, and the two ways of citing a witness that certifies nothing are registered separately as ex:ecFrontierContentFreeWitness and ex:ecFrontierBudgetCutWitness." .
+
+ex:ecFrontierBudgetCutWitness a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/frontier-closed-on-a-budget-cut-witness.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:FrontierClosureRequiresSaturationConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "A logic:ActionableFrontier with no logic:frontierSaturationWitness. An unwitnessed closure claim is exactly how a roster truncated by a budget cut passes for complete, after which the system confidently omits the action it should have taken. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint and NO other finding." .
+    gmeow:conformanceRationale "The incomplete roster PRESENTED AS CLOSED, with the witness that says so: a logic:ActionableFrontier citing a logic:SaturationWitness that names its settled predicate, states its consumed budget, and carries logic:resultEvaluation logic:BudgetExhausted. The search stopped at its declared bound rather than at a fixed point, so the closure claim certifies the truncation it denies. The presence law (logic:FrontierCarriesSaturationWitnessConstraint) passes and the witness's content legs pass, which is why only a law that READS the evaluation status can see this. MUST emit shacl.SPARQLConstraintComponent for logic:FrontierClosureRequiresSaturationConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .
 
 ex:ecFrontierContentFreeWitness a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/frontier-cites-a-content-free-witness.ttl" ;
@@ -366,5 +420,12 @@ ex:ecCapabilityGapNoStep a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/capability-gap-without-blocked-step.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape logic:OperationalGapNamesBlockedStepConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A logic:OperationalCapabilityGap naming no blocked step, so an absent capability is reported as a general provisioning complaint rather than a concrete blockage a proposal could close. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapNamesBlockedStepConstraint and NO other finding. It is deliberately NOT pinned to logic:OperationalGapCarriesProposalConstraint, which joins a gap to its remedy THROUGH the shared step and whose guard therefore binds that step: a gap naming none falls outside that guard, and the substitution case is registered separately as ex:ecOcrGapRemediedElsewhere." .
+
+ex:ecOcrGapRemediedElsewhere a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ocr-gap-remedied-for-a-different-step.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape logic:OperationalGapCarriesProposalConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "A logic:OperationalCapabilityGap naming no blocked step, so an absent capability is reported as a general provisioning complaint rather than a concrete blockage a proposal could close — the silent-substitution failure inverted. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapCarriesProposalConstraint and NO other finding." .
+    gmeow:conformanceRationale "The silent substitution, caught where it leaves a trace: an absent OCR capability, a logic:OperationalCapabilityGap correctly naming ex:ocrStep, a complete eight-field logic:CapabilityGapProposal whose logic:proposalBlockedStep is a DIFFERENT step, and a nine-field logic:DispatchIntent recording that ex:ocrStep was dispatched anyway against a plain-text extractor. Nothing is missing — the gap names its step, the proposal binds all eight fields, the intent binds all nine — so logic:OperationalGapNamesBlockedStepConstraint, logic:CapabilityGapProposalCompletenessConstraint and logic:DispatchIntentCompletenessConstraint all pass, and a reader counting proposals against gaps sees a backlog being attended to. The defect is the JOIN: no proposal answers the OCR blockage, which is what makes an unanswered gap indistinguishable from a system that degraded quietly instead. MUST emit shacl.SPARQLConstraintComponent for logic:OperationalGapCarriesProposalConstraint and NO other finding: measured through the production verify() entrypoint, the scene yields exactly one enactment-integrity finding, from this law." .

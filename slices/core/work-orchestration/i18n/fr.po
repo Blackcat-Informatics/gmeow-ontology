@@ -6,14 +6,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr\n"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "an explanation surfaces its dissent"
-msgstr "une explication fait apparaître la dissidence qu'elle porte"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a gmeow:FrontierExplanation that carries no proof. An explanation whose supporting derivation is absent is a narrative, and a narrative presented where a proof belongs is exactly the substitution the advice-is-never-authority discipline forbids."
-msgstr "La logic:Constraint qui rejette une gmeow:FrontierExplanation dépourvue de preuve. Une explication dont la dérivation justificative est absente est un récit, et un récit présenté là où une preuve devrait figurer est exactement la substitution que la discipline « le conseil n'est jamais l'autorité » interdit."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Contribution Kind"
 msgstr "Nature de la contribution"
@@ -33,6 +25,14 @@ msgstr "une exécution effective est engendrée par une occurrence, jamais ident
 msgctxt "https://blackcatinformatics.ca/gmeow/EnactmentIsNotOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:Constraint rejecting a logic:Enactment typed as a calendar event. The schedule is the GENERATOR and the enactment is generated: identifying them makes a skipped occurrence indistinguishable from a missing run, and makes an enactment that outlives its scheduled slot unrepresentable."
 msgstr "La logic:Constraint qui rejette une logic:Enactment typée comme un événement de calendrier. Le calendrier est le GÉNÉRATEUR et l'exécution effective est engendrée : les identifier rend une occurrence sautée indiscernable d'une exécution manquante, et rend irreprésentable une exécution qui déborde de son créneau planifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an explanation carries a checkable proof"
+msgstr "une explication porte une preuve vérifiable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a gmeow:FrontierExplanation that carries no proof. An explanation whose supporting derivation is absent is a narrative, and a narrative presented where a proof belongs is exactly the substitution the advice-is-never-authority discipline forbids."
+msgstr "La logic:Constraint qui rejette une gmeow:FrontierExplanation dépourvue de preuve. Une explication dont la dérivation justificative est absente est un récit, et un récit présenté là où une preuve devrait figurer est exactement la substitution que la discipline « le conseil n'est jamais l'autorité » interdit."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Frontier Explanation"

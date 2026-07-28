@@ -6,14 +6,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: zh\n"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "an explanation surfaces its dissent"
-msgstr "解释须显露其所载异议"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/ContributionAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a gmeow:FrontierExplanation that carries no proof. An explanation whose supporting derivation is absent is a narrative, and a narrative presented where a proof belongs is exactly the substitution the advice-is-never-authority discipline forbids."
-msgstr "拒斥不载证明之 gmeow:FrontierExplanation 的 logic:Constraint。缺失佐证推导的解释只是一段叙述；而在本应是证明之处呈上叙述，正是「建议绝非权威」这一纪律所禁止的偷换。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/ContributionKind|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Contribution Kind"
 msgstr "贡献种类"
@@ -33,6 +25,14 @@ msgstr "实施由某次occurrence生成，绝不等同于它"
 msgctxt "https://blackcatinformatics.ca/gmeow/EnactmentIsNotOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:Constraint rejecting a logic:Enactment typed as a calendar event. The schedule is the GENERATOR and the enactment is generated: identifying them makes a skipped occurrence indistinguishable from a missing run, and makes an enactment that outlives its scheduled slot unrepresentable."
 msgstr "拒斥被类型化为日历事件之 logic:Enactment 的 logic:Constraint。日程是生成者，实施是被生成者：将二者等同，会使「被跳过的 occurrence」与「缺失的运行」无从分辨，也使「超出既定时段仍在进行的实施」无从表达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an explanation carries a checkable proof"
+msgstr "解释须载可核验之证明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExplanationCarriesProofConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a gmeow:FrontierExplanation that carries no proof. An explanation whose supporting derivation is absent is a narrative, and a narrative presented where a proof belongs is exactly the substitution the advice-is-never-authority discipline forbids."
+msgstr "拒斥不载证明之 gmeow:FrontierExplanation 的 logic:Constraint。缺失佐证推导的解释只是一段叙述；而在本应是证明之处呈上叙述，正是「建议绝非权威」这一纪律所禁止的偷换。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/FrontierExplanation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Frontier Explanation"

@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The failure the frontier layer exists to prevent, stated in full: a roster CUT BY A
+# BUDGET, presented as closed, and carrying a witness that says so in so many words.
+#
+# The witness is not empty and not missing. It names the predicate it settled, states
+# the budget it consumed, and is cited by the frontier — so the presence law
+# (logic:FrontierCarriesSaturationWitnessConstraint) passes and the content legs of the
+# closure law pass too. Its logic:resultEvaluation is logic:BudgetExhausted: the search
+# stopped because it hit its declared bound, not because it reached a fixed point.
+#
+# What it costs in the world: the search was truncated at 64 units, the entry it had
+# not yet reached was the rollback nobody could see, and the operator reads a roster
+# certified complete. Every downstream reader of a closed frontier is entitled to treat
+# absence as evidence of absence, which is exactly what makes an uncertified closure
+# claim worse than no claim at all.
+#
+# It is the cut-budget case. The absence sibling
+# (frontier-closed-without-saturation-witness.ttl) cites no witness and can only reach
+# the presence law; the content-free sibling
+# (frontier-cites-a-content-free-witness.ttl) cites a witness with no status to be
+# exhausted. This one is the case where the evidence is present, readable, and says
+# the opposite of what the frontier claims.
+#
+# MUST trip logic:FrontierClosureRequiresSaturationConstraint.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:frontierCutForBudget a logic:ActionableFrontier ;
+    rdfs:label "a roster claiming closure over a search its own witness says was cut"@en ;
+    logic:frontierSaturationWitness ex:truncatedSaturation .
+
+ex:truncatedSaturation a logic:SaturationWitness ;
+    rdfs:label "a saturation witness recording the bound the search stopped at"@en ;
+    logic:settledPredicate logic:hasFrontierEntry ;
+    logic:consumedBudget "64"^^xsd:nonNegativeInteger ;
+    logic:resultEvaluation logic:BudgetExhausted .

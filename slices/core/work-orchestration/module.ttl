@@ -592,49 +592,57 @@ gmeow:ReviewProjectionCompletenessConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Violation" ;
     logic:message "A gmeow:WorkReviewProjection must carry all eight contents and a gmeow:reviewReceipt disclosing its preservation judgment." ;
-    logic:integrity logic:rpcForall .
-logic:rpcForall a logic:Formula ;
+    logic:integrity logic:wrpForall .
+# The body-node prefix is `wrp`, not `rpc`: logic:rpcForall, logic:rpcImpl, logic:rpcGuard
+# and logic:rpcCons are ALREADY the body of the grounding slice's
+# logic:RefinementPinComesFromCandidateSetConstraint. Formula nodes are ordinary IRIs in one
+# shared namespace, so reusing a mnemonic across two slices does not shadow — it MERGES: in
+# any graph carrying both modules logic:rpcGuard would hold this law's logic:relation AND
+# that law's logic:and, which is two constructors on one node (the exactly-one choice
+# logic:FormulaConstructorConstraint enforces) and two corrupted bodies rather than one
+# overridden. Every formula node a slice mints must be unique across the whole ontology.
+logic:wrpForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:rpcImpl .
-logic:rpcImpl a logic:Formula ; logic:antecedent logic:rpcGuard ; logic:consequent logic:rpcCons .
-logic:rpcGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:forall logic:wrpImpl .
+logic:wrpImpl a logic:Formula ; logic:antecedent logic:wrpGuard ; logic:consequent logic:wrpCons .
+logic:wrpGuard a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:WorkReviewProjection ] .
-logic:rpcCons a logic:Formula ; logic:and logic:rpcGoal , logic:rpcLineage , logic:rpcEnactment , logic:rpcFrontier , logic:rpcApprovals , logic:rpcEffects , logic:rpcRecord , logic:rpcTimeline , logic:rpcReceipt .
-logic:rpcGoal a logic:Formula ; logic:relation gmeow:reviewGoalAndRecurrence ;
+logic:wrpCons a logic:Formula ; logic:and logic:wrpGoal , logic:wrpLineage , logic:wrpEnactment , logic:wrpFrontier , logic:wrpApprovals , logic:wrpEffects , logic:wrpRecord , logic:wrpTimeline , logic:wrpReceipt .
+logic:wrpGoal a logic:Formula ; logic:relation gmeow:reviewGoalAndRecurrence ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "goal" ] .
-logic:rpcLineage a logic:Formula ; logic:relation gmeow:reviewPrescriptionLineage ;
+logic:wrpLineage a logic:Formula ; logic:relation gmeow:reviewPrescriptionLineage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lineage" ] .
-logic:rpcEnactment a logic:Formula ; logic:relation gmeow:reviewCurrentEnactment ;
+logic:wrpEnactment a logic:Formula ; logic:relation gmeow:reviewCurrentEnactment ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "enactment" ] .
-logic:rpcFrontier a logic:Formula ; logic:relation gmeow:reviewFrontier ;
+logic:wrpFrontier a logic:Formula ; logic:relation gmeow:reviewFrontier ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frontier" ] .
-logic:rpcApprovals a logic:Formula ; logic:relation gmeow:reviewApprovalsAndPending ;
+logic:wrpApprovals a logic:Formula ; logic:relation gmeow:reviewApprovalsAndPending ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "approvals" ] .
-logic:rpcEffects a logic:Formula ; logic:relation gmeow:reviewEffectStatus ;
+logic:wrpEffects a logic:Formula ; logic:relation gmeow:reviewEffectStatus ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "effects" ] .
-logic:rpcRecord a logic:Formula ; logic:relation gmeow:reviewAccumulatedRecord ;
+logic:wrpRecord a logic:Formula ; logic:relation gmeow:reviewAccumulatedRecord ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] .
-logic:rpcTimeline a logic:Formula ; logic:relation gmeow:reviewTimelineRepresentation ;
+logic:wrpTimeline a logic:Formula ; logic:relation gmeow:reviewTimelineRepresentation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "timeline" ] .
-logic:rpcReceipt a logic:Formula ; logic:relation gmeow:reviewReceipt ;
+logic:wrpReceipt a logic:Formula ; logic:relation gmeow:reviewReceipt ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "receipt" ] .
 
-gmeow:ContributionAttributionConstraint
+gmeow:ExplanationCarriesProofConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
-    rdfs:label "an explanation surfaces its dissent"@x-gmeow-english ;
+    rdfs:label "an explanation carries a checkable proof"@x-gmeow-english ;
     skos:definition "The logic:Constraint rejecting a gmeow:FrontierExplanation that carries no proof. An explanation whose supporting derivation is absent is a narrative, and a narrative presented where a proof belongs is exactly the substitution the advice-is-never-authority discipline forbids."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:severity "Violation" ;
     logic:message "A gmeow:FrontierExplanation must carry a gmeow:explanationProof; a narrative may not stand where a checkable derivation belongs." ;
-    logic:integrity logic:cacForall .
-logic:cacForall a logic:Formula ;
+    logic:integrity logic:ecpForall .
+logic:ecpForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:cacImpl .
-logic:cacImpl a logic:Formula ; logic:antecedent logic:cacGuard ; logic:consequent logic:cacCons .
-logic:cacGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:forall logic:ecpImpl .
+logic:ecpImpl a logic:Formula ; logic:antecedent logic:ecpGuard ; logic:consequent logic:ecpCons .
+logic:ecpGuard a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FrontierExplanation ] .
-logic:cacCons a logic:Formula ; logic:relation gmeow:explanationProof ;
+logic:ecpCons a logic:Formula ; logic:relation gmeow:explanationProof ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "proof" ] .
 
 gmeow:GuidanceVersionRecordedConstraint
