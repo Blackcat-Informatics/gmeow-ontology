@@ -4754,6 +4754,30 @@ logic:besSortalUnderEntity a logic:Formula ; logic:relation <http://www.w3.org/2
 logic:besSortalDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sortal" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
 
+# The constructive-repair wing needs an ENUMERATED candidate set: "specialize to sortal X" is
+# only actionable if X is named, and the abductive engine reads those names off this formula's
+# disjunction branches. The advice guard above needs the opposite — completeness over EVERY
+# specialization, including ones no enumeration can anticipate. Sharing one formula for both
+# made the guard only as correct as the candidate list, which is exactly how a properly-typed
+# gmeow:Commitment came to be advised to specialize itself. They are two obligations and they
+# get two formulas: the guard quantifies over the subclass edge, and this one names the top
+# sortals the repair proposes. The engine still keeps only the candidates consistent with the
+# subject's other assertions, so naming a bounded set here costs no soundness.
+logic:besSortalCandidateForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:besSortalCandidateImpl .
+logic:besSortalCandidateImpl a logic:Formula ;
+    logic:antecedent logic:besGuard ; logic:consequent logic:besSortalCandidateCons .
+logic:besSortalCandidateCons a logic:Formula ; logic:or logic:besAgent , logic:besInfo , logic:besPhys , logic:besSoc .
+logic:besAgent a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] .
+logic:besInfo a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
+logic:besPhys a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PhysicalObject ] .
+logic:besSoc a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SocialObject ] .
+
 gmeow:EndurantAsEventAdviceConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -4955,12 +4979,12 @@ logic:BareEntitySortalAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "bare-entity sortal abductive schema"@x-gmeow-english ;
-    skos:definition "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. It reuses the gmeow:BareEntitySortalAdviceConstraint's completeness formula (logic:besForall, whose consequent existentially quantifies over the subclass edge rather than enumerating sortals) as its warrant target, so the engine keeps only the specializations consistent with the subject's other assertions."@x-gmeow-english ;
+    skos:definition "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The engine keeps only the specializations consistent with the subject's other assertions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Entity ;
     logic:repairsDiscipline gmeow:BareEntitySortalAdviceConstraint ;
     logic:repairStrategy logic:StrategySortalSpecialization ;
-    logic:completenessFormula logic:besForall .
+    logic:completenessFormula logic:besSortalCandidateForall .
 
 logic:WemiChainAbductiveSchema
     a logic:AbductiveSchema ;
