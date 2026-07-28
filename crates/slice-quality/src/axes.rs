@@ -1141,7 +1141,7 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     // A (term, predicate) whose authored values are ALL notation-only is dropped here
     // rather than credited later — see the doc comment.
     let mut literals: Vec<(String, String)> = Vec::new();
-    let mut notation_excluded = 0usize;
+    let mut notation_excluded: Vec<(String, String)> = Vec::new();
     for iri in &ctx.terms {
         let Some(sid) = id(ds, iri) else { continue };
         for pred in LOCALIZABLE_PREDICATES {
@@ -1153,20 +1153,60 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
             // Conservative: exclude only when NO authored value is prose. A pair with
             // one notation value and one prose value is still a translation duty.
             if values.iter().all(|v| is_technical_invariant(v)) {
-                notation_excluded += 1;
+                notation_excluded.push((iri.clone(), (*pred).to_string()));
                 continue;
             }
             literals.push((iri.clone(), (*pred).to_string()));
         }
     }
     let expected = literals.len();
+
+    // The exclusion is reported UNCONDITIONALLY — independent of the score — so a
+    // `1.000000` denominator is exactly as auditable as a `0.9` one: without this, a
+    // literal dropped from the denominator for being notation-not-prose is invisible
+    // whenever nothing else is left uncovered. Emitted once per (term, predicate),
+    // never re-derived per language, since the exclusion itself is language-independent.
+    let mut findings = Vec::new();
+    if !notation_excluded.is_empty() {
+        findings.push(advisory(
+            "slice-quality.translation.notation-excluded",
+            format!(
+                "{} localizable literal(s) are notation, not prose — Turtle snippets, bare IRIs, wire values — and are excluded from the translation-coverage denominator: notation carries no translation duty.",
+                notation_excluded.len()
+            ),
+        ));
+        for (term, pred) in notation_excluded.iter().take(UNCOVERED_LITERAL_CAP) {
+            findings.push(
+                advisory_about(
+                    "slice-quality.translation.notation-excluded",
+                    term,
+                    format!(
+                        "({term}, {pred}) is notation, not prose, and is excluded from the translation-coverage denominator."
+                    ),
+                )
+                .with_position(format!("{term}|{pred}#notation-excluded")),
+            );
+        }
+        if notation_excluded.len() > UNCOVERED_LITERAL_CAP {
+            findings.push(advisory(
+                "slice-quality.translation.notation-excluded-truncated",
+                format!(
+                    "… and {} more notation-excluded literal(s) beyond the first {UNCOVERED_LITERAL_CAP} listed above.",
+                    notation_excluded.len() - UNCOVERED_LITERAL_CAP
+                ),
+            ));
+        }
+    }
+
     if expected == 0 {
-        return AxisScore::clean(1.0);
+        return AxisScore {
+            score: 1.0,
+            findings,
+        };
     }
 
     // English is authored, so it is always fully covered.
     let mut lang_cov = vec![1.0_f64];
-    let mut findings = Vec::new();
     for (tag, stem) in TRANSLATION_LANGS {
         let po = ctx.slice_dir.join(format!("i18n/{stem}.po"));
         // The POSITION every catalog-scoped advisory below is stamped with. Each
@@ -1330,12 +1370,13 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
             } else {
                 String::new()
             };
-            let excluded_note = if notation_excluded > 0 {
-                format!(
-                    " ({notation_excluded} notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty)"
-                )
-            } else {
+            let excluded_note = if notation_excluded.is_empty() {
                 String::new()
+            } else {
+                format!(
+                    " ({} notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty)",
+                    notation_excluded.len()
+                )
             };
             findings.push(
                 advisory(

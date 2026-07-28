@@ -63,6 +63,8 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.translation.incomplete",
     "slice-quality.translation.uncovered-literal",
     "slice-quality.translation.uncovered-literal-truncated",
+    "slice-quality.translation.notation-excluded",
+    "slice-quality.translation.notation-excluded-truncated",
     "slice-quality.flagship.counterexample-structural-only",
     "slice-quality.gmn1-coverage.no-repo-root",
     "slice-quality.gmn1-coverage.no-dictionary",

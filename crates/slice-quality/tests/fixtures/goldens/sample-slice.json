@@ -132,6 +132,43 @@
     },
     {
       "severity": "warning",
+      "code": "slice-quality.translation.notation-excluded",
+      "message": "2 localizable literal(s) are notation, not prose — Turtle snippets, bare IRIs, wire values — and are excluded from the translation-coverage denominator: notation carries no translation duty.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.notation-excluded",
+      "message": "(https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#example#notation-excluded"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleArtifact"
+      ]
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.notation-excluded",
+      "message": "(https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator.",
+      "tool": "slice-quality",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#example#notation-excluded"
+        }
+      ],
+      "standpoint": "advisory",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/SampleObject"
+      ]
+    },
+    {
+      "severity": "warning",
       "code": "slice-quality.translation.uncovered-literal",
       "message": "cmn does not cover (https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2000/01/rdf-schema#label): no catalog entry for this literal.",
       "tool": "slice-quality",
@@ -464,6 +501,11 @@
     {
       "id": "slice-quality.translation.incomplete",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-incomplete",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.translation.notation-excluded",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-notation-excluded",
       "default_severity": "warning"
     },
     {

@@ -409,6 +409,85 @@
           "level": "warning",
           "locations": [
             {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "2 localizable literal(s) are notation, not prose — Turtle snippets, bare IRIs, wire values — and are excluded from the translation-coverage denominator: notation carries no translation duty."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "91e24f164b3b5ad8"
+          },
+          "ruleId": "slice-quality.translation.notation-excluded"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2004/02/skos/core#example#notation-excluded"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "(https://blackcatinformatics.ca/gmeow/SampleArtifact, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f54d0d2de67eb612"
+          },
+          "ruleId": "slice-quality.translation.notation-excluded"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleObject|http://www.w3.org/2004/02/skos/core#example#notation-excluded"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "(https://blackcatinformatics.ca/gmeow/SampleObject, http://www.w3.org/2004/02/skos/core#example) is notation, not prose, and is excluded from the translation-coverage denominator."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d10d9c075c317855"
+          },
+          "ruleId": "slice-quality.translation.notation-excluded"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
               "logicalLocations": [
                 {
                   "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/SampleArtifact|http://www.w3.org/2000/01/rdf-schema#label#cmn"
@@ -1126,6 +1205,13 @@
               },
               "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-incomplete",
               "id": "slice-quality.translation.incomplete"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-notation-excluded",
+              "id": "slice-quality.translation.notation-excluded"
             },
             {
               "defaultConfiguration": {

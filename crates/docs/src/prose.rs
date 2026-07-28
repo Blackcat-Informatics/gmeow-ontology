@@ -66,14 +66,16 @@ const BOUNDARY_CUES: &[&str] = &[
 ];
 
 /// True if a definition states a boundary ("what it is NOT") via a negation cue,
-/// matched at word boundaries ([`word_at_boundary`]) on the lowercased text — and
-/// is not merely wearing the term-agnostic boilerplate coat ([`BOILERPLATE_COAT`]).
+/// matched at word boundaries ([`word_at_boundary`]) on the lowercased text, once
+/// the term-agnostic boilerplate coat ([`BOILERPLATE_COAT`]) is removed.
+///
+/// The coat is EXCISED from the text before scanning, not treated as a
+/// whole-definition veto: it can neither credit the axis (its own cues are gone
+/// with it) nor deny credit to a genuine boundary cue phrased elsewhere in the
+/// same definition.
 #[must_use]
 pub fn states_boundary(def: &str) -> bool {
-    let d = def.to_lowercase();
-    if d.contains(BOILERPLATE_COAT) {
-        return false;
-    }
+    let d = def.to_lowercase().replace(BOILERPLATE_COAT, " ");
     BOUNDARY_CUES.iter().any(|cue| word_at_boundary(&d, cue))
 }
 
@@ -138,10 +140,14 @@ mod tests {
         assert!(!states_boundary(
             "A thing. It is not an interchangeable alias for a broader, narrower, or merely related construct."
         ));
-        // …and the carve-out is not a blanket veto: a REAL boundary alongside the
-        // coat still counts only if it is phrased outside the coat's exact family.
+        // The coat alone, uppercased, is still no boundary once excised.
         assert!(!states_boundary(
             "It is NOT AN INTERCHANGEABLE ALIAS FOR A BROADER, NARROWER, OR MERELY RELATED CONSTRUCT."
+        ));
+        // …and the excision is not a blanket veto: a REAL boundary cue phrased
+        // OUTSIDE the coat still counts even though the coat is also present.
+        assert!(states_boundary(
+            "A relator, never a mere pair. It is not an interchangeable alias for a broader, narrower, or merely related construct."
         ));
     }
 
