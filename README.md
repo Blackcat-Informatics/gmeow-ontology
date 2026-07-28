@@ -50,7 +50,7 @@ disagreement as coexisting standpoints instead of overwriting the loser.
 - **Friendly front, rigorous engine.** Flat JSON / Pydantic / MCP tools are the front door
   (no one learns RDF); reasoned RDF is the engine room.
 
-**One engine, three products** ([v0.2.0 realignment](./docs/REALIGNMENT-v0.2.0.md)):
+**One engine, three products**:
 
 | Product | What it is | Status |
 |---|---|---|
@@ -144,7 +144,6 @@ slice's model *and* how it aligns/projects.
 | Guide | Kind | What it covers |
 |---|---|---|
 | [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The nineteen normative principles every design decision and PR is measured against |
-| [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md) | Governance | The v0.2.0 realignment: one engine, three products — positioning, recast inventory, deliverables D1–D7 |
 | [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
 | [`docs/mcp-server.md`](./docs/mcp-server.md) | Product | The MCP server: the grounded-memory triad (`store_claim`/`recall`/`revise_belief`) + the ontology toolchain tools; one-line install |
 | [`docs/hallucination-resistant-kg.md`](./docs/hallucination-resistant-kg.md) | Doctrine | The claim-extraction spine done right — fixture, prompt, audit gates, `gmeow audit`; scored across models on the [eval leaderboard](./generated/evals/leaderboard.md) |
@@ -246,6 +245,31 @@ conformance corpus gates its four reader implementations:
 | Rust | [crates.io `gmeow-gts`](https://crates.io/crates/gmeow-gts) | `cargo install gmeow-gts` |
 | TypeScript | [npm `@blackcatinformatics/gmeow-gts`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-gts) | `npm install @blackcatinformatics/gmeow-gts` |
 | Go | [pkg.go.dev `go.blackcatinformatics.ca/gts`](https://pkg.go.dev/go.blackcatinformatics.ca/gts) | `go install go.blackcatinformatics.ca/gts/cmd/gts@latest` |
+
+### The browser console
+
+The same engine an agent drives over MCP also runs in a browser, with no install and no
+server. Paste RDF 1.2, then parse, query, reason, validate, and serialize it in the page:
+
+| Package | What it is |
+|---|---|
+| [`@blackcatinformatics/gmeow-console`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-console) | the `<gmeow-console>` custom element |
+| [`@blackcatinformatics/gmeow-mcp-core-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-mcp-core-wasm) | the eagerly-loaded engine: parse, query, validate, serialize |
+| [`@blackcatinformatics/gmeow-mcp-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-mcp-wasm) | the reasoning segment, fetched on first use |
+| [`@blackcatinformatics/gmeow-validate-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-validate-wasm) | the Tier-1 SHACL validator and the GMN-1 codec validator |
+| [`@blackcatinformatics/gmeow-reason-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-reason-wasm) | the structured-DL chase on its own |
+| [`@blackcatinformatics/gmeow-gmn-wasm`](https://www.npmjs.com/package/@blackcatinformatics/gmeow-gmn-wasm) | the GMN-1 glyph codec |
+
+The console's panes are not authored. It boots by asking the engine for its tool list and for
+the shipped action theory, then renders one pane per tool the ontology types as a read action —
+so the surface a reader sees and the surface an agent calls are the same surface, proven by a
+bijection gate rather than kept in step by hand. The docs site's own interactive pages consume
+that same element.
+
+Reasoning is deferred, never dropped: the console loads a lean core and fetches the reasoner the
+first time a pane needs it, replaying the identical request so a caller sees a slower answer
+rather than a failure. See [`crates/docs/assets/console/README.md`](./crates/docs/assets/console/README.md)
+for the measured byte budgets and the offline/permalink behaviour.
 
 The committed [`generated/dist/gmeow.gts`](./generated/dist/gmeow.gts) artifact is the
 repo-free GMEOW distribution snapshot. It is the file embedded in the `gmeow` binary and used by
