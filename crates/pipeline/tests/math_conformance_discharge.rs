@@ -632,6 +632,67 @@ mod unauthored_reachable_regression {
         );
     }
 
+    /// The LOAD-BEARING half: the real native-source scan actually populates `reachable`.
+    ///
+    /// The set-difference check above can stay green while the wiring beneath it rots — if
+    /// `native_source_message_classes` stopped finding anything (a renamed file, a changed
+    /// message convention), `reachable` would be empty, no class could ever be flagged, and the
+    /// phantom hole would silently reopen with every assertion still passing. That is exactly
+    /// the shape of test this harness exists to distrust, so pin the scan itself: it runs over
+    /// the REAL source files and must recover the classes native Rust actually emits.
+    #[test]
+    fn the_real_native_source_scan_recovers_the_classes_rust_actually_emits() {
+        // Compose BOTH reachability signals exactly as the harness does: the message-token
+        // scan, plus the failure-class IRI constants. The second exists because the typed
+        // error algebra interpolates its class token at RUNTIME, so classes reachable only
+        // through it never appear as literal source text — checking one half alone would
+        // report a class as unreachable that production emits.
+        let mut reachable = native_source_message_classes();
+        reachable.extend(native_source_iri_constant_classes());
+        assert!(
+            reachable.len() > 5,
+            "the native-source scan must recover the emitted classes; got {reachable:?}"
+        );
+        // Each of these is emitted from a DIFFERENT source file the scan must cover, so a
+        // dropped path shows up here rather than as a silently smaller population.
+        for expected in [
+            "StringOnlyComputableExpression", // crates/validate/src/lint.rs
+            "MalformedStructuralKey",         // crates/logic/src/math_expression.rs
+            "CyclicExpressionGraph",          // crates/logic/src/physical/lower.rs
+        ] {
+            assert!(
+                reachable.contains(expected),
+                "the scan must recover {expected} from its own source file; got {reachable:?}"
+            );
+        }
+    }
+
+    /// End to end over the REAL populations: a class Rust emits but the ontology does not
+    /// author is a hard gap. Uses the live scan and the live authored set rather than
+    /// hand-built ones, so it exercises the reconciliation as the harness actually runs it.
+    #[test]
+    fn a_real_emitted_class_missing_from_the_authored_set_is_a_hard_gap() {
+        let mut reachable = native_source_message_classes();
+        reachable.extend(native_source_iri_constant_classes());
+        let victim = "MalformedStructuralKey".to_owned();
+        assert!(
+            reachable.contains(&victim),
+            "precondition: the scan recovers the class this test withholds from `authored`"
+        );
+        // Every reachable class IS authored on a healthy tree; withhold exactly one and the
+        // reconciliation must name it.
+        let authored: BTreeSet<String> = reachable
+            .iter()
+            .filter(|c| **c != victim)
+            .cloned()
+            .collect();
+        let gaps = unauthored_reachable_classes(&reachable, &authored, &BTreeSet::new());
+        assert!(
+            gaps.iter().any(|g| g.contains(&victim)),
+            "withholding {victim} from the authored set must produce a hard gap naming it: {gaps:?}"
+        );
+    }
+
     /// An authored class is never flagged even though reachable — this check targets ONLY
     /// the unauthored case, not a general "reachable" sweep.
     #[test]
