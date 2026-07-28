@@ -448,8 +448,8 @@ exception). Gated on a stable Python beta so the surface is proven before it is 
 consumer and **not** dependent on `no_std`: WASM has its own ownership model, packaging (npm/ESM), async
 I/O, and idiomatic JS API (RDF/JS `DataFactory`/Stream). Its own parcel, parallel to the C-ABI.
 
-**Delivered** as `crates/rdf-wasm` (the `gmeow-rdf-wasm` cdylib) + the `purrdf` npm/ESM package at
-`crates/rdf-wasm/js/`. It compiles the oxigraph-free / PyO3-free `gmeow-rdf` kernel
+**Delivered** in the sibling purrdf repository as its wasm-bindings cdylib + the
+published `@blackcatinformatics/purrdf` npm/ESM package. It compiles the oxigraph-free / PyO3-free RDF kernel
 (`--no-default-features --features gts`) to `wasm32-unknown-unknown` — no engine cfg-gating was needed
 (the probed `ed25519`/`getrandom` blocker did not materialize: Ed25519 is deterministic and unreachable
 from the RDF/JS surface). The shipped surface:
@@ -470,11 +470,17 @@ from the RDF/JS surface). The shipped surface:
 
 **SPARQL over wasm — DELIVERED (oxigraph-free).** The earlier "native-only by charter" framing was
 tied to the oxigraph backend; `gmeow-rdf` since shipped an **oxigraph-free SPARQL evaluator** that
-compiles to `wasm32`, so SPARQL now runs entirely in the browser. The documentation site's offline
-SPARQL playground is exactly this: the vendored `purrdf` wasm asset (`crates/docs/assets/purrdf/`)
-carries `query`, evaluated client-side over the shipped bundle with no server and no network.
-`wasm-opt -Oz` size optimization is likewise **delivered** — it is now a REQUIRED build step for every
-vendored wasm asset (a missing `wasm-opt` is a hard build failure, never a note).
+compiles to `wasm32`, so SPARQL now runs entirely in the browser. `wasm-opt -Oz` size optimization is
+likewise **delivered** — it is now a REQUIRED build step for every vendored wasm asset (a missing
+`wasm-opt` is a hard build failure, never a note).
+
+The documentation site's offline SPARQL playground was the first consumer of that evaluator, via a
+vendored `purrdf` wasm asset under `crates/docs/assets/purrdf/`. That asset is **retired**: the site's
+playground and bundle explorer now reach the same evaluator through GMEOW's own MCP wasm segments
+(`query_local` with `scope: "bundle"`), which are already loaded for every other interactive widget.
+The evaluator is unchanged and still runs client-side over the shipped bundle with no server and no
+network — the site simply no longer carries a second 8.15 MB copy of it, nor the 311 MB of
+re-serialized query assets that copy needed in order to be given anything to parse.
 
 **Deferred (out of P10):** only the JS-ecosystem conformance suites (N3.js / rdflib.js / RDF-JS) and the
 actual npm publish — deferred to the post-v1 spin-up.

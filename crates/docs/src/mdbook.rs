@@ -97,7 +97,7 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     // built it carries the SAME live SPARQL / reasoning / GMN transcode the site does
     // (its `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities in
     // `gmeow_docs_model::formats` are not a bare claim — the assets are shipped here).
-    let interactive = exec.has_bundle() || exec.has_playground();
+    let interactive = crate::render::interactive_assets_ship(exec);
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     files.insert(

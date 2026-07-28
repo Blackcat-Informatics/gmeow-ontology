@@ -19,24 +19,16 @@ use gmeow_docs::{DocSlice, ExecutableDocsData};
 
 mod common;
 
-/// An `exec` that supplies a (non-empty) playground asset, so the term/slice
-/// export sections — which link the dropped SPARQL playground + prompt card —
-/// are rendered. The bytes are opaque to the renderer (it only checks
-/// non-emptiness via `has_playground`), so a fixed sentinel is sufficient.
-fn exec_with_playground() -> ExecutableDocsData {
-    ExecutableDocsData {
-        playground_trig: b"@prefix ex: <http://example/> .".to_vec(),
-        ..Default::default()
-    }
-}
-
-/// An `exec` that supplies a (non-empty) browser bundle, so the render packs the
-/// interactive engines + the bundle-explorer host chapter into the book. The bytes are
-/// opaque to the renderer (it checks non-emptiness via `has_bundle` and content-addresses
-/// them), so fixed sentinels suffice.
+/// An `exec` that supplies the (non-empty) queryable bundle, so the render packs the
+/// interactive engines, the term/slice export sections and the bundle-explorer host
+/// chapter into the book. The bytes are opaque to the renderer (it checks non-emptiness
+/// via `has_bundle` and content-addresses them), so a fixed sentinel suffices.
+///
+/// There used to be two of these fixtures, one per query asset. There is one asset now, so
+/// there is one fixture: a book could no longer be built with an explorer but no playground
+/// (or the reverse), which was never a state the site could actually serve.
 fn exec_with_bundle() -> ExecutableDocsData {
     ExecutableDocsData {
-        core_bundle_nquads: b"<http://ex/s> <http://ex/p> <http://ex/o> <http://ex/g> .\n".to_vec(),
         full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
         ..Default::default()
     }
@@ -66,15 +58,14 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
         "src/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm",
         "src/assets/mcp-core/index.mjs",
         "src/assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm",
-        "src/assets/purrdf/gmeow_rdf_wasm.js",
     ] {
         assert!(
             has(engine),
             "vendored engine not packed into the book: {engine}"
         );
     }
-    // The browser bundle the explorer queries + its integrity manifest.
-    assert!(has("src/assets/gmeow-core.nq"), "core bundle not packed");
+    // The ONE queryable asset every interactive surface reads + its integrity manifest.
+    assert!(has("src/assets/gmeow.gts"), "queryable bundle not packed");
     assert!(
         has("src/assets/bundle-manifest.json"),
         "bundle manifest not packed"
@@ -303,7 +294,7 @@ fn book_term_chapter_with_dropped_link_golden() {
     // A term chapter that HAS cross-links AND (via the playground exec) links the
     // dropped SPARQL playground + prompt card — pins the A5 rewrite fidelity.
     let model = common::cached_model();
-    let exec = exec_with_playground();
+    let exec = exec_with_bundle();
     let site = render_book(&model, &exec);
     let slug = term_with_crosslinks(&model);
     let body = String::from_utf8(
@@ -336,7 +327,7 @@ fn book_bodies_are_rewrite_of_single_authority() {
     // A4 — render-once coherence: the ONLY difference between a book chapter and
     // the site body is the deterministic link rewrite. This mechanizes the razor.
     let model = common::cached_model();
-    let exec = exec_with_playground();
+    let exec = exec_with_bundle();
     let site = render_book(&model, &exec);
     let pages = book_pages(&model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
@@ -370,7 +361,7 @@ fn book_no_relative_link_to_dropped_page() {
     // `mdbook build`. Every `[text](target)` link to a dropped surface (the SPARQL
     // playground or a `card.md`) must be ABSOLUTE (externalized), never relative.
     let model = common::cached_model();
-    let site = render_book(&model, &exec_with_playground());
+    let site = render_book(&model, &exec_with_bundle());
     for (path, bytes) in &site.files {
         if !path.ends_with("index.md") || path == "src/SUMMARY.md" {
             continue;

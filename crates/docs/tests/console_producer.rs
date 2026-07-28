@@ -25,8 +25,6 @@ mod common;
 /// the test independent of a built bundle.
 fn interactive_exec() -> ExecutableDocsData {
     ExecutableDocsData {
-        playground_trig: b"@prefix ex: <http://example/> . ex:a ex:b ex:c .\n".to_vec(),
-        core_bundle_nquads: b"<http://ex/s> <http://ex/p> <http://ex/o> <http://ex/g> .\n".to_vec(),
         full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
         conjectures_ttl: b"@prefix ex: <http://example/> . ex:c a ex:Conjecture .\n".to_vec(),
         ..Default::default()

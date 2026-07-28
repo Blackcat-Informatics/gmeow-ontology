@@ -105,11 +105,16 @@ fn bundled_conjecture_library(snapshot: &[u8]) -> Result<Vec<u8>, i32> {
 }
 
 /// Build the site render's [`gmeow_docs::ExecutableDocsData`] from the committed
-/// `gmeow.gts` bundle: its `playground_trig` is `documentation graph ∪ reasoned closure
-/// ∪ the chase-invented-null witness subgraph`, so the shipped SPARQL playground page
-/// carries the reasoned data and can decompose an invented individual. A missing or
-/// unreadable committed bundle is a hard fail (no-optionality): the `Err` carries the
-/// console exit code the caller returns.
+/// `gmeow.gts` bundle — which IS the queryable site asset, shipped verbatim.
+///
+/// This function used to derive two further query assets from these same bytes: a TriG
+/// projection for the playground and an object-level N-Quads projection for the explorer,
+/// 311 MB between them. Both are retired. The browser engine boots over the bundle, so
+/// every question those assets existed to answer is answered from the bundle directly, and
+/// the projections could only ever disagree with it.
+///
+/// A missing or unreadable committed bundle is a hard fail (no-optionality): the `Err`
+/// carries the console exit code the caller returns.
 fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocsData, i32> {
     let gts_path = root.join(crate::dev_common::GTS_SNAPSHOT_REL);
     let bytes = std::fs::read(&gts_path).map_err(|e| {
@@ -118,18 +123,6 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
             gts_path.display()
         ))
     })?;
-    let graph = purrdf::gts::read_all_segments(&bytes)
-        .map_err(|e| fail(format!("cannot read GTS segments from bundle: {e}")))?;
-    let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
-        .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
-    let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
-        .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
-    // The browser bundle assets: the object-level core N-Quads (the explorer's
-    // client-side query dataset) and the full bundle bytes (the in-browser Tier-1
-    // validate surface's shapes source). Both ship as external site assets.
-    let core_bundle_nquads = gmeow_validate::store::core_browser_bundle_nquads(&bytes, &[])
-        .map_err(|e| fail(format!("cannot build core browser bundle from bundle: {e}")))?
-        .into_bytes();
     // The W4 conjecture-playground demo library: the curated `logic:Conjecture` corpus,
     // read OUT OF THE BUNDLE (the `examples-archive` blob), not off disk.
     //
@@ -145,8 +138,6 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
     // divergence this removes.
     let conjectures_ttl = bundled_conjecture_library(&bytes)?;
     Ok(gmeow_docs::ExecutableDocsData {
-        playground_trig,
-        core_bundle_nquads,
         full_bundle_gts: bytes,
         conjectures_ttl,
         ..Default::default()

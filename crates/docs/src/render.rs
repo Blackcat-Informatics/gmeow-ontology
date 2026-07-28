@@ -64,15 +64,6 @@ const CSS: &str = include_str!("../assets/gmeow.css");
 /// The site-relative path the CSS asset is emitted to.
 const CSS_PATH: &str = "assets/gmeow.css";
 
-/// The site-relative path the offline SPARQL playground's bundled RDF asset (TriG)
-/// is emitted to. Language-neutral: the RDF is language-independent.
-const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
-
-/// The site-relative path of the **core browser bundle** — the object-level ontology
-/// as N-Quads text ([`ExecutableDocsData::core_bundle_nquads`]). The bundle explorer
-/// parses it client-side (purrdf `Dataset.parse`) to answer `info`/`describe`.
-const CORE_BUNDLE_NQ_PATH: &str = "assets/gmeow-core.nq";
-
 /// The site-relative path of the **conjecture demo library** — the curated
 /// `logic:Conjecture` corpus as Turtle ([`ExecutableDocsData::conjectures_ttl`]). The W4
 /// conjecture playground fetches + byte-verifies it (via [`BUNDLE_MANIFEST_PATH`]) and
@@ -80,8 +71,10 @@ const CORE_BUNDLE_NQ_PATH: &str = "assets/gmeow-core.nq";
 const CONJECTURES_PATH: &str = "assets/conjectures.ttl";
 
 /// The site-relative path of the FULL `gmeow.gts` bundle
-/// ([`ExecutableDocsData::full_bundle_gts`]) — the in-browser Tier-1 validate surface
-/// reads its `shapes-archive`. An EXTERNAL site asset (never re-embedded in the bundle).
+/// ([`ExecutableDocsData::full_bundle_gts`]) — the ONE queryable site asset. The browser
+/// MCP engine boots over it and then answers the playground, the explorer, Tier-1
+/// validation and the codec tools from it. An EXTERNAL site asset (never re-embedded in
+/// the bundle).
 const FULL_BUNDLE_GTS_PATH: &str = "assets/gmeow.gts";
 
 /// The site-relative path of the browser-bundle integrity manifest: a JSON map from
@@ -107,21 +100,30 @@ pub(crate) const MCP_TRANSPORT_PATH: &str = "assets/mcp-transport.mjs";
 /// The embedded shared MCP transport, emitted to [`MCP_TRANSPORT_PATH`].
 const MCP_TRANSPORT: &str = include_str!("../assets/mcp-transport.mjs");
 
-/// The vendored wasm engines emitted under `assets/<name>/` when the playground is present:
-/// the offline SPARQL runtime (purrdf) and the console's two MCP segments.
+/// The site-relative path of the client-side BLAKE3 implementation the transport verifies
+/// every integrity-pinned asset with. The browser has no BLAKE3 primitive and
+/// `crypto.subtle` offers none, so the project's own content-address function is
+/// reimplemented here rather than substituting a weaker check.
+pub(crate) const BLAKE3_PATH: &str = "assets/blake3.mjs";
+
+/// The embedded client-side BLAKE3, emitted to [`BLAKE3_PATH`].
+const BLAKE3_MODULE: &str = include_str!("../assets/blake3.mjs");
+
+/// The vendored wasm engines emitted under `assets/<name>/` when the bundle ships: the
+/// console's two MCP segments, and nothing else.
 ///
-/// This list used to carry FOUR engines — purrdf plus a bespoke shim each for validation,
-/// reasoning and the GMN codec. The three gmeow-owned shims were duplicate capability once
-/// the MCP surface could answer the same questions, and they are retired: the site now
-/// speaks ONE protocol to the SAME engine an agent drives. purrdf stays because it is not
-/// duplicate — its standalone `Dataset.query` answers CONSTRUCT/DESCRIBE over a
-/// caller-supplied graph with no bundle union, and its wasm parity is owned upstream in the
-/// sibling repo.
+/// This list used to carry FOUR engines, then two. The three gmeow-owned shims (validate,
+/// reason, GMN) went first, once the MCP surface could answer the same questions. purrdf
+/// was kept back on the claim that it was not duplicate — that the playground and the
+/// explorer needed a standalone query over a caller-supplied graph. Measurement retired
+/// that claim: both surfaces query the SHIPPED ontology, which the MCP engine already
+/// holds, and `query_local` with `scope: "bundle"` answers every form they ask for. The
+/// site now speaks ONE protocol to ONE engine — the same one an agent drives — so a
+/// capability the reader has is a capability an agent has by construction.
 ///
 /// Pinned build inputs — one descriptor per asset lives in [`crate::vendored_asset`]; see
 /// each `PROVENANCE.md`.
 const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
-    &crate::vendored_asset::PURRDF_ASSET,
     &crate::vendored_asset::MCP_CORE_ASSET,
     &crate::vendored_asset::MCP_ASSET,
 ];
@@ -242,10 +244,10 @@ pub enum Page {
     /// [`crate::model::DocSeam`].
     SeamRegistry,
     /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
-    /// supplies a bundled query asset (never in a model-only render).
+    /// supplies the queryable bundle (`has_bundle()`; never in a model-only render).
     SparqlPlayground,
     /// The bundle explorer (`explorer/index`) — browser `gmeow info`/`describe` over
-    /// the object-level core bundle. Emitted only when the bundle assets ship
+    /// the object-level ontology. Emitted only when the queryable bundle ships
     /// (`has_bundle()`).
     BundleExplorer,
     /// The conjecture playground (`conjectures/index`, the WASM-interactive docs W4 deliverable) — the browser
@@ -548,7 +550,7 @@ pub fn render_site_lang_exec_with_diagrams(
 
     // The offline SPARQL playground page. Term/slice export runs through this same
     // engine + asset via `DESCRIBE`, so no static export files are needed.
-    if exec.has_playground() {
+    if exec.has_bundle() {
         let page = Page::SparqlPlayground;
         files.insert(
             page.md_path(),
@@ -729,9 +731,9 @@ pub fn book_pages(model: &DocsModel) -> Vec<Page> {
 /// map from each bundle asset path to its `blake3:<hex>` content address and length.
 /// A pure function of the emitted bundle bytes; the client loader records/verifies it.
 fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
-    // One entry per shipped bundle asset, in a fixed deterministic order (core, full, then
-    // the optional conjecture demo library). Each entry is byte-identical to the others' shape,
-    // so the 2-entry (bundle-only) case is byte-for-byte unchanged from the fixed format.
+    // One entry per shipped bundle asset, in a fixed deterministic order (the bundle, then
+    // the optional conjecture demo library). Each entry is byte-identical to the others'
+    // shape.
     let entry = |path: &str, bytes: &[u8]| {
         format!(
             "  \"{path}\": {{ \"blake3\": \"blake3:{d}\", \"bytes\": {n} }}",
@@ -739,10 +741,7 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
             n = bytes.len(),
         )
     };
-    let mut entries = vec![
-        entry(CORE_BUNDLE_NQ_PATH, &exec.core_bundle_nquads),
-        entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts),
-    ];
+    let mut entries = vec![entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts)];
     // The conjecture demo library ships iff the W4 playground surface is rendered.
     if exec.has_conjectures() {
         entries.push(entry(CONJECTURES_PATH, &exec.conjectures_ttl));
@@ -751,18 +750,23 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
 }
 
 /// The interactive asset FILES (no pages) an exec-backed render ships, keyed by their
-/// site-relative path (`assets/…`): the shared controller module, the vendored wasm
-/// engines, and — when present — the SPARQL playground data and the browser bundle +
-/// its integrity manifest.
+/// site-relative path (`assets/…`): the shared controller module, the transport, the
+/// client-side BLAKE3, the vendored MCP engine segments, the ONE queryable bundle + its
+/// integrity manifest, and — when present — the conjecture demo library.
 ///
 /// This is the SINGLE authority for "which interactive assets exist": the static site
 /// emits them at the site root and the mdbook packer ([`crate::mdbook`]) copies the
 /// same map under the book `src/` tree, so both surfaces carry byte-identical engines —
-/// the ones the native↔wasm witness lanes prove. Empty when the render is neither
-/// playground- nor bundle-backed.
+/// the ones the native↔wasm witness lanes prove. Empty when the render is not
+/// bundle-backed.
+///
+/// There is no longer a per-surface query asset. The playground used to get a 284 MB TriG
+/// projection and the explorer a 27 MB N-Quads one, both re-serialized from the very
+/// bundle emitted beside them; each surface then parsed its own copy in its own engine.
+/// The engine boots over the bundle, so both are answered from bytes already in memory.
 pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    if !exec.has_playground() && !exec.has_bundle() && !exec.has_conjectures() {
+    if !exec.has_bundle() {
         return files;
     }
     files.insert(
@@ -773,29 +777,18 @@ pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Ve
         MCP_TRANSPORT_PATH.to_string(),
         MCP_TRANSPORT.as_bytes().to_vec(),
     );
+    files.insert(BLAKE3_PATH.to_string(), BLAKE3_MODULE.as_bytes().to_vec());
     for asset in VENDORED_WASM_ASSETS {
         asset.emit_into(&mut files);
     }
-    if exec.has_playground() {
-        files.insert(
-            PLAYGROUND_TRIG_PATH.to_string(),
-            exec.playground_trig.clone(),
-        );
-    }
-    if exec.has_bundle() {
-        files.insert(
-            CORE_BUNDLE_NQ_PATH.to_string(),
-            exec.core_bundle_nquads.clone(),
-        );
-        files.insert(
-            FULL_BUNDLE_GTS_PATH.to_string(),
-            exec.full_bundle_gts.clone(),
-        );
-        files.insert(
-            BUNDLE_MANIFEST_PATH.to_string(),
-            bundle_manifest_json(exec).into_bytes(),
-        );
-    }
+    files.insert(
+        FULL_BUNDLE_GTS_PATH.to_string(),
+        exec.full_bundle_gts.clone(),
+    );
+    files.insert(
+        BUNDLE_MANIFEST_PATH.to_string(),
+        bundle_manifest_json(exec).into_bytes(),
+    );
     // The conjecture demo library: an UNCONDITIONAL site sub-asset whenever the W4
     // playground surface renders (the release path hard-fails on an empty declared
     // sub-asset, so it must always be present when interactive). Its integrity entry
@@ -810,10 +803,11 @@ pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Ve
 ///
 /// The SAME predicate [`interactive_asset_files`] gates its emission on, named once so a
 /// caller asking "is the controller reachable from this render?" cannot answer it with a
-/// different disjunction.
+/// different disjunction. It used to BE a disjunction of three gates over two different
+/// query assets; collapsing the assets collapsed the gates.
 #[must_use]
 pub fn interactive_assets_ship(exec: &ExecutableDocsData) -> bool {
-    exec.has_playground() || exec.has_bundle() || exec.has_conjectures()
+    exec.has_bundle()
 }
 
 /// The DOM hooks the documentation controller binds to.
@@ -1049,9 +1043,9 @@ fn append_slice_executable_sections(
 
     // Export: query this slice's vocabulary in the offline playground and copy the
     // result in any RDF format (client-side, no static per-format files).
-    if exec.has_playground() {
+    if exec.has_bundle() {
         heading(out, 2, "Export");
-        let query = format!("DESCRIBE <{}>", slice.iri);
+        let query = export_describe_query(&slice.iri);
         let encoded = url_query_encode(&query);
         line(
             out,
@@ -1139,7 +1133,7 @@ fn append_term_export_section(
     slug: &str,
     exec: &ExecutableDocsData,
 ) {
-    if !exec.has_playground() {
+    if !exec.has_bundle() {
         return;
     }
     let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
@@ -1149,7 +1143,7 @@ fn append_term_export_section(
     heading(out, 2, "Export");
     // A DESCRIBE prefilled into the offline playground: the reader runs it in-browser
     // and copies the result in any RDF format. The card is the prompt-ready projection.
-    let query = format!("DESCRIBE <{}>", term.iri);
+    let query = export_describe_query(&term.iri);
     let encoded = url_query_encode(&query);
     line(
         out,
@@ -1170,28 +1164,26 @@ fn append_term_export_section(
     }
 }
 
-/// The offline SPARQL playground page.
 /// The bundle explorer page: browser `gmeow info`/`describe` over the object-level
-/// core bundle. The controller (`assets/docs-controller.mjs`) loads the core N-Quads via the
-/// shared loader, shows the bundle's `info` summary on boot, and runs a client-side
-/// `DESCRIBE` for the entered term IRI — the same describe the native `gmeow describe`
-/// produces, proven byte-identical by the F2 witness lane.
+/// ontology. The controller (`assets/docs-controller.mjs`) counts the bundle's default
+/// graph for `info` and runs a bound-subject CONSTRUCT for `describe` — the same describe
+/// the native `gmeow describe` produces, proven byte-identical by the F2 witness lane
+/// (`crates/mcp/tests/witness_explore.rs`).
 fn md_bundle_explorer(model: &DocsModel, _exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "Bundle explorer");
     line(
         &mut out,
         "Explore the shipped ontology **entirely in your browser** — no server, no \
-         network. This loads the object-level core bundle and answers `info` (a summary \
-         of the loaded graph) and `describe <iri>` (every triple mentioning a term) via \
-         the native `purrdf` engine compiled to WebAssembly — the same answers the \
-         `gmeow` CLI gives.",
+         network. `info` summarizes the object-level ontology and `describe <iri>` returns \
+         every triple the ontology asserts about a term, both answered by the engine over \
+         `gmeow.gts` itself — the same answers the `gmeow` CLI gives, from the same bytes.",
     );
     // Raw HTML passes through the Markdown → HTML step; the controller script is
     // injected per page by the HTML shell (gated on `has_bundle()`).
     out.push_str(
         "<div id=\"gmeow-explorer\" class=\"gmeow-explorer\">\n\
-         <p id=\"gmeow-explorer-info\" class=\"gmeow-explorer-info\">Loading the bundle…</p>\n\
+         <p id=\"gmeow-explorer-info\" class=\"gmeow-explorer-info\">Reaching the engine…</p>\n\
          <form id=\"gmeow-explorer-form\">\n\
          <label for=\"gmeow-explorer-iri\">Describe a term (IRI or CURIE)</label>\n\
          <input id=\"gmeow-explorer-iri\" type=\"text\" spellcheck=\"false\" \
@@ -1319,29 +1311,103 @@ fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> Str
     out
 }
 
+/// The query the playground's textarea is PREFILLED with — the first thing every reader
+/// runs, and therefore the first thing that must answer.
+pub const PLAYGROUND_DEFAULT_QUERY: &str = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20";
+
+/// The chase-invented-witness decomposition the playground page ships as a worked example.
+///
+/// The graph name is a FULL IRI, not `gmeow:graph/diagnostics`: SPARQL's PN_LOCAL admits
+/// no `/`, so the prefixed form is a parse error rather than a lookup that misses.
+pub const PLAYGROUND_WITNESS_QUERY: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nSELECT ?witness ?rule ?ordinal ?frontier WHERE {\n  GRAPH <https://blackcatinformatics.ca/gmeow/graph/diagnostics> {\n    ?witness a gmeow:InventedWitness ;\n             gmeow:existentialOrdinal ?ordinal .\n    ?r rdf:object ?witness ;\n       rdf:subject ?frontier ;\n       gmeow:viaRule ?rule .\n  }\n} LIMIT 20";
+
+/// The export query a term or slice page's `?q=` prefill carries for `iri`.
+///
+/// One function, both pages, and the same text the test executes — so "the link on the page
+/// runs" and "the query we prove returns rows" cannot drift into being two different
+/// strings.
+#[must_use]
+pub fn export_describe_query(iri: &str) -> String {
+    format!("DESCRIBE <{iri}>")
+}
+
+/// Every runnable SPARQL text this site SHIPS, paired with a label.
+///
+/// The SINGLE enumeration `crates/docs/tests/shipped_queries_execute.rs` drives: it runs
+/// each one against the real bundle through the real engine and fails on an empty result.
+/// A query added to a page without being added here is a query nobody proves answers —
+/// which is exactly the state the retired `playground.trig` asset left this site in, where
+/// the default query, both export affordances and the worked witness example all returned
+/// nothing on a page that advertised them.
+#[must_use]
+pub fn shipped_queries(model: &DocsModel) -> Vec<(String, String)> {
+    let mut out = vec![
+        (
+            "playground default textarea".to_owned(),
+            PLAYGROUND_DEFAULT_QUERY.to_owned(),
+        ),
+        (
+            "playground worked example: explain a chase-invented witness".to_owned(),
+            PLAYGROUND_WITNESS_QUERY.to_owned(),
+        ),
+    ];
+    // The per-term and per-slice export prefills. Every one is the same shape, so the first
+    // of each is representative and keeps the lane bounded; `export_describe_query` is the
+    // one constructor both the pages and this list call.
+    if let Some(term) = model.terms.first() {
+        out.push((
+            format!("term export prefill ({})", term.iri),
+            export_describe_query(&term.iri),
+        ));
+    }
+    if let Some(slice) = model.slices.first() {
+        out.push((
+            format!("slice export prefill ({})", slice.iri),
+            export_describe_query(&slice.iri),
+        ));
+    }
+    out
+}
+
 fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "SPARQL playground");
     line(
         &mut out,
-        "Query the bundled ontology and its documentation **entirely in your browser** — \
-         no server, no network. The query runs against a self-contained RDF asset via the \
-         native `purrdf` engine compiled to WebAssembly.",
+        "Query the shipped ontology **entirely in your browser** — no server, no network. \
+         The query runs against `gmeow.gts` itself, through the same `query_local` tool an \
+         agent calls, on the same engine.",
+    );
+    // What a pattern reaches is the ONE thing a reader must know to write a query that
+    // answers, so it is stated before the form rather than left to be discovered. This page
+    // previously shipped a default query and export links that all matched the default
+    // graph of an asset whose every statement lived in a NAMED graph, so each returned
+    // nothing; naming the partition is what stops that recurring.
+    line(
+        &mut out,
+        "A plain pattern reads the **object-level ontology** — the bundle's default graph, \
+         the authored vocabulary. The derived graphs are named, and an explicit `GRAPH` \
+         clause reaches them: \
+         `<https://blackcatinformatics.ca/gmeow/graph/documentation>` (the per-term \
+         documentation projection), `<…/graph/reasoning>` (the reasoned closure) and \
+         `<…/graph/diagnostics>` (findings, and the chase-invented witnesses below). Write \
+         a graph name as a full IRI in angle brackets — a prefixed name cannot carry the \
+         `/` these IRIs contain.",
     );
     // The interactive form (raw HTML passes through the Markdown → HTML step). The
     // controller script is injected per page by the HTML shell, not embedded here.
-    out.push_str(
+    out.push_str(&format!(
         "<form id=\"gmeow-sparql\" class=\"gmeow-sparql\">\n\
          <label for=\"gmeow-sparql-query\">SPARQL query</label>\n\
          <textarea id=\"gmeow-sparql-query\" rows=\"8\" spellcheck=\"false\">\
-         SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20</textarea>\n\
+         {PLAYGROUND_DEFAULT_QUERY}</textarea>\n\
          <div class=\"gmeow-sparql-controls\">\n\
          <button type=\"submit\">Run</button>\n\
          <span id=\"gmeow-sparql-status\" role=\"status\"></span>\n\
          </div>\n\
          </form>\n\
          <div id=\"gmeow-sparql-results\"></div>\n\n",
-    );
+    ));
     line(
         &mut out,
         "SELECT and ASK return a results table; CONSTRUCT and DESCRIBE return a graph you \
@@ -1371,28 +1437,28 @@ fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
         fenced(&mut out, "turtle", &exec.cross_example.join("\n"));
     }
 
-    // Explain a chase-invented existential null (Skolem witness). The reason stage
-    // projects each invented null into `graph/reasoning` as a `gmeow:InventedWitness`
-    // typed node plus a standard-RDF-reification head quad, so the playground can
-    // decompose it — with NO new vocabulary — back into the rule that fired, its
-    // existential ordinal, and the frontier binding that satisfied the antecedent.
+    // Explain a chase-invented existential null (Skolem witness). The reason stage projects
+    // each invented null into `graph/diagnostics` as a `gmeow:InventedWitness` typed node
+    // plus a standard-RDF-reification head quad, so the playground can decompose it — with
+    // NO new vocabulary — back into the rule that fired, its existential ordinal, and the
+    // frontier binding that satisfied the antecedent.
+    //
+    // The `GRAPH` clause is REQUIRED and names `graph/diagnostics`, which is where the
+    // bundle actually carries these quads. The query shipped here before named no graph at
+    // all: it was written against a retired TriG asset that lifted the witness subgraph
+    // into `graph/reasoning`, and since that asset put everything in named graphs the
+    // graph-less pattern matched nothing in either dataset. Executed against the bundle,
+    // this form returns rows.
     heading(&mut out, 2, "Explain a chase-invented witness");
     line(
         &mut out,
         "When the reasoner satisfies an existential obligation it *invents* a fresh null — a \
-         Skolem witness with a content-addressed IRI. That witness ships in the queryable asset \
-         alongside the closure that references it, so you can decompose any null into its firing \
-         rule, existential ordinal, and frontier binding entirely in your browser:",
+         Skolem witness with a content-addressed IRI. The bundle carries that witness in \
+         `gmeow:graph/diagnostics` alongside the closure that references it, so you can \
+         decompose any null into its firing rule, existential ordinal, and frontier binding \
+         entirely in your browser:",
     );
-    let witness_query = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
-         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\
-         SELECT ?witness ?rule ?ordinal ?frontier WHERE {\n\
-         \x20 ?witness a gmeow:InventedWitness ;\n\
-         \x20          gmeow:existentialOrdinal ?ordinal .\n\
-         \x20 ?r rdf:object ?witness ;\n\
-         \x20    rdf:subject ?frontier ;\n\
-         \x20    gmeow:viaRule ?rule .\n\
-         }";
+    let witness_query = PLAYGROUND_WITNESS_QUERY;
     let root = root_href(&Page::SparqlPlayground.dir());
     let encoded = url_query_encode(witness_query);
     line(
@@ -2441,11 +2507,11 @@ fn term_developer_surface(
         let skeleton = synthesize_quickstart(model, term);
         fenced(&mut out, "turtle", skeleton.trim_end());
         // The `Page::SparqlPlayground` page is emitted only when the pipeline
-        // attaches a playground asset (`exec.has_playground()`) — a model-only
+        // attaches a playground asset (`exec.has_bundle()`) — a model-only
         // render never emits `sparql/index.md`, so the link is gated exactly like
         // the sibling "Export" affordance (`append_term_export_section`) to keep
         // the no-dangling-internal-link invariant (`lint::clean_site_has_zero_errors`).
-        if exec.has_playground() {
+        if exec.has_bundle() {
             let playground_href = rel(&from, &Page::SparqlPlayground.dir());
             push_line(
                 &mut out,
@@ -6514,7 +6580,7 @@ pub(crate) fn to_html_lang_exec_with_map(
     ];
     // The offline SPARQL playground joins the nav only when the pipeline shipped its
     // bundled query asset (never in a model-only render, so the goldens are stable).
-    if exec.has_playground() {
+    if exec.has_bundle() {
         nav.push(nav_item(
             &root,
             &Page::SparqlPlayground.dir(),
@@ -6542,7 +6608,7 @@ pub(crate) fn to_html_lang_exec_with_map(
     }
     // The standalone console — the same tool surface, in its own shell. Emitted by
     // `crate::console::console_files` under exactly the gate that ships the engines.
-    if exec.has_playground() || exec.has_bundle() || exec.has_conjectures() {
+    if interactive_assets_ship(exec) {
         nav.push(nav_item(&root, "console", &label("nav_console", "Console")));
     }
 
@@ -8712,69 +8778,35 @@ mod tests {
     }
 
     #[test]
-    fn playground_asset_emitted_only_with_executable_data() {
-        let model = tiny_model();
-
-        // A model-only render (empty executable data) ships NO playground asset — the
-        // base site is complete without the executable surfaces.
-        let base = render_site_lang(&model, "english");
-        assert!(
-            !base.files.contains_key(PLAYGROUND_TRIG_PATH),
-            "the model-only render must not emit the playground asset"
-        );
-
-        // With a playground asset supplied, it is emitted once, verbatim, under the
-        // language-neutral path.
-        let exec = ExecutableDocsData {
-            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
-            ..Default::default()
-        };
-        let live = render_site_lang_exec(&model, "english", &exec);
-        assert_eq!(
-            live.files.get(PLAYGROUND_TRIG_PATH).map(Vec::as_slice),
-            Some(exec.playground_trig.as_slice()),
-            "the playground asset must be emitted verbatim when supplied"
-        );
-    }
-
-    #[test]
     fn bundle_assets_emitted_only_with_bundle_data() {
         let model = tiny_model();
 
         // Model-only render ships none of the browser-bundle assets.
         let base = render_site_lang(&model, "english");
-        for path in [
-            CORE_BUNDLE_NQ_PATH,
-            FULL_BUNDLE_GTS_PATH,
-            BUNDLE_MANIFEST_PATH,
-        ] {
+        for path in [FULL_BUNDLE_GTS_PATH, BUNDLE_MANIFEST_PATH] {
             assert!(
                 !base.files.contains_key(path),
                 "the model-only render must not emit {path}"
             );
         }
 
-        // With both bundle bytes supplied, the core N-Quads + full gts + integrity
-        // manifest are emitted verbatim, with the manifest carrying each asset's
-        // blake3 content address and byte length.
-        let core = b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n".to_vec();
+        // With the bundle supplied, the gts + integrity manifest are emitted verbatim,
+        // with the manifest carrying the asset's blake3 content address and byte length.
+        //
+        // There is ONE queryable asset to check. This test used to have a sibling
+        // (`playground_asset_emitted_only_with_executable_data`) asserting the same
+        // property about a second one; the surfaces that needed a second asset are
+        // answered from this one now.
         let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
         let exec = ExecutableDocsData {
-            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
-            core_bundle_nquads: core.clone(),
             full_bundle_gts: full.clone(),
             ..Default::default()
         };
         let live = render_site_lang_exec(&model, "english", &exec);
         assert_eq!(
-            live.files.get(CORE_BUNDLE_NQ_PATH).map(Vec::as_slice),
-            Some(core.as_slice()),
-            "the core bundle N-Quads must be emitted verbatim"
-        );
-        assert_eq!(
             live.files.get(FULL_BUNDLE_GTS_PATH).map(Vec::as_slice),
             Some(full.as_slice()),
-            "the full gts bundle must be emitted verbatim"
+            "the gts bundle must be emitted verbatim"
         );
         let manifest = String::from_utf8(
             live.files
@@ -8784,26 +8816,30 @@ mod tests {
         )
         .expect("manifest is utf-8");
         assert!(
-            manifest.contains(&format!("blake3:{}", blake3::hash(&core).to_hex())),
-            "manifest carries the core asset's blake3 content address:\n{manifest}"
+            manifest.contains(&format!("blake3:{}", blake3::hash(&full).to_hex())),
+            "manifest carries the bundle's blake3 content address:\n{manifest}"
         );
         assert!(
-            manifest.contains(&format!("\"bytes\": {}", core.len())),
-            "manifest carries the core asset's byte length:\n{manifest}"
+            manifest.contains(&format!("\"bytes\": {}", full.len())),
+            "manifest carries the bundle's byte length:\n{manifest}"
         );
+        // The retired per-surface query assets must never come back as site files.
+        for retired in ["assets/playground.trig", "assets/gmeow-core.nq"] {
+            assert!(
+                !live.files.contains_key(retired),
+                "the retired query asset {retired} must not be emitted"
+            );
+        }
     }
 
     #[test]
     fn conjecture_playground_ships_page_asset_and_manifest_entry() {
         let model = tiny_model();
-        let core = b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n".to_vec();
         let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
         let conjectures = b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
              ex:demo a logic:Conjecture .\n"
             .to_vec();
         let exec = ExecutableDocsData {
-            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
-            core_bundle_nquads: core,
             full_bundle_gts: full,
             conjectures_ttl: conjectures.clone(),
             ..Default::default()
@@ -8852,8 +8888,6 @@ mod tests {
         // A bundle-only exec (no conjecture library) must NOT emit the demo asset, the
         // playground page, or a conjectures entry in the manifest.
         let exec = ExecutableDocsData {
-            core_bundle_nquads: b"<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n"
-                .to_vec(),
             full_bundle_gts: b"\0opaque".to_vec(),
             ..Default::default()
         };
@@ -8877,7 +8911,7 @@ mod tests {
     fn playground_explains_a_chase_invented_witness() {
         let model = tiny_model();
         let exec = ExecutableDocsData {
-            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            full_bundle_gts: b"\0opaque".to_vec(),
             ..Default::default()
         };
         let page = md_playground(&model, &exec);
@@ -8947,19 +8981,18 @@ mod tests {
         let exec = ExecutableDocsData {
             example_inferences,
             cross_example: vec!["ex:shared gmeow:derived ex:x".to_string()],
-            playground_trig: b"@prefix ex: <https://e/> . ex:a ex:b ex:c .\n".to_vec(),
+            full_bundle_gts: b"\0opaque".to_vec(),
             ..Default::default()
         };
 
         let site = render_site_lang_exec(&model, "english", &exec);
 
-        // Playground page + its assets (incl. the vendored purrdf engine) are present.
+        // Playground page + the ONE engine every surface dispatches through are present.
         assert!(site.files.contains_key("sparql/index.html"));
         assert!(site.files.contains_key(DOCS_CONTROLLER_PATH));
         assert!(
-            site.files
-                .contains_key("assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
-            "the vendored wasm engine is emitted so the playground loads offline"
+            !site.files.keys().any(|k| k.starts_with("assets/purrdf/")),
+            "the retired vendored purrdf engine must not be emitted"
         );
         assert!(
             site.files
@@ -9011,7 +9044,7 @@ mod tests {
         let fr = render_site_lang_exec(&model, "fr", &exec);
         assert!(
             !fr.files.contains_key("sparql/index.html")
-                && !fr.files.contains_key(PLAYGROUND_TRIG_PATH),
+                && !fr.files.contains_key(FULL_BUNDLE_GTS_PATH),
             "the executable surfaces live only in the English carrier tree"
         );
     }

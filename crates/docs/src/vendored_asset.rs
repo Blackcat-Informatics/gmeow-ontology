@@ -3,23 +3,25 @@
 
 //! Shared vendored-wasm-asset harness.
 //!
-//! The docs site ships one or more **prebuilt** wasm engines (the offline SPARQL
-//! playground runtime, purrdf; the console's two MCP engine segments)
-//! as pinned `include_bytes!` build inputs under `crates/docs/assets/<name>/`. The
+//! The docs site ships one or more **prebuilt** wasm engines — today the console's two MCP
+//! segments, which EVERY interactive surface dispatches through — as pinned
+//! `include_bytes!` build inputs under `crates/docs/assets/<name>/`. The
 //! regeneration pipeline never rebuilds wasm, so nothing structurally forces a
 //! vendored blob to stay in step with its source crate. Each such asset therefore
 //! shares one ritual:
 //!
-//! 1. a set of vendored files (the wasm module, its wasm-bindgen JS glue, and the
-//!    `.d.ts` type surface), each carrying a `.license` REUSE sidecar;
+//! 1. a set of vendored files (the wasm module, its wasm-bindgen JS glue, the `.d.ts`
+//!    type surface, and the native↔wasm witness attestations), each carrying a
+//!    `.license` REUSE sidecar;
 //! 2. a `DIGESTS.blake3` content-digest manifest pinning their exact bytes;
 //! 3. emission of the runtime files into the rendered [`Site`] under
 //!    `assets/<name>/` when the playground/interactive assets are present;
 //! 4. an anti-rot test that proves the vendored `.wasm` is a real module, the JS
-//!    glue still exposes the expected export surface, and the pinned digests match.
+//!    glue and the type surfaces still declare the SAME export set, and the pinned
+//!    digests match.
 //!
 //! This module captures that ritual ONCE. Each asset is a single [`VendoredWasmAsset`]
-//! constant ([`PURRDF_ASSET`], [`MCP_CORE_ASSET`], [`MCP_ASSET`]): the renderer calls
+//! constant ([`MCP_CORE_ASSET`], [`MCP_ASSET`]): the renderer calls
 //! [`VendoredWasmAsset::emit_into`] to write it into the site, and the asset's
 //! integration test calls [`VendoredWasmAsset::verify`] to gate it. There is exactly
 //! one definition per asset — the emission descriptor and the anti-rot verifier read
@@ -27,25 +29,199 @@
 //!
 //! [`Site`]: crate::render::Site
 
-use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
 
 use gmeow_docs_model::formats::{Capability, DocFormat, format_capabilities};
 
 /// The digest-manifest filename pinning the vendored bytes, in every asset dir.
 pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
 
-/// One expected export-surface probe: `needle` must appear verbatim in the vendored
-/// `file`. Its absence means the vendored bindings predate (or drifted from) the API
-/// the site depends on — a stale re-vendor.
+/// The wasm-bindgen LOADER names, which are not part of an engine's export surface.
+///
+/// Every `--target web` glue module ends with `export { initSync, __wbg_init as default }`:
+/// the synchronous and asynchronous instantiation entry points. They exist in every
+/// wasm-bindgen output regardless of what the Rust crate exports, so counting them as
+/// engine exports would make the export-set comparison below compare the loader instead of
+/// the surface. They are excluded on the glue side only — a wrapper that re-exported one
+/// would still be caught, because the wrapper's surface is compared against the package
+/// `.d.ts` verbatim.
+const WASM_BINDGEN_LOADER: &[&str] = &["initSync", "default"];
+
+/// The vendored files whose declared export SETS must agree exactly.
+///
+/// Substring probes ("does the glue contain the text `dataset_query`?") answer a weaker
+/// question than the one that matters: a re-vendor that ADDED a binding, RENAMED one the
+/// wrapper still imports, or dropped one the hand-written `.d.ts` still promises passes
+/// every probe while shipping a package whose type surface lies about its runtime. The
+/// gate below compares SETS in both directions instead, so drift in either direction is a
+/// named failure.
 #[derive(Debug, Clone, Copy)]
-pub struct ExportCheck {
-    /// The vendored filename to search (JS glue or `.d.ts`).
-    pub file: &'static str,
-    /// The substring that must be present.
-    pub needle: &'static str,
-    /// Guidance appended to the failure message.
-    pub hint: &'static str,
+pub struct ExportSurface {
+    /// The wasm-bindgen `--target web` JS glue, relative to the asset dir.
+    pub glue_js: &'static str,
+    /// The wasm-bindgen `.d.ts` emitted beside [`glue_js`](Self::glue_js).
+    pub glue_dts: &'static str,
+    /// The ES-module wrapper that re-exports the glue at the package root and adds the
+    /// isomorphic glue the synchronous wasm boundary cannot express (`ready()`, the
+    /// tiered dispatcher, the Stream/Sink primitives).
+    pub wrapper_mjs: &'static str,
+    /// The HAND-WRITTEN package `.d.ts` — the type surface a TypeScript consumer of the
+    /// package root sees — when the asset vendors one.
+    ///
+    /// Declared per asset rather than assumed, because vendored packages genuinely differ:
+    /// a third-party npm package may ship a hand-written root `index.d.ts` alongside its
+    /// generated one, while the gmeow-owned MCP segment wrappers publish the generated
+    /// `pkg/*.d.ts` as their only type surface. `None` selects the smaller surface
+    /// explicitly; it never skips a check that applies.
+    pub package_dts: Option<&'static str>,
+}
+
+/// The names a JS/TS module exports, as a set.
+///
+/// Recognized forms, all at line start (the vendored files are generated or
+/// house-formatted, so an indented `export` is not a thing that occurs):
+/// `export class X`, `export function f`, `export async function f`, `export const K`,
+/// and every name in an `export { a, b as c };` block (the EXPORTED name, `c`).
+fn module_exports(text: &str) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    let mut in_block = false;
+    for line in text.lines() {
+        if in_block {
+            if let Some(head) = line.split('}').next() {
+                collect_specifiers(head, false, &mut names);
+            }
+            if line.contains('}') {
+                in_block = false;
+            }
+            continue;
+        }
+        let Some(rest) = line.strip_prefix("export ") else {
+            continue;
+        };
+        if let Some(spec) = rest.strip_prefix('{') {
+            // `export { … };` — possibly spanning several lines.
+            let head = spec.split('}').next().unwrap_or(spec);
+            collect_specifiers(head, false, &mut names);
+            in_block = !spec.contains('}');
+            continue;
+        }
+        for keyword in [
+            "async function ",
+            "function ",
+            "class ",
+            "const ",
+            "let ",
+            "var ",
+        ] {
+            if let Some(tail) = rest.strip_prefix(keyword) {
+                if let Some(name) = identifier(tail) {
+                    names.insert(name);
+                }
+                break;
+            }
+        }
+    }
+    names
+}
+
+/// The value declarations of a `.d.ts` — `export class X` / `export function f`.
+///
+/// `export type` / `export interface` are deliberately NOT collected: they have no runtime
+/// existence, so a module can never be compared against them. `export default function …`
+/// is the wasm-bindgen loader and is filtered with the rest of it.
+fn dts_value_exports(text: &str) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    for line in text.lines() {
+        let Some(rest) = line.strip_prefix("export ") else {
+            continue;
+        };
+        for keyword in ["class ", "function "] {
+            if let Some(tail) = rest.strip_prefix(keyword) {
+                if let Some(name) = identifier(tail) {
+                    names.insert(name);
+                }
+                break;
+            }
+        }
+    }
+    names
+}
+
+/// The names a module IMPORTS from `from`, by their SOURCE name (`a` in `a as b`).
+///
+/// The source name is what the glue must still provide; the local alias is the wrapper's
+/// private business.
+fn module_imports_from(text: &str, from: &str) -> BTreeSet<String> {
+    let mut names = BTreeSet::new();
+    let needle = format!("\"{from}\"");
+    let mut collecting = false;
+    let mut buffer = String::new();
+    for line in text.lines() {
+        if !collecting && line.starts_with("import ") && line.contains('{') {
+            collecting = true;
+            buffer.clear();
+        }
+        if !collecting {
+            continue;
+        }
+        buffer.push_str(line);
+        buffer.push('\n');
+        if !line.contains("from ") {
+            continue;
+        }
+        collecting = false;
+        if !buffer.contains(&needle) {
+            continue;
+        }
+        let Some(open) = buffer.find('{') else {
+            continue;
+        };
+        let Some(close) = buffer.find('}') else {
+            continue;
+        };
+        if open < close {
+            collect_specifiers(&buffer[open + 1..close], true, &mut names);
+        }
+    }
+    names
+}
+
+/// Push each `a` / `a as b` specifier in `list` into `names`, keeping the SOURCE name
+/// when `source` and the EXPORTED name otherwise.
+fn collect_specifiers(list: &str, source: bool, names: &mut BTreeSet<String>) {
+    for raw in list.split(',') {
+        let spec = raw.trim();
+        if spec.is_empty() {
+            continue;
+        }
+        let mut parts = spec.split_whitespace();
+        let first = parts.next().unwrap_or_default();
+        let renamed = parts.next() == Some("as");
+        let name = if source || !renamed {
+            first.to_owned()
+        } else {
+            parts.next().unwrap_or(first).to_owned()
+        };
+        if let Some(name) = identifier(&name) {
+            names.insert(name);
+        }
+    }
+}
+
+/// The leading JS identifier of `text`, or `None` when it does not start with one.
+fn identifier(text: &str) -> Option<String> {
+    let name: String = text
+        .chars()
+        .take_while(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '$')
+        .collect();
+    (!name.is_empty()).then_some(name)
+}
+
+/// Read a vendored file, panicking with the asset's refresh instruction on failure.
+fn read_vendored(dir: &Path, name: &str, refresh_target: &str) -> String {
+    std::fs::read_to_string(dir.join(name))
+        .unwrap_or_else(|e| panic!("vendored {name} must exist (run make {refresh_target}): {e}"))
 }
 
 /// A pinned, vendored wasm engine bundle emitted into the docs site.
@@ -53,7 +229,7 @@ pub struct ExportCheck {
 /// One constant per asset captures the whole ritual: the subdir, the runtime files
 /// emitted into the site (with their `include_bytes!` bytes), the full set of
 /// vendored files the digest manifest pins, the wasm module to structurally probe,
-/// and the JS-export surface the site depends on. Both the renderer
+/// and the export surface the site depends on. Both the renderer
 /// ([`emit_into`](Self::emit_into)) and the anti-rot test
 /// ([`verify`](Self::verify)) read from this single source of truth.
 #[derive(Debug, Clone, Copy)]
@@ -62,34 +238,38 @@ pub struct VendoredWasmAsset {
     /// (`assets/<name>/`).
     pub name: &'static str,
     /// The runtime files emitted verbatim into the [`Site`](crate::render::Site):
-    /// `(filename, bytes)`. The bytes are `include_bytes!` literals (the wasm module
-    /// and its JS glue); the `.d.ts` type surface is vendored but not emitted.
+    /// `(filename, bytes)`. The bytes are `include_bytes!` literals (the wasm module,
+    /// its JS glue and the package wrapper); the `.d.ts` type surfaces are vendored and
+    /// gated but not emitted.
     pub emitted_files: &'static [(&'static str, &'static [u8])],
     /// Every vendored filename the `DIGESTS.blake3` manifest pins — exactly the set
-    /// the refresh maint target copies out of the built wasm package.
+    /// the refresh maint target writes into the asset dir, the witness attestations
+    /// included. A witness that is not digest-pinned can be edited freely and still pass
+    /// attestation, which would make the attestation decorative.
     pub vendored_files: &'static [&'static str],
     /// The vendored wasm module filename (the `\0asm`-magic + size structural probe).
     pub wasm_file: &'static str,
     /// A plausible-size floor for the wasm module; guards an empty/stub blob.
     pub min_wasm_len: usize,
-    /// The export-surface probes proving the JS glue still exposes the API the site
-    /// depends on.
-    pub export_checks: &'static [ExportCheck],
-    /// The `make` target that rebuilds + re-vendors this asset (referenced in
-    /// failure messages).
+    /// The files whose declared export sets must agree — the anti-stale-re-vendor gate.
+    pub export_surface: ExportSurface,
+    /// The `make` target that rebuilds + re-vendors this asset. Referenced in failure
+    /// messages, and PROVEN TO EXIST by [`check_refresh_targets`]: a descriptor must
+    /// never print an instruction that cannot be followed.
     pub refresh_target: &'static str,
     /// The environment variable whose presence makes [`verify`](Self::verify) rewrite
     /// (bless) the digest manifest instead of comparing — set by the refresh target.
     pub bless_env: &'static str,
-    /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.nq`): the
-    /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
+    /// The per-asset native↔wasm parity attestations (e.g. `WITNESS.mcp.json`): the
+    /// committed native outputs the shipped wasm engine reproduces byte-for-byte. Their
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
     /// (F4/F5). For the gmeow-owned MCP segments the byte-identity is additionally EXECUTED
-    /// on-gate by their Node parity lanes (`make check` → `wasm-parity`); the vendored
-    /// sibling-repo purrdf engine's witness is its native `describe` output, with wasm parity
-    /// owned upstream in the purrdf repo. `Option` so a future non-witnessed asset need not
-    /// reshape the descriptor.
-    pub witness_attestation: Option<&'static str>,
+    /// on-gate by their Node parity lanes (`make check` → `wasm-parity`).
+    ///
+    /// A SLICE, not a single optional: an engine backs as many attestations as it has
+    /// proven behaviours, and "one or none" was a shape the domain never had. An empty
+    /// slice is a non-witnessed asset and is vacuously OK.
+    pub witness_attestations: &'static [&'static str],
 }
 
 impl VendoredWasmAsset {
@@ -146,34 +326,40 @@ impl VendoredWasmAsset {
         out
     }
 
-    /// Whether this asset's committed native↔wasm witness-attestation is present AND
-    /// current (F4/F5). Current means: the attestation file exists and is non-empty,
+    /// Whether this asset's committed native↔wasm witness-attestations are ALL present AND
+    /// current (F4/F5). Current means: each attestation file exists and is non-empty,
     /// AND the on-disk vendored bytes match the pinned `DIGESTS.blake3` — so the engine
-    /// the witness proved byte-equivalent to native is EXACTLY the engine that ships.
+    /// the witnesses proved byte-equivalent to native is EXACTLY the engine that ships.
+    /// The witnesses are themselves in `vendored_files`, so the digest comparison covers
+    /// their bytes too: an edited witness is drift, not a pass.
     ///
-    /// An asset with no `witness_attestation` (a non-witnessed asset) is vacuously OK.
-    /// Returns `Some(message)` describing the first failure, or `None` when the
+    /// An asset with no witness attestations is vacuously OK.
+    /// Returns `Some(message)` describing the first failure, or `None` when every
     /// attestation is present and current — a violation is a reportable message, not a
     /// silent gap. (`Option`, not `Result<_, String>`: `gmeow_errors::Diag` is the sole
     /// first-party error type, and this "current?" query has no error channel — a stale
     /// attestation is the answer, not a failure.)
     pub fn attestation_status(&self) -> Option<String> {
-        let witness = self.witness_attestation?;
+        if self.witness_attestations.is_empty() {
+            return None;
+        }
         let dir = self.asset_dir();
-        match std::fs::read(dir.join(witness)) {
-            Ok(bytes) if !bytes.is_empty() => {}
-            Ok(_) => {
-                return Some(format!(
-                    "witness attestation '{witness}' for engine '{}' is empty",
-                    self.name
-                ));
-            }
-            Err(e) => {
-                return Some(format!(
-                    "witness attestation '{witness}' for engine '{}' is missing \
-                     (run make {}): {e}",
-                    self.name, self.refresh_target
-                ));
+        for witness in self.witness_attestations {
+            match std::fs::read(dir.join(witness)) {
+                Ok(bytes) if !bytes.is_empty() => {}
+                Ok(_) => {
+                    return Some(format!(
+                        "witness attestation '{witness}' for engine '{}' is empty",
+                        self.name
+                    ));
+                }
+                Err(e) => {
+                    return Some(format!(
+                        "witness attestation '{witness}' for engine '{}' is missing \
+                         (run make {}): {e}",
+                        self.name, self.refresh_target
+                    ));
+                }
             }
         }
         let committed = match std::fs::read_to_string(dir.join(DIGEST_MANIFEST)) {
@@ -187,17 +373,120 @@ impl VendoredWasmAsset {
         };
         if committed != self.current_manifest() {
             return Some(format!(
-                "engine '{}' drifted from {DIGEST_MANIFEST}: the witness attestation \
-                 '{witness}' no longer describes the shipped bytes (re-run make {})",
-                self.name, self.refresh_target
+                "engine '{}' drifted from {DIGEST_MANIFEST}: the witness attestations {:?} \
+                 no longer describe the shipped bytes (re-run make {})",
+                self.name, self.witness_attestations, self.refresh_target
             ));
         }
         None
     }
 
+    /// The export-set agreement gate: the vendored glue, its `.d.ts`, the package wrapper
+    /// and (when vendored) the hand-written package `.d.ts` all describe ONE surface.
+    ///
+    /// Four checks, each an EQUALITY or a named-difference subset:
+    ///
+    /// 1. the glue `.js` and its wasm-bindgen `.d.ts` export the same set (the loader
+    ///    aside) — a `.d.ts` that outlived its `.js` is a type surface that lies;
+    /// 2. every name the wrapper IMPORTS from the glue is still exported by it — the exact
+    ///    failure a stale re-vendor produces;
+    /// 3. every name the wrapper EXPORTS is either imported from the glue or declared
+    ///    locally in the wrapper — a re-export of a vanished binding is a runtime
+    ///    `SyntaxError` at module load, i.e. a dead engine;
+    /// 4. when a hand-written package `.d.ts` is vendored, its value declarations EQUAL the
+    ///    wrapper's export set.
+    ///
+    /// # Panics
+    ///
+    /// Panics (fails the test) naming the exact symmetric difference on any disagreement.
+    pub fn verify_export_sets(&self) {
+        let dir = self.asset_dir();
+        let surface = &self.export_surface;
+        let target = self.refresh_target;
+
+        let glue_js = read_vendored(&dir, surface.glue_js, target);
+        let glue_dts = read_vendored(&dir, surface.glue_dts, target);
+        let wrapper = read_vendored(&dir, surface.wrapper_mjs, target);
+
+        let loader: BTreeSet<String> = WASM_BINDGEN_LOADER
+            .iter()
+            .map(|s| (*s).to_owned())
+            .collect();
+        let js_set: BTreeSet<String> = module_exports(&glue_js)
+            .difference(&loader)
+            .cloned()
+            .collect();
+        let dts_set: BTreeSet<String> = dts_value_exports(&glue_dts)
+            .difference(&loader)
+            .cloned()
+            .collect();
+        assert_eq!(
+            js_set, dts_set,
+            "vendored {} and {} export different sets — the generated .d.ts does not \
+             describe the generated glue beside it (re-run make {target})",
+            surface.glue_js, surface.glue_dts,
+        );
+
+        let imported = module_imports_from(&wrapper, &format!("./{}", surface.glue_js));
+        assert!(
+            !imported.is_empty(),
+            "vendored {} imports nothing from ./{} — the wrapper is not wired to the \
+             engine it is supposed to wrap (re-run make {target})",
+            surface.wrapper_mjs,
+            surface.glue_js,
+        );
+        let missing: Vec<&String> = imported.difference(&js_set).collect();
+        assert!(
+            missing.is_empty(),
+            "vendored {} imports {missing:?} from ./{}, which no longer exports them — a \
+             stale re-vendor (re-run make {target})",
+            surface.wrapper_mjs,
+            surface.glue_js,
+        );
+
+        let wrapper_exports = module_exports(&wrapper);
+        let local: BTreeSet<String> = wrapper
+            .lines()
+            .filter_map(|line| {
+                // `export` is optional here: a name the wrapper declares is locally backed
+                // whether or not the declaration itself carries the keyword.
+                let head = line.trim_start();
+                let head = head.strip_prefix("export ").unwrap_or(head);
+                for keyword in ["async function ", "function ", "class ", "const ", "let "] {
+                    if let Some(tail) = head.strip_prefix(keyword) {
+                        return identifier(tail);
+                    }
+                }
+                None
+            })
+            .collect();
+        let unbacked: Vec<&String> = wrapper_exports
+            .iter()
+            .filter(|name| !imported.contains(*name) && !local.contains(*name))
+            .collect();
+        assert!(
+            unbacked.is_empty(),
+            "vendored {} exports {unbacked:?}, which it neither imports from ./{} nor \
+             declares locally (re-run make {target})",
+            surface.wrapper_mjs,
+            surface.glue_js,
+        );
+
+        if let Some(package_dts) = surface.package_dts {
+            let declared = dts_value_exports(&read_vendored(&dir, package_dts, target));
+            assert_eq!(
+                wrapper_exports, declared,
+                "vendored {} and {} declare different value surfaces — the hand-written \
+                 type surface promises something the module does not export, or hides \
+                 something it does (re-run make {target})",
+                surface.wrapper_mjs, package_dts,
+            );
+        }
+    }
+
     /// The full anti-rot gate for this asset: the vendored `.wasm` is a real module
-    /// (WebAssembly magic + plausible size), the JS glue still exposes every declared
-    /// export, and the pinned `DIGESTS.blake3` describes the exact on-disk bytes.
+    /// (WebAssembly magic + plausible size), the glue/wrapper/`.d.ts` export sets agree,
+    /// and the pinned `DIGESTS.blake3` describes the exact on-disk bytes.
     ///
     /// When the asset's [`bless_env`](Self::bless_env) is set, the manifest is
     /// rewritten from the current bytes instead of compared — the path the refresh
@@ -207,7 +496,7 @@ impl VendoredWasmAsset {
     /// # Panics
     ///
     /// Panics (fails the test) on any drift: a corrupt/undersized wasm module, a
-    /// missing export surface, or a digest mismatch.
+    /// disagreeing export surface, or a digest mismatch.
     pub fn verify(&self) {
         let dir = self.asset_dir();
 
@@ -230,19 +519,8 @@ impl VendoredWasmAsset {
             wasm.len()
         );
 
-        // Export surface: the bindings still carry the API the site depends on.
-        for check in self.export_checks {
-            let text = std::fs::read_to_string(dir.join(check.file))
-                .unwrap_or_else(|e| panic!("vendored {} must exist: {e}", check.file));
-            assert!(
-                text.contains(check.needle),
-                "vendored {} lacks `{}` — {} (re-run make {})",
-                check.file,
-                check.needle,
-                check.hint,
-                self.refresh_target
-            );
-        }
+        // Export surface: the vendored files still describe ONE engine.
+        self.verify_export_sets();
 
         // Digest: pin the exact bytes. The structural checks alone pass a
         // stale-but-still-functional engine; this gate does not.
@@ -269,72 +547,20 @@ impl VendoredWasmAsset {
     }
 }
 
-/// The vendored purrdf wasm engine — the offline docs SPARQL playground runtime.
-///
-/// Emitted under `assets/purrdf/`; refreshed by `make maint-refresh-purrdf-asset`.
-/// Behaviour (does a query actually evaluate?) is covered by the purrdf Node lane;
-/// this descriptor drives the structural + digest anti-rot gate
-/// (`crates/docs/tests/purrdf_asset.rs`).
-pub static PURRDF_ASSET: VendoredWasmAsset = VendoredWasmAsset {
-    name: "purrdf",
-    emitted_files: &[
-        (
-            "gmeow_rdf_wasm.js",
-            include_bytes!("../assets/purrdf/gmeow_rdf_wasm.js"),
-        ),
-        (
-            "gmeow_rdf_wasm_bg.wasm",
-            include_bytes!("../assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
-        ),
-    ],
-    vendored_files: &[
-        "gmeow_rdf_wasm.d.ts",
-        "gmeow_rdf_wasm.js",
-        "gmeow_rdf_wasm_bg.wasm",
-        "gmeow_rdf_wasm_bg.wasm.d.ts",
-    ],
-    wasm_file: "gmeow_rdf_wasm_bg.wasm",
-    min_wasm_len: 100_000,
-    export_checks: &[
-        ExportCheck {
-            file: "gmeow_rdf_wasm.js",
-            needle: "query(sparql, base)",
-            hint: "vendored bindings lack the Dataset.query method",
-        },
-        ExportCheck {
-            file: "gmeow_rdf_wasm.js",
-            needle: "dataset_query",
-            hint: "vendored bindings lack the dataset_query wasm import",
-        },
-        ExportCheck {
-            file: "gmeow_rdf_wasm.d.ts",
-            needle: "query(sparql: string, base?: string | null): string",
-            hint: "vendored .d.ts lacks the query type signature",
-        },
-    ],
-    refresh_target: "maint-refresh-purrdf-asset",
-    bless_env: "GMEOW_PURRDF_BLESS",
-    // The bundle-explorer describe attestation (`WITNESS.describe.nt`): the native
-    // purrdf describe of a deterministic term over the object-level core bundle the
-    // wasm engine reproduces (proven by `crates/validate/tests/witness_explore.rs`;
-    // the vendored engine IS purrdf's parity-proven wasm build). Task 14 consumes it
-    // to gate the explorer's interactive capability.
-    witness_attestation: Some("WITNESS.describe.nt"),
-};
-
 /// The vendored `gmeow-mcp-core-wasm` segment — the console's FIRST-LOAD engine.
 ///
 /// Emitted under `assets/mcp-core/`; refreshed by `make maint-refresh-mcp-core-asset`.
 ///
-/// This descriptor and its sibling [`MCP_ASSET`] replaced three retired ones
-/// (`VALIDATE_ASSET`, `REASON_ASSET`, `GMN_ASSET`). Those vendored a bespoke
-/// `#[wasm_bindgen]` shim per capability — a validator, a reasoner, a codec — each with its
-/// own export surface and its own controller code path. They were duplicate capability once
-/// the MCP surface could answer the same questions: the site now speaks ONE protocol
-/// (JSON-RPC over `handle_message`) to the SAME engine an agent drives, so a capability the
-/// console has is a capability an agent has by construction rather than by parallel
-/// maintenance. `PURRDF_ASSET` survives because it is NOT duplicate — its wasm parity is
-/// owned upstream in the sibling purrdf repo.
+/// This descriptor and its sibling [`MCP_ASSET`] replaced FOUR retired ones
+/// (`VALIDATE_ASSET`, `REASON_ASSET`, `GMN_ASSET`, `PURRDF_ASSET`). The first three
+/// vendored a bespoke `#[wasm_bindgen]` shim per capability — a validator, a reasoner, a
+/// codec — each with its own export surface and its own controller code path. The fourth
+/// vendored a whole third-party SPARQL engine, kept back on the reading that a standalone
+/// query over a caller-supplied graph was a capability the MCP surface lacked; the site
+/// never asked that question, and `query_local` with `scope: "bundle"` answers the one it
+/// does ask. All four were duplicate capability: the site now speaks ONE protocol (JSON-RPC
+/// over `handle_message`) to the SAME engine an agent drives, so a capability the console
+/// has is a capability an agent has by construction rather than by parallel maintenance.
 ///
 /// The vendored set is a directory tree rather than a flat list: `index.mjs` imports
 /// `./pkg/<mod>.js`, so the wasm-bindgen output keeps its `pkg/` subpath and the emitted
@@ -354,6 +580,7 @@ pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         ),
     ],
     vendored_files: &[
+        "WITNESS.core-deferral.json",
         "index.mjs",
         "pkg/gmeow_mcp_core_wasm.d.ts",
         "pkg/gmeow_mcp_core_wasm.js",
@@ -362,28 +589,14 @@ pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     ],
     wasm_file: "pkg/gmeow_mcp_core_wasm_bg.wasm",
     min_wasm_len: 1_000_000,
-    export_checks: &[
-        ExportCheck {
-            file: "index.mjs",
-            needle: "export async function tieredMcp(",
-            hint: "the wrapper lacks the demand-loader the tiered console dispatches through",
-        },
-        ExportCheck {
-            file: "index.mjs",
-            needle: "export function initTiered(",
-            hint: "the wrapper lacks the snapshot-retaining initializer tieredMcp needs",
-        },
-        ExportCheck {
-            file: "pkg/gmeow_mcp_core_wasm.js",
-            needle: "export function mcp(",
-            hint: "vendored bindings lack the JSON-RPC frame entry point",
-        },
-        ExportCheck {
-            file: "pkg/gmeow_mcp_core_wasm.d.ts",
-            needle: "export function mcp(request_json: string): string",
-            hint: "vendored .d.ts lacks the mcp frame type signature",
-        },
-    ],
+    export_surface: ExportSurface {
+        glue_js: "pkg/gmeow_mcp_core_wasm.js",
+        glue_dts: "pkg/gmeow_mcp_core_wasm.d.ts",
+        wrapper_mjs: "index.mjs",
+        // The gmeow-owned wrapper publishes the generated `pkg/*.d.ts` as its only type
+        // surface; there is no second, hand-written one to agree with.
+        package_dts: None,
+    },
     refresh_target: "maint-refresh-mcp-core-asset",
     bless_env: "GMEOW_MCP_CORE_BLESS",
     // The native↔wasm deferral attestation (`WITNESS.core-deferral.json`): the typed
@@ -391,7 +604,7 @@ pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // shipped wasm reproduces byte-for-byte (proven by
     // `crates/mcp-core-wasm/tests/witness_core.rs` + its Node lane). It attests the ROUTING,
     // which is what the tiering rests on.
-    witness_attestation: Some("WITNESS.core-deferral.json"),
+    witness_attestations: &["WITNESS.core-deferral.json"],
 };
 
 /// The vendored `gmeow-mcp-wasm` segment — the console's DEMAND-LOADED reasoner.
@@ -413,6 +626,7 @@ pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         ),
     ],
     vendored_files: &[
+        "WITNESS.mcp.json",
         "index.mjs",
         "pkg/gmeow_mcp_wasm.d.ts",
         "pkg/gmeow_mcp_wasm.js",
@@ -421,40 +635,77 @@ pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     ],
     wasm_file: "pkg/gmeow_mcp_wasm_bg.wasm",
     min_wasm_len: 1_000_000,
-    export_checks: &[
-        ExportCheck {
-            file: "index.mjs",
-            needle: "export function ready(",
-            hint: "the segment wrapper lacks the async instantiation tieredMcp's loadSegment awaits",
-        },
-        ExportCheck {
-            file: "pkg/gmeow_mcp_wasm.js",
-            needle: "export function mcp(",
-            hint: "vendored bindings lack the JSON-RPC frame entry point",
-        },
-        ExportCheck {
-            file: "pkg/gmeow_mcp_wasm.d.ts",
-            needle: "export function mcp(request_json: string): string",
-            hint: "vendored .d.ts lacks the mcp frame type signature",
-        },
-    ],
+    export_surface: ExportSurface {
+        glue_js: "pkg/gmeow_mcp_wasm.js",
+        glue_dts: "pkg/gmeow_mcp_wasm.d.ts",
+        wrapper_mjs: "index.mjs",
+        package_dts: None,
+    },
     refresh_target: "maint-refresh-mcp-asset",
     bless_env: "GMEOW_MCP_BLESS",
     // The native↔wasm attestation (`WITNESS.mcp.json`): a real `conjecture_test` frame
     // answered by the segment, byte-identical both to the shipped wasm's answer and to what
     // the FULL native engine returns for the same frame (proven by
     // `crates/mcp-wasm/tests/witness_mcp.rs` + its Node lane).
-    witness_attestation: Some("WITNESS.mcp.json"),
+    witness_attestations: &["WITNESS.mcp.json"],
 };
+
+/// Every vendored engine this crate ships, in emission order.
+///
+/// The single inventory the refresh-target gate and the render layer both read, so an asset
+/// added to one is an asset the other sees.
+pub static VENDORED_ASSETS: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET, &MCP_ASSET];
+
+/// Prove every descriptor's printed [`refresh_target`](VendoredWasmAsset::refresh_target)
+/// is a REAL target in `makefile`.
+///
+/// Every failure message in this module ends with "run make `<target>`". A descriptor that
+/// prints an instruction nobody can follow is worse than one that prints none: it sends the
+/// reader to a target that does not exist, and it hides the fact that the asset has no
+/// supported refresh path at all — which is exactly how a vendored blob becomes
+/// unrefreshable and then permanently stale. This gate closes that loop by DERIVING the
+/// target set from the descriptors and looking each one up in the Makefile, so a new asset
+/// cannot be added without its refresh target, and a target cannot be renamed out from
+/// under a descriptor.
+///
+/// A target is present when a line begins `<name>:` — GNU make's rule syntax, which cannot
+/// be indented (a leading tab makes it a recipe line, not a rule).
+///
+/// Returns one message per missing target; an empty vector is a pass.
+#[must_use]
+pub fn check_refresh_targets(makefile: &str) -> Vec<String> {
+    let declared: BTreeSet<&str> = makefile
+        .lines()
+        .filter(|line| !line.starts_with('\t'))
+        .filter_map(|line| line.split_once(':'))
+        .map(|(head, _)| head.trim())
+        .filter(|head| !head.is_empty() && !head.contains(char::is_whitespace))
+        .collect();
+    VENDORED_ASSETS
+        .iter()
+        .filter(|asset| !declared.contains(asset.refresh_target))
+        .map(|asset| {
+            format!(
+                "vendored asset '{}' names refresh target `make {}`, which the Makefile does \
+                 not declare — the descriptor prints an instruction that cannot be followed",
+                asset.name, asset.refresh_target
+            )
+        })
+        .collect()
+}
 
 /// The vendored engines whose native↔wasm witness-attestation backs each interactive
 /// capability (F4/F5). An interactive capability may be REPRESENTED by a format only if
 /// every backing engine's attestation is present + current — that is what makes the
 /// capability a realized, proven surface rather than a decorative self-claim:
 ///
-/// * `LiveSparql` — the playground's SPARQL runs on the purrdf engine (the standalone
-///   `Dataset.query` surface, which answers CONSTRUCT/DESCRIBE over a caller-supplied graph
-///   with no bundle union) and on the MCP core segment (`query_local`).
+/// * `LiveSparql` — the playground's and the explorer's SPARQL are both `query_local` on
+///   the MCP core segment. This set used to name a second engine (the vendored purrdf wasm)
+///   on the reading that a standalone query over a caller-supplied graph was a distinct
+///   capability. It is not one the site exercises: both surfaces query the SHIPPED bundle,
+///   which the core segment is booted over, and `scope: "bundle"` answers every result form
+///   they ask for — so the second engine was a second attestation surface for one
+///   capability, and both are now the core segment's.
 /// * `Interactivity` — every interactive widget dispatches through the MCP core segment:
 ///   the validate buttons are `validate_local`, the GMN transcode is
 ///   `encode_gmn1`/`gmn_expand`/`gmn_glyph_legend`, the copy-as bar is `convert`.
@@ -472,7 +723,7 @@ pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
 /// of the capability and not of the format that claims it.
 #[must_use]
 pub fn capability_backing_assets(cap: Capability) -> &'static [&'static VendoredWasmAsset] {
-    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&PURRDF_ASSET, &MCP_CORE_ASSET];
+    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET];
     const INTERACTIVITY: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET];
     const LIVE_REASONING: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET, &MCP_ASSET];
     const NONE: &[&VendoredWasmAsset] = &[];
@@ -489,14 +740,13 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
 /// REPRESENTS an interactive capability whose backing engine lacks a present, current
 /// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
 /// with two other on-gate facts — the `wasm-parity` lane, which RUNS the native≡wasm parity
-/// for the gmeow-owned engines (validate/reason/gmn) on every `make check`, and the digest
-/// pin, which ties the shipped bytes to the attested build (the `maint-refresh-*-asset`
+/// for the gmeow-owned engines on every `make check`, and the digest pin, which ties the
+/// shipped bytes AND the witnesses to the attested build (the `maint-refresh-*-asset`
 /// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
 /// "the format declares the capability AND its engine's parity is proven-and-current."
 /// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
 /// a missing or stale attestation is a HARD FAIL that forbids the capability, never a silent
-/// drop. (The vendored sibling-repo purrdf engine's parity is owned upstream; its witness is
-/// the native `describe` output, digest-pinned here.)
+/// drop.
 ///
 /// Returns one message per (format, capability, engine) violation; an empty vector is a
 /// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
@@ -518,4 +768,77 @@ pub fn check_capability_attestations() -> Vec<String> {
         }
     }
     errors
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn module_exports_reads_declarations_and_reexport_blocks() {
+        let text =
+            "export function ready(a) {}\nexport const K = 1;\nexport {\n  a,\n  b as c,\n};\n";
+        let names = module_exports(text);
+        assert_eq!(
+            names.iter().map(String::as_str).collect::<Vec<_>>(),
+            ["K", "a", "c", "ready"],
+            "a re-export block contributes its EXPORTED names, `b as c` as `c`"
+        );
+    }
+
+    #[test]
+    fn module_imports_from_keeps_the_source_name() {
+        let text =
+            "import wasmInit, {\n  ready as snapshotLoaded,\n  mcp,\n} from \"./pkg/x.js\";\n";
+        let names = module_imports_from(text, "./pkg/x.js");
+        assert_eq!(
+            names.iter().map(String::as_str).collect::<Vec<_>>(),
+            ["mcp", "ready"],
+            "`ready as snapshotLoaded` must be recorded as `ready` — the name the glue \
+             must still export"
+        );
+        assert!(
+            module_imports_from(text, "./pkg/other.js").is_empty(),
+            "an import from a different module contributes nothing"
+        );
+    }
+
+    #[test]
+    fn dts_value_exports_ignores_type_only_declarations() {
+        let text = "export type A = string;\nexport interface B { x: number }\n\
+                    export class C {}\nexport function d(): void;\n";
+        let names = dts_value_exports(text);
+        assert_eq!(
+            names.iter().map(String::as_str).collect::<Vec<_>>(),
+            ["C", "d"],
+            "types and interfaces have no runtime existence, so they are not comparable \
+             against a module's exports"
+        );
+    }
+
+    #[test]
+    fn a_missing_refresh_target_is_reported_by_name() {
+        // The real Makefile is checked by `crates/docs/tests/refresh_targets_exist.rs`; here
+        // the NEGATIVE direction is proven against a Makefile that declares none of them.
+        let errors = check_refresh_targets("all:\n\techo hi\n");
+        assert_eq!(
+            errors.len(),
+            VENDORED_ASSETS.len(),
+            "every descriptor whose refresh target is absent must be reported: {errors:?}"
+        );
+        for asset in VENDORED_ASSETS {
+            assert!(
+                errors.iter().any(|e| e.contains(asset.refresh_target)),
+                "the failure must NAME the missing target `{}`",
+                asset.refresh_target
+            );
+        }
+        // A recipe line that happens to contain a colon is not a rule.
+        assert!(
+            check_refresh_targets("\tmaint-refresh-mcp-core-asset: not a rule\n")
+                .iter()
+                .any(|e| e.contains("maint-refresh-mcp-core-asset")),
+            "a tab-indented line is a recipe, never a target declaration"
+        );
+    }
 }

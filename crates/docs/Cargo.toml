@@ -59,7 +59,15 @@ minijinja = "2"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 
 [dev-dependencies]
-# Rich colored line-diffs on assert_eq! failure (#871). Drop-in: a shadowing
+# Rich colored line-diffs on assert_eq! failure. Drop-in: a shadowing
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"
 insta = { version = "1.48", features = ["json"] }
+# TEST-ONLY, and deliberately one-directional: `gmeow-mcp` must never depend on this crate
+# (its renderer embeds ~13.6 MB, which has no business in a browser image), but this crate's
+# tests must be able to EXECUTE the queries its renderer emits. `shipped_queries_execute`
+# runs every SPARQL text the site ships against the real bundle through the real engine, so
+# "the page ships a query that answers" is a gate rather than a hope — the exact property
+# whose absence let the playground ship a default query that matched nothing.
+gmeow-mcp = { path = "../mcp" }
+serde_json = "1"

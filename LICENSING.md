@@ -17,6 +17,14 @@ The **GTS format engine** lives in the separate
 here as a published package) and is licensed **Apache-2.0 OR MIT**; it is not covered by
 the AGPL terms above.
 
+The **RDF 1.2 kernel** lives in the separate
+[`purrdf`](https://github.com/Blackcat-Informatics/purrdf) repository and is licensed
+**MIT OR Apache-2.0**; it is consumed here as a Rust library and is not covered by the
+AGPL terms above. No purrdf build is vendored into this repository: the documentation
+site's interactive surfaces run on the GMEOW-owned MCP wasm segments under
+`crates/docs/assets/mcp-core/` and `crates/docs/assets/mcp/`, which are AGPL-3.0-only like
+the rest of this repository.
+
 The vendored third-party file `imports/gufo.ttl` (gUFO) is under the MIT License;
 its notice is preserved in that file and summarized in [`NOTICE`](./NOTICE).
 

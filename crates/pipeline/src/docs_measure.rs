@@ -243,14 +243,11 @@ fn render_every_format(
 ) -> Result<Vec<RenderedFormat>, Diag> {
     let model = build_docs_model(root, products)?;
 
-    let playground_trig = crate::stages::carrier::playground_trig_from_bundle(carrier)
-        .map_err(|e| err(format!("build the playground TriG asset: {e}")))?;
     let known_term_iris: std::collections::BTreeSet<String> =
         model.terms.iter().map(|t| t.iri.clone()).collect();
     let term_entailments =
         crate::stages::carrier::term_entailments_from_upstream(products, &known_term_iris)?;
     let exec = gmeow_docs::ExecutableDocsData {
-        playground_trig,
         term_entailments,
         ..Default::default()
     };

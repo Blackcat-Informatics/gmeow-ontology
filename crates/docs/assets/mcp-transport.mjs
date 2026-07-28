@@ -27,6 +27,7 @@
 // and no hard-coded demo library anywhere in the console's JavaScript: what a surface
 // offers is read back out of the shipped ontology at run time.
 
+import { blake3Hex } from "./blake3.mjs";
 import { initTiered, ready as mcpReady, tieredMcp } from "./mcp-core/index.mjs";
 
 // ── Host configuration ──────────────────────────────────────────────────────
@@ -65,6 +66,82 @@ export function fullBundleUrl() {
   return assetUrl("./gmeow.gts");
 }
 
+// ── Integrity ───────────────────────────────────────────────────────────────
+// Every integrity-pinned site sub-asset is fetched through ONE verified reader, so no
+// surface can invent a second, unchecked fetch path. The renderer emits
+// `assets/bundle-manifest.json` as a pure function of the asset bytes — one
+// `{ "blake3": "blake3:<hex>", "bytes": n }` entry per pinned asset — and the client
+// recomputes BOTH.
+//
+// The byte length alone is not integrity: it rejects a truncated asset and accepts a
+// same-length substitution, which is the only substitution an attacker who can rewrite the
+// asset would bother to make. BLAKE3 is the project's content address (the Rust side
+// produces every one of these digests with the `blake3` crate), so `./blake3.mjs`
+// recomputes exactly that function in the browser.
+
+let _manifest = null;
+
+/**
+ * The emitted browser-bundle integrity manifest, fetched once.
+ *
+ * The in-flight PROMISE is cached so concurrent verifications share one fetch. A manifest
+ * that cannot be read is a HARD FAILURE: without it nothing downstream can be verified, and
+ * "no manifest" must never degrade to "skip the check".
+ */
+export async function bundleManifest() {
+  if (_manifest === null) {
+    _manifest = (async () => {
+      const url = assetUrl("./bundle-manifest.json");
+      let bytes;
+      try {
+        bytes = await _fetchBytes(url);
+      } catch (cause) {
+        throw new Error(
+          `integrity: the bundle manifest ${url} could not be loaded, so no site asset can ` +
+            `be verified: ${cause?.message ?? cause}`,
+          { cause },
+        );
+      }
+      return JSON.parse(new TextDecoder().decode(bytes));
+    })().catch((error) => {
+      _manifest = null;
+      throw error;
+    });
+  }
+  return _manifest;
+}
+
+/**
+ * Fetch an integrity-pinned site sub-asset and verify it against the manifest.
+ *
+ * A missing manifest entry, a byte-length mismatch, or a BLAKE3 mismatch is a HARD FAILURE
+ * naming the asset and both digests — never a silent bypass.
+ */
+export async function verifiedAssetBytes(sitePath, relative) {
+  const manifest = await bundleManifest();
+  const entry = manifest[sitePath];
+  if (entry === undefined) {
+    throw new Error(
+      `integrity: the manifest is missing the ${sitePath} entry — cannot verify the asset ` +
+        "(a missing manifest entry is a hard failure, not a bypass)",
+    );
+  }
+  const bytes = await _fetchBytes(assetUrl(relative));
+  if (bytes.length !== entry.bytes) {
+    throw new Error(`integrity: ${sitePath} expected ${entry.bytes} bytes, got ${bytes.length}`);
+  }
+  const digest = `blake3:${blake3Hex(bytes)}`;
+  if (digest !== entry.blake3) {
+    throw new Error(`integrity: ${sitePath} expected ${entry.blake3}, computed ${digest}`);
+  }
+  return bytes;
+}
+
+/** [`verifiedAssetBytes`] decoded as UTF-8 text. */
+export async function verifiedAssetText(sitePath, relative) {
+  return new TextDecoder().decode(await verifiedAssetBytes(sitePath, relative));
+}
+
 // ── Boot ────────────────────────────────────────────────────────────────────
 
 let _mcpReady = null;
@@ -77,6 +154,12 @@ let _frameId = 0;
  * share one instantiation. On failure the cache is cleared and the rejection propagates
  * NAMING the asset that could not be loaded — a boot that cannot reach its engine is a
  * hard error, never a quietly inert surface.
+ *
+ * The snapshot is read through [`verifiedAssetBytes`], so the bytes the engine is
+ * initialized over are the bytes the site's own manifest pins. It is the LARGEST and most
+ * consequential asset the client fetches — the whole ontology the engine then answers
+ * from — so booting it unverified was the one place a swapped asset would have gone
+ * unnoticed while every smaller sub-asset was checked.
  */
 export function ensureMcp() {
   if (_mcpReady === null) {
@@ -85,7 +168,7 @@ export function ensureMcp() {
       const url = fullBundleUrl();
       let bundle;
       try {
-        bundle = await _fetchBytes(url);
+        bundle = await verifiedAssetBytes("assets/gmeow.gts", "./gmeow.gts");
       } catch (cause) {
         throw new Error(`engine asset ${url} could not be loaded: ${cause?.message ?? cause}`, {
           cause,
@@ -152,6 +235,63 @@ export async function callTool(name, args, onSegmentLoad) {
     throw new Error(payload.error ?? `${name} failed`);
   }
   return payload;
+}
+
+/**
+ * Query the SHIPPED bundle — the ONE place the bundle-scope query frame is spelled.
+ *
+ * Every browser surface that asks the ontology a question (the SPARQL playground, the
+ * bundle explorer, a term page's export link) goes through here, so "what does the site
+ * query?" has exactly one answer: the `gmeow.gts` bytes [`ensureMcp`] booted the engine
+ * over. There is no second client-side dataset and no second parser.
+ *
+ * `scope: "bundle"` reads the signed canon. The overlay arguments are the tool's
+ * REQUIRED external-annex pair and are passed EMPTY on purpose: this surface has no local
+ * annex to union in, and saying so explicitly is how the tool is told that. An empty
+ * overlay contributes no quad, so the answer is the canon's alone.
+ *
+ * A plain (non-`GRAPH`) pattern therefore reads the bundle's DEFAULT graph — the
+ * object-level ontology. The named graphs (`graph/documentation`, `graph/reasoning`,
+ * `graph/diagnostics`, …) are reachable through an explicit `GRAPH` clause. That
+ * distinction is load-bearing and is why the retired `playground.trig` asset answered
+ * nothing: it routed EVERY statement into a named graph, so the default-graph patterns
+ * the page shipped matched an empty default graph.
+ *
+ * # A refused query THROWS
+ *
+ * `query_local` reports a bad query in its PAYLOAD (`{ok: false, error}`) rather than
+ * through the envelope's `isError`, so [`callTool`] — which treats only `isError` as
+ * failure, deliberately, because `validate_local` uses `ok: false` for a negative verdict
+ * that is nonetheless a successful call — returns it as a value. For a query that is a
+ * genuine failure with nothing to render, so it is raised here. Without this a syntax
+ * error arrives at a caller as a result object with no `form`, and the widget reports
+ * something about an unknown result shape instead of the engine's own parse message.
+ */
+export async function queryBundle(sparql, onSegmentLoad) {
+  const out = await callTool(
+    "query_local",
+    { data: "", format: "turtle", scope: "bundle", query: sparql },
+    onSegmentLoad,
+  );
+  if (out.ok === false && typeof out.error === "string") {
+    throw new Error(out.error);
+  }
+  return out;
+}
+
+/**
+ * Transcode RDF text through the engine's own `convert` tool — the same transcode hub the
+ * CLI drives, reached through the same protocol.
+ *
+ * The console ships no second serializer: a caller that wants a graph result in another
+ * RDF syntax pipes the engine's canonical N-Quads back through the engine.
+ */
+export async function convertRdf(data, from, to) {
+  const out = await callTool("convert", { data, from, to });
+  if (typeof out.output !== "string") {
+    throw new Error(`convert: ${from}→${to} returned no output text`);
+  }
+  return out.output;
 }
 
 /** The engine's advertised tool descriptors (`tools/list`), sorted by name. */

@@ -191,13 +191,16 @@ drives two of those engines.
 **Why exactly these.** The set is not curated; it is the set of surfaces that already ship
 a `js/` ESM shim over a `wasm-bindgen` build (the five `*-wasm-pkg` Make lanes) plus the
 one browser element that ships as source. Nothing else in the tree is consumable off the
-repository: `crates/docs/assets/purrdf/` is a **vendored** copy of an upstream package this
-repository does not author or publish, `crates/docs/assets/mcp{,-core}/` are re-vendored
-copies of two of the packages above (the documentation site and the console share one
-7 MB image rather than carrying a second), `crates/docs/assets/console/smoke/` is a
-dev-only Playwright manifest that declares itself `private`, and `editors/vscode/` is a
-Visual Studio Marketplace extension published by `vsce`, on that registry's cadence and
-metadata contract, not to npm.
+repository: `crates/docs/assets/mcp{,-core}/` are re-vendored copies of two of the packages
+above (the documentation site and the console share one 7 MB image rather than carrying a
+second), `crates/docs/assets/console/smoke/` is a dev-only Playwright manifest that declares
+itself `private`, and `editors/vscode/` is a Visual Studio Marketplace extension published
+by `vsce`, on that registry's cadence and metadata contract, not to npm.
+
+A third vendored tree, `crates/docs/assets/purrdf/`, used to sit alongside those two: an
+upstream package this repository does not author, vendored so the site's SPARQL playground
+and bundle explorer could run offline. It is retired — both surfaces query the shipped
+bundle through the MCP segments above, so the site carries one engine instead of two.
 
 The package set is **discovered from the shipped bytes** — every `package.json` that is
 neither `"private": true` nor a VS Code extension manifest — by

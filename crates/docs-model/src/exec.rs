@@ -63,22 +63,20 @@ pub struct ExecutableDocsData {
     /// any single example (shared / blank-Skolem witnesses). Surfaced on the
     /// playground page so no derived triple is silently dropped.
     pub cross_example: Vec<String>,
-    /// The RDF asset the offline SPARQL playground queries: the documentation graph
-    /// plus the reasoned ontology closure, serialized to TriG. Empty ⇒ no playground.
-    /// Term/slice export both flow through the playground's `DESCRIBE` (client-side,
-    /// all RDF formats via purrdf), so this asset is the single export substrate too.
-    pub playground_trig: Vec<u8>,
-    /// The **core browser bundle** — the object-level ontology (the bundle's default
-    /// graph) as N-Quads text, sized for the browser (~24 MB vs the full bundle's
-    /// ~948 MB extraction). The bundle-explorer surface parses this client-side (via
-    /// the vendored purrdf RDF engine) to answer `info`/`describe` over the SAME
-    /// authored ontology the pipeline shipped. Empty ⇒ no explorer bundle. Built by
-    /// [`gmeow_validate::store::core_browser_bundle_nquads`].
-    pub core_bundle_nquads: Vec<u8>,
-    /// The full `gmeow.gts` bundle bytes — the browser Tier-1 validate surface reads
-    /// its `shapes-archive` (a small container read; it does NOT extract the whole
-    /// dataset). Empty ⇒ no in-browser validation. Shipped as an EXTERNAL site asset,
-    /// never re-embedded into `gmeow.gts`.
+    /// The full `gmeow.gts` bundle bytes — the ONE queryable asset every interactive
+    /// surface reads. The browser MCP engine boots over exactly these bytes and then
+    /// answers the playground, the explorer, Tier-1 validation, reasoning and the codec
+    /// tools from them. Empty ⇒ no interactive surface at all. Shipped as an EXTERNAL
+    /// site asset, never re-embedded into `gmeow.gts`.
+    ///
+    /// This field used to have two siblings — a `playground_trig` TriG projection and a
+    /// `core_bundle_nquads` object-level N-Quads projection — each re-serializing a slice
+    /// of these same bytes for a separate client-side parser. Both are retired: they were
+    /// 311 MB of duplicate substrate for questions the engine already answers from the
+    /// bundle it is booted over, and the TriG one was worse than redundant. It routed every
+    /// statement into a NAMED graph, so the playground's own default query
+    /// (`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`) and every term page's `?q=` prefill matched
+    /// the default graph and returned nothing. One asset, one engine, one answer.
     pub full_bundle_gts: Vec<u8>,
     /// Per-term reasoner "why" panels (B3): every derivation whose `gmeow:concludes`
     /// or `gmeow:hasPremise` quoted triple mentions the term's IRI (in subject,
@@ -100,25 +98,23 @@ pub struct ExecutableDocsData {
 }
 
 impl ExecutableDocsData {
-    /// Whether the offline SPARQL playground (and thus the export surface) can be
-    /// rendered — i.e. the pipeline supplied the bundled query asset.
-    #[must_use]
-    pub fn has_playground(&self) -> bool {
-        !self.playground_trig.is_empty()
-    }
-
-    /// Whether the browser bundle assets (the core N-Quads for the explorer and the
-    /// full `gmeow.gts` for in-browser validation) were supplied — i.e. the
-    /// interactive validate/explore surfaces can be rendered.
+    /// Whether the queryable bundle was supplied — i.e. EVERY interactive surface (the
+    /// SPARQL playground, the bundle explorer, the Tier-1 validate controls, live
+    /// reasoning, the GMN transcode and the export affordances) can be rendered.
+    ///
+    /// There is exactly ONE such predicate because there is exactly one queryable asset.
+    /// It replaced a `has_playground()` / `has_bundle()` pair that gated on two different
+    /// projections of these same bytes: a page could then be emitted under one gate while
+    /// the surface behind it was driven by the other, which is precisely how the playground
+    /// page came to ship a query asset it could not query.
     #[must_use]
     pub fn has_bundle(&self) -> bool {
-        !self.core_bundle_nquads.is_empty() && !self.full_bundle_gts.is_empty()
+        !self.full_bundle_gts.is_empty()
     }
 
     /// Whether the conjecture demo library was supplied — i.e. the W4 conjecture
-    /// playground surface can be rendered. Requires the core bundle too (the playground
-    /// runs the live wasm engine, so it reuses the vendored reason asset the bundle
-    /// surfaces ship).
+    /// playground surface can be rendered. Requires the bundle too: the playground runs
+    /// the live engine, which boots over it.
     #[must_use]
     pub fn has_conjectures(&self) -> bool {
         !self.conjectures_ttl.is_empty() && self.has_bundle()

@@ -14,14 +14,18 @@ under `assets/mcp-core/`, where it is the ONLY engine the site loads eagerly.
 
 The site used to vendor four separate engines — the purrdf runtime plus a bespoke
 `#[wasm_bindgen]` shim each for validation, reasoning and the GMN codec — every one with its
-own export surface, its own boot ritual, and its own controller code path. They have been
-retired in favour of ONE protocol: every widget now speaks JSON-RPC to the MCP surface, so
-the docs controller drives the same 37-tool engine an agent does. A capability the console
-has is a capability an agent has, by construction rather than by parallel maintenance.
+own export surface, its own boot ritual, and its own controller code path. All four have
+been retired in favour of ONE protocol: every widget now speaks JSON-RPC to the MCP surface,
+so the docs controller drives the same 37-tool engine an agent does. A capability the
+console has is a capability an agent has, by construction rather than by parallel
+maintenance.
 
-`assets/purrdf/` remains, because it is not duplicate capability: its wasm parity is owned
-upstream in the sibling purrdf repo, and the bundle explorer's `WITNESS.describe.nt` lane
-attests it here.
+purrdf was the last to go, and the only one kept back on a capability argument rather than
+inertia: the playground and the explorer were said to need a STANDALONE query over a
+caller-supplied graph. They do not — both query the SHIPPED ontology, which this segment is
+booted over, and `query_local` with `scope: "bundle"` answers every result form they ask
+for. The describe property its `WITNESS.describe.nt` attested is still proven, against this
+engine, by `crates/mcp/tests/witness_explore.rs`.
 
 ## Files
 

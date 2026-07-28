@@ -189,9 +189,6 @@ mod tests {
     /// An `exec` that makes a render interactive (the renderer only checks non-emptiness).
     fn interactive_exec() -> ExecutableDocsData {
         ExecutableDocsData {
-            playground_trig: b"@prefix ex: <http://example/> .".to_vec(),
-            core_bundle_nquads: b"<http://ex/s> <http://ex/p> <http://ex/o> <http://ex/g> .\n"
-                .to_vec(),
             full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
             conjectures_ttl: b"@prefix ex: <http://example/> .".to_vec(),
             ..Default::default()

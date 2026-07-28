@@ -14,19 +14,26 @@
 // `./mcp-transport.mjs`, which the standalone console's worker imports too. This file is
 // only the page wiring: what a widget reads out of the DOM, and how it renders an answer.
 //
-// purrdf is the one engine that stayed alongside the MCP image, because it is NOT
-// duplicate: the playground and the explorer query a caller-supplied graph STANDALONE, and
-// the purrdf `Dataset` also transcodes result graphs locally without a round trip. Its
-// wasm parity is owned upstream in the sibling purrdf repo and attested here by
-// `WITNESS.describe.nt`.
+// There is now exactly ONE engine. A fourth vendored runtime (purrdf's 8.15 MB wasm build)
+// survived the first three retirements on the claim that it was not duplicate — that the
+// playground and the explorer needed a STANDALONE query over a caller-supplied graph. That
+// claim did not survive measurement. The two surfaces query the SHIPPED ontology, not a
+// caller's graph, and the engine already holds it: `query_local` with `scope: "bundle"`
+// answers SELECT/ASK/CONSTRUCT/DESCRIBE over the same `gmeow.gts` the worker booted, and
+// `convert` transcodes a result graph through the same hub the CLI drives.
+//
+// Retiring it also retired the 311 MB of client-side substrate that existed only to feed
+// it — and fixed the playground, whose own default query returned nothing because that
+// substrate put every statement in a named graph. See `mcp-transport.mjs`'s `queryBundle`.
 
-import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
 import {
-  assetUrl,
   callTool,
   conjectureLibrary,
+  convertRdf,
   localName,
+  queryBundle,
   recordedLegs,
+  verifiedAssetText,
 } from "./mcp-transport.mjs";
 
 const FORMATS = [
@@ -38,52 +45,22 @@ const FORMATS = [
   ["jsonld", "JSON-LD"],
 ];
 
-// ── Shared browser-bundle loader ────────────────────────────────────────────
-// The single client entry point every browser surface uses to obtain the queryable
-// ontology — so no surface invents a second fetch/parse path. It boots the purrdf engine
-// once, fetches the object-level core bundle N-Quads, verifies its byte length against the
-// emitted content-address manifest (a truncated or swapped asset is rejected), and returns
-// the parsed Dataset.
-let _engineReady = null;
-async function ensureEngine() {
-  if (_engineReady === null) {
-    _engineReady = init(assetUrl("./purrdf/gmeow_rdf_wasm_bg.wasm"));
-  }
-  await _engineReady;
+// ── The object-level describe ───────────────────────────────────────────────
+// The explorer's `describe <term>` and a term page's export link ask the same question, so
+// it is spelled once. A bound-subject CONSTRUCT is deliberate rather than a DESCRIBE: this
+// engine's DESCRIBE gathers across every named graph, while a bound-subject pattern reads
+// the DEFAULT graph alone — the object-level ontology. That is the scope the explorer has
+// always answered over and the scope `WITNESS.describe.nt` attests, so pinning it in the
+// query keeps the surface's meaning independent of SPARQL's implementation-defined
+// DESCRIBE. `crates/mcp/tests/witness_explore.rs` proves this exact query reproduces the
+// committed attestation.
+export function describeQuery(subject) {
+  return `CONSTRUCT { ${subject} ?p ?o } WHERE { ${subject} ?p ?o }`;
 }
 
-/** The emitted browser-bundle integrity manifest. */
-async function bundleManifest() {
-  return (await fetch(assetUrl("./bundle-manifest.json"))).json();
-}
-
-/**
- * Fetch a site sub-asset as text and verify its byte length against the manifest.
- *
- * A missing manifest entry or a byte-length mismatch is a HARD FAILURE, never a silent
- * bypass — the same integrity discipline for every integrity-pinned sub-asset.
- */
-async function verifiedAssetText(sitePath, relative) {
-  const manifest = await bundleManifest();
-  const text = await (await fetch(assetUrl(relative))).text();
-  const expected = manifest[sitePath]?.bytes;
-  const actual = new TextEncoder().encode(text).length;
-  if (expected === undefined) {
-    throw new Error(
-      `integrity: the manifest is missing the ${sitePath} entry — cannot verify the asset ` +
-        "(a missing manifest entry is a hard failure, not a bypass)",
-    );
-  }
-  if (actual !== expected) {
-    throw new Error(`integrity: ${sitePath} expected ${expected} bytes, got ${actual}`);
-  }
-  return text;
-}
-
-export async function loadCoreBundle() {
-  await ensureEngine();
-  const nq = await verifiedAssetText("assets/gmeow-core.nq", "./gmeow-core.nq");
-  return Dataset.parse(nq, "nquads");
+/** A CURIE (`gmeow:Foo`) passes through; a full IRI is bracketed. */
+export function subjectTerm(term) {
+  return term.includes("://") ? `<${term}>` : term;
 }
 
 // ── Live Tier-1 validation (W1) ─────────────────────────────────────────────
@@ -153,36 +130,38 @@ for (const btn of document.querySelectorAll(".gmeow-run-validation")) {
 }
 
 // ── Bundle explorer (W2b) ───────────────────────────────────────────────────
-// Browser `gmeow info`/`describe` over the object-level core bundle: load it via the shared
-// loader, show the `info` summary, and run a client-side `DESCRIBE` for the entered term.
+// Browser `gmeow info`/`describe` over the object-level ontology, answered by the engine
+// the page already booted. `info` counts the default graph; `describe` runs the shared
+// bound-subject CONSTRUCT. Neither fetches a dataset: the bundle the engine holds IS the
+// object-level ontology, so the 27 MB N-Quads re-serialization the explorer used to parse
+// client-side was a second copy of bytes already in memory.
 const explorerForm = document.getElementById("gmeow-explorer-form");
 if (explorerForm) {
   const infoEl = document.getElementById("gmeow-explorer-info");
   const iriEl = document.getElementById("gmeow-explorer-iri");
   const resultsEl = document.getElementById("gmeow-explorer-results");
-  let explorerDataset = null;
-  loadCoreBundle()
-    .then((ds) => {
-      explorerDataset = ds;
-      infoEl.textContent = `info — ${ds.size} triples in the object-level core bundle.`;
+  queryBundle("SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }")
+    .then((out) => {
+      const n = out.results?.bindings?.[0]?.n?.value ?? "0";
+      infoEl.textContent = `info — ${n} triples in the object-level ontology.`;
     })
     .catch((e) => {
-      infoEl.textContent = `Failed to load the bundle: ${e.message ?? e}`;
+      infoEl.textContent = `Failed to reach the engine: ${e.message ?? e}`;
     });
-  explorerForm.addEventListener("submit", (event) => {
+  explorerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!explorerDataset) return;
     const term = iriEl.value.trim();
     if (!term) return;
-    // A CURIE (gmeow:Foo) or a full IRI; the describe query brackets a full IRI.
-    const subject = term.includes("://") ? `<${term}>` : term;
     resultsEl.replaceChildren();
+    resultsEl.textContent = "Describing…";
     try {
-      const turtle = explorerDataset.query(
-        `PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\nDESCRIBE ${subject}`,
+      const out = await queryBundle(
+        `PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n${describeQuery(subjectTerm(term))}`,
       );
+      const nquads = (out.graph_nquads ?? "").trim();
+      resultsEl.replaceChildren();
       const pre = document.createElement("pre");
-      pre.textContent = turtle && turtle.trim() ? turtle : "No triples describe that term.";
+      pre.textContent = nquads ? nquads : "No triples describe that term.";
       resultsEl.append(pre);
     } catch (err) {
       resultsEl.textContent = `Describe error: ${err.message ?? err}`;
@@ -424,8 +403,6 @@ const queryEl = document.getElementById("gmeow-sparql-query");
 const statusEl = document.getElementById("gmeow-sparql-status");
 const resultsEl = document.getElementById("gmeow-sparql-results");
 
-let dataset = null;
-
 // Only activate on the playground page.
 if (form && queryEl && resultsEl) {
   main().catch((err) => setStatus(`Failed to start the engine: ${err.message ?? err}`));
@@ -433,12 +410,11 @@ if (form && queryEl && resultsEl) {
 
 async function main() {
   setStatus("Loading the query engine…");
-  await ensureEngine();
-
-  setStatus("Loading the ontology…");
-  const trig = await (await fetch(assetUrl("./playground.trig"))).text();
-  dataset = Dataset.parse(trig, "trig");
-  setStatus(`Ready — ${dataset.size} triples loaded. Run a query.`);
+  // The count doubles as the readiness probe: it is a real frame answered by the real
+  // engine over the real bundle, so "Ready" is an executed fact rather than a boot flag.
+  const out = await queryBundle("SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }");
+  const n = out.results?.bindings?.[0]?.n?.value ?? "0";
+  setStatus(`Ready — ${n} object-level triples. Run a query.`);
 
   // Prefill from the ?q= query parameter (e.g. a term page's "DESCRIBE" link).
   const prefill = new URLSearchParams(window.location.search).get("q");
@@ -450,31 +426,37 @@ async function main() {
   });
 }
 
-function runQuery() {
+async function runQuery() {
   resultsEl.replaceChildren();
   const sparql = queryEl.value.trim();
   if (!sparql) return;
+  setStatus("Running…");
   let out;
   try {
-    out = dataset.query(sparql);
+    out = await queryBundle(sparql);
   } catch (err) {
     setStatus(`Query error: ${err.message ?? err}`);
     return;
   }
-  // SELECT/ASK return SPARQL Results JSON; CONSTRUCT/DESCRIBE return Turtle (which is not
-  // JSON, so the parse throws and we fall through to the graph branch).
-  let json = null;
-  try {
-    json = JSON.parse(out);
-  } catch {
-    json = null;
+  // The engine DECLARES the result form in its envelope, so the shape is read rather than
+  // guessed. The old code inferred it by trying `JSON.parse` on the payload and treating a
+  // throw as "this must be a graph" — which silently mislabels any future non-JSON error
+  // text as a graph result.
+  switch (out.form) {
+    case "graph":
+      renderGraph(out.graph_nquads ?? "", out.quad_count ?? 0);
+      break;
+    case "boolean":
+    case "bindings":
+      renderSolutions(out);
+      break;
+    default:
+      setStatus(`Unknown result form \`${out.form}\` — the engine answered in a shape this page cannot render.`);
   }
-  if (json && (json.results || typeof json.boolean === "boolean")) renderSolutions(json);
-  else renderGraph(out);
 }
 
 function renderSolutions(json) {
-  if (typeof json.boolean === "boolean") {
+  if (json.form === "boolean") {
     setStatus(`ASK → ${json.boolean}`);
     const p = document.createElement("p");
     p.textContent = String(json.boolean);
@@ -503,29 +485,33 @@ function renderSolutions(json) {
   resultsEl.append(table);
 }
 
-function renderGraph(turtle) {
-  setStatus("Graph result — copy in any RDF serialization:");
+// A graph result arrives as the engine's canonical N-Quads — the ONE lossless RDF-1.2 text
+// form every tool here hands back — and the copy bar transcodes it through `convert`.
+function renderGraph(nquads, quadCount) {
+  setStatus(
+    `Graph result — ${quadCount} quad${quadCount === 1 ? "" : "s"}. Copy in any RDF serialization:`,
+  );
   const bar = document.createElement("div");
   bar.className = "gmeow-sparql-copybar";
   for (const [fmt, label] of FORMATS) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
-    button.addEventListener("click", () => copyAs(turtle, fmt, label));
+    button.addEventListener("click", () => copyAs(nquads, fmt, label));
     bar.append(button);
   }
   resultsEl.append(bar);
   const pre = document.createElement("pre");
   pre.className = "gmeow-sparql-graph";
-  pre.textContent = turtle;
+  pre.textContent = nquads;
   resultsEl.append(pre);
 }
 
-function copyAs(turtle, fmt, label) {
+async function copyAs(nquads, fmt, label) {
   let text;
   try {
-    // Transcode the result graph client-side through the same engine.
-    text = fmt === "turtle" ? turtle : Dataset.parse(turtle, "turtle").serialize(fmt);
+    // Transcode the result graph through the engine's own hub — no second serializer.
+    text = fmt === "nquads" ? nquads : await convertRdf(nquads, "nquads", fmt);
   } catch (err) {
     setStatus(`Cannot serialize as ${label}: ${err.message ?? err}`);
     return;

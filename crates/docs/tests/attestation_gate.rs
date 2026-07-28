@@ -4,9 +4,7 @@
 //! F4/F5 attestation gate: every interactive documentation capability is causally
 //! downstream of a present, current native↔wasm witness-attestation.
 
-use gmeow_docs::vendored_asset::{
-    MCP_ASSET, MCP_CORE_ASSET, PURRDF_ASSET, check_capability_attestations,
-};
+use gmeow_docs::vendored_asset::{MCP_ASSET, MCP_CORE_ASSET, check_capability_attestations};
 
 #[test]
 fn every_interactive_capability_has_a_current_attestation() {
@@ -20,9 +18,10 @@ fn every_interactive_capability_has_a_current_attestation() {
 
 #[test]
 fn each_witnessed_engine_attestation_is_present_and_current() {
-    // The three retired gmeow-owned shims (validator / reasoner / GMN codec) are gone; the
-    // console's two MCP segments carry their capabilities and their attestations now.
-    for asset in [&PURRDF_ASSET, &MCP_CORE_ASSET, &MCP_ASSET] {
+    // The four retired engines (validator / reasoner / GMN codec shims, and the vendored
+    // purrdf runtime) are gone; the console's two MCP segments carry every interactive
+    // capability and every attestation now.
+    for asset in [&MCP_CORE_ASSET, &MCP_ASSET] {
         if let Some(e) = asset.attestation_status() {
             panic!("engine '{}' attestation not current: {e}", asset.name);
         }

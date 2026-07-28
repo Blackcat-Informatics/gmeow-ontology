@@ -106,8 +106,9 @@ const WITNESSES = {
     // one N-Quads string, and over a full-size `gmeow.gts` that allocation exceeds what a
     // wasm32 linear memory can hold — the module traps, identically in this tree and from
     // the installed tarball, so it is an engine limit rather than a packaging defect and
-    // driving it here would prove nothing about consumability. Its real consumer is the
-    // documentation site, which calls it over the much smaller core-bundle projection.
+    // driving it here would prove nothing about consumability. The documentation site does
+    // not call it at all: it queries the bundle through the MCP engine's tool surface
+    // rather than folding the carrier client-side.
     return "validate() over the shipped bundle + gmn_validate() over both frozen vectors";
   },
 

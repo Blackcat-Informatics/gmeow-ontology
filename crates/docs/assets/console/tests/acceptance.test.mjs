@@ -42,10 +42,32 @@ configure({
 // bundle. Symlinking it into `assets/` would be a second copy of a 37 MB file, so the
 // reader resolves that one name to the real path instead.
 const SNAPSHOT = here("../../../../../generated/dist/gmeow.gts");
+
+// `assets/bundle-manifest.json` is emitted by the RENDERER, over the assets it emits — it
+// is not a checked-in file, so `crates/docs/assets/` (a build-input tree, not a rendered
+// site) has none. The reader below stands in for the renderer for the one asset this lane
+// boots over, computing the same `{blake3, bytes}` entry the Rust side emits.
+//
+// That makes the POSITIVE direction a wiring check, not a proof — hashing bytes and then
+// verifying them against their own hash proves nothing about the bytes. The proof is the
+// NEGATIVE direction, in `integrity_hard_fails_on_a_tampered_snapshot` below: perturb
+// either half and the boot must refuse. What this reader does establish is that the shipped
+// `blake3.mjs` and the shipped verification path are actually reached on the boot route,
+// which is what silently was not true before.
+const manifestFor = async (path, sitePath) => {
+  const { blake3Hex } = await import("../../blake3.mjs");
+  const bytes = new Uint8Array(await readFile(path));
+  return { [sitePath]: { blake3: `blake3:${blake3Hex(bytes)}`, bytes: bytes.length } };
+};
+const SNAPSHOT_MANIFEST = await manifestFor(SNAPSHOT, "assets/gmeow.gts");
+
+const encodeJson = (value) => new TextEncoder().encode(JSON.stringify(value));
+
 configure({
   fetchBytes: async (url) => {
-    const path = url.toString().endsWith("/gmeow.gts") ? SNAPSHOT : fileURLToPath(url);
-    return new Uint8Array(await readFile(path));
+    const name = url.toString();
+    if (name.endsWith("/bundle-manifest.json")) return encodeJson(SNAPSHOT_MANIFEST);
+    return new Uint8Array(await readFile(name.endsWith("/gmeow.gts") ? SNAPSHOT : fileURLToPath(url)));
   },
 });
 
@@ -159,6 +181,60 @@ test("hard_error_on_missing_asset", async () => {
     shell,
     /unhandledrejection[\s\S]*errorBanner\.textContent/,
     "a boot rejection that never reaches the element must still reach the banner",
+  );
+});
+
+test("integrity_hard_fails_on_a_tampered_snapshot", async () => {
+  // The engine boots over `assets/gmeow.gts` — the whole ontology it then answers from, and
+  // by far the largest asset the client fetches. Verifying it by byte LENGTH alone accepts
+  // any same-length substitution, which is the only substitution worth making; so the
+  // transport recomputes its BLAKE3 against the emitted manifest. Both failure modes are
+  // exercised here, each against a FRESH transport instance so neither perturbs the shared
+  // one, and the boot must REFUSE in both — a snapshot that does not match its content
+  // address is never "close enough to boot".
+  const truthful = await readFile(SNAPSHOT);
+
+  // (a) The bytes moved under a manifest that still describes the originals.
+  const tampered = new Uint8Array(truthful);
+  tampered[tampered.length - 1] ^= 0x01; // one bit, same length
+  const a = await import(`../../mcp-transport.mjs?tamper-bytes=${Date.now()}`);
+  a.configure({
+    assetBase: new URL("../../", import.meta.url),
+    fetchBytes: async (url) =>
+      url.toString().endsWith("/bundle-manifest.json")
+        ? encodeJson(SNAPSHOT_MANIFEST)
+        : tampered,
+  });
+  await assert.rejects(
+    () => a.ensureMcp(),
+    (error) => {
+      assert.match(
+        error.message,
+        /blake3:[0-9a-f]{64}/,
+        `the refusal must name the digests it compared, got: ${error.message}`,
+      );
+      return true;
+    },
+    "a same-length bit flip in the snapshot must refuse the boot — byte length is not integrity",
+  );
+
+  // (b) The manifest entry is missing entirely. A manifest that does not describe an asset
+  //     is not permission to load it unchecked.
+  const b = await import(`../../mcp-transport.mjs?tamper-manifest=${Date.now()}`);
+  b.configure({
+    assetBase: new URL("../../", import.meta.url),
+    fetchBytes: async (url) =>
+      url.toString().endsWith("/bundle-manifest.json")
+        ? encodeJson({ "assets/conjectures.ttl": { blake3: "blake3:00", bytes: 0 } })
+        : new Uint8Array(truthful),
+  });
+  await assert.rejects(
+    () => b.ensureMcp(),
+    (error) => {
+      assert.match(error.message, /assets\/gmeow\.gts/, error.message);
+      return true;
+    },
+    "a missing manifest entry is a hard failure, not a bypass",
   );
 });
 

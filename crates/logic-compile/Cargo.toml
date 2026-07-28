@@ -13,13 +13,13 @@ keywords = ["rdf", "logic", "compiler", "wasm", "owl"]
 
 [lib]
 # rlib-only. The wasm32 build is a `cargo build --target wasm32-unknown-unknown`
-# of this same rlib (a downstream bindings crate, like crates/rdf-wasm, assembles
-# any shipped wasm bundle); there is no standalone cdylib here.
+# of this same rlib (a downstream bindings crate, like the purrdf repository's wasm
+# bindings crate, assembles any shipped wasm bundle); there is no standalone cdylib here.
 crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The wasm-clean RDF kernel surface — EXACTLY the crates/rdf-wasm pin (#885
+# The wasm-clean RDF kernel surface — EXACTLY the purrdf wasm-bindings pin (#885
 # ring-fence, #909 native codecs): the `gts` feature with oxigraph OFF and python
 # OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
 # TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the

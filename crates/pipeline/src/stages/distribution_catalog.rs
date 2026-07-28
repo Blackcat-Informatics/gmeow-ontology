@@ -232,9 +232,14 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
     },
 ];
 
-/// A shared sub-asset: one of the vendored interactive engines, the object-level browser
+/// A shared sub-asset: one of the vendored MCP engine segments, the queryable `gmeow.gts`
 /// bundle, or the conjecture demo library that ships INSIDE an interactive distribution
 /// rather than as one of its own, content-addressed at a known path in the rendered tree.
+///
+/// This set used to carry two more rows: a vendored purrdf SPARQL engine and an
+/// object-level `gmeow-core.nq` re-serialization for it to parse. Both are retired with the
+/// engine that needed them — the MCP segments answer from the bundle row below, which is
+/// the same bytes the catalog already had to price.
 ///
 /// These are SUB-ASSETS — never top-level distributions — so they are NOT in
 /// [`declared_distribution_slugs`] and the nine-slug bijection is preserved. Their schema
@@ -246,37 +251,34 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
 /// name the same [`sub_asset_iri`] rather than each minting a private copy of it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum SubAsset {
-    PurrdfWasm,
     McpCoreWasm,
     McpWasm,
-    CoreBundle,
+    Bundle,
     ConjectureDemo,
 }
 
 impl SubAsset {
-    const ALL: [SubAsset; 5] = [
-        SubAsset::PurrdfWasm,
+    const ALL: [SubAsset; 4] = [
         SubAsset::McpCoreWasm,
         SubAsset::McpWasm,
-        SubAsset::CoreBundle,
+        SubAsset::Bundle,
         SubAsset::ConjectureDemo,
     ];
 
     fn slug(self) -> &'static str {
         match self {
-            SubAsset::PurrdfWasm => "purrdf-wasm",
             SubAsset::McpCoreWasm => "mcp-core-wasm",
             SubAsset::McpWasm => "mcp-wasm",
-            SubAsset::CoreBundle => "core-bundle",
+            SubAsset::Bundle => "bundle",
             SubAsset::ConjectureDemo => "conjectures",
         }
     }
 
-    /// The wasm engines are `application/wasm`; the browser bundle is object-level
-    /// N-Quads text; the conjecture demo library is Turtle.
+    /// The wasm engines are `application/wasm`; the queryable bundle is the GTS container
+    /// the engine boots over; the conjecture demo library is Turtle.
     fn media_type(self) -> &'static str {
         match self {
-            SubAsset::CoreBundle => "application/n-quads",
+            SubAsset::Bundle => "application/vnd.blackcat.gts+cbor",
             SubAsset::ConjectureDemo => "text/turtle",
             _ => "application/wasm",
         }
@@ -288,10 +290,9 @@ impl SubAsset {
     /// cross-owner byte-identity check meaningful.
     fn tree_path_prefix(self) -> &'static str {
         match self {
-            SubAsset::PurrdfWasm => "assets/purrdf/",
             SubAsset::McpCoreWasm => "assets/mcp-core/",
             SubAsset::McpWasm => "assets/mcp/",
-            SubAsset::CoreBundle => "assets/gmeow-core.nq",
+            SubAsset::Bundle => "assets/gmeow.gts",
             SubAsset::ConjectureDemo => "assets/conjectures.ttl",
         }
     }
@@ -299,10 +300,9 @@ impl SubAsset {
     /// A human label for the schema row.
     fn label(self) -> &'static str {
         match self {
-            SubAsset::PurrdfWasm => "vendored purrdf SPARQL/RDF wasm engine",
             SubAsset::McpCoreWasm => "MCP core segment (the console's first-load engine)",
             SubAsset::McpWasm => "MCP reasoning segment (demand-loaded)",
-            SubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
+            SubAsset::Bundle => "the queryable gmeow.gts bundle the engine boots over",
             SubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
         }
     }
@@ -386,7 +386,7 @@ fn loss_iri(slug: &str, cap_slug: &str) -> String {
 /// broken on the consumer side: [`crate::docs_distribution::verify_docs_distribution`]
 /// recovers a distribution slug by stripping `…/distribution/dist/` off every manifest
 /// subject, so a real release manifest handed it the pseudo-slug
-/// `site/sub-asset/purrdf-wasm` and it hard-failed looking for a `site/sub-asset/…`
+/// `site/sub-asset/mcp-core-wasm` and it hard-failed looking for a `site/sub-asset/…`
 /// directory that never existed. Out of the `dist/` namespace, the strip correctly
 /// declines and sub-assets no longer masquerade as distributions.
 ///

@@ -81,11 +81,12 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
-	console-test console-assemble \
+	console-test console-assemble npm-publish-dry npm-consumable \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
-	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset maint-wikidata-live \
+	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
+	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
@@ -620,13 +621,52 @@ console-test: ## Run the standalone console's DOM-free acceptance lane against t
 	@# this SKIPs when node is absent; CI hard-fails, so the console's derived surface is
 	@# never silently unverified on the gating path. (The shell-agreement assertion and the
 	@# producer's byte-identity assertions are Rust tests and ride `rust-gate`.)
+	@# `crates/docs/assets/tests/` rides the same lane: it proves the shipped client-side
+	@# BLAKE3 (`assets/blake3.mjs`) against the published reference vectors AND against the
+	@# Rust `blake3` crate's own output (the committed `DIGESTS.blake3` manifests). Every
+	@# integrity check the browser performs is that function, so a JS/Rust disagreement
+	@# would silently turn asset verification into asset rejection.
 	@if command -v node >/dev/null 2>&1; then \
-		cd crates/docs/assets/console && node --test tests/*.test.mjs; \
+		( cd crates/docs/assets && node --test tests/*.test.mjs ); \
+		( cd crates/docs/assets/console && node --test tests/*.test.mjs ); \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: node absent in CI — the console acceptance lane cannot run; CI must install it"; exit 1; \
 	else \
 		echo "SKIP: node not installed (local only; CI hard-fails) — install node to run the console acceptance lane"; \
 	fi
+
+npm-publish-dry: ## Network-safe `npm publish --dry-run` over every package this repo publishes.
+	@# The package set is DISCOVERED from the shipped bytes (`scripts/npm-package-dirs.mjs`
+	@# lists every non-private, non-Marketplace package.json), never restated here — the
+	@# names authority is the manifests themselves.
+	@#
+	@# `--dry-run` is what makes this network-safe AND on-gate-able: npm resolves the
+	@# tarball locally, prints the exact `files` set it would upload, and performs NO
+	@# registry request and NO authentication. It is the same code path a real publish
+	@# takes right up to the upload, so a manifest that would fail to pack fails HERE.
+	@#
+	@# The wasm engine packages declare their `pkg/…` bindings in `files`; those are the
+	@# `*-wasm-pkg` build output, so run this after `make wasm-parity` (or any `*-pkg`
+	@# lane) if you want the tarball listing to include them.
+	@set -e; \
+	node scripts/npm-package-dirs.mjs | while read -r dir; do \
+		echo "== npm publish --dry-run $$dir =="; \
+		( cd "$$dir" && npm publish --dry-run --access public ); \
+	done
+	@echo "OK: every published package packs cleanly (dry run; no registry contact)"
+
+npm-consumable: ## Prove every published package is CONSUMABLE: pack -> install the tarball into a temp project -> run the witness against the INSTALLED package.
+	@# Not a re-run of the in-tree lanes: the driver `npm pack`s the real tarball from the
+	@# real `files` set, `npm install`s it into a throwaway project so the package resolves
+	@# BY NAME through node_modules, and then instantiates the wasm out of the INSTALLED
+	@# bytes to perform a real operation — several of them against the SAME committed
+	@# attestations the parity lanes assert byte-identity to. A published package with no
+	@# witness is a hard failure, never a skip.
+	@#
+	@# Requires the wasm engine packages to have been built (`make wasm-parity` or the
+	@# individual `*-wasm-pkg` lanes): a tarball missing its `pkg/` bindings cannot be
+	@# imported, which is exactly the consumability failure this lane exists to catch.
+	node scripts/npm-consumability.mjs
 
 console-assemble: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) for local preview.
 	@# `gmeow-dev console-assemble` REFUSES an --out inside ontology-docs/ or
