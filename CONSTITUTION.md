@@ -442,7 +442,7 @@ as an in-process `purrdf::entail` differential cross-check; **both** have now be
 authoritative path — `make check`, the required CI `quality` gate, the build, and runtime — is
 rust-first and carries **no Java and no Docker**: native EL/DL reasoning (`reason --mode native`),
 the native OWL 2 RL closure (`reason/rl.rs`, replacing the `owlrl` baselines), native RDF-1.2
-emission (`gmeow-rdf`), and native SHACL/validation. There is **no live second reasoner on-gate**:
+emission (`purrdf`), and native SHACL/validation. There is **no live second reasoner on-gate**:
 the native `logic:` solver is the single reasoning authority, and the only external evidence
 retained is a set of **committed engine-independent goldens** — the offline frozen OWL 2 DL
 oracle-gold corpus (`native ⊇ frozen-gold`, proven under `make conformance`) and the native gap-zero
@@ -451,8 +451,8 @@ live external/second reasoner wired on-gate as a differential subsumption/entail
 **forbidden** and cannot silently regrow (the single-authority seal). The committed
 `dl-el-crosscheck-report.ttl` stays native-built (a native DL⊇EL fragment comparison, Docker-free)
 with `gapCount` required at zero. Producer inversion of the RDF-1.2 codec is **done**: the statement
-lead artifact (`generated/statements/gmeow.rdf12.ttl`) is written natively by `gmeow-rdf`
-(`gmeow_rdf.project_statements_rdf12`), so the build, `make check`, and `sync` paths carry **zero
+lead artifact (`generated/statements/gmeow.rdf12.ttl`) is written natively by the statements stage
+over `purrdf` (`purrdf::statements`), so the build, `make check`, and `sync` paths carry **zero
 Java and zero Docker** on the statement path.
 
 *Embodied in:* the native reason lane ([`crates/logic/src/reason/mod.rs`](./crates/logic/src/reason/mod.rs)),
@@ -504,7 +504,8 @@ graph carries its own proof of correctness.
 *Embodied in:* the Rust-native release fold + sign + verify stage
 ([`crates/pipeline/src/stages/release.rs`](./crates/pipeline/src/stages/release.rs),
 `fold_release_bundle` + `verify_release_bundle`) over the snapshot composer's signing path
-([`crates/rdf/src/gts_compose.rs`](./crates/rdf/src/gts_compose.rs), `emit_gts`) and the native verify
+([`crates/pipeline/src/gts_profile.rs`](./crates/pipeline/src/gts_profile.rs), the single production
+entry to `purrdf::gts_compose::emit_gts`) and the native verify
 path ([`gmeow_gts::verify`]), the thin `release-bundle` + `verify-release-bundle` CLI commands, the
 Rust `conformance-report` roll-up ([`crates/conformance`](./crates/conformance)), the `make
 full-release` / `make verify-release` / `make release-publish` lanes, and the release-evidence frame
@@ -518,20 +519,23 @@ untrusted key reject) — surfaced to consumers as `make verify-release`.
 RDF-1.2 toolkit in its own right, published as ontology-independent crates: the RDF-1.2 value model,
 the immutable IR, the logic compiler, and the SHACL and reasoning engines carry no dependency on the
 GMEOW ontology graph, so an external consumer can parse, reason over, and validate RDF-1.2 with **no
-GMEOW ontology present**. The structural guarantee is the oxigraph-free, PyO3-free kernel
-(`gmeow-rdf-core`): the reasoning and validation cores compose over its trait seams, never over a
-loaded GMEOW graph, and the pure compiler (`gmeow-logic-compile`) is wasm-able with zero
-reasoning-runtime dependencies. The same cores reach every major runtime through stable reuse
-surfaces — a semantic C-ABI (`gmeow-rdf-capi`, `libpurrdf`) and a wasm / RDF-JS build
-(`gmeow-rdf-wasm`) — not Rust alone. This makes the reasoning stack a *shared* foundation: the GMEOW
-ontology is one consumer of the crates, never a prerequisite for them.
+GMEOW ontology present**. The structural guarantee is the oxigraph-free, PyO3-free RDF-1.2 kernel,
+which is the sibling **`purrdf`** package: the reasoning and validation cores compose over its trait
+seams, never over a loaded GMEOW graph, and the pure compiler (`gmeow-logic-compile`) is wasm-able
+with zero reasoning-runtime dependencies. `purrdf` owns and gates its own oxigraph ring-fence, and
+also owns the reuse surfaces that carry the kernel beyond Rust — the semantic C-ABI and the
+wasm / RDF-JS build. gmeow consumes all of it through the single `purrdf` umbrella dependency, so
+this repo declares no RDF crate of its own. This makes the reasoning stack a *shared* foundation:
+the GMEOW ontology is one consumer of the crates, never a prerequisite for them.
 
-*Embodied in:* the oxigraph-free kernel ([`crates/rdf-core`](./crates/rdf-core)), the pure wasm-able
-compiler ([`crates/logic-compile`](./crates/logic-compile)), and the C-ABI / wasm reuse surfaces
-([`crates/rdf-capi`](./crates/rdf-capi), [`crates/rdf-wasm`](./crates/rdf-wasm)). *Tested by:* the
-crate-dependency ring-fence gate (`meta:gate-rdf-core-hygiene`, `make rdf-core-hygiene`) — it proves
-`gmeow-rdf-core` never regains an `oxigraph` normal dependency, keeping the kernel, and the cores that
-compose over it, reusable with no ontology loaded.
+*Embodied in:* the `purrdf` umbrella dependency (the RDF-1.2 kernel and its C-ABI / wasm reuse
+surfaces, gated in its own repository), the pure wasm-able compiler
+([`crates/logic-compile`](./crates/logic-compile)), and the wasm-clean engine crates this repo does
+own ([`crates/mcp`](./crates/mcp), [`crates/bundle-view`](./crates/bundle-view)). *Tested by:* the
+crate layering gate (`meta:gate-crate-layering`, `make crate-check`) — it proves the first-party
+crate DAG stays acyclic and layered, and the per-crate wasm dependency-purity gates prove the engines
+carry no reasoning-runtime or native-only crate they must not, keeping the cores that compose over
+the kernel reusable with no ontology loaded.
 
 ---
 
