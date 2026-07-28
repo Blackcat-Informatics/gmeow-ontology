@@ -15745,3 +15745,115 @@ msgstr "domaine de fondement logique"
 msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role."
 msgstr "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role. (Traduction de référence : voir la définition anglaise canonique portée par ce terme.)"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAwaits|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry awaits"
+msgstr "l'entrée attend"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAwaits|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a waiting logic:FrontierEntry to the event, instant or input it is blocked pending. Range an event, an instant or an input descriptor (stated in prose). The step axis records THAT a step waits; without this the kernel cannot say WHAT it waits for, and 'waiting for event, time or input' would be a label naming three causes none of which is recorded. It is also what separates waiting from a capability block: what a step awaits is something that arrives, and a capability the deployment does not have never does."
+msgstr "Relie une entrée de frontière en attente à l'événement, à l'instant ou à l'intrant dont elle dépend. Domaine de valeurs : un événement, un instant ou un descripteur d'intrant (énoncé en prose). L'axe d'étape consigne QU'une étape attend ; sans cette propriété le noyau ne saurait dire CE QU'elle attend, et « en attente d'un événement, d'un moment ou d'un intrant » serait une étiquette nommant trois causes dont aucune n'est consignée. C'est aussi ce qui sépare l'attente d'un blocage de capacité : ce qu'une étape attend est chose qui advient, et une capacité dont le déploiement ne dispose pas n'advient jamais."
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAwaits|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrEntry logic:entryAwaits ex:scannerCallback ."
+msgstr "Exemple : ex:ocrEntry logic:entryAwaits ex:scannerCallback ."
+
+msgctxt "https://blackcatinformatics.ca/logic/entryExcludes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry excludes"
+msgstr "l'entrée exclut"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryExcludes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:FrontierEntry to another entry it cannot proceed together with. Multi-valued. Exclusivity is a RELATION and not a property of either action, so it cannot be carried on a lifecycle axis: it becomes visible only when local frontiers are glued, and it is recorded on the candidate the glue withheld. An entry the glue withheld carries no readiness position, because being ready is a claim about a frontier on which the other candidate was not taken."
+msgstr "Relie une entrée de frontière à une autre entrée avec laquelle elle ne peut avancer de concert. Multivaluée. L'exclusivité est une RELATION et non une propriété de l'une ou l'autre action : elle ne saurait donc être portée par un axe de cycle de vie, car elle n'apparaît qu'au moment où les frontières locales sont recollées, et elle se consigne sur le candidat que ce recollement a écarté. Une entrée ainsi écartée ne porte aucune position de disponibilité, car être prêt est une assertion portant sur une frontière où l'autre candidat n'aurait pas été retenu."
+
+msgctxt "https://blackcatinformatics.ca/logic/entryExcludes|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reprocessEntry logic:entryExcludes ex:archiveEntry ."
+msgstr "Exemple : ex:reprocessEntry logic:entryExcludes ex:archiveEntry ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierBlockedPrecondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: blocked on an unmet precondition"
+msgstr "étiquette de frontière : bloqué sur une précondition non satisfaite"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierBlockedPrecondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierBlockedPrecondition for a frontier entry whose step axis is pending — the step belongs to the enactment and its preconditions have not been evaluated as met, which is exactly the position the step axis mints for an unmet precondition. Positive Horn, and disjoint from every other rule by the step axis alone. The label matters because its remedy differs from every neighbouring obstruction: a precondition is remediable by changing the world, where a missing capability is not, and telling an operator to wait when the answer is to change the world is the failure this separation prevents."
+msgstr "Dérive logic:FrontierBlockedPrecondition pour une entrée de frontière dont l'axe d'étape est « en instance » — l'étape appartient à l'exécution et ses préconditions n'ont pas été évaluées comme satisfaites, ce qui est exactement la position que l'axe d'étape frappe pour une précondition non satisfaite. Horn positif, et disjointe de toute autre règle par le seul axe d'étape. L'étiquette importe parce que son remède diffère de celui de tout obstacle voisin : une précondition se corrige en changeant le monde, une capacité absente non ; et dire à un opérateur d'attendre quand la réponse est de changer le monde est précisément l'échec que cette séparation empêche."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierWaitingOnEventTimeOrInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: waiting on an event, a time or an input"
+msgstr "étiquette de frontière : en attente d'un événement, d'un moment ou d'un intrant"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierWaitingOnEventTimeOrInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierWaitingOnEventTimeOrInput for a frontier entry whose step axis is waiting and which names, through logic:entryAwaits, the thing it is blocked pending. The awaited witness is what makes the label a derivation rather than a shrug: the step axis says THAT the step waits, and only the witness says what would end the wait. It is also what keeps this rule disjoint from the capability-gap rule, which shares the waiting position — a step blocked by a capability the deployment does not have awaits nothing, because what is absent does not arrive, and its remedy is a capability-gap proposal rather than patience."
+msgstr "Dérive logic:FrontierWaitingOnEventTimeOrInput pour une entrée de frontière dont l'axe d'étape est « en attente » et qui nomme, par logic:entryAwaits, ce dont elle dépend. Le témoin attendu est ce qui fait de l'étiquette une dérivation plutôt qu'un haussement d'épaules : l'axe d'étape dit QUE l'étape attend, et seul le témoin dit ce qui mettrait fin à l'attente. C'est aussi ce qui garde cette règle disjointe de la règle de lacune de capacité, qui partage la position d'attente — une étape bloquée par une capacité dont le déploiement ne dispose pas n'attend rien, car ce qui est absent n'advient pas, et son remède est une proposition de comblement de lacune, non la patience."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierMutuallyExclusive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: mutually exclusive with another candidate"
+msgstr "étiquette de frontière : mutuellement exclusif avec un autre candidat"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierMutuallyExclusive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierMutuallyExclusive for a frontier entry that logic:entryExcludes another entry. This is the one guard in the set that reads no axis, and deliberately: exclusivity is a relation between two candidates and not a position either of them occupies, so putting it on an axis would be the conflation the seven-axis discipline exists to refuse. It becomes visible only when local frontiers are glued, which is also why the withheld candidate carries no readiness position — being ready is a claim about a frontier on which the excluding candidate was not taken."
+msgstr "Dérive logic:FrontierMutuallyExclusive pour une entrée de frontière qui, par logic:entryExcludes, en exclut une autre. C'est la seule garde de l'ensemble qui ne lise aucun axe, et à dessein : l'exclusivité est une relation entre deux candidats et non une position que l'un ou l'autre occupe ; la porter sur un axe serait précisément la confusion que la discipline des sept axes existe pour refuser. Elle n'apparaît qu'au recollement des frontières locales, ce qui explique aussi que le candidat écarté ne porte aucune position de disponibilité — être prêt est une assertion portant sur une frontière où le candidat excluant n'aurait pas été retenu."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: compensation required"
+msgstr "étiquette de frontière : compensation exigée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationRequired|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCompensationRequired for a frontier entry whose effect axis sits at reconciled, whose commitment knowledge is supported, and whose enactment axis is failed — a probe settled that the forward effect committed, and the occurrence it belonged to will not complete, so the committed effect has to be counteracted for the run to reach a consistent terminal position. Three axes carry this and none of them could alone: the effect position says the question was answered, the knowledge value says which way, and the enactment position is what turns permission into obligation. That is precisely what separates it from compensation-eligible, where declining costs nothing."
+msgstr "Dérive logic:FrontierCompensationRequired pour une entrée de frontière dont l'axe d'effet se trouve à « rapproché », dont la connaissance de validation est appuyée, et dont l'axe d'exécution est « échoué » — une sonde a établi que l'effet aller a été validé, et l'occurrence à laquelle il appartenait n'aboutira pas ; l'effet validé doit donc être contrecarré pour que la course atteigne une position terminale cohérente. Trois axes portent cela et aucun ne le pourrait seul : la position d'effet dit que la question a reçu réponse, la valeur de connaissance dit laquelle, et la position d'exécution est ce qui change la permission en obligation. C'est précisément ce qui la sépare de « compensation recevable », où refuser ne coûte rien."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationFailedForwardCommitted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: compensation failed with the forward effect committed"
+msgstr "étiquette de frontière : compensation échouée, effet aller validé"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationFailedForwardCommitted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCompensationFailedForwardCommitted for a frontier entry whose exchange sits in its compensating leg, whose step axis is failed, whose commitment knowledge is still supported, and whose enactment is still running. Read together those four positions say the whole thing: a compensating action was launched, the step carrying it terminally failed, the forward effect it was launched against remains committed, and the occurrence has not given up. The last position is what separates this from terminally-failed — the enactment is still running because escalation is a continuation, and escalation rather than retry is the only move this position licenses."
+msgstr "Dérive logic:FrontierCompensationFailedForwardCommitted pour une entrée de frontière dont l'échange se trouve dans sa branche de compensation, dont l'axe d'étape est « échoué », dont la connaissance de validation demeure appuyée, et dont l'exécution est toujours en cours. Lues ensemble, ces quatre positions disent tout : une action compensatrice a été lancée, l'étape qui la portait a définitivement échoué, l'effet aller contre lequel elle avait été lancée demeure validé, et l'occurrence n'a pas renoncé. La dernière position est ce qui sépare cette étiquette de « définitivement échoué » — l'exécution se poursuit parce que l'escalade est une continuation, et l'escalade plutôt que le réessai est le seul mouvement que cette position autorise."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationImpossible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: reconciliation foreclosed"
+msgstr "étiquette de frontière : rapprochement forclos"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationImpossible|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierReconciliationImpossible for a frontier entry whose effect axis sits at abandoned — the exchange was given up without an authoritative determination because no reconciliation semantics remain available. The effect axis mints exactly one position for that, so the guard needs nothing else. The label is the honest counterpart of reconciliation-required: there, probing is still available and the frontier names it; here it is foreclosed, and naming another probe would send an operator after evidence that cannot be obtained."
+msgstr "Dérive logic:FrontierReconciliationImpossible pour une entrée de frontière dont l'axe d'effet se trouve à « abandonné » — l'échange a été laissé sans détermination faisant autorité, parce qu'aucune sémantique de rapprochement ne demeure disponible. L'axe d'effet frappe exactement une position pour cela, de sorte que la garde n'a besoin de rien d'autre. L'étiquette est le pendant honnête de « rapprochement requis » : là, le sondage reste possible et la frontière le nomme ; ici il est forclos, et nommer une sonde de plus enverrait un opérateur en quête d'une preuve qu'on ne peut obtenir."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: completed"
+msgstr "étiquette de frontière : achevé"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompleted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCompleted for a frontier entry whose step axis is completed — the step carried out its prescribed work and reached a terminal position, so nothing further is owed on it. The guard reads that one axis and stops there on purpose: the label asserts nothing about whether the enactment's goal is met, which is the goal-evaluation axis, and nothing about whether an external effect the step dispatched actually committed, which is the commitment-knowledge axis carried by the exchange's own entry."
+msgstr "Dérive logic:FrontierCompleted pour une entrée de frontière dont l'axe d'étape est « achevé » — l'étape a accompli le travail prescrit et atteint une position terminale, de sorte que rien de plus n'est dû à son égard. La garde lit ce seul axe et s'arrête là à dessein : l'étiquette n'affirme rien sur la satisfaction du but de l'exécution, qui relève de l'axe d'évaluation de but, ni sur la validation effective d'un effet externe dépêché par l'étape, qui relève de l'axe de connaissance de validation porté par l'entrée propre à l'échange."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierSkippedWithTypedReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: skipped with a typed reason"
+msgstr "étiquette de frontière : omis avec un motif typé"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierSkippedWithTypedReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierSkippedWithTypedReason for a frontier entry whose step axis is skipped and which carries a logic:skipReason. The typed reason is a guard and not a decoration: the label's whole content is that the omission was deliberate and attributable, so an entry claiming a skip without one derives nothing rather than deriving a label it cannot support — which is the correct outcome, because an untyped skip is indistinguishable from an oversight and the frontier must not present the two alike."
+msgstr "Dérive logic:FrontierSkippedWithTypedReason pour une entrée de frontière dont l'axe d'étape est « omis » et qui porte un logic:skipReason. Le motif typé est une garde et non un ornement : tout le contenu de l'étiquette est que l'omission fut délibérée et imputable ; une entrée revendiquant une omission sans motif ne dérive donc rien plutôt que de dériver une étiquette qu'elle ne peut soutenir — et c'est l'issue correcte, car une omission non typée est indiscernable d'un oubli, et la frontière ne doit pas présenter les deux de la même façon."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: cancelled"
+msgstr "étiquette de frontière : annulé"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCancelled for a frontier entry whose step and enactment axes are both cancelled and whose commitment knowledge was never evaluated — the quiescent cancellation, where stopping by decision settles the matter because no external effect was ever in question. The knowledge position is the load-bearing conjunct: it is what distinguishes this from cancellation with in-flight effects, and reading a bare cancelled position as quiescent is exactly how an outstanding exchange gets closed on paper while remaining open at the provider."
+msgstr "Dérive logic:FrontierCancelled pour une entrée de frontière dont les axes d'étape et d'exécution sont tous deux « annulé » et dont la connaissance de validation n'a jamais été évaluée — l'annulation au repos, où l'arrêt par décision règle l'affaire parce qu'aucun effet externe n'a jamais été en jeu. La position de connaissance est le conjoint porteur : c'est elle qui distingue ce cas de l'annulation avec effets en vol, et lire une position « annulé » nue comme étant au repos est exactement la manière dont un échange en souffrance se referme sur le papier tout en restant ouvert chez le fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelledWithInFlightEffects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: cancelled with in-flight effects"
+msgstr "étiquette de frontière : annulé avec effets en vol"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelledWithInFlightEffects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCancelledWithInFlightEffects for a frontier entry whose step and enactment axes are both cancelled while its commitment knowledge remains undetermined. Cancellation is a decision about the occurrence and it does not resolve knowledge about the world, so the outstanding exchange still demands reconciliation; the sibling entry that positions that exchange reads reconciliation-required. It differs from plain cancelled on the commitment-knowledge axis and on nothing else, which is exactly why the two cannot share a slot — and it is arguably the hardest real position an operator meets, which a bare cancelled label hides."
+msgstr "Dérive logic:FrontierCancelledWithInFlightEffects pour une entrée de frontière dont les axes d'étape et d'exécution sont tous deux « annulé » alors que sa connaissance de validation demeure indéterminée. L'annulation est une décision portant sur l'occurrence et elle ne règle pas la connaissance du monde : l'échange en souffrance exige donc toujours un rapprochement, et l'entrée sœur qui positionne cet échange se lit « rapprochement requis ». Elle diffère de « annulé » tout court sur le seul axe de connaissance de validation, ce qui est exactement pourquoi les deux ne peuvent partager une case — et c'est sans doute la position réelle la plus difficile que rencontre un opérateur, celle qu'une étiquette « annulé » nue dissimule."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierTerminallyFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: terminally failed"
+msgstr "étiquette de frontière : définitivement échoué"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierTerminallyFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierTerminallyFailed for a frontier entry whose step axis is failed and whose enactment axis is failed — the step attempted its work and failed, and the occurrence stopped because no continuation is available, which is the enactment axis's own definition of failure. Both conjuncts are needed: a failed step inside a still-running enactment has a continuation somewhere, and the enactment position is what says there is none. That is also what separates it from compensation-failed-forward-committed, where the run is still going because escalation remains open."
+msgstr "Dérive logic:FrontierTerminallyFailed pour une entrée de frontière dont l'axe d'étape est « échoué » et dont l'axe d'exécution est « échoué » — l'étape a tenté son travail et a échoué, et l'occurrence s'est arrêtée parce qu'aucune continuation n'est disponible, ce qui est la définition même de l'échec sur l'axe d'exécution. Les deux conjoints sont nécessaires : une étape échouée au sein d'une exécution encore en cours dispose d'une continuation quelque part, et c'est la position d'exécution qui dit qu'il n'y en a aucune. C'est aussi ce qui la sépare de « compensation échouée, effet aller validé », où la course se poursuit parce que l'escalade reste ouverte."

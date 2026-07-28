@@ -15745,3 +15745,115 @@ msgstr "逻辑基础域"
 msgctxt "https://blackcatinformatics.ca/gmeow/groundingDomainLogical|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role."
 msgstr "Upper ontologies, logical formalisms, rule languages, and validation dialects — sorts and foundational categories, the description-logic partitioning of a knowledge base into terminology, roles, assertions and statement context, modal and paraconsistent frameworks, derivation and integrity languages, and the shape dialects validation is projected into. The `logic:` slice is the sole owner of every grounding concept in this domain. A rule or formula that FORMALIZES a domain term does not thereby make that term a grounding concept: the term's own subject matter decides, and formalizing domain vocabulary is `logic:`'s designed role.（参考译文：以该术语所承载的英文规范定义为准。）"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAwaits|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry awaits"
+msgstr "条目所待"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAwaits|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a waiting logic:FrontierEntry to the event, instant or input it is blocked pending. Range an event, an instant or an input descriptor (stated in prose). The step axis records THAT a step waits; without this the kernel cannot say WHAT it waits for, and 'waiting for event, time or input' would be a label naming three causes none of which is recorded. It is also what separates waiting from a capability block: what a step awaits is something that arrives, and a capability the deployment does not have never does."
+msgstr "将一个处于等待中的前沿条目，关联到它所待的那个事件、时刻或输入。值域为一个事件、一个时刻或一份输入描述（以散文陈述）。步骤轴记录的是「某步骤在等待」这一事实；若无此属性，内核便说不出它「在等待什么」，而「等待事件、时间或输入」就沦为一个点名三种成因、却一种也未曾记录的标签。它同时也是等待与能力阻塞之别所在：一个步骤所待者，乃是会到来之物；而部署所不具备的能力，永不到来。"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryAwaits|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ocrEntry logic:entryAwaits ex:scannerCallback ."
+msgstr "示例：ex:ocrEntry logic:entryAwaits ex:scannerCallback ."
+
+msgctxt "https://blackcatinformatics.ca/logic/entryExcludes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry excludes"
+msgstr "条目排斥"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryExcludes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:FrontierEntry to another entry it cannot proceed together with. Multi-valued. Exclusivity is a RELATION and not a property of either action, so it cannot be carried on a lifecycle axis: it becomes visible only when local frontiers are glued, and it is recorded on the candidate the glue withheld. An entry the glue withheld carries no readiness position, because being ready is a claim about a frontier on which the other candidate was not taken."
+msgstr "将一个前沿条目，关联到另一个无法与之一同推进的条目。可多值。互斥是一种「关系」，而非任一行动自身的属性，故它不能由某条生命周期轴来承载：唯有在局部前沿被粘合之时它方始显现，且记录在粘合所搁置的那个候选之上。被搁置的条目不携带任何就绪位置，因为「就绪」乃是就另一候选未被采纳的那个前沿而言的主张。"
+
+msgctxt "https://blackcatinformatics.ca/logic/entryExcludes|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reprocessEntry logic:entryExcludes ex:archiveEntry ."
+msgstr "示例：ex:reprocessEntry logic:entryExcludes ex:archiveEntry ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierBlockedPrecondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: blocked on an unmet precondition"
+msgstr "前沿标签：因前置条件未成立而阻塞"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierBlockedPrecondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierBlockedPrecondition for a frontier entry whose step axis is pending — the step belongs to the enactment and its preconditions have not been evaluated as met, which is exactly the position the step axis mints for an unmet precondition. Positive Horn, and disjoint from every other rule by the step axis alone. The label matters because its remedy differs from every neighbouring obstruction: a precondition is remediable by changing the world, where a missing capability is not, and telling an operator to wait when the answer is to change the world is the failure this separation prevents."
+msgstr "为「步骤轴处于『待启』」的前沿条目导出 logic:FrontierBlockedPrecondition——该步骤属于此次施行，而其前置条件尚未被评定为成立，这正是步骤轴为「前置条件未成立」所铸的那个位置。正向 Horn，且仅凭步骤轴便与其余各条规则互不相交。此标签之所以要紧，在于它的补救之道与相邻的每一种阻碍都不同：前置条件可藉改变世界而补救，缺失的能力则不能；而在答案本是「改变世界」之时却叫一名操作者去等待，正是这一区分所要防止的失败。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierWaitingOnEventTimeOrInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: waiting on an event, a time or an input"
+msgstr "前沿标签：等待事件、时间或输入"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierWaitingOnEventTimeOrInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierWaitingOnEventTimeOrInput for a frontier entry whose step axis is waiting and which names, through logic:entryAwaits, the thing it is blocked pending. The awaited witness is what makes the label a derivation rather than a shrug: the step axis says THAT the step waits, and only the witness says what would end the wait. It is also what keeps this rule disjoint from the capability-gap rule, which shares the waiting position — a step blocked by a capability the deployment does not have awaits nothing, because what is absent does not arrive, and its remedy is a capability-gap proposal rather than patience."
+msgstr "为「步骤轴处于『等待』，且经由 logic:entryAwaits 点明其所待之物」的前沿条目导出 logic:FrontierWaitingOnEventTimeOrInput。所待的见证正是使此标签成为一项导出而非一次耸肩的缘由：步骤轴说的是「该步骤在等待」，唯有见证才说得出何物可终止这场等待。它同时也让本规则与共享「等待」位置的能力缺口规则保持不相交——因部署所不具备的能力而受阻的步骤并无所待，因为缺席之物不会到来，其补救之道是一份能力缺口提案，而非耐心。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierMutuallyExclusive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: mutually exclusive with another candidate"
+msgstr "前沿标签：与另一候选互斥"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierMutuallyExclusive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierMutuallyExclusive for a frontier entry that logic:entryExcludes another entry. This is the one guard in the set that reads no axis, and deliberately: exclusivity is a relation between two candidates and not a position either of them occupies, so putting it on an axis would be the conflation the seven-axis discipline exists to refuse. It becomes visible only when local frontiers are glued, which is also why the withheld candidate carries no readiness position — being ready is a claim about a frontier on which the excluding candidate was not taken."
+msgstr "为「经由 logic:entryExcludes 排斥另一条目」的前沿条目导出 logic:FrontierMutuallyExclusive。这是整组守卫中唯一不读取任何轴的一条，且出于本意：互斥是两个候选之间的关系，而非其中任一者所占据的位置；将它置于某条轴上，恰是七轴之律所要拒斥的那种混同。它唯有在局部前沿被粘合之时方始显现，这也正是被搁置的候选不携带就绪位置的缘由——「就绪」乃是就那个排斥性候选未被采纳的前沿而言的主张。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationRequired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: compensation required"
+msgstr "前沿标签：必须补偿"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationRequired|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCompensationRequired for a frontier entry whose effect axis sits at reconciled, whose commitment knowledge is supported, and whose enactment axis is failed — a probe settled that the forward effect committed, and the occurrence it belonged to will not complete, so the committed effect has to be counteracted for the run to reach a consistent terminal position. Three axes carry this and none of them could alone: the effect position says the question was answered, the knowledge value says which way, and the enactment position is what turns permission into obligation. That is precisely what separates it from compensation-eligible, where declining costs nothing."
+msgstr "为「效应轴停留在『已核实』、提交知识为『得到支持』、且施行轴为『失败』」的前沿条目导出 logic:FrontierCompensationRequired——一次探询已判定正向效应确已提交，而它所属的那次发生将不会完成，故该已提交的效应必须被反向抵销，此次运行方能抵达一个自洽的终态位置。三条轴共同承载此事，而任何一条都不足以独任：效应位置说的是问题已获答复，知识取值说的是答复偏向何方，而施行位置则是把「许可」变为「义务」的那一环。这也正是它与「可予补偿」之别所在——在后者中，拒绝并不付出代价。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationFailedForwardCommitted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: compensation failed with the forward effect committed"
+msgstr "前沿标签：补偿失败而正向效应仍已提交"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompensationFailedForwardCommitted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCompensationFailedForwardCommitted for a frontier entry whose exchange sits in its compensating leg, whose step axis is failed, whose commitment knowledge is still supported, and whose enactment is still running. Read together those four positions say the whole thing: a compensating action was launched, the step carrying it terminally failed, the forward effect it was launched against remains committed, and the occurrence has not given up. The last position is what separates this from terminally-failed — the enactment is still running because escalation is a continuation, and escalation rather than retry is the only move this position licenses."
+msgstr "为「其交换处于补偿分支、步骤轴为『失败』、提交知识仍『得到支持』、而施行仍在运行」的前沿条目导出 logic:FrontierCompensationFailedForwardCommitted。这四个位置合而读之，便道尽全貌：一项补偿行动已然发起，承载它的那个步骤终局性地失败，它所针对的正向效应依旧处于已提交之态，而这次发生尚未放弃。最后一个位置正是它与「终局失败」之别所在——施行仍在运行，因为上呈是一种继续；而上呈而非重试，乃是此位置所许可的唯一动作。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationImpossible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: reconciliation foreclosed"
+msgstr "前沿标签：核实之途已绝"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierReconciliationImpossible|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierReconciliationImpossible for a frontier entry whose effect axis sits at abandoned — the exchange was given up without an authoritative determination because no reconciliation semantics remain available. The effect axis mints exactly one position for that, so the guard needs nothing else. The label is the honest counterpart of reconciliation-required: there, probing is still available and the frontier names it; here it is foreclosed, and naming another probe would send an operator after evidence that cannot be obtained."
+msgstr "为「效应轴停留在『已弃置』」的前沿条目导出 logic:FrontierReconciliationImpossible——此次交换在未获权威判定的情况下即被放弃，因已无任何可用的核实语义。效应轴恰为此铸有一个位置，故守卫无须他物。此标签是「必须核实」的诚实对偶：在彼处，探询仍属可行，前沿便点名之；在此处，探询之途已绝，若再点名一次探询，无异于遣一名操作者去追索一份取不到的证据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: completed"
+msgstr "前沿标签：已完成"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCompleted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCompleted for a frontier entry whose step axis is completed — the step carried out its prescribed work and reached a terminal position, so nothing further is owed on it. The guard reads that one axis and stops there on purpose: the label asserts nothing about whether the enactment's goal is met, which is the goal-evaluation axis, and nothing about whether an external effect the step dispatched actually committed, which is the commitment-knowledge axis carried by the exchange's own entry."
+msgstr "为「步骤轴处于『已完成』」的前沿条目导出 logic:FrontierCompleted——该步骤已履行其所规定之工作并抵达终态位置，故对它再无所欠。守卫只读这一条轴，且到此为止，出于本意：此标签既不断言施行之目标是否达成——那属目标评定轴，也不断言该步骤所派发的外部效应是否确已提交——那属由交换自身的条目所承载的提交知识轴。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierSkippedWithTypedReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: skipped with a typed reason"
+msgstr "前沿标签：以有类型的理由跳过"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierSkippedWithTypedReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierSkippedWithTypedReason for a frontier entry whose step axis is skipped and which carries a logic:skipReason. The typed reason is a guard and not a decoration: the label's whole content is that the omission was deliberate and attributable, so an entry claiming a skip without one derives nothing rather than deriving a label it cannot support — which is the correct outcome, because an untyped skip is indistinguishable from an oversight and the frontier must not present the two alike."
+msgstr "为「步骤轴处于『已跳过』且携带 logic:skipReason」的前沿条目导出 logic:FrontierSkippedWithTypedReason。有类型的理由是一道守卫，而非一件装饰：此标签的全部内容即在于该次省略乃是蓄意且可归属的；故一个自称跳过却无理由的条目宁可什么也导不出，也不导出一个它撑不住的标签——而这正是正确的结局，因为无类型的跳过与一次疏忽无从分辨，前沿绝不可将二者等同呈现。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: cancelled"
+msgstr "前沿标签：已取消"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCancelled for a frontier entry whose step and enactment axes are both cancelled and whose commitment knowledge was never evaluated — the quiescent cancellation, where stopping by decision settles the matter because no external effect was ever in question. The knowledge position is the load-bearing conjunct: it is what distinguishes this from cancellation with in-flight effects, and reading a bare cancelled position as quiescent is exactly how an outstanding exchange gets closed on paper while remaining open at the provider."
+msgstr "为「步骤轴与施行轴俱为『已取消』、且提交知识从未被评估」的前沿条目导出 logic:FrontierCancelled——此即静止态的取消：因从无外部效应牵涉其中，凭决断而止便已了结此事。知识位置是那个承重的合取项：正是它把此种情形与「取消而效应仍在途」区分开来；而把一个赤裸的「已取消」位置读作静止，恰是一笔未了的交换在纸面上收束、却在供方处依然敞开的由来。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelledWithInFlightEffects|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: cancelled with in-flight effects"
+msgstr "前沿标签：取消而效应仍在途"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierCancelledWithInFlightEffects|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierCancelledWithInFlightEffects for a frontier entry whose step and enactment axes are both cancelled while its commitment knowledge remains undetermined. Cancellation is a decision about the occurrence and it does not resolve knowledge about the world, so the outstanding exchange still demands reconciliation; the sibling entry that positions that exchange reads reconciliation-required. It differs from plain cancelled on the commitment-knowledge axis and on nothing else, which is exactly why the two cannot share a slot — and it is arguably the hardest real position an operator meets, which a bare cancelled label hides."
+msgstr "为「步骤轴与施行轴俱为『已取消』，而提交知识仍属未定」的前沿条目导出 logic:FrontierCancelledWithInFlightEffects。取消是就此次发生所作的决断，它并不了结关于世界的知识，故那笔未了的交换依旧要求核实；定位该交换的兄弟条目读作「必须核实」。它与单纯的「已取消」之别，仅在提交知识这一条轴上，别无其他——这恰是二者不能共用一格的缘由；而这大约也是操作者所遇最棘手的真实位置，却被一个赤裸的「已取消」标签所遮蔽。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierTerminallyFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "frontier label: terminally failed"
+msgstr "前沿标签：终局失败"
+
+msgctxt "https://blackcatinformatics.ca/logic/ruleFrontierTerminallyFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derives logic:FrontierTerminallyFailed for a frontier entry whose step axis is failed and whose enactment axis is failed — the step attempted its work and failed, and the occurrence stopped because no continuation is available, which is the enactment axis's own definition of failure. Both conjuncts are needed: a failed step inside a still-running enactment has a continuation somewhere, and the enactment position is what says there is none. That is also what separates it from compensation-failed-forward-committed, where the run is still going because escalation remains open."
+msgstr "为「步骤轴为『失败』且施行轴为『失败』」的前沿条目导出 logic:FrontierTerminallyFailed——该步骤已尝试其工作而告失败，且此次发生因再无可用的继续之途而停止，这正是施行轴自身对失败的定义。两个合取项缺一不可：一个仍在运行的施行之内的失败步骤，在别处总还有继续之途，而施行位置正是宣告「已无继续之途」的那一环。这也正是它与「补偿失败而正向效应仍已提交」之别所在——在后者中，运行仍在继续，因为上呈之路尚敞。"
