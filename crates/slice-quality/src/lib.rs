@@ -42,9 +42,9 @@ pub use lint::{
     LintOutcome, declared_quality_tier, lint_report, resolve_min_tier, tier_gate_passes,
 };
 pub use model::{
-    Axis, AxisFloorCommitment, AxisGrade, ContextScope, CountKind, Exemption, GovernanceFloors,
-    MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,
-    SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, AxisGrade, CeilingRelocation, ContextScope, CountKind, Exemption,
+    GovernanceFloors, MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary,
+    Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
 pub use score::ScoringEnv;
 
@@ -219,6 +219,7 @@ pub fn segregate_rubric(canonical: Rubric, widened: Rubric) -> gmeow_errors::Res
             tier_floors: widened.floors.tier_floors,
             vocabularies: canonical.floors.vocabularies,
             ceilings: widened.floors.ceilings,
+            relocations: widened.floors.relocations,
         },
     })
 }
@@ -850,6 +851,24 @@ pub fn measure_repo_residues(
     repo_root: &Path,
     vocabularies: &[ProjectionVocabulary],
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
+    Ok(measure_repo_residue_constructs(repo_root, vocabularies)?
+        .into_iter()
+        .map(|(key, constructs)| (key, constructs.len() as u64))
+        .collect())
+}
+
+/// The CONSTRUCT SET behind [`measure_repo_residues`] — the same single sweep, keyed
+/// `(slice IRI, vocab prefix)`, with each residue construct's [`counting::Witness`]
+/// intact. [`measure_repo_residues`] is this function's `.len()` projection, so there
+/// is exactly ONE working-tree measurement and the relocation accounting can never
+/// disagree with the count gate about which constructs are in the residue.
+///
+/// # Errors
+/// As [`measure_repo_residues`].
+pub fn measure_repo_residue_constructs(
+    repo_root: &Path,
+    vocabularies: &[ProjectionVocabulary],
+) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), Vec<counting::Construct>>> {
     let mut out = std::collections::BTreeMap::new();
     for dir in discover_slice_dirs(&repo_root.join("slices")) {
         let slice_iri = report::slice_iri_of(&dir)?;
@@ -857,7 +876,7 @@ pub fn measure_repo_residues(
         for (prefix, constructs) in
             measure_surface_residue_constructs(&paths, &slice_iri, vocabularies)?
         {
-            out.insert((slice_iri.clone(), prefix), constructs.len() as u64);
+            out.insert((slice_iri.clone(), prefix), constructs);
         }
     }
     // The repo-level dsl/mappings/ surface (the hand-authored FnO carve-out) is not
@@ -867,10 +886,7 @@ pub fn measure_repo_residues(
     for (prefix, constructs) in
         measure_surface_residue_constructs(&dsl_paths, DSL_MAPPING_SURFACE_IRI, vocabularies)?
     {
-        out.insert(
-            (DSL_MAPPING_SURFACE_IRI.to_owned(), prefix),
-            constructs.len() as u64,
-        );
+        out.insert((DSL_MAPPING_SURFACE_IRI.to_owned(), prefix), constructs);
     }
     Ok(out)
 }
@@ -998,6 +1014,43 @@ pub fn relocation_reasons_over_texts(
 > {
     let source = residue_dataset_from_texts(source_texts)?;
     let destination = residue_dataset_from_texts(destination_texts)?;
+    Ok(counting::relocation_reasons(
+        &source,
+        source_surface_iri,
+        &destination,
+        destination_surface_iri,
+        vocab,
+    ))
+}
+
+/// Explain, per relocation-invariant anchor IRI, why `vocab`'s residue is NOT
+/// conserved when constructs move from the authoring surfaces at `source_paths`
+/// (attributed to `source_surface_iri`) into those at `destination_paths`
+/// (attributed to `destination_surface_iri`) — the FILE-carrier counterpart to
+/// [`relocation_reasons_over_texts`], sharing the SAME
+/// [`counting::relocation_reasons`] core.
+///
+/// The ratchet gate's driver calls this: its source side is the MATERIALIZED merge-base
+/// tree (plain files, read through the very same [`ratchet_surface_paths`] scanner the
+/// working tree uses) and its destination side is the working tree, so a refusal can
+/// name the real reason a declared relocation failed to conserve residue rather than
+/// merely reporting a count delta.
+///
+/// # Errors
+/// HARD-FAILS if any path is unreadable or fails to parse as Turtle.
+pub fn relocation_reasons_for_surfaces(
+    source_paths: &[PathBuf],
+    source_surface_iri: &str,
+    destination_paths: &[PathBuf],
+    destination_surface_iri: &str,
+    vocab: &ProjectionVocabulary,
+) -> gmeow_errors::Result<
+    std::collections::BTreeMap<String, std::collections::BTreeSet<counting::RelocationReason>>,
+> {
+    let src_refs: Vec<&Path> = source_paths.iter().map(PathBuf::as_path).collect();
+    let dst_refs: Vec<&Path> = destination_paths.iter().map(PathBuf::as_path).collect();
+    let source = dataset_from_paths(&src_refs)?;
+    let destination = dataset_from_paths(&dst_refs)?;
     Ok(counting::relocation_reasons(
         &source,
         source_surface_iri,

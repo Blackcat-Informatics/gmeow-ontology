@@ -567,6 +567,32 @@ pub enum Commands {
     /// deliberate hand-edit after a genuine measured migration.
     #[command(name = "slice-quality-projection-debt")]
     SliceQualityProjectionDebt {},
+    /// Report-only PREVIEW of relocating named terms between two slices: per guarded
+    /// vocabulary, the transport plan (how much residue would move, what credit the
+    /// source lowering would raise, what the destination would have to ask for), the
+    /// residual UNPAID demand, the residue-conservation reason codes that explain why
+    /// residue is not conserved across the move, and the AXIS-FLOOR COLLATERAL — the
+    /// committed axis floors on both slices with their live headroom. Floors are
+    /// deliberately NOT netted by relocation (an axis floor measures the documentation
+    /// quality of the inventory a slice OWNS, which really is location-dependent), so a
+    /// maintainer must see that cost before moving, not after. When none of the
+    /// requested terms anchors residue in the source slice, it lists the terms that DO,
+    /// per vocabulary, with the construct count each would carry — the discovery
+    /// surface, since the relocation-invariant anchor is derived and cannot be read off
+    /// the Turtle. Always exits 0; never gates `make check`, and its numbers are never
+    /// fed back into a ceiling.
+    #[command(name = "slice-quality-relocation-preview")]
+    SliceQualityRelocationPreview {
+        /// A term IRI that would move. Repeatable; at least one is required.
+        #[arg(long = "term", required = true)]
+        term: Vec<String>,
+        /// The slice IRI (or slice local name) the terms would depart.
+        #[arg(long = "from")]
+        from: String,
+        /// The slice IRI (or slice local name) the terms would arrive at.
+        #[arg(long = "to")]
+        to: String,
+    },
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
     SliceFixDeps {
@@ -989,6 +1015,9 @@ pub fn run() -> i32 {
         Commands::SliceQualitySeedCeilings {} => dev_slice_quality::slice_quality_seed_ceilings(),
         Commands::SliceQualityProjectionDebt {} => {
             dev_slice_quality::slice_quality_projection_debt()
+        }
+        Commands::SliceQualityRelocationPreview { term, from, to } => {
+            dev_slice_quality::slice_quality_relocation_preview(&term, &from, &to)
         }
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())

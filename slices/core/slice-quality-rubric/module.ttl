@@ -613,6 +613,88 @@ gmeow:ceilingCount
     gmeow:useWhen "Use on a projection-ceiling commitment to set the committed maximum ungrounded-residue count its vocabulary must hold at or below for its slice."@x-gmeow-english .
 
 #################################################################
+# Ceiling relocation — the dated, corroborated declaration that
+# named terms MOVED between two slices
+#################################################################
+
+gmeow:CeilingRelocation
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Ceiling Relocation"@x-gmeow-english ;
+    skos:definition "A dated declaration that a named set of terms MOVED from one slice to another, so the ratchet re-projects the affected cells' merge-base residue ceiling through that move before its lower-only comparison runs. A projection ceiling budgets net-new ungrounded authoring, which is location-independent: carrying a term across a slice boundary shifts residue between two cells without authoring any of it, so the accounting must follow the term rather than punish the destination twice. The declaration authorizes NOTHING by itself — each unit of adjustment must additionally be corroborated by a derived witness (a construct that genuinely departed the source and arrived at the destination) and funded by a matching lowering at the source, and a demand beyond that adjustment still reds. It is NOT a gmeow:ProjectionCeilingCommitment (that pins one cell's committed maximum) and NOT a gmeow:AxisExemption (that stands in for an unlanded producer): it is the movement record the ceiling accounting joins against the measurement."@x-gmeow-english ;
+    skos:example "gmeow:reloc-affect-to-cognition a gmeow:CeilingRelocation ; gmeow:relocationTerm gmeow:moodEpisode ; gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:relocationDate \"2026-07-28\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a declaration whose terms never left the source (the witness contradicts it and the gate reds), avoid one whose move is already fully absorbed at the merge base (it is stale and reds until deleted, because a declaration outliving its relocation would become a standing permit), and avoid reaching for one to excuse a term COPIED into a second slice — two second sources are strictly worse than one, and the departure requirement is what tells the two apart."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:CeilingRelocation naming every gmeow:relocationTerm that moved, the gmeow:relocationFromSlice it left, the gmeow:relocationToSlice it reached, a gmeow:relocationDate, and optionally the single gmeow:relocationVocabulary the move is scoped to; then lower the source's gmeow:ceilingCount to its new measured residue and pin the destination's to its new measured residue, so the transported units are both witnessed and funded."@x-gmeow-english ;
+    gmeow:useWhen "Use when a genuine migration carries authored terms across a slice boundary and the ratchet would otherwise book the destination's inherited residue as freshly-authored debt."@x-gmeow-english .
+
+gmeow:relocationTerm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CeilingRelocation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocation term"@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "One term IRI a relocation declaration claims moved — NON-FUNCTIONAL, because a migration normally carries a family of terms across together, and at least one is required (a declaration naming none can be corroborated by nothing, so the loader rejects it outright). Each value is matched against the relocation-invariant subject anchor the residue counter records for every construct, so a construct nested under an anonymous block still resolves to the named term that owns it. It is NOT the source or destination slice (those are gmeow:relocationFromSlice and gmeow:relocationToSlice) and NOT a vocabulary reference: it names WHAT moved."@x-gmeow-english ;
+    skos:example "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a term that stayed put (the derived witness reds the whole declaration rather than quietly ignoring the surplus name) and avoid leaving the declaration with no term at all — a term-free declaration would be an unbounded permit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:relocationTerm per term the migration carried across; the ceiling accounting credits a transported unit only for a term named here that also departed the source and arrived at the destination."@x-gmeow-english ;
+    gmeow:useWhen "Use on a relocation declaration to enumerate exactly the terms whose residue crossed the slice boundary."@x-gmeow-english .
+
+gmeow:relocationFromSlice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CeilingRelocation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocation from slice"@x-gmeow-english ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The slice the relocated terms DEPARTED — the origin whose committed ceiling must fall by at least the transported amount for the move to be funded. Departure is measured, not asserted: a named term counts as departed only when it sits in this slice's merge-base residue and is gone from its working residue, which is precisely what distinguishes a genuine move from a copy that left the original in place. It is NOT the destination (that is gmeow:relocationToSlice) and NOT the vocabulary owner (that is gmeow:vocabularyOwner): it is the slice that gives the budget up."@x-gmeow-english ;
+    skos:example "gmeow:reloc-affect-to-cognition gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming the same slice here and on gmeow:relocationToSlice (a move that crosses no boundary transports nothing) and avoid more than one origin per declaration — mint a second declaration for a second origin instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:relocationFromSlice from the declaration to the gmeow:Slice the terms left, and lower that slice's gmeow:ceilingCount to its post-move measured residue in the same change."@x-gmeow-english ;
+    gmeow:useWhen "Use on a relocation declaration to name the slice whose residue and committed ceiling both shrink because of the move."@x-gmeow-english .
+
+gmeow:relocationToSlice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CeilingRelocation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocation to slice"@x-gmeow-english ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The slice the relocated terms ARRIVED at — the destination whose merge-base ceiling the accounting re-projects upward by exactly the transported amount. Arrival is measured the mirror way to departure: a named term counts as arrived only when it is absent from this slice's merge-base residue and present in its working residue. The destination's committed ceiling must additionally be pinned to its post-move measured residue, so a migration that also deletes pre-existing residue cannot bank the difference as durable surplus. It is NOT the origin (that is gmeow:relocationFromSlice) and NOT gmeow:ceilingSlice (that pins one committed cell): it is the slice that takes the budget on."@x-gmeow-english ;
+    skos:example "gmeow:reloc-affect-to-cognition gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a destination whose new gmeow:ceilingCount exceeds its measured residue (the surplus is headroom no witness backs) and avoid more than one destination per declaration — one declaration describes one edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:relocationToSlice from the declaration to the gmeow:Slice the terms reached, and set that slice's gmeow:ceilingCount to its post-move measured residue in the same change."@x-gmeow-english ;
+    gmeow:useWhen "Use on a relocation declaration to name the slice that inherits the moved residue and whose ceiling the accounting re-projects."@x-gmeow-english .
+
+gmeow:relocationVocabulary
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CeilingRelocation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocation vocabulary"@x-gmeow-english ;
+    rdfs:range gmeow:ProjectionVocabulary ;
+    skos:definition "The single guarded projection vocabulary a relocation declaration is narrowed to — OPTIONAL, and omitting it deliberately widens the declaration to every guarded vocabulary the derived witness corroborates for the same terms, which is the common case because one migrated term usually carries shape, taxonomy, and bridge residue at once. A present value must resolve to a registered gmeow:ProjectionVocabulary; an unresolvable reference would narrow the declaration to nothing and is a load-time failure rather than a silently dead record. It is NOT gmeow:ceilingVocabulary (that names which surface one committed cell caps): it is an optional narrowing of which surfaces this movement record speaks for."@x-gmeow-english ;
+    skos:example "gmeow:reloc-affect-to-cognition gmeow:relocationVocabulary gmeow:projVocab-sh ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid narrowing to one vocabulary when the same terms carried residue on several surfaces (the unnarrowed declaration already covers exactly what the witness corroborates) and avoid naming a vocabulary the registry never loaded."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert at most one gmeow:relocationVocabulary when the movement record should speak for a single guarded surface only; leave it absent to let the derived witness decide which surfaces the move actually touched."@x-gmeow-english ;
+    gmeow:useWhen "Use on a relocation declaration when the move is genuinely confined to one guarded projection surface and the record should not be read as covering the others."@x-gmeow-english .
+
+gmeow:relocationDate
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CeilingRelocation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocation date"@x-gmeow-english ;
+    rdfs:range xsd:date ;
+    skos:definition "The date a relocation declaration was minted — the same dating discipline every gmeow:AxisExemption carries, so a movement record that has outlived its move is visible and auditable rather than anonymous. It is NOT an expiry: what retires the declaration is the staleness rule, which reds once the relocation is fully absorbed at the merge base (the named terms sit at the destination on both sides), not the passage of time. It is NOT gmeow:exemptionDate (that stamps an unlanded-producer escape): it stamps a movement."@x-gmeow-english ;
+    skos:example "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an undated declaration (an anonymous movement record cannot be audited) and avoid reading the date as an automatic expiry — absorption at the merge base, not the calendar, is what makes the declaration stale."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:relocationDate per declaration; audits list movement records by age so a declaration lingering past its migration is easy to spot before the staleness rule reds it."@x-gmeow-english ;
+    gmeow:useWhen "Use on a relocation declaration to stamp when the movement was recorded."@x-gmeow-english .
+
+#################################################################
 # The guarded projection-vocabulary registry (ontology-resident ABox)
 #
 # Per Principle 17, OWL, RDFS, SHACL, gUFO, BFO and the OBO
@@ -3024,6 +3106,66 @@ gmeow:floorValueFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:floorValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:floorValue and nothing else. It is not a definition of gmeow:floorValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:floorValueFunctionality logic:characterizes gmeow:floorValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relocationDateFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocationDate is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relocationDate is functional: each gmeow:CeilingRelocation is stamped with exactly one minting date, so a second date would leave an audit of movement records by age unable to say when the relocation was actually declared. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relocationDate ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relocationDate ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relocationDate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relocationDate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relocationDate and nothing else. It is not a definition of gmeow:relocationDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relocationFromSliceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocationFromSlice is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relocationFromSlice is functional: each gmeow:CeilingRelocation describes exactly one transport edge, so a second origin would leave the ceiling accounting unable to decide whose committed ceiling has to fall to fund the move. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relocationFromSlice ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relocationFromSlice ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relocationFromSlice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relocationFromSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relocationFromSlice and nothing else. It is not a definition of gmeow:relocationFromSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relocationToSliceFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocationToSlice is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relocationToSlice is functional: each gmeow:CeilingRelocation re-projects the merge-base ceiling of exactly one destination cell family, so a second destination would let one witnessed departure be counted as arriving in two places at once. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relocationToSlice ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relocationToSlice ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relocationToSlice names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relocationToSlice, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relocationToSlice and nothing else. It is not a definition of gmeow:relocationToSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:relocationVocabularyFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "relocationVocabulary is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:relocationVocabulary is functional: a gmeow:CeilingRelocation is either unnarrowed or narrowed to exactly one guarded surface, so a second vocabulary would be an ambiguous half-narrowing neither the widened nor the scoped reading could resolve. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:relocationVocabulary ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:relocationVocabulary ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:relocationVocabulary names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:relocationVocabulary, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:relocationVocabulary and nothing else. It is not a definition of gmeow:relocationVocabulary (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:thresholdFloorFunctionality
     a owl:NamedIndividual ,

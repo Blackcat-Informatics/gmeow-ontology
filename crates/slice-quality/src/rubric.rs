@@ -13,9 +13,9 @@ use purrdf::RdfDataset;
 
 use crate::graph::{all_iris, all_lits, g, id, instances_of, label_of, one_iri, one_lit};
 use crate::model::{
-    Axis, AxisFloorCommitment, ContextScope, CountKind, Exemption, GovernanceFloors,
-    MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,
-    SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, CeilingRelocation, ContextScope, CountKind, Exemption,
+    GovernanceFloors, MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary,
+    Rubric, SliceTierFloorCommitment, Threshold, Tier,
 };
 
 /// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
@@ -533,6 +533,88 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     ceilings.sort_by(|a, b| a.0.cmp(&b.0));
     let ceilings: Vec<ProjectionCeilingCommitment> = ceilings.into_iter().map(|(_, c)| c).collect();
 
+    // --- Ceiling relocation declarations -----------------------------------
+    // The AUTHORED half of relocation-aware ceiling accounting: a maintainer states
+    // that named terms MOVED from one slice to another, and the gate re-projects the
+    // base ceiling through that relocation before the lower-only comparison. Every
+    // binding is a hard fail when missing — a declaration with no term, no source, no
+    // destination, or no date cannot be corroborated against the derived witness, and a
+    // silently-defaulted one would be an unbounded permit (.goals no-optionality).
+    let reloc_term_p = id(ds, &g("relocationTerm"));
+    let reloc_from_p = id(ds, &g("relocationFromSlice"));
+    let reloc_to_p = id(ds, &g("relocationToSlice"));
+    let reloc_vocab_p = id(ds, &g("relocationVocabulary"));
+    let reloc_date_p = id(ds, &g("relocationDate"));
+    let mut relocations: Vec<CeilingRelocation> = Vec::new();
+    for iri in instances_of(ds, &g("CeilingRelocation")) {
+        let sid = id(ds, &iri)
+            .ok_or_else(|| rubric_err(format!("ceiling relocation {iri} not resolvable")))?;
+        let mut terms = reloc_term_p
+            .map(|p| all_iris(ds, sid, p))
+            .unwrap_or_default();
+        terms.sort();
+        terms.dedup();
+        if terms.is_empty() {
+            return Err(rubric_err(format!(
+                "ceiling relocation {iri} names no gmeow:relocationTerm — a declaration with no \
+                 term can never be corroborated by the derived relocation witness"
+            )));
+        }
+        let from_slice = reloc_from_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling relocation {iri} has no gmeow:relocationFromSlice"
+                ))
+            })?;
+        let to_slice = reloc_to_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "ceiling relocation {iri} has no gmeow:relocationToSlice"
+                ))
+            })?;
+        if from_slice == to_slice {
+            return Err(rubric_err(format!(
+                "ceiling relocation {iri} names the same slice {from_slice} as both source and \
+                 destination — a relocation that does not cross a slice boundary moves no residue"
+            )));
+        }
+        // The vocabulary scope is OPTIONAL, but a PRESENT reference must resolve to a
+        // real loaded gmeow:ProjectionVocabulary — an unknown IRI would otherwise load
+        // cleanly and scope the declaration to nothing (a dead declaration), so it is a
+        // hard fail exactly as an unknown gmeow:ceilingVocabulary is.
+        let vocabulary = match reloc_vocab_p.and_then(|p| one_iri(ds, sid, p)) {
+            None => None,
+            Some(vocab_iri) => Some(vocab_iri_to_prefix.get(&vocab_iri).cloned().ok_or_else(
+                || {
+                    rubric_err(format!(
+                        "ceiling relocation {iri} names unknown gmeow:relocationVocabulary \
+                         {vocab_iri} (no such gmeow:ProjectionVocabulary in the registry)"
+                    ))
+                },
+            )?),
+        };
+        let date = reloc_date_p
+            .and_then(|p| one_lit(ds, sid, p))
+            .unwrap_or_default();
+        if date.trim().is_empty() {
+            return Err(rubric_err(format!(
+                "ceiling relocation {iri} is undated — every relocation declaration carries a \
+                 gmeow:relocationDate, exactly as a gmeow:AxisExemption does"
+            )));
+        }
+        relocations.push(CeilingRelocation {
+            iri,
+            terms,
+            from_slice,
+            to_slice,
+            vocabulary,
+            date,
+        });
+    }
+    relocations.sort_by(|a, b| a.iri.cmp(&b.iri));
+
     Ok(Rubric {
         standard: MeasurementStandard { tiers, axes },
         floors: GovernanceFloors {
@@ -541,6 +623,7 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
             tier_floors,
             vocabularies,
             ceilings,
+            relocations,
         },
     })
 }

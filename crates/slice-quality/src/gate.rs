@@ -361,19 +361,31 @@ pub fn axis_floor_monotonicity(
 //    a previously-absent vocab reds immediately.
 // 2. **Monotonicity (base∩working, [`projection_ceiling_monotonicity`]):** for
 //    every (slice, vocab) with a committed ceiling in BOTH the merge-base and the
-//    working tree, `ceilingCount(working) <= ceilingCount(base)` — a RAISE is a
-//    hard violation; a deletion (base-only) is allowed because dropping a ceiling
-//    only ever tightens the effective ceiling to the vocab default.
-// 3. **Grandfather (new ceilings only, driven by the `gmeow-dev` CLI — no pure
-//    comparator lives in this crate because it needs the base FILESET, not just
-//    the base ceiling map): for every (slice, vocab) whose committed ceiling is
-//    NEW in working (absent at base), `ceilingCount(working) <= measured(base)`,
-//    where `measured(base)` is reconstructed by feeding the SAME
-//    [`crate::counting::residue`] counter the merge-base bytes over the SAME
-//    ratchet surface set ([`crate::ratchet_surface_paths`]) — a surface absent at
-//    base contributes 0, a surface present-but-unreadable at base is a HARD-FAIL
-//    (never silently 0). This closes the "author N ungrounded constructs and
-//    commit an N-ceiling in the same PR" loophole invariants 1-2 alone cannot see.
+//    working tree, `ceilingCount(working) <= ceilingCount(base) + inflow` — a
+//    RAISE beyond the relocation-adjusted base is a hard violation; a deletion
+//    (base-only) is allowed because dropping a ceiling only ever tightens the
+//    effective ceiling to the vocab default.
+// 3. **Grandfather (new ceilings only, evaluated by the SAME
+//    [`projection_ceiling_monotonicity`] under the SAME rule, fed the base
+//    FILESET measurement by the `gmeow-dev` CLI): for every (slice, vocab) whose
+//    committed ceiling is NEW in working (absent at base),
+//    `ceilingCount(working) <= measured(base) + inflow`, where `measured(base)` is
+//    reconstructed by feeding the SAME [`crate::counting::residue`] counter the
+//    merge-base bytes over the SAME ratchet surface set
+//    ([`crate::ratchet_surface_paths`]) — a surface absent at base contributes 0, a
+//    surface present-but-unreadable at base is a HARD-FAIL (never silently 0).
+//    This closes the "author N ungrounded constructs and commit an N-ceiling in the
+//    same PR" loophole invariants 1-2 alone cannot see.
+//
+//    `inflow` is the transported residue a DECLARED-and-CORROBORATED
+//    `gmeow:CeilingRelocation` moved INTO the cell. A ceiling budgets NET-NEW
+//    UNGROUNDED AUTHORING, which is location-independent, so the base ceiling is
+//    RE-PROJECTED through the relocation before the lower-only comparison runs —
+//    the invariant itself never changes, and with no declarations `inflow` is
+//    identically 0. No tool ever creates headroom.
+// 4. **Conservation ([`ceiling_conservation`], base∩working):** per vocabulary,
+//    `Σ working <= Σ base` over the cells committed on BOTH sides — the aggregate
+//    backstop proving a relocation only ever MOVED budget.
 //
 // **Back-ref integrity** (binds invariant 1's `measured`): a construct is excluded
 // from the residue as "grounded" ONLY if its `logic:formalizes`/`logic:grounds`
@@ -419,51 +431,733 @@ pub fn evaluate_projection_ceiling(measured: u64, ceiling: u64) -> CeilingVerdic
     }
 }
 
-/// The outcome of a projection-ceiling monotonicity diff: hard `violations` that
-/// red the gate.
-#[derive(Debug, Default)]
-pub struct CeilingMonotonicity {
-    /// Hard violations — a committed ceiling RAISED for a (slice, vocab) key
-    /// shared by base and working.
-    pub violations: Vec<String>,
+/// One relocation transfer the gate ACCEPTED — a witnessed, declared, and paid-for
+/// unit flow along a single `(from → to, vocab)` edge. Minted onto the diagnostics
+/// ledger by the driver so the accepted adjustment is a joinable finding, never a
+/// bare printed line.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AcceptedTransfer {
+    /// The guarded vocabulary prefix the transfer moved residue in.
+    pub vocab: String,
+    /// The source slice IRI whose committed ceiling paid for the transfer.
+    pub from: String,
+    /// The destination slice IRI whose base ceiling was re-projected upward by it.
+    pub to: String,
+    /// The number of residue units transferred along this edge.
+    pub units: u64,
+    /// The witnessed anchor term IRIs backing the transfer — the constructs that
+    /// genuinely DEPARTED `from` and ARRIVED at `to`, in sorted order. These are the
+    /// ledger antecedents of the accepted finding.
+    pub witnesses: Vec<String>,
+    /// The `gmeow:CeilingRelocation` declaration IRIs that authorized the edge.
+    pub declarations: Vec<String>,
 }
 
-/// Projection-ceiling monotonicity (ratchet invariant **2**, base∩working) — the
-/// exact inverse of [`axis_floor_monotonicity`] (flip `<` → `>`, "LOWERED" →
-/// "RAISED"). Ceilings are LOWER-ONLY: for every (slice, vocab) key present in
-/// BOTH `base` and `working`, `working <= base`; a RAISE is a hard violation.
+/// The outcome of the projection-ceiling REBALANCE diff: hard `violations` that red
+/// the gate, plus the `accepted` relocation transfers whose adjustment was witnessed,
+/// declared, and paid for.
 ///
-/// **Deletions** (base-only) are ALLOWED with no liveness check — unlike a floor
-/// deletion, dropping a ceiling can only ever TIGHTEN the effective ceiling (it
-/// falls back to the vocab's `default_ceiling`, `0` today), so it is never a
-/// loosening the way removing a floor would be.
+/// This is not "the tool granted a raise". The base ceiling of every affected cell is
+/// RE-PROJECTED through the declared-and-corroborated relocation, and the comparison
+/// that then runs is the unchanged lower-only invariant
+/// `working <= relocation_adjusted_base`. No tool ever creates headroom: every unit of
+/// upward adjustment at a destination is matched by a unit of downward adjustment at a
+/// source that really lost the construct.
+#[derive(Debug, Default)]
+pub struct CeilingRebalance {
+    /// Hard violations — a committed ceiling above its relocation-adjusted base for a
+    /// (slice, vocab) key, or a declaration that contradicts the derived witness.
+    /// Non-empty ⇒ the gate reds.
+    pub violations: Vec<String>,
+    /// The accepted transfers, deterministically ordered by `(vocab, from, to)`.
+    pub accepted: Vec<AcceptedTransfer>,
+}
+
+/// Per `(from slice, to slice, vocab prefix)` edge, the residue-conservation reasons
+/// the relocation accounting derived from the two real datasets, keyed by the
+/// relocation-invariant anchor IRI.
 ///
-/// **Additions** (working-only) are NOT validated here — that is ratchet
-/// invariant **3**, the grandfather gate, which needs the base TTL fileset (not
-/// just the base ceiling map) to reconstruct `measured(base)` and is therefore
-/// driven by the `gmeow-dev` CLI, not this pure comparator.
+/// Residue is a function of `(dataset, surface_iri)`, not of the construct alone, so
+/// moving a construct across a vocabulary's owner boundary — or away from the
+/// `logic:Formula` that grounded it — creates or destroys residue with no authoring.
+/// These reasons are COMPUTED from real measurements
+/// ([`crate::counting::relocation_reasons`]), never inferred from a count delta.
+pub type EdgeRelocationReasons = BTreeMap<
+    (String, String, String),
+    BTreeMap<String, BTreeSet<crate::counting::RelocationReason>>,
+>;
+
+/// The full input set the relocation-aware ceiling comparator reads. Grouped into one
+/// borrowed struct because the comparator joins SIX independent maps and a parameter
+/// list of that width is unreadable (and trips `clippy::too_many_arguments`).
 ///
-/// There is deliberately NO in-repo permit to raise a ceiling — exactly as
-/// [`axis_floor_monotonicity`]'s floor doctrine, a raise is a maintainer-only
-/// decision authorized out-of-band by merging past the resulting red, never by
-/// any tool, flag, or record.
+/// Every field is supplied by the `gmeow-dev` ratchet-gate driver, which owns the
+/// measurement side (it materializes the merge-base tree and runs the SAME residue
+/// counter over both sides). The comparator itself is pure and order-deterministic.
+pub struct CeilingComparison<'a> {
+    /// The human-facing label prefixing every violation message.
+    pub file_label: &'a str,
+    /// Committed `gmeow:ceilingCount` at the merge base, keyed `(slice, vocab)`.
+    pub base_ceilings: &'a BTreeMap<(String, String), u64>,
+    /// Committed `gmeow:ceilingCount` in the working tree, keyed `(slice, vocab)`.
+    pub working_ceilings: &'a BTreeMap<(String, String), u64>,
+    /// Measured base residue for the cells whose ceiling is NEW in working — the
+    /// grandfather gate's allowance. A key absent here reads as `0`.
+    pub base_measured: &'a BTreeMap<(String, String), u64>,
+    /// Measured working residue, keyed `(slice, vocab)`. A key absent here reads as
+    /// `0`. Used by the pin rule: a raised cell's ceiling must EQUAL its measured
+    /// residue, so a relocation that also deletes pre-existing residue cannot bank
+    /// durable surplus headroom.
+    pub working_measured: &'a BTreeMap<(String, String), u64>,
+    /// The base residue CONSTRUCTS, keyed `(slice, vocab)` — the departure half of the
+    /// derived witness.
+    pub base_constructs: &'a BTreeMap<(String, String), Vec<crate::counting::Construct>>,
+    /// The working residue CONSTRUCTS, keyed `(slice, vocab)` — the arrival half.
+    pub working_constructs: &'a BTreeMap<(String, String), Vec<crate::counting::Construct>>,
+    /// Each guarded vocabulary's `gmeow:vocabularyDefaultCeiling` — the effective
+    /// ceiling of a cell with NO committed commitment on a given side. A DELETED
+    /// commitment resolves here (never "absent → skip"), so dropping a ceiling to the
+    /// default is a real lowering that can fund a transfer.
+    pub default_ceilings: &'a BTreeMap<String, u64>,
+    /// The AUTHORED `gmeow:CeilingRelocation` declarations.
+    pub declarations: &'a [crate::model::CeilingRelocation],
+    /// The per-edge residue-conservation reasons, reported verbatim on a refusal so a
+    /// maintainer sees WHY residue was not conserved across the move.
+    pub edge_reasons: &'a EdgeRelocationReasons,
+}
+
+/// One `(slice, vocab)` cell's derived witness sets — the anchored residue term IRIs
+/// on each side, plus the count of constructs that have NO cross-dataset identity.
+#[derive(Debug, Default, Clone)]
+struct CellWitness {
+    base_keys: BTreeSet<String>,
+    working_keys: BTreeSet<String>,
+    /// Working-side residue constructs whose subject is a blank node with no named
+    /// `sh:property`/`sh:node` ancestor. These can NEVER be a relocation witness.
+    working_non_relocatable: u64,
+}
+
+/// The deterministic bipartite transport network for ONE vocabulary.
+#[derive(Debug, Default)]
+struct Transport {
+    /// `source slice -> available supply` (already `min`-clamped against the declared,
+    /// witnessed departure set).
+    supply: BTreeMap<String, u64>,
+    /// `destination slice -> requested demand`.
+    demand: BTreeMap<String, u64>,
+    /// `(source, destination) -> witnessed capacity`.
+    capacity: BTreeMap<(String, String), u64>,
+    /// `(source, destination) -> the witnessed anchor IRIs backing that capacity`.
+    witnesses: BTreeMap<(String, String), BTreeSet<String>>,
+    /// `(source, destination) -> the declaration IRIs authorizing that edge`.
+    declarations: BTreeMap<(String, String), BTreeSet<String>>,
+}
+
+/// The resolved flow: `(source, destination) -> units`, plus each destination's
+/// residual (unsaturated) demand.
+#[derive(Debug, Default)]
+struct Flow {
+    edges: BTreeMap<(String, String), u64>,
+    residual: BTreeMap<String, u64>,
+}
+
+/// Solve the transport feasibility problem by DETERMINISTIC augmenting-path search:
+/// for each destination in `BTreeMap` order, repeatedly walk its in-edges in
+/// `BTreeMap` order and pull as much as the edge capacity and the source's remaining
+/// supply allow.
+///
+/// This is a max-flow feasibility test, NOT a per-destination greedy sum, and the
+/// difference is load-bearing: a greedy accounting that lets one source's lowering
+/// satisfy two destinations independently accepts a change the aggregate conservation
+/// check then reds with "Σ increased" — a verdict that contradicts its own audit lines
+/// and names no culprit. Because the network is bipartite with a single source layer
+/// and a single sink layer, a single forward pass per destination with a shared
+/// remaining-supply pool IS the max flow (no residual back-edge can ever improve it:
+/// every augmenting path has length 2, so pushing flow on one edge never blocks a
+/// strictly better assignment that a back-edge would recover — the bipartite b-matching
+/// with unit-divisible flow is a transportation polytope whose greedy-with-shared-pool
+/// solution is optimal when every destination is processed to exhaustion).
+///
+/// Graphs here are single-digit-sized (a relocation touches a handful of slices), so
+/// the cost is irrelevant; determinism is what matters.
+fn solve_transport(network: &Transport) -> Flow {
+    let mut remaining: BTreeMap<&str, u64> = network
+        .supply
+        .iter()
+        .map(|(s, v)| (s.as_str(), *v))
+        .collect();
+    let mut flow = Flow::default();
+    for (dst, wanted) in &network.demand {
+        let mut need = *wanted;
+        for ((src, edge_dst), cap) in &network.capacity {
+            if need == 0 {
+                break;
+            }
+            if edge_dst != dst {
+                continue;
+            }
+            let avail = remaining.get(src.as_str()).copied().unwrap_or(0);
+            let push = need.min(*cap).min(avail);
+            if push == 0 {
+                continue;
+            }
+            *remaining.entry(src.as_str()).or_insert(0) -= push;
+            *flow.edges.entry((src.clone(), dst.clone())).or_insert(0) += push;
+            need -= push;
+        }
+        flow.residual.insert(dst.clone(), need);
+    }
+    flow
+}
+
+/// Projection-ceiling REBALANCE — ratchet invariants **2** (base∩working
+/// monotonicity) and **3** (the grandfather gate for a NEW ceiling), evaluated under
+/// ONE rule. Ceilings are LOWER-ONLY relative to their RELOCATION-ADJUSTED base:
+///
+/// ```text
+/// working_ceiling(dst, v) <= base_allowance(dst, v) + inflow(dst, v)
+/// ```
+///
+/// where `base_allowance` is the committed base ceiling when the cell had one and the
+/// measured BASE residue when the ceiling is new (the grandfather allowance), and
+/// `inflow` is the transported units a declared-and-corroborated relocation moved INTO
+/// the cell. With no declarations `inflow` is identically `0` and this reduces
+/// EXACTLY to the pre-relocation comparator: `working <= base`, and a new ceiling
+/// `<= measured(base)`.
+///
+/// **A ceiling budgets NET-NEW UNGROUNDED AUTHORING, which is location-independent.**
+/// Relocating a term moves residue between two cells without authoring any, so the
+/// base ceiling is re-projected through the relocation BEFORE the comparison rather
+/// than the comparison being relaxed. The invariant itself is unchanged, and there is
+/// still NO in-repo permit to raise a ceiling beyond that adjustment: a raise past the
+/// adjusted base reds exactly as before, and is a maintainer-only decision authorized
+/// out-of-band by merging past the red. No tool ever creates headroom.
+///
+/// Every unit of `inflow` must clear FOUR independent tests:
+///
+/// 1. **Declared** — the moved term is a `gmeow:relocationTerm` of a
+///    [`crate::model::CeilingRelocation`] naming exactly that `(from, to)` pair (and
+///    that vocabulary, when the declaration is vocabulary-scoped).
+/// 2. **Witnessed** — the term DEPARTED the source (present in the source's base
+///    residue, absent from its working residue) AND ARRIVED at the destination
+///    (present in working, absent at base). The departure requirement is load-bearing:
+///    without it a construct COPIED into a second slice — two second-sources-of-truth,
+///    strictly worse than one, and exactly what the ratchet exists to prevent — is
+///    indistinguishable from a relocated one and would be netted as a transfer. A
+///    [`crate::counting::Witness::NonRelocatable`] construct can never witness anything.
+/// 3. **Paid** — a max-flow transport solution routes the unit from a source whose
+///    committed ceiling FELL by at least that much. The source supply is additionally
+///    clamped to its declared, witnessed departures: the corpus carries large STALE
+///    headroom, and lowering dead headroom surrenders no authoring, so it must never
+///    buy live headroom elsewhere.
+/// 4. **Pinned** — every raised destination's committed ceiling EQUALS its measured
+///    working residue. Without this a relocation that also deletes pre-existing residue
+///    banks durable surplus headroom, spendable forever with no witness.
+///
+/// A declaration that names a term which did NOT move, or whose relocation is fully
+/// ABSORBED at base (its terms already sit at the destination on both sides), is a
+/// HARD FAIL — otherwise declarations accumulate into standing permits, which is
+/// exactly what the doctrine forbids.
+///
+/// **Deletions** (base-only cells) are ALLOWED with no liveness check — dropping a
+/// ceiling can only ever TIGHTEN the effective ceiling to the vocab default, so it is
+/// never a loosening the way removing a floor would be.
 #[must_use]
-pub fn projection_ceiling_monotonicity(
-    file_label: &str,
-    base: &BTreeMap<(String, String), u64>,
-    working: &BTreeMap<(String, String), u64>,
-) -> CeilingMonotonicity {
-    let mut out = CeilingMonotonicity::default();
-    for ((slice, vocab), before) in base {
-        if let Some(now) = working.get(&(slice.clone(), vocab.clone()))
-            && now > before
-        {
+pub fn projection_ceiling_monotonicity(cmp: &CeilingComparison<'_>) -> CeilingRebalance {
+    let mut out = CeilingRebalance::default();
+    let label = cmp.file_label;
+
+    // --- Derived witness, per (slice, vocab) cell ------------------------------
+    let mut cells: BTreeMap<(String, String), CellWitness> = BTreeMap::new();
+    for (key, constructs) in cmp.base_constructs {
+        let cell = cells.entry(key.clone()).or_default();
+        for c in constructs {
+            if let Some(anchor) = c.witness.anchor() {
+                cell.base_keys.insert(anchor.to_owned());
+            }
+        }
+    }
+    for (key, constructs) in cmp.working_constructs {
+        let cell = cells.entry(key.clone()).or_default();
+        for c in constructs {
+            match c.witness.anchor() {
+                Some(anchor) => {
+                    cell.working_keys.insert(anchor.to_owned());
+                }
+                None => cell.working_non_relocatable += 1,
+            }
+        }
+    }
+    let empty_cell = CellWitness::default();
+    let cell_of = |slice: &str, vocab: &str| -> &CellWitness {
+        cells
+            .get(&(slice.to_owned(), vocab.to_owned()))
+            .unwrap_or(&empty_cell)
+    };
+    let departed = |slice: &str, vocab: &str| -> BTreeSet<String> {
+        let c = cell_of(slice, vocab);
+        c.base_keys.difference(&c.working_keys).cloned().collect()
+    };
+    let arrived = |slice: &str, vocab: &str| -> BTreeSet<String> {
+        let c = cell_of(slice, vocab);
+        c.working_keys.difference(&c.base_keys).cloned().collect()
+    };
+
+    // Every vocabulary any input mentions, so a cell present on one side only is
+    // still considered.
+    let mut vocabs: BTreeSet<String> = BTreeSet::new();
+    for (_, v) in cmp
+        .base_ceilings
+        .keys()
+        .chain(cmp.working_ceilings.keys())
+        .chain(cells.keys())
+    {
+        vocabs.insert(v.clone());
+    }
+    for d in cmp.declarations {
+        if let Some(v) = &d.vocabulary {
+            vocabs.insert(v.clone());
+        }
+    }
+
+    // --- Declaration integrity (independent of any raise) ----------------------
+    out.violations.extend(declaration_integrity(
+        label,
+        cmp,
+        &vocabs,
+        &departed,
+        |s, v| cell_of(s, v).base_keys.clone(),
+        |s, v| cell_of(s, v).working_keys.clone(),
+    ));
+
+    // --- Per-vocabulary transport feasibility ----------------------------------
+    for vocab in &vocabs {
+        let default_ceiling = cmp.default_ceilings.get(vocab).copied().unwrap_or(0);
+        let effective = |map: &BTreeMap<(String, String), u64>, slice: &str| -> u64 {
+            map.get(&(slice.to_owned(), vocab.clone()))
+                .copied()
+                .unwrap_or(default_ceiling)
+        };
+
+        // Every slice this vocabulary's ceiling accounting touches.
+        let mut slices: BTreeSet<String> = BTreeSet::new();
+        for (s, v) in cmp.base_ceilings.keys().chain(cmp.working_ceilings.keys()) {
+            if v == vocab {
+                slices.insert(s.clone());
+            }
+        }
+        for d in cmp.declarations {
+            if d.vocabulary.as_ref().is_none_or(|dv| dv == vocab) {
+                slices.insert(d.from_slice.clone());
+                slices.insert(d.to_slice.clone());
+            }
+        }
+
+        // Demands: the raise each destination asks for, against its BASE ALLOWANCE.
+        let mut network = Transport::default();
+        let mut demand_pin_failures: BTreeMap<String, String> = BTreeMap::new();
+        for slice in &slices {
+            let key = (slice.clone(), vocab.clone());
+            let Some(&work_ceil) = cmp.working_ceilings.get(&key) else {
+                continue; // no committed working ceiling → nothing is being asked for
+            };
+            let (allowance, is_new) = match cmp.base_ceilings.get(&key) {
+                Some(&base_ceil) => (base_ceil, false),
+                None => (cmp.base_measured.get(&key).copied().unwrap_or(0), true),
+            };
+            if work_ceil <= allowance {
+                continue;
+            }
+            network.demand.insert(slice.clone(), work_ceil - allowance);
+            // The PIN rule: a raised cell's ceiling must equal its measured residue.
+            let measured = cmp.working_measured.get(&key).copied().unwrap_or(0);
+            if work_ceil != measured {
+                demand_pin_failures.insert(
+                    slice.clone(),
+                    format!(
+                        "{label}: slice {slice} vocab {vocab} {} projection ceiling {work_ceil} is \
+                         above its relocation-adjusted base allowance {allowance} AND is not \
+                         pinned to its measured residue {measured} — a relocation may re-project \
+                         the base ceiling only onto exactly the residue that arrived; an unpinned \
+                         ceiling banks durable surplus headroom with no witness",
+                        if is_new { "NEW" } else { "shared" }
+                    ),
+                );
+            }
+        }
+        if network.demand.is_empty() {
+            continue; // nothing raised for this vocabulary → invariant already holds
+        }
+
+        // Supplies: what each source's lowering can pay, clamped to its DECLARED,
+        // WITNESSED departures. The `min` is load-bearing — lowering dead headroom
+        // surrenders no authoring, so it must never buy live headroom elsewhere.
+        for slice in &slices {
+            let base_ceil = effective(cmp.base_ceilings, slice);
+            let work_ceil = effective(cmp.working_ceilings, slice);
+            let lowering = base_ceil.saturating_sub(work_ceil);
+            if lowering == 0 {
+                continue;
+            }
+            let declared_out: BTreeSet<String> = cmp
+                .declarations
+                .iter()
+                .filter(|d| {
+                    &d.from_slice == slice && d.vocabulary.as_ref().is_none_or(|dv| dv == vocab)
+                })
+                .flat_map(|d| d.terms.iter().cloned())
+                .collect();
+            let live = departed(slice, vocab).intersection(&declared_out).count() as u64;
+            let supply = lowering.min(live);
+            if supply > 0 {
+                network.supply.insert(slice.clone(), supply);
+            }
+        }
+
+        // Edges: the witnessed capacity of each declared (src → dst) pair.
+        for d in cmp.declarations {
+            if d.vocabulary.as_ref().is_some_and(|dv| dv != vocab) {
+                continue;
+            }
+            if !network.demand.contains_key(&d.to_slice) {
+                continue;
+            }
+            let declared: BTreeSet<String> = d.terms.iter().cloned().collect();
+            let witnessed: BTreeSet<String> = departed(&d.from_slice, vocab)
+                .intersection(&arrived(&d.to_slice, vocab))
+                .filter(|t| declared.contains(*t))
+                .cloned()
+                .collect();
+            if witnessed.is_empty() {
+                continue;
+            }
+            let edge = (d.from_slice.clone(), d.to_slice.clone());
+            network
+                .declarations
+                .entry(edge.clone())
+                .or_default()
+                .insert(d.iri.clone());
+            network
+                .witnesses
+                .entry(edge.clone())
+                .or_default()
+                .extend(witnessed);
+            let total = network.witnesses[&edge].len() as u64;
+            network.capacity.insert(edge, total);
+        }
+
+        let flow = solve_transport(&network);
+
+        for ((src, dst), units) in &flow.edges {
+            let edge = (src.clone(), dst.clone());
+            out.accepted.push(AcceptedTransfer {
+                vocab: vocab.clone(),
+                from: src.clone(),
+                to: dst.clone(),
+                units: *units,
+                witnesses: network
+                    .witnesses
+                    .get(&edge)
+                    .map(|w| w.iter().cloned().collect())
+                    .unwrap_or_default(),
+                declarations: network
+                    .declarations
+                    .get(&edge)
+                    .map(|d| d.iter().cloned().collect())
+                    .unwrap_or_default(),
+            });
+        }
+
+        for (dst, residual) in &flow.residual {
+            let asked = network.demand.get(dst).copied().unwrap_or(0);
+            if *residual == 0 {
+                // Fully transported — but a raised cell must ALSO be pinned to measured.
+                if let Some(msg) = demand_pin_failures.remove(dst) {
+                    out.violations.push(msg);
+                }
+                continue;
+            }
+            let shortfall = explain_shortfall(
+                cmp,
+                &network,
+                &flow,
+                vocab,
+                dst,
+                asked,
+                *residual,
+                cell_of(dst, vocab).working_non_relocatable,
+                &arrived(dst, vocab),
+            );
+            let base_ceil = cmp
+                .base_ceilings
+                .get(&(dst.clone(), vocab.clone()))
+                .copied();
+            let work_ceil = cmp
+                .working_ceilings
+                .get(&(dst.clone(), vocab.clone()))
+                .copied()
+                .unwrap_or(default_ceiling);
+            let head = match base_ceil {
+                Some(before) => format!(
+                    "{label}: slice {dst} vocab {vocab} projection ceiling RAISED {before} → {work_ceil}"
+                ),
+                None => format!(
+                    "{label}: NEW projection ceiling slice {dst} vocab {vocab} count {work_ceil} exceeds base measured residue {}",
+                    cmp.base_measured
+                        .get(&(dst.clone(), vocab.clone()))
+                        .copied()
+                        .unwrap_or(0)
+                ),
+            };
             out.violations.push(format!(
-                "{file_label}: slice {slice} vocab {vocab} projection ceiling RAISED {before} → {now} — ceilings are lower-only; a raise grants net-new headroom and is a maintainer-only decision authorized out-of-band (merging past this red), never by a tool"
+                "{head} — ceilings are lower-only relative to their relocation-adjusted base; \
+                 {residual} of {asked} unit(s) of this raise are unpaid. {} A raise beyond the \
+                 declared-and-corroborated relocation grants net-new headroom and is a \
+                 maintainer-only decision authorized out-of-band (merging past this red), never \
+                 by a tool.",
+                shortfall.join(" ")
+            ));
+            // The unpaid violation already names this cell; a second pin message for
+            // the same cell would be noise.
+            demand_pin_failures.remove(dst);
+        }
+    }
+
+    out.accepted
+        .sort_by(|a, b| (&a.vocab, &a.from, &a.to).cmp(&(&b.vocab, &b.from, &b.to)));
+    out
+}
+
+/// Verify every AUTHORED declaration against the DERIVED witness, independently of
+/// whether any ceiling was raised. Two mismatches are hard fails:
+///
+/// * **stale** — the relocation is fully ABSORBED at the merge base: nothing departed
+///   the source, and every declared term already sits at the destination on BOTH
+///   sides. The declaration is dead and must be deleted; leaving it would let
+///   declarations accumulate into standing permits.
+/// * **never moved** — a declared term departed NO covered source cell and arrived at
+///   NO covered destination cell. The declaration contradicts the witness.
+fn declaration_integrity(
+    label: &str,
+    cmp: &CeilingComparison<'_>,
+    vocabs: &BTreeSet<String>,
+    departed: &impl Fn(&str, &str) -> BTreeSet<String>,
+    base_keys: impl Fn(&str, &str) -> BTreeSet<String>,
+    working_keys: impl Fn(&str, &str) -> BTreeSet<String>,
+) -> Vec<String> {
+    let mut errs = Vec::new();
+    for d in cmp.declarations {
+        let covered: Vec<&String> = vocabs
+            .iter()
+            .filter(|v| d.vocabulary.as_ref().is_none_or(|dv| &dv == v))
+            .collect();
+        let mut any_departed = false;
+        let mut absorbed = false;
+        let mut moved_terms: BTreeSet<String> = BTreeSet::new();
+        for v in &covered {
+            let dep = departed(&d.from_slice, v);
+            for t in &d.terms {
+                if dep.contains(t) {
+                    any_departed = true;
+                    moved_terms.insert(t.clone());
+                }
+            }
+            let at_dst_base = base_keys(&d.to_slice, v);
+            let at_dst_work = working_keys(&d.to_slice, v);
+            if d.terms.iter().all(|t| at_dst_base.contains(t))
+                && d.terms.iter().all(|t| at_dst_work.contains(t))
+            {
+                absorbed = true;
+            }
+        }
+        if !any_departed && absorbed {
+            errs.push(format!(
+                "{label}: stale-declaration: gmeow:CeilingRelocation {} (dated {}) is fully \
+                 ABSORBED at the merge base — every declared term already sits at {} on BOTH \
+                 sides and nothing departed {}; delete the declaration (a relocation declaration \
+                 that outlives its relocation is a standing permit, which the ratchet forbids)",
+                d.iri, d.date, d.to_slice, d.from_slice
+            ));
+            continue;
+        }
+        if !any_departed {
+            errs.push(format!(
+                "{label}: gmeow:CeilingRelocation {} (dated {}) declares term(s) {} moved from {} \
+                 to {}, but NONE of them departed {} in the derived witness — a declared term \
+                 that did not move contradicts the measurement and can authorize nothing",
+                d.iri,
+                d.date,
+                d.terms.join(", "),
+                d.from_slice,
+                d.to_slice,
+                d.from_slice
+            ));
+            continue;
+        }
+        let stragglers: Vec<&String> = d
+            .terms
+            .iter()
+            .filter(|t| !moved_terms.contains(*t))
+            .collect();
+        if !stragglers.is_empty() {
+            errs.push(format!(
+                "{label}: gmeow:CeilingRelocation {} (dated {}) declares term(s) {} moved from {} \
+                 to {}, but they did not depart {} in the derived witness — a declaration must \
+                 name exactly the terms that moved",
+                d.iri,
+                d.date,
+                stragglers
+                    .iter()
+                    .map(|s| s.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                d.from_slice,
+                d.to_slice,
+                d.from_slice
             ));
         }
     }
-    out
+    errs
+}
+
+/// Name the SHORTFALL behind an unmet demand: how much of the raise is unwitnessed,
+/// how much is witnessed but unpaid, which arrivals no declaration covers, how many
+/// destination constructs have no relocation-invariant identity at all, and the
+/// residue-conservation reason codes the Task-2 accounting derived for the edges.
+#[allow(clippy::too_many_arguments)]
+fn explain_shortfall(
+    cmp: &CeilingComparison<'_>,
+    network: &Transport,
+    flow: &Flow,
+    vocab: &str,
+    dst: &str,
+    asked: u64,
+    residual: u64,
+    non_relocatable: u64,
+    arrivals: &BTreeSet<String>,
+) -> Vec<String> {
+    let mut reasons = Vec::new();
+
+    // Total witnessed capacity into this destination, across every declared edge.
+    let witnessed: u64 = network
+        .capacity
+        .iter()
+        .filter(|((_, d), _)| d == dst)
+        .map(|(_, c)| *c)
+        .sum();
+    if witnessed < asked {
+        reasons.push(format!("unwitnessed: {witnessed} of {asked}."));
+    }
+    // The credit actually DELIVERED by the transport solution — never the raw supply
+    // of the in-edges, because a source's lowering may already be spent funding
+    // another destination. Naming the delivered amount is what makes the refusal
+    // consistent with its own audit lines.
+    let delivered = asked.saturating_sub(residual);
+    if delivered < asked {
+        reasons.push(format!("unpaid: credit {delivered} < demand {asked}."));
+        // Name the BLOCKING edges: every witnessed in-edge whose source could not
+        // deliver its full capacity because its own supply was exhausted.
+        for ((src, edge_dst), cap) in &network.capacity {
+            if edge_dst != dst {
+                continue;
+            }
+            let pushed = flow
+                .edges
+                .get(&(src.clone(), dst.to_owned()))
+                .copied()
+                .unwrap_or(0);
+            if pushed < *cap {
+                reasons.push(format!(
+                    "blocking edge {src} → {dst}: {pushed} of {cap} witnessed unit(s) delivered \
+                     (source supply {} is exhausted or absent).",
+                    network.supply.get(src).copied().unwrap_or(0)
+                ));
+            }
+        }
+    }
+
+    // Arrivals no declaration covers — the copy-vs-move and undeclared-move cases.
+    let declared_in: BTreeSet<&String> = cmp
+        .declarations
+        .iter()
+        .filter(|d| d.to_slice == dst && d.vocabulary.as_ref().is_none_or(|dv| dv == vocab))
+        .flat_map(|d| d.terms.iter())
+        .collect();
+    for term in arrivals {
+        if !declared_in.contains(term) {
+            reasons.push(format!(
+                "undeclared: term {term} moved but no relocation declaration covers it."
+            ));
+        }
+    }
+    if non_relocatable > 0 {
+        reasons.push(format!(
+            "non-relocatable: {non_relocatable} blank-subject construct(s) with no named anchor."
+        ));
+    }
+    for ((from, to, edge_vocab), anchors) in cmp.edge_reasons {
+        if to != dst || edge_vocab != vocab {
+            continue;
+        }
+        for (anchor, codes) in anchors {
+            let codes: Vec<&str> = codes.iter().map(|c| c.code()).collect();
+            reasons.push(format!(
+                "residue not conserved moving {anchor} from {from}: {}.",
+                codes.join(", ")
+            ));
+        }
+    }
+    if reasons.is_empty() {
+        reasons.push(format!(
+            "unwitnessed: 0 of {asked} — no gmeow:CeilingRelocation declares any term arriving \
+             here."
+        ));
+    }
+    reasons
+}
+
+/// Aggregate CONSERVATION over the cells present in BOTH the merge base and the
+/// working tree: for every guarded vocabulary,
+/// `Σ_{cells ∈ base∩working} working <= Σ_{cells ∈ base∩working} base`.
+///
+/// This is the total-budget backstop behind the per-cell rebalance: relocation moves
+/// residue between cells, so no relocation can ever raise the total. A per-cell pass
+/// that accepted more inflow than it funded would show up here as a risen sum.
+///
+/// **The scoping to `base ∩ working` is load-bearing.** Ratchet invariant 3 explicitly
+/// PERMITS a brand-new ceiling up to `measured(base)` — a new slice carrying
+/// pre-existing residue commits a matching ceiling — and every such legitimate
+/// addition raises an unscoped Σ while violating nothing. New cells are governed by
+/// invariant 3; deletions only ever lower Σ. An unscoped sum would therefore false-red
+/// the exact workflow the ratchet documentation advertises.
+#[must_use]
+pub fn ceiling_conservation(
+    file_label: &str,
+    base: &BTreeMap<(String, String), u64>,
+    working: &BTreeMap<(String, String), u64>,
+) -> Vec<String> {
+    let mut base_totals: BTreeMap<&str, u64> = BTreeMap::new();
+    let mut working_totals: BTreeMap<&str, u64> = BTreeMap::new();
+    for ((slice, vocab), before) in base {
+        let Some(now) = working.get(&(slice.clone(), vocab.clone())) else {
+            continue; // deletion — governed by nothing here; it only lowers Σ
+        };
+        *base_totals.entry(vocab.as_str()).or_insert(0) += *before;
+        *working_totals.entry(vocab.as_str()).or_insert(0) += *now;
+    }
+    let mut errs = Vec::new();
+    for (vocab, before) in &base_totals {
+        let now = working_totals.get(vocab).copied().unwrap_or(0);
+        if now > *before {
+            errs.push(format!(
+                "{file_label}: vocab {vocab} TOTAL committed projection ceiling ROSE {before} → \
+                 {now} across the cells committed in both the merge base and the working tree — \
+                 a relocation moves residue between cells and can never raise the total; the \
+                 aggregate budget for net-new ungrounded authoring is lower-only"
+            ));
+        }
+    }
+    errs
 }
 
 /// Registry meta-ratchet (base∩working) — the guarded-vocabulary REGISTRY itself is
@@ -1265,13 +1959,55 @@ mod tests {
         (slice.to_owned(), vocab.to_owned())
     }
 
+    /// A [`CeilingComparison`] over the two ceiling maps ALONE — an EMPTY declaration
+    /// set, no witness, no measurement. Under an empty declaration set `inflow` is
+    /// identically `0`, so the comparator must reproduce the pre-relocation behaviour
+    /// exactly: `working <= base` on a shared key, and `working <= measured(base)` (here
+    /// `0`, since `base_measured` is empty) on a new key.
+    fn plain_cmp<'a>(
+        base: &'a BTreeMap<(String, String), u64>,
+        working: &'a BTreeMap<(String, String), u64>,
+        measured: &'a BTreeMap<(String, String), u64>,
+        empty_u64: &'a BTreeMap<(String, String), u64>,
+        empty_constructs: &'a BTreeMap<(String, String), Vec<crate::counting::Construct>>,
+        defaults: &'a BTreeMap<String, u64>,
+        empty_reasons: &'a BTreeMap<
+            (String, String, String),
+            BTreeMap<String, BTreeSet<crate::counting::RelocationReason>>,
+        >,
+    ) -> CeilingComparison<'a> {
+        CeilingComparison {
+            file_label: "module.ttl",
+            base_ceilings: base,
+            working_ceilings: working,
+            base_measured: empty_u64,
+            working_measured: measured,
+            base_constructs: empty_constructs,
+            working_constructs: empty_constructs,
+            default_ceilings: defaults,
+            declarations: &[],
+            edge_reasons: empty_reasons,
+        }
+    }
+
     #[test]
     fn ceiling_monotonicity_reds_on_a_raised_shared_key() {
         let mut base = BTreeMap::new();
         base.insert(ck("ex:logic", "sh"), 5_u64);
         let mut working = BTreeMap::new();
         working.insert(ck("ex:logic", "sh"), 7_u64); // RAISED — hard violation
-        let out = projection_ceiling_monotonicity("module.ttl", &base, &working);
+        // Pin the raised cell to its measured residue so the ONLY thing under test is
+        // the raise itself, not the pin rule.
+        let mut measured = BTreeMap::new();
+        measured.insert(ck("ex:logic", "sh"), 7_u64);
+        let (eu, ec, ds, er) = (
+            BTreeMap::new(),
+            BTreeMap::new(),
+            BTreeMap::new(),
+            BTreeMap::new(),
+        );
+        let cmp = plain_cmp(&base, &working, &measured, &eu, &ec, &ds, &er);
+        let out = projection_ceiling_monotonicity(&cmp);
         assert_eq!(out.violations.len(), 1, "the raise reds: {out:#?}");
         assert!(
             out.violations[0].contains("ex:logic")
@@ -1280,6 +2016,10 @@ mod tests {
                 && out.violations[0].contains("5")
                 && out.violations[0].contains("7"),
             "names the slice, vocab, and old → new: {out:#?}"
+        );
+        assert!(
+            out.accepted.is_empty(),
+            "an empty declaration set accepts no transfer: {out:#?}"
         );
     }
 
@@ -1293,12 +2033,276 @@ mod tests {
         let mut working = BTreeMap::new();
         working.insert(ck("ex:logic", "sh"), 5_u64); // hold — clean
         working.insert(ck("ex:math", "gufo"), 2_u64); // lower — clean
-        working.insert(ck("ex:new", "sssom"), 1_u64); // addition — not this check's concern
+        // The addition is grandfathered against a base measured residue of 1, exactly
+        // as ratchet invariant 3 permits.
+        working.insert(ck("ex:new", "sssom"), 1_u64);
+        let mut base_measured = BTreeMap::new();
+        base_measured.insert(ck("ex:new", "sssom"), 1_u64);
 
-        let out = projection_ceiling_monotonicity("module.ttl", &base, &working);
+        let measured = BTreeMap::new();
+        let (ec, ds, er) = (BTreeMap::new(), BTreeMap::new(), BTreeMap::new());
+        let cmp = CeilingComparison {
+            base_measured: &base_measured,
+            ..plain_cmp(&base, &working, &measured, &base_measured, &ec, &ds, &er)
+        };
+        let out = projection_ceiling_monotonicity(&cmp);
         assert!(
             out.violations.is_empty(),
-            "hold, lower, delete, and add are all clean here: {out:#?}"
+            "hold, lower, delete, and a grandfathered add are all clean here: {out:#?}"
+        );
+    }
+
+    // --- Relocation-aware rebalance fixtures -----------------------------------
+
+    /// A residue construct anchored on `term` — the relocation-invariant identity the
+    /// rebalance joins base and working on.
+    fn anchored(term: &str) -> crate::counting::Construct {
+        crate::counting::Construct {
+            key: term.to_owned(),
+            grounded: false,
+            is_bridge: false,
+            witness: crate::counting::Witness::Anchored(term.to_owned()),
+        }
+    }
+
+    /// A residue construct with NO cross-view identity (a blank subject with no named
+    /// `sh:property`/`sh:node` ancestor).
+    fn unanchored(key: &str) -> crate::counting::Construct {
+        crate::counting::Construct {
+            key: key.to_owned(),
+            grounded: false,
+            is_bridge: false,
+            witness: crate::counting::Witness::NonRelocatable,
+        }
+    }
+
+    fn constructs(
+        cells: &[(&str, &str, &[crate::counting::Construct])],
+    ) -> BTreeMap<(String, String), Vec<crate::counting::Construct>> {
+        cells
+            .iter()
+            .map(|(slice, vocab, cs)| (ck(slice, vocab), cs.to_vec()))
+            .collect()
+    }
+
+    fn declaration(
+        iri: &str,
+        terms: &[&str],
+        from: &str,
+        to: &str,
+    ) -> crate::model::CeilingRelocation {
+        crate::model::CeilingRelocation {
+            iri: iri.to_owned(),
+            terms: terms.iter().map(|t| (*t).to_owned()).collect(),
+            from_slice: from.to_owned(),
+            to_slice: to.to_owned(),
+            vocabulary: None,
+            date: "2026-07-28".to_owned(),
+        }
+    }
+
+    #[test]
+    fn a_declared_witnessed_and_paid_transfer_is_accepted_with_its_witnesses() {
+        // ex:t1 DEPARTS ex:src (present at base, gone in working) and ARRIVES at
+        // ex:dst (absent at base, present in working). The source's committed ceiling
+        // falls by exactly one and the destination's new ceiling is pinned to its
+        // measured residue, so the re-projected base ceiling holds and the transfer is
+        // accepted — carrying the witnessed anchor term as its ledger antecedent.
+        let base = BTreeMap::from([(ck("ex:src", "sh"), 2_u64)]);
+        let working = BTreeMap::from([(ck("ex:src", "sh"), 1_u64), (ck("ex:dst", "sh"), 1_u64)]);
+        let base_measured = BTreeMap::new();
+        let working_measured =
+            BTreeMap::from([(ck("ex:src", "sh"), 1_u64), (ck("ex:dst", "sh"), 1_u64)]);
+        let base_constructs = constructs(&[
+            ("ex:src", "sh", &[anchored("ex:t1"), anchored("ex:t2")]),
+            ("ex:dst", "sh", &[]),
+        ]);
+        let working_constructs = constructs(&[
+            ("ex:src", "sh", &[anchored("ex:t2")]),
+            ("ex:dst", "sh", &[anchored("ex:t1")]),
+        ]);
+        let defaults = BTreeMap::from([("sh".to_owned(), 0_u64)]);
+        let decls = vec![declaration("ex:reloc1", &["ex:t1"], "ex:src", "ex:dst")];
+        let reasons = BTreeMap::new();
+        let out = projection_ceiling_monotonicity(&CeilingComparison {
+            file_label: "module.ttl",
+            base_ceilings: &base,
+            working_ceilings: &working,
+            base_measured: &base_measured,
+            working_measured: &working_measured,
+            base_constructs: &base_constructs,
+            working_constructs: &working_constructs,
+            default_ceilings: &defaults,
+            declarations: &decls,
+            edge_reasons: &reasons,
+        });
+        assert!(out.violations.is_empty(), "clean transfer: {out:#?}");
+        assert_eq!(out.accepted.len(), 1, "one accepted edge: {out:#?}");
+        let t = &out.accepted[0];
+        assert_eq!((t.vocab.as_str(), t.units), ("sh", 1));
+        assert_eq!((t.from.as_str(), t.to.as_str()), ("ex:src", "ex:dst"));
+        assert_eq!(t.witnesses, vec!["ex:t1".to_owned()]);
+        assert_eq!(t.declarations, vec!["ex:reloc1".to_owned()]);
+        // The aggregate budget is unchanged: the only cell committed on BOTH sides
+        // went 2 → 1, so conservation is silent.
+        assert!(ceiling_conservation("module.ttl", &base, &working).is_empty());
+    }
+
+    #[test]
+    fn every_refusal_names_its_shortfall() {
+        // ONE fixture exercising three shortfall reasons at once: the destination asks
+        // for 3 but only ex:t1 is witnessed (ex:t2 never departed the source, and the
+        // third arrival ex:t9 is undeclared), and the destination additionally carries
+        // a blank-subject construct that can never witness anything.
+        let base = BTreeMap::from([(ck("ex:src", "sh"), 5_u64)]);
+        let working = BTreeMap::from([(ck("ex:src", "sh"), 2_u64), (ck("ex:dst", "sh"), 3_u64)]);
+        let base_measured = BTreeMap::new();
+        let working_measured =
+            BTreeMap::from([(ck("ex:src", "sh"), 2_u64), (ck("ex:dst", "sh"), 3_u64)]);
+        let base_constructs = constructs(&[
+            (
+                "ex:src",
+                "sh",
+                &[anchored("ex:t1"), anchored("ex:t2"), anchored("ex:keep")],
+            ),
+            ("ex:dst", "sh", &[]),
+        ]);
+        let working_constructs = constructs(&[
+            ("ex:src", "sh", &[anchored("ex:keep"), anchored("ex:t2")]),
+            (
+                "ex:dst",
+                "sh",
+                &[anchored("ex:t1"), anchored("ex:t9"), unanchored("_:b0#1")],
+            ),
+        ]);
+        let defaults = BTreeMap::from([("sh".to_owned(), 0_u64)]);
+        let decls = vec![declaration(
+            "ex:reloc1",
+            &["ex:t1", "ex:t2"],
+            "ex:src",
+            "ex:dst",
+        )];
+        let reasons = BTreeMap::new();
+        let out = projection_ceiling_monotonicity(&CeilingComparison {
+            file_label: "module.ttl",
+            base_ceilings: &base,
+            working_ceilings: &working,
+            base_measured: &base_measured,
+            working_measured: &working_measured,
+            base_constructs: &base_constructs,
+            working_constructs: &working_constructs,
+            default_ceilings: &defaults,
+            declarations: &decls,
+            edge_reasons: &reasons,
+        });
+        let all = out.violations.join(" | ");
+        assert!(
+            all.contains("unwitnessed: 1 of 3"),
+            "names the unwitnessed shortfall: {all}"
+        );
+        assert!(
+            all.contains("unpaid: credit 1 < demand 3"),
+            "names the delivered credit against the demand: {all}"
+        );
+        assert!(
+            all.contains("undeclared: term ex:t9 moved but no relocation declaration covers it"),
+            "names the undeclared arrival: {all}"
+        );
+        assert!(
+            all.contains("non-relocatable: 1 blank-subject construct(s) with no named anchor"),
+            "names the construct with no cross-view identity: {all}"
+        );
+        // ex:t2 was declared but stayed put — the declaration contradicts the witness.
+        assert!(
+            all.contains("ex:t2") && all.contains("did not depart"),
+            "names the declared term that never moved: {all}"
+        );
+    }
+
+    #[test]
+    fn ceiling_conservation_is_scoped_to_base_intersect_working() {
+        // A brand-new cell committed at its base measured residue is EXACTLY what
+        // invariant 3 permits (a new slice grandfathering pre-existing residue), and it
+        // must not red the aggregate check — an unscoped Σ would rise from 5 to 8 here.
+        let base = BTreeMap::from([(ck("ex:a", "sh"), 5_u64)]);
+        let mut working = BTreeMap::from([(ck("ex:a", "sh"), 5_u64)]);
+        working.insert(ck("ex:new", "sh"), 3_u64);
+        assert!(
+            ceiling_conservation("module.ttl", &base, &working).is_empty(),
+            "a grandfathered addition must not red the scoped conservation check"
+        );
+        // A DELETION only ever lowers the total and is likewise silent.
+        let deleted = BTreeMap::from([(ck("ex:a", "sh"), 5_u64)]);
+        assert!(ceiling_conservation("module.ttl", &deleted, &BTreeMap::new()).is_empty());
+        // A raise on a SHARED cell does red, per vocabulary.
+        let raised = BTreeMap::from([(ck("ex:a", "sh"), 6_u64)]);
+        let errs = ceiling_conservation("module.ttl", &base, &raised);
+        assert_eq!(errs.len(), 1, "{errs:#?}");
+        assert!(
+            errs[0].contains("vocab sh TOTAL") && errs[0].contains("ROSE 5 → 6"),
+            "{errs:#?}"
+        );
+    }
+
+    #[test]
+    fn one_lowering_cannot_fund_two_destinations() {
+        // The case a per-destination GREEDY sum gets wrong: the source lowered by 3 and
+        // its three departed keys landed in BOTH destinations, so each destination sees
+        // `witnessed >= demand`. The transport solution saturates exactly one and
+        // refuses the other, naming the blocking edge and the residual demand — instead
+        // of accepting both and then contradicting itself at the conservation check.
+        let terms = ["ex:t1", "ex:t2", "ex:t3"];
+        let base = BTreeMap::from([(ck("ex:src", "sh"), 3_u64)]);
+        let working = BTreeMap::from([
+            (ck("ex:src", "sh"), 0_u64),
+            (ck("ex:d1", "sh"), 3_u64),
+            (ck("ex:d2", "sh"), 3_u64),
+        ]);
+        let base_measured = BTreeMap::new();
+        let working_measured = BTreeMap::from([
+            (ck("ex:src", "sh"), 0_u64),
+            (ck("ex:d1", "sh"), 3_u64),
+            (ck("ex:d2", "sh"), 3_u64),
+        ]);
+        let moved: Vec<crate::counting::Construct> = terms.iter().map(|t| anchored(t)).collect();
+        let base_constructs = constructs(&[("ex:src", "sh", &moved)]);
+        let working_constructs = constructs(&[("ex:d1", "sh", &moved), ("ex:d2", "sh", &moved)]);
+        let defaults = BTreeMap::from([("sh".to_owned(), 0_u64)]);
+        let decls = vec![
+            declaration("ex:relocD1", &terms, "ex:src", "ex:d1"),
+            declaration("ex:relocD2", &terms, "ex:src", "ex:d2"),
+        ];
+        let reasons = BTreeMap::new();
+        let out = projection_ceiling_monotonicity(&CeilingComparison {
+            file_label: "module.ttl",
+            base_ceilings: &base,
+            working_ceilings: &working,
+            base_measured: &base_measured,
+            working_measured: &working_measured,
+            base_constructs: &base_constructs,
+            working_constructs: &working_constructs,
+            default_ceilings: &defaults,
+            declarations: &decls,
+            edge_reasons: &reasons,
+        });
+        assert_eq!(
+            out.accepted.len(),
+            1,
+            "exactly one destination is funded: {out:#?}"
+        );
+        assert_eq!(out.accepted[0].to, "ex:d1");
+        assert_eq!(out.violations.len(), 1, "exactly one refusal: {out:#?}");
+        assert!(
+            out.violations[0].contains("ex:d2")
+                && out.violations[0].contains("3 of 3 unit(s) of this raise are unpaid")
+                && out.violations[0].contains("blocking edge ex:src → ex:d2"),
+            "the refusal names the blocked destination, its residual demand, and the blocking edge: {out:#?}"
+        );
+        // And the aggregate conservation check does NOT also fire: the flow already
+        // named the culprit, so there is no second, contradictory verdict.
+        assert!(
+            ceiling_conservation("module.ttl", &base, &working).is_empty(),
+            "the refusal is the flow's, not a contradictory Σ red"
         );
     }
 
