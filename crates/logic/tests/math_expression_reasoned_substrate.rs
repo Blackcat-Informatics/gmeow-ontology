@@ -133,3 +133,27 @@ fn conforming_alpha_equivalent_expressions_share_one_materialized_class_node() {
         "the example's two structurally identical expressions must resolve to ONE class node, saw {by_root:?}"
     );
 }
+
+/// The gate's population over the SHIPPED math example corpus is non-empty.
+///
+/// A gate that decides nothing reports nothing, and "no findings" is indistinguishable from
+/// "nothing to decide" by finding-count alone — so a vacuous population reads exactly like a
+/// clean one. The math slice's examples reach the object-level reasoning EDB precisely so this
+/// gate is non-vacuous over the shipped artifact; assert that positively, by counting the
+/// identity edges the gate materializes, rather than inferring health from silence.
+#[test]
+fn the_gate_decides_a_non_empty_population_over_the_shipped_example_corpus() {
+    const ALPHA_CLASS: &str = "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
+    let graph = reasoned(REFERENCE_AST_ACT);
+    let decided = graph
+        .dataset
+        .flat_default_graph_quads()
+        .filter(|q| format!("{:?}", q.p).contains(ALPHA_CLASS))
+        .count();
+    assert!(
+        decided > 0,
+        "the expression-identity gate must DECIDE at least one root over the shipped example \
+         corpus; a zero population makes every clean run vacuous and indistinguishable from a \
+         genuinely passing one"
+    );
+}
