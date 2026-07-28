@@ -46,9 +46,9 @@ use std::collections::BTreeSet;
 
 use gmeow_errors::{Finding, Location, Report, Severity};
 
+use crate::render::{Site, slice_slug, term_slug};
 use gmeow_docs_model::coverage::{CoverageContext, DIMENSIONS, SLICE_DIMENSIONS, term_coverage};
 use gmeow_docs_model::model::DocsModel;
-use crate::render::{Site, slice_slug, term_slug};
 
 /// The diagnostics tool name for documentation findings.
 const TOOL: &str = "gmeow-docs";
@@ -261,11 +261,11 @@ fn resolve(dir: &str, href: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::render::render_site;
     use gmeow_docs_model::model::{
         DocCompetency, DocExample, DocFixture, DocFixtureKind, DocLinkage, DocLossTarget, DocTerm,
         DocTermCategory,
     };
-    use crate::render::render_site;
     use std::collections::BTreeMap;
 
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";

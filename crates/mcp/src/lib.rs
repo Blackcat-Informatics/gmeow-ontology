@@ -48,6 +48,32 @@
 //!   handler)` pairs in an assembled [`extension::Surface`]; see that module for the
 //!   totality and duplicate-registration contract.
 //!
+//! # Segments: a tiered deployment of ONE total surface
+//!
+//! The engine ships in two tiers. The `reasoning` cargo feature (default ON) selects
+//! whether this build LINKS the DL reasoner (`gmeow-logic`) and the rubric kernel over it
+//! (`gmeow-slice-quality`); a [`SegmentSet`] selects whether a given deployment SERVES
+//! them. Native `gmeow mcp`, `gmeow-mcp-dev`, and the full browser image all link and
+//! serve everything, and are unchanged. The browser console's first-load image links
+//! neither and defers [`REASONING_SEGMENT_TOOLS`] to a segment it fetches on first use.
+//!
+//! Deferral is NOT a reduced surface, and this is the load-bearing claim:
+//!
+//! * All 35 tools are advertised by `tools/list`, with identical descriptors, in every
+//!   deployment — discovery cannot tell the tiers apart.
+//! * The action theory (`action_policy`) is likewise total and identical, and the
+//!   native bijection gate over it is a statement about the THEORY, not about any one
+//!   deployment's linkage.
+//! * A `tools/call` for a deferred tool returns the typed, machine-readable
+//!   [`SegmentNotLoaded`](error::SegmentNotLoaded) signal — code
+//!   `mcp.segment-not-loaded`, naming the tool AND the segment that serves it — which a
+//!   host uses to load that segment and re-dispatch the SAME frame. It is a routing
+//!   instruction, never a refusal, never an empty result, and never an answer computed
+//!   by a weaker path.
+//!
+//! Membership is decided by LINKAGE (what a tool actually calls), not by name; see
+//! [`REASONING_SEGMENT_TOOLS`] for the classification and its evidence.
+//!
 //! # Direct dependencies
 //!
 //! The list below is the crate's complete direct dependency set — it must set-equal
@@ -72,9 +98,10 @@
 //! * `gmeow-docs-model` — the documentation MODEL (`card`, `llms`, `gmn1_primer`)
 //!   the `doc_card` / `llms_txt` / primer surfaces render through; never
 //!   `gmeow-docs`, whose renderer embeds vendored wasm.
-//! * `gmeow-logic` — the native reasoner and its result algebra behind
-//!   `verify_graph`, `explain_quad`, `coherence_certificate`, `entailments`,
-//!   `counter_examples`, the conjecture engine, and the transaction executor.
+//! * `gmeow-logic` — the native DL reasoner and its result algebra behind
+//!   `verify_graph`, `explain_quad`, `coherence_certificate`, the conjecture engine, and
+//!   the Transaction-Logic commit gate every WRITE tool runs its precondition through.
+//!   OPTIONAL, under the `reasoning` feature (default on) — see the segments section.
 //! * `gmeow-logic-compile` — the canonical prefix registry the tools render Turtle
 //!   with, plus `ir::LOGIC_NAMESPACE`.
 //! * `gmeow-validate` — the shipped validator behind `validate_local` and `advise`,
@@ -82,7 +109,9 @@
 //! * `gmeow-lang-bridge` — the GMN-1 codec behind `gmn_validate`, `gmn_expand`, and
 //!   `gmn_explain`.
 //! * `gmeow-slice-quality` — the advisor kernel `slice_quality` scores an in-memory
-//!   slice file map with, against the bundle-carried rubric.
+//!   slice file map with, against the bundle-carried rubric. OPTIONAL, under the same
+//!   `reasoning` feature: it is a dependent of `gmeow-logic`, so the two travel as one
+//!   segment.
 //! * `serde_json` — the MCP wire format: every tool envelope and JSON-RPC frame.
 //! * `sha2` — SHA-256 content addressing for the append-only library segments, the
 //!   claim fingerprints, and the browser backend's record ids.
@@ -105,24 +134,55 @@ use gmeow_lang_bridge::{
     Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
     gmn1_write, resolve_operator_forms,
 };
+// The reasoning SEGMENT's imports. Every one of these is a `gmeow-logic` surface, and
+// `gmeow-logic` is the optional half of this crate: a build with `reasoning` selected out
+// does not link the DL reasoner at all, which is the whole point of the tiered browser
+// deployment (see `SegmentSet`). Nothing outside a `#[cfg(feature = "reasoning")]` item
+// may name these.
+#[cfg(feature = "reasoning")]
 use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+#[cfg(feature = "reasoning")]
 use gmeow_logic::conjecture::ConjectureLifecycleState;
+#[cfg(feature = "reasoning")]
 use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
+#[cfg(feature = "reasoning")]
 use gmeow_logic::provenance::{reifier_from_strings, term_display};
+#[cfg(feature = "reasoning")]
 use gmeow_logic::query_ir::Budget;
+#[cfg(feature = "reasoning")]
 use gmeow_logic::reason::reason_all_budgeted;
+#[cfg(feature = "reasoning")]
 use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, ReasoningResult};
+#[cfg(feature = "reasoning")]
 use gmeow_logic::result_rdf::{project_conjecture_withdrawal, project_reasoning_result};
+#[cfg(feature = "reasoning")]
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
+#[cfg(feature = "reasoning")]
 use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result};
+// `gmeow-logic-compile` is the prefix registry + the `logic:` IRI namespace, a pure
+// compile-side leaf with NO reasoner in it, so it is never part of the segment. The
+// namespace constant happens to be read only by segment code today (the certificate
+// envelope, the conjecture library reader), hence the gate on this import alone.
+#[cfg(feature = "reasoning")]
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
-use purrdf::gts::examples::agent_memory::{
-    RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
-};
+// `recall` is a core read over the grounded-memory triad; the three WRITE option types
+// belong to the WRITE tools, which are segment tools because their commit gate is a TR
+// transaction.
+use purrdf::gts::examples::agent_memory::RecallOptions;
+#[cfg(feature = "reasoning")]
+use purrdf::gts::examples::agent_memory::{RevisionOptions, StoreOptions, ToolCallOptions};
+// The GTS WRITE side: only the six WRITE tools mint segments, so the writer and its term
+// model travel with the segment their commit gate lives in.
+#[cfg(feature = "reasoning")]
+use purrdf::TermValue;
+#[cfg(feature = "reasoning")]
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
+#[cfg(feature = "reasoning")]
 use purrdf::gts::writer::Writer as GtsWriter;
-use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+// Content addressing for the append-only library segments the WRITE tools commit.
+#[cfg(feature = "reasoning")]
 use sha2::{Digest, Sha256};
 
 use gmeow_bundle_view::export::{self, ConsumerResolution, FoldView, Term};
@@ -130,7 +190,127 @@ use gmeow_bundle_view::export::{self, ConsumerResolution, FoldView, Term};
 use crate::extension::{
     Extension, ResourceHandler, Surface, ToolHandler, zip_resources, zip_tools,
 };
-use crate::storage::{ClaimStore, LibraryLock, SegmentLibrary, storage};
+use crate::storage::{ClaimStore, storage};
+// The append-only segment libraries (conjecture + candidate) and their commit lock: only
+// the WRITE tools and `list_candidates` touch them, and all of those are segment tools.
+#[cfg(feature = "reasoning")]
+use crate::storage::{LibraryLock, SegmentLibrary};
+
+// ── engine segments: a TIERED deployment of ONE total surface ─────────────────────
+
+/// The name of the demand-loaded reasoning segment, as it appears in the
+/// [`SegmentNotLoaded`](crate::error::SegmentNotLoaded) signal's `segment` field.
+///
+/// A stable wire identifier, not a display string: a host reads it to decide WHICH
+/// segment image to fetch before re-dispatching the frame.
+pub const REASONING_SEGMENT: &str = "reasoning";
+
+/// The tools the [`REASONING_SEGMENT`] serves, in advertised order.
+///
+/// Membership is decided by LINKAGE, not by name, and the classification was read off
+/// what each tool actually calls:
+///
+/// * `verify_graph` / `explain_quad` DERIVE — `reason_all_budgeted`, the verify pass, and
+///   the explanation index are the DL reasoner itself.
+/// * All six WRITE tools (`store_claim`, `revise_belief`, `store_conjecture`,
+///   `refute_conjecture`, `submit_candidate`, `withdraw_candidate`) run their precondition
+///   through `execute_transaction` — the Transaction-Logic executor's executional
+///   entailment IS their commit gate, so a build without the reasoner cannot honour their
+///   contract at all. Deferring them is the only alternative to silently skipping the gate.
+/// * `conjecture_test` evaluates through `conjecture_eval`.
+/// * `slice_quality` is the rubric kernel, itself a dependent of the reasoner.
+/// * `coherence_certificate` and `list_candidates` READ rather than derive, but they parse
+///   the reasoner's own status/lifecycle algebra (`CompletenessStatus`,
+///   `EvaluationStatus`, `ConjectureLifecycleState`) — types that live in `gmeow-logic`
+///   and must not be duplicated here to dodge the edge.
+///
+/// Everything else is core and answers in the first-load image. That deliberately includes
+/// `entailments` and `counter_examples`, whose names suggest reasoning but whose bodies are
+/// pure SPARQL over the bundle's documentation graph: the derivations were computed at
+/// pipeline time and shipped, so reading them needs no engine.
+///
+/// This list is the single declaration of the split: [`SegmentSet::serves`] routes off
+/// it and [`builtin_tool_handlers`] is proved total against it, so a tool cannot be
+/// deferred without appearing here and cannot appear here without being deferred.
+pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
+    "verify_graph",
+    "explain_quad",
+    "coherence_certificate",
+    "store_claim",
+    "conjecture_test",
+    "store_conjecture",
+    "refute_conjecture",
+    "revise_belief",
+    "slice_quality",
+    "submit_candidate",
+    "withdraw_candidate",
+    "list_candidates",
+];
+
+/// Which engine segments a deployment serves IN-PROCESS.
+///
+/// The tool surface is total in every deployment: all 35 tools are advertised, described,
+/// and dispatchable everywhere, and the action theory that governs them is unchanged. A
+/// `SegmentSet` says only where a tool's *implementation* currently lives. A tool whose
+/// segment is not served answers with [`SegmentNotLoaded`](crate::error::SegmentNotLoaded)
+/// — a typed, machine-readable routing instruction naming the tool and the segment — which
+/// the host uses to load that segment and re-dispatch the SAME frame. The caller sees a
+/// slower answer; it never sees a missing tool, an empty result, or a refusal.
+///
+/// Two axes decide whether a segment is served, and BOTH must hold:
+/// * the build LINKS it (the `reasoning` cargo feature), and
+/// * the deployment SELECTS it ([`SegmentSet::core`] vs [`SegmentSet::linked`]).
+///
+/// The second axis exists because "lean core" is a deployment shape, not merely a
+/// compilation artifact: it must be observable — and therefore testable — from a build
+/// that does link the segment, otherwise the deferral contract would only ever be
+/// exercised by the image nobody runs the test suite against.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SegmentSet {
+    /// Serve [`REASONING_SEGMENT_TOOLS`] locally rather than deferring them.
+    ///
+    /// Can only ever be `true` on a build with the `reasoning` feature — the constructors
+    /// below are the only way to set it, and both fold in `cfg!(feature = "reasoning")`.
+    pub reasoning: bool,
+}
+
+impl SegmentSet {
+    /// Every segment this BUILD links — the default for [`McpServer::from_snapshot`], and
+    /// therefore what the native `gmeow mcp`, `gmeow-mcp-dev`, and the full browser image
+    /// all get. On a build with `reasoning` on this is the whole engine, unchanged.
+    #[must_use]
+    pub const fn linked() -> Self {
+        Self {
+            reasoning: cfg!(feature = "reasoning"),
+        }
+    }
+
+    /// The LEAN core deployment: the reasoning segment is deferred to first use.
+    ///
+    /// The tiered browser console's first-load image. Identical to [`Self::linked`] on a
+    /// build that selected the reasoning feature out, so the two never disagree about what
+    /// a core deployment is.
+    #[must_use]
+    pub const fn core() -> Self {
+        Self { reasoning: false }
+    }
+
+    /// Whether `tool` runs here, or is deferred to a segment this deployment has not
+    /// loaded. Total: a tool outside [`REASONING_SEGMENT_TOOLS`] is core and always served.
+    #[must_use]
+    pub fn serves(self, tool: &str) -> bool {
+        self.reasoning || !REASONING_SEGMENT_TOOLS.contains(&tool)
+    }
+}
+
+/// The deferral signal for one `tools/call` against a segment this deployment has not
+/// loaded — the ONE construction site, so every deferred tool reports identically.
+fn segment_not_loaded(tool: &'static str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::SegmentNotLoaded {
+        tool: tool.to_owned(),
+        segment: REASONING_SEGMENT.to_owned(),
+    })
+}
 
 // The internal→BCP-47 display-language map is carried on the lang: carrier
 // varieties: each lang:LanguageVariety bears its internal tag through
@@ -142,6 +322,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The `gmeow:` vocabulary namespace — the base of the documentation-graph
 /// predicate and enumeration IRIs (`gmeow:docFixtureKind…`, etc.).
 use gmeow_ns::GMEOW_NS;
+#[cfg(feature = "reasoning")]
 const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// The distinct external-provenance named graph the read-only local overlay is
 /// re-homed into (the origin marker). Overlay triples are visible to reads
@@ -200,6 +381,7 @@ const LANG_GMN_UNCOVERED_TERM: &str = "https://blackcatinformatics.ca/lang/GmnUn
 /// any hand-authored annex — yet keeps the `bundle ∪ overlay` EDB, and thus the
 /// budgeted chase over it, bounded. Exceeding it is a HARD FAIL (the bounded agent
 /// path), never a silently truncated graph.
+#[cfg(feature = "reasoning")]
 const MAX_VERIFY_OVERLAY_QUADS: usize = 100_000;
 
 /// The pre-*parse* hard ceiling on the `query_local` / `verify_graph` overlay payload
@@ -234,6 +416,7 @@ const MAX_VERIFY_OVERLAY_BYTES: u64 = 16 * 1024 * 1024;
 /// empirically well below the shipped bundle's true closure size (measured: `max_steps: 100`
 /// still exhausts the budget in ~15 s; `max_steps: 500` reaches the true closure and falls
 /// into the ~500 s DL post-pass).
+#[cfg(feature = "reasoning")]
 const DEFAULT_MAX_STEPS: u64 = 64;
 
 /// The hard ceiling no agent-supplied `max_steps` may exceed, on the same tools as
@@ -244,16 +427,19 @@ const DEFAULT_MAX_STEPS: u64 = 64;
 /// the small [`DEFAULT_MAX_STEPS`], this ceiling is reached only by an agent's OWN explicit,
 /// informed request for a deeper (possibly slow, but always finite) evaluation — never by an
 /// omitted argument.
+#[cfg(feature = "reasoning")]
 const HARD_MAX_STEPS: u64 = MAX_VERIFY_OVERLAY_QUADS as u64;
 
 /// The answer-binding cap every agent-facing reasoning tool runs under when the caller
 /// OMITS `max_answers`; see [`DEFAULT_MAX_STEPS`]. Matches its scale: both bound the same
 /// "generous but small" no-args default.
+#[cfg(feature = "reasoning")]
 const DEFAULT_MAX_ANSWERS: usize = 64;
 
 /// The hard ceiling no agent-supplied `max_answers` may exceed, on the same tools as
 /// [`DEFAULT_MAX_ANSWERS`]. Matches [`MAX_VERIFY_OVERLAY_QUADS`] in order of magnitude —
 /// the same "generous but bounded" scale as every other agent-facing ceiling in this file.
+#[cfg(feature = "reasoning")]
 const HARD_MAX_ANSWERS: usize = MAX_VERIFY_OVERLAY_QUADS;
 
 /// Build a governed [`Budget`] for an agent-facing MCP tool call — the ONLY way any
@@ -269,6 +455,7 @@ const HARD_MAX_ANSWERS: usize = MAX_VERIFY_OVERLAY_QUADS;
 /// Both returned fields are therefore always `Some`: this helper can never produce the
 /// unbounded `Budget { max_answers: None, max_steps: None }` an omitted-args call used to
 /// build.
+#[cfg(feature = "reasoning")]
 fn governed_budget(max_steps: Option<u64>, max_answers: Option<usize>) -> Budget {
     let max_steps = max_steps.unwrap_or(DEFAULT_MAX_STEPS).min(HARD_MAX_STEPS);
     let max_answers = max_answers
@@ -1472,6 +1659,7 @@ impl McpView {
     /// EXPLICITLY declared `format`, returning the proof-carrying JSON envelope under
     /// `"ok"`. See [`Self::run_verify_graph`] for the read-only / external-annex
     /// contract and the completeness-gate judgment.
+    #[cfg(feature = "reasoning")]
     fn verify_graph_json(&self, data: &str, format: &str, budget: &Budget) -> String {
         match self.run_verify_graph(data, format, budget) {
             Ok(value) => value.to_string(),
@@ -1533,6 +1721,7 @@ impl McpView {
     /// makes `coherent:true` alongside `class_local_name:"Refused"` unrepresentable.
     ///
     /// [`ReasoningResult::is_conclusive`]: gmeow_logic::result::ReasoningResult::is_conclusive
+    #[cfg(feature = "reasoning")]
     fn run_verify_graph(
         &self,
         data: &str,
@@ -1670,6 +1859,7 @@ impl McpView {
     /// error (bad object surface, quad-not-in-closure, cross-world ambiguity, or a
     /// faithfulness violation) becomes the `{ok:false, error}` failure envelope,
     /// EXACTLY like [`Self::verify_graph_json`].
+    #[cfg(feature = "reasoning")]
     fn explain_quad_json(
         &self,
         subject: &str,
@@ -1691,6 +1881,7 @@ impl McpView {
     /// re-reasons. A bundle carrying no coherence artifact is a HARD FAIL rendered as the
     /// `{ok:false, error}` envelope (there is no silent recompute fallback), EXACTLY like
     /// [`Self::verify_graph_json`].
+    #[cfg(feature = "reasoning")]
     fn coherence_certificate_json(&self) -> String {
         match coherence_certificate_envelope(self.dataset.as_ref()) {
             Ok(value) => value.to_string(),
@@ -1718,6 +1909,7 @@ impl McpView {
     ///   never offloads whole-closure proof reconstruction onto the tool;
     /// * every cited IRI is re-checked against the full proof trace
     ///   ([`explain::assert_faithful`]) — a fabricated citation cannot escape.
+    #[cfg(feature = "reasoning")]
     fn run_explain_quad(
         &self,
         subject: &str,
@@ -2057,6 +2249,7 @@ impl McpView {
 pub struct McpServer {
     view: McpView,
     surface: Surface,
+    segments: SegmentSet,
     tag_map: BTreeMap<String, String>,
     available: BTreeSet<String>,
     startup_requested: Vec<String>,
@@ -2066,12 +2259,33 @@ impl McpServer {
     /// Build the CONSUMER MCP server over the bundled `gmeow.gts` snapshot bytes —
     /// the shippable `gmeow mcp` surface, which reads nothing but the bundle.
     ///
+    /// Serves every segment this build links ([`SegmentSet::linked`]), so on the default
+    /// feature set this is the whole engine and nothing about it has changed.
+    ///
     /// # Errors
     ///
     /// Hard-fails if the snapshot does not read, if the startup language
     /// (`GMEOW_LANG`) is unknown, or if the builtin surface does not assemble.
     pub fn from_snapshot(snapshot: &[u8]) -> gmeow_errors::Result<Self> {
         Self::from_snapshot_with(snapshot, Extension::new())
+    }
+
+    /// Build an MCP server for a deployment that serves only `segments` in-process.
+    ///
+    /// The tiered browser console's lean core calls this with [`SegmentSet::core`]. The
+    /// surface is IDENTICAL — all 35 tools advertised, described, and dispatchable — but
+    /// a `tools/call` for a tool outside the served segments answers with the typed
+    /// [`SegmentNotLoaded`](crate::error::SegmentNotLoaded) signal instead of running,
+    /// so the host can load that segment and re-dispatch the same frame.
+    ///
+    /// # Errors
+    ///
+    /// As [`from_snapshot`](Self::from_snapshot).
+    pub fn from_snapshot_segmented(
+        snapshot: &[u8],
+        segments: SegmentSet,
+    ) -> gmeow_errors::Result<Self> {
+        Self::from_snapshot_segmented_with(snapshot, segments, Extension::new())
     }
 
     /// Build an MCP server whose surface is the consumer builtins PLUS `extension`.
@@ -2088,6 +2302,23 @@ impl McpServer {
     /// claims, and [`InvalidRegistration`](crate::error::InvalidRegistration) if a
     /// descriptor carries no dispatch key.
     pub fn from_snapshot_with(snapshot: &[u8], extension: Extension) -> gmeow_errors::Result<Self> {
+        Self::from_snapshot_segmented_with(snapshot, SegmentSet::linked(), extension)
+    }
+
+    /// The one constructor: `segments` chooses the deployment tier, `extension` adds the
+    /// host's tools. [`from_snapshot`](Self::from_snapshot),
+    /// [`from_snapshot_segmented`](Self::from_snapshot_segmented) and
+    /// [`from_snapshot_with`](Self::from_snapshot_with) all land here, so there is exactly
+    /// one snapshot-import / language-resolution / surface-assembly path.
+    ///
+    /// # Errors
+    ///
+    /// As [`from_snapshot_with`](Self::from_snapshot_with).
+    pub fn from_snapshot_segmented_with(
+        snapshot: &[u8],
+        segments: SegmentSet,
+        extension: Extension,
+    ) -> gmeow_errors::Result<Self> {
         let bundle = purrdf::import_gts_events(snapshot)
             .with_ctx(|| "read snapshot gmeow.gts".to_string())?;
         let dataset = bundle.dataset;
@@ -2102,7 +2333,8 @@ impl McpServer {
         )?;
         Ok(Self {
             view: McpView::from_dataset(dataset, Arc::from(snapshot))?,
-            surface: Surface::assemble(builtin_extension()?, extension)?,
+            surface: Surface::assemble(builtin_extension(segments)?, extension)?,
+            segments,
             tag_map,
             available,
             startup_requested,
@@ -2113,6 +2345,16 @@ impl McpServer {
     /// host-registered tool needs (its snapshot bytes, its folded dataset).
     pub fn view(&self) -> &McpView {
         &self.view
+    }
+
+    /// The engine segments this deployment serves in-process.
+    ///
+    /// A host reads this to know, BEFORE dispatching, which tools will answer here and
+    /// which will return the deferral signal — so it can pre-load a segment rather than
+    /// discovering the need mid-frame.
+    #[must_use]
+    pub fn segments(&self) -> SegmentSet {
+        self.segments
     }
 
     /// The assembled tool/resource surface: what this server advertises and,
@@ -2625,10 +2867,67 @@ fn builtin_tool_descriptors() -> Vec<Value> {
     ]
 }
 
+/// Bind one reasoning-SEGMENT tool to a handler, given the deployment's `segments`.
+///
+/// Two expansions, and the cargo feature picks which one exists:
+/// * with `reasoning` linked, the real method is named and — when the deployment serves
+///   the segment — called; when it does not, the deferral signal is returned instead, so
+///   a core deployment on a full build behaves exactly like the lean image;
+/// * without it, the method does not exist to be named at all, and the only expansion is
+///   the deferral signal.
+///
+/// A macro rather than a function because a function taking the real handler as an
+/// argument would have to NAME `s.tool_verify_graph(a)` in a build where that method is
+/// compiled out. This keeps ONE mechanism (the `segment_not_loaded` signal) and no
+/// never-called stub bodies to drift from it.
+macro_rules! reasoning_tool {
+    ($segments:expr, $name:literal, $method:ident) => {{
+        let name: &'static str = $name;
+        debug_assert!(
+            REASONING_SEGMENT_TOOLS.contains(&name),
+            "`{name}` is bound as a reasoning-segment tool but is absent from \
+             REASONING_SEGMENT_TOOLS, so `SegmentSet::serves` would route it as core"
+        );
+        #[cfg(feature = "reasoning")]
+        // ONE routing predicate, shared with every host that asks the same question
+        // ahead of time: `SegmentSet::serves` is the only place "does this tool run
+        // here?" is decided, so a host's pre-flight answer and the engine's dispatch
+        // cannot disagree.
+        let entry: (&'static str, ToolHandler) = if $segments.serves(name) {
+            (
+                name,
+                Box::new(|s: &McpServer, a: &Value| s.$method(a)) as ToolHandler,
+            )
+        } else {
+            (
+                name,
+                Box::new(move |_: &McpServer, _: &Value| Err(segment_not_loaded(name)))
+                    as ToolHandler,
+            )
+        };
+        #[cfg(not(feature = "reasoning"))]
+        let entry: (&'static str, ToolHandler) = {
+            let _ = &$segments;
+            (
+                name,
+                Box::new(move |_: &McpServer, _: &Value| Err(segment_not_loaded(name)))
+                    as ToolHandler,
+            )
+        };
+        entry
+    }};
+}
+
 /// The CONSUMER `tools/call` handlers, in the SAME order as
 /// [`builtin_tool_descriptors`]. Each entry restates the tool name so
 /// [`zip_tools`] can prove the pairing rather than assume it.
-fn builtin_tool_handlers() -> Vec<(&'static str, ToolHandler)> {
+///
+/// All 35 entries exist in EVERY deployment — the list does not shrink when a segment is
+/// unloaded, because "advertised" and "dispatchable" are one fact here and a lean core
+/// still advertises the whole surface. What changes is what the ten
+/// [`REASONING_SEGMENT_TOOLS`] entries dispatch TO: their real implementation when the
+/// segment is served, the [`segment_not_loaded`] routing signal when it is not.
+fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler)> {
     /// Box one handler at its declaration site (the closures have distinct opaque
     /// types, so the vec needs them already coerced).
     fn h<F>(name: &'static str, f: F) -> (&'static str, ToolHandler)
@@ -2646,33 +2945,35 @@ fn builtin_tool_handlers() -> Vec<(&'static str, ToolHandler)> {
         h("query_docs", |s, a| s.tool_query_docs(a)),
         h("docs_search", |s, a| s.tool_docs_search(a)),
         h("query_local", |s, a| s.tool_query_local(a)),
-        h("verify_graph", |s, a| s.tool_verify_graph(a)),
-        h("explain_quad", |s, a| s.tool_explain_quad(a)),
-        h("coherence_certificate", |s, a| {
-            s.tool_coherence_certificate(a)
-        }),
+        reasoning_tool!(segments, "verify_graph", tool_verify_graph),
+        reasoning_tool!(segments, "explain_quad", tool_explain_quad),
+        reasoning_tool!(
+            segments,
+            "coherence_certificate",
+            tool_coherence_certificate
+        ),
         h("validate_local", |s, a| s.tool_validate_local(a)),
         h("gmn_validate", |s, a| s.tool_gmn_validate(a)),
         h("gmn_expand", |s, a| s.tool_gmn_expand(a)),
         h("gmn_explain", |s, a| s.tool_gmn_explain(a)),
         h("advise", |s, a| s.tool_advise(a)),
         h("explain_finding", |s, a| s.tool_explain_finding(a)),
-        h("store_claim", |s, a| s.tool_store_claim(a)),
-        h("conjecture_test", |s, a| s.tool_conjecture_test(a)),
-        h("store_conjecture", |s, a| s.tool_store_conjecture(a)),
-        h("refute_conjecture", |s, a| s.tool_refute_conjecture(a)),
+        reasoning_tool!(segments, "store_claim", tool_store_claim),
+        reasoning_tool!(segments, "conjecture_test", tool_conjecture_test),
+        reasoning_tool!(segments, "store_conjecture", tool_store_conjecture),
+        reasoning_tool!(segments, "refute_conjecture", tool_refute_conjecture),
         h("recall", |s, a| s.tool_recall(a)),
-        h("revise_belief", |s, a| s.tool_revise_belief(a)),
+        reasoning_tool!(segments, "revise_belief", tool_revise_belief),
         h("counter_examples", |s, a| s.tool_counter_examples(a)),
         h("entailments", |s, a| s.tool_entailments(a)),
         h("competency_questions", |s, a| {
             s.tool_competency_questions(a)
         }),
-        h("slice_quality", |s, a| s.tool_slice_quality(a)),
+        reasoning_tool!(segments, "slice_quality", tool_slice_quality),
         h("slice_brief", |s, a| s.tool_slice_brief(a)),
-        h("submit_candidate", |s, a| s.tool_submit_candidate(a)),
-        h("withdraw_candidate", |s, a| s.tool_withdraw_candidate(a)),
-        h("list_candidates", |s, a| s.tool_list_candidates(a)),
+        reasoning_tool!(segments, "submit_candidate", tool_submit_candidate),
+        reasoning_tool!(segments, "withdraw_candidate", tool_withdraw_candidate),
+        reasoning_tool!(segments, "list_candidates", tool_list_candidates),
         h("convert", |s, a| s.tool_convert(a)),
         h("gmn_glyph_legend", |s, a| s.tool_gmn_glyph_legend(a)),
         h("distribution_matrix", |s, a| s.tool_distribution_matrix(a)),
@@ -2689,9 +2990,9 @@ fn builtin_tool_handlers() -> Vec<(&'static str, ToolHandler)> {
 ///
 /// [`InvalidRegistration`](crate::error::InvalidRegistration) if the descriptor and
 /// handler lists have drifted out of bijection.
-fn builtin_extension() -> gmeow_errors::Result<Extension> {
+fn builtin_extension(segments: SegmentSet) -> gmeow_errors::Result<Extension> {
     Ok(Extension::from_parts(
-        zip_tools(builtin_tool_descriptors(), builtin_tool_handlers())?,
+        zip_tools(builtin_tool_descriptors(), builtin_tool_handlers(segments))?,
         zip_resources(builtin_resource_descriptors(), builtin_resource_handlers())?,
     ))
 }
@@ -2790,10 +3091,31 @@ impl McpServer {
         let result = self.surface.dispatch_tool(self, name, args);
         match result {
             Ok(text) => tool_text(text, false),
-            Err(err) => tool_text(
-                json!({"ok": false, "error": err.to_string()}).to_string(),
-                true,
-            ),
+            // A DEFERRAL is not a failure and must not read like one. It keeps
+            // `isError: true` (the call produced no answer, so a client that only checks
+            // that flag is still correct) but the payload carries the STRUCTURED routing
+            // fields — the stable diagnostic code, the tool asked for, and the segment
+            // that serves it — so a host can act on it mechanically instead of matching
+            // prose. Unreachable on a deployment that serves every segment, which is why
+            // the full engine's bytes are unchanged.
+            Err(err) => match err.downcast_ref::<crate::error::SegmentNotLoaded>() {
+                Some(deferred) => tool_text(
+                    json!({
+                        "ok": false,
+                        "error": err.to_string(),
+                        "code": crate::error::SegmentNotLoaded::CODE,
+                        "tool": deferred.tool,
+                        "segment": deferred.segment,
+                        "segment_tools": REASONING_SEGMENT_TOOLS,
+                    })
+                    .to_string(),
+                    true,
+                ),
+                None => tool_text(
+                    json!({"ok": false, "error": err.to_string()}).to_string(),
+                    true,
+                ),
+            },
         }
     }
 
@@ -3013,6 +3335,7 @@ impl McpServer {
     /// `max_steps` / `max_answers` budget off the args and delegates the whole
     /// overlay/union/govern/verify/judge discipline to the view core (one
     /// implementation).
+    #[cfg(feature = "reasoning")]
     fn tool_verify_graph(&self, args: &Value) -> gmeow_errors::Result<String> {
         let data = required_str(args, "data")?;
         let format = required_str(args, "format")?;
@@ -3034,6 +3357,7 @@ impl McpServer {
     ///
     /// This is the CONSUMER quad-explainer — distinct from `explain_finding`, which
     /// addresses a published diagnostic by its fingerprint/anchor IRI.
+    #[cfg(feature = "reasoning")]
     fn tool_explain_quad(&self, args: &Value) -> gmeow_errors::Result<String> {
         let subject = required_str(args, "subject")?;
         let predicate = required_str(args, "predicate")?;
@@ -3058,6 +3382,7 @@ impl McpServer {
     /// Surface the bundle's carried coherence certificate/attestation (R6). A thin,
     /// INPUT-FREE wrapper over [`McpView::coherence_certificate_json`]: the certificate is
     /// read straight off the bundled dataset (disk-free, reason-free), never recomputed.
+    #[cfg(feature = "reasoning")]
     fn tool_coherence_certificate(&self, _args: &Value) -> gmeow_errors::Result<String> {
         Ok(self.view.coherence_certificate_json())
     }
@@ -3551,6 +3876,7 @@ impl McpServer {
         self.view.explain_finding_json(target)
     }
 
+    #[cfg(feature = "reasoning")]
     fn tool_store_claim(&self, args: &Value) -> gmeow_errors::Result<String> {
         let text = required_str(args, "text")?;
         let confidence = optional_f64(args, "confidence")?;
@@ -3628,6 +3954,7 @@ impl McpServer {
         recall_json(self.claim_store()?.as_ref(), args)
     }
 
+    #[cfg(feature = "reasoning")]
     fn tool_revise_belief(&self, args: &Value) -> gmeow_errors::Result<String> {
         let claim_id = required_str(args, "claim_id")?;
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
@@ -3736,6 +4063,7 @@ impl McpServer {
     /// the statement is bridged to the runtime `logic:Conjecture` node via
     /// `math:conjectureUnderTest` (on every verdict) and a refutation's counterexample is
     /// re-exposed via `math:hasCounterexample`.
+    #[cfg(feature = "reasoning")]
     fn tool_conjecture_test(&self, args: &Value) -> gmeow_errors::Result<String> {
         let formula_src = required_str(args, "formula")?;
         let kb_src = required_str(args, "kb")?;
@@ -3798,6 +4126,7 @@ impl McpServer {
     /// `formula` / `kb` / `standpoint` / `math_conjecture` are as `conjecture_test`;
     /// `dry_run=true` computes and returns the verdict (via a hypothetical TR commit) but
     /// WRITES NOTHING.
+    #[cfg(feature = "reasoning")]
     fn tool_store_conjecture(&self, args: &Value) -> gmeow_errors::Result<String> {
         let formula_src = required_str(args, "formula")?;
         let kb_src = required_str(args, "kb")?;
@@ -3895,6 +4224,7 @@ impl McpServer {
     /// state, so the executional-entailment run FAILS the commit and the tool returns
     /// `ok:false` before writing. `dry_run=true` witnesses the hypothetical commit and appends
     /// nothing.
+    #[cfg(feature = "reasoning")]
     fn tool_refute_conjecture(&self, args: &Value) -> gmeow_errors::Result<String> {
         let conjecture_id = required_str(args, "conjecture_id")?;
         let reason = optional_str(args, "reason").unwrap_or("");
@@ -4013,6 +4343,7 @@ impl McpServer {
     /// filesystem at all, and it is also the honest surface for an agent that HAS the
     /// slice as text (a paste, an upload, a git blob) and no place to put it. A map with
     /// no `manifest.ttl` entry is a hard error naming it.
+    #[cfg(feature = "reasoning")]
     fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
         let files = required_file_map("slice_quality", args, "files")?;
         let report = gmeow_slice_quality::score_external_slice_files(self.view.gts_bytes(), &files)
@@ -4067,6 +4398,7 @@ impl McpServer {
     /// stages nothing. `formula`/`kb`/`standpoint`/`math_conjecture` are as `conjecture_test`;
     /// optional `for_slice`/`for_packet` record target provenance; `dry_run=true` computes the
     /// verdict but WRITES NOTHING.
+    #[cfg(feature = "reasoning")]
     fn tool_submit_candidate(&self, args: &Value) -> gmeow_errors::Result<String> {
         let formula_src = required_str(args, "formula")?;
         let kb_src = required_str(args, "kb")?;
@@ -4156,6 +4488,7 @@ impl McpServer {
     /// precondition — the candidate is still in the library and not already withdrawn — is
     /// DERIVED from the live library state read back by SEGMENT ORDER. An unknown id or an
     /// already-withdrawn node fails the commit and returns `ok:false` before writing.
+    #[cfg(feature = "reasoning")]
     fn tool_withdraw_candidate(&self, args: &Value) -> gmeow_errors::Result<String> {
         let candidate_id = required_str(args, "candidate_id")?;
         let reason = optional_str(args, "reason").unwrap_or("");
@@ -4163,6 +4496,7 @@ impl McpServer {
         run_withdraw_candidate(candidate_id, reason, dry_run)
     }
 
+    #[cfg(feature = "reasoning")]
     fn tool_list_candidates(&self, args: &Value) -> gmeow_errors::Result<String> {
         run_list_candidates(
             optional_str(args, "slice"),
@@ -4239,6 +4573,7 @@ impl McpView {
 /// The inputs shared by both evaluation entries: the candidate `logic:` Turtle document, the
 /// KB Turtle it is tested against, the REQUIRED reified standpoint scope (Principle 9), an
 /// optional `math:Conjecture` twin, and the optional derived-closure budget.
+#[cfg(feature = "reasoning")]
 pub struct ConjectureRunPureInput<'a> {
     /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
     pub formula_ttl: &'a str,
@@ -4260,6 +4595,7 @@ pub struct ConjectureRunPureInput<'a> {
 
 /// The inputs to one PERSISTING conjecture test: [`ConjectureRunPureInput`]'s fields plus
 /// whether the run is a sandbox (`dry_run`, writes nothing).
+#[cfg(feature = "reasoning")]
 pub struct ConjectureRunInput<'a> {
     /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
     pub formula_ttl: &'a str,
@@ -4281,6 +4617,7 @@ pub struct ConjectureRunInput<'a> {
 }
 
 /// A refutation's contradiction witness, flattened for every response surface.
+#[cfg(feature = "reasoning")]
 pub struct ConjectureRunWitness {
     /// The individual forced into a clash.
     pub individual: String,
@@ -4293,6 +4630,7 @@ pub struct ConjectureRunWitness {
 /// The outcome of a [`run_conjecture_test_pure`] call: the projected verdict facets, the
 /// refutation witness (when refuted), the content-addressed node IRI, and the projected
 /// N-Triples body. Nothing is ever committed or persisted on this path.
+#[cfg(feature = "reasoning")]
 pub struct ConjecturePureOutput {
     /// The epistemic lifecycle wire value (`open` | `corroborated` | `refuted-in-standpoint`).
     pub lifecycle: String,
@@ -4315,6 +4653,7 @@ pub struct ConjecturePureOutput {
 /// The outcome of a [`run_conjecture_test`] call: the projected verdict facets, the refutation
 /// witness (when refuted), the content-addressed node IRI, the projected N-Triples body, and
 /// the TR receipt gating the persist. `committed` is true exactly when the segment was appended.
+#[cfg(feature = "reasoning")]
 pub struct ConjectureRunOutput {
     /// True exactly when the verdict segment + audit were appended to the library (a committed,
     /// precondition-met, non-dry run).
@@ -4346,6 +4685,7 @@ pub struct ConjectureRunOutput {
 
 /// The shared evaluation core's result: everything computed by parsing, testing, and
 /// projecting one conjecture verdict, before either public entry decides what to do with it.
+#[cfg(feature = "reasoning")]
 struct ConjectureEvaluation {
     lifecycle: String,
     information: String,
@@ -4369,6 +4709,7 @@ struct ConjectureEvaluation {
 /// Returns an error if the candidate document does not name exactly one candidate formula, if
 /// the KB does not parse, if the native engine fails (see [`conjecture_test`]), or if a
 /// refutation names a compound candidate with no soundly-derivable forbidden predicate.
+#[cfg(feature = "reasoning")]
 fn evaluate_conjecture(
     formula_ttl: &str,
     kb_ttl: &str,
@@ -4424,6 +4765,7 @@ fn evaluate_conjecture(
 /// # Errors
 ///
 /// See [`evaluate_conjecture`].
+#[cfg(feature = "reasoning")]
 pub fn run_conjecture_test_pure(
     input: &ConjectureRunPureInput,
 ) -> gmeow_errors::Result<ConjecturePureOutput> {
@@ -4468,6 +4810,7 @@ pub fn run_conjecture_test_pure(
 ///
 /// Returns an error if [`evaluate_conjecture`] fails, or if the TR transaction or the library
 /// append fails.
+#[cfg(feature = "reasoning")]
 pub fn run_conjecture_test(
     input: &ConjectureRunInput,
 ) -> gmeow_errors::Result<ConjectureRunOutput> {
@@ -4567,6 +4910,7 @@ pub fn run_conjecture_test(
 
 /// The inputs to one candidate submission: [`ConjectureRunInput`]'s test fields plus the
 /// optional target provenance (`for_slice` / `for_packet`) recorded on the admitted node.
+#[cfg(feature = "reasoning")]
 pub struct CandidateSubmitInput<'a> {
     /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
     pub formula_ttl: &'a str,
@@ -4592,6 +4936,7 @@ pub struct CandidateSubmitInput<'a> {
 /// admissibility decision, the refutation witness (when refuted), the content-addressed node
 /// IRI, the projected N-Triples body, and the TR receipt gating the append. `committed` is true
 /// exactly when the admissible candidate segment was appended.
+#[cfg(feature = "reasoning")]
 pub struct CandidateSubmitOutput {
     /// True exactly when the candidate segment + audit were appended (admissible, committed,
     /// non-dry run).
@@ -4627,6 +4972,7 @@ pub struct CandidateSubmitOutput {
 /// its `logic:Conjecture` verdict: `rdf:type gmeow:AuthoringCandidate` plus the optional
 /// `gmeow:candidateForSlice` / `gmeow:candidateForPacket` target links. Every predicate/type is
 /// a canonically-authored guides-slice term (no unauthored vocabulary).
+#[cfg(feature = "reasoning")]
 fn candidate_provenance_nt(
     node_iri: &str,
     for_slice: Option<&str>,
@@ -4660,6 +5006,7 @@ fn candidate_provenance_nt(
 ///
 /// Returns an error if [`evaluate_conjecture`] fails, or if the TR transaction or the library
 /// append fails.
+#[cfg(feature = "reasoning")]
 pub fn run_submit_candidate(
     input: &CandidateSubmitInput,
 ) -> gmeow_errors::Result<CandidateSubmitOutput> {
@@ -4772,6 +5119,7 @@ pub fn run_submit_candidate(
 /// # Errors
 ///
 /// Returns an error if the library read, the TR transaction, or the append fails.
+#[cfg(feature = "reasoning")]
 pub fn run_withdraw_candidate(
     candidate_id: &str,
     reason: &str,
@@ -4858,6 +5206,7 @@ pub fn run_withdraw_candidate(
 /// # Errors
 ///
 /// Returns an error if the library read fails.
+#[cfg(feature = "reasoning")]
 pub fn run_list_candidates(
     filter_slice: Option<&str>,
     filter_disposition: Option<&str>,
@@ -4878,6 +5227,7 @@ pub fn run_list_candidates(
 /// # Errors
 ///
 /// Returns an error if the library read fails.
+#[cfg(feature = "reasoning")]
 pub fn run_list_candidates_in(
     library: &dyn SegmentLibrary,
     filter_slice: Option<&str>,
@@ -5267,6 +5617,7 @@ fn ambiguous_term_err(term: &str, candidates: &[String]) -> gmeow_errors::Diag {
 /// The gate is never re-derived inline here (GREENFIELD/no-duplicate-logic) — the
 /// one gate lives in `certificate.rs`, so the two tool paths can never diverge on
 /// whether a genuine certificate is warranted.
+#[cfg(feature = "reasoning")]
 fn completeness_class(result: &ReasoningResult) -> &'static str {
     CoherenceOutcome::class_local_name_for(result, ContradictionPolicy::DEFAULT)
 }
@@ -5279,6 +5630,7 @@ fn completeness_class(result: &ReasoningResult) -> &'static str {
 /// disagree: a conclusive DL glut that trips no bad-example query still REFUSES via
 /// this gate, so `coherent` is forced `false` in lockstep with `class_local_name`
 /// being `"Refused"` — never `coherent:true` alongside `class:Refused`.
+#[cfg(feature = "reasoning")]
 fn completeness_refused(result: &ReasoningResult) -> bool {
     CoherenceOutcome::is_refused_for(result, ContradictionPolicy::DEFAULT)
 }
@@ -5299,6 +5651,7 @@ fn completeness_refused(result: &ReasoningResult) -> bool {
 /// HARD-FAILS if the bundle carries no coherence artifact in `graph/attestations` (there
 /// is NO silent recompute fallback — after the terminal fold every gmeow.gts carries one),
 /// or if it carries more than one distinct coherence subject (an ambiguous bundle).
+#[cfg(feature = "reasoning")]
 fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<Value> {
     use purrdf::RdfTerm;
 
@@ -5552,6 +5905,7 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
 /// object surface ([`infer_object_kind`]). `datatype` types a literal only — pairing
 /// it with an `iri` object is a contradictory request and a HARD FAIL, as is any
 /// `kind` other than `iri`/`literal`.
+#[cfg(feature = "reasoning")]
 fn object_term_n3(
     value: &str,
     kind: Option<&str>,
@@ -5591,6 +5945,7 @@ fn object_term_n3(
 /// else is a literal lexical form. The inference is only a convenience default — a
 /// mis-inference cannot corrupt a result: a wrong reifier simply fails to join the
 /// closure and HARD-FAILS as "not in closure", never a fabricated proof.
+#[cfg(feature = "reasoning")]
 fn infer_object_kind(value: &str) -> &'static str {
     if is_absolute_iri_shape(value) {
         "iri"
@@ -5602,6 +5957,7 @@ fn infer_object_kind(value: &str) -> &'static str {
 /// `true` iff `value` has the shape of an absolute IRI: a non-empty
 /// `ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )` scheme followed by `:`, with no ASCII
 /// whitespace and no leading `"` (which would mark a literal).
+#[cfg(feature = "reasoning")]
 fn is_absolute_iri_shape(value: &str) -> bool {
     if value.starts_with('"') || value.chars().any(|c| c.is_ascii_whitespace()) {
         return false;
@@ -5633,6 +5989,7 @@ fn is_absolute_iri_shape(value: &str) -> bool {
 /// When `graph` resolves to several rows but the reifier lives in ONLY that world, the
 /// engine's `(graph, reifier)` identity is last-wins; this returns that same last row
 /// so the reconstructed root matches the index's resolution deterministically.
+#[cfg(feature = "reasoning")]
 fn locate_explain_target(
     rows: &[Row],
     target_reifier: &str,
@@ -5956,6 +6313,7 @@ fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str>
 /// every defect is named precisely rather than collapsed into "bad input": a missing
 /// argument, an argument that is not an object, and a value that is not a string are
 /// three different authoring mistakes and get three different messages.
+#[cfg(feature = "reasoning")]
 fn required_file_map(
     tool: &str,
     args: &Value,
@@ -6059,6 +6417,7 @@ fn optional_step_count(args: &Value, key: &str) -> gmeow_errors::Result<Option<u
 
 /// A strict boolean argument: present-and-bool → `Some`, absent/null → `None`, anything else is a
 /// HARD FAIL (no silent coercion — `dry_run` is a named default, not a degraded fallback).
+#[cfg(feature = "reasoning")]
 fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option<bool>> {
     match args.get(key) {
         None | Some(Value::Null) => Ok(None),
@@ -6104,26 +6463,35 @@ const ACTION_POLICY_MEDIA_TYPE: &str = "application/n-quads";
 /// The transient world the TR run reasons in — a fresh in-memory store per call, NEVER persisted.
 /// The executed verdict gates the write; the materialized outcome rides the tool response.
 const TXN_WORLD: &str = "https://blackcatinformatics.ca/gmeow/agentic/mcp-exec";
+#[cfg(feature = "reasoning")]
 const TXN_ROOT: &str = "https://blackcatinformatics.ca/gmeow/agentic/mcp-exec/txn";
+#[cfg(feature = "reasoning")]
 const TXN_START: &str = "https://blackcatinformatics.ca/gmeow/agentic/mcp-exec/start";
 
 /// The canonical action-schema and situation IRIs defined by `mcp-action-policy.ttl`.
+#[cfg(feature = "reasoning")]
 const MCP_STORE_CLAIM_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/storeClaim";
+#[cfg(feature = "reasoning")]
 const MCP_REVISE_BELIEF_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/reviseBelief";
+#[cfg(feature = "reasoning")]
 const MCP_WELL_FORMED_CLAIM: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/wellFormedClaim";
+#[cfg(feature = "reasoning")]
 const MCP_TARGET_CLAIM_EXISTS: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/targetClaimExists";
+#[cfg(feature = "reasoning")]
 const MCP_CLAIM_IN_MEMORY: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/claimInMemory";
 
 /// The `persistConjecture` action schema + its precondition situation, defined by
 /// `mcp-action-policy.ttl`. The `conjecture_test` write triad instantiates this schema; the
 /// executional-entailment verdict over the precondition gates the append to the library.
+#[cfg(feature = "reasoning")]
 const MCP_PERSIST_CONJECTURE_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/persistConjecture";
+#[cfg(feature = "reasoning")]
 const MCP_CONJECTURE_VERDICT_PRESENTED: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureVerdictPresented";
 
@@ -6131,8 +6499,10 @@ const MCP_CONJECTURE_VERDICT_PRESENTED: &str =
 /// `mcp-action-policy.ttl`. The compensating author-withdrawal counterpart of
 /// `persistConjecture` (P10, `logic:compensation`): the precondition — the conjecture is
 /// still in the library (not already withdrawn) — gates the compensating append.
+#[cfg(feature = "reasoning")]
 const MCP_WITHDRAW_CONJECTURE_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/withdrawConjecture";
+#[cfg(feature = "reasoning")]
 const MCP_CONJECTURE_IN_LIBRARY: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureInLibrary";
 
@@ -6142,8 +6512,10 @@ const MCP_CONJECTURE_IN_LIBRARY: &str =
 /// library. Unlike `persistConjecture`'s `conjectureVerdictPresented`, the precondition
 /// `candidateAdmissible` is DERIVED FROM VERDICT POLARITY (corroborated, not merely present),
 /// so a refuted or open candidate never obtains it and stages nothing (AC5/AC6).
+#[cfg(feature = "reasoning")]
 const MCP_SUBMIT_CANDIDATE_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/submitCandidate";
+#[cfg(feature = "reasoning")]
 const MCP_CANDIDATE_ADMISSIBLE: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/candidateAdmissible";
 
@@ -6151,8 +6523,10 @@ const MCP_CANDIDATE_ADMISSIBLE: &str =
 /// `mcp-action-policy.ttl`. The compensating author-withdrawal counterpart of
 /// `submitCandidate` (P10, `logic:compensation`): the precondition — the candidate is still in
 /// the library (not already withdrawn) — gates the compensating append.
+#[cfg(feature = "reasoning")]
 const MCP_WITHDRAW_CANDIDATE_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/withdrawCandidate";
+#[cfg(feature = "reasoning")]
 const MCP_CANDIDATE_IN_LIBRARY: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/candidateInLibrary";
 
@@ -6160,19 +6534,30 @@ const MCP_CANDIDATE_IN_LIBRARY: &str =
 /// slice `module.ttl`) — the authoring-role type and target links a submitted candidate node
 /// carries IN ADDITION to its `logic:Conjecture` verdict, so the candidate library is queryable
 /// by slice/packet and distinct from the conjecture library.
+#[cfg(feature = "reasoning")]
 const GMEOW_AUTHORING_CANDIDATE: &str = "https://blackcatinformatics.ca/gmeow/AuthoringCandidate";
+#[cfg(feature = "reasoning")]
 const GMEOW_CANDIDATE_FOR_SLICE: &str = "https://blackcatinformatics.ca/gmeow/candidateForSlice";
+#[cfg(feature = "reasoning")]
 const GMEOW_CANDIDATE_FOR_PACKET: &str = "https://blackcatinformatics.ca/gmeow/candidateForPacket";
 
+#[cfg(feature = "reasoning")]
 const LOGIC_INSTANTIATES_SCHEMA: &str = "https://blackcatinformatics.ca/logic/instantiatesSchema";
+#[cfg(feature = "reasoning")]
 const LOGIC_TRANSITION_FROM_STATE: &str =
     "https://blackcatinformatics.ca/logic/transitionFromState";
+#[cfg(feature = "reasoning")]
 const LOGIC_SITUATION_OBTAINS: &str = "https://blackcatinformatics.ca/logic/situationObtains";
+#[cfg(feature = "reasoning")]
 const LOGIC_PROPER_PART_OF: &str = "https://blackcatinformatics.ca/logic/properPartOf";
+#[cfg(feature = "reasoning")]
 const GMEOW_AT_TIME: &str = "https://blackcatinformatics.ca/gmeow/atTime";
+#[cfg(feature = "reasoning")]
 const GMEOW_EVENT_TEMPORAL_FRAME: &str = "https://blackcatinformatics.ca/gmeow/eventTemporalFrame";
+#[cfg(feature = "reasoning")]
 const GMEOW_TEMPORAL_FRAME_UTC_GREGORIAN: &str =
     "https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian";
+#[cfg(feature = "reasoning")]
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 
 /// The datatype property carrying an action schema's MCP wire name (minted in the `logic:`
@@ -6237,6 +6622,7 @@ fn project_action_policy(ttl: &str) -> String {
 /// Build the per-call one-step transaction world: the canonical action theory plus this call's
 /// primitive program (`root` instantiates `schema_iri`, transitions from the start state) and the
 /// start state's obtaining situations (`obtains`, derived from REAL memory state).
+#[cfg(feature = "reasoning")]
 fn txn_world_nquads(schema_iri: &str, obtains: &[&str]) -> String {
     use std::fmt::Write as _;
     let policy = action_policy_nquads();
@@ -6266,6 +6652,7 @@ fn txn_world_nquads(schema_iri: &str, obtains: &[&str]) -> String {
 /// Execute one memory write action as a TR transaction. `obtains` is the set of situations that
 /// obtain at the start state (real state); the engine's executional entailment over them is the
 /// commit gate. `dry_run` selects the hypothetical (sandbox) operator.
+#[cfg(feature = "reasoning")]
 fn execute_memory_txn(
     schema_iri: &str,
     obtains: &[&str],
@@ -6285,6 +6672,7 @@ fn execute_memory_txn(
 }
 
 /// The TR outcome rendered for the tool response.
+#[cfg(feature = "reasoning")]
 fn txn_json(receipt: &TxReceipt) -> Value {
     match receipt {
         TxReceipt::CommittedSuccess { path_len, .. } => {
@@ -6302,6 +6690,7 @@ fn txn_json(receipt: &TxReceipt) -> Value {
     }
 }
 
+#[cfg(feature = "reasoning")]
 fn gts_iri(value: &str) -> GtsTerm {
     GtsTerm {
         kind: GtsTermKind::Iri,
@@ -6313,6 +6702,7 @@ fn gts_iri(value: &str) -> GtsTerm {
     }
 }
 
+#[cfg(feature = "reasoning")]
 fn gts_literal_dt(value: &str, datatype: usize) -> GtsTerm {
     GtsTerm {
         kind: GtsTermKind::Literal,
@@ -6324,6 +6714,7 @@ fn gts_literal_dt(value: &str, datatype: usize) -> GtsTerm {
     }
 }
 
+#[cfg(feature = "reasoning")]
 fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
     terms.push(term);
     terms.len() - 1
@@ -6336,6 +6727,7 @@ fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
 /// (UTC-Gregorian, P11), the anchor's `logic:transitionFromState` start state, and the start's
 /// obtaining situations. This is exactly the shape `emit_trajectory_audits` reads, so a cold trajectory
 /// audit of `memory.gts` (unioned with the canonical action theory) verifies the executed turn.
+#[cfg(feature = "reasoning")]
 fn write_audit_segment(
     store: &dyn ClaimStore,
     call_id: &str,
@@ -6351,6 +6743,7 @@ fn write_audit_segment(
 /// build the verdict segment AND its audit segment in memory and commit both together via
 /// [`append_library_segments`] (one atomic replace), rather than two separate appends where
 /// the second can fail after the first has already landed.
+#[cfg(feature = "reasoning")]
 fn build_audit_segment(
     call_id: &str,
     schema_iri: &str,
@@ -6410,6 +6803,7 @@ fn build_audit_segment(
 /// The conjecture library, resolved through the [`storage`] seam: natively the GTS
 /// file at `GMEOW_CONJECTURE_PATH` (home-expanded) or `~/.gmeow/conjectures.gts`, in a
 /// browser the in-process segment collection.
+#[cfg(feature = "reasoning")]
 fn conjecture_library() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>> {
     storage().conjecture_library()
 }
@@ -6421,11 +6815,13 @@ fn conjecture_library() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>> {
 /// The candidate library is a SEPARATE, append-only GTS collection — the read-only twin
 /// of the conjecture library — holding admissibility-gated authoring candidates. It is
 /// NEVER folded into base-KB reasoning (R2). Mirrors [`conjecture_library`].
+#[cfg(feature = "reasoning")]
 fn candidate_library() -> gmeow_errors::Result<Arc<dyn SegmentLibrary>> {
     storage().candidate_library()
 }
 
 /// A deterministic lowercase-hex SHA-256 of `bytes` (the KB-world content address seed).
+#[cfg(feature = "reasoning")]
 fn sha256_hex(bytes: &[u8]) -> String {
     let digest = Sha256::digest(bytes);
     let mut out = String::with_capacity(digest.len() * 2);
@@ -6438,6 +6834,7 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 /// Intern one IRI into the GTS term table, deduplicated by value. Shared by the subject /
 /// predicate / object paths and by a typed literal's datatype-IRI leg.
+#[cfg(feature = "reasoning")]
 fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String, usize>) -> usize {
     let sig = format!("I\u{1}{iri}");
     if let Some(&id) = seen.get(&sig) {
@@ -6453,6 +6850,7 @@ fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String,
 /// the literal term references a live datatype id — reproducing the exact encounter order the
 /// append-only, content-addressed GTS segment bytes are keyed on. A quoted-triple term is
 /// rejected fail-closed via `reject`: the projection's closed subset never emits one.
+#[cfg(feature = "reasoning")]
 fn intern_nt_term(
     node: &RdfTerm,
     terms: &mut Vec<GtsTerm>,
@@ -6503,6 +6901,7 @@ fn intern_nt_term(
 /// RDF-1.2-native. Building the bytes is separated from appending them so a caller can assemble
 /// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
 /// together as one atomic file replace — see [`append_library_segments`].
+#[cfg(feature = "reasoning")]
 fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
@@ -6565,6 +6964,7 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
 /// What "exclusive" means is the backend's business ([`SegmentLibrary::lock`]): natively
 /// a cross-process `flock` on a sidecar file, in a browser a mutex over the one
 /// in-process library.
+#[cfg(feature = "reasoning")]
 fn with_library_lock<T>(
     library: &dyn SegmentLibrary,
     f: impl FnOnce() -> gmeow_errors::Result<T>,
@@ -6585,6 +6985,7 @@ fn with_library_lock<T>(
 /// failure mode). The caller MUST already hold the library lock (see [`with_library_lock`]) —
 /// this function does not lock by itself, so it can be called once per commit even when it
 /// writes more than one segment.
+#[cfg(feature = "reasoning")]
 fn append_library_segments(
     library: &dyn SegmentLibrary,
     segments: &[Vec<u8>],
@@ -6608,6 +7009,7 @@ fn append_library_segments(
 /// (`read_to_sink` with `allow_segments = true`) is the one path that preserves per-segment
 /// identity: each appended `GtsWriter` blob reads back as its own segment, delivered in
 /// append order, so folding the lifecycle assertions in that order makes the LAST one win.
+#[cfg(feature = "reasoning")]
 #[derive(Default)]
 struct ConjectureSegments {
     /// One row per segment, indexed by segment order.
@@ -6618,6 +7020,7 @@ struct ConjectureSegments {
 }
 
 /// One segment's captured rows: its segment-local term table and its `(s, p, o)` quads.
+#[cfg(feature = "reasoning")]
 #[derive(Default)]
 struct ConjectureSegmentRows {
     /// Segment-local term id → interned term (ids are dense from 0 within a segment).
@@ -6627,6 +7030,7 @@ struct ConjectureSegmentRows {
     quads: Vec<(usize, usize, usize)>,
 }
 
+#[cfg(feature = "reasoning")]
 impl ConjectureSegments {
     /// The rows for `index`, growing the segment vector so an out-of-order or sparse
     /// segment index still lands in its own slot.
@@ -6639,6 +7043,7 @@ impl ConjectureSegments {
     }
 }
 
+#[cfg(feature = "reasoning")]
 impl purrdf::gts::reader::StreamingSink for ConjectureSegments {
     fn term(&mut self, segment_index: usize, term_id: usize, term: &GtsTerm) {
         let rows = self.seg(segment_index);
@@ -6669,6 +7074,7 @@ impl purrdf::gts::reader::StreamingSink for ConjectureSegments {
 /// in the library; its effective state is the object of the LAST lifecycle assertion for it
 /// in append order. A missing library file is an EMPTY library (a first-ever refute of an
 /// unknown id), not an error; any reader diagnostic or a torn trailing item is a HARD FAIL.
+#[cfg(feature = "reasoning")]
 fn read_library(
     library: &dyn SegmentLibrary,
 ) -> gmeow_errors::Result<BTreeMap<String, ConjectureLifecycleState>> {
@@ -6743,6 +7149,7 @@ fn read_library(
         .collect())
 }
 
+#[cfg(feature = "reasoning")]
 fn tool_arguments(args: &Value, keys: &[&str]) -> String {
     let mut out = serde_json::Map::new();
     for key in keys {

@@ -27,7 +27,14 @@ gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
-gmeow-lang-bridge = { path = "../lang-bridge" }
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature: this crate
+# renders the GMN-1 primer and the card surfaces through the codec + registry, and never
+# calls the `gmn_symbology` token-cost primitive — so it must not be the edge that drags
+# the ~1.9 MB `tiktoken-rs` cl100k vocabulary into a consumer's image. Cargo unifies
+# features across a build, so a consumer that DOES measure glyph cost (gmeow-slice-quality,
+# gmeow-docs, gmeow-pipeline) keeps it on through its OWN direct lang-bridge edge; this one
+# simply stops voting for a vocabulary it does not use.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 regex = "1"

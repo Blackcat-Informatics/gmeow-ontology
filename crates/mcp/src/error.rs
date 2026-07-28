@@ -19,6 +19,12 @@
 //! dispatchable, or dispatched but not registered, or registered twice, is a wiring
 //! defect that must be named and refused, never absorbed into a silent no-op.
 //!
+//! [`SegmentNotLoaded`] is the one kind that is NOT a defect: it is the tiered
+//! deployment's routing signal, saying "this tool is real, advertised, and dispatchable
+//! — its implementation just lives in a segment you have not loaded yet". It is typed
+//! separately from [`UnknownTool`] precisely so a client can tell deferral from absence
+//! without parsing prose.
+//!
 //! [`MCP_DIAG_CODES`] and [`register_all`] are this crate's single, complete
 //! catalog.
 
@@ -91,7 +97,35 @@ define_diag_kind! {
     message = "invalid MCP registration: {}", message;
 }
 
+define_diag_kind! {
+    /// `tools/call` named a tool the surface DOES advertise and DOES dispatch, but whose
+    /// implementation lives in an engine segment this deployment has not loaded — the
+    /// tiered browser console's lean core asking for a reasoning-segment tool.
+    ///
+    /// This is the deferral signal, and it is deliberately DISTINCT from
+    /// [`UnknownTool`]: "not here yet" and "does not exist" are different facts and a
+    /// caller must be able to tell them apart mechanically. The code is stable
+    /// (`mcp.segment-not-loaded`) and the payload names BOTH the tool asked for and the
+    /// segment that provides it, so a host can load exactly that segment and re-dispatch
+    /// the identical frame. It is therefore never a refusal and never a degraded answer:
+    /// it is a routing instruction that makes the call slower, not weaker.
+    ///
+    /// Raised ONLY when the deployment's [`SegmentSet`](crate::SegmentSet) excludes the
+    /// segment. A build carrying the segment can never produce it, which is why the
+    /// native surface and `gmeow-mcp-dev` are unaffected.
+    pub struct SegmentNotLoaded { tool: String, segment: String }
+    code = "mcp.segment-not-loaded";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "tool `{}` is served by the `{}` engine segment, which this deployment has not loaded; load that segment and re-dispatch the same frame", tool, segment;
+}
+
 /// The complete MCP diagnostic-code catalog, in registration order.
+///
+/// TOTAL over the crate regardless of which cargo features are selected — the catalog
+/// is the diagnostic THEORY, and a lean deployment is a reduced deployment, not a
+/// reduced theory (exactly as its 35-tool surface stays total). `mcp.segment-not-loaded`
+/// is therefore listed and interned on every build, including the ones that can never
+/// raise it.
 pub const MCP_DIAG_CODES: &[&str] = &[
     Mcp::CODE,
     McpAmbiguousTerm::CODE,
@@ -99,6 +133,7 @@ pub const MCP_DIAG_CODES: &[&str] = &[
     UnknownResource::CODE,
     DuplicateRegistration::CODE,
     InvalidRegistration::CODE,
+    SegmentNotLoaded::CODE,
 ];
 
 /// Eagerly intern every MCP diagnostic code (idempotent).
@@ -110,6 +145,7 @@ pub fn register_all() -> Vec<Code> {
         UnknownResource::register(),
         DuplicateRegistration::register(),
         InvalidRegistration::register(),
+        SegmentNotLoaded::register(),
     ]
 }
 

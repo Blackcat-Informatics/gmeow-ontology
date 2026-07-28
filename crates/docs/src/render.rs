@@ -659,7 +659,12 @@ pub fn render_site_lang_exec_with_diagrams(
             let title = format!("{}{}", term.curie, term_signature(term));
             files.insert(
                 format!("terms/{slug}/card-full.md"),
-                gmeow_docs_model::card::render_card(&title, &full, gmeow_docs_model::card::CardDetail::Full).into_bytes(),
+                gmeow_docs_model::card::render_card(
+                    &title,
+                    &full,
+                    gmeow_docs_model::card::CardDetail::Full,
+                )
+                .into_bytes(),
             );
         }
     }
@@ -2461,7 +2466,9 @@ fn term_developer_surface(
         for fixture in &term_fixtures {
             let label = match fixture.kind {
                 gmeow_docs_model::model::DocFixtureKind::Wellformed => model.ui("body_label_do"),
-                gmeow_docs_model::model::DocFixtureKind::CounterExample => model.ui("body_label_dont"),
+                gmeow_docs_model::model::DocFixtureKind::CounterExample => {
+                    model.ui("body_label_dont")
+                }
             };
             push_line(
                 &mut out,
@@ -2475,7 +2482,10 @@ fn term_developer_surface(
             // validate asset + bundle ship (`has_bundle()`); the fixture Turtle rides
             // base64 in a data-attribute so its RDF never breaks the HTML.
             if exec.has_bundle()
-                && matches!(fixture.kind, gmeow_docs_model::model::DocFixtureKind::CounterExample)
+                && matches!(
+                    fixture.kind,
+                    gmeow_docs_model::model::DocFixtureKind::CounterExample
+                )
             {
                 blank(&mut out);
                 push_line(
@@ -3186,8 +3196,6 @@ pub(crate) use gmeow_docs_model::slug::{
     AlignmentFacets, align_tag, concern_display, local_name, precompute_alignment_facets,
     provenance_chain, pydantic_class_name, pydantic_module_slug, slice_display, term_advice_facet,
 };
-
-
 
 /// Escape `text` for embedding as a non-raw, double-quoted Python string
 /// literal: backslash and `"` are the only two characters a Python string
@@ -4211,7 +4219,8 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
         heading(&mut out, 2, model.ui("body_artifacts"));
         // Group by role-name; both the group order and the within-group order are
         // sorted for determinism.
-        let mut by_role: BTreeMap<String, Vec<&gmeow_docs_model::model::DocArtifact>> = BTreeMap::new();
+        let mut by_role: BTreeMap<String, Vec<&gmeow_docs_model::model::DocArtifact>> =
+            BTreeMap::new();
         for artifact in &slice.artifacts {
             by_role
                 .entry(role_name(&artifact.role))
@@ -5154,7 +5163,8 @@ fn md_competency_index(model: &DocsModel) -> String {
         return out;
     }
 
-    let mut by_slice: BTreeMap<&str, Vec<&gmeow_docs_model::model::DocCompetency>> = BTreeMap::new();
+    let mut by_slice: BTreeMap<&str, Vec<&gmeow_docs_model::model::DocCompetency>> =
+        BTreeMap::new();
     for cq in &model.competencies {
         by_slice
             .entry(cq.owner_slice.as_str())
@@ -5598,7 +5608,6 @@ fn append_stage_section(out: &mut String, model: &DocsModel, term: &DocTerm, fro
     }
 }
 
-
 /// Append the per-page provenance footer: the producing-stage chain, the
 /// build-grain projection of the single `gmeow:docGroundedBy` provenance relation.
 /// A no-op when the model carries no pipeline (a bare unit-test model) — honest
@@ -5731,7 +5740,8 @@ fn md_external_index(model: &DocsModel) -> String {
     );
 
     // Group by namespace (deterministic: external_terms is IRI-sorted).
-    let mut by_ns: BTreeMap<String, Vec<&gmeow_docs_model::model::DocExternalTerm>> = BTreeMap::new();
+    let mut by_ns: BTreeMap<String, Vec<&gmeow_docs_model::model::DocExternalTerm>> =
+        BTreeMap::new();
     for term in &model.external_terms {
         by_ns.entry(term.namespace.clone()).or_default().push(term);
     }
@@ -5843,8 +5853,10 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
     // is a BTreeMap so category headings emit in sorted IRI order. The `advice.`
     // family rule is EXCLUDED here — it heads the distinct Advice section below and
     // carries the single `#advice-` anchor, which must appear exactly once.
-    let mut by_category: std::collections::BTreeMap<&str, Vec<&gmeow_docs_model::model::ConstraintRule>> =
-        std::collections::BTreeMap::new();
+    let mut by_category: std::collections::BTreeMap<
+        &str,
+        Vec<&gmeow_docs_model::model::ConstraintRule>,
+    > = std::collections::BTreeMap::new();
     for rule in &model.constraint_rules {
         if rule.code == gmeow_validate::codes::ADVICE_FAMILY {
             continue;
@@ -6611,15 +6623,6 @@ fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
 
 // ── Slugging ──────────────────────────────────────────────────────────────────
 
-
-
-
-
-
-
-
-
-
 // ── Link resolution ───────────────────────────────────────────────────────────
 
 /// A link to a term: an intra-site relative link when the IRI names a known
@@ -6649,7 +6652,6 @@ fn consumer_link(model: &DocsModel, from: &str, curie: &str) -> String {
     }
     format!("`{}`", code_escape(curie))
 }
-
 
 /// The inline projection-loss caveat for a per-term alignment predicate, or `None`
 /// for `skos:exactMatch` (a lossless equivalence).
@@ -6723,7 +6725,11 @@ fn curie_link(model: &DocsModel, from: &str, curie: &str) -> String {
 
 /// A link from a linkage's subject (its `subject_curie`/`subject` IRI) to the
 /// term page, falling back to the CURIE in a code span.
-fn subject_link(model: &DocsModel, from: &str, link: &gmeow_docs_model::model::DocLinkage) -> String {
+fn subject_link(
+    model: &DocsModel,
+    from: &str,
+    link: &gmeow_docs_model::model::DocLinkage,
+) -> String {
     if let Some(term) = model.terms.iter().find(|t| t.iri == link.subject) {
         let href = rel(from, &Page::Term(term_slug(term)).dir());
         return format!("[`{}`]({}index.md)", code_escape(&link.subject_curie), href);
@@ -6781,8 +6787,6 @@ fn rel(from: &str, to: &str) -> String {
 }
 
 // ── Display helpers ───────────────────────────────────────────────────────────
-
-
 
 /// The display name for a mapping set: its set-id tail / label, else local name.
 fn set_display(set: &gmeow_docs_model::model::DocMappingSet) -> String {
@@ -7030,9 +7034,6 @@ fn md_escape(text: &str) -> String {
 }
 
 // ── Static indexes (search-index.json, llms.txt / llms-full.txt) ───────────────
-
-
-
 
 /// Maps each term CURIE to the [`gmeow_docs_model::model::DocFixture`]s that reference it
 /// (via `terms_referenced`). Borrows both the CURIE keys and the fixtures from
@@ -7611,7 +7612,10 @@ fn doc_term_card(
             .is_some_and(|digest| digest.schema_by_term.contains_key(&term.iri));
     let (python_model, python_snippet) = if is_modeled {
         (
-            Some(gmeow_docs_model::card::python_model_path(&term.owner_slice, &term.iri)),
+            Some(gmeow_docs_model::card::python_model_path(
+                &term.owner_slice,
+                &term.iri,
+            )),
             Some(gmeow_docs_model::card::python_model_snippet(
                 &term.owner_slice,
                 &term.iri,
@@ -7714,7 +7718,9 @@ fn full_card_for(
         };
         match fixture.kind {
             gmeow_docs_model::model::DocFixtureKind::Wellformed => card.fixtures_do.push(entry),
-            gmeow_docs_model::model::DocFixtureKind::CounterExample => card.fixtures_dont.push(entry),
+            gmeow_docs_model::model::DocFixtureKind::CounterExample => {
+                card.fixtures_dont.push(entry)
+            }
         }
     }
 
@@ -7784,8 +7790,8 @@ pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
 /// card payload without rendering the whole site.
 pub fn term_card_json(model: &DocsModel, term: &DocTerm) -> Vec<u8> {
     let alignment_facets = precompute_alignment_facets(model);
-    let standard =
-        doc_term_card(term, &alignment_facets, model).projected(gmeow_docs_model::card::CardDetail::Standard);
+    let standard = doc_term_card(term, &alignment_facets, model)
+        .projected(gmeow_docs_model::card::CardDetail::Standard);
     serde_json::to_vec(&standard).expect("a pure-data Card of String/Vec/Option fields serializes")
 }
 
@@ -8552,8 +8558,8 @@ mod tests {
         // The standard tier carries NO rich-panel keys.
         assert!(parsed.get("entailments").is_none(), "standard omits panels");
         let facets = precompute_alignment_facets(&model);
-        let expected =
-            doc_term_card(foo, &facets, &model).projected(gmeow_docs_model::card::CardDetail::Standard);
+        let expected = doc_term_card(foo, &facets, &model)
+            .projected(gmeow_docs_model::card::CardDetail::Standard);
         let expected_bytes = serde_json::to_vec(&expected).expect("serialize standard card");
         assert_eq!(
             bytes, &expected_bytes,

@@ -218,7 +218,11 @@ fn stage_slice_files(
     let dir = tempfile::Builder::new()
         .prefix("gmeow-slice-quality-docs-")
         .tempdir()
-        .map_err(|e| io(format!("cannot create a staging directory for the slice files: {e}")))?;
+        .map_err(|e| {
+            io(format!(
+                "cannot create a staging directory for the slice files: {e}"
+            ))
+        })?;
     for (key, bytes) in files {
         let rel = Path::new(key);
         if rel

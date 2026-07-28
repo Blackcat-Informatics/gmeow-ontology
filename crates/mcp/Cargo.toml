@@ -21,6 +21,21 @@ keywords = ["gmeow", "mcp", "agent", "rdf", "wasm"]
 crate-type = ["rlib"]
 path = "src/lib.rs"
 
+[features]
+# The DEFAULT is the whole engine: every native consumer (`gmeow mcp`), `gmeow-mcp-dev`,
+# and the full browser segment (`gmeow-mcp-wasm`) build with `reasoning` on and are
+# therefore bit-for-bit the engine they were before this feature existed. Nothing in the
+# workspace selects it out except the LEAN browser core (`gmeow-mcp-core-wasm`).
+default = ["reasoning"]
+# The reasoning SEGMENT: the native DL reasoner (`gmeow-logic`) and the rubric kernel
+# built on it (`gmeow-slice-quality`), plus the ten tools that cannot answer without
+# them. Selecting it out is an EXPLICIT deployment choice (a tiered browser image whose
+# governing metric is first-load bytes), never a capability downgrade: the tool surface
+# stays total at 35, `tools/list` is identical, and a `tools/call` for a segment tool
+# returns the typed `mcp.segment-not-loaded` signal naming the tool and the segment that
+# provides it, which the host uses to load the segment and re-dispatch the SAME frame.
+reasoning = ["dep:gmeow-logic", "dep:gmeow-slice-quality"]
+
 [dependencies]
 # The RDF 1.2 kernel: the snapshot is imported to a `purrdf::RdfDataset`, every query
 # surface evaluates SPARQL over one, and the grounded-memory triad + the append-only
@@ -54,10 +69,15 @@ gmeow-transcode = { path = "../transcode" }
 # through `llms`, and the `gmn1-primer` resource through `gmn1_primer`, so the MCP
 # card is the genuine twin of the docs-site card rather than a second renderer.
 gmeow-docs-model = { path = "../docs-model" }
-# The native reasoner and its result algebra: `verify_graph`, `explain_quad`,
-# `coherence_certificate`, `entailments`, `counter_examples`, the conjecture engine
-# and the transaction executor all run through `gmeow_logic`.
-gmeow-logic = { path = "../logic" }
+# The native DL reasoner and its result algebra: `verify_graph` / `explain_quad` reason,
+# the conjecture engine evaluates, and every WRITE tool's Transaction-Logic commit gate
+# (`execute_transaction`) runs executional entailment. OPTIONAL, selected by the
+# `reasoning` feature (default ON): it is the single heaviest thing the engine links, and
+# the tiered browser deployment ships it as a demand-loaded SEGMENT rather than in the
+# first-load image. Selecting it out never removes a tool from the surface — the twelve
+# reasoning-segment tools stay advertised and answer with the machine-readable
+# `mcp.segment-not-loaded` signal the host re-dispatches on.
+gmeow-logic = { path = "../logic", optional = true }
 # The canonical prefix registry (`ingest::prefixes::registry_pairs`) the tool
 # surface renders canonical Turtle with, and `ir::LOGIC_NAMESPACE`.
 gmeow-logic-compile = { path = "../logic-compile" }
@@ -67,12 +87,20 @@ gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
 # The GMN-1 codec: `gmn_validate` / `gmn_expand` / `gmn_explain` read, write, and
 # canonically compare GMN documents through the ONE bridge implementation.
-gmeow-lang-bridge = { path = "../lang-bridge" }
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature: the four GMN
+# tools use the codec, the dictionary, and the PINNED `GLYPH_TOKEN_COSTS` legend (which is
+# not behind that feature) — none of them calls the `gmn_symbology` primitive, so the
+# ~1.9 MB `tiktoken-rs` cl100k vocabulary has no reader here and must not ride into a
+# browser image. The same explicit selection the two GMN/validator wasm shims already make.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 # The slice-quality advisor kernel: `slice_quality` scores an IN-MEMORY slice file
 # map against the rubric carried IN the bundle bytes
 # (`score_external_slice_files`), so the tool needs neither a checkout nor a
-# filesystem.
-gmeow-slice-quality = { path = "../slice-quality" }
+# filesystem. OPTIONAL under the same `reasoning` feature as `gmeow-logic`, because it
+# is a DEPENDENT of it (its axiom-recovery axes drive `gmeow_logic::reason`): a build
+# that has selected the DL reasoner out cannot score a rubric either, so the two travel
+# as ONE demand-loaded segment rather than as two half-loadable halves.
+gmeow-slice-quality = { path = "../slice-quality", optional = true }
 # JSON is the MCP wire format: every tool envelope, every JSON-RPC frame, and the
 # `format=json` card projection are `serde_json::Value`s.
 serde_json = "1"

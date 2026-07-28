@@ -33,6 +33,8 @@ repos:
             crates/docs/assets/reason/.*|
             crates/docs/assets/gmn/.*|
             crates/mcp-wasm/tests/WITNESS\.mcp\.json|
+            crates/mcp-core-wasm/tests/WITNESS\.core\.json|
+            crates/mcp-core-wasm/tests/WITNESS\.core-deferral\.json|
             .*\.(tsv|svg|conllu)
           )$
       - id: end-of-file-fixer

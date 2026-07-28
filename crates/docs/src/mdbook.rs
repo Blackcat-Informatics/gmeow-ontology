@@ -26,12 +26,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_docs_model::exec::ExecutableDocsData;
-use gmeow_docs_model::model::{DocTerm, DocTermCategory, DocsModel};
 use crate::render::{
     Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug,
     to_markdown_exec_with_map,
 };
+use gmeow_docs_model::exec::ExecutableDocsData;
+use gmeow_docs_model::model::{DocTerm, DocTermCategory, DocsModel};
 use gmeow_docs_model::source_map::SourceToPageMap;
 
 /// The book-root path of the `additional-js` boot shim. mdbook injects `additional-js`
