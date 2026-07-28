@@ -25,7 +25,7 @@ test("version() returns the crate semver", () => {
 
 test("wasm reasoned closure is byte-identical to the native witness attestation", async () => {
   const attestation = await readFile(
-    fileURLToPath(new URL("../../../docs/assets/reason/WITNESS.reason.nq", import.meta.url)),
+    fileURLToPath(new URL("../../tests/WITNESS.reason.nq", import.meta.url)),
     "utf8",
   );
   const wasmClosure = reason(INPUT, "turtle");

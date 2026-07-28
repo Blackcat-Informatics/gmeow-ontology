@@ -203,19 +203,19 @@ mod tests {
         fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("read committed snapshot")
     }
 
-    /// The DEV surface is the 35 consumer tools plus exactly 4, and the 5 consumer
+    /// The DEV surface is the 37 consumer tools plus exactly 4, and the 5 consumer
     /// resources plus exactly 1. The dev tools are advertised AFTER the builtins.
     #[test]
-    fn dev_surface_is_thirty_nine_tools_and_six_resources() {
+    fn dev_surface_is_forty_one_tools_and_six_resources() {
         let server = dev_server(&snapshot(), repo_root()).expect("dev server constructs");
         let names = server.surface().tool_names();
         assert_eq!(
             names.len(),
-            39,
-            "the dev tool surface is the 35 consumer tools + 4, got {names:?}"
+            41,
+            "the dev tool surface is the 37 consumer tools + 4, got {names:?}"
         );
         assert_eq!(
-            &names[35..],
+            &names[37..],
             ["validate", "reason", "sync", "constitution"],
             "the four dev tools are advertised after the consumer builtins"
         );

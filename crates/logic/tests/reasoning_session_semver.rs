@@ -132,8 +132,17 @@ use session_common::*;
 /// main's `math:` dimension-gate sources, so the merged source-content digest is a new value
 /// (neither this branch's nor main's). No reasoning verdict on the fixed edge-only input
 /// changes (all additions are inert on it).
+/// Re-blessed once more when `reason_closure_dataset`'s axiom-to-RDF lowering was extracted
+/// into the public `inferred_axioms_to_dataset` so the agent-facing MCP `reason_graph` tool
+/// could lower a BUDGETED closure through the SAME code path the unbudgeted one uses (R4
+/// forbids exposing an unbudgeted chase to an agent loop, and two lowerings would have let a
+/// budgeted and an unbudgeted closure of the same size serialize differently). `reason/mod.rs`
+/// is one of the folded native-contract source axes, so the descriptor moves with the file;
+/// the extraction is a pure refactor — `reason_closure_dataset` now calls the extracted
+/// function and no rule, no chase step, and no verdict changed, so the fixed edge-only input's
+/// reasoning verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "cbfd938bdd5c449089cbaf373e86e18cd44c748cc65b6b88235a883192d77169";
+    "0164642bab6809a3461a500ad6a6e559f0445db63bc5e24da498804e30dbf62f";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -182,8 +191,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): `builtin_eval.rs` is one of the folded source axes, so the fixed-input
 /// session identity moves with it, while the fixed edge-only input's reasoning verdict is
 /// unchanged.
+/// Re-blessed once more for the `inferred_axioms_to_dataset` extraction (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and moves with the changed `reason/mod.rs` source, while the fixed edge-only
+/// input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "2cf35a8bfa43ca5d2a2b6830e464bd2252c9715c9099b2cdb95f5e2fe93a4e1a";
+    "f9a2c44e830de16bb8c0ee60b4b4c52fbef77c10c6fb211846ff039e543ee521";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

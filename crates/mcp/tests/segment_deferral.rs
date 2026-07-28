@@ -54,6 +54,28 @@ const CORE_FRAME: &str = concat!(
     r#""from":"nt","to":"turtle"}}}"#,
 );
 
+/// A `tools/call` frame for `reason_graph`, the OTHER kind of reasoning-segment tool.
+///
+/// `coherence_certificate` above is input-free and answers from a carried artifact;
+/// `reason_graph` takes caller data and actually runs the chase. Both must defer
+/// identically, so the routing is proven over a tool whose deferral costs the caller a real
+/// computation rather than a lookup — the case where a silent degradation would be most
+/// tempting and least visible. The input is two triples, so the replay is fast.
+const REASON_GRAPH_FRAME: &str = concat!(
+    r#"{"jsonrpc":"2.0","id":11,"method":"tools/call","params":{"name":"reason_graph","#,
+    r#""arguments":{"data":"<http://ex/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/B> .\n","#,
+    r#""format":"nt"}}}"#,
+);
+
+/// A `tools/call` frame for `encode_gmn1`, the codec's WRITE leg — a CORE tool that takes
+/// caller data, so the core tier is exercised on a computed answer and not only on a
+/// transcode.
+const ENCODE_GMN1_FRAME: &str = concat!(
+    r#"{"jsonrpc":"2.0","id":12,"method":"tools/call","params":{"name":"encode_gmn1","#,
+    r#""arguments":{"data":"<http://ex/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://ex/B> .\n","#,
+    r#""format":"nt"}}}"#,
+);
+
 const TOOLS_LIST_FRAME: &str = r#"{"jsonrpc":"2.0","id":9,"method":"tools/list","params":{}}"#;
 
 const ACTION_POLICY_FRAME: &str = concat!(
@@ -160,6 +182,89 @@ fn a_segment_tool_against_a_core_deployment_returns_the_typed_routing_signal() {
     );
 }
 
+/// The deferral contract over a reasoning tool that COMPUTES rather than looks up, and its
+/// lossless replay — claims 1 and 4 again, on the tool the console's live entailment panel
+/// runs. `reason_graph` is the tool the retired `gmeow-reason-wasm` engine's `reason` export
+/// became, so this is the lane that proves the consolidation kept the capability rather than
+/// dropping it into a tier that cannot serve it.
+#[test]
+fn reason_graph_defers_from_core_and_replays_losslessly_against_the_full_engine() {
+    let bundle = snapshot();
+
+    let deferred = core_engine(&bundle).handle_message(REASON_GRAPH_FRAME);
+    let payload = payload_of(&deferred);
+    assert_eq!(
+        payload["code"], "mcp.segment-not-loaded",
+        "a computing reasoning tool defers exactly like a looking-up one: {deferred}"
+    );
+    assert_eq!(
+        payload["tool"], "reason_graph",
+        "the signal names the tool asked for: {deferred}"
+    );
+    assert_eq!(
+        payload["segment"], REASONING_SEGMENT,
+        "reason_graph is served by the reasoning segment: {deferred}"
+    );
+
+    let native = McpServer::from_snapshot(&bundle).expect("the native engine constructs");
+    let replayed = native.handle_message(REASON_GRAPH_FRAME);
+    assert_eq!(
+        replayed,
+        native.handle_message(REASON_GRAPH_FRAME),
+        "the native answer is deterministic, so the byte-claims below are real"
+    );
+    let result = result_of(&replayed);
+    assert_eq!(
+        result["isError"],
+        Value::Bool(false),
+        "the replay produced a real closure, not a second refusal: {replayed}"
+    );
+    let answer = payload_of(&replayed);
+    assert_eq!(answer["ok"], Value::Bool(true), "{replayed}");
+    assert!(
+        answer["closure_nquads"].is_string(),
+        "the tool returns the ENTAILED CLOSURE — the thing verify_graph does not give: \
+         {replayed}"
+    );
+    assert!(
+        answer.get("code").is_none(),
+        "the replayed answer carries no routing code — the deferral is over: {replayed}"
+    );
+    assert_ne!(
+        replayed, deferred,
+        "the two tiers must differ on this frame, or the deferral proves nothing"
+    );
+}
+
+/// `encode_gmn1` — the GMN codec's write leg — answers in the FIRST-LOAD image, because the
+/// codec is core. The console's transcode widget must never pay a segment load for it.
+#[test]
+fn encode_gmn1_answers_in_the_core_deployment() {
+    let bundle = snapshot();
+    let frame = core_engine(&bundle).handle_message(ENCODE_GMN1_FRAME);
+    let result = result_of(&frame);
+    assert_eq!(
+        result["isError"],
+        Value::Bool(false),
+        "the GMN codec is core, so its write leg answers without a segment load: {frame}"
+    );
+    let payload = payload_of(&frame);
+    assert_eq!(payload["ok"], Value::Bool(true), "{frame}");
+    assert!(
+        payload["gmn1"].is_string(),
+        "the tool emits the GMN-1 surface — the direction no other GMN tool serves: {frame}"
+    );
+    assert_eq!(
+        payload["round_trip"],
+        Value::Bool(true),
+        "the emitted surface must read back to the input model: {frame}"
+    );
+    assert!(
+        payload.get("code").is_none(),
+        "a real answer carries no routing code: {frame}"
+    );
+}
+
 #[test]
 fn a_core_tool_against_a_core_deployment_returns_a_real_result() {
     let bundle = snapshot();
@@ -212,8 +317,8 @@ fn a_core_deployment_advertises_the_whole_surface_and_the_whole_theory() {
         .collect();
     assert_eq!(
         advertised.len(),
-        35,
-        "the consumer surface is 35 tools in EVERY deployment tier; a lean image that \
+        37,
+        "the consumer surface is 37 tools in EVERY deployment tier; a lean image that \
          advertised fewer would be a reduced engine, not a reduced download"
     );
     for tool in REASONING_SEGMENT_TOOLS {

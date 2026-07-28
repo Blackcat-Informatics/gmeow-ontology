@@ -1086,9 +1086,8 @@ mod tests {
         // a decorative gate.
         for witness in [
             "crates/docs/assets/purrdf/WITNESS.describe.nt",
-            "crates/docs/assets/validate/WITNESS.validate.json",
-            "crates/docs/assets/reason/WITNESS.reason.nq",
-            "crates/docs/assets/gmn/WITNESS.gmn1.txt",
+            "crates/docs/assets/mcp-core/WITNESS.core-deferral.json",
+            "crates/docs/assets/mcp/WITNESS.mcp.json",
         ] {
             assert!(
                 files.iter().any(|p| p.ends_with(witness)),

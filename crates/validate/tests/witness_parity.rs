@@ -3,19 +3,23 @@
 
 //! Native half of the W1 native↔wasm validation parity WITNESS (T1/F1).
 //!
-//! The vendored `gmeow-validate-wasm` engine (`crates/docs/assets/validate/`) is a
-//! thin `#[wasm_bindgen]` shim over exactly this `validate_json` core, so running the
-//! SAME Tier-1 validation over the SAME `(counter-example, bundle)` inputs must yield
-//! byte-identical findings JSON in native and in wasm. This test pins the NATIVE
-//! output to a committed content-addressed **attestation**
-//! (`crates/docs/assets/validate/WITNESS.validate.json`); the Node lane
-//! (`crates/validate-wasm/js/tests/witness.test.mjs`) asserts the WASM output equals
-//! the same attestation. Both matching the one attestation proves native ≡ wasm.
+//! The `gmeow-validate-wasm` engine is a thin `#[wasm_bindgen]` shim over exactly this
+//! `validate_json` core, so running the SAME Tier-1 validation over the SAME
+//! `(counter-example, bundle)` inputs must yield byte-identical findings JSON in native
+//! and in wasm. This test pins the NATIVE output to a committed content-addressed
+//! **attestation** (`crates/validate-wasm/tests/WITNESS.validate.json`); the Node lane
+//! (`crates/validate-wasm/js/tests/witness.test.mjs`) drives that crate's OWN built
+//! `js/pkg/` and asserts the WASM output equals the same attestation. Both matching the
+//! one attestation proves native ≡ wasm.
 //!
-//! The attestation is refreshed (with the vendored asset / the bundle) via
-//! `GMEOW_WITNESS_BLESS=1`, exactly as `DIGESTS.blake3` is blessed by
-//! `maint-refresh-validate-asset`. It is the proven-parity record the docs pipeline
-//! consumes to gate the `LiveSparql`/`Interactivity` capability (Task 14).
+//! The attestation lives WITH the engine it attests. It used to live under
+//! the docs site's own asset tree, back when the site vendored a copy of this engine and
+//! that directory was the only place a browser build existed. The console
+//! consolidated the site onto the MCP segments and that vendored copy is gone, but
+//! `gmeow-validate-wasm` remains a published npm package, so its native≡wasm evidence is
+//! still load-bearing — it MOVED rather than being dropped with the asset.
+//!
+//! Refreshed via `GMEOW_WITNESS_BLESS=1`.
 
 use std::path::PathBuf;
 
@@ -34,7 +38,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn attestation_path() -> PathBuf {
-    repo_root().join("crates/docs/assets/validate/WITNESS.validate.json")
+    repo_root().join("crates/validate-wasm/tests/WITNESS.validate.json")
 }
 
 #[test]

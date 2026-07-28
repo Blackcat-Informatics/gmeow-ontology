@@ -1,7 +1,0 @@
-SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
-SPDX-License-Identifier: AGPL-3.0-only
-
-BLAKE3 content-digest manifest of the vendored gmeow-validate-wasm files. Generated
-by `make maint-refresh-validate-asset` (bless path of crates/docs/tests/validate_asset.rs).
-Do not hand-edit; refresh with the maint target after changing crates/validate-wasm.
-See PROVENANCE.md.

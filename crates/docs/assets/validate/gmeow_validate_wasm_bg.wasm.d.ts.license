@@ -1,6 +1,0 @@
-SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
-SPDX-License-Identifier: AGPL-3.0-only
-
-Generated verbatim by `make maint-refresh-validate-asset` (wasm-bindgen --target web
-over the gmeow-validate-wasm crate). Do not hand-edit; refresh with the maint
-target after changing crates/validate-wasm. See PROVENANCE.md.

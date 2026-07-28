@@ -553,10 +553,17 @@ ex:queryDocs a logic:ActionSchema ;
     logic:precondition ex:documentationGraphPresent .
 
 ex:queryLocal a logic:ActionSchema ;
-    rdfs:label "query_local — SPARQL over the bundle unioned with a read-only overlay"@x-gmeow-english ;
-    rdfs:comment "A read action: evaluates a caller-supplied SELECT or ASK over the bundle UNIONED with an inline overlay loaded as an EXTERNAL, read-only annex. The overlay is visible to the query and is NEVER merged into the signed canon and NEVER written anywhere, which is precisely why this is a read with no compensation despite taking caller data."@x-gmeow-english ;
+    rdfs:label "query_local — SPARQL over a read-only overlay, alone or unioned with the bundle"@x-gmeow-english ;
+    rdfs:comment "A read action: evaluates a caller-supplied SELECT, ASK, CONSTRUCT or DESCRIBE over an inline overlay loaded as an EXTERNAL, read-only annex. The declared scope chooses what the overlay is read against — unioned with the signed canon, or alone — and both are first-class readings of the same graph rather than a full and a degraded mode. The overlay is NEVER merged into the signed canon and NEVER written anywhere under either scope, which is precisely why this is a read with no compensation despite taking caller data."@x-gmeow-english ;
     logic:mcpToolName  "query_local" ;
     logic:capability   ex:sparqlQueryCapability ;
+    logic:precondition ex:overlayParsesInDeclaredFormat .
+
+ex:reasonGraph a logic:ActionSchema ;
+    rdfs:label "reason_graph — the entailed closure of a caller-supplied graph"@x-gmeow-english ;
+    rdfs:comment "A read action: runs the native structured-DL forward chase over an inline graph under the step governor and returns the ENTAILED CLOSURE. Distinct from ex:verifyGraph, which returns a proof-carrying VERDICT about a graph rather than its entailments, and from ex:entailments, which serves precomputed derivation rows for a BUNDLED term and cannot see caller data. Scoped to the caller's graph alone: the question is what THIS document entails, so unioning the canon in would answer a different one. The closure is computed in memory and discarded — nothing is persisted, so there is nothing to roll back. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "reason_graph" ;
+    logic:capability   ex:reasonerReadCapability ;
     logic:precondition ex:overlayParsesInDeclaredFormat .
 
 ex:docsSearch a logic:ActionSchema ;
@@ -610,6 +617,13 @@ ex:gmnExpand a logic:ActionSchema ;
     logic:mcpToolName  "gmn_expand" ;
     logic:capability   ex:gmnCodecCapability ;
     logic:precondition ex:gmnDocumentPresented .
+
+ex:encodeGmn1 a logic:ActionSchema ;
+    rdfs:label "encode_gmn1 — encode authored RDF into the GMN-1 surface"@x-gmeow-english ;
+    rdfs:comment "A read action, and the codec's WRITE leg: encodes an inline RDF graph into the token-compact GMN-1 surface against the dictionary the bundle carries. The exact inverse of ex:gmnExpand — the other four GMN schemas all CONSUME the notation, so without this one the codec could be read through the protocol but never written through it. Carries an internal round-trip witness (the emitted document is read back and canonical equality asserted), so a LOSSY encoding is a hard error rather than a returned answer, exactly as in ex:gmnExpand. The document rides the call and is never stored. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "encode_gmn1" ;
+    logic:capability   ex:gmnCodecCapability ;
+    logic:precondition ex:claimDocumentPresented .
 
 ex:gmnExplain a logic:ActionSchema ;
     rdfs:label "gmn_explain — explain one GMN operator glyph"@x-gmeow-english ;

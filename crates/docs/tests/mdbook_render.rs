@@ -56,9 +56,9 @@ fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
     // The shared controller + every vendored engine, under src/ so mdbook copies them.
     assert!(has("src/assets/gmeow-docs.js"), "controller not packed");
     for engine in [
-        "src/assets/reason/gmeow_reason_wasm_bg.wasm",
-        "src/assets/gmn/gmeow_gmn_wasm_bg.wasm",
-        "src/assets/validate/gmeow_validate_wasm_bg.wasm",
+        "src/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm",
+        "src/assets/mcp-core/index.mjs",
+        "src/assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm",
         "src/assets/purrdf/gmeow_rdf_wasm.js",
     ] {
         assert!(

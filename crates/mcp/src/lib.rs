@@ -141,8 +141,8 @@ use gmeow_errors::ResultExt;
 // is a REACHABILITY gate, not a dependency one.
 #[cfg(feature = "core")]
 use gmeow_lang_bridge::{
-    Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal, gmn1_read,
-    gmn1_write, resolve_operator_forms,
+    Gmn0Model, Gmn1Document, GmnDictionary, build_verbalization_pairs, gmn0_canonically_equal,
+    gmn1_read, gmn1_write, resolve_operator_forms,
 };
 // The reasoning SEGMENT's imports. Every one of these is a `gmeow-logic` surface, and
 // `gmeow-logic` is the optional half of this crate: a build with `reasoning` selected out
@@ -268,6 +268,7 @@ pub const CORE_SEGMENT: &str = "core";
 /// deferred without appearing here and cannot appear here without being deferred.
 pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
     "verify_graph",
+    "reason_graph",
     "explain_quad",
     "coherence_certificate",
     "store_claim",
@@ -693,6 +694,55 @@ SELECT ?target ?judgment WHERE {{
      gm:docJudgment ?judgment .
 }}"
     )
+}
+
+/// What `query_local` evaluates the caller's SPARQL against.
+///
+/// An EXPLICIT selection, shaped exactly like the `format` argument beside it: a declared
+/// token, a named hard error on anything else, and never a guess. The two scopes answer
+/// genuinely different questions and neither is a degradation of the other —
+/// [`Self::BundleUnion`] asks "what does this graph mean IN GMEOW", [`Self::InputOnly`] asks
+/// "what does this graph say ON ITS OWN".
+///
+/// `InputOnly` exists because bundle-union was previously the ONLY behaviour, which made a
+/// standalone question unaskable: every answer silently carried bundle triples, so a caller
+/// querying a pasted document could not tell its own content from the canon's. That is the
+/// reading a browser playground or an editor scratchpad actually wants, and it had no
+/// expression on the surface.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg(feature = "core")]
+enum QueryScope {
+    /// `bundle ∪ overlay` — the caller's graph read AGAINST the signed canon. The default,
+    /// because it is the reading that makes an inline annex mean something in GMEOW.
+    BundleUnion,
+    /// The overlay ALONE — the caller's graph read on its own terms, with no bundle triple
+    /// in the answer.
+    InputOnly,
+}
+
+#[cfg(feature = "core")]
+impl QueryScope {
+    /// The wire tokens, in the order the tool description lists them.
+    const ACCEPTED: &'static [&'static str] = &["bundle", "input"];
+
+    /// Parse the declared `scope` argument; an omitted value is [`Self::BundleUnion`].
+    ///
+    /// # Errors
+    ///
+    /// An unrecognized token is a HARD FAIL naming the accepted set — never a silent
+    /// fallback to the default, which would answer a different question than the one asked.
+    fn parse(raw: Option<&str>) -> gmeow_errors::Result<Self> {
+        match raw {
+            None | Some("bundle") => Ok(Self::BundleUnion),
+            Some("input") => Ok(Self::InputOnly),
+            Some(other) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "query_local: unknown scope `{other}`; accepted: {}",
+                    Self::ACCEPTED.join(", ")
+                ),
+            })),
+        }
+    }
 }
 
 /// The output format of the `doc_card` tool: rendered Markdown or the neutral
@@ -1753,8 +1803,14 @@ impl McpView {
     /// envelope under `"ok"`. See [`Self::run_local_query`] for the read-only /
     /// external-provenance contract.
     #[cfg(feature = "core")]
-    fn query_local_json(&self, data: &str, format: &str, sparql: &str) -> String {
-        match self.run_local_query(data, format, sparql) {
+    fn query_local_json(
+        &self,
+        data: &str,
+        format: &str,
+        sparql: &str,
+        scope: QueryScope,
+    ) -> String {
+        match self.run_local_query(data, format, sparql, scope) {
             Ok(value) => value.to_string(),
             Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
         }
@@ -1778,13 +1834,18 @@ impl McpView {
     ///   union is transient and discarded after the query — it is NEVER persisted,
     ///   NEVER folded into `gmeow.gts`, and NEVER written back to the canon or the
     ///   overlay file (the memory-write triad only ever touches `memory.gts`);
-    /// * only SELECT / ASK are accepted (CONSTRUCT / DESCRIBE are rejected).
+    /// * SELECT, ASK, CONSTRUCT and DESCRIBE are all accepted — the result FORM is
+    ///   declared in the envelope (see [`sparql_result_to_json`]).
+    ///
+    /// `scope` chooses WHAT the overlay is queried against, and it is an explicit
+    /// first-class selection rather than a hidden default: see [`QueryScope`].
     #[cfg(feature = "core")]
     fn run_local_query(
         &self,
         data: &str,
         format: &str,
         sparql: &str,
+        scope: QueryScope,
     ) -> gmeow_errors::Result<Value> {
         // The media type comes from the DECLARED format, never from a filename: an
         // unrecognized token hard-fails here naming the accepted set.
@@ -1802,15 +1863,20 @@ impl McpView {
             .with_ctx(|| format!("parse query_local overlay ({format})"))?;
 
         let mut builder = purrdf::RdfDatasetBuilder::new();
-        // The signed canon — verbatim, never mutated.
-        builder.push_dataset(self.dataset.as_ref());
+        if scope == QueryScope::BundleUnion {
+            // The signed canon — verbatim, never mutated.
+            builder.push_dataset(self.dataset.as_ref());
+        }
         let external = purrdf::RdfTerm::Iri(EXTERNAL_OVERLAY_GRAPH.to_string());
         for quad in overlay.owned_quads() {
-            // Default-graph copy → a plain query reads `bundle ∪ overlay`.
+            // Default-graph copy → a plain query reads `bundle ∪ overlay` (or just the
+            // overlay, under `QueryScope::InputOnly`).
             let mut in_default = quad.clone();
             in_default.graph_name = None;
             builder.push_owned_quad(&in_default);
-            // Origin-marked copy → external provenance, isolable via GRAPH.
+            // Origin-marked copy → external provenance, isolable via GRAPH. Emitted under
+            // BOTH scopes: the origin marker states where a triple CAME FROM, which is a
+            // property of the triple and not of what it happens to be unioned with.
             let mut tagged = quad;
             tagged.graph_name = Some(external.clone());
             builder.push_owned_quad(&tagged);
@@ -2259,13 +2325,46 @@ impl McpView {
 }
 
 /// A native SPARQL result rendered as a JSON envelope under `"ok"`: an ASK boolean,
-/// SELECT bindings (SPARQL-1.1 JSON-results shape), or — for a CONSTRUCT / DESCRIBE
-/// graph result — a hard error (these tools serve bindings or a boolean, never a
-/// graph).
+/// SELECT bindings (SPARQL-1.1 JSON-results shape), or a CONSTRUCT / DESCRIBE graph
+/// serialized as canonical N-Quads.
+///
+/// The graph arm used to be a hard error reading "this tool accepts only SELECT and ASK
+/// queries". That was a REFUSAL STANDING IN FOR A CAPABILITY: the native engine evaluates
+/// CONSTRUCT and DESCRIBE perfectly well and hands back
+/// [`SparqlResult::Graph`](purrdf::SparqlResult::Graph); the surface simply declined to
+/// serialize it. A caller asking `DESCRIBE gmeow:Foo` — the single most natural question to
+/// ask a bundle — got a refusal for a query the engine had already answered. The result form
+/// is now DECLARED in the envelope (`form`: `bindings` | `boolean` | `graph`) so a client
+/// dispatches on a field rather than on a parse failure.
 #[cfg(feature = "core")]
 fn sparql_result_to_json(result: purrdf::SparqlResult) -> gmeow_errors::Result<Value> {
     match result {
-        purrdf::SparqlResult::Boolean(value) => Ok(json!({"ok": true, "boolean": value})),
+        purrdf::SparqlResult::Boolean(value) => {
+            Ok(json!({"ok": true, "form": "boolean", "boolean": value}))
+        }
+        purrdf::SparqlResult::Graph(graph) => {
+            // Canonical N-Quads: the ONE lossless RDF-1.2 text form every other surface here
+            // hands back (the conjecture verdict, the GMN expansion, the reasoned closure), so
+            // a caller that wants Turtle or JSON-LD pipes this through `convert` rather than
+            // getting a second, differently-shaped serializer here.
+            let bytes = purrdf::serialize_dataset(
+                graph.as_ref(),
+                "application/n-quads",
+                purrdf::SerializeGraph::Dataset,
+            )
+            .with_ctx(|| "serialize CONSTRUCT/DESCRIBE graph result".to_string())?;
+            let nquads = String::from_utf8(bytes).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("graph result N-Quads are not UTF-8: {e}"),
+                })
+            })?;
+            Ok(json!({
+                "ok": true,
+                "form": "graph",
+                "quad_count": graph.quad_count(),
+                "graph_nquads": nquads,
+            }))
+        }
         purrdf::SparqlResult::Solutions {
             variables, rows, ..
         } => {
@@ -2285,15 +2384,11 @@ fn sparql_result_to_json(result: purrdf::SparqlResult) -> gmeow_errors::Result<V
                 .collect();
             Ok(json!({
                 "ok": true,
+                "form": "bindings",
                 "head": {"vars": variables},
                 "results": {"bindings": bindings},
             }))
         }
-        purrdf::SparqlResult::Graph(_) => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-            message: "this tool accepts only SELECT and ASK queries; CONSTRUCT/DESCRIBE are not \
-                      supported (it serves bindings or a boolean, never a graph)"
-                .to_string(),
-        })),
     }
 }
 
@@ -2617,20 +2712,38 @@ fn builtin_tool_descriptors() -> Vec<Value> {
         ),
         tool(
             "query_local",
-            "Run a SELECT or ASK SPARQL query over the bundle UNIONED with a READ-ONLY \
+            "Run a SPARQL query — SELECT, ASK, CONSTRUCT or DESCRIBE — over a READ-ONLY \
                  overlay graph you paste inline. `data` is the RDF text and `format` DECLARES \
                  how to read it — one of turtle|ttl|text/turtle, ntriples|nt|n-triples, \
-                 nquads|nq|n-quads, trig, rdfxml|rdf+xml|xml|rdf, jsonld|json-ld. The overlay \
-                 is loaded as an EXTERNAL, read-only annex: its triples are visible to reads \
-                 (bundle \u{222a} overlay, also isolable via GRAPH \
-                 <urn:gmeow:mcp:overlay:external>) but are NEVER merged into the signed gmeow: \
-                 canon and NEVER written anywhere. A missing or unrecognized `format`, or an \
-                 oversized payload, is a hard error — the format is never guessed.",
+                 nquads|nq|n-quads, trig, rdfxml|rdf+xml|xml|rdf, jsonld|json-ld. `scope` \
+                 DECLARES what the query runs against: `bundle` (default) reads the overlay \
+                 UNIONED with the signed canon — what does this graph mean in GMEOW — while \
+                 `input` reads the overlay ALONE, with no bundle triple in the answer. The \
+                 overlay is loaded as an EXTERNAL, read-only annex under both scopes: its \
+                 triples are isolable via GRAPH <urn:gmeow:mcp:overlay:external> but are NEVER \
+                 merged into the signed gmeow: canon and NEVER written anywhere. The result \
+                 FORM is declared in the envelope: `bindings` (head/results), `boolean`, or \
+                 `graph` (graph_nquads + quad_count). A missing or unrecognized `format` or \
+                 `scope`, or an oversized payload, is a hard error — neither is ever guessed.",
             &[
                 ("data", "string"),
                 ("format", "string"),
                 ("query", "string"),
+                ("scope", "string"),
             ],
+        ),
+        tool(
+            "encode_gmn1",
+            "Encode authored RDF into the token-compact GMN-1 surface — the WRITE leg of \
+                 the codec, and the exact inverse of gmn_expand. `data` is the RDF text and \
+                 `format` DECLARES how to read it (the same codec set query_local accepts). \
+                 Runs the SAME dictionary the bundle carries, so the emitted surface is the one \
+                 the on-gate authority ships. Carries an internal round-trip witness (the \
+                 emitted document is read back and canonical equality asserted), so it never \
+                 returns a lossy encoding. Returns {ok, gmn1, canonical_nquads, round_trip}. An \
+                 unrecognized format, an oversized payload, or an encoding that does not read \
+                 back is a hard error.",
+            &[("data", "string"), ("format", "string")],
         ),
         tool(
             "verify_graph",
@@ -2653,6 +2766,28 @@ fn builtin_tool_descriptors() -> Vec<Value> {
                  findings, the cited IRIs, and judgment_nquads (the grounded \
                  logic:ReasoningResult). An overlay exceeding the size ceiling, and a missing \
                  or unrecognized `format`, is a hard error — the format is never guessed.",
+            &[
+                ("data", "string"),
+                ("format", "string"),
+                ("max_steps", "integer"),
+                ("max_answers", "integer"),
+            ],
+        ),
+        tool(
+            "reason_graph",
+            "Run the native GMEOW structured-DL forward chase over an RDF graph you paste \
+                 inline and return the ENTAILED CLOSURE — what this document implies. `data` is \
+                 the RDF text and `format` DECLARES how to read it (the same codec set \
+                 query_local accepts). Scoped to YOUR graph alone, never unioned with the \
+                 bundle: the question is what this document entails. Distinct from verify_graph, \
+                 which returns a verdict about a graph rather than its entailments, and from \
+                 entailments, which reads precomputed derivation rows for one BUNDLED term and \
+                 cannot see your data. The chase runs under the mid-chase step governor \
+                 (max_steps bounds the derivation budget, max_answers the answer cap), and the \
+                 completeness/evaluation axes plus judgment_nquads ride the response so a \
+                 budget-cut closure is legible as CUT rather than as small. Returns {ok, \
+                 entailed_count, closure_nquads, completeness, evaluation, judgment_nquads}. An \
+                 unrecognized format, or an input above the size/quad ceiling, is a hard error.",
             &[
                 ("data", "string"),
                 ("format", "string"),
@@ -3203,7 +3338,9 @@ fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler
         core_tool!(segments, "query_docs", tool_query_docs),
         core_tool!(segments, "docs_search", tool_docs_search),
         core_tool!(segments, "query_local", tool_query_local),
+        core_tool!(segments, "encode_gmn1", tool_encode_gmn1),
         reasoning_tool!(segments, "verify_graph", tool_verify_graph),
+        reasoning_tool!(segments, "reason_graph", tool_reason_graph),
         reasoning_tool!(segments, "explain_quad", tool_explain_quad),
         reasoning_tool!(
             segments,
@@ -3602,7 +3739,142 @@ impl McpServer {
         let data = required_str(args, "data")?;
         let format = required_str(args, "format")?;
         let query = required_str(args, "query")?;
-        Ok(self.view.query_local_json(data, format, query))
+        let scope = QueryScope::parse(optional_str(args, "scope"))?;
+        Ok(self.view.query_local_json(data, format, query, scope))
+    }
+
+    /// `encode_gmn1` — the WRITE leg of the GMN-1 codec: authored RDF in, the
+    /// token-compact GMN-1 surface out.
+    ///
+    /// The other four GMN tools all CONSUME GMN (validate a document, expand it to GMN-0,
+    /// explain a glyph, price the legend). Producing GMN-1 — the direction an agent needs to
+    /// emit the compact notation at all — had no expression on the surface: `gmn1_write`
+    /// existed only INSIDE `gmn_expand`, as an internal round-trip witness on a GMN-1 input.
+    /// That made the codec's forward leg unreachable through the protocol even though the
+    /// engine shipped it.
+    ///
+    /// Runs the SAME `Gmn0Model::from_dataset` → `gmn1_write` pair the codec's other
+    /// consumers do, against the dictionary carried IN the bundle, so the emitted surface is
+    /// the one the on-gate authority ships. Pairs with `gmn_expand` as an exact round trip:
+    /// `encode_gmn1` then `gmn_expand` returns the input's canonical N-Quads.
+    #[cfg(feature = "core")]
+    fn tool_encode_gmn1(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
+        let media = rdf_media_type("encode_gmn1", format)?;
+        if data.len() > MAX_VERIFY_OVERLAY_BYTES as usize {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "encode_gmn1: data is {} bytes, exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte \
+                     ceiling; split the document and encode the parts (no silent truncation)",
+                    data.len()
+                ),
+            }));
+        }
+        let dataset = purrdf::parse_dataset(data.as_bytes(), media, None)
+            .with_ctx(|| format!("parse encode_gmn1 input ({format})"))?;
+        let dict = self.gmn_dictionary()?;
+        let model = Gmn0Model::from_dataset(&dataset);
+        let doc = gmn1_write(&model, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("encode_gmn1: encoding the model to GMN-1 failed: {error}"),
+            })
+        })?;
+        // Round-trip witness, the mirror of `gmn_expand`'s: read the emitted surface back and
+        // assert canonical equality with the input model. An encoding that does not read back
+        // is a HARD FAIL, never a returned answer — the same no-lossy-answer discipline.
+        let back = gmn1_read(&doc, &dict).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "encode_gmn1: the emitted GMN-1 does not read back (lang:{}): {error}",
+                    iri_local_name(error.failure_class())
+                ),
+            })
+        })?;
+        let round_trip = gmn0_canonically_equal(&model, &back);
+        if !round_trip {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: "encode_gmn1: the emitted GMN-1 does not round-trip to the input model \
+                          (a lossy encoding is a hard error, never an answer)"
+                    .to_string(),
+            }));
+        }
+        Ok(json!({
+            "ok": true,
+            "gmn1": doc.text,
+            "canonical_nquads": back.canonical_nquads(),
+            "round_trip": round_trip,
+        })
+        .to_string())
+    }
+
+    /// `reason_graph` — R2's **reason** verb over caller-supplied RDF: run the native
+    /// structured-DL forward chase and return the ENTAILED CLOSURE.
+    ///
+    /// Distinct from the two neighbours that sound like it, and neither could stand in:
+    /// * `verify_graph` returns a proof-carrying VERDICT (completeness/evaluation axes,
+    ///   findings, a coherence judgment) — it says whether the graph holds up, not what it
+    ///   entails;
+    /// * `entailments` reads PRECOMPUTED derivation rows out of the bundle's documentation
+    ///   graph for one bundled term — it cannot see caller data at all.
+    ///
+    /// Scoped to the caller's graph ALONE (never `bundle ∪ data`): the question is what THIS
+    /// document entails, and unioning the canon in would answer a different one. Budgeted
+    /// through [`governed_budget`] like every other agent-facing reasoning call — R4 forbids
+    /// exposing an unbudgeted forward chase to an agent loop — and the consumed/allowed steps
+    /// ride the envelope so a truncated closure is legible as truncated rather than as small.
+    #[cfg(feature = "reasoning")]
+    fn tool_reason_graph(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
+        let media = rdf_media_type("reason_graph", format)?;
+        if data.len() > MAX_VERIFY_OVERLAY_BYTES as usize {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "reason_graph: data is {} bytes, exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte \
+                     ceiling; split the graph and reason over the parts (no silent truncation)",
+                    data.len()
+                ),
+            }));
+        }
+        let edb = purrdf::parse_dataset(data.as_bytes(), media, None)
+            .with_ctx(|| format!("parse reason_graph input ({format})"))?;
+        let edb_quads = edb.quad_count();
+        if edb_quads > MAX_VERIFY_OVERLAY_QUADS {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "reason_graph: input is {} quads, exceeding the {MAX_VERIFY_OVERLAY_QUADS}-quad \
+                     ceiling; the starting EDB of a governed chase is bounded",
+                    edb_quads
+                ),
+            }));
+        }
+        let budget = governed_budget(
+            optional_step_count(args, "max_steps")?,
+            optional_limit(args, "max_answers")?,
+        );
+        let result = reason_all_budgeted(&edb, &budget)?;
+        let closure = gmeow_logic::reason::inferred_axioms_to_dataset(result.inferred())?;
+        let bytes = purrdf::serialize_dataset(
+            closure.as_ref(),
+            "application/n-quads",
+            purrdf::SerializeGraph::Dataset,
+        )
+        .with_ctx(|| "serialize reasoned closure".to_string())?;
+        let closure_nquads = String::from_utf8(bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("reason_graph: closure N-Quads are not UTF-8: {e}"),
+            })
+        })?;
+        Ok(json!({
+            "ok": true,
+            "entailed_count": closure.quad_count(),
+            "closure_nquads": closure_nquads,
+            "completeness": result.completeness.wire(),
+            "evaluation": result.evaluation.wire(),
+            "judgment_nquads": project_reasoning_result(&result),
+        })
+        .to_string())
     }
 
     /// Reason-and-verify the bundle UNIONED with a READ-ONLY inline overlay graph,
@@ -8009,7 +8281,7 @@ mod tests {
     /// would change that contract without anyone noticing. The names are asserted
     /// alongside the counts so a rename cannot pass by keeping the arithmetic.
     #[test]
-    fn consumer_surface_is_thirty_five_tools_and_five_resources() {
+    fn consumer_surface_is_thirty_seven_tools_and_five_resources() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG"]);
         unsafe {
@@ -8021,8 +8293,8 @@ mod tests {
         let names = consumer.surface().tool_names();
         assert_eq!(
             names.len(),
-            35,
-            "the consumer tool surface is 35 tools, got {names:?}"
+            37,
+            "the consumer tool surface is 37 tools, got {names:?}"
         );
         assert_eq!(
             names,
@@ -8035,7 +8307,9 @@ mod tests {
                 "query_docs",
                 "docs_search",
                 "query_local",
+                "encode_gmn1",
                 "verify_graph",
+                "reason_graph",
                 "explain_quad",
                 "coherence_certificate",
                 "validate_local",
@@ -8221,7 +8495,7 @@ mod tests {
             );
         let server = McpServer::from_snapshot_with(&bytes, extension).unwrap();
 
-        assert_eq!(server.surface().tool_names().len(), 36);
+        assert_eq!(server.surface().tool_names().len(), 38);
         assert_eq!(
             server.surface().tool_names().last().copied(),
             Some("host_echo"),
@@ -8615,18 +8889,32 @@ mod tests {
             "expected at least one DocumentedTerm binding: {select}"
         );
 
-        // CONSTRUCT is rejected — the tool serves only bindings or a boolean.
+        // CONSTRUCT is ANSWERED, and the envelope DECLARES the result form. This used to
+        // assert a refusal ("SELECT and ASK"), which was a refusal standing in for a
+        // capability: the native engine had already evaluated the CONSTRUCT and handed back
+        // a `SparqlResult::Graph` that the surface then declined to serialize.
         let construct = text_payload(server.call_tool_result(
             "query_docs",
             &json!({"query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
         ));
-        assert_eq!(construct["ok"], false);
+        assert_eq!(construct["ok"], true, "{construct}");
+        assert_eq!(construct["form"], "graph", "{construct}");
         assert!(
-            construct["error"]
+            construct["graph_nquads"]
                 .as_str()
-                .unwrap_or_default()
-                .contains("SELECT and ASK")
+                .is_some_and(|g| g.contains('<')),
+            "the graph result carries real N-Quads: {construct}"
         );
+        assert_eq!(construct["quad_count"], 1, "{construct}");
+
+        // The three forms are distinguishable WITHOUT parsing: a client dispatches on
+        // `form`, never on whether a JSON parse of the payload happened to fail.
+        assert_eq!(select["form"], "bindings", "{select}");
+        let ask = text_payload(
+            server.call_tool_result("query_docs", &json!({"query": "ASK { ?s ?p ?o }"})),
+        );
+        assert_eq!(ask["form"], "boolean", "{ask}");
+        assert_eq!(ask["boolean"], true, "{ask}");
     }
 
     #[test]
@@ -9092,8 +9380,8 @@ mod tests {
         let advertised = advertised_consumer_tools();
         assert_eq!(
             advertised.len(),
-            35,
-            "the consumer surface is 35 tools; this gate's arithmetic depends on it"
+            37,
+            "the consumer surface is 37 tools; this gate's arithmetic depends on it"
         );
 
         let theory = ActionTheory::read(action_policy_nquads());
@@ -9163,7 +9451,7 @@ mod tests {
             !read_subjects.is_empty(),
             "the asserted-plain-minus-governed set must not be empty"
         );
-        assert_eq!(read_subjects.len(), 29, "29 reads: {read_subjects:?}");
+        assert_eq!(read_subjects.len(), 31, "31 reads: {read_subjects:?}");
         assert_eq!(theory.governed.len(), 6, "6 writes: {:?}", theory.governed);
 
         let write_names = theory.names_of(&theory.governed);
@@ -9410,7 +9698,7 @@ mod tests {
             "exactly one literal-valued predicate survives the projection"
         );
         assert_eq!(
-            tool_name_count, 35,
+            tool_name_count, 37,
             "one logic:mcpToolName per advertised consumer tool"
         );
         // The dropped annotations really were present in the source, so the assertion above
@@ -9840,17 +10128,73 @@ mod tests {
             "Local Widget"
         );
 
-        // CONSTRUCT/DESCRIBE are rejected — the tool serves bindings or a boolean.
+        // CONSTRUCT/DESCRIBE are ANSWERED and the form is declared — see
+        // `sparql_result_to_json` on why the old refusal was a capability gap, not a policy.
         let construct = text_payload(server.call_tool_result(
             "query_local",
             &json!({"data": overlay_data, "format": "turtle", "query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
         ));
-        assert_eq!(construct["ok"], false);
+        assert_eq!(construct["ok"], true, "{construct}");
+        assert_eq!(construct["form"], "graph", "{construct}");
+
+        // ── the `scope` selection ────────────────────────────────────────────────────
+        // The two scopes answer different questions over the SAME overlay, and both are
+        // real answers. `input` was previously unaskable: every query silently carried the
+        // canon, so a caller could not read a pasted document on its own terms.
+        let bundle_scope = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({
+                "data": overlay_data, "format": "turtle", "scope": "bundle",
+                "query": "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }",
+            }),
+        ));
+        let input_scope = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({
+                "data": overlay_data, "format": "turtle", "scope": "input",
+                "query": "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }",
+            }),
+        ));
+        assert_eq!(bundle_scope["ok"], true, "{bundle_scope}");
+        assert_eq!(input_scope["ok"], true, "{input_scope}");
+        let count = |v: &Value| -> u64 {
+            v["results"]["bindings"][0]["n"]["value"]
+                .as_str()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or_else(|| panic!("count binding: {v}"))
+        };
         assert!(
-            construct["error"]
+            count(&bundle_scope) > count(&input_scope),
+            "bundle scope reads the canon too, input scope reads the overlay alone: \
+             {} vs {}",
+            count(&bundle_scope),
+            count(&input_scope)
+        );
+        // An omitted scope is the bundle union — the documented default, not a guess.
+        let defaulted = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({
+                "data": overlay_data, "format": "turtle",
+                "query": "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }",
+            }),
+        ));
+        assert_eq!(count(&defaulted), count(&bundle_scope), "{defaulted}");
+        // An unknown scope is a NAMED hard error, never a silent fallback to the default —
+        // the same discipline `format` has.
+        let bogus = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({
+                "data": overlay_data, "format": "turtle", "scope": "everything",
+                "query": "SELECT ?s WHERE { ?s ?p ?o }",
+            }),
+        ));
+        assert_eq!(bogus["ok"], false, "{bogus}");
+        assert!(
+            bogus["error"]
                 .as_str()
                 .unwrap_or_default()
-                .contains("SELECT and ASK")
+                .contains("unknown scope `everything`"),
+            "the refusal names the offending token and the accepted set: {bogus}"
         );
 
         // Read-only: the overlay file is byte-for-byte unchanged and NOTHING was

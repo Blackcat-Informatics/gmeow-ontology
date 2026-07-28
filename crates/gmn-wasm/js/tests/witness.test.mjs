@@ -26,7 +26,7 @@ test("version() returns the crate semver", () => {
 
 test("wasm GMN-1 transcode is byte-identical to the native witness attestation", async () => {
   const attestation = await readFile(
-    fileURLToPath(new URL("../../../docs/assets/gmn/WITNESS.gmn1.txt", import.meta.url)),
+    fileURLToPath(new URL("../../tests/WITNESS.gmn1.txt", import.meta.url)),
     "utf8",
   );
   const gmn1 = to_gmn1(INPUT, "turtle");

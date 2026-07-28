@@ -718,13 +718,13 @@ mod tests {
     fn site_sub_asset_digests_ride_the_release_instance_on_the_sub_asset_subject() {
         use crate::stages::distribution_catalog::site_sub_asset_iri;
         let sub_assets = vec![DistributionEntry {
-            slug: "reason-wasm".to_string(),
-            rel_path: "dist/gmeow-docs/site/assets/reason/".to_string(),
+            slug: "mcp-wasm".to_string(),
+            rel_path: "dist/gmeow-docs/site/assets/mcp/".to_string(),
             blake3: "blake3:deadbeef".to_string(),
             media_type: "application/wasm".to_string(),
         }];
         let nt = release_instance_ntriples(&sample_entries(), &sub_assets);
-        let node = site_sub_asset_iri("reason-wasm");
+        let node = site_sub_asset_iri("mcp-wasm");
         // The sub-asset digest hangs off its site_sub_asset subject (NOT a dist_iri),
         // as a corpus member — so dcat.rq projects it exactly like a distribution.
         assert!(
@@ -754,14 +754,14 @@ mod tests {
         // in the shipped manifest yet leave that pre-projection test green.
         let gts_bytes = synthetic_gts_with_dcat_query();
         let sub_assets = vec![DistributionEntry {
-            slug: "reason-wasm".to_string(),
-            rel_path: "dist/gmeow-docs/site/assets/reason/".to_string(),
+            slug: "mcp-wasm".to_string(),
+            rel_path: "dist/gmeow-docs/site/assets/mcp/".to_string(),
             blake3: "blake3:deadbeef".to_string(),
             media_type: "application/wasm".to_string(),
         }];
         let manifest = build_docs_distribution_manifest(&sample_entries(), &sub_assets, &gts_bytes)
             .expect("manifest with a site sub-asset");
-        let node = site_sub_asset_iri("reason-wasm");
+        let node = site_sub_asset_iri("mcp-wasm");
         assert!(
             manifest.contains(&format!("<{node}>")),
             "the projected manifest must carry the site_sub_asset subject {node}:\n{manifest}"

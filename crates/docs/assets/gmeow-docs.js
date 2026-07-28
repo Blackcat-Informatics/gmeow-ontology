@@ -1,30 +1,43 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The offline documentation SPARQL playground controller.
+// The offline documentation controller.
 //
-// Loaded as an ES module only on the playground page. It boots the vendored purrdf
-// wasm engine, parses the bundled TriG asset once, runs the reader's SPARQL query
-// entirely in-browser (no server, no network), and renders the result — a table for
-// SELECT/ASK, and a graph with "copy as <format>" transcoding for CONSTRUCT/DESCRIBE.
+// Loaded as an ES module on every interactive page. It boots the console's MCP engine and
+// drives EVERY widget — the SPARQL playground, the bundle explorer, the Tier-1 validate
+// buttons, the live entailment panel, the conjecture playground and the GMN transcode —
+// through ONE protocol: JSON-RPC frames against the same 37-tool surface an agent talks to.
 //
-// Every path is resolved relative to THIS module's URL, so it works at any site depth
-// and offline (file://): the purrdf bindings sit in ./purrdf/, the RDF asset is
-// ./playground.trig.
+// # Why one engine
+//
+// This module used to import four separate wasm shims (`./purrdf/`, `./validate/`,
+// `./reason/`, `./gmn/`), each with its own bespoke export surface, its own boot ritual and
+// its own controller code path. Three of them were duplicate capability: `validate_local`,
+// `reason_graph`, `encode_gmn1`/`gmn_expand`/`gmn_glyph_legend` and `convert` answer the
+// same questions through the shipped agent surface. They are retired. What the reader can
+// do in the browser is now, by construction, exactly what an agent can do — there is no
+// second implementation to drift.
+//
+// purrdf is the one engine that stayed, and it stayed because it is NOT duplicate: the
+// playground and the explorer query a caller-supplied graph STANDALONE, and while
+// `query_local` now serves CONSTRUCT/DESCRIBE and an `input` scope, the purrdf `Dataset`
+// also transcodes result graphs locally without a round trip. Its wasm parity is owned
+// upstream in the sibling purrdf repo and attested here by `WITNESS.describe.nt`.
+//
+// # Tiering
+//
+// `tieredMcp()` dispatches a frame at the always-resident core image; when the engine
+// answers with the typed `mcp.segment-not-loaded` signal it fetches the reasoning segment
+// and replays the IDENTICAL frame. A reader who never reasons never downloads the reasoner.
+// Every path is resolved relative to THIS module's URL, so it works at any site depth and
+// offline (file://).
 
 import init, { Dataset } from "./purrdf/gmeow_rdf_wasm.js";
-import validateInit, { validate as wasmValidate } from "./validate/gmeow_validate_wasm.js";
-import reasonInit, {
-  reason as wasmReason,
-  conjecture as wasmConjecture,
-} from "./reason/gmeow_reason_wasm.js";
-import gmnInit, {
-  to_gmn1 as wasmToGmn1,
-  from_gmn1 as wasmFromGmn1,
-  glyph_legend as wasmGlyphLegend,
-} from "./gmn/gmeow_gmn_wasm.js";
-
-const GMEOW_NS = "https://blackcatinformatics.ca/gmeow/";
+import {
+  initTiered,
+  ready as mcpReady,
+  tieredMcp,
+} from "./mcp-core/index.mjs";
 
 const FORMATS = [
   ["turtle", "Turtle"],
@@ -35,6 +48,67 @@ const FORMATS = [
   ["jsonld", "JSON-LD"],
 ];
 
+// ── The MCP transport ───────────────────────────────────────────────────────
+// One frame in, one parsed tool payload out. Every widget below goes through here, so
+// there is exactly one place that knows the wire shape, one place that boots the engine,
+// and one place that routes a deferral to the reasoning segment.
+
+let _mcpReady = null;
+let _frameId = 0;
+
+/** Boot the core engine over the site's gmeow.gts and retain it for segment loads. */
+async function ensureMcp() {
+  if (!_mcpReady) {
+    _mcpReady = (async () => {
+      await mcpReady();
+      const bundle = new Uint8Array(
+        await (await fetch(fullBundleUrl())).arrayBuffer(),
+      );
+      initTiered(bundle);
+    })();
+  }
+  await _mcpReady;
+}
+
+/** The `loadSegment` callback: fetch and boot a demand-loaded segment by wire name. */
+async function loadSegment(segment) {
+  if (segment !== "reasoning") {
+    throw new Error(`unknown engine segment \`${segment}\` — nothing to load`);
+  }
+  return import("./mcp/index.mjs");
+}
+
+/**
+ * Call one MCP tool and return its parsed payload.
+ *
+ * A tool failure arrives IN the envelope (`isError` + an `ok:false` payload), exactly as it
+ * does for an agent; this throws on it so each widget's catch renders the engine's own
+ * message rather than a paraphrase.
+ */
+async function callTool(name, args, onSegmentLoad) {
+  await ensureMcp();
+  _frameId += 1;
+  const frame = JSON.stringify({
+    jsonrpc: "2.0",
+    id: _frameId,
+    method: "tools/call",
+    params: { name, arguments: args },
+  });
+  const response = await tieredMcp(frame, { loadSegment, onSegmentLoad });
+  const parsed = JSON.parse(response);
+  if (parsed.error) {
+    throw new Error(`${name}: ${parsed.error.message ?? "protocol error"}`);
+  }
+  const text = parsed.result?.content?.[0]?.text;
+  if (typeof text !== "string") {
+    throw new Error(`${name}: the tool envelope carried no text content`);
+  }
+  const payload = JSON.parse(text);
+  if (payload.ok === false) {
+    throw new Error(payload.error ?? `${name} failed`);
+  }
+  return payload;
+}
 // ── Shared browser-bundle loader ────────────────────────────────────────────
 // The single client entry point every browser surface (SPARQL playground, bundle
 // explorer, validation panels) uses to obtain the queryable ontology — so no
@@ -73,45 +147,29 @@ export async function loadCoreBundle() {
   return Dataset.parse(nq, "nquads");
 }
 
-/** The URL of the full `gmeow.gts` bundle (the Tier-1 validate surface's shapes
- * source), resolved relative to this module. */
+/** The URL of the full `gmeow.gts` bundle, resolved relative to this module — the ONE place
+ * the snapshot's site path is spelled. `ensureMcp` boots the engine over it; the Tier-1
+ * validate surface no longer needs it separately, because `validate_local` reads the shapes
+ * out of the bundle the engine already holds. */
 export function fullBundleUrl() {
   return new URL("./gmeow.gts", import.meta.url);
 }
 
 // ── Live Tier-1 validation (W1) ─────────────────────────────────────────────
-// Each counter-example fixture on a term page ships a "run validation" button
-// carrying the fixture's base64-encoded Turtle. On click we load the FULL gmeow.gts
-// bundle (its shapes-archive), run the REAL Tier-1 validator (gmeow-validate-wasm)
-// entirely in-browser, and render the unified-diagnostics findings — each linking
-// through its helpUri into the constraint catalog. This is the SAME validator the
-// on-gate authority runs; the native↔wasm parity witness lane proves they agree.
-let _validatorReady = null;
-async function ensureValidator() {
-  if (!_validatorReady) {
-    _validatorReady = validateInit(
-      new URL("./validate/gmeow_validate_wasm_bg.wasm", import.meta.url),
-    );
-  }
-  await _validatorReady;
-}
-
-let _bundleBytes = null;
-async function fullBundleBytes() {
-  if (!_bundleBytes) {
-    _bundleBytes = new Uint8Array(await (await fetch(fullBundleUrl())).arrayBuffer());
-  }
-  return _bundleBytes;
-}
+// Each counter-example fixture on a term page ships a "run validation" button carrying the
+// fixture's base64-encoded Turtle. On click we run the REAL Tier-1 validator through the
+// MCP `validate_local` tool — the SAME validator core the on-gate authority runs, reached
+// through the same protocol an agent uses — and render the unified-diagnostics findings,
+// each linking through its helpUri into the constraint catalog.
+//
+// This used to boot a second wasm image (`gmeow-validate-wasm`) and hand it the whole
+// gmeow.gts to re-read on every call. The engine already holds the bundle.
 
 /** Run Tier-1 conformance of `turtle` against the bundle shapes, returning the
  * canonical diagnostics report `{ tool, findings: [...] }`. */
-export async function runFixtureValidation(turtle, origin) {
-  await ensureValidator();
-  const bundle = await fullBundleBytes();
-  return JSON.parse(wasmValidate(turtle, "turtle", bundle, GMEOW_NS, origin || "fixture.ttl"));
+export async function runFixtureValidation(turtle) {
+  return callTool("validate_local", { data: turtle, format: "turtle" });
 }
-
 function renderFindings(container, report, catalogHref) {
   const findings = report.findings ?? [];
   container.replaceChildren();
@@ -149,7 +207,7 @@ for (const btn of document.querySelectorAll(".gmeow-run-validation")) {
       );
       renderFindings(
         results,
-        await runFixtureValidation(turtle, btn.dataset.origin),
+        await runFixtureValidation(turtle),
         btn.dataset.catalogHref,
       );
     } catch (e) {
@@ -158,11 +216,13 @@ for (const btn of document.querySelectorAll(".gmeow-run-validation")) {
   });
 }
 
+
 // ── Bundle explorer (W2b) ───────────────────────────────────────────────────
-// Browser `gmeow info`/`describe` over the object-level core bundle: load it via
-// the shared loader, show the `info` summary, and run a client-side `DESCRIBE` for
-// the entered term. The DESCRIBE is the SAME the native `gmeow describe` produces
-// (proven byte-identical by the F2 witness lane).
+// Browser `gmeow info`/`describe` over the object-level core bundle: load it via the shared
+// loader, show the `info` summary, and run a client-side `DESCRIBE` for the entered term.
+// The DESCRIBE is the SAME the native `gmeow describe` produces (proven byte-identical by
+// the F2 witness lane), so it stays on the purrdf `Dataset` — a standalone graph query with
+// no bundle union, which is exactly what the explorer means.
 const explorerForm = document.getElementById("gmeow-explorer-form");
 if (explorerForm) {
   const infoEl = document.getElementById("gmeow-explorer-info");
@@ -198,22 +258,11 @@ if (explorerForm) {
   });
 }
 
-// ── Shared reasoner single-flight ───────────────────────────────────────────
-// The vendored gmeow-reason-wasm engine backs BOTH the live entailment panel (W4b)
-// and the conjecture playground (W4). Boot it exactly once, sharing one instantiation
-// promise across both surfaces (reuse `_reasonReady`, never a second wasm fetch).
-let _reasonReady = null;
-const ensureReasoner = async () => {
-  if (!_reasonReady) {
-    _reasonReady = reasonInit(new URL("./reason/gmeow_reason_wasm_bg.wasm", import.meta.url));
-  }
-  await _reasonReady;
-};
-
 // ── Live entailment panel (W4b) ─────────────────────────────────────────────
-// Run the native GMEOW structured-DL reasoner (gmeow-reason-wasm) over pasted RDF
-// entirely in-browser and show the inference diff (the entailed triples). The wasm
-// chase is byte-identical to the native one (proven by the F3 witness lane).
+// Run the native GMEOW structured-DL reasoner over pasted RDF entirely in-browser through
+// the MCP `reason_graph` tool and show the entailed closure. `reason_graph` is a
+// REASONING-segment tool, so the first use of this panel is what pulls the reasoning image
+// down — `onSegmentLoad` renders that as a loading state rather than a silent stall.
 const reasonForm = document.getElementById("gmeow-reason-form");
 if (reasonForm) {
   const inputEl = document.getElementById("gmeow-reason-input");
@@ -222,24 +271,41 @@ if (reasonForm) {
     event.preventDefault();
     resultsEl.textContent = "Reasoning…";
     try {
-      await ensureReasoner();
-      const closure = wasmReason(inputEl.value, "turtle");
-      const lines = closure.split("\n").filter((l) => l.trim());
+      const out = await callTool(
+        "reason_graph",
+        { data: inputEl.value, format: "turtle" },
+        ({ phase }) => {
+          if (phase === "loading") {
+            resultsEl.textContent = "Fetching the reasoning engine…";
+          }
+        },
+      );
+      const closure = out.closure_nquads ?? "";
       resultsEl.replaceChildren();
       const h = document.createElement("p");
+      const n = out.entailed_count ?? 0;
       h.textContent =
-        lines.length === 0
-          ? "No new entailments."
-          : `Entailed ${lines.length} triple${lines.length === 1 ? "" : "s"}:`;
+        n === 0 ? "No new entailments." : `Entailed ${n} triple${n === 1 ? "" : "s"}:`;
       const pre = document.createElement("pre");
       pre.textContent = closure.trim();
       resultsEl.append(h, pre);
+      // A budget-cut closure is a SOUND UNDER-APPROXIMATION, not a small one. Saying so is
+      // the difference between an honest partial answer and a misleading complete-looking
+      // one, so the governor's verdict is surfaced rather than swallowed.
+      if (out.evaluation && out.evaluation !== "completed") {
+        const note = document.createElement("p");
+        note.className = "gmeow-reason-note";
+        note.textContent =
+          `Evaluation: ${out.evaluation} (completeness: ${out.completeness ?? "unknown"}) — ` +
+          "the chase was cut by its step governor, so this closure is a sound " +
+          "under-approximation rather than the full one.";
+        resultsEl.append(note);
+      }
     } catch (e) {
       resultsEl.textContent = `Reasoning failed: ${e.message ?? e}`;
     }
   });
 }
-
 // ── Conjecture playground (W4) ──────────────────────────────────────────────
 // Run the native GMEOW SYMMETRIC conjecture engine (gmeow-reason-wasm's `conjecture`
 // export) entirely in-browser and render BOTH legs of the test: the proof leg
@@ -395,9 +461,20 @@ if (conjectureForm) {
     event.preventDefault();
     resultsEl.textContent = "Testing…";
     try {
-      await ensureReasoner();
       const demo = DEMOS.find((d) => d.id === selectEl.value) ?? DEMOS[0];
-      const nt = wasmConjecture(demo.kb, "turtle", demo.formula, STANDPOINT);
+      // `conjecture_test` is a REASONING-segment tool: the same symmetric engine, reached
+      // through the agent protocol. Its `judgment_nquads` is the deterministic N-Triples
+      // verdict projection the panel already knows how to read.
+      const out = await callTool(
+        "conjecture_test",
+        { formula: demo.formula, kb: demo.kb, standpoint: STANDPOINT },
+        ({ phase }) => {
+          if (phase === "loading") {
+            resultsEl.textContent = "Fetching the reasoning engine…";
+          }
+        },
+      );
+      const nt = out.judgment_nquads ?? "";
       const v = parseVerdict(nt);
       resultsEl.replaceChildren();
 
@@ -442,28 +519,29 @@ if (conjectureForm) {
   });
 }
 
-// Transcode authored RDF into the token-compact GMN-1 surface and back
-// (gmeow-gmn-wasm) entirely in-browser. `to_gmn1` then `from_gmn1` is the round-trip
-// the native↔wasm witness pins byte-for-byte; the panel shows both legs plus the
-// codebook's glyph legend (each glyph's real LLM-token cost).
+// ── GMN-1 transcode (W3) ────────────────────────────────────────────────────
+// Transcode authored RDF into the token-compact GMN-1 surface and back, entirely
+// in-browser, through the MCP codec tools: `encode_gmn1` is the forward leg and
+// `gmn_expand` reads it back to canonical N-Quads. That pair is the SAME round trip the
+// native↔wasm witness pins byte-for-byte, and both carry an internal round-trip witness of
+// their own, so a lossy leg is a hard error rather than a rendered answer.
+//
+// `encode_gmn1` did not exist when this panel was written — the four GMN tools all CONSUMED
+// the notation, so the forward direction had no expression on the agent surface and this
+// widget needed its own wasm image to reach it. It is a tool now, and the widget is a
+// caller like any other.
 const gmnForm = document.getElementById("gmeow-gmn-form");
 if (gmnForm) {
-  let _gmnReady = null;
-  const ensureGmn = async () => {
-    if (!_gmnReady) {
-      _gmnReady = gmnInit(new URL("./gmn/gmeow_gmn_wasm_bg.wasm", import.meta.url));
-    }
-    await _gmnReady;
-  };
   const inputEl = document.getElementById("gmeow-gmn-input");
   const legendEl = document.getElementById("gmeow-gmn-legend");
   const resultsEl = document.getElementById("gmeow-gmn-results");
-  // Render the glyph legend once the engine is up (deterministic, from the codebook).
-  const renderLegend = () => {
+  // Render the glyph legend once (deterministic, from the bundle-carried codebook).
+  const renderLegend = async () => {
     if (!legendEl || legendEl.childElementCount) return;
     try {
-      const entries = JSON.parse(wasmGlyphLegend());
-      if (!entries.length) return;
+      const { legend } = await callTool("gmn_glyph_legend", {});
+      const entries = typeof legend === "string" ? JSON.parse(legend) : legend;
+      if (!entries?.length) return;
       const label = document.createElement("span");
       label.textContent = "Glyphs: ";
       legendEl.append(label);
@@ -482,26 +560,27 @@ if (gmnForm) {
     event.preventDefault();
     resultsEl.textContent = "Transcoding…";
     try {
-      await ensureGmn();
-      renderLegend();
-      const gmn1 = wasmToGmn1(inputEl.value, "turtle");
-      const back = wasmFromGmn1(gmn1);
+      await renderLegend();
+      const encoded = await callTool("encode_gmn1", {
+        data: inputEl.value,
+        format: "turtle",
+      });
+      const expanded = await callTool("gmn_expand", { gmn: encoded.gmn1 });
       resultsEl.replaceChildren();
       const h1 = document.createElement("p");
       h1.textContent = "GMN-1 surface:";
       const pre1 = document.createElement("pre");
-      pre1.textContent = gmn1.trim();
+      pre1.textContent = (encoded.gmn1 ?? "").trim();
       const h2 = document.createElement("p");
       h2.textContent = "Reads back to (canonical N-Quads):";
       const pre2 = document.createElement("pre");
-      pre2.textContent = back.trim();
+      pre2.textContent = (expanded.expanded_nquads ?? "").trim();
       resultsEl.append(h1, pre1, h2, pre2);
     } catch (e) {
       resultsEl.textContent = `Transcode failed: ${e.message ?? e}`;
     }
   });
 }
-
 const form = document.getElementById("gmeow-sparql");
 const queryEl = document.getElementById("gmeow-sparql-query");
 const statusEl = document.getElementById("gmeow-sparql-status");

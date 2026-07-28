@@ -79,7 +79,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
-	maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-mcp-asset maint-wikidata-live \
+	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
@@ -513,14 +513,6 @@ reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + 
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
 	@echo "OK: gmeow-reason-wasm npm package built (crates/reason-wasm/js/, pkg/ generated)"
 
-maint-refresh-reason-asset: reason-wasm-pkg-test ## Re-vendor the gmeow-reason-wasm engine into crates/docs/assets/reason/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	mkdir -p crates/docs/assets/reason
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm.js            crates/docs/assets/reason/gmeow_reason_wasm.js
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm       crates/docs/assets/reason/gmeow_reason_wasm_bg.wasm
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm.d.ts          crates/docs/assets/reason/gmeow_reason_wasm.d.ts
-	cp crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm.d.ts  crates/docs/assets/reason/gmeow_reason_wasm_bg.wasm.d.ts
-	GMEOW_REASON_BLESS=1 cargo test -p gmeow-docs --test reason_asset
-	@echo "OK: re-vendored gmeow-reason-wasm into crates/docs/assets/reason/ (DIGESTS.blake3 re-pinned)"
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
@@ -535,14 +527,6 @@ gmn-wasm-pkg: ## Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-b
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
 	@echo "OK: gmeow-gmn-wasm npm package built (crates/gmn-wasm/js/, pkg/ generated)"
 
-maint-refresh-gmn-asset: gmn-wasm-pkg-test ## Re-vendor the gmeow-gmn-wasm engine into crates/docs/assets/gmn/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	mkdir -p crates/docs/assets/gmn
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.js            crates/docs/assets/gmn/gmeow_gmn_wasm.js
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm       crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm.d.ts          crates/docs/assets/gmn/gmeow_gmn_wasm.d.ts
-	cp crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm.d.ts  crates/docs/assets/gmn/gmeow_gmn_wasm_bg.wasm.d.ts
-	GMEOW_GMN_BLESS=1 cargo test -p gmeow-docs --test gmn_asset
-	@echo "OK: re-vendored gmeow-gmn-wasm into crates/docs/assets/gmn/ (DIGESTS.blake3 re-pinned)"
 
 gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its Node native↔wasm parity witness lane.
 	cd crates/gmn-wasm/js && node --test tests/*.test.mjs
@@ -565,20 +549,37 @@ mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-b
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
 
-maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm engine into crates/docs/assets/mcp/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	@# The re-pin step drives the SHARED vendored-wasm-asset harness through the
-	@# `MCP_ASSET` descriptor (`gmeow_docs::vendored_asset`), exactly as the validate /
-	@# reason / gmn refresh lanes do. That descriptor `include_bytes!`s the vendored blob,
-	@# so it lands with the engine-consolidation change that first commits these bytes —
-	@# this lane is the copy+bless ritual that change drives, defined here once with its
-	@# siblings rather than invented alongside it.
-	mkdir -p crates/docs/assets/mcp
-	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.js            crates/docs/assets/mcp/gmeow_mcp_wasm.js
-	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm       crates/docs/assets/mcp/gmeow_mcp_wasm_bg.wasm
-	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.d.ts          crates/docs/assets/mcp/gmeow_mcp_wasm.d.ts
-	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm.d.ts  crates/docs/assets/mcp/gmeow_mcp_wasm_bg.wasm.d.ts
+maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reasoning segment into crates/docs/assets/mcp/ and re-pin its BLAKE3 manifest (only after the Node native<->wasm parity lane passes).
+	@# The re-pin drives the SHARED vendored-wasm-asset harness through the `MCP_ASSET`
+	@# descriptor (`gmeow_docs::vendored_asset`). The vendored set is a TREE, not a flat
+	@# list: `index.mjs` imports `./pkg/<mod>.js`, so the wasm-bindgen output keeps its
+	@# `pkg/` subpath and the emitted site layout is the package layout.
+	@# WITNESS.mcp.json rides along because the attestation must describe THESE bytes —
+	@# `attestation_status` refuses a witness whose digests no longer match the shipped blob.
+	mkdir -p crates/docs/assets/mcp/pkg
+	cp crates/mcp-wasm/js/index.mjs                        crates/docs/assets/mcp/index.mjs
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.js            crates/docs/assets/mcp/pkg/gmeow_mcp_wasm.js
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm       crates/docs/assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.d.ts          crates/docs/assets/mcp/pkg/gmeow_mcp_wasm.d.ts
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm.d.ts  crates/docs/assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm.d.ts
+	cp crates/mcp-wasm/tests/WITNESS.mcp.json              crates/docs/assets/mcp/WITNESS.mcp.json
 	GMEOW_MCP_BLESS=1 cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-wasm into crates/docs/assets/mcp/ (DIGESTS.blake3 re-pinned)"
+
+maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-core-wasm first-load segment into crates/docs/assets/mcp-core/ and re-pin its BLAKE3 manifest (only after the Node parity + demand-load lane passes).
+	@# The twin of maint-refresh-mcp-asset, through the `MCP_CORE_ASSET` descriptor. Its
+	@# prerequisite lane is the STRONGER one: mcp-core-wasm-pkg-test builds BOTH segments and
+	@# exercises the real demand loader across them, so these bytes are only re-pinned after
+	@# the tiering has been proven end to end.
+	mkdir -p crates/docs/assets/mcp-core/pkg
+	cp crates/mcp-core-wasm/js/index.mjs                             crates/docs/assets/mcp-core/index.mjs
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm.js            crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm.js
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm       crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm.d.ts          crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm.d.ts
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts  crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts
+	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json         crates/docs/assets/mcp-core/WITNESS.core-deferral.json
+	GMEOW_MCP_CORE_BLESS=1 cargo test -p gmeow-docs --test mcp_asset
+	@echo "OK: re-vendored gmeow-mcp-core-wasm into crates/docs/assets/mcp-core/ (DIGESTS.blake3 re-pinned)"
 
 mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
 	cd crates/mcp-wasm/js && node --test tests/*.test.mjs
@@ -696,17 +697,6 @@ maint-extract: ## Run import/extract policy for TARGET.
 maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
-maint-refresh-validate-asset: validate-wasm-pkg-test ## Re-vendor the gmeow-validate-wasm engine into crates/docs/assets/validate/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
-	@# Rebuild the wasm package (validate-wasm-pkg above: cargo --target wasm32 --release,
-	@# wasm-bindgen --target web, then the REQUIRED wasm-opt -Oz), copy the four vendored
-	@# artifacts into the docs asset dir, and rewrite DIGESTS.blake3 from the exact copied
-	@# bytes via the bless path of crates/docs/tests/validate_asset.rs (GMEOW_VALIDATE_BLESS=1).
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm.js          crates/docs/assets/validate/gmeow_validate_wasm.js
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm     crates/docs/assets/validate/gmeow_validate_wasm_bg.wasm
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm.d.ts        crates/docs/assets/validate/gmeow_validate_wasm.d.ts
-	cp crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm.d.ts crates/docs/assets/validate/gmeow_validate_wasm_bg.wasm.d.ts
-	GMEOW_VALIDATE_BLESS=1 cargo test -p gmeow-docs --test validate_asset
-	@echo "OK: re-vendored gmeow-validate-wasm into crates/docs/assets/validate/ (DIGESTS.blake3 re-pinned)"
 
 maint-wikidata-live: ## Verify Wikidata identifiers resolve over the network.
 	$(GMEOW_DEV) wikidata --existence

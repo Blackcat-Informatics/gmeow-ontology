@@ -98,15 +98,23 @@ const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
 /// playground is present.
 const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 
-/// The vendored wasm engines emitted under `assets/<name>/` when the playground is
-/// present: the offline SPARQL runtime (purrdf) and the repo-free Tier-1 validator
-/// (gmeow-validate-wasm). Pinned build inputs — one descriptor per asset lives in
-/// [`crate::vendored_asset`]; see each `PROVENANCE.md`.
+/// The vendored wasm engines emitted under `assets/<name>/` when the playground is present:
+/// the offline SPARQL runtime (purrdf) and the console's two MCP segments.
+///
+/// This list used to carry FOUR engines — purrdf plus a bespoke shim each for validation,
+/// reasoning and the GMN codec. The three gmeow-owned shims were duplicate capability once
+/// the MCP surface could answer the same questions, and they are retired: the site now
+/// speaks ONE protocol to the SAME engine an agent drives. purrdf stays because it is not
+/// duplicate — its standalone `Dataset.query` answers CONSTRUCT/DESCRIBE over a
+/// caller-supplied graph with no bundle union, and its wasm parity is owned upstream in the
+/// sibling repo.
+///
+/// Pinned build inputs — one descriptor per asset lives in [`crate::vendored_asset`]; see
+/// each `PROVENANCE.md`.
 const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
     &crate::vendored_asset::PURRDF_ASSET,
-    &crate::vendored_asset::VALIDATE_ASSET,
-    &crate::vendored_asset::REASON_ASSET,
-    &crate::vendored_asset::GMN_ASSET,
+    &crate::vendored_asset::MCP_CORE_ASSET,
+    &crate::vendored_asset::MCP_ASSET,
 ];
 
 // ── Pages ──────────────────────────────────────────────────────────────────
@@ -8858,9 +8866,9 @@ mod tests {
         );
         assert!(
             site.files
-                .contains_key("assets/validate/gmeow_validate_wasm_bg.wasm"),
-            "the vendored validator wasm engine is emitted alongside purrdf so the site \
-             validates authored RDF client-side"
+                .contains_key("assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm"),
+            "the console's first-load MCP segment is emitted alongside purrdf so every \
+             interactive widget has an engine to dispatch to"
         );
         let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
         assert!(

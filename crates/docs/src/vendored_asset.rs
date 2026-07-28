@@ -4,7 +4,7 @@
 //! Shared vendored-wasm-asset harness.
 //!
 //! The docs site ships one or more **prebuilt** wasm engines (the offline SPARQL
-//! playground runtime, purrdf; the repo-free Tier-1 validator, gmeow-validate-wasm)
+//! playground runtime, purrdf; the console's two MCP engine segments)
 //! as pinned `include_bytes!` build inputs under `crates/docs/assets/<name>/`. The
 //! regeneration pipeline never rebuilds wasm, so nothing structurally forces a
 //! vendored blob to stay in step with its source crate. Each such asset therefore
@@ -19,7 +19,7 @@
 //!    glue still exposes the expected export surface, and the pinned digests match.
 //!
 //! This module captures that ritual ONCE. Each asset is a single [`VendoredWasmAsset`]
-//! constant ([`PURRDF_ASSET`], [`VALIDATE_ASSET`]): the renderer calls
+//! constant ([`PURRDF_ASSET`], [`MCP_CORE_ASSET`], [`MCP_ASSET`]): the renderer calls
 //! [`VendoredWasmAsset::emit_into`] to write it into the site, and the asset's
 //! integration test calls [`VendoredWasmAsset::verify`] to gate it. There is exactly
 //! one definition per asset — the emission descriptor and the anti-rot verifier read
@@ -84,11 +84,11 @@ pub struct VendoredWasmAsset {
     /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.nq`): the
     /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
-    /// (F4/F5). For the three gmeow-owned engines (validate/reason/gmn) the byte-identity
-    /// is additionally EXECUTED on-gate by their Node parity lanes (`make check` →
-    /// `wasm-parity`); the vendored sibling-repo purrdf engine's witness is its native
-    /// `describe` output, with wasm parity owned upstream in the purrdf repo. `Option`
-    /// so a future non-witnessed asset need not reshape the descriptor.
+    /// (F4/F5). For the gmeow-owned MCP segments the byte-identity is additionally EXECUTED
+    /// on-gate by their Node parity lanes (`make check` → `wasm-parity`); the vendored
+    /// sibling-repo purrdf engine's witness is its native `describe` output, with wasm parity
+    /// owned upstream in the purrdf repo. `Option` so a future non-witnessed asset need not
+    /// reshape the descriptor.
     pub witness_attestation: Option<&'static str>,
 }
 
@@ -322,174 +322,129 @@ pub static PURRDF_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     witness_attestation: Some("WITNESS.describe.nt"),
 };
 
-/// The vendored gmeow-validate-wasm engine — the repo-free Tier-1 GMEOW validator
-/// (SHACL + OntoUML disciplines over a `gmeow.gts` bundle) compiled to wasm32.
+/// The vendored `gmeow-mcp-core-wasm` segment — the console's FIRST-LOAD engine.
 ///
-/// Emitted under `assets/validate/`; refreshed by `make maint-refresh-validate-asset`.
-/// Behaviour (does a validation actually run?) is covered by the validate-wasm Node
-/// lane; this descriptor drives the structural + digest anti-rot gate
-/// (`crates/docs/tests/validate_asset.rs`).
-pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
-    name: "validate",
+/// Emitted under `assets/mcp-core/`; refreshed by `make maint-refresh-mcp-core-asset`.
+///
+/// This descriptor and its sibling [`MCP_ASSET`] replaced three retired ones
+/// (`VALIDATE_ASSET`, `REASON_ASSET`, `GMN_ASSET`). Those vendored a bespoke
+/// `#[wasm_bindgen]` shim per capability — a validator, a reasoner, a codec — each with its
+/// own export surface and its own controller code path. They were duplicate capability once
+/// the MCP surface could answer the same questions: the site now speaks ONE protocol
+/// (JSON-RPC over `handle_message`) to the SAME engine an agent drives, so a capability the
+/// console has is a capability an agent has by construction rather than by parallel
+/// maintenance. `PURRDF_ASSET` survives because it is NOT duplicate — its wasm parity is
+/// owned upstream in the sibling purrdf repo.
+///
+/// The vendored set is a directory tree rather than a flat list: `index.mjs` imports
+/// `./pkg/<mod>.js`, so the wasm-bindgen output keeps its `pkg/` subpath and the emitted
+/// site layout is the package layout. [`VendoredWasmAsset::site_path`] joins the name
+/// verbatim, so a `pkg/`-prefixed filename needs no special handling.
+pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "mcp-core",
     emitted_files: &[
+        ("index.mjs", include_bytes!("../assets/mcp-core/index.mjs")),
         (
-            "gmeow_validate_wasm.js",
-            include_bytes!("../assets/validate/gmeow_validate_wasm.js"),
+            "pkg/gmeow_mcp_core_wasm.js",
+            include_bytes!("../assets/mcp-core/pkg/gmeow_mcp_core_wasm.js"),
         ),
         (
-            "gmeow_validate_wasm_bg.wasm",
-            include_bytes!("../assets/validate/gmeow_validate_wasm_bg.wasm"),
+            "pkg/gmeow_mcp_core_wasm_bg.wasm",
+            include_bytes!("../assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm"),
         ),
     ],
     vendored_files: &[
-        "gmeow_validate_wasm.d.ts",
-        "gmeow_validate_wasm.js",
-        "gmeow_validate_wasm_bg.wasm",
-        "gmeow_validate_wasm_bg.wasm.d.ts",
+        "index.mjs",
+        "pkg/gmeow_mcp_core_wasm.d.ts",
+        "pkg/gmeow_mcp_core_wasm.js",
+        "pkg/gmeow_mcp_core_wasm_bg.wasm",
+        "pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts",
     ],
-    wasm_file: "gmeow_validate_wasm_bg.wasm",
-    min_wasm_len: 100_000,
+    wasm_file: "pkg/gmeow_mcp_core_wasm_bg.wasm",
+    min_wasm_len: 1_000_000,
     export_checks: &[
         ExportCheck {
-            file: "gmeow_validate_wasm.js",
-            needle: "export function validate(data, format, gts, namespace, origin)",
-            hint: "vendored bindings lack the validate export",
+            file: "index.mjs",
+            needle: "export async function tieredMcp(",
+            hint: "the wrapper lacks the demand-loader the tiered console dispatches through",
         },
         ExportCheck {
-            file: "gmeow_validate_wasm.d.ts",
-            needle: "export function validate(data: string, format: string, gts: Uint8Array, namespace: string, origin: string): string",
-            hint: "vendored .d.ts lacks the validate type signature",
+            file: "index.mjs",
+            needle: "export function initTiered(",
+            hint: "the wrapper lacks the snapshot-retaining initializer tieredMcp needs",
         },
         ExportCheck {
-            file: "gmeow_validate_wasm.js",
-            needle: "export function bundle_dataset(gts)",
-            hint: "vendored bindings lack the bundle_dataset export (the browser bundle-read surface)",
+            file: "pkg/gmeow_mcp_core_wasm.js",
+            needle: "export function mcp(",
+            hint: "vendored bindings lack the JSON-RPC frame entry point",
         },
         ExportCheck {
-            file: "gmeow_validate_wasm.d.ts",
-            needle: "export function bundle_dataset(gts: Uint8Array): string",
-            hint: "vendored .d.ts lacks the bundle_dataset type signature",
+            file: "pkg/gmeow_mcp_core_wasm.d.ts",
+            needle: "export function mcp(request_json: string): string",
+            hint: "vendored .d.ts lacks the mcp frame type signature",
         },
     ],
-    refresh_target: "maint-refresh-validate-asset",
-    bless_env: "GMEOW_VALIDATE_BLESS",
-    // The native↔wasm parity attestation (`WITNESS.validate.json`): the byte-identical
-    // Tier-1 findings the native validator produced and the wasm engine must
-    // reproduce (proven by `crates/validate-wasm/js/tests/witness.test.mjs` +
-    // `crates/validate/tests/witness_parity.rs`). Task 14 consumes it to gate the
-    // interactive validate Capability.
-    witness_attestation: Some("WITNESS.validate.json"),
+    refresh_target: "maint-refresh-mcp-core-asset",
+    bless_env: "GMEOW_MCP_CORE_BLESS",
+    // The native↔wasm deferral attestation (`WITNESS.core-deferral.json`): the typed
+    // `mcp.segment-not-loaded` frame the core image returns for a reasoning tool, which the
+    // shipped wasm reproduces byte-for-byte (proven by
+    // `crates/mcp-core-wasm/tests/witness_core.rs` + its Node lane). It attests the ROUTING,
+    // which is what the tiering rests on.
+    witness_attestation: Some("WITNESS.core-deferral.json"),
 };
 
-/// The vendored gmeow-reason-wasm engine — the native GMEOW structured-DL reasoner
-/// (`gmeow-logic`) compiled to wasm32, run SERIALLY in the browser (byte-identical to
-/// the parallel native chase). Emitted under `assets/reason/`; refreshed by
-/// `make maint-refresh-reason-asset`.
-pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
-    name: "reason",
+/// The vendored `gmeow-mcp-wasm` segment — the console's DEMAND-LOADED reasoner.
+///
+/// Emitted under `assets/mcp/`; refreshed by `make maint-refresh-mcp-asset`. Fetched on the
+/// first `tools/call` the core image defers, never as part of the first load — see
+/// [`MCP_CORE_ASSET`] on why the two together replaced three engines.
+pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "mcp",
     emitted_files: &[
+        ("index.mjs", include_bytes!("../assets/mcp/index.mjs")),
         (
-            "gmeow_reason_wasm.js",
-            include_bytes!("../assets/reason/gmeow_reason_wasm.js"),
+            "pkg/gmeow_mcp_wasm.js",
+            include_bytes!("../assets/mcp/pkg/gmeow_mcp_wasm.js"),
         ),
         (
-            "gmeow_reason_wasm_bg.wasm",
-            include_bytes!("../assets/reason/gmeow_reason_wasm_bg.wasm"),
+            "pkg/gmeow_mcp_wasm_bg.wasm",
+            include_bytes!("../assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm"),
         ),
     ],
     vendored_files: &[
-        "gmeow_reason_wasm.d.ts",
-        "gmeow_reason_wasm.js",
-        "gmeow_reason_wasm_bg.wasm",
-        "gmeow_reason_wasm_bg.wasm.d.ts",
+        "index.mjs",
+        "pkg/gmeow_mcp_wasm.d.ts",
+        "pkg/gmeow_mcp_wasm.js",
+        "pkg/gmeow_mcp_wasm_bg.wasm",
+        "pkg/gmeow_mcp_wasm_bg.wasm.d.ts",
     ],
-    wasm_file: "gmeow_reason_wasm_bg.wasm",
-    min_wasm_len: 100_000,
+    wasm_file: "pkg/gmeow_mcp_wasm_bg.wasm",
+    min_wasm_len: 1_000_000,
     export_checks: &[
         ExportCheck {
-            file: "gmeow_reason_wasm.js",
-            needle: "export function reason(data, format)",
-            hint: "vendored bindings lack the reason export",
+            file: "index.mjs",
+            needle: "export function ready(",
+            hint: "the segment wrapper lacks the async instantiation tieredMcp's loadSegment awaits",
         },
         ExportCheck {
-            file: "gmeow_reason_wasm.d.ts",
-            needle: "export function reason(data: string, format: string): string",
-            hint: "vendored .d.ts lacks the reason type signature",
+            file: "pkg/gmeow_mcp_wasm.js",
+            needle: "export function mcp(",
+            hint: "vendored bindings lack the JSON-RPC frame entry point",
         },
         ExportCheck {
-            file: "gmeow_reason_wasm.js",
-            needle: "export function conjecture(kb, kb_format, formula, standpoint)",
-            hint: "vendored bindings lack the conjecture export (W4 conjecture playground)",
-        },
-        ExportCheck {
-            file: "gmeow_reason_wasm.d.ts",
-            needle: "export function conjecture(kb: string, kb_format: string, formula: string, standpoint: string): string",
-            hint: "vendored .d.ts lacks the conjecture type signature (W4 conjecture playground)",
+            file: "pkg/gmeow_mcp_wasm.d.ts",
+            needle: "export function mcp(request_json: string): string",
+            hint: "vendored .d.ts lacks the mcp frame type signature",
         },
     ],
-    refresh_target: "maint-refresh-reason-asset",
-    bless_env: "GMEOW_REASON_BLESS",
-    // The native↔wasm reasoning parity attestation (`WITNESS.reason.nq`): the reasoned
-    // closure the native chase produces and the wasm engine reproduces (proven by
-    // `crates/reason-wasm/tests/witness_reason.rs` + the Node lane). Task 14 consumes
-    // it to gate the LiveReasoning capability.
-    witness_attestation: Some("WITNESS.reason.nq"),
-};
-
-/// The vendored `gmeow-gmn-wasm` engine — the shipped GMN-0↔GMN-1 codec + glyph
-/// symbology compiled to wasm32, run client-side so the docs GMN transcode widget turns
-/// authored RDF into the token-compact GMN-1 surface and back with the SAME codec the
-/// on-gate authority ships. Refreshed by `make maint-refresh-gmn-asset`.
-pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
-    name: "gmn",
-    emitted_files: &[
-        (
-            "gmeow_gmn_wasm.js",
-            include_bytes!("../assets/gmn/gmeow_gmn_wasm.js"),
-        ),
-        (
-            "gmeow_gmn_wasm_bg.wasm",
-            include_bytes!("../assets/gmn/gmeow_gmn_wasm_bg.wasm"),
-        ),
-    ],
-    vendored_files: &[
-        "gmeow_gmn_wasm.d.ts",
-        "gmeow_gmn_wasm.js",
-        "gmeow_gmn_wasm_bg.wasm",
-        "gmeow_gmn_wasm_bg.wasm.d.ts",
-    ],
-    wasm_file: "gmeow_gmn_wasm_bg.wasm",
-    min_wasm_len: 100_000,
-    export_checks: &[
-        ExportCheck {
-            file: "gmeow_gmn_wasm.js",
-            needle: "export function to_gmn1(data, format)",
-            hint: "vendored bindings lack the to_gmn1 export",
-        },
-        ExportCheck {
-            file: "gmeow_gmn_wasm.js",
-            needle: "export function from_gmn1(gmn1_text)",
-            hint: "vendored bindings lack the from_gmn1 export",
-        },
-        ExportCheck {
-            file: "gmeow_gmn_wasm.js",
-            needle: "export function glyph_legend()",
-            hint: "vendored bindings lack the glyph_legend export the widget's legend needs",
-        },
-        ExportCheck {
-            file: "gmeow_gmn_wasm.d.ts",
-            needle: "export function to_gmn1(data: string, format: string): string",
-            hint: "vendored .d.ts lacks the to_gmn1 type signature",
-        },
-    ],
-    refresh_target: "maint-refresh-gmn-asset",
-    bless_env: "GMEOW_GMN_BLESS",
-    // The native↔wasm GMN transcode parity attestation (`WITNESS.gmn1.txt`): the GMN-1
-    // surface the native codec writes and the wasm engine reproduces, and which reads
-    // back to the input's canonical N-Quads byte-for-byte (proven by
-    // `crates/gmn-wasm/tests/witness_gmn.rs` + the Node lane). Task 14 consumes it to
-    // gate the GMN transcode capability.
-    witness_attestation: Some("WITNESS.gmn1.txt"),
+    refresh_target: "maint-refresh-mcp-asset",
+    bless_env: "GMEOW_MCP_BLESS",
+    // The native↔wasm attestation (`WITNESS.mcp.json`): a real `conjecture_test` frame
+    // answered by the segment, byte-identical both to the shipped wasm's answer and to what
+    // the FULL native engine returns for the same frame (proven by
+    // `crates/mcp-wasm/tests/witness_mcp.rs` + its Node lane).
+    witness_attestation: Some("WITNESS.mcp.json"),
 };
 
 /// The vendored engines whose native↔wasm witness-attestation backs each interactive
@@ -497,19 +452,29 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
 /// every backing engine's attestation is present + current — that is what makes the
 /// capability a realized, proven surface rather than a decorative self-claim:
 ///
-/// * `LiveSparql` — the offline SPARQL playground runs on the purrdf engine.
-/// * `Interactivity` — the interactive widgets (playground + the Tier-1 validate
-///   buttons) run on purrdf + the validator.
-/// * `LiveReasoning` — the in-browser structured-DL chase + the GMN transcode run on the
-///   reasoner + the GMN codec.
+/// * `LiveSparql` — the playground's SPARQL runs on the purrdf engine (the standalone
+///   `Dataset.query` surface, which answers CONSTRUCT/DESCRIBE over a caller-supplied graph
+///   with no bundle union) and on the MCP core segment (`query_local`).
+/// * `Interactivity` — every interactive widget dispatches through the MCP core segment:
+///   the validate buttons are `validate_local`, the GMN transcode is
+///   `encode_gmn1`/`gmn_expand`/`gmn_glyph_legend`, the copy-as bar is `convert`.
+/// * `LiveReasoning` — the in-browser structured-DL chase is `reason_graph` and the
+///   conjecture playground is `conjecture_test`, both served by the demand-loaded MCP
+///   reasoning segment. The CORE segment backs it too: the console cannot reach the
+///   reasoning segment except by first-load core dispatching the deferral signal, so a
+///   stale core attestation would break live reasoning as surely as a stale reasoning one.
 ///
 /// The non-interactive capabilities (`SearchIndex`, `Diagrams`, `CrossLinkFidelity`) are
 /// not engine-backed, so they require no attestation.
+///
+/// Dispatch is on the [`Capability`] ALONE — there is no surface parameter, because the
+/// question "which engine must be proven for this capability to be honest?" is a property
+/// of the capability and not of the format that claims it.
 #[must_use]
 pub fn capability_backing_assets(cap: Capability) -> &'static [&'static VendoredWasmAsset] {
-    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&PURRDF_ASSET];
-    const INTERACTIVITY: &[&VendoredWasmAsset] = &[&PURRDF_ASSET, &VALIDATE_ASSET];
-    const LIVE_REASONING: &[&VendoredWasmAsset] = &[&REASON_ASSET, &GMN_ASSET];
+    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&PURRDF_ASSET, &MCP_CORE_ASSET];
+    const INTERACTIVITY: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET];
+    const LIVE_REASONING: &[&VendoredWasmAsset] = &[&MCP_CORE_ASSET, &MCP_ASSET];
     const NONE: &[&VendoredWasmAsset] = &[];
     match cap {
         Capability::LiveSparql => LIVE_SPARQL,

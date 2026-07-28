@@ -59,11 +59,11 @@ test("mcp() refuses frames before a snapshot is loaded", () => {
   assert.throws(() => mcp(CORE_REQUEST), "a frame sent before init must be refused");
 });
 
-test("the lean core advertises the WHOLE 35-tool surface", () => {
+test("the lean core advertises the WHOLE 37-tool surface", () => {
   init(snapshot);
   assert.equal(loaded(), true, "init installs the engine");
   const listed = JSON.parse(mcp(TOOLS_LIST)).result.tools.map((t) => t.name);
-  assert.equal(listed.length, 35, "deferral must be invisible to discovery");
+  assert.equal(listed.length, 37, "deferral must be invisible to discovery");
   for (const tool of deferredTools()) {
     assert.ok(listed.includes(tool), `deferred tool ${tool} is still advertised`);
   }

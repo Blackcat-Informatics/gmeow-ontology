@@ -68,7 +68,7 @@ const DELIM =
 
 test("wasm conjecture verdicts are byte-identical to the native witness attestation", async () => {
   const attestation = await readFile(
-    fileURLToPath(new URL("../../../docs/assets/reason/WITNESS.conjecture.nq", import.meta.url)),
+    fileURLToPath(new URL("../../tests/WITNESS.conjecture.nq", import.meta.url)),
     "utf8",
   );
   const proof = conjecture(PROOF_KB, "turtle", PROOF_FORMULA, STANDPOINT);

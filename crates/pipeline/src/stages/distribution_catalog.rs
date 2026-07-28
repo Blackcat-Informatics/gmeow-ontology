@@ -124,19 +124,17 @@ impl SerializationDist {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum SiteSubAsset {
     PurrdfWasm,
-    ValidateWasm,
-    ReasonWasm,
-    GmnWasm,
+    McpCoreWasm,
+    McpWasm,
     CoreBundle,
     ConjectureDemo,
 }
 
 impl SiteSubAsset {
-    const ALL: [SiteSubAsset; 6] = [
+    const ALL: [SiteSubAsset; 5] = [
         SiteSubAsset::PurrdfWasm,
-        SiteSubAsset::ValidateWasm,
-        SiteSubAsset::ReasonWasm,
-        SiteSubAsset::GmnWasm,
+        SiteSubAsset::McpCoreWasm,
+        SiteSubAsset::McpWasm,
         SiteSubAsset::CoreBundle,
         SiteSubAsset::ConjectureDemo,
     ];
@@ -144,9 +142,8 @@ impl SiteSubAsset {
     fn slug(&self) -> &'static str {
         match self {
             SiteSubAsset::PurrdfWasm => "purrdf-wasm",
-            SiteSubAsset::ValidateWasm => "validate-wasm",
-            SiteSubAsset::ReasonWasm => "reason-wasm",
-            SiteSubAsset::GmnWasm => "gmn-wasm",
+            SiteSubAsset::McpCoreWasm => "mcp-core-wasm",
+            SiteSubAsset::McpWasm => "mcp-wasm",
             SiteSubAsset::CoreBundle => "core-bundle",
             SiteSubAsset::ConjectureDemo => "conjectures",
         }
@@ -167,9 +164,8 @@ impl SiteSubAsset {
     fn site_path_prefix(&self) -> &'static str {
         match self {
             SiteSubAsset::PurrdfWasm => "assets/purrdf/",
-            SiteSubAsset::ValidateWasm => "assets/validate/",
-            SiteSubAsset::ReasonWasm => "assets/reason/",
-            SiteSubAsset::GmnWasm => "assets/gmn/",
+            SiteSubAsset::McpCoreWasm => "assets/mcp-core/",
+            SiteSubAsset::McpWasm => "assets/mcp/",
             SiteSubAsset::CoreBundle => "assets/gmeow-core.nq",
             SiteSubAsset::ConjectureDemo => "assets/conjectures.ttl",
         }
@@ -179,9 +175,8 @@ impl SiteSubAsset {
     fn label(&self) -> &'static str {
         match self {
             SiteSubAsset::PurrdfWasm => "vendored purrdf SPARQL/RDF wasm engine",
-            SiteSubAsset::ValidateWasm => "vendored Tier-1 validator wasm engine",
-            SiteSubAsset::ReasonWasm => "vendored structured-DL reasoner wasm engine",
-            SiteSubAsset::GmnWasm => "vendored GMN-0/GMN-1 codec wasm engine",
+            SiteSubAsset::McpCoreWasm => "MCP core segment (the console's first-load engine)",
+            SiteSubAsset::McpWasm => "MCP reasoning segment (demand-loaded)",
             SiteSubAsset::CoreBundle => "object-level browser bundle (N-Quads)",
             SiteSubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
         }
