@@ -660,7 +660,13 @@ impl InMemoryClaimStore {
             .expect("in-memory claim store lock")
             .revisions
             .iter()
-            .map(|r| (r.claim_id.clone(), r.reason.clone(), r.superseded_by.clone()))
+            .map(|r| {
+                (
+                    r.claim_id.clone(),
+                    r.reason.clone(),
+                    r.superseded_by.clone(),
+                )
+            })
             .collect()
     }
 

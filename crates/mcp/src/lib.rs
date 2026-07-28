@@ -2606,13 +2606,19 @@ fn builtin_tool_descriptors() -> Vec<Value> {
         ),
         tool(
             "action_policy",
-            "Return the canonical memory-triad action theory this engine gates its own \
-                 writes on, as N-Quads: the logic:precondition / logic:effect / \
-                 logic:compensation structure of store_claim, revise_belief, \
-                 persistConjecture, withdrawConjecture, submitCandidate and \
-                 withdrawCandidate, in the transaction world the executor reasons in. This \
-                 is the exact projection the Transaction-Logic executor reads, so what you \
-                 inspect is what the engine obeys. Also served as the \
+            "Return the canonical action theory governing this engine's WHOLE tool surface, \
+                 as N-Quads, in the transaction world the executor reasons in. It is TOTAL, \
+                 not a sample: every tool advertised here has exactly one action schema and \
+                 every schema names exactly one advertised tool, tied together by the \
+                 logic:mcpToolName wire name (a schema's local name is an ontology name — \
+                 ex:persistConjecture is the tool `store_conjecture` — so the correspondence \
+                 is asserted, never guessed). The 6 WRITE tools are typed \
+                 logic:McpActionSchema and carry logic:precondition / logic:effect / \
+                 logic:compensation (the rollback is supersession, never erasure); the 29 \
+                 READ tools are plain logic:ActionSchema carrying logic:capability + \
+                 logic:precondition and NO effect and NO compensation, because a read changes \
+                 no state. This is the exact projection the Transaction-Logic executor reads, \
+                 so what you inspect is what the engine obeys. Also served as the \
                  gmeow://ontology/action-policy resource.",
             &[],
         ),
@@ -2728,9 +2734,11 @@ fn builtin_resource_descriptors() -> Vec<Value> {
         resource(
             ACTION_POLICY_URI,
             "action-policy",
-            "The canonical memory-triad action theory the engine gates its own writes on \
-                 (logic:precondition / logic:effect / logic:compensation), as N-Quads — the \
-                 resource twin of the `action_policy` tool.",
+            "The canonical action theory governing the engine's whole tool surface, as \
+                 N-Quads: one schema per advertised tool (tied by logic:mcpToolName), the 6 \
+                 writes carrying logic:precondition / logic:effect / logic:compensation and \
+                 the 29 reads carrying logic:capability / logic:precondition — the resource \
+                 twin of the `action_policy` tool.",
             ACTION_POLICY_MEDIA_TYPE,
         ),
     ]
@@ -3419,14 +3427,19 @@ impl McpServer {
         .to_string())
     }
 
-    /// `action_policy` — the canonical memory-triad action theory this very engine gates
-    /// its writes on, served as N-Quads.
+    /// `action_policy` — the canonical action theory covering this engine's ENTIRE consumer
+    /// tool surface, served as N-Quads.
     ///
-    /// [`action_policy_nquads`] is the projection the Transaction-Logic executor reads:
-    /// the `logic:precondition` / `logic:effect` / `logic:compensation` structure of every
-    /// write action, IRI→IRI only, in [`TXN_WORLD`]. The tool returns THAT function's
-    /// output verbatim — never a re-derivation off the embedded Turtle and never a second
-    /// filter — so what an agent inspects is exactly what the engine obeys.
+    /// [`action_policy_nquads`] is the projection the Transaction-Logic executor reads: the
+    /// `logic:precondition` / `logic:effect` / `logic:compensation` structure of every write
+    /// action and the `logic:capability` / `logic:precondition` structure of every read, plus
+    /// the `logic:mcpToolName` wire name that ties each schema to the tool it governs, in
+    /// [`TXN_WORLD`]. The theory is TOTAL over the surface — 6 governed writes
+    /// (`logic:McpActionSchema`) and 29 reads (plain `logic:ActionSchema`), bijective with the
+    /// 35 advertised tools, enforced by
+    /// `the_action_theory_is_bijective_with_the_consumer_tool_surface`. The tool returns THAT
+    /// function's output verbatim — never a re-derivation off the embedded Turtle and never a
+    /// second filter — so what an agent inspects is exactly what the engine obeys.
     ///
     /// No existing surface can serve it: `tools/list` returns names and JSON Schemas only,
     /// and `query_docs` is scoped to `gmeow:graph/documentation` while the policy is
@@ -6063,11 +6076,19 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
 // commit gate, `dry_run` selects the hypothetical (sandbox) operator, and every committed turn is
 // recorded with the audit context the trajectory audit reads.
 
-/// The canonical memory-triad action theory — the SINGLE authority for how store_claim and
-/// revise_belief behave as transactions (their `logic:precondition` / `logic:effect` /
-/// `logic:compensation`). Embedded at build so the shipped `gmeow` runs repo-free; the slice
-/// file is the one source of truth, and the worked example and conformance case reference these
-/// same schema IRIs (they encode no second copy).
+/// The canonical action theory — the SINGLE authority for how every tool on this server
+/// behaves: the writes' `logic:precondition` / `logic:effect` / `logic:compensation`, the reads'
+/// `logic:capability` / `logic:precondition`, and the `logic:mcpToolName` wire name that ties
+/// each schema to the tool it governs. Embedded at build so the shipped `gmeow` runs repo-free;
+/// the slice file is the one source of truth, and the worked example and conformance case
+/// reference these same schema IRIs (they encode no second copy).
+///
+/// The SAME slice file also ships inside `gmeow.gts`, so there are two carriers of one theory.
+/// `the_embedded_policy_and_the_bundled_policy_are_the_same_theory` proves the two quad sets
+/// equal. THE BROWSER READS THE BUNDLE: a wasm console has no `include_str!` of a checkout, it
+/// has the snapshot bytes, so the bundled copy is the one a `gmeow://ontology/action-policy`
+/// reader in a browser ultimately sees — the embedded copy is what the executor runs on. They
+/// must not be allowed to drift.
 const MCP_ACTION_POLICY_TTL: &str =
     include_str!("../../../slices/extensions/agentic/examples/mcp-action-policy.ttl");
 
@@ -6154,22 +6175,52 @@ const GMEOW_TEMPORAL_FRAME_UTC_GREGORIAN: &str =
     "https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian";
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 
+/// The datatype property carrying an action schema's MCP wire name (minted in the `logic:`
+/// grounding slice). The ONE literal-valued predicate the action-theory projection keeps: a
+/// schema's local name is an ontology name (`ex:persistConjecture` is the tool
+/// `store_conjecture`), so the tool↔schema correspondence has to be read off an asserted string
+/// rather than mangled out of an IRI.
+const LOGIC_MCP_TOOL_NAME: &str = "https://blackcatinformatics.ca/logic/mcpToolName";
+
 /// The canonical action theory as N-Quads in [`TXN_WORLD`], parsed once from the embedded slice
 /// file. HARD FAIL if the embedded authority does not parse — that is a build-time invariant, not
 /// a runtime fallback (the `canonical_action_policy_parses` test guards it).
 fn action_policy_nquads() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
-    CACHE.get_or_init(|| {
-        let dataset = purrdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
+    CACHE.get_or_init(|| project_action_policy(MCP_ACTION_POLICY_TTL))
+}
+
+/// Project one action-theory Turtle document to the [`TXN_WORLD`] N-Quads the engine reads.
+///
+/// Separate from [`action_policy_nquads`] (which is just this over the embedded authority,
+/// cached) so the bijection gate's NEGATIVE cases can run the REAL projection over a mutated
+/// copy of the source. A negative test that re-implemented the filter would prove nothing about
+/// the filter that ships.
+fn project_action_policy(ttl: &str) -> String {
+    {
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
             .expect("canonical mcp-action-policy.ttl must parse (single authority)");
         let mut lines: Vec<String> = purrdf::flat_rdf_quads_from_dataset(&dataset)
             .into_iter()
             // The engine reads only the structural action theory (precondition / effect / ins /
             // del / compensation), all IRI→IRI — keep those and drop the annotation literals
             // (labels, comments) the executional-entailment run never consults.
+            //
+            // EXACTLY ONE literal-valued predicate is exempt: `logic:mcpToolName`. It is not an
+            // annotation — it is the identity link from a schema to the tool it governs, and it
+            // is UNRECOVERABLE from the IRI structure (`ex:persistConjecture` ⇄
+            // `store_conjecture`, `ex:withdrawConjecture` ⇄ `refute_conjecture`). Dropping it
+            // would make the projection unreadable as a tool contract: a browser reading the
+            // `gmeow://ontology/action-policy` resource would see schemas it could not tie to
+            // any callable tool, and the bijection gate would have nothing to check against.
+            // Every OTHER literal (`rdfs:label`, `rdfs:comment`) still goes.
             .filter(|quad| {
                 matches!(quad.subject, purrdf::RdfTerm::Iri(_))
-                    && matches!(quad.object, purrdf::RdfTerm::Iri(_))
+                    && match &quad.object {
+                        purrdf::RdfTerm::Iri(_) => true,
+                        purrdf::RdfTerm::Literal(_) => quad.predicate == LOGIC_MCP_TOOL_NAME,
+                        purrdf::RdfTerm::BlankNode(_) | purrdf::RdfTerm::Triple(_) => false,
+                    }
             })
             .map(|quad| {
                 format!(
@@ -6180,7 +6231,7 @@ fn action_policy_nquads() -> &'static str {
             .collect();
         lines.sort();
         lines.join("\n")
-    })
+    }
 }
 
 /// Build the per-call one-step transaction world: the canonical action theory plus this call's
@@ -8110,86 +8161,547 @@ mod tests {
         );
     }
 
-    /// Dogfood the proof-carrying diagnostics tool surface
-    /// (`explain_quad`, `verify_graph`, `coherence_certificate`, `store_conjecture` /
-    /// `refute_conjecture`) must be REPRESENTED in the canonical action theory the engine
-    /// actually parses, not merely documented. This asserts against the projected N-Quads
-    /// `action_policy_nquads()` returns — the SAME IRI→IRI-only quads
-    /// [`txn_world_nquads`] feeds the executional-entailment engine — so a schema that
-    /// only exists as a dropped label/comment would fail here.
+    // ── The bijection gate: the action theory is TOTAL over the tool surface ──────
+    //
+    // Everything below replaces a spot-check that named five policy subjects by hand and
+    // therefore could not notice a tool with no schema (or a schema with no tool) — the
+    // two failures that make an action theory a decoration instead of a contract.
+
+    /// The namespace every schema, capability, and situation IRI in the canonical action
+    /// policy lives under.
+    const POLICY_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/";
+    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const LOGIC_ACTION_SCHEMA: &str = "https://blackcatinformatics.ca/logic/ActionSchema";
+    const LOGIC_MCP_ACTION_SCHEMA: &str = "https://blackcatinformatics.ca/logic/McpActionSchema";
+
+    /// The four repo-reading DEV tools, registered by `gmeow-mcp-dev` through the extension
+    /// seam. That crate depends on THIS one, so it cannot be named from here; the list is
+    /// restated and `gmeow_mcp_dev`'s own `dev_surface_is_thirty_nine_tools_and_six_resources`
+    /// pins the same four, so a rename reds there rather than silently widening this list.
+    const DEV_ONLY_TOOLS: [&str; 4] = ["validate", "reason", "sync", "constitution"];
+
+    /// One object term of a projected action-policy quad.
+    #[derive(Debug, PartialEq, Eq)]
+    enum ProjectedObject {
+        Iri(String),
+        Literal(String),
+    }
+
+    /// Take a leading `<iri>` off `s`, returning the IRI and the rest (left-trimmed).
+    fn take_angle(s: &str) -> (String, &str) {
+        let body = s
+            .strip_prefix('<')
+            .unwrap_or_else(|| panic!("expected an IRI term at {s:?}"));
+        let end = body
+            .find('>')
+            .unwrap_or_else(|| panic!("unterminated IRI term at {s:?}"));
+        (body[..end].to_string(), body[end + 1..].trim_start())
+    }
+
+    /// Unescape a literal body starting immediately after its opening quote.
+    fn take_literal(after_quote: &str) -> String {
+        let mut out = String::new();
+        let mut chars = after_quote.chars();
+        while let Some(c) = chars.next() {
+            match c {
+                '"' => return out,
+                '\\' => out.push(chars.next().expect("an escape has a body")),
+                c => out.push(c),
+            }
+        }
+        panic!("unterminated literal at {after_quote:?}");
+    }
+
+    /// Split one line of [`project_action_policy`]'s output. The projection writes every line
+    /// as `<s> <p> o <TXN_WORLD> .`, so this parses exactly that shape rather than general
+    /// N-Quads — which is the point: it reads back what the engine is actually handed.
+    fn split_projected(line: &str) -> (String, String, ProjectedObject) {
+        let body = line
+            .strip_suffix(&format!(" <{TXN_WORLD}> ."))
+            .unwrap_or_else(|| panic!("every projected quad is stamped into TXN_WORLD: {line:?}"));
+        let (subject, rest) = take_angle(body);
+        let (predicate, object) = take_angle(rest);
+        let object = match object.strip_prefix('"') {
+            Some(after_quote) => ProjectedObject::Literal(take_literal(after_quote)),
+            None => ProjectedObject::Iri(take_angle(object).0),
+        };
+        (subject, predicate, object)
+    }
+
+    /// The ASSERTED action theory, read back out of the projected N-Quads the engine reads.
+    ///
+    /// Asserted, not entailed: `logic:McpActionSchema` is a SUBCLASS of `logic:ActionSchema`
+    /// (`slices/grounding/logic/module.ttl`), so under the subclass-closed view every write
+    /// is also an `ActionSchema` and the read/write partition would collapse. The projection
+    /// is an asserted-quad projection, so reading it this way is faithful — and it is why
+    /// this file must NOT carry a disjointness axiom between the two classes, which would
+    /// contradict the subclass edge and red the reasoner.
+    #[derive(Debug, Default)]
+    struct ActionTheory {
+        /// Subjects asserted `a logic:ActionSchema` — the reads.
+        plain: BTreeSet<String>,
+        /// Subjects asserted `a logic:McpActionSchema` — the governed writes.
+        governed: BTreeSet<String>,
+        /// Subject IRI → every `logic:mcpToolName` asserted on it.
+        tool_names: BTreeMap<String, BTreeSet<String>>,
+    }
+
+    impl ActionTheory {
+        fn read(nquads: &str) -> Self {
+            let mut theory = Self::default();
+            for line in nquads.lines() {
+                let (subject, predicate, object) = split_projected(line);
+                match (predicate.as_str(), &object) {
+                    (RDF_TYPE_IRI, ProjectedObject::Iri(class)) if class == LOGIC_ACTION_SCHEMA => {
+                        theory.plain.insert(subject);
+                    }
+                    (RDF_TYPE_IRI, ProjectedObject::Iri(class))
+                        if class == LOGIC_MCP_ACTION_SCHEMA =>
+                    {
+                        theory.governed.insert(subject);
+                    }
+                    (LOGIC_MCP_TOOL_NAME, ProjectedObject::Literal(name)) => {
+                        theory
+                            .tool_names
+                            .entry(subject)
+                            .or_default()
+                            .insert(name.clone());
+                    }
+                    (LOGIC_MCP_TOOL_NAME, ProjectedObject::Iri(iri)) => panic!(
+                        "logic:mcpToolName is a datatype property: <{subject}> names <{iri}>"
+                    ),
+                    _ => {}
+                }
+            }
+            theory
+        }
+
+        /// Every subject asserted as a schema, read or write.
+        fn schemas(&self) -> BTreeSet<String> {
+            self.plain.union(&self.governed).cloned().collect()
+        }
+
+        /// Wire name → the schema subjects claiming it.
+        fn by_tool_name(&self) -> BTreeMap<String, BTreeSet<String>> {
+            let mut index: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+            for (subject, names) in &self.tool_names {
+                for name in names {
+                    index
+                        .entry(name.clone())
+                        .or_default()
+                        .insert(subject.clone());
+                }
+            }
+            index
+        }
+
+        /// The wire names asserted on `subjects`, which must each carry exactly one.
+        fn names_of(&self, subjects: &BTreeSet<String>) -> BTreeSet<String> {
+            subjects
+                .iter()
+                .map(|subject| {
+                    let names = self
+                        .tool_names
+                        .get(subject)
+                        .unwrap_or_else(|| panic!("<{subject}> carries no logic:mcpToolName"));
+                    assert_eq!(
+                        names.len(),
+                        1,
+                        "<{subject}> declares {} tool names ({names:?})",
+                        names.len()
+                    );
+                    names.iter().next().expect("exactly one name").clone()
+                })
+                .collect()
+        }
+    }
+
+    /// The bijection check itself, as the list of violations (empty when it holds). The gate
+    /// and BOTH its negative tests call this, so all three exercise one comparison instead of
+    /// three lookalikes.
+    fn bijection_violations(
+        advertised: &BTreeSet<String>,
+        named: &BTreeSet<String>,
+    ) -> Vec<String> {
+        let mut problems = Vec::new();
+        for tool in advertised.difference(named) {
+            problems.push(format!(
+                "advertised consumer tool `{tool}` has NO logic:mcpToolName row in the \
+                 shipped action theory"
+            ));
+        }
+        for row in named.difference(advertised) {
+            problems.push(format!(
+                "action-theory row names tool `{row}`, which the consumer surface does NOT \
+                 advertise"
+            ));
+        }
+        problems
+    }
+
+    /// The advertised consumer tool names, as a set.
+    fn advertised_consumer_tools() -> BTreeSet<String> {
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let consumer = McpServer::from_snapshot(&bytes).expect("consumer server constructs");
+        consumer
+            .surface()
+            .tool_names()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// THE GATE. The tool-name set of the CONSUMER builtin surface is EQUAL to the
+    /// `{?s logic:mcpToolName ?n}` set over `logic:ActionSchema ∪ logic:McpActionSchema` in
+    /// the shipped policy — in BOTH directions.
+    ///
+    /// A tool with no schema means the engine advertises an action its own action theory
+    /// does not describe; a schema with no tool means the theory describes an action the
+    /// engine cannot perform. Either one makes the `action_policy` projection a decoration.
+    /// Both are named individually when they fail.
+    ///
+    /// The correspondence is checked on `logic:mcpToolName` and NOT on the schema local
+    /// name, because the two genuinely differ: `ex:persistConjecture` is the tool
+    /// `store_conjecture` and `ex:withdrawConjecture` is `refute_conjecture`. Any gate built
+    /// on name mangling would either reject those two or accept anything.
     #[test]
-    fn action_policy_covers_the_proof_carrying_read_and_conjecture_write_tools() {
-        const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/";
-        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        const LOGIC_ACTION_SCHEMA: &str = "https://blackcatinformatics.ca/logic/ActionSchema";
-        const LOGIC_MCP_ACTION_SCHEMA: &str =
-            "https://blackcatinformatics.ca/logic/McpActionSchema";
-        const LOGIC_CAPABILITY: &str = "https://blackcatinformatics.ca/logic/capability";
-        const LOGIC_COMPENSATION: &str = "https://blackcatinformatics.ca/logic/compensation";
-        const LOGIC_EFFECT: &str = "https://blackcatinformatics.ca/logic/effect";
+    fn the_action_theory_is_bijective_with_the_consumer_tool_surface() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let advertised = advertised_consumer_tools();
+        assert_eq!(
+            advertised.len(),
+            35,
+            "the consumer surface is 35 tools; this gate's arithmetic depends on it"
+        );
 
-        let policy = action_policy_nquads();
+        let theory = ActionTheory::read(action_policy_nquads());
+        let by_name = theory.by_tool_name();
+        let named: BTreeSet<String> = by_name.keys().cloned().collect();
 
-        // The three new READ tools: each a plain logic:ActionSchema (mirroring ex:recall)
-        // typed + capability-gated, and each carrying NO logic:compensation / logic:effect
-        // (a read changes no state).
-        for local in ["explainQuad", "verifyGraph", "coherenceCertificate"] {
-            let subject = format!("{EX}{local}");
-            let type_line =
-                format!("<{subject}> <{RDF_TYPE}> <{LOGIC_ACTION_SCHEMA}> <{TXN_WORLD}> .");
-            let capability_line = format!(
-                "<{subject}> <{LOGIC_CAPABILITY}> <{EX}memoryReadCapability> <{TXN_WORLD}> ."
+        let problems = bijection_violations(&advertised, &named);
+        assert!(
+            problems.is_empty(),
+            "the action theory is NOT bijective with the consumer tool surface:\n  {}",
+            problems.join("\n  ")
+        );
+        assert_eq!(
+            named, advertised,
+            "both directions hold, so the sets are equal"
+        );
+
+        // A BIJECTION, not merely a two-sided cover: one schema per name, one name per
+        // schema. Two schemas claiming `store_claim` would pass the set equality above while
+        // leaving the engine's gate ambiguous.
+        for (name, subjects) in &by_name {
+            assert_eq!(
+                subjects.len(),
+                1,
+                "tool `{name}` is claimed by {} action schemas ({subjects:?})",
+                subjects.len()
+            );
+        }
+        let schemas = theory.schemas();
+        for (subject, names) in &theory.tool_names {
+            assert_eq!(
+                names.len(),
+                1,
+                "action schema <{subject}> declares {} tool names ({names:?})",
+                names.len()
             );
             assert!(
-                policy.contains(&type_line),
-                "{local} must be typed logic:ActionSchema: missing {type_line:?} in:\n{policy}"
+                schemas.contains(subject),
+                "<{subject}> carries logic:mcpToolName but is asserted neither \
+                 logic:ActionSchema nor logic:McpActionSchema"
             );
+        }
+        for subject in &schemas {
             assert!(
-                policy.contains(&capability_line),
-                "{local} must carry logic:capability ex:memoryReadCapability: missing \
-                 {capability_line:?}"
-            );
-            assert!(
-                !policy.contains(&format!("<{subject}> <{LOGIC_COMPENSATION}>")),
-                "{local} is a read and must carry NO logic:compensation"
-            );
-            assert!(
-                !policy.contains(&format!("<{subject}> <{LOGIC_EFFECT}>")),
-                "{local} is a read and must carry NO logic:effect"
+                theory.tool_names.contains_key(subject),
+                "action schema <{subject}> carries NO logic:mcpToolName, so nothing ties it \
+                 to a tool"
             );
         }
 
-        // The store_conjecture / refute_conjecture pair: ALREADY modeled by
-        // ex:persistConjecture / ex:withdrawConjecture (no duplicate schema minted for the
-        // MCP tool names) — confirm the store⇄refute compensation pairing survives the
-        // projection filter.
-        let persist_type = format!(
-            "<{EX}persistConjecture> <{RDF_TYPE}> <{LOGIC_MCP_ACTION_SCHEMA}> <{TXN_WORLD}> ."
-        );
-        let persist_compensation = format!(
-            "<{EX}persistConjecture> <{LOGIC_COMPENSATION}> <{EX}withdrawConjecture> <{TXN_WORLD}> ."
-        );
-        let withdraw_type = format!(
-            "<{EX}withdrawConjecture> <{RDF_TYPE}> <{LOGIC_MCP_ACTION_SCHEMA}> <{TXN_WORLD}> ."
-        );
-        let withdraw_compensation = format!(
-            "<{EX}withdrawConjecture> <{LOGIC_COMPENSATION}> <{EX}persistConjecture> <{TXN_WORLD}> ."
-        );
+        // The READ / WRITE partition, over ASSERTED types. `{?s a logic:ActionSchema} \
+        // {?s a logic:McpActionSchema}` must be NON-EMPTY and be exactly the reads: if the
+        // reads were ever typed logic:McpActionSchema (or the writes lost their type) this
+        // difference would silently empty out, and a console pane built on it would go blank
+        // rather than fail.
         assert!(
-            policy.contains(&persist_type),
-            "persistConjecture (store_conjecture) must be typed logic:McpActionSchema"
+            theory.plain.is_disjoint(&theory.governed),
+            "no schema is asserted BOTH plain and governed: {:?}",
+            theory
+                .plain
+                .intersection(&theory.governed)
+                .collect::<Vec<_>>()
         );
+        let read_subjects: BTreeSet<String> =
+            theory.plain.difference(&theory.governed).cloned().collect();
         assert!(
-            policy.contains(&persist_compensation),
-            "persistConjecture's compensation must be withdrawConjecture"
+            !read_subjects.is_empty(),
+            "the asserted-plain-minus-governed set must not be empty"
         );
-        assert!(
-            policy.contains(&withdraw_type),
-            "withdrawConjecture (refute_conjecture) must be typed logic:McpActionSchema"
+        assert_eq!(read_subjects.len(), 29, "29 reads: {read_subjects:?}");
+        assert_eq!(theory.governed.len(), 6, "6 writes: {:?}", theory.governed);
+
+        let write_names = theory.names_of(&theory.governed);
+        assert_eq!(
+            write_names,
+            BTreeSet::from([
+                "refute_conjecture".to_string(),
+                "revise_belief".to_string(),
+                "store_claim".to_string(),
+                "store_conjecture".to_string(),
+                "submit_candidate".to_string(),
+                "withdraw_candidate".to_string(),
+            ]),
+            "the governed writes are exactly the six state-mutating tools"
         );
+        let read_names = theory.names_of(&read_subjects);
+        assert_eq!(
+            read_names,
+            advertised
+                .difference(&write_names)
+                .cloned()
+                .collect::<BTreeSet<String>>(),
+            "the reads are exactly the advertised tools that are not writes"
+        );
+
+        // The four DEV tools are on NEITHER side: they need a checkout, so a consumer server
+        // neither advertises them nor is governed for them.
+        for dev_only in DEV_ONLY_TOOLS {
+            assert!(
+                !advertised.contains(dev_only),
+                "`{dev_only}` is dev-gated and must NOT be on the consumer surface"
+            );
+            assert!(
+                !named.contains(dev_only),
+                "`{dev_only}` is dev-gated and must NOT have a row in the consumer action \
+                 theory"
+            );
+        }
+    }
+
+    /// NEGATIVE 1 — a tool with no row REDS the gate, naming that tool.
+    ///
+    /// The mutation is applied to a COPY of the canonical Turtle and pushed through the REAL
+    /// [`project_action_policy`], so what is exercised is the shipping projection and the
+    /// shipping comparison, not a stand-in.
+    #[test]
+    fn a_tool_with_no_action_schema_row_reds_the_bijection_gate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let advertised = advertised_consumer_tools();
+
+        const ROW: &str = "    logic:mcpToolName  \"store_conjecture\" ;\n";
         assert!(
-            policy.contains(&withdraw_compensation),
-            "withdrawConjecture's compensation must be persistConjecture"
+            MCP_ACTION_POLICY_TTL.contains(ROW),
+            "the row this test removes must exist to be removable"
+        );
+        let mutated = MCP_ACTION_POLICY_TTL.replacen(ROW, "", 1);
+
+        let theory = ActionTheory::read(&project_action_policy(&mutated));
+        let named: BTreeSet<String> = theory.by_tool_name().keys().cloned().collect();
+        let problems = bijection_violations(&advertised, &named);
+
+        assert_eq!(problems.len(), 1, "exactly one violation: {problems:?}");
+        assert!(
+            problems[0].contains("`store_conjecture`") && problems[0].contains("NO "),
+            "the failure must NAME the unmodelled tool: {}",
+            problems[0]
+        );
+    }
+
+    /// NEGATIVE 2 — a row with no tool REDS the gate, naming that row.
+    #[test]
+    fn an_action_schema_row_with_no_tool_reds_the_bijection_gate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let advertised = advertised_consumer_tools();
+
+        let mutated = format!(
+            "{MCP_ACTION_POLICY_TTL}\n\
+             ex:teleportOntology a logic:ActionSchema ;\n\
+             \x20   logic:mcpToolName  \"teleport_ontology\" ;\n\
+             \x20   logic:capability   ex:bundleReadCapability ;\n\
+             \x20   logic:precondition ex:actionTheoryPresent .\n"
+        );
+
+        let theory = ActionTheory::read(&project_action_policy(&mutated));
+        let named: BTreeSet<String> = theory.by_tool_name().keys().cloned().collect();
+        let problems = bijection_violations(&advertised, &named);
+
+        assert_eq!(problems.len(), 1, "exactly one violation: {problems:?}");
+        assert!(
+            problems[0].contains("`teleport_ontology`") && problems[0].contains("does NOT"),
+            "the failure must NAME the orphaned row: {}",
+            problems[0]
+        );
+    }
+
+    /// Every quad in `source` whose subject is an action-policy IRI, as comparable text.
+    fn policy_statements(source: &purrdf::RdfDataset) -> BTreeSet<String> {
+        purrdf::flat_rdf_quads_from_dataset(source)
+            .into_iter()
+            .filter(|quad| {
+                matches!(&quad.subject, purrdf::RdfTerm::Iri(iri) if iri.starts_with(POLICY_NS))
+            })
+            .map(|quad| {
+                format!(
+                    "{} <{}> {}",
+                    quad.subject, quad.predicate, quad.object
+                )
+            })
+            .collect()
+    }
+
+    /// WHICH COPY THE BROWSER READS, pinned: the theory has exactly ONE carrier on the wire,
+    /// so there is no second copy that could drift.
+    ///
+    /// [`MCP_ACTION_POLICY_TTL`] is a compile-time `include_str!` of the slice file, and it is
+    /// the ONLY carrier. A wasm console has no checkout to read and cannot `include_str!` one
+    /// at runtime — it holds the compiled crate plus the snapshot bytes — so what a browser
+    /// reading `gmeow://ontology/action-policy` renders is [`action_policy_nquads`], which is
+    /// this embedded copy. The Transaction-Logic executor reads the same function. Browser and
+    /// executor therefore read literally the same bytes, which is a stronger guarantee than
+    /// two carriers proved equal.
+    ///
+    /// `gmeow.gts` carries NO copy: the pipeline folds a slice's `module.ttl` into the
+    /// bundle's `graph/logic`, but a slice's `examples/*.ttl` is read only to derive
+    /// documentation and try-it inferences — its triples are never folded (there is no
+    /// examples archive in `gmeow_bundle_view::bundle_blobs`, and the doc model's RDF
+    /// projection carries `DocExample` as rendered TEXT, never as quads).
+    ///
+    /// This test is the TRIPWIRE on that fact. If the pipeline ever starts folding slice
+    /// examples into the bundle, a second carrier appears, this assertion reds, and it must
+    /// be REPLACED by a quad-set equality between the two copies — not relaxed. A second copy
+    /// that nothing compares is exactly how a console comes to display a policy the engine
+    /// does not obey.
+    #[test]
+    fn the_action_theory_has_exactly_one_carrier_on_the_wire() {
+        let embedded_dataset =
+            purrdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
+                .expect("the embedded authority parses");
+        let embedded = policy_statements(&embedded_dataset);
+        assert!(
+            !embedded.is_empty(),
+            "the embedded copy must be non-empty, or this test proves nothing"
+        );
+
+        let bytes = snapshot();
+        let bundle = purrdf::import_gts_events(&bytes).expect("the shipped snapshot reads");
+        let bundled = policy_statements(bundle.dataset.as_ref());
+        assert!(
+            bundled.is_empty(),
+            "gmeow.gts has grown a SECOND carrier of the action theory ({} quads). One \
+             carrier can never drift; two can. Replace this assertion with a quad-set \
+             equality against the embedded copy — do not relax it. Sample:\n  {}",
+            bundled.len(),
+            bundled
+                .iter()
+                .take(10)
+                .map(String::as_str)
+                .collect::<Vec<_>>()
+                .join("\n  ")
+        );
+
+        // …and the bytes the resource serves ARE the projection of that one carrier, so
+        // "which copy the browser reads" is not a claim about intent but about identity.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let server = McpServer::from_snapshot(&bytes).expect("consumer server constructs");
+        let read = server.read_resource_result(ACTION_POLICY_URI);
+        assert_eq!(
+            read["contents"][0]["text"].as_str().expect("resource text"),
+            action_policy_nquads(),
+            "the browser-facing resource serves the projection of the embedded carrier"
+        );
+    }
+
+    /// The VOCABULARY the projection depends on is genuinely two-carrier, and the two must
+    /// agree: `logic:mcpToolName` is declared in `slices/grounding/logic/module.ttl`, which
+    /// the pipeline folds into the bundle's `graph/logic`. A reader that resolves the
+    /// predicate against the bundle must find the SAME declaration the projection asserts —
+    /// otherwise the served quads name a property the shipped ontology does not define, and
+    /// the tool↔schema link is unresolvable for anyone but this crate.
+    ///
+    /// Checked against the bundle, which means this test can only pass once `gmeow.gts` has
+    /// been regenerated over the minted term. It is deliberately NOT weakened to "the slice
+    /// file says so": the slice file is the source, and asserting the source against itself
+    /// would prove nothing about what ships.
+    #[test]
+    fn the_bundled_logic_vocabulary_declares_the_tool_name_property() {
+        const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
+        const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+        const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+        const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+        const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+
+        let bytes = snapshot();
+        let bundle = purrdf::import_gts_events(&bytes).expect("the shipped snapshot reads");
+        let declared: BTreeSet<(String, String)> = purrdf::flat_rdf_quads_from_dataset(
+            bundle.dataset.as_ref(),
+        )
+        .into_iter()
+        .filter(|quad| {
+            matches!(&quad.graph_name, Some(purrdf::RdfTerm::Iri(g)) if g == GRAPH_LOGIC)
+                && matches!(&quad.subject, purrdf::RdfTerm::Iri(s) if s == LOGIC_MCP_TOOL_NAME)
+        })
+        .filter_map(|quad| match quad.object {
+            purrdf::RdfTerm::Iri(object) => Some((quad.predicate, object)),
+            _ => None,
+        })
+        .collect();
+
+        for (predicate, object) in [
+            (RDF_TYPE_IRI, OWL_DATATYPE_PROPERTY),
+            (RDFS_DOMAIN, LOGIC_ACTION_SCHEMA),
+            (RDFS_RANGE, XSD_STRING),
+        ] {
+            assert!(
+                declared.contains(&(predicate.to_string(), object.to_string())),
+                "the shipped bundle's graph/logic must declare \
+                 <{LOGIC_MCP_TOOL_NAME}> <{predicate}> <{object}>; it declares {declared:?}"
+            );
+        }
+    }
+
+    /// The projection retains `logic:mcpToolName` literals and NO other literal.
+    ///
+    /// The one-predicate exception in [`project_action_policy`] is load-bearing and narrow:
+    /// widening it would push `rdfs:label` / `rdfs:comment` prose into the world the
+    /// executional-entailment run reasons in, and every language's translation with it.
+    #[test]
+    fn the_projection_retains_only_the_tool_name_literal() {
+        let policy = action_policy_nquads();
+        let mut literal_predicates: BTreeSet<String> = BTreeSet::new();
+        let mut tool_name_count = 0usize;
+        for line in policy.lines() {
+            let (_subject, predicate, object) = split_projected(line);
+            if let ProjectedObject::Literal(_) = object {
+                literal_predicates.insert(predicate.clone());
+                if predicate == LOGIC_MCP_TOOL_NAME {
+                    tool_name_count += 1;
+                }
+            }
+        }
+        assert_eq!(
+            literal_predicates,
+            BTreeSet::from([LOGIC_MCP_TOOL_NAME.to_string()]),
+            "exactly one literal-valued predicate survives the projection"
+        );
+        assert_eq!(
+            tool_name_count, 35,
+            "one logic:mcpToolName per advertised consumer tool"
+        );
+        // The dropped annotations really were present in the source, so the assertion above
+        // is about the FILTER and not about an unannotated source file.
+        assert!(
+            MCP_ACTION_POLICY_TTL.contains("rdfs:label")
+                && MCP_ACTION_POLICY_TTL.contains("rdfs:comment"),
+            "the source carries the annotations the projection drops"
         );
     }
 
@@ -10649,7 +11161,6 @@ mod tests {
 
     use gmeow_ns::LOGIC_NS;
     use gmeow_ns::MATH_NS;
-    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
     /// A `∀x. trigger(x, mark) → rdf:type(x, <cls>)` candidate, authored as a reified
     /// `logic:Formula` (a single top-level formula — the trivially-Horn consequent is a

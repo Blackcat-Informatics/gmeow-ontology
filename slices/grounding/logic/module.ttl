@@ -2209,6 +2209,21 @@ logic:actionResource
     skos:definition "Relates a logic:ActionSchema to what the action consumes or requires — the seam to the resource-competing goal conflict (logic:competesForResource), where two goals draw on a resource an action schema declares and the supply is insufficient for both. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets. DISTINCT from logic:resourcePolicy, which is a ReasoningContract→ResourcePolicy engine-budget property — a different concept that must not be conflated with an action's consumable resource."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- The MCP tool-surface correspondence (declared domain/range) --------------
+# Not a ninth action-theory facet: it says nothing about what the action DOES.
+# It names the external wire identity the schema governs, and it is the one
+# property in this neighbourhood whose domain and range are declared as EL-safe
+# OWL axioms rather than stated in prose, because a gate reads it mechanically.
+
+logic:mcpToolName
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:ActionSchema ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "MCP tool name"@x-gmeow-english ;
+    skos:definition "The EXACT wire name of the MCP (Model Context Protocol) tool a logic:ActionSchema governs — the string a client puts in `tools/call`, such as 'store_conjecture'. A schema's local name is an ONTOLOGY name chosen for what the action IS (an append to the conjecture library is named for the appending, not for the tool that triggers it), so it deliberately need not equal the tool's wire name; this property carries the wire name as an ASSERTED fact, which is what lets a surface↔theory correspondence be checked rather than guessed by mangling local names. Declared on logic:ActionSchema, not on logic:McpActionSchema, because the correspondence must cover the READ tools too: a read is a plain logic:ActionSchema (a compensation obligation would be vacuous on it) and is still an advertised tool. The intended discipline on a governed surface is BIJECTION — every advertised tool names exactly one schema and every schema names exactly one advertised tool — which is what makes an action theory TOTAL over its tool surface rather than a sample of it. Domain logic:ActionSchema; range xsd:string."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- Action-theory facet evaluation seams (stated in prose) -------------------
 # The representation-level properties the native teleology evaluator reads to
 # evaluate the effect, observation, and actionResource facets. Each is a pure

@@ -62,16 +62,7 @@ fn direct_deps(package: &str, edge_kind: &str) -> BTreeSet<String> {
     let output = Command::new(env!("CARGO"))
         .current_dir(workspace_root())
         .args([
-            "tree",
-            "-p",
-            package,
-            "--depth",
-            "1",
-            "--prefix",
-            "none",
-            "--format",
-            "{p}",
-            "-e",
+            "tree", "-p", package, "--depth", "1", "--prefix", "none", "--format", "{p}", "-e",
             edge_kind,
         ])
         .output()
