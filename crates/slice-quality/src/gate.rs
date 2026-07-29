@@ -619,13 +619,29 @@ enum FlowNode {
 pub fn solve_transport(network: &Transport) -> Flow {
     use FlowNode::{Destination, Source, SuperSink, SuperSource};
 
-    // Residual capacity for every directed edge, forward AND back. `add_edge`
+    // Residual capacity for every directed edge, forward AND back. Kept in `u64`
+    // throughout — the network's `supply`/`demand`/`capacity` inputs are already
+    // `u64`, so a native `u64` residual graph can represent every input exactly;
+    // routing capacities through `i64` (as an earlier version of this solver did)
+    // required clamping any input above `i64::MAX` to `i64::MAX`, which silently
+    // computed the WRONG flow instead of the true one — a false unpaid-relocation
+    // refusal on a governance gate. `u64` has no such gap for these inputs, and the
+    // Edmonds-Karp invariant (forward residual + back-edge residual == the original
+    // forward capacity, always) guarantees every subtraction below stays
+    // non-negative and every accumulation stays within the edge's own capacity, so
+    // no value here can legitimately need more than `u64` provides. `add_edge`
     // seeds the back-edge at 0 capacity so the adjacency list already carries it —
     // augmenting a forward edge can then always increase its back-edge in place.
-    let mut residual: BTreeMap<(FlowNode, FlowNode), i64> = BTreeMap::new();
+    let mut residual: BTreeMap<(FlowNode, FlowNode), u64> = BTreeMap::new();
     let mut add_edge = |a: FlowNode, b: FlowNode, cap: u64| {
-        *residual.entry((a.clone(), b.clone())).or_insert(0) +=
-            i64::try_from(cap).unwrap_or(i64::MAX);
+        let key = (a.clone(), b.clone());
+        let entry = residual.entry(key).or_insert(0);
+        *entry = entry.checked_add(cap).unwrap_or_else(|| {
+            panic!(
+                "slice-quality transport: residual capacity for edge {a:?} -> {b:?} would overflow u64 \
+                 (existing capacity + {cap} exceeds u64::MAX) — refusing to silently wrap a governance-gate capacity"
+            )
+        });
         residual.entry((b, a)).or_insert(0);
     };
     for (src, cap) in &network.supply {
@@ -669,7 +685,7 @@ pub fn solve_transport(network: &Transport) -> Flow {
                     .get(&(node.clone(), next.clone()))
                     .copied()
                     .unwrap_or(0);
-                if cap <= 0 {
+                if cap == 0 {
                     continue;
                 }
                 parent.insert(next.clone(), node.clone());
@@ -696,12 +712,20 @@ pub fn solve_transport(network: &Transport) -> Flow {
             .min()
             .expect("a discovered path has at least one edge");
         for (a, b) in &path {
-            *residual
+            let fwd = residual
                 .get_mut(&(a.clone(), b.clone()))
-                .expect("edge exists") -= bottleneck;
-            *residual
+                .expect("edge exists");
+            *fwd = fwd.checked_sub(bottleneck).expect(
+                "bottleneck is the minimum residual capacity along this path, so subtracting it \
+                 from any edge on the path cannot underflow",
+            );
+            let back = residual
                 .get_mut(&(b.clone(), a.clone()))
-                .expect("back-edge exists") += bottleneck;
+                .expect("back-edge exists");
+            *back = back.checked_add(bottleneck).expect(
+                "forward residual + back-edge residual is invariant at the edge's original \
+                 capacity (already a valid u64), so the back-edge can never need more than that",
+            );
         }
     }
 
@@ -713,9 +737,12 @@ pub fn solve_transport(network: &Transport) -> Flow {
             .get(&(Source(src.clone()), Destination(dst.clone())))
             .copied()
             .unwrap_or(0);
-        let pushed = i64::try_from(*cap).unwrap_or(i64::MAX) - left;
+        let pushed = cap.checked_sub(left).expect(
+            "residual capacity conservation: left-over residual can never exceed the edge's \
+             original capacity",
+        );
         if pushed > 0 {
-            flow.edges.insert((src.clone(), dst.clone()), pushed as u64);
+            flow.edges.insert((src.clone(), dst.clone()), pushed);
         }
     }
     for (dst, wanted) in &network.demand {
@@ -2501,6 +2528,33 @@ mod tests {
         assert_eq!((d1.from.as_str(), d1.units), ("ex:s2", 1));
         let d2 = by_to["ex:d2"];
         assert_eq!((d2.from.as_str(), d2.units), ("ex:s1", 1));
+    }
+
+    #[test]
+    fn solve_transport_at_u64_max_produces_the_exact_flow_not_a_clamped_one() {
+        // Boundary regression for the `i64` clamp this solver used to route residual
+        // capacities through: a supply/demand/capacity at `u64::MAX` (the top of the
+        // representable range for `Transport`'s own field type) must flow EXACTLY —
+        // never a silently-clamped `i64::MAX`, which is barely half of `u64::MAX` and
+        // would falsely leave ~9.2e18 units "unpaid".
+        let network = Transport {
+            supply: BTreeMap::from([("ex:src".to_owned(), u64::MAX)]),
+            demand: BTreeMap::from([("ex:dst".to_owned(), u64::MAX)]),
+            capacity: BTreeMap::from([(("ex:src".to_owned(), "ex:dst".to_owned()), u64::MAX)]),
+            witnesses: BTreeMap::new(),
+            declarations: BTreeMap::new(),
+        };
+        let flow = solve_transport(&network);
+        assert_eq!(
+            flow.edges.get(&("ex:src".to_owned(), "ex:dst".to_owned())),
+            Some(&u64::MAX),
+            "the full u64::MAX capacity must flow, not a value clamped to i64::MAX: {flow:#?}"
+        );
+        assert_eq!(
+            flow.residual.get("ex:dst"),
+            Some(&0),
+            "u64::MAX supply/capacity fully pays u64::MAX demand — no residual left unpaid: {flow:#?}"
+        );
     }
 
     fn vocab(prefix: &str, ns: &[&str], dc: u64) -> crate::model::ProjectionVocabulary {

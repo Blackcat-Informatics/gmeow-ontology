@@ -1233,6 +1233,26 @@ gmeow:pcc-b a gmeow:ProjectionCeilingCommitment ;\n\
     }
 
     #[test]
+    fn relocation_with_blank_date_hard_fails() {
+        // A PRESENT but whitespace-only gmeow:relocationDate must fail exactly like a
+        // missing one (the loader's `date.trim().is_empty()` check) — a blank date
+        // dates nothing, and a regression that dropped the `.trim()` would let this
+        // one slip through as "present" while `relocation_with_no_date_hard_fails`
+        // above stays green.
+        let body = r#"gmeow:reloc-blankdate a gmeow:CeilingRelocation ;
+    gmeow:relocationTerm gmeow:termFoo ;
+    gmeow:relocationFromSlice gmeow:sliceFoo ;
+    gmeow:relocationToSlice gmeow:sliceBar ;
+    gmeow:relocationDate "   " ."#;
+        let err = load(&rubric_with(body)).unwrap_err();
+        assert!(err.message().contains("undated"), "{err}");
+        assert!(
+            err.message().contains("reloc-blankdate"),
+            "names the offending declaration: {err}"
+        );
+    }
+
+    #[test]
     fn well_formed_relocation_loads_with_sorted_deduped_terms_and_resolved_vocabulary() {
         // (a) A well-formed gmeow:CeilingRelocation: repeated and out-of-order
         // gmeow:relocationTerm values collapse to a SORTED, DEDUPED `terms` vec, and

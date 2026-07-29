@@ -698,45 +698,21 @@ pub(crate) fn slice_quality_gate_at(repo_root: &Path) -> i32 {
                         needed.insert(d.from_slice.clone());
                         needed.insert(d.to_slice.clone());
                     }
-                    let base_meas = match measure_base_residues(
-                        &root,
-                        &base,
+                    let rebalance = match ceiling_rebalance(&RebalanceInputs {
+                        root: &root,
+                        base: &base,
                         vocabularies,
-                        &needed,
-                        &slice_dirs,
-                    ) {
+                        slice_dirs: &slice_dirs,
+                        declarations,
+                        base_ceilings: &base_ceilings,
+                        working_ceilings: &working_ceilings,
+                        working_residues: &working_residues,
+                        working_constructs: &working_constructs,
+                        needed: &needed,
+                    }) {
                         Ok(r) => r,
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
                     };
-                    let base_measured = base_meas.counts();
-                    let edge_reasons = match derive_edge_reasons(
-                        &base_meas,
-                        declarations,
-                        vocabularies,
-                        &slice_dirs,
-                    ) {
-                        Ok(m) => m,
-                        Err(e) => return fail(format!("slice-quality-gate: {e}")),
-                    };
-                    let default_ceiling_by_prefix: std::collections::BTreeMap<String, u64> =
-                        vocabularies
-                            .iter()
-                            .map(|v| (v.prefix.clone(), v.default_ceiling))
-                            .collect();
-                    let rebalance = gmeow_slice_quality::gate::projection_ceiling_monotonicity(
-                        &gmeow_slice_quality::gate::CeilingComparison {
-                            file_label: GOVERNANCE_SOURCE_LABEL,
-                            base_ceilings: &base_ceilings,
-                            working_ceilings: &working_ceilings,
-                            base_measured: &base_measured,
-                            working_measured: &working_residues,
-                            base_constructs: &base_meas.constructs,
-                            working_constructs: &working_constructs,
-                            default_ceilings: &default_ceiling_by_prefix,
-                            declarations,
-                            edge_reasons: &edge_reasons,
-                        },
-                    );
                     mono.extend(rebalance.violations);
                     accepted_transfers = rebalance.accepted;
 
@@ -1612,6 +1588,87 @@ fn derive_edge_reasons(
     Ok(out)
 }
 
+/// The projection-ceiling REBALANCE verdict for one comparison: base residue
+/// measurement (scoped to `needed`) → derived edge reasons → default-ceiling
+/// projection → [`gmeow_slice_quality::gate::projection_ceiling_monotonicity`].
+///
+/// This is the exact tail both [`slice_quality_gate_at`] and the test-only
+/// `rebalance_for` helper compose — extracted into ONE function so a change to
+/// any of its steps (how the base is measured, how edge reasons are derived, how
+/// the default-ceiling map is built, or which `CeilingComparison` fields feed the
+/// gate) cannot silently drift between the production gate and the fixture-driven
+/// test helper. A hand-duplicated copy is exactly the failure mode this closes:
+/// every `assert_violation_contains` fixture would otherwise keep asserting
+/// against a stale composition and silently stop covering the real gate.
+///
+/// `needed` decides which slices the base residue measurement bothers reading:
+/// the production gate passes the implicated-only pre-filter (cells whose
+/// committed ceiling is new or raised, plus every declared relocation's
+/// endpoints — a repo can have hundreds of slices and most need no base read at
+/// all); the test helper passes every fixture slice (fixtures are tiny, so
+/// pre-filtering buys nothing and a complete measurement is easier to reason
+/// about against the assertions).
+///
+/// The inputs [`ceiling_rebalance`] composes — grouped into one struct (mirroring
+/// [`gmeow_slice_quality::gate::CeilingComparison`]'s own shape) rather than a long
+/// positional argument list, so the production gate and the test helper cannot
+/// silently swap two same-typed arguments past each other.
+#[derive(Clone, Copy)]
+struct RebalanceInputs<'a> {
+    root: &'a Path,
+    base: &'a str,
+    vocabularies: &'a [gmeow_slice_quality::model::ProjectionVocabulary],
+    slice_dirs: &'a [(&'a Path, String)],
+    declarations: &'a [gmeow_slice_quality::CeilingRelocation],
+    base_ceilings: &'a std::collections::BTreeMap<(String, String), u64>,
+    working_ceilings: &'a std::collections::BTreeMap<(String, String), u64>,
+    working_residues: &'a std::collections::BTreeMap<(String, String), u64>,
+    working_constructs:
+        &'a std::collections::BTreeMap<(String, String), Vec<gmeow_slice_quality::Construct>>,
+    needed: &'a std::collections::BTreeSet<String>,
+}
+
+/// # Errors
+/// Returns a message on a base residue measurement or edge-reason derivation
+/// failure.
+fn ceiling_rebalance(
+    inputs: &RebalanceInputs<'_>,
+) -> gmeow_errors::Result<gmeow_slice_quality::gate::CeilingRebalance> {
+    let RebalanceInputs {
+        root,
+        base,
+        vocabularies,
+        slice_dirs,
+        declarations,
+        base_ceilings,
+        working_ceilings,
+        working_residues,
+        working_constructs,
+        needed,
+    } = *inputs;
+    let base_meas = measure_base_residues(root, base, vocabularies, needed, slice_dirs)?;
+    let base_measured = base_meas.counts();
+    let edge_reasons = derive_edge_reasons(&base_meas, declarations, vocabularies, slice_dirs)?;
+    let default_ceiling_by_prefix: std::collections::BTreeMap<String, u64> = vocabularies
+        .iter()
+        .map(|v| (v.prefix.clone(), v.default_ceiling))
+        .collect();
+    Ok(gmeow_slice_quality::gate::projection_ceiling_monotonicity(
+        &gmeow_slice_quality::gate::CeilingComparison {
+            file_label: GOVERNANCE_SOURCE_LABEL,
+            base_ceilings,
+            working_ceilings,
+            base_measured: &base_measured,
+            working_measured: working_residues,
+            base_constructs: &base_meas.constructs,
+            working_constructs,
+            default_ceilings: &default_ceiling_by_prefix,
+            declarations,
+            edge_reasons: &edge_reasons,
+        },
+    ))
+}
+
 #[cfg(test)]
 mod edge_reason_merge_tests {
     use super::*;
@@ -2439,6 +2496,26 @@ fn classify_unmoved_terms<'a>(
     (unwitnessed, absent)
 }
 
+/// The human-facing line for the `absent` half of `classify_unmoved_terms`'s split (a
+/// term anchoring no residue construct in either slice — a relocation of it genuinely
+/// moves nothing). Deliberately scoped wording, never a universal "NONE of the
+/// requested terms": `absent` is a SUBSET of `terms` (the other subset is
+/// `unwitnessed`, printed separately), so a mixed request must never read as if the
+/// ENTIRE requested set were absent. A stand-alone, testable function so the exact
+/// production wording is pinned by a test rather than merely eyeballed.
+fn absent_terms_message(
+    absent: &[&str],
+    total_requested: usize,
+    from_iri: &str,
+    to_iri: &str,
+) -> String {
+    format!(
+        "# absent: {} of {total_requested} requested term(s) anchor no residue construct in {from_iri} or {to_iri} — those would move nothing: {}",
+        absent.len(),
+        absent.join(", ")
+    )
+}
+
 /// Print, per guarded vocabulary, the terms in `slice_iri`'s residue that DO anchor at
 /// least one construct, with the construct count each would carry across a move.
 ///
@@ -2718,10 +2795,8 @@ pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) 
         }
         if !absent.is_empty() {
             println!(
-                "# NONE of the {} of {} requested term(s) anchors any residue construct in {from_iri} or {to_iri} — nothing would move: {}",
-                absent.len(),
-                terms.len(),
-                absent.join(", ")
+                "{}",
+                absent_terms_message(&absent, terms.len(), from_iri, to_iri)
             );
         }
         println!(
@@ -2887,6 +2962,38 @@ mod relocation_preview_tests {
             classify_unmoved_terms(&terms, &to_residue, std::slice::from_ref(&vocab));
         assert_eq!(unwitnessed, vec!["ex:emotion"]);
         assert_eq!(absent, vec!["ex:ghost"]);
+    }
+
+    #[test]
+    fn absent_terms_message_never_reads_as_a_universal_none() {
+        // The mixed case this wording exists to get right: `absent` (1 term) is a
+        // SUBSET of `total_requested` (2 terms) — the other one is `unwitnessed`,
+        // printed separately. The old "NONE of the 1 of 2 requested term(s)" wording
+        // read as a contradiction (it asserted both "NONE" and "1 of 2" for the same
+        // count). The fixed wording must scope the sentence to the absent subset,
+        // never assert a universal "NONE", and still carry every exact number/term.
+        let msg = absent_terms_message(&["ex:ghost"], 2, "ex:from", "ex:to");
+        assert!(
+            !msg.contains("NONE"),
+            "must not read as a universal claim over all requested terms: {msg:?}"
+        );
+        assert_eq!(
+            msg,
+            "# absent: 1 of 2 requested term(s) anchor no residue construct in ex:from or ex:to — those would move nothing: ex:ghost"
+        );
+    }
+
+    #[test]
+    fn absent_terms_message_all_absent_still_reads_correctly() {
+        // The degenerate case where every requested term is absent — `absent.len() ==
+        // total_requested` — must still read correctly (this is the one case where
+        // "NONE of the requested terms" would have been literally true, but the
+        // scoped wording must not regress to a special-cased sentence for it).
+        let msg = absent_terms_message(&["ex:ghost", "ex:phantom"], 2, "ex:from", "ex:to");
+        assert_eq!(
+            msg,
+            "# absent: 2 of 2 requested term(s) anchor no residue construct in ex:from or ex:to — those would move nothing: ex:ghost, ex:phantom"
+        );
     }
 }
 
@@ -4191,6 +4298,14 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
     /// scenario's intended refusal" from an unrelated gate (binding/completeness/coat)
     /// reddening first, which would leave every one of these fixtures green on the
     /// assertion while silently exercising nothing.
+    ///
+    /// The comparison itself — base residue measurement, edge-reason derivation,
+    /// default-ceiling projection, and the `projection_ceiling_monotonicity` call —
+    /// is [`ceiling_rebalance`], the SAME function [`slice_quality_gate_at`] calls in
+    /// production; only the surrounding rubric/score/measure plumbing (identical in
+    /// shape to production, but without its other five checks interleaved) and the
+    /// `needed` pre-filter (every fixture slice, not just the implicated ones) are
+    /// re-composed here.
     fn rebalance_for(root: &std::path::Path) -> gmeow_slice_quality::gate::CeilingRebalance {
         let rubric = gmeow_slice_quality::load_repo_rubric(root).expect("fixture rubric loads");
         let vocabularies = &rubric.floors.vocabularies;
@@ -4220,33 +4335,23 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
         // benefit to the production path's "only implicated slices" pre-filter.
         let needed: std::collections::BTreeSet<String> =
             slice_dirs.iter().map(|(_, iri)| iri.clone()).collect();
-        let base_meas = measure_base_residues(root, &base, vocabularies, &needed, &slice_dirs)
-            .expect("fixture base residue measures");
-        let base_measured = base_meas.counts();
         let base_rubric = base_rubric_at(root, &base)
             .expect("fixture base rubric reads")
             .expect("fixture base rubric is present (the fixture always commits one)");
         let base_ceilings = ceilings_from_rubric(&base_rubric);
-        let edge_reasons = derive_edge_reasons(&base_meas, declarations, vocabularies, &slice_dirs)
-            .expect("fixture edge reasons derive");
-        let default_ceiling_by_prefix: std::collections::BTreeMap<String, u64> = vocabularies
-            .iter()
-            .map(|v| (v.prefix.clone(), v.default_ceiling))
-            .collect();
-        gmeow_slice_quality::gate::projection_ceiling_monotonicity(
-            &gmeow_slice_quality::gate::CeilingComparison {
-                file_label: GOVERNANCE_SOURCE_LABEL,
-                base_ceilings: &base_ceilings,
-                working_ceilings: &working_ceilings,
-                base_measured: &base_measured,
-                working_measured: &working_residues,
-                base_constructs: &base_meas.constructs,
-                working_constructs: &working_constructs,
-                default_ceilings: &default_ceiling_by_prefix,
-                declarations,
-                edge_reasons: &edge_reasons,
-            },
-        )
+        ceiling_rebalance(&RebalanceInputs {
+            root,
+            base: &base,
+            vocabularies,
+            slice_dirs: &slice_dirs,
+            declarations,
+            base_ceilings: &base_ceilings,
+            working_ceilings: &working_ceilings,
+            working_residues: &working_residues,
+            working_constructs: &working_constructs,
+            needed: &needed,
+        })
+        .expect("fixture ceiling rebalance composes")
     }
 
     /// Assert `root`'s relocation-aware rebalance carries a violation containing

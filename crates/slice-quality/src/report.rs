@@ -112,11 +112,14 @@ pub struct SliceReport {
     /// The axis IRI that PRODUCED `advisories[i]` — a stored back-reference, kept
     /// index-parallel through the rank sort.
     ///
-    /// Without it the only way back from an advisory to its axis is
-    /// `crate::lint::attribute_axis`'s best-effort textual join on the finding CODE,
-    /// which returns `None` whenever the code's domain token matches no axis or more
-    /// than one. The gate needs the exact set for ONE axis (the one below its floor),
-    /// so it reads this instead of guessing.
+    /// This is the ONLY axis-provenance mechanism in the crate: both
+    /// [`Self::advisories_for_axis`] and `crate::lint`'s severity grading read this
+    /// exact back-reference via [`Self::advisory_axis`] / [`Self::grade_for_axis_iri`].
+    /// An earlier `crate::lint::attribute_axis` helper instead guessed the producing
+    /// axis with a best-effort textual join on the finding CODE (returning `None`
+    /// whenever the code's domain token matched no axis or more than one); it has
+    /// been removed in favor of this exact stored reference — a second, guessing
+    /// mechanism doing the same job was a GREENFIELD violation.
     advisory_axes: Vec<String>,
     /// The axis IRI paired with each advisory, for weight-ranking and grouping.
     axis_weight: std::collections::HashMap<String, f64>,
@@ -334,6 +337,27 @@ impl SliceReport {
             .filter(|(produced_by, _)| produced_by.as_str() == axis_iri)
             .map(|(_, finding)| finding)
             .collect()
+    }
+
+    /// The axis IRI that produced `self.advisories[idx]`, read exactly from the
+    /// stored [`Self`]`::advisory_axes` back-reference — never a guess from the
+    /// finding's code. `None` when `idx` is out of range, or when this report
+    /// carries no axis provenance at all (the `#[cfg(test)]` [`Self::for_test`]
+    /// constructor accepts an empty `advisory_axes` for callers that do not need
+    /// axis attribution).
+    #[must_use]
+    pub fn advisory_axis(&self, idx: usize) -> Option<&str> {
+        self.advisory_axes.get(idx).map(String::as_str)
+    }
+
+    /// The already-computed grade for a given axis IRI — an exact lookup against
+    /// `self.assessment.grades`, never a textual guess.
+    #[must_use]
+    pub fn grade_for_axis_iri(&self, axis_iri: &str) -> Option<&AxisGrade> {
+        self.assessment
+            .grades
+            .iter()
+            .find(|g| g.axis_iri == axis_iri)
     }
 
     /// The roll-up tier label.
