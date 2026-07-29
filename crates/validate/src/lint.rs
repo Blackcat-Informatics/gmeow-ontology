@@ -2449,14 +2449,14 @@ mod tests {
                rdfs:label \"Documented\" ;\n\
                skos:definition \"A well-formed term.\" ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> ;\n\
-               logic:subClassOf gmeow:Dcoumented .\n"
+               logic:subClassOf gmeow:MissingParent .\n"
         ));
         let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
                 .errors()
                 .iter()
-                .any(|e| e.contains("dangling") && e.contains("/gmeow/Dcoumented")),
+                .any(|e| e.contains("dangling") && e.contains("/gmeow/MissingParent")),
             "errors: {:?}",
             report.errors()
         );
