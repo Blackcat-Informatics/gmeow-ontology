@@ -7,19 +7,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-gmeow:DayOfWeek
-    a logic:AbstractIndividualType ,
-        owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Day Of Week"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "A day of the week — a VALUE vocabulary (the seven ISO-8601 days as individuals); projects to schema:dayOfWeek."@x-gmeow-english ;
-    skos:example "ex:window gmeow:openingDay gmeow:dayMonday, gmeow:dayTuesday ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting per-day subclasses (the days are individuals) and avoid a free-text day name; the seven seeded individuals are closed and complete."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Reference the seeded gmeow:dayMonday … gmeow:daySunday individuals from a gmeow:OpeningHoursSpecification via gmeow:openingDay; the set is closed, so do not extend it."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for days of the week — the seven ISO-8601 days as individuals, referenced through gmeow:openingDay."@x-gmeow-english .
-
 gmeow:Identifier
     a logic:Kind ,
         owl:Class ;
@@ -249,55 +236,6 @@ gmeow:closesAt
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:closesAt once per gmeow:OpeningHoursSpecification (functional) to an xsd:time, paired with gmeow:opensAt and gmeow:openingDay; projects to schema:closes."@x-gmeow-english ;
     gmeow:useWhen "Use to record the closing time of a gmeow:OpeningHoursSpecification window as an xsd:time."@x-gmeow-english .
-
-gmeow:dayFriday
-    a gmeow:DayOfWeek ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Friday"@x-gmeow-english ;
-    skos:definition "Friday."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:dayMonday
-    a gmeow:DayOfWeek ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Monday"@x-gmeow-english ;
-    skos:definition "Monday."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:daySaturday
-    a gmeow:DayOfWeek ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Saturday"@x-gmeow-english ;
-    skos:definition "Saturday."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:daySunday
-    a gmeow:DayOfWeek ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Sunday"@x-gmeow-english ;
-    skos:definition "Sunday."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:dayThursday
-    a gmeow:DayOfWeek ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Thursday"@x-gmeow-english ;
-    skos:definition "Thursday."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:dayTuesday
-    a gmeow:DayOfWeek ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Tuesday"@x-gmeow-english ;
-    skos:definition "Tuesday."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
-
-gmeow:dayWednesday
-    a gmeow:DayOfWeek ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
-    rdfs:label "Wednesday"@x-gmeow-english ;
-    skos:definition "Wednesday."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:fillsPost
     a owl:ObjectProperty ;

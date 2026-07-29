@@ -432,3 +432,67 @@ msgstr "范围：该记录仅承载关于 gmeow:periodEnd 的一项完整性义�
 msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:startedAtTime and nothing else. It is not a definition of gmeow:startedAtTime (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:startedAtTime 的一项完整性义务，别无其他。它不是 gmeow:startedAtTime 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayOfWeek|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Day Of Week"
+msgstr "星期几"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayOfWeek|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recurring position in the seven-day week cycle, seeded as a closed value vocabulary of the seven ISO-8601 weekdays from gmeow:dayMonday through gmeow:daySunday. A day-of-week value is a pattern slot rather than a located stretch of the timeline: it is distinct from gmeow:TimeInterval and gmeow:NamedPeriod, which are delimited by start and end instants, and it never fixes a date by itself — \"Monday\" picks out every Monday until an interval, a recurrence, or a gmeow:TemporalFrame anchors it to one. Projects to schema:dayOfWeek."
+msgstr "七天星期周期中的一个循环位置，作为一份封闭的取值词表播种，涵盖从 gmeow:dayMonday 到 gmeow:daySunday 这七个 ISO-8601 星期日。星期几的取值是一个模式槽位，而不是时间轴上一段有定位的区段：它有别于由起止瞬间界定的 gmeow:TimeInterval 与 gmeow:NamedPeriod，并且它本身从不确定任何一个日期——「Monday」指的是每一个星期一，直到某个区间、某条循环规则或某个 gmeow:TemporalFrame 把它锚定到具体的一天为止。投影到 schema:dayOfWeek。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayMonday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Monday"
+msgstr "星期一"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayMonday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Monday, ISO-8601 weekday 1 and the day that opens the ISO week: an ISO week date such as \"2026-W31-1\" names the Monday its week begins on, so an ISO week is identified by its Monday and by no later day. It is not the opening day under the Gregorian liturgical and North American conventions, which start the week on gmeow:daySunday; the conventions disagree about where the boundary falls, never about the day itself."
+msgstr "星期一，ISO-8601 的第 1 日，也是开启 ISO 星期的那一天：形如「2026-W31-1」的 ISO 周日期所命名的，正是该周据以开始的那个星期一，因此一个 ISO 星期由它的星期一来标识，而不由任何更晚的日子标识。按照格里高利礼仪历和北美惯例，它并不是一周的开始日，那两种惯例把一周的起点放在 gmeow:daySunday；这些惯例分歧的只是边界落在何处，而绝不在这一天本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayTuesday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tuesday"
+msgstr "星期二"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayTuesday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Tuesday, ISO-8601 weekday 2: the second day of the ISO week and the earliest one carrying no calendar-boundary role — it neither opens the week, as gmeow:dayMonday does, nor settles the week's year, as gmeow:dayThursday does. That very absence is why civic calendars concentrate elections, council sittings, and market days here: the slot disturbs no boundary rule and leaves Monday free for travel."
+msgstr "星期二，ISO-8601 的第 2 日：ISO 星期中的第二天，也是最早一个不承担任何历法边界职责的日子——它既不像 gmeow:dayMonday 那样开启一周，也不像 gmeow:dayThursday 那样裁定该周所属的年份。正因为这种空缺，各地公共日程才把选举、议事会开会和集市日集中安排在这一天：这个位置不扰动任何边界规则，也让星期一得以空出来供出行之用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayWednesday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Wednesday"
+msgstr "星期三"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayWednesday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Wednesday, ISO-8601 weekday 3: the middle day of the five-day Monday-to-Friday business week, with two working days on either side. It is not the median day of the full seven-day ISO week — that is gmeow:dayThursday — so a rule phrased as \"midweek\" must first say which week it counts over before this value or Thursday is the correct one."
+msgstr "星期三，ISO-8601 的第 3 日：从星期一到星期五这五天工作周的正中一天，两侧各有两个工作日。它并不是完整七天 ISO 星期的中位日——那是 gmeow:dayThursday——因此一条以「周中」表述的规则必须先说明自己以哪一种星期为准，才能确定该取这个值还是取星期四。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayThursday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Thursday"
+msgstr "星期四"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayThursday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Thursday, ISO-8601 weekday 4: the median day of the seven-day ISO week and the day that fixes which year a week belongs to. ISO 8601 assigns a week to the year holding its Thursday, so week 1 is the week containing the first Thursday of January — the week opening 2026-12-28 is a 2026 week because its Thursday, not its Monday, decides."
+msgstr "星期四，ISO-8601 的第 4 日：七天 ISO 星期的中位日，也是裁定某一周归属哪一年的那一天。ISO 8601 把一周划归包含其星期四的那一年，所以第 1 周就是包含一月份第一个星期四的那一周——以 2026-12-28 开始的那一周属于 2026 年，正是因为作出裁定的是它的星期四而不是它的星期一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayFriday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Friday"
+msgstr "星期五"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayFriday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Friday, ISO-8601 weekday 5: the closing day of the Monday-to-Friday business week and the last day before the ISO weekend. It is not itself a weekend day — gmeow:daySaturday and gmeow:daySunday are — but it is the position most settlement, payroll, and publication deadlines land on, because it is the last point at which the business week can still absorb a delay."
+msgstr "星期五，ISO-8601 的第 5 日：从星期一到星期五这一工作周的收尾日，也是 ISO 周末之前的最后一天。它本身并不属于周末——属于周末的是 gmeow:daySaturday 和 gmeow:daySunday——但大多数结算、发薪和发布的截止期限都落在这个位置上，因为它是工作周还能吸收延误的最后一点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySaturday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Saturday"
+msgstr "星期六"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySaturday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Saturday, ISO-8601 weekday 6: the sixth day of the ISO week and the first day of the two-day Saturday–Sunday weekend. It is not a working day under the Monday-to-Friday convention, yet it is an ordinary working day wherever the weekend runs Friday–Saturday or Thursday–Friday, so a schedule that means \"closed\" must say so rather than inferring rest from the day value."
+msgstr "星期六，ISO-8601 的第 6 日：ISO 星期的第六天，也是周六至周日这个两天周末的头一天。按照星期一至星期五的惯例，它不是工作日；然而在周末为周五至周六或周四至周五的众多地区，它就是普通的工作日，所以一份想表达「停业」的日程必须把这一点写明，而不能从日期取值本身推断出休息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySunday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Sunday"
+msgstr "星期日"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySunday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Sunday, ISO-8601 weekday 7: the day that closes the ISO week, even though the Gregorian liturgical calendar and North American convention both place it first. The two orderings disagree only about where the week boundary falls, never about the day, so a weekly rule must state which convention it counts in instead of assuming this value sits at either end."
+msgstr "星期日，ISO-8601 的第 7 日：收束 ISO 星期的那一天，尽管格里高利礼仪历和北美惯例都把它排在最前面。这两种排序仅仅在每周边界落于何处上存在分歧，而绝不在这一天本身；因此一条按周生效的规则必须说明自己依照哪一种惯例来计数，而不是假定这个取值必居首尾之一。"

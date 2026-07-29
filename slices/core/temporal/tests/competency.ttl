@@ -28,3 +28,44 @@ ex:tcAssertedAt a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:assertedAt ] .
 ex:tcRecordedNoLaterThan a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:recordedNoLaterThan ] .
+
+# The week cycle: gmeow:DayOfWeek is a CLOSED value vocabulary (ISO 8601 closes it), so
+# the class and all seven weekday individuals must be answerable from the asserted
+# ontology alone. All seven rows are pinned, which makes this a completeness witness for
+# the closure rather than a spot check; the shape stays RowsContains so a future
+# non-ISO day vocabulary added elsewhere would not red this question.
+ex:cqTemporalWeekCycleValues a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/temporal/queries/competency/week-cycle-values.rq" ;
+    gmeow:cqRationale "A weekday is calendar STRUCTURE, not a located span: gmeow:DayOfWeek names a recurring position in the seven-day week cycle and its seven ISO-8601 individuals are the complete, closed membership. Both the opening-hours surface (gmeow:openingDay) and the calendar slice's recurrence machinery read these seven values, so the vocabulary lives beside gmeow:CalendarSystem and gmeow:PeriodType in temporal and must be queryable as a whole." ;
+    gmeow:cqResultShape ex:cqTemporalWeekCycleValuesShape ;
+    gmeow:cqExpectRow
+        ex:twcMonday , ex:twcTuesday , ex:twcWednesday , ex:twcThursday ,
+        ex:twcFriday , ex:twcSaturday , ex:twcSunday .
+
+ex:cqTemporalWeekCycleValuesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "dayClass" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "day" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:twcMonday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayMonday ] .
+ex:twcTuesday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayTuesday ] .
+ex:twcWednesday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayWednesday ] .
+ex:twcThursday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayThursday ] .
+ex:twcFriday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayFriday ] .
+ex:twcSaturday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:daySaturday ] .
+ex:twcSunday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:daySunday ] .

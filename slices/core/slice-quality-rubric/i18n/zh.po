@@ -544,3 +544,11 @@ msgstr "范围：该记录仅承载关于 gmeow:vocabularyPreservation 的一项
 msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularySubsumedBy and nothing else. It is not a definition of gmeow:vocabularySubsumedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:vocabularySubsumedBy 的一项完整性义务，别无其他。它不是 gmeow:vocabularySubsumedBy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceiling relocation — the week cycle, organization to temporal"
+msgstr "上限迁移——星期周期，由 organization 迁往 temporal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The record that the week-cycle value vocabulary left the organization slice for the temporal slice: gmeow:DayOfWeek and its seven ISO-8601 day individuals are calendar structure, and they sat in organization only because gmeow:openingDay needed a range. The rdfs subsumption edge gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue is the one guarded construct the move carries, so organization surrenders one unit of rdfs headroom and temporal takes exactly that unit on. This is the movement record the ceiling accounting joins against the measurement; it is not itself a permit, and it retires once the move is absorbed at the merge base."
+msgstr "该记录表明：星期周期的取值词表已经离开 organization 切片、迁往 temporal 切片。gmeow:DayOfWeek 及其七个 ISO-8601 日期个体属于历法结构，它们当初留在 organization，只是因为 gmeow:openingDay 需要一个值域。此次移动所携带的唯一受守卫构造，是 rdfs 包含边 gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue，因此 organization 让出一个单位的 rdfs 余量，而 temporal 恰好承接这一个单位。这是上限核算据以与测量相互印证的移动记录；它本身并不构成许可，一旦该移动在合并基线处被吸收，它就随即失效。"

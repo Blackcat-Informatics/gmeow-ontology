@@ -155,8 +155,9 @@ The minimal commercial-offerings surface (project homepage and language, P15 con
 agent `gmeow:makesOffer` an `gmeow:Offering` of some `gmeow:itemOffered` (a
 `gmeow:ServiceOffering` or any entity), provided by `gmeow:offeringProvider`. A service
 carries an open `gmeow:serviceType` and a `gmeow:areaServed`; opening hours are a
-reified `gmeow:OpeningHoursSpecification` (`gmeow:openingDay` from the open
-`gmeow:DayOfWeek` vocab, `gmeow:opensAt` / `gmeow:closesAt`). `gmeow:ServiceOffering` is
+reified `gmeow:OpeningHoursSpecification` (`gmeow:openingDay`, ranging over the
+week-cycle `gmeow:DayOfWeek` vocabulary the **temporal** slice owns, plus
+`gmeow:opensAt` / `gmeow:closesAt`). `gmeow:ServiceOffering` is
 distinct from the documents-slice `gmeow:Service` (a creative work). Projects to
 `schema:Offer` / `Service` / `makesOffer` / `itemOffered` / `provider` / `serviceType` /
 `areaServed` / `OpeningHoursSpecification` / `dayOfWeek` / `opens` / `closes`.
