@@ -34,6 +34,13 @@ const REFERENCE_AST_ACT: &str =
 /// in the instance data. Production always reasons over TBox + data together; so does this test.
 const MATH_MODULE: &str = include_str!("../../../slices/grounding/math/module.ttl");
 
+/// The SHIPPED twin example — two independently authored copies of one expression that share
+/// only their symbols. Folded into the example corpus so the bundle's own population can
+/// exercise the identity headline, which the reference example cannot: it reuses one pair of
+/// occurrence nodes across both of its expressions.
+const ALPHA_TWINS: &str =
+    include_str!("../../../slices/grounding/math/examples/alpha-equivalent-twins.ttl");
+
 /// Reason over the math TBox UNIONED with `turtle`, exactly as production does.
 fn reasoned(turtle: &str) -> gmeow_logic::verify::ReasonedGraph {
     let combined = format!("{MATH_MODULE}\n{turtle}");
@@ -61,7 +68,12 @@ fn reasoned(turtle: &str) -> gmeow_logic::verify::ReasonedGraph {
 #[test]
 fn the_shipped_reference_example_raises_no_expression_identity_finding_when_reasoned() {
     let graph = reasoned(REFERENCE_AST_ACT);
-    let findings = check_math_expression_findings(&graph.dataset);
+    // Only VIOLATIONS matter here. The gate also emits one positive Note per decided root
+    // (the expression's alpha-equivalence class), which is the population signal, not a fault.
+    let findings: Vec<_> = check_math_expression_findings(&graph.dataset)
+        .into_iter()
+        .filter(|f| f.severity != gmeow_errors::Severity::Note)
+        .collect();
     assert!(
         findings.is_empty(),
         "the shipped reference example must be clean through the reasoned substrate, got: {:?}",
@@ -96,10 +108,13 @@ fn structurally_identical_expressions_under_different_iris_share_one_key() {
         "structurally identical expressions under different IRIs must share one key, saw {declared:?}"
     );
 
-    // And the gate agrees with that shared key on the reasoned substrate.
+    // And the gate agrees with that shared key on the reasoned substrate — no VIOLATION;
+    // the positive alpha-class notes are the gate's verdict, not a fault.
     let graph = reasoned(REFERENCE_AST_ACT);
     assert!(
-        check_math_expression_findings(&graph.dataset).is_empty(),
+        check_math_expression_findings(&graph.dataset)
+            .iter()
+            .all(|f| f.severity == gmeow_errors::Severity::Note),
         "the shared key must survive the reasoned substrate"
     );
 }
@@ -205,5 +220,33 @@ ex:refB1 a math:SymbolReference ; math:hasMathematicalSymbol ex:symR .
         "independently authored twins over the same symbols must share ONE alpha-equivalence \
          class; two classes means the digest is keyed on occurrence-wrapper IRIs and is a label, \
          not a content key: {classes:?}"
+    );
+}
+
+/// The SHIPPED twin example resolves its two independently authored expressions to ONE class.
+///
+/// Same property as the inline twin case above, but over the file the bundle actually carries,
+/// so the corpus folded into `graph/math-examples` can itself fail if the digest ever goes back
+/// to keying on occurrence-wrapper IRIs.
+#[test]
+fn the_shipped_twin_example_resolves_both_authorings_to_one_class() {
+    const ALPHA_CLASS: &str = "https://blackcatinformatics.ca/math/alphaEquivalenceClass";
+    let graph = reasoned(ALPHA_TWINS);
+    let mut classes: std::collections::BTreeMap<String, String> = Default::default();
+    for quad in graph.dataset.flat_default_graph_quads() {
+        if format!("{:?}", quad.p).contains(ALPHA_CLASS) {
+            classes.insert(format!("{:?}", quad.s), format!("{:?}", quad.o));
+        }
+    }
+    assert_eq!(
+        classes.len(),
+        2,
+        "both shipped twins must be decided by the gate, saw {classes:?}"
+    );
+    let distinct: std::collections::BTreeSet<&String> = classes.values().collect();
+    assert_eq!(
+        distinct.len(),
+        1,
+        "the shipped twins must share ONE alpha-equivalence class: {classes:?}"
     );
 }

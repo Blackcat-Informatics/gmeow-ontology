@@ -93,6 +93,7 @@ pub fn check_math_expression_findings(reasoned: &RdfDataset) -> Vec<Finding> {
     check_structural_key_drift(&keys, &usage, &mut findings);
     check_structural_key_on_rejected_expression(&keys, &usage, &mut findings);
     check_surface_leak_in_normal_form(&index, &mut findings);
+    report_alpha_equivalence_classes(&keys, &mut findings);
 
     findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
     findings
@@ -292,3 +293,38 @@ fn check_surface_leak_in_normal_form(index: &TripleIndex, findings: &mut Vec<Fin
 
 #[cfg(test)]
 mod tests;
+
+/// Surface the α-equivalence class of every expression the lowering ACCEPTS, as a note.
+///
+/// Without this the identity edge reaches a consumer only on the DRIFT branch, through a
+/// failure's `cited_iris` — so two WRONG expressions could be joined and two RIGHT ones could
+/// not, which is backwards for an identity. The materialized edge lives in the reasoned graph
+/// this gate reads, and the reasoned graph is internal; a note is how a CLI consumer sees it.
+///
+/// It is also the gate's only POSITIVE verdict. "No findings" and "nothing to decide" are the
+/// same observation from outside, so a silent population is indistinguishable from a healthy
+/// one; one note per decided root makes the population countable.
+fn report_alpha_equivalence_classes(
+    keys: &std::collections::BTreeMap<
+        String,
+        Result<String, crate::physical::lower::MathLoweringError>,
+    >,
+    findings: &mut Vec<Finding>,
+) {
+    for (root, keyed) in keys {
+        let Ok(digest) = keyed else { continue };
+        let alpha_iri = crate::physical::lower::alpha_class_iri_for_digest(digest);
+        let mut finding = Finding::new(
+            Severity::Note,
+            "verify.math.alpha-equivalence-class",
+            format!(
+                "math:AlphaEquivalenceClass: expression {root} resolves to {alpha_iri} — two \
+                 expressions identical up to bound-variable renaming and symbol occurrence share \
+                 this node, so a consumer joins on it rather than string-comparing digests"
+            ),
+        )
+        .with_tool("verify");
+        finding.cited_iris = vec![alpha_iri];
+        findings.push(finding);
+    }
+}
