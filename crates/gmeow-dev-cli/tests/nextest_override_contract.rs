@@ -196,11 +196,11 @@ fn collect_rust_sources(dir: &Path, sink: &mut String) {
         let path = entry.path();
         if path.is_dir() {
             collect_rust_sources(&path, sink);
-        } else if path.extension().is_some_and(|e| e == "rs") {
-            if let Ok(text) = std::fs::read_to_string(&path) {
-                sink.push_str(&text);
-                sink.push('\n');
-            }
+        } else if path.extension().is_some_and(|e| e == "rs")
+            && let Ok(text) = std::fs::read_to_string(&path)
+        {
+            sink.push_str(&text);
+            sink.push('\n');
         }
     }
 }
