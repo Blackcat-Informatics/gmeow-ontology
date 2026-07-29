@@ -1369,9 +1369,15 @@ mod tests {
             if text[i..].starts_with("://") {
                 continue;
             }
+            // `rfind` on a `char` predicate returns the byte offset of the START of a
+            // (possibly multi-byte) matching char; `j + 1` would land mid-codepoint for
+            // any non-ASCII delimiter and panic on the slice below. Walk `char_indices`
+            // instead and step past the FULL matched char's byte length.
             let start = text[..i]
-                .rfind(|ch: char| !(ch.is_ascii_alphanumeric() || ch == '_' || ch == '-'))
-                .map_or(0, |j| j + 1);
+                .char_indices()
+                .rev()
+                .find(|(_, ch)| !(ch.is_ascii_alphanumeric() || *ch == '_' || *ch == '-'))
+                .map_or(0, |(j, ch)| j + ch.len_utf8());
             let name = &text[start..i];
             if name.is_empty() || name.starts_with(|ch: char| ch.is_ascii_digit()) {
                 continue;
@@ -1383,6 +1389,20 @@ mod tests {
             out.push_str(&format!("@prefix {name}: <urn:x-gmeow-test:{name}#> .\n"));
         }
         out
+    }
+
+    #[test]
+    fn synthesized_prefixes_does_not_panic_on_multibyte_delimiter_against_a_curie() {
+        // The zh catalogues place CJK directly against a CURIE with no ASCII
+        // separator, e.g. "线路值gmeow:useWhen". `rfind` returns the byte offset of
+        // the START of the (3-byte) CJK char immediately before the prefix; naive
+        // `+ 1` arithmetic lands one byte into that codepoint and panics the slice.
+        let text = "线路值gmeow:useWhen";
+        let prefixes = synthesized_prefixes(text);
+        assert!(
+            prefixes.contains("@prefix gmeow: "),
+            "expected the `gmeow` prefix to be extracted cleanly, got: {prefixes:?}"
+        );
     }
 
     /// Whether `text` is well-formed Turtle SYNTAX under the repo's own parser —

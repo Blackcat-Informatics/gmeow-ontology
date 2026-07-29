@@ -1308,18 +1308,29 @@ fn materialize_base_tree(
     base: &str,
     pathspecs: &[String],
 ) -> gmeow_errors::Result<BaseTree> {
+    use std::hash::{BuildHasher, Hasher};
     use std::process::{Command, Stdio};
     use std::sync::atomic::{AtomicU64, Ordering};
     static SEQ: AtomicU64 = AtomicU64::new(0);
 
+    // `pid-seq` alone is guessable on a machine shared by 30+ developers: a symlink
+    // pre-planted at the predicted path, combined with `create_dir_all` succeeding
+    // THROUGH an existing symlink, would let `tar -x` write the base tree outside this
+    // temp root (TOCTOU). `RandomState`'s keys are drawn from the OS's own CSPRNG
+    // per construction, so hashing them with the pid/seq gives an unpredictable
+    // suffix with no extra crate; `create_dir` (not `_all`, and with no preceding
+    // `remove_dir_all`) then FAILS on any pre-existing path — including a symlink —
+    // instead of following or clobbering it.
+    let salt = std::collections::hash_map::RandomState::new()
+        .build_hasher()
+        .finish();
     let mut dir = std::env::temp_dir();
     dir.push(format!(
-        "gmeow-ratchet-base-{}-{}",
+        "gmeow-ratchet-base-{}-{}-{salt:016x}",
         std::process::id(),
         SEQ.fetch_add(1, Ordering::SeqCst)
     ));
-    let _ = std::fs::remove_dir_all(&dir);
-    std::fs::create_dir_all(&dir)
+    std::fs::create_dir(&dir)
         .map_err(|e| sqe(format!("could not create base-tree temp dir {dir:?}: {e}")))?;
     // Construct the guard BEFORE anything else can fail, so every path below cleans up.
     let tree = BaseTree { root: dir };
@@ -1579,18 +1590,154 @@ fn derive_edge_reasons(
                 .filter(|(anchor, _)| declared.contains(anchor.as_str()))
                 .collect();
             if !scoped.is_empty() {
-                out.insert(
-                    (
+                // Two `gmeow:CeilingRelocation` individuals may legitimately share the
+                // same `(from, to, vocab)` edge — the gate itself merges witnesses and
+                // declaration IRIs per edge (`network.witnesses`/`network.declarations`
+                // in `gate.rs`) — so a plain `insert` here would silently DROP the
+                // earlier declaration's reason codes rather than merge them. Union
+                // per-anchor instead.
+                let edge = out
+                    .entry((
                         d.from_slice.clone(),
                         d.to_slice.clone(),
                         vocab.prefix.clone(),
-                    ),
-                    scoped,
-                );
+                    ))
+                    .or_default();
+                for (anchor, codes) in scoped {
+                    edge.entry(anchor).or_default().extend(codes);
+                }
             }
         }
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod edge_reason_merge_tests {
+    use super::*;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+
+    struct TempDir {
+        path: std::path::PathBuf,
+    }
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.path);
+        }
+    }
+    fn temp_dir(label: &str) -> TempDir {
+        let n = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let mut path = std::env::temp_dir();
+        path.push(format!(
+            "gmeow-edge-reason-{label}-{}-{n}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&path);
+        std::fs::create_dir_all(&path).unwrap();
+        TempDir { path }
+    }
+
+    /// A `gmeow:CeilingRelocation` declaring `terms` on the `from -> to` edge, dated
+    /// arbitrarily (the merge under test does not read the date).
+    fn reloc(
+        iri: &str,
+        terms: &[&str],
+        from: &str,
+        to: &str,
+    ) -> gmeow_slice_quality::CeilingRelocation {
+        gmeow_slice_quality::CeilingRelocation {
+            iri: iri.to_owned(),
+            terms: terms.iter().map(|s| (*s).to_owned()).collect(),
+            from_slice: from.to_owned(),
+            to_slice: to.to_owned(),
+            vocabulary: Some("sh".to_owned()),
+            date: "2026-01-01".to_owned(),
+        }
+    }
+
+    #[test]
+    fn two_declarations_on_one_edge_both_survive_the_merge() {
+        // Two DISTINCT `gmeow:CeilingRelocation` individuals legitimately share the
+        // same (from, to, vocab) edge — the gate itself merges witnesses and
+        // declaration IRIs per edge. Each declares a DIFFERENT term, and each term's
+        // grounding axiom is left behind at the destination (GroundingOrphaned for
+        // both). Before the fix, `out.insert` on the second declaration silently
+        // DROPPED the first declaration's reason codes; the merge must union them.
+        const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+        const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+        const FROM: &str = "https://blackcatinformatics.ca/gmeow/slices/src";
+        const TO: &str = "https://blackcatinformatics.ca/gmeow/slices/dst";
+        let prefixes = format!(
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix gmeow: <{NS}> .\n\
+             @prefix logic: <{LOGIC}> .\n"
+        );
+
+        let base_root = temp_dir("base");
+        let source_dir = base_root.path.join("rel/src");
+        std::fs::create_dir_all(&source_dir).unwrap();
+        std::fs::write(
+            source_dir.join("module.ttl"),
+            format!(
+                "{prefixes}\
+                 gmeow:S1 a sh:NodeShape ; logic:formalizes logic:s1Axiom .\n\
+                 logic:s1Axiom a logic:Formula .\n\
+                 gmeow:S2 a sh:NodeShape ; logic:formalizes logic:s2Axiom .\n\
+                 logic:s2Axiom a logic:Formula .\n"
+            ),
+        )
+        .unwrap();
+
+        let dest_root = temp_dir("dest");
+        std::fs::write(
+            dest_root.path.join("module.ttl"),
+            format!(
+                "{prefixes}\
+                 gmeow:S1 a sh:NodeShape ; logic:formalizes logic:s1Axiom .\n\
+                 gmeow:S2 a sh:NodeShape ; logic:formalizes logic:s2Axiom .\n"
+            ),
+        )
+        .unwrap();
+
+        let base = BaseMeasurement {
+            tree: Some(BaseTree {
+                root: base_root.path.clone(),
+            }),
+            dirs: std::collections::BTreeMap::from([(FROM.to_owned(), "rel/src".to_owned())]),
+            constructs: std::collections::BTreeMap::new(),
+        };
+        let declarations = vec![
+            reloc("gmeow:reloc1", &[&format!("{NS}S1")], FROM, TO),
+            reloc("gmeow:reloc2", &[&format!("{NS}S2")], FROM, TO),
+        ];
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let slices: Vec<(&Path, String)> = vec![(dest_root.path.as_path(), TO.to_owned())];
+
+        let out = derive_edge_reasons(&base, &declarations, std::slice::from_ref(&vocab), &slices)
+            .expect("both fixture surfaces parse");
+
+        let edge = out
+            .get(&(FROM.to_owned(), TO.to_owned(), "sh".to_owned()))
+            .expect("the shared edge carries reasons");
+        assert_eq!(
+            edge.get(&format!("{NS}S1"))
+                .map(|r| r.iter().copied().collect::<Vec<_>>()),
+            Some(vec![
+                gmeow_slice_quality::RelocationReason::GroundingOrphaned
+            ]),
+            "reloc1's reason survives the merge: {edge:?}"
+        );
+        assert_eq!(
+            edge.get(&format!("{NS}S2"))
+                .map(|r| r.iter().copied().collect::<Vec<_>>()),
+            Some(vec![
+                gmeow_slice_quality::RelocationReason::GroundingOrphaned
+            ]),
+            "reloc2's reason survives the merge, not just the LAST declaration processed: {edge:?}"
+        );
+    }
 }
 
 /// Resolve the committed floor for one `(slice, axis)` grade: the explicit
@@ -2249,6 +2396,49 @@ fn relocation_plan(
 /// line naming the remainder count.
 const RELOCATION_ANCHOR_LISTING_CAP: usize = 20;
 
+/// Split the requested `terms` that contributed nothing to the transport plan (none of
+/// them anchors any residue construct in `from_iri`) into the two semantically distinct
+/// reasons that can be:
+///
+/// - **absent** — the term anchors NO residue construct anywhere the preview measures
+///   (neither `from_iri` nor `to_iri`). A relocation of this term genuinely moves
+///   nothing; the term is likely mistyped or was never authored.
+/// - **unwitnessed** — the term DOES anchor residue, just at the DESTINATION rather
+///   than the source. There is no departure to pair with an arrival, so this specific
+///   `from → to` declaration could never be corroborated as witnessed — mirroring the
+///   departed/arrived pairing
+///   [`gmeow_slice_quality::gate::projection_ceiling_monotonicity`] requires of an
+///   authored `gmeow:CeilingRelocation` (`crates/slice-quality/src/gate.rs`,
+///   `departed`/`arrived`). This is exactly the shape of mistake a maintainer makes
+///   running the preview as its own negative control (e.g. `--from`/`--to` swapped):
+///   the term is real and does carry residue, so telling them "nothing would move"
+///   would be silently wrong.
+///
+/// Order-preserving over `terms` so the printed lists read in the order the caller
+/// asked for them.
+fn classify_unmoved_terms<'a>(
+    terms: &'a [String],
+    to_residue: &std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>>,
+    vocabularies: &[gmeow_slice_quality::model::ProjectionVocabulary],
+) -> (Vec<&'a str>, Vec<&'a str>) {
+    let to_anchors: std::collections::BTreeSet<&str> = vocabularies
+        .iter()
+        .filter_map(|v| to_residue.get(&v.prefix))
+        .flat_map(|constructs| constructs.iter())
+        .filter_map(|c| c.witness.anchor())
+        .collect();
+    let mut unwitnessed = Vec::new();
+    let mut absent = Vec::new();
+    for term in terms {
+        if to_anchors.contains(term.as_str()) {
+            unwitnessed.push(term.as_str());
+        } else {
+            absent.push(term.as_str());
+        }
+    }
+    (unwitnessed, absent)
+}
+
 /// Print, per guarded vocabulary, the terms in `slice_iri`'s residue that DO anchor at
 /// least one construct, with the construct count each would carry across a move.
 ///
@@ -2347,19 +2537,26 @@ fn print_relocatable_anchors(
 ///   ([`gmeow_slice_quality::RelocationReason`]) for every named term whose residue
 ///   membership genuinely changes across the move.
 ///
-/// When NONE of the requested terms anchors residue in the source slice, it says so
-/// precisely (that is a statement about the requested terms, never about whether the
-/// slice carries residue at all) and then prints the DISCOVERY listing
+/// When NONE of the requested terms contributes to the transport plan, it distinguishes
+/// two semantically different reasons ([`classify_unmoved_terms`]) rather than
+/// conflating them into one misleading "nothing would move": a term ABSENT from both
+/// slices' residue genuinely moves nothing, while a term already anchoring residue at
+/// the DESTINATION is UNWITNESSED — real, but with no departure from the requested
+/// source to pair with an arrival. Either way it then prints the DISCOVERY listing
 /// ([`print_relocatable_anchors`]): every term in the source that DOES anchor residue,
 /// per vocabulary, with the construct count each would carry.
 ///
 /// Then, once, the AXIS-FLOOR COLLATERAL: every committed `gmeow:AxisFloorCommitment`
 /// on either slice with its live measured score and headroom.
 ///
-/// Always exits 0 — it never gates, and its numbers are never fed back into a ceiling
-/// (a ceiling is lowered only by a deliberate hand-edit after a genuine measured
-/// migration, and raised only through an authored `gmeow:CeilingRelocation` the gate
-/// then corroborates against the derived witness).
+/// Never gates on its findings; malformed input, rubric-load and measurement errors
+/// still fail non-zero (an unresolvable `--from`/`--to`, `from == to`, a rubric-load
+/// or empty-registry error, and every residue/axis-floor measurement error below —
+/// `return fail(...)` at every one of those sites, never a swallowed `Result`). Its
+/// numbers are never fed back into a ceiling (a ceiling is lowered only by a
+/// deliberate hand-edit after a genuine measured migration, and raised only through
+/// an authored `gmeow:CeilingRelocation` the gate then corroborates against the
+/// derived witness).
 pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) -> i32 {
     let root = project_root();
     let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
@@ -2505,10 +2702,28 @@ pub fn slice_quality_relocation_preview(terms: &[String], from: &str, to: &str) 
         }
     }
     if !any_moving {
-        println!(
-            "# NONE of the {} requested term(s) anchors any residue construct in {from_iri} — nothing would move.",
-            terms.len()
-        );
+        let (unwitnessed, absent) = classify_unmoved_terms(terms, &to_residue, vocabularies);
+        // The two cases are semantically different and must never be conflated: a
+        // maintainer running this preview in the wrong direction (its own negative
+        // control, e.g. --from/--to swapped) must not be told a real, existing term
+        // "would move nothing" when it genuinely anchors residue — just not at the
+        // requested source.
+        if !unwitnessed.is_empty() {
+            println!(
+                "# unwitnessed: {} of {} requested term(s) already anchor residue in {to_iri} (the DESTINATION), not {from_iri} — there is no departure to pair with an arrival, so this from→to move cannot be witnessed for: {}",
+                unwitnessed.len(),
+                terms.len(),
+                unwitnessed.join(", ")
+            );
+        }
+        if !absent.is_empty() {
+            println!(
+                "# NONE of the {} of {} requested term(s) anchors any residue construct in {from_iri} or {to_iri} — nothing would move: {}",
+                absent.len(),
+                terms.len(),
+                absent.join(", ")
+            );
+        }
         println!(
             "# (This says nothing about whether {from_iri} carries residue: the terms below are the ones that DO.)"
         );
@@ -2613,6 +2828,65 @@ mod relocation_preview_tests {
         // headroom surrenders no authoring, so the credit is clamped to the one unit
         // that moved — never the 81-unit paper drop.
         assert_eq!(relocation_plan(1, 10, 90, 0, 0).credit, 1);
+    }
+
+    fn construct(anchor: &str) -> gmeow_slice_quality::Construct {
+        gmeow_slice_quality::Construct {
+            key: anchor.to_owned(),
+            grounded: false,
+            is_bridge: false,
+            witness: gmeow_slice_quality::Witness::Anchored(anchor.to_owned()),
+        }
+    }
+
+    #[test]
+    fn case_a_a_term_absent_from_both_slices_is_not_unwitnessed() {
+        // Neither slice's residue anchors "ex:ghost" at all — a relocation of it
+        // genuinely moves nothing, and it must land in `absent`, never `unwitnessed`.
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let to_residue: std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>> =
+            std::collections::BTreeMap::from([(vocab.prefix.clone(), vec![construct("ex:real")])]);
+        let terms = vec!["ex:ghost".to_owned()];
+        let (unwitnessed, absent) =
+            classify_unmoved_terms(&terms, &to_residue, std::slice::from_ref(&vocab));
+        assert_eq!(unwitnessed, Vec::<&str>::new());
+        assert_eq!(absent, vec!["ex:ghost"]);
+    }
+
+    #[test]
+    fn case_b_a_term_anchored_only_at_the_destination_is_unwitnessed_not_absent() {
+        // This is the preview's own negative control: a maintainer runs the preview
+        // with --from/--to swapped (or simply names a term that already lives at the
+        // destination). "ex:emotion" DOES anchor real residue — just at `to_iri`, not
+        // the requested `from_iri` — so there is no departure to pair with an arrival.
+        // It must be reported as `unwitnessed: 1 of 1`, never folded into "nothing
+        // would move".
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let to_residue: std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>> =
+            std::collections::BTreeMap::from([(
+                vocab.prefix.clone(),
+                vec![construct("ex:emotion")],
+            )]);
+        let terms = vec!["ex:emotion".to_owned()];
+        let (unwitnessed, absent) =
+            classify_unmoved_terms(&terms, &to_residue, std::slice::from_ref(&vocab));
+        assert_eq!(unwitnessed, vec!["ex:emotion"]);
+        assert_eq!(absent, Vec::<&str>::new());
+    }
+
+    #[test]
+    fn a_mixed_request_splits_cleanly_between_both_classes() {
+        let vocab = gmeow_slice_quality::counting::shacl_vocab();
+        let to_residue: std::collections::BTreeMap<String, Vec<gmeow_slice_quality::Construct>> =
+            std::collections::BTreeMap::from([(
+                vocab.prefix.clone(),
+                vec![construct("ex:emotion")],
+            )]);
+        let terms = vec!["ex:ghost".to_owned(), "ex:emotion".to_owned()];
+        let (unwitnessed, absent) =
+            classify_unmoved_terms(&terms, &to_residue, std::slice::from_ref(&vocab));
+        assert_eq!(unwitnessed, vec!["ex:emotion"]);
+        assert_eq!(absent, vec!["ex:ghost"]);
     }
 }
 
@@ -3907,6 +4181,86 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
         RelocSpec::new("relocS1", &["S1"], "alpha", "beta")
     }
 
+    /// The relocation-aware ceiling comparator's OWN structured verdict for `root` —
+    /// the same sequence [`slice_quality_gate_at`] composes internally
+    /// (`load_repo_rubric` → `score_slices_with_rubric` → `ceilings_from_rubric` /
+    /// `measure_repo_residue_constructs` → `resolve_base_ref` → `measure_base_residues`
+    /// / `derive_edge_reasons` → `projection_ceiling_monotonicity`), called directly
+    /// here so a scenario can assert on its OWN violation message — a bare
+    /// `assert_ne!(slice_quality_gate_at(...), 0, ...)` cannot distinguish "this
+    /// scenario's intended refusal" from an unrelated gate (binding/completeness/coat)
+    /// reddening first, which would leave every one of these fixtures green on the
+    /// assertion while silently exercising nothing.
+    fn rebalance_for(root: &std::path::Path) -> gmeow_slice_quality::gate::CeilingRebalance {
+        let rubric = gmeow_slice_quality::load_repo_rubric(root).expect("fixture rubric loads");
+        let vocabularies = &rubric.floors.vocabularies;
+        let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+        let score_results = gmeow_slice_quality::score_slices_with_rubric(root, &dirs, &rubric);
+        let mut slice_dirs: Vec<(&Path, String)> = Vec::with_capacity(dirs.len());
+        for (dir, result) in dirs.iter().zip(&score_results) {
+            let report = result.as_ref().expect("fixture slice scores");
+            slice_dirs.push((dir.as_path(), report.assessment.slice.clone()));
+        }
+        let working_ceilings = ceilings_from_rubric(&rubric);
+        let working_constructs =
+            gmeow_slice_quality::measure_repo_residue_constructs(root, vocabularies)
+                .expect("fixture working residue measures");
+        let working_residues: std::collections::BTreeMap<(String, String), u64> =
+            working_constructs
+                .iter()
+                .map(|(key, constructs)| (key.clone(), constructs.len() as u64))
+                .collect();
+        let base = match resolve_base_ref(root) {
+            BaseRef::Resolved(base) => base,
+            BaseRef::NoUpstream(reason) => panic!("fixture must resolve a base ref: {reason}"),
+            BaseRef::Unresolvable(reason) => panic!("fixture base ref unresolvable: {reason}"),
+        };
+        let declarations = &rubric.floors.relocations;
+        // Every fixture slice — the fixtures are tiny (2-3 slices), so there is no
+        // benefit to the production path's "only implicated slices" pre-filter.
+        let needed: std::collections::BTreeSet<String> =
+            slice_dirs.iter().map(|(_, iri)| iri.clone()).collect();
+        let base_meas = measure_base_residues(root, &base, vocabularies, &needed, &slice_dirs)
+            .expect("fixture base residue measures");
+        let base_measured = base_meas.counts();
+        let base_rubric = base_rubric_at(root, &base)
+            .expect("fixture base rubric reads")
+            .expect("fixture base rubric is present (the fixture always commits one)");
+        let base_ceilings = ceilings_from_rubric(&base_rubric);
+        let edge_reasons = derive_edge_reasons(&base_meas, declarations, vocabularies, &slice_dirs)
+            .expect("fixture edge reasons derive");
+        let default_ceiling_by_prefix: std::collections::BTreeMap<String, u64> = vocabularies
+            .iter()
+            .map(|v| (v.prefix.clone(), v.default_ceiling))
+            .collect();
+        gmeow_slice_quality::gate::projection_ceiling_monotonicity(
+            &gmeow_slice_quality::gate::CeilingComparison {
+                file_label: GOVERNANCE_SOURCE_LABEL,
+                base_ceilings: &base_ceilings,
+                working_ceilings: &working_ceilings,
+                base_measured: &base_measured,
+                working_measured: &working_residues,
+                base_constructs: &base_meas.constructs,
+                working_constructs: &working_constructs,
+                default_ceilings: &default_ceiling_by_prefix,
+                declarations,
+                edge_reasons: &edge_reasons,
+            },
+        )
+    }
+
+    /// Assert `root`'s relocation-aware rebalance carries a violation containing
+    /// `needle` — the scenario's OWN reason, not merely SOME red somewhere.
+    #[track_caller]
+    fn assert_violation_contains(root: &std::path::Path, needle: &str) {
+        let rebalance = rebalance_for(root);
+        assert!(
+            rebalance.violations.iter().any(|v| v.contains(needle)),
+            "expected a violation containing {needle:?}; got: {:#?}",
+            rebalance.violations
+        );
+    }
+
     #[test]
     fn declared_witnessed_and_paid_transfer_is_accepted() {
         // S1 genuinely DEPARTS alpha and ARRIVES at beta; alpha's ceiling falls by
@@ -3943,6 +4297,13 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             0,
             "a construct COPIED into a second slice must never be netted as a transfer"
         );
+        // The SPECIFIC refusal: the declaration names S1 but NONE of it departed
+        // alpha — a fixture drift that reds some unrelated gate first would still
+        // pass the exit-code check above without ever exercising this reason.
+        assert_violation_contains(
+            &fx.root,
+            &format!("but NONE of them departed {}", slice_iri("alpha")),
+        );
     }
 
     #[test]
@@ -3961,6 +4322,15 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             slice_quality_gate_at(&fx.root),
             0,
             "a lowering that shares no witnessed key with the raise funds nothing"
+        );
+        // The SPECIFIC refusal: S9 arrived at beta but no declaration covers IT
+        // (the declaration names S3, which never arrived anywhere).
+        assert_violation_contains(
+            &fx.root,
+            &format!(
+                "undeclared: term {} moved but no relocation declaration covers it",
+                term_iri("S9")
+            ),
         );
     }
 
@@ -3982,6 +4352,10 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             0,
             "lowering dead headroom surrenders no authoring and must never buy live headroom"
         );
+        // The SPECIFIC refusal: only ONE of the THREE units beta asks for is
+        // witnessed (the supply clamp caps the credit at the one construct that
+        // actually departed alpha).
+        assert_violation_contains(&fx.root, "unwitnessed: 1 of 3");
     }
 
     #[test]
@@ -4005,6 +4379,9 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             0,
             "a raised ceiling must equal the destination's measured residue"
         );
+        // The SPECIFIC refusal: the transfer is fully witnessed and fully funded
+        // (demand is satisfied, residual 0) — the ONLY thing wrong is the pin.
+        assert_violation_contains(&fx.root, "is not pinned to its measured residue");
     }
 
     #[test]
@@ -4021,6 +4398,15 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             slice_quality_gate_at(&fx.root),
             0,
             "an undeclared move authorizes no adjustment — the tool never writes the declaration"
+        );
+        // The SPECIFIC refusal: S1 genuinely arrived at beta, but no declaration
+        // names it — the witness alone authorizes nothing.
+        assert_violation_contains(
+            &fx.root,
+            &format!(
+                "undeclared: term {} moved but no relocation declaration covers it",
+                term_iri("S1")
+            ),
         );
     }
 
@@ -4042,6 +4428,10 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             0,
             "a declaration whose relocation is fully absorbed at base is dead and must red"
         );
+        // The SPECIFIC refusal: staleness, named as such — never conflated with an
+        // ordinary unwitnessed/unpaid shortfall.
+        assert_violation_contains(&fx.root, "stale-declaration");
+        assert_violation_contains(&fx.root, "fully ABSORBED at the merge base");
     }
 
     #[test]
@@ -4063,6 +4453,9 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             0,
             "a blank-subject construct with no named anchor has no cross-view identity"
         );
+        // The SPECIFIC refusal: named as non-relocatable, not merely "unwitnessed"
+        // (which would also be true, but would not name WHY).
+        assert_violation_contains(&fx.root, "non-relocatable: 1 blank-subject construct");
     }
 
     #[test]
@@ -4109,6 +4502,11 @@ gmeow:projVocab-sh a gmeow:ProjectionVocabulary ;
             0,
             "one three-unit lowering can fund exactly one three-unit arrival, never two"
         );
+        // The SPECIFIC refusal: the transport solution names the BLOCKING edge (the
+        // destination its single source could not also fund) — never the
+        // aggregate-conservation "Σ increased" verdict a greedy per-destination sum
+        // would produce instead.
+        assert_violation_contains(&fx.root, "blocking edge");
     }
 
     #[test]

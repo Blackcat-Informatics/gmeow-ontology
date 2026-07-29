@@ -588,11 +588,98 @@ where
     command_output(Command::new("git").args(args).current_dir(root), "git")
 }
 
+/// How long a subprocess [`command_output`] spawns may run before it is killed. `gh
+/// run list` (the missing-receipt dormancy diagnosis, `explain_receipt_dormancy`
+/// above) is a second NETWORK call on a path that is ALREADY failing; a stalled
+/// `gh` must never hang the whole check indefinitely. `git` calls through the same
+/// function are always local and finish in well under this bound.
+const COMMAND_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// How often the deadline poll loop checks [`std::process::Child::try_wait`] while
+/// waiting for the child to exit.
+const COMMAND_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(25);
+
 fn command_output(command: &mut Command, context: &str) -> Result<String> {
-    let output = command
-        .output()
-        .map_err(|error| failure(format!("{context}: {error}")))?;
+    let output = spawn_with_deadline(command, context, COMMAND_TIMEOUT)?;
     output_text(output, context)
+}
+
+/// Spawn `command` with piped stdout/stderr and poll for exit until it completes or
+/// `timeout` elapses, killing the child on expiry — a bounded-deadline replacement
+/// for the blocking [`Command::output`], which has no timeout at all and hangs
+/// forever if the child never exits.
+///
+/// stdout/stderr are drained on dedicated threads WHILE polling, not read only
+/// after exit: a child that writes more than one pipe buffer (~64KiB on Linux)
+/// would otherwise deadlock against this thread only checking `try_wait`, exactly
+/// the failure mode a timeout exists to rule out.
+///
+/// On expiry the child is killed (best-effort — a kill failure is not itself
+/// surfaced) and this returns the SAME error shape [`Command::output`]'s I/O-error
+/// arm already returns, so every caller's existing error handling — including
+/// `explain_receipt_dormancy`'s best-effort `Err` → empty-string fallback — keeps
+/// working unchanged; a timeout is just one more way the command "failed to run".
+fn spawn_with_deadline(
+    command: &mut Command,
+    context: &str,
+    timeout: std::time::Duration,
+) -> Result<std::process::Output> {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| failure(format!("{context}: {error}")))?;
+    let mut stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| failure(format!("{context}: no stdout pipe")))?;
+    let mut stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| failure(format!("{context}: no stderr pipe")))?;
+    let stdout_reader = std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = std::io::Read::read_to_end(&mut stdout, &mut buf);
+        buf
+    });
+    let stderr_reader = std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        let _ = std::io::Read::read_to_end(&mut stderr, &mut buf);
+        buf
+    });
+
+    let deadline = std::time::Instant::now() + timeout;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) => {
+                if std::time::Instant::now() >= deadline {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    // Join the readers so the threads never outlive this call, even
+                    // though the buffers they collected are discarded on this path.
+                    let _ = stdout_reader.join();
+                    let _ = stderr_reader.join();
+                    return Err(failure(format!(
+                        "{context}: timed out after {timeout:?} and was killed"
+                    )));
+                }
+                std::thread::sleep(COMMAND_POLL_INTERVAL);
+            }
+            Err(error) => return Err(failure(format!("{context}: {error}"))),
+        }
+    };
+    let stdout = stdout_reader
+        .join()
+        .map_err(|_| failure(format!("{context}: stdout reader thread panicked")))?;
+    let stderr = stderr_reader
+        .join()
+        .map_err(|_| failure(format!("{context}: stderr reader thread panicked")))?;
+    Ok(std::process::Output {
+        status,
+        stdout,
+        stderr,
+    })
 }
 
 fn output_text(output: std::process::Output, context: &str) -> Result<String> {
@@ -639,6 +726,49 @@ mod tests {
         // asserting a cause it cannot support.
         assert!(dormancy_suffix("").is_empty());
         assert!(dormancy_suffix("   \n\n").is_empty());
+    }
+
+    #[test]
+    fn a_hanging_child_is_killed_and_the_call_returns_within_the_deadline() {
+        // The bug this closes: `gh run list` on the missing-receipt path used a
+        // plain `.output()`, which hangs forever if the child never exits. Prove
+        // the fix with a genuinely hanging child (`sleep 100`) and a SHORT deadline
+        // — the call must return an error promptly, never block for anywhere near
+        // the child's own runtime.
+        let start = std::time::Instant::now();
+        let mut command = std::process::Command::new("sh");
+        command.args(["-c", "sleep 100"]);
+        let err = super::spawn_with_deadline(
+            &mut command,
+            "test hang",
+            std::time::Duration::from_millis(200),
+        )
+        .expect_err("a child that never exits must time out, not hang forever");
+        let elapsed = start.elapsed();
+        assert!(
+            elapsed < std::time::Duration::from_secs(5),
+            "spawn_with_deadline must return promptly after its own deadline elapses, took {elapsed:?}"
+        );
+        assert!(
+            err.message().contains("timed out"),
+            "the timeout must name itself, not surface as an ordinary I/O failure: {err}"
+        );
+    }
+
+    #[test]
+    fn a_quick_child_returns_its_real_output_well_under_the_deadline() {
+        // Negative control: a child that exits immediately must not be affected by
+        // the polling/kill machinery at all — its real stdout comes back intact.
+        let mut command = std::process::Command::new("sh");
+        command.args(["-c", "echo hello"]);
+        let output = super::spawn_with_deadline(
+            &mut command,
+            "test quick",
+            std::time::Duration::from_secs(10),
+        )
+        .expect("a quick child must not time out");
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "hello");
     }
     use super::*;
 

@@ -579,8 +579,9 @@ pub enum Commands {
     /// requested terms anchors residue in the source slice, it lists the terms that DO,
     /// per vocabulary, with the construct count each would carry — the discovery
     /// surface, since the relocation-invariant anchor is derived and cannot be read off
-    /// the Turtle. Always exits 0; never gates `make check`, and its numbers are never
-    /// fed back into a ceiling.
+    /// the Turtle. Never gates on its findings; malformed input, rubric-load and
+    /// measurement errors still fail non-zero. Its numbers are never fed back into a
+    /// ceiling.
     #[command(name = "slice-quality-relocation-preview")]
     SliceQualityRelocationPreview {
         /// A term IRI that would move. Repeatable; at least one is required.
