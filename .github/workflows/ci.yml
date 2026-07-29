@@ -123,6 +123,13 @@ jobs:
       - name: GTS frame/profile gate
         run: make gts-frame-profile-gate GMEOW_DEV=./dist/bin/gmeow-dev
 
+      # The medium axis over the same materialized bundle: every payload frame
+      # decoded through its declared chain, every envelope re-derived (including the
+      # snapshot's stratum), every dictionary paying for itself, and the declared
+      # reader contract matched against what the wire actually demands.
+      - name: Medium gate
+        run: make medium-gate GMEOW_DEV=./dist/bin/gmeow-dev
+
       - name: Upload independent generated tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

@@ -214,6 +214,205 @@ pub fn info(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
     0
 }
 
+// ── medium ───────────────────────────────────────────────────────────────────
+
+/// `gmeow medium list [FILE]` — the artifact's whole declared medium axis.
+///
+/// Reads the medium registry, the generated realizations and the sealed envelopes out of
+/// the graphs the artifact itself carries, and the pinned dictionary bytes out of its own
+/// segment header. Nothing here consults a repository, a network, or a second artifact:
+/// a bundle that could not answer this from its own bytes would not be self-sufficient
+/// (Principle 13).
+pub fn medium_list(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let inventory = match gmeow_pipeline::medium::inspect::inventory(&bytes) {
+        Ok(inventory) => inventory,
+        Err(diag) => return medium_fail(reporter, &diag),
+    };
+
+    println!("{}", medium_title(file));
+    println!("  payload frames  {}", inventory.payload_frame_count);
+    println!("  envelopes       {}", inventory.envelope_count);
+
+    println!("\nmedia");
+    for medium in &inventory.media {
+        println!(
+            "  {}\n    codec {} level {} source-kind {:?} requires {:?}",
+            medium.iri,
+            medium.codec,
+            medium.zstd_level,
+            medium.source_kind,
+            medium.reader_capabilities
+        );
+        println!("    dictionaries {:?}", medium.dictionaries);
+    }
+
+    println!("\ndictionaries");
+    for row in &inventory.dictionaries {
+        println!(
+            "  {} v{}  {} bytes  Dictionary_ID {}  in-band {}",
+            row.id,
+            row.version,
+            row.byte_length,
+            row.zstd_dictionary_id,
+            row.in_band_bytes
+                .map_or_else(|| "-".to_string(), |bytes| format!("{bytes} bytes")),
+        );
+        println!(
+            "    strategy {} (measured {}) target {} corpus samples {}",
+            row.strategy, row.measured_strategy, row.target_length, row.corpus_sample_count
+        );
+        println!("    {}", row.content_digest);
+        println!("    primes {:?}", row.primes);
+    }
+
+    println!("\nassignment");
+    for row in &inventory.assignment {
+        println!(
+            "  {:<32} {}  {}",
+            row.rep,
+            row.medium,
+            row.dictionary.as_deref().unwrap_or("(no dictionary)")
+        );
+    }
+    0
+}
+
+/// `gmeow medium verify [FILE]` — decode every frame and open every envelope.
+///
+/// The verb exists because "the bundle folded" is not evidence the bundle is whole:
+/// purrdf's reader is total by design and stores a blob frame LAZILY, so a payload that
+/// will not decode — or one that decodes to bytes other than the ones it claims — passes
+/// an ordinary fold in silence. Every breach exits non-zero under its NAMED medium
+/// failure class, and none of them ever authorizes a dictionary-less retry.
+pub fn medium_verify(reporter: &dyn Reporter, file: Option<&Path>, registry: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    // An artifact that carries no registry of its own (a runtime `~/.gmeow/*.gts` store)
+    // is resolved against the bundle whose dictionaries primed it — by default the
+    // embedded one, because that IS the bundle a consumer's store was primed from. The
+    // bytes are handed over unfolded: a self-describing artifact never reads them.
+    let registry_bytes = match gts_bytes(reporter, registry) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let report = match gmeow_pipeline::medium::inspect::verify(
+        &bytes,
+        gmeow_pipeline::medium::inspect::PrimingBundle::Bytes(&registry_bytes),
+    ) {
+        Ok(report) => report,
+        Err(diag) => return medium_fail(reporter, &diag),
+    };
+
+    println!("{}", medium_title(file));
+    println!("  class           {:?}", report.class);
+    println!("  medium          {}", report.medium);
+    println!("  payload frames  {}", report.frames.len());
+    println!("  envelopes       {}", report.envelopes_verified);
+    println!("  requires        {:?}", report.actual_capabilities);
+    println!("  dictionaries    {:?}", report.dictionaries);
+    for frame in &report.frames {
+        println!(
+            "  frame @{:<10} {:<32} {}  {} bytes",
+            frame.offset,
+            frame.rep,
+            frame.dictionary.as_deref().unwrap_or("(no dictionary)"),
+            frame.decoded_bytes
+        );
+    }
+    println!(
+        "verified: every payload frame decoded and {} envelope(s) re-derived",
+        report.envelopes_verified
+    );
+    0
+}
+
+/// `gmeow medium explain <dict-id> [FILE]` — what one dictionary is and what it bought.
+pub fn medium_explain(reporter: &dyn Reporter, dictionary: &str, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let explanation = match gmeow_pipeline::medium::inspect::explain(&bytes, dictionary) {
+        Ok(explanation) => explanation,
+        Err(diag) => return medium_fail(reporter, &diag),
+    };
+    let row = &explanation.row;
+
+    println!("{} v{}", row.id, row.version);
+    println!("  dictionary      {}", row.iri);
+    println!(
+        "  strategy        {} (measured {}) at target length {}",
+        row.strategy, row.measured_strategy, row.target_length
+    );
+    println!("  corpus          {}", row.corpus);
+    for selector in &explanation.selectors {
+        println!("    {selector}");
+    }
+    println!("  corpus samples  {}", row.corpus_sample_count);
+    println!("  content digest  {}", row.content_digest);
+    println!(
+        "  bytes           {} (Dictionary_ID {})",
+        row.byte_length, row.zstd_dictionary_id
+    );
+    println!("  primes          {:?}", row.primes);
+
+    println!("  measured MDL contribution");
+    for effect in &explanation.effects {
+        println!(
+            "    population {}: two-part code {} B = {} B of frames + {} B of in-band \
+             dictionary, against a baseline of {} B over the same {} frame(s)",
+            effect.population.wire(),
+            effect.two_part_code_bytes(),
+            effect.bytes_on_disk,
+            effect.dictionary_in_band_bytes,
+            effect.bytes_on_disk_baseline,
+            effect.evaluated_frame_count
+        );
+        println!(
+            "      bounded gain fraction {} (pays for itself: {})",
+            effect.gain_fraction_lexical(),
+            effect.wins()
+        );
+    }
+    if explanation.effects.is_empty() {
+        // Not a soft outcome: the runtime-store dictionaries are priced over a population
+        // the BUNDLE cannot measure, and saying so is the honest answer rather than
+        // printing a zero.
+        println!(
+            "    none in this artifact — the dictionary primes no frame of this artifact's \
+             declared measurement population"
+        );
+    }
+    0
+}
+
+/// Render the artifact's name for the `gmeow medium` report headers.
+fn medium_title(file: Option<&Path>) -> String {
+    file.and_then(|path| path.file_name())
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "gmeow.gts".to_owned())
+}
+
+/// Emit a medium diagnostic under its OWN registered failure-class code and exit
+/// non-zero.
+///
+/// The code is the diagnostic's, never a generic CLI one: the six medium classes are the
+/// vocabulary a caller (or a gate) dispatches on, and flattening them to
+/// `gmeow-cli.medium.failed` would erase the only thing that says WHICH invariant broke.
+fn medium_fail(reporter: &dyn Reporter, diag: &Diag) -> i32 {
+    fail(
+        reporter,
+        gmeow_errors::code::code_str(diag.code()),
+        diag.to_string(),
+    )
+}
+
 // ── verify / verify-release-bundle ───────────────────────────────────────────
 
 /// `gmeow verify` — the native OpenPGP signature check, the blob-DAG integrity

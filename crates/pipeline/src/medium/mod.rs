@@ -25,6 +25,11 @@
 //!   `&[&[u8]] -> Vec<u8>` function and nothing else;
 //! * [`envelope`] — sealing and opening a `gmeow:MediumEnvelope`, projected from
 //!   the facts a frame already carries in band;
+//! * [`inspect`] — the CONSUMER read: the inventory `gmeow medium list` prints, the
+//!   whole-artifact verification `gmeow medium verify` and `gmeow-dev medium-gate` share,
+//!   and the measured explanation `gmeow medium explain` renders. It DECODES every
+//!   payload frame, because purrdf's reader stores a blob lazily and a fold alone
+//!   establishes nothing about a blob's bytes;
 //! * [`rdf`] — the projection of realizations and envelopes into the build-time
 //!   [`MEDIUM_REGISTRY_GRAPH`] named graph;
 //! * [`measure`] — the two-part code: does each shipped dictionary PAY FOR ITSELF
@@ -61,6 +66,7 @@
 pub mod audit;
 pub mod corpus;
 pub mod envelope;
+pub mod inspect;
 pub mod measure;
 pub mod rdf;
 pub mod registry;

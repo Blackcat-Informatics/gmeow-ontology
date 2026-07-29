@@ -66,6 +66,85 @@ pub fn gts_frame_profile(path: &Path) -> i32 {
     }
 }
 
+/// Audit the WHOLE medium axis of one GMEOW-authored GTS artifact.
+///
+/// [`gts_frame_profile`] audits the dist bundle's wire; this audits any artifact's
+/// medium end to end, and it accepts a RUNTIME STORE path on purpose. A `~/.gmeow/*.gts`
+/// agent-memory or conjecture library is not a build artifact, so no `generated/` gate
+/// ever reaches it — yet it is written through a declared `gmeow:Medium`, primed with a
+/// dictionary the shipped bundle owns, and is exactly as capable of silently losing that
+/// priming as anything the build emits. An axis whose gate could only run on build output
+/// would be leaving its most reachable artifacts unchecked.
+///
+/// The clauses, in the order they decide:
+///
+/// 1. the UNIVERSAL Rule 6 codec check, on every payload frame of every segment;
+/// 2. the DECLARED-MEDIA check for the branch the artifact's own
+///    `gmeow:mediumSourceKind` selects — per-rep for the dist bundle, header-dict for a
+///    runtime store, same-entry-matches-declaration for a whole-artifact producer;
+/// 3. every payload frame DECODED through its declared chain and its in-band digest
+///    re-derived, plus the zero-opaque-node / zero-reader-diagnostic clause;
+/// 4. every `gmeow:MediumEnvelope` opened against the bytes at hand, including the
+///    self-referential snapshot envelope's stratum recomputation;
+/// 5. where the artifact carries a registry of its own: the measured MDL win gate, the
+///    registry-completeness check (every declared dictionary realized AND pinned, with
+///    the pinned bytes matching the recorded digest and length), and the
+///    declared-vs-actual reader-capability comparison.
+pub fn medium_gate(path: &Path, registry: &Path) -> i32 {
+    let bytes = match std::fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(error) => return fail(format!("cannot read {}: {error}", path.display())),
+    };
+    // The priming bundle is read only when it is a DIFFERENT artifact, and it is folded
+    // only if the subject turns out to carry no registry of its own: a self-describing
+    // bundle is audited against the registry it already carries, so re-reading thirty-odd
+    // megabytes to build a second copy of it would be work with no claim attached.
+    //
+    // A read failure is therefore carried rather than raised. The default `--registry` is
+    // a REPO-RELATIVE path, so auditing a `~/.gmeow/*.gts` store from outside a checkout
+    // will not find it — and refusing there would refuse the self-describing bundle too,
+    // which needs no priming bundle at all. `PrimingBundle::Absent` keeps the reason and
+    // hands it to the one branch that genuinely needs the bundle, where it is a HARD FAIL:
+    // an absent priming bundle can never become a skipped dictionary resolution.
+    let (registry_bytes, absent) = if registry == path {
+        (Vec::new(), None)
+    } else {
+        match std::fs::read(registry) {
+            Ok(bytes) => (bytes, None),
+            Err(error) => (
+                Vec::new(),
+                Some(format!("cannot read {}: {error}", registry.display())),
+            ),
+        }
+    };
+    let priming = match (&absent, registry == path) {
+        (Some(why), _) => gmeow_pipeline::medium::inspect::PrimingBundle::Absent(why),
+        (None, true) => gmeow_pipeline::medium::inspect::PrimingBundle::Bytes(&bytes),
+        (None, false) => gmeow_pipeline::medium::inspect::PrimingBundle::Bytes(&registry_bytes),
+    };
+    match gmeow_pipeline::medium::inspect::gate(&bytes, priming) {
+        Ok(report) => {
+            println!(
+                "medium gate passed: {} — {:?} under <{}>, {} payload frame(s) decoded, {} \
+                 envelope(s) re-derived, dictionaries {:?}, reader capabilities {:?}",
+                path.display(),
+                report.class,
+                report.medium,
+                report.frames.len(),
+                report.envelopes_verified,
+                report.dictionaries,
+                report.declared_capabilities
+            );
+            0
+        }
+        Err(diag) => fail(format!(
+            "medium gate failed for {}: [{}] {diag}",
+            path.display(),
+            gmeow_errors::code::code_str(diag.code())
+        )),
+    }
+}
+
 /// `gmeow-dev validate [--gts --trust-policy --require-signed --trusted-key --deep …]`.
 #[allow(clippy::too_many_arguments)]
 pub fn validate(

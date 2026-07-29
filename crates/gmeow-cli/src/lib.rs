@@ -117,6 +117,12 @@ pub enum Commands {
         /// GTS snapshot to inspect (default: bundled gmeow.gts).
         file: Option<PathBuf>,
     },
+    /// Inspect the MEDIUM axis of a GTS artifact: the declared media, the shipped
+    /// zstd dictionaries, the envelopes, and the measured cost of each dictionary.
+    Medium {
+        #[command(subcommand)]
+        command: MediumCommands,
+    },
     /// Verify GTS signatures, the reasoned deep-semantic pass, and the source-free
     /// ontology-completeness checks, rendered as one proof-carrying report.
     Verify {
@@ -455,6 +461,44 @@ pub enum Commands {
         /// Deterministic operation-wide provider row budget.
         #[arg(long = "max-rows", default_value_t = 4096)]
         max_rows: u64,
+    },
+}
+
+/// The `gmeow medium` nested subcommands — the consumer read of the MEDIUM axis.
+///
+/// Every one answers from the ARTIFACT: the registry, the realizations, the envelopes
+/// and the measured two-part codes are graphs the bundle carries, so a consumer holding
+/// only `gmeow.gts` gets the same answers a repository checkout would give. There is no
+/// verb here that re-trains, re-measures, or re-derives any of it.
+#[derive(Debug, Subcommand)]
+pub enum MediumCommands {
+    /// List the declared media, the shipped dictionaries (version, content digest,
+    /// zstd Dictionary_ID, in-band size), the envelope count, and the per-rep
+    /// assignment — read from the artifact alone.
+    List {
+        /// GTS artifact to inspect (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Decode every payload frame, re-derive its in-band digest, open every medium
+    /// envelope against the bytes at hand, and refuse on any opaque node or reader
+    /// diagnostic. Exits non-zero with the named medium failure class on any breach.
+    Verify {
+        /// GTS artifact to verify (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+        /// The bundle whose medium registry an artifact that carries none of its own
+        /// (a runtime `~/.gmeow/*.gts` store) is resolved against. Defaults to the
+        /// embedded gmeow.gts — the same bundle that primed the store.
+        #[arg(long = "registry")]
+        registry: Option<PathBuf>,
+    },
+    /// Explain one shipped dictionary: its corpus selectors, its strategy, the reps it
+    /// primes, and its measured MDL contribution (two-part code, baseline, bounded gain).
+    Explain {
+        /// The `gmeow:dictionaryId` to explain, e.g. `gmeow-core-v1`.
+        dictionary: String,
+        /// GTS artifact to read the declaration and measurement out of (default:
+        /// bundled gmeow.gts).
+        file: Option<PathBuf>,
     },
 }
 
@@ -1097,6 +1141,15 @@ pub fn run() -> i32 {
     match cli.command {
         Commands::Version => commands::version(),
         Commands::Info { file } => commands::info(reporter, file.as_deref()),
+        Commands::Medium { command } => match command {
+            MediumCommands::List { file } => commands::medium_list(reporter, file.as_deref()),
+            MediumCommands::Verify { file, registry } => {
+                commands::medium_verify(reporter, file.as_deref(), registry.as_deref())
+            }
+            MediumCommands::Explain { dictionary, file } => {
+                commands::medium_explain(reporter, &dictionary, file.as_deref())
+            }
+        },
         Commands::Verify {
             file,
             trusted_key,

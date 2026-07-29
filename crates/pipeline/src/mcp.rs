@@ -2471,6 +2471,14 @@ impl McpServer {
                 "text/plain",
             ),
             resource(
+                "gmeow://ontology/medium",
+                "medium",
+                "The medium registry read off the loaded bundle alone: declared media, \
+                 dictionaries with their content digests and zstd Dictionary_IDs, the \
+                 envelope count, and the total rep to medium assignment.",
+                "application/json",
+            ),
+            resource(
                 "gmeow://ontology/okf-index",
                 "okf-index",
                 "OKF manifest JSON envelope.",
@@ -2486,6 +2494,26 @@ impl McpServer {
             ));
         }
         json!({ "resources": resources })
+    }
+
+    /// The `resources/list` payload — the same one [`Self::run_stdio`] serves, exposed
+    /// so an in-process caller can read the consumer resource index WITHOUT a stdio loop.
+    ///
+    /// A thin forwarder rather than a visibility change on the body it wraps: the
+    /// resource list's SOURCE TEXT is a frozen model-facing item (`llms_shape`'s
+    /// `MCP_RESOURCE_LIST`), compared against the merge base line for line, so widening
+    /// that function's signature would red the freeze for a reason that has nothing to do
+    /// with what a model sees.
+    #[must_use]
+    pub fn resource_index(&self) -> Value {
+        self.resources_result()
+    }
+
+    /// The `resources/read` payload for one URI — the in-process twin of
+    /// [`Self::resource_index`], and for the same reason a forwarder.
+    #[must_use]
+    pub fn read_resource(&self, uri: &str) -> Value {
+        self.read_resource_result(uri)
     }
 
     /// Dispatch one MCP tool call and return its JSON-RPC `result` payload — the
@@ -3820,6 +3848,14 @@ impl McpServer {
                 .map(|p| ("text/plain", p.resource_text())),
             "gmeow://ontology/okf-index" => {
                 Ok(("application/json", self.view.okf_index_json(requested)))
+            }
+            // Served off the loaded bundle's OWN bytes, exactly like every other
+            // resource here: the medium registry, the realizations and the envelope
+            // count are graphs the bundle carries, so a model asking what it is holding
+            // reads the artifact rather than a repository it may not have.
+            "gmeow://ontology/medium" => {
+                crate::medium::inspect::inventory_json(self.view.gts_bytes())
+                    .map(|json| ("application/json", json))
             }
             "gmeow://ontology/constitution" if self.mode.includes_dev_tools() => {
                 self.tool_constitution().map(|text| ("text/markdown", text))

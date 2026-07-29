@@ -157,6 +157,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "rust-build",
         "rust-gate",
         "validate",
+        "medium-gate",
         "constitution-check",
         "crate-check",
         "audit",
@@ -256,6 +257,7 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         "bench-golden-gate",
         "bench-soak",
         "gts-frame-profile-gate",
+        "medium-gate",
     ] {
         let recipe = target_recipe(&source, target);
         assert!(!recipe.trim().is_empty(), "{target} must remain runnable");
@@ -275,6 +277,28 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         target_recipe(&source, "gts-frame-profile-gate")
             .contains("$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts"),
         "the frame-profile gate must audit through the already-built producer binary"
+    );
+    // The MEDIUM gate is the frame-profile gate's sibling: same artifact, same producer
+    // binary, a strictly stronger rule (every frame decoded, every envelope re-derived,
+    // every dictionary priced). Its header is pinned for the same reason the sibling's
+    // is — the header is what `make help` publishes as the gate's claim, so a reworded
+    // one is a reworded promise.
+    assert_eq!(
+        target_header(&source, "medium-gate"),
+        "medium-gate: ## Audit the whole medium axis of the materialized bundle: every frame decoded, every envelope re-derived, every dictionary paid for, and the declared reader contract matched."
+    );
+    assert!(
+        target_recipe(&source, "medium-gate")
+            .contains("$(GMEOW_DEV) medium-gate generated/dist/gmeow.gts"),
+        "the medium gate must audit the materialized bundle through the already-built \
+         producer binary"
+    );
+    // …and unlike the frame-profile gate it IS an aggregate-DAG task: the wire clauses it
+    // owns are read by no other `make check` task, so leaving it to CI alone would mean a
+    // local gate that cannot see a medium regression at all.
+    assert!(
+        xtask().contains("target: \"medium-gate\""),
+        "medium-gate must be wired into the aggregate check DAG"
     );
     assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-verify"));
     assert!(xtask().contains("const AFTER_REASON: &[&str] = &[\"reason-verify\"]"));

@@ -93,6 +93,21 @@ impl CorpusSelector {
     }
 }
 
+impl std::fmt::Display for CorpusSelector {
+    /// Render a selector as `<predicate local name> <value>` — the AUTHORED form, so a
+    /// consumer reading `gmeow medium explain` sees the declaration rather than a
+    /// paraphrase of it.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let (predicate, value) = match self {
+            Self::BlobRep(value) => ("corpusSelectsBlobRep", value),
+            Self::Graph(value) => ("corpusSelectsGraph", value),
+            Self::PathPrefix(value) => ("corpusSelectsPathPrefix", value),
+            Self::StageProduct(value) => ("corpusSelectsStageProduct", value),
+        };
+        write!(f, "gmeow:{predicate} {value}")
+    }
+}
+
 /// Everything a corpus can be resolved against — all of it IN MEMORY, save the one
 /// documented exception.
 pub struct CorpusSources<'a> {

@@ -79,31 +79,61 @@ pub struct MediumDeclaration<'a> {
 }
 
 /// One payload-bearing frame of an artifact, as the audit reads it off the wire.
+///
+/// `pub(super)` rather than private because [`super::inspect`] — the surface the
+/// `gmeow medium` verbs and the `gmeow-dev medium-gate` read through — decodes exactly
+/// these frames. A second wire reader beside this one would be a second answer to
+/// "which catalog entry does this frame ride", which is the question the whole audit
+/// turns on.
 #[derive(Debug, Clone)]
-struct PayloadFrame {
+pub(super) struct PayloadFrame {
     /// Byte offset of the frame's CBOR item, for messages.
-    offset: usize,
+    pub(super) offset: usize,
     /// Index of the segment whose catalog this frame's transform id resolves in.
-    segment: usize,
+    pub(super) segment: usize,
     /// The frame's `pub.rep` wire label, when it carries public metadata.
-    rep: Option<String>,
+    pub(super) rep: Option<String>,
+    /// The frame's `pub.digest` — the byte identity the frame itself states. Absent
+    /// exactly on the snapshot frame, which carries no public metadata at all.
+    pub(super) digest: Option<String>,
     /// The single transform id the frame references.
-    codec: i128,
+    pub(super) codec: i128,
+    /// The frame's `"d"` bytes, verbatim — still under the transform chain.
+    pub(super) payload: Vec<u8>,
 }
 
 /// One segment header, as the audit reads it off the wire.
 #[derive(Debug, Clone, Default)]
-struct SegmentHeader {
+pub(super) struct SegmentHeader {
     /// Byte offset of the header item, for messages.
-    offset: usize,
+    pub(super) offset: usize,
     /// Codec id → the `"dct"` dictionary name that catalog entry binds, when it
     /// binds one. An entry ABSENT from this map is an unprimed entry.
-    dict_of_codec: BTreeMap<i128, String>,
+    pub(super) dict_of_codec: BTreeMap<i128, String>,
+    /// Codec id → the catalog entry's declared `(name, cls, level)` triple, so a
+    /// consumer can rebuild the transform chain the frame was written through without
+    /// re-parsing the header a second time.
+    pub(super) codec_spec: BTreeMap<i128, CodecSpec>,
     /// Every codec id the catalog declares — so a frame naming an id the catalog
     /// never declared is distinguishable from one naming an unprimed entry.
-    declared_codecs: BTreeSet<i128>,
+    pub(super) declared_codecs: BTreeSet<i128>,
+    /// The dictionary names this segment pins in band under `"dct"`, with their
+    /// verbatim bytes — the ONE channel a consumer primes a decode from.
+    pub(super) pinned_bytes: BTreeMap<String, Vec<u8>>,
     /// The dictionary names this segment pins in band under `"dct"`.
-    pinned: BTreeSet<String>,
+    pub(super) pinned: BTreeSet<String>,
+}
+
+/// One codec-catalog entry's declared coordinates (§5, §8.5).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) struct CodecSpec {
+    /// The registered codec name (`"zstd-rsyncable"` for every mandated entry).
+    pub(super) name: String,
+    /// `"encode"` | `"compress"` | `"encrypt"`.
+    pub(super) cls: String,
+    /// The declared `level?` parameter, made observable on the wire so a profile can
+    /// gate on it.
+    pub(super) level: Option<i32>,
 }
 
 /// Audit `bytes` against the medium its producer DECLARED.
@@ -164,7 +194,9 @@ pub fn validate_declared_media(
 /// `Transform` (the universal Rule 6 profile), `InvalidDeclaration` (a torn sequence, a
 /// frame with no segment, a payload-free artifact) or `MediumUnknownDictionary` (a
 /// catalog entry binding a dictionary its header does not pin).
-fn check_wire(bytes: &[u8]) -> Result<(Vec<SegmentHeader>, Vec<PayloadFrame>), gmeow_errors::Diag> {
+pub(super) fn check_wire(
+    bytes: &[u8],
+) -> Result<(Vec<SegmentHeader>, Vec<PayloadFrame>), gmeow_errors::Diag> {
     // The universal rule first: a bundle that violates Rule 6 is not made acceptable
     // by having a tidy dictionary story, and running it here is what makes this audit
     // strictly stronger rather than merely different.
@@ -298,7 +330,9 @@ pub fn declared_medium_of(
 /// that is actually wrong. Folding leniently lets the PRECISE wire clauses speak first;
 /// nothing is thereby tolerated, because any degradation the lenient read papered over
 /// is a hard failure at the zero-opaque gate.
-fn fold_leniently(bytes: &[u8]) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+pub(super) fn fold_leniently(
+    bytes: &[u8],
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let graph = purrdf::gts::reader::read(bytes, true, None);
     purrdf::gts::dataset_from_gts_graph(&graph)
         .map_err(|e| invalid_declaration(format!("fold the artifact back to its own graphs: {e}")))
@@ -360,18 +394,35 @@ fn read_wire(bytes: &[u8]) -> Result<(Vec<SegmentHeader>, Vec<PayloadFrame>), gm
                 )));
             }
         };
-        let rep = match map_get(entries, "pub") {
-            Some(Value::Map(meta)) => match map_get(meta, "rep") {
-                Some(Value::Text(rep)) => Some(rep.clone()),
-                _ => None,
-            },
-            _ => None,
+        let (rep, digest) = match map_get(entries, "pub") {
+            Some(Value::Map(meta)) => (
+                match map_get(meta, "rep") {
+                    Some(Value::Text(rep)) => Some(rep.clone()),
+                    _ => None,
+                },
+                match map_get(meta, "digest") {
+                    Some(Value::Text(digest)) => Some(digest.clone()),
+                    _ => None,
+                },
+            ),
+            _ => (None, None),
+        };
+        let payload = match map_get(entries, "d") {
+            Some(Value::Bytes(bytes)) => bytes.clone(),
+            other => {
+                return Err(invalid_declaration(format!(
+                    "the payload frame at byte offset {offset} carries {other:?} for its \"d\" \
+                     field, not a CBOR byte string"
+                )));
+            }
         };
         frames.push(PayloadFrame {
             offset: *offset,
             segment,
             rep,
+            digest,
             codec,
+            payload,
         });
     }
     Ok((headers, frames))
@@ -401,6 +452,7 @@ fn read_header(
     };
     let mut dict_of_codec = BTreeMap::new();
     let mut declared_codecs = BTreeSet::new();
+    let mut codec_spec = BTreeMap::new();
     for (id, descriptor) in catalog {
         let Value::Integer(id) = id else {
             return Err(invalid_declaration(format!(
@@ -409,32 +461,52 @@ fn read_header(
         };
         let id = i128::from(*id);
         declared_codecs.insert(id);
-        if let Value::Map(fields) = descriptor
-            && let Some(Value::Text(dict)) = map_get(fields, "dct")
-        {
-            dict_of_codec.insert(id, dict.clone());
+        if let Value::Map(fields) = descriptor {
+            if let Some(Value::Text(dict)) = map_get(fields, "dct") {
+                dict_of_codec.insert(id, dict.clone());
+            }
+            codec_spec.insert(
+                id,
+                CodecSpec {
+                    name: match map_get(fields, "name") {
+                        Some(Value::Text(name)) => name.clone(),
+                        _ => String::new(),
+                    },
+                    cls: match map_get(fields, "cls") {
+                        Some(Value::Text(cls)) => cls.clone(),
+                        _ => "encode".to_string(),
+                    },
+                    level: match map_get(fields, "level") {
+                        Some(Value::Integer(level)) => i32::try_from(i128::from(*level)).ok(),
+                        _ => None,
+                    },
+                },
+            );
         }
     }
-    let pinned = match map_get(header, "dct") {
+    let pinned_bytes: BTreeMap<String, Vec<u8>> = match map_get(header, "dct") {
         Some(Value::Map(dicts)) => dicts
             .iter()
-            .filter_map(|(name, _)| match name {
-                Value::Text(name) => Some(name.clone()),
+            .filter_map(|(name, bytes)| match (name, bytes) {
+                (Value::Text(name), Value::Bytes(bytes)) => Some((name.clone(), bytes.clone())),
                 _ => None,
             })
             .collect(),
-        _ => BTreeSet::new(),
+        _ => BTreeMap::new(),
     };
+    let pinned = pinned_bytes.keys().cloned().collect();
     Ok(SegmentHeader {
         offset,
         dict_of_codec,
+        codec_spec,
         declared_codecs,
+        pinned_bytes,
         pinned,
     })
 }
 
 /// The catalog entry a frame references, resolved in its OWN segment's catalog.
-fn entry_for<'a>(
+pub(super) fn entry_for<'a>(
     headers: &'a [SegmentHeader],
     frame: &PayloadFrame,
 ) -> Result<(&'a SegmentHeader, Option<&'a String>), gmeow_errors::Diag> {
@@ -458,7 +530,7 @@ fn entry_for<'a>(
 /// `pub` metadata is the snapshot frame — the one payload the pack writes without a
 /// content-representation tag — and it is registered like any other rep, so it is
 /// resolved rather than exempted.
-fn rep_of(frame: &PayloadFrame) -> &str {
+pub(super) fn rep_of(frame: &PayloadFrame) -> &str {
     frame.rep.as_deref().unwrap_or(SNAPSHOT_WIRE_REP)
 }
 
@@ -645,7 +717,7 @@ fn check_whole_artifact(
 /// to an opaque node and the fold continues without its content. Every byte is intact,
 /// the fold reports success, and an entire archive is simply absent from the result —
 /// so "the bundle parsed" is not evidence that the bundle is whole.
-fn check_no_opaque_nodes(bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
+pub(super) fn check_no_opaque_nodes(bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
     let graph = purrdf::gts::reader::read(bytes, true, None);
     if !graph.opaque.is_empty() {
         let reasons: Vec<String> = graph

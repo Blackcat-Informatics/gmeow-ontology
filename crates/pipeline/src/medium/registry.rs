@@ -82,7 +82,9 @@ impl DictionaryStrategy {
         format!("{GMEOW}{local}")
     }
 
-    fn from_iri(iri: &str) -> Option<Self> {
+    /// The strategy a `gmeow:DictionaryStrategy` individual names, or `None` when the
+    /// IRI is outside the declared vocabulary.
+    pub(super) fn from_iri(iri: &str) -> Option<Self> {
         match iri.strip_prefix(GMEOW)? {
             "dictStrategyTrained" => Some(Self::Trained),
             "dictStrategyRawContent" => Some(Self::RawContent),

@@ -69,6 +69,7 @@ const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "rust-gate",
     "validate",
+    "medium-gate",
     "constitution-check",
     "crate-check",
     "audit",
@@ -109,6 +110,15 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "validate",
         target: "validate",
+        dependencies: AFTER_SYNC,
+    },
+    // The MEDIUM axis's gate over the MATERIALIZED bundle. It is its own task rather
+    // than a clause of `validate` because it audits the artifact's WIRE — the codec
+    // catalog, the in-band dictionary table, every frame's decode, every envelope's
+    // digests — which the ontology validation lane never reads.
+    Task {
+        name: "medium-gate",
+        target: "medium-gate",
         dependencies: AFTER_SYNC,
     },
     Task {

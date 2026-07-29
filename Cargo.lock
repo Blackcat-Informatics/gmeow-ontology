@@ -1555,6 +1555,7 @@ name = "gmeow-cli"
 version = "0.2.0"
 dependencies = [
  "assert_cmd",
+ "ciborium",
  "clap",
  "ed25519-dalek",
  "gmeow-affect",

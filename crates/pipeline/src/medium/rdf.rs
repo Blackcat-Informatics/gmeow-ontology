@@ -23,7 +23,7 @@ use std::collections::BTreeMap;
 
 use purrdf::{RdfLiteral, RdfQuad, RdfTerm};
 
-use super::envelope::MediumEnvelope;
+use super::envelope::{DigestStratum, MediumEnvelope};
 use super::registry::{DictionaryDef, DictionaryStrategy, MediumRegistry};
 use super::{MEDIUM_REGISTRY_GRAPH, blake3_digest, dictionary_regression, is_canonical_digest};
 
@@ -392,6 +392,179 @@ pub fn corpus_sample_counts(
         })?;
         out.insert(def.id.clone(), parsed);
     }
+    Ok(out)
+}
+
+/// Read the emitted `gmeow:CompressionDictionaryRealization` records back off a folded
+/// artifact, keyed by the authored dictionary IRI they realize.
+///
+/// READ BACK rather than recomputed, for the same reason as [`corpus_sample_counts`]:
+/// a consumer holding only the bundle has no trainer to re-run, and a second derivation
+/// could disagree with the bytes the header actually pins.
+///
+/// # Errors
+/// A realization missing `gmeow:realizesDictionary`, or one whose byte length /
+/// `Dictionary_ID` is not a non-negative integer. All three are declaration defects in
+/// a graph the build itself produced, so none is defaultable.
+pub fn realizations(
+    graph: &purrdf::RdfDataset,
+) -> Result<BTreeMap<String, DictionaryRealization>, gmeow_errors::Diag> {
+    use purrdf::RdfTerm as T;
+
+    let quads = purrdf::flat_rdf_quads_from_dataset(graph);
+    let subjects: Vec<&str> = quads
+        .iter()
+        .filter(|q| {
+            q.predicate == RDF_TYPE && q.object == T::iri(gm("CompressionDictionaryRealization"))
+        })
+        .filter_map(|q| match &q.subject {
+            T::Iri(iri) => Some(iri.as_str()),
+            _ => None,
+        })
+        .collect();
+
+    let mut out = BTreeMap::new();
+    for subject in subjects {
+        let iri_of = |predicate: &str| -> Option<String> {
+            quads
+                .iter()
+                .find(|q| q.subject == T::iri(subject) && q.predicate == gm(predicate))
+                .and_then(|q| match &q.object {
+                    T::Iri(iri) => Some(iri.clone()),
+                    _ => None,
+                })
+        };
+        let literal_of = |predicate: &str| -> Option<String> {
+            quads
+                .iter()
+                .find(|q| q.subject == T::iri(subject) && q.predicate == gm(predicate))
+                .and_then(|q| match &q.object {
+                    T::Literal(literal) => Some(literal.lexical_form.clone()),
+                    _ => None,
+                })
+        };
+        let required =
+            |value: Option<String>, predicate: &str| -> Result<String, gmeow_errors::Diag> {
+                value.ok_or_else(|| {
+                    super::invalid_declaration(format!(
+                        "the realization <{subject}> carries no gmeow:{predicate} — a realization \
+                     missing a measured coordinate is a DIFFERENT record, not a weaker one"
+                    ))
+                })
+            };
+        let dictionary = required(iri_of("realizesDictionary"), "realizesDictionary")?;
+        let strategy_iri = required(
+            iri_of("measuredDictionaryStrategy"),
+            "measuredDictionaryStrategy",
+        )?;
+        let strategy = DictionaryStrategy::from_iri(&strategy_iri).ok_or_else(|| {
+            super::invalid_declaration(format!(
+                "the realization <{subject}> names gmeow:measuredDictionaryStrategy \
+                 <{strategy_iri}>, which is not a declared gmeow:DictionaryStrategy"
+            ))
+        })?;
+        let number = |predicate: &str| -> Result<u64, gmeow_errors::Diag> {
+            let lexical = required(literal_of(predicate), predicate)?;
+            lexical.parse::<u64>().map_err(|_| {
+                super::invalid_declaration(format!(
+                    "<{subject}> gmeow:{predicate} {lexical:?} is not a non-negative integer"
+                ))
+            })
+        };
+        let realization = DictionaryRealization {
+            dictionary: dictionary.clone(),
+            version: required(literal_of("dictionaryVersion"), "dictionaryVersion")?,
+            strategy,
+            target_length: usize::try_from(number("measuredDictionaryTargetLength")?)
+                .unwrap_or(usize::MAX),
+            corpus_sample_count: number("measuredCorpusSampleCount")?,
+            content_digest: required(
+                literal_of("dictionaryContentDigest"),
+                "dictionaryContentDigest",
+            )?,
+            byte_length: usize::try_from(number("dictionaryByteLength")?).unwrap_or(usize::MAX),
+            zstd_dictionary_id: u32::try_from(number("zstdDictionaryId")?).unwrap_or(u32::MAX),
+        };
+        out.insert(dictionary, realization);
+    }
+    Ok(out)
+}
+
+/// Read the emitted `gmeow:MediumEnvelope` records back off a folded artifact.
+///
+/// The inverse of the envelope half of [`project`], and the door
+/// [`super::inspect::verify`] opens every envelope through: a digest that is never
+/// re-derived from the bytes it claims to commit to is a comment.
+///
+/// # Errors
+/// An envelope missing one of its six unconditional coordinates, or naming a
+/// `gmeow:DigestStratum` individual the vocabulary does not declare.
+pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {
+    use purrdf::RdfTerm as T;
+
+    let quads = purrdf::flat_rdf_quads_from_dataset(graph);
+    let subjects: Vec<&str> = quads
+        .iter()
+        .filter(|q| q.predicate == RDF_TYPE && q.object == T::iri(gm("MediumEnvelope")))
+        .filter_map(|q| match &q.subject {
+            T::Iri(iri) => Some(iri.as_str()),
+            _ => None,
+        })
+        .collect();
+
+    let mut out = Vec::with_capacity(subjects.len());
+    for subject in subjects {
+        let iri_of = |predicate: &str| -> Option<String> {
+            quads
+                .iter()
+                .find(|q| q.subject == T::iri(subject) && q.predicate == gm(predicate))
+                .and_then(|q| match &q.object {
+                    T::Iri(iri) => Some(iri.clone()),
+                    _ => None,
+                })
+        };
+        let literal_of = |predicate: &str| -> Option<String> {
+            quads
+                .iter()
+                .find(|q| q.subject == T::iri(subject) && q.predicate == gm(predicate))
+                .and_then(|q| match &q.object {
+                    T::Literal(literal) => Some(literal.lexical_form.clone()),
+                    _ => None,
+                })
+        };
+        let required =
+            |value: Option<String>, predicate: &str| -> Result<String, gmeow_errors::Diag> {
+                value.ok_or_else(|| {
+                    super::invalid_declaration(format!(
+                        "the envelope <{subject}> carries no gmeow:{predicate} — six of the seven \
+                     envelope fields are unconditionally exactly-one, because a projection \
+                     missing a coordinate is a different claim rather than a weaker one"
+                    ))
+                })
+            };
+        let stratum_iri = required(iri_of("envelopeDigestStratum"), "envelopeDigestStratum")?;
+        let stratum = if stratum_iri == DigestStratum::WholePayload.iri() {
+            DigestStratum::WholePayload
+        } else if stratum_iri == DigestStratum::PayloadExcludingMediumEnvelope.iri() {
+            DigestStratum::PayloadExcludingMediumEnvelope
+        } else {
+            return Err(super::invalid_declaration(format!(
+                "the envelope <{subject}> names gmeow:envelopeDigestStratum <{stratum_iri}>, \
+                 which is not a declared gmeow:DigestStratum — a digest over an unnamed region \
+                 commits to nothing a reader can recompute"
+            )));
+        };
+        out.push(MediumEnvelope {
+            frame: required(iri_of("envelopePayloadFrame"), "envelopePayloadFrame")?,
+            schema: required(iri_of("envelopeSchema"), "envelopeSchema")?,
+            medium: required(iri_of("envelopeMedium"), "envelopeMedium")?,
+            dictionary: iri_of("envelopeDictionary"),
+            stratum,
+            strata_digest: required(literal_of("strataDigest"), "strataDigest")?,
+            content_digest: required(literal_of("contentDigest"), "contentDigest")?,
+        });
+    }
+    out.sort();
     Ok(out)
 }
 

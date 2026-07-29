@@ -611,6 +611,114 @@ pub fn project(
     Ok(quads)
 }
 
+/// Read the projected `gmeow:MediumDictionaryEffectMeasurement` rows back off a folded
+/// artifact — the inverse of [`project`].
+///
+/// The measured two-part code is ontology content the bundle SHIPS, so a consumer
+/// asking "what did this dictionary buy" reads the shipped rows rather than re-running a
+/// measurement it has no corpus for. `gmeow medium explain` and the
+/// `gmeow-dev medium-gate` MDL clause are both that consumer.
+///
+/// # Errors
+/// A row missing one of its counts or its `gmeow:measuresDictionary`, a count that is
+/// not a non-negative integer, or a `gmeow:measurementPopulation` outside the declared
+/// vocabulary. Every one is a defect in a graph this build itself produced.
+pub fn effects(
+    registry: &MediumRegistry,
+    graph: &purrdf::RdfDataset,
+) -> Result<Vec<DictionaryEffect>, gmeow_errors::Diag> {
+    use purrdf::RdfTerm as T;
+
+    let quads = purrdf::flat_rdf_quads_from_dataset(graph);
+    let subjects: Vec<&str> = quads
+        .iter()
+        .filter(|q| {
+            q.predicate == RDF_TYPE && q.object == T::iri(gm("MediumDictionaryEffectMeasurement"))
+        })
+        .filter_map(|q| match &q.subject {
+            T::Iri(iri) => Some(iri.as_str()),
+            _ => None,
+        })
+        .collect();
+
+    let mut out = Vec::with_capacity(subjects.len());
+    for subject in subjects {
+        let object_of = |predicate: &str| -> Option<&purrdf::RdfTerm> {
+            quads
+                .iter()
+                .find(|q| q.subject == T::iri(subject) && q.predicate == gm(predicate))
+                .map(|q| &q.object)
+        };
+        let dictionary_iri = match object_of("measuresDictionary") {
+            Some(T::Iri(iri)) => iri.clone(),
+            _ => {
+                return Err(invalid_declaration(format!(
+                    "the measurement <{subject}> carries no gmeow:measuresDictionary, so its \
+                     two-part code prices nothing"
+                )));
+            }
+        };
+        let def = registry
+            .dictionaries()
+            .get(&dictionary_iri)
+            .ok_or_else(|| {
+                invalid_declaration(format!(
+                    "the measurement <{subject}> measures <{dictionary_iri}>, which is not a \
+                 registered gmeow:CompressionDictionary"
+                ))
+            })?;
+        let population_iri = match object_of("measurementPopulation") {
+            Some(T::Iri(iri)) => iri.clone(),
+            _ => {
+                return Err(invalid_declaration(format!(
+                    "the measurement <{subject}> declares no gmeow:measurementPopulation — two \
+                     populations are measured on DIFFERENT chains, so a row that does not say \
+                     which one it is reports an incommensurable number"
+                )));
+            }
+        };
+        let population = [
+            Population::EmittedBlobFrames,
+            Population::RuntimeStoreSegments,
+        ]
+        .into_iter()
+        .find(|candidate| candidate.iri() == population_iri)
+        .ok_or_else(|| {
+            invalid_declaration(format!(
+                "the measurement <{subject}> names population <{population_iri}>, which is \
+                     not a declared gmeow:MediumMeasurementPopulation"
+            ))
+        })?;
+        let count = |predicate: &str| -> Result<u64, gmeow_errors::Diag> {
+            match object_of(predicate) {
+                Some(T::Literal(literal)) => literal.lexical_form.parse::<u64>().map_err(|_| {
+                    invalid_declaration(format!(
+                        "<{subject}> gmeow:{predicate} {:?} is not a non-negative integer",
+                        literal.lexical_form
+                    ))
+                }),
+                _ => Err(invalid_declaration(format!(
+                    "the measurement <{subject}> carries no gmeow:{predicate} — every field of a \
+                     two-part code is a COUNT, and a missing count makes the code unrecomputable"
+                ))),
+            }
+        };
+        out.push(DictionaryEffect {
+            dictionary_id: def.id.clone(),
+            population,
+            bytes_on_disk: count("measurementBytesOnDisk")?,
+            bytes_on_disk_baseline: count("measurementBytesOnDiskBaseline")?,
+            dictionary_in_band_bytes: count("measurementDictionaryInBandBytes")?,
+            corpus_sample_count: count("measurementCorpusSampleCount")?,
+            evaluated_frame_count: count("measurementEvaluatedFrameCount")?,
+        });
+    }
+    out.sort_by(|a, b| {
+        (a.dictionary_id.as_str(), a.population).cmp(&(b.dictionary_id.as_str(), b.population))
+    });
+    Ok(out)
+}
+
 /// The prose every projected row carries — the place the honesty caveats live in the
 /// DATA rather than only in a README a consumer of `gmeow.gts` never sees.
 fn effect_prose(effect: &DictionaryEffect) -> String {

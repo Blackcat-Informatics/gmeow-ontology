@@ -98,6 +98,31 @@ slow-timeout = { period = "900s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & binary(medium_identity_gate)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The two CONSUMER-SURFACE medium suites. `crates/gmeow-cli/build.rs` embeds
+# `generated/dist/gmeow.gts`, which is a git-ignored LOCAL product, so a suite that read
+# the embedded bytes would assert against whatever happened to be on disk. Both suites
+# therefore run the production DAG once, in memory, write the emitted bundle to a temp
+# path, and drive the real `gmeow` / `gmeow-dev` binaries against THAT file — plus a real
+# runtime store and five tampered breach fixtures. They are ON-gate deliberately: every
+# claim they make is about a shipped consumer verb over shipped bytes. A whole-DAG
+# execution is minutes, so they get the runaway backstop the sibling whole-pipeline proofs
+# use rather than the 60s default that fits focused unit tests.
+#
+# `threads-required` reserves the host for each of them. It is not a scheduling nicety:
+# the DAG run inside creates its own full-width worker pool, so two of these executing
+# concurrently halve each other's parallelism and BOTH drift past the backstop — which is
+# a timeout that says nothing about the code. Reserving the host makes each run's wall
+# clock a property of the pipeline rather than of what else nextest happened to schedule.
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & binary(medium_cli)'
+slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & binary(medium_gate)'
+slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
+
 # The off-gate `gmeow-dev logic compile --mode M` byte-parity tests each drive the
 # WHOLE pipeline (run_full) to prove the CLI's per-mode render matches the committed
 # artifact — the same order of magnitude as the pipeline whole-run parity lanes above,
