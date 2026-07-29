@@ -229,7 +229,7 @@ use session_common::*;
 /// witness was invented even for a subject that already had its filler — one asserted value
 /// read back as two and collided with the `≤1` restriction on the same property.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "cc69b20d6b27f635ae23dbb53585d32af983f8b0661cb00b921fa4f3d30656d1";
+    "5076abf2a8b756deb46d45925f2b8a11c2b95cc0f041a316d47b8b9080cad6a2";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -325,7 +325,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
 /// edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "45770de7e1b3964b0f01a5644f6de8e427c3fe1444cf2377da1a70e699d155c0";
+    "0ab4b969f4de1eb3c9860d339231561bee34a2b4b3447972cfc11d84f35efaf2";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

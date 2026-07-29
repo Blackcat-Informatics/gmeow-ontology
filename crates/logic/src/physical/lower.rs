@@ -425,6 +425,12 @@ mod failure_class {
         "https://blackcatinformatics.ca/math/MalformedBindingExpression";
     pub(super) const UNSCOPED_VARIABLE_OCCURRENCE: &str =
         "https://blackcatinformatics.ca/math/UnscopedVariableOccurrence";
+    /// A node in an expression position carrying an unrecognized `math:` type.
+    pub(crate) const UNRECOGNIZED_EXPRESSION_TYPE: &str =
+        "https://blackcatinformatics.ca/math/UnrecognizedExpressionType";
+    /// A `math:NumberLiteral` with no `math:literalValue`.
+    pub(crate) const NUMBER_LITERAL_MISSING_VALUE: &str =
+        "https://blackcatinformatics.ca/math/NumberLiteralMissingValue";
     pub(super) const CYCLIC_EXPRESSION_GRAPH: &str =
         "https://blackcatinformatics.ca/math/CyclicExpressionGraph";
     pub(super) const EXPRESSION_DEPTH_EXCEEDED: &str =
@@ -647,9 +653,9 @@ impl MathLoweringError {
     /// rejection algebra and the failure-class mapping can never silently drift apart.
     pub(crate) fn failure_class(&self) -> &'static str {
         match self {
-            Self::NumberLiteralMissingValue { .. }
-            | Self::UnrecognizedExpressionType { .. }
-            | Self::ArgumentSlotMissingIndex { .. }
+            Self::NumberLiteralMissingValue { .. } => failure_class::NUMBER_LITERAL_MISSING_VALUE,
+            Self::UnrecognizedExpressionType { .. } => failure_class::UNRECOGNIZED_EXPRESSION_TYPE,
+            Self::ArgumentSlotMissingIndex { .. }
             | Self::ArgumentSlotMultipleIndexes { .. }
             | Self::ArgumentSlotIndexNotInteger { .. }
             | Self::ArgumentSlotMissingExpression { .. }
@@ -2434,8 +2440,8 @@ mod tests {
     fn math_lowering_error_failure_class_is_exhaustive_and_non_empty() {
         let variants = sample_variants();
 
-        // Every variant must decide a non-empty, properly-namespaced `math:` IRI, and
-        // the Display impl must not panic (each variant is exercised through `{}`).
+        // Every variant must decide a non-empty, properly-namespaced `math:` IRI, and the
+        // Display impl must not panic (each variant is exercised through `{}`).
         for variant in &variants {
             let class = variant.failure_class();
             assert!(!class.is_empty(), "{variant:?} has an empty failure class");
@@ -2443,63 +2449,40 @@ mod tests {
                 class.starts_with("https://blackcatinformatics.ca/math/"),
                 "{variant:?} failure class {class} is not `math:`-namespaced"
             );
-            let _ = variant.to_string();
+            let _ = format!("{variant}");
         }
 
-        // The grouping is coherent: variants sharing one bucket share one class, and the
-        // buckets are otherwise pairwise distinct. Eight buckets total.
-        let expected_bucket = |v: &MathLoweringError| -> &'static str {
-            match v {
-                MathLoweringError::NumberLiteralMissingValue { .. }
-                | MathLoweringError::UnrecognizedExpressionType { .. }
-                | MathLoweringError::ArgumentSlotMissingIndex { .. }
-                | MathLoweringError::ArgumentSlotMultipleIndexes { .. }
-                | MathLoweringError::ArgumentSlotIndexNotInteger { .. }
-                | MathLoweringError::ArgumentSlotMissingExpression { .. }
-                | MathLoweringError::NegativeArgumentSlotIndex { .. } => "MalformedArgumentSlot",
-                MathLoweringError::NonContiguousArgumentSlots { .. } => {
-                    "NonContiguousArgumentSlots"
-                }
-                MathLoweringError::DuplicateArgumentSlotIndex { .. } => {
-                    "DuplicateArgumentSlotIndex"
-                }
-                MathLoweringError::ApplicationMissingOperator { .. }
-                | MathLoweringError::ApplicationMultipleOperators { .. } => {
-                    "ApplicationOperatorCardinality"
-                }
-                MathLoweringError::BindingMissingOperator { .. }
-                | MathLoweringError::BindingMultipleOperators { .. }
-                | MathLoweringError::BindingMissingBoundVariable { .. }
-                | MathLoweringError::BindingMultipleBoundVariables { .. }
-                | MathLoweringError::BindingBodyNotSingleSlot { .. } => {
-                    "MalformedBindingExpression"
-                }
-                MathLoweringError::VariableExpressionMissingOccurrence { .. }
-                | MathLoweringError::VariableExpressionMultipleOccurrences { .. }
-                | MathLoweringError::OccurrenceMissingDeclaredVariable { .. }
-                | MathLoweringError::OccurrenceMultipleDeclaredVariables { .. }
-                | MathLoweringError::UnscopedOccurrence { .. } => "UnscopedVariableOccurrence",
-                MathLoweringError::CyclicExpressionGraph { .. } => "CyclicExpressionGraph",
-                MathLoweringError::ExpressionDepthExceeded { .. } => "ExpressionDepthExceeded",
-            }
-        };
+        // Check the mapping against the ONTOLOGY, never against a copy of the mapping.
+        //
+        // This assertion used to be a second, hand-maintained `match` restating
+        // `failure_class()` arm for arm. That form cannot fail for a WRONG bucket — it asserts
+        // the function equals itself — and it is why two variants sat mis-typed against the
+        // target class's own definition without any test noticing. Reading the authored
+        // module.ttl instead means a class this code decides but the slice never authored, or
+        // deletes, fails here.
+        const MODULE: &str = include_str!("../../../../slices/grounding/math/module.ttl");
         for variant in &variants {
-            let bucket = expected_bucket(variant);
-            let expected_iri = format!("https://blackcatinformatics.ca/math/{bucket}");
-            assert_eq!(
-                variant.failure_class(),
-                expected_iri,
-                "{variant:?} does not decide its expected bucket"
+            let class = variant.failure_class();
+            let local = class
+                .rsplit('/')
+                .next()
+                .expect("class IRI has a local name");
+            assert!(
+                MODULE.contains(&format!("\nmath:{local}\n")),
+                "{variant:?} decides math:{local}, which module.ttl does not author"
             );
         }
+
+        // Distinct buckets, derived rather than hardcoded: the count follows the mapping, and
+        // the assertion above is what pins each one to an authored class.
         let distinct_classes: std::collections::BTreeSet<&'static str> = variants
             .iter()
             .map(MathLoweringError::failure_class)
             .collect();
-        assert_eq!(
-            distinct_classes.len(),
-            8,
-            "exactly 8 distinct failure-class buckets: {distinct_classes:?}"
+        assert!(
+            distinct_classes.len() >= 8,
+            "the rejection algebra must keep its distinct failure-class buckets: \
+             {distinct_classes:?}"
         );
     }
 

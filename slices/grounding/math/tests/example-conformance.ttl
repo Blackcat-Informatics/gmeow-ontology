@@ -1834,13 +1834,13 @@ ex:ecArgumentSlotNegativeIndexLowering a gmeow:ExampleConformance ;
 ex:ecNumberLiteralMissingValueLowering a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/number-literal-missing-value.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedFailureClass math:MalformedArgumentSlot ;
+    gmeow:expectedFailureClass math:NumberLiteralMissingValue ;
     gmeow:conformanceRationale "A math:NumberLiteral root with no math:literalValue at all carries no SHACL obligation of its own (math:NumberLiteral has no class-scoped restriction), so this cell relies on the native lowering alone (MathLoweringError::NumberLiteralMissingValue, via check_structural_key_on_rejected_expression), resolving to math:MalformedArgumentSlot — distinct from the unrelated math:StringOnlyComputableExpression source-lint rule, since this root carries no computable-expression trigger edge at all." .
 
 ex:ecUnrecognizedExpressionTypeLowering a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/unrecognized-expression-type.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedFailureClass math:MalformedArgumentSlot ;
+    gmeow:expectedFailureClass math:UnrecognizedExpressionType ;
     gmeow:conformanceRationale "The counter-example's operand carries a math:-namespaced type recognized by NEITHER the four expression-root types nor math:SymbolReference — no SHACL shape targets an unrecognized type by construction, so this cell relies on the native lowering alone (MathLoweringError::UnrecognizedExpressionType, via check_structural_key_on_rejected_expression), resolving to math:MalformedArgumentSlot." .
 
 # --- math:MalformedBindingExpression: the SAME shape reached from a REAL expression root --- #

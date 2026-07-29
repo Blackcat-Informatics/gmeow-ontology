@@ -3088,7 +3088,7 @@ math:UndeclaredNormalizationStrength
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration omits math:normalizationStrength entirely — the mandatory rung every declaration must be held at, regardless of how well-formed its math:normalizes/math:normalizesTo pair is."@x-gmeow-english ;
     gmeow:avoidWhen "Do not raise it for a declaration that DOES carry a math:normalizationStrength but fails the strength-specific guard: a structural claim with mismatched or missing math:structuralKey values is math:FalseStructuralNormalizationClaim, and a coarser claim missing its procedure/attribution/preservation is math:UnattributedNormalization. This failure is specific to a declaration naming NO strength at all — the antecedent both those guards need before they can even engage."@x-gmeow-english ;
-    gmeow:howToUse "Point the min-qualified-cardinality-1 restriction on math:NormalizationDeclaration's math:normalizationStrength at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    gmeow:howToUse "Point the min-cardinality-1 restriction on math:NormalizationDeclaration's math:normalizationStrength at it through gmeow:enforcesFailureClass. The cardinality is unqualified on purpose: a qualified count depends on the value's type, which lives in the bundle rather than a consumer's graph, so it would reject correct consumer data."@x-gmeow-english ;
     skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf . # no math:normalizationStrength at all -> math:UndeclaredNormalizationStrength"@x-gmeow-english .
 
 math:FalseStructuralNormalizationClaim
@@ -3126,6 +3126,30 @@ math:UnattributedNormalization
 # carries a backing logic:Constraint/logic:Formula: the invariant is a genuine
 # computation (a content-addressed digest recompute, a lowering accept/reject verdict),
 # not a flat relational join the SHACL/Datalog fragment can express.
+
+math:UnrecognizedExpressionType
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unrecognized Expression Type"@x-gmeow-english ;
+    skos:definition "The failure raised when a node in an expression position carries one or more math: types, none of which the expression grammar recognizes — a mistyped class, a math:MathematicalStatement, or a bare math:VariableOccurrence used where an expression belongs. It is distinct from a malformed argument slot: the SLOT may be perfectly well formed, carrying exactly one index and exactly one slot expression, and the fault lies in what that expression turned out to be."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when an operand or slot target carries a math: type the expression grammar does not recognize, including a blank node with no recognized expression type."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it when the ARGUMENT SLOT itself is ill-formed — a missing, repeated, non-integer or negative math:slotIndex, or a missing math:slotExpression — that is math:MalformedArgumentSlot. This failure is about the expression a well-formed slot points AT."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); recognizing an authored node's type against the expression grammar is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:slot math:slotIndex 0 ; math:slotExpression exf:v . exf:v a math:VariableOccurrence . # a well-formed slot pointing at a non-expression -> math:UnrecognizedExpressionType"@x-gmeow-english .
+
+math:NumberLiteralMissingValue
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Number Literal Missing Value"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NumberLiteral carries no math:literalValue. A number literal's entire content IS its value; without one there is nothing to intern, so the expression containing it has no computable structural identity. It is distinct from a malformed argument slot: the slot that reaches the literal may be entirely well formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NumberLiteral node carries no math:literalValue at all."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a slot-shape fault — a missing or repeated math:slotIndex or math:slotExpression is math:MalformedArgumentSlot; and do not raise it for a value that is present but wrongly typed, which the literal's own datatype constraints decide."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); reading a literal's value out of the authored graph during interning is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:n a math:NumberLiteral . # no math:literalValue -> math:NumberLiteralMissingValue"@x-gmeow-english .
 
 math:MalformedStructuralKey
     a owl:Class ;
@@ -11039,10 +11063,24 @@ math:MathematicalExpression logic:subClassOf
 # math:DimensionExponent's four restrictions sharing one math:MalformedDimension): a
 # strength-less declaration is math:UndeclaredNormalizationStrength, never a bare,
 # anonymous cardinality violation.
+# The cardinality is deliberately UNQUALIFIED, and that is the whole point.
+#
+# Qualifying it on math:NormalizationStrength makes the count depend on the VALUE'S TYPE, and
+# the four strength individuals are typed in this bundle, not in a consumer's graph. A qualified
+# count therefore sees zero conforming values in any graph that merely CITES them — so a
+# consumer who authors a normalization declaration exactly as this vocabulary specifies is told
+# by this ontology's own validator to repair data that is already correct. The branch's own
+# shipped example hit this and was allowlisted as non-conformant rather than fixed.
+#
+# An unqualified min/max-1 asks only what is actually required — that exactly one strength be
+# named — and needs no type lookup, so it decides identically in the bundle and in a consumer's
+# graph. The value-set restriction below carries the "which four" half by IRI, again without
+# consulting a type, so the closed vocabulary is still closed.
 math:NormalizationDeclaration logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:allValuesFrom math:NormalizationStrength ] ,
-    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxQualifiedCardinality 1 ; logic:onClass math:NormalizationStrength ] ,
-    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:minQualifiedCardinality 1 ; logic:onClass math:NormalizationStrength ] ;
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ;
+      logic:allValuesFrom math:NormalizationStrength ] ,
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxCardinality 1 ] ,
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:minCardinality 1 ] ;
     gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
 
 math:ApplicationExpression rdfs:subClassOf
@@ -15932,6 +15970,8 @@ math:MalformedArgumentSlot a logic:Situation .
 math:MalformedBindingExpression a logic:Situation .
 math:MalformedDimension a logic:Situation .
 math:MalformedExtendedReal a logic:Situation .
+math:UnrecognizedExpressionType a logic:Situation .
+math:NumberLiteralMissingValue a logic:Situation .
 math:MalformedStructuralKey a logic:Situation .
 math:MalformedTensorComputationGraph a logic:Situation .
 math:MathConformanceFailure a logic:Situation .
