@@ -1052,7 +1052,7 @@ process.stdout.write(JSON.stringify(out));
     );
     serde_json::from_slice(&output.stdout).unwrap_or_else(|e| {
         panic!(
-            "the JS half emitted unparseable JSON ({e}): {}",
+            "the JS half emitted unparsable JSON ({e}): {}",
             String::from_utf8_lossy(&output.stdout)
         )
     })

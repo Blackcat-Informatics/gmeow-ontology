@@ -10066,11 +10066,25 @@ mod tests {
     }
 
     /// The VOCABULARY the projection depends on is genuinely two-carrier, and the two must
-    /// agree: `logic:mcpToolName` is declared in `slices/grounding/logic/module.ttl`, which
-    /// the pipeline folds into the bundle's `graph/logic`. A reader that resolves the
-    /// predicate against the bundle must find the SAME declaration the projection asserts —
-    /// otherwise the served quads name a property the shipped ontology does not define, and
-    /// the tool↔schema link is unresolvable for anyone but this crate.
+    /// agree: `logic:mcpToolName` is declared in `slices/grounding/logic/module.ttl`, and a
+    /// reader that resolves the predicate against the bundle must find the SAME declaration
+    /// the projection asserts — otherwise the served quads name a property the shipped
+    /// ontology does not define, and the tool↔schema link is unresolvable for anyone but
+    /// this crate.
+    ///
+    /// The declaration lands in TWO bundle graphs, and this test pins both because each
+    /// carries a different half and neither half alone resolves the predicate:
+    ///
+    /// * `graph/logic` is the canonical projection of the compiled `logic:` program, not a
+    ///   verbatim fold of the slice file. Its frontend lifts only `logic:`-namespaced
+    ///   predicates (plus a narrow annotation lane), so the SIGNATURE reaches it exactly
+    ///   when it is authored as `logic:domain` / `logic:range` — the spelling every other
+    ///   signature-bearing term in the slice uses. An `rdfs:`-spelled signature is dropped
+    ///   at ingestion and never ships; asserting it here is what keeps the authored
+    ///   spelling honest.
+    /// * The default graph carries the OWL TYPING (`a owl:DatatypeProperty`) as authored.
+    ///   `graph/logic` types nothing as an OWL property — it has no `owl:DatatypeProperty`
+    ///   subject at all — so the typing must be resolved where it actually rides.
     ///
     /// Checked against the bundle, which means this test can only pass once `gmeow.gts` has
     /// been regenerated over the minted term. It is deliberately NOT weakened to "the slice
@@ -10080,37 +10094,54 @@ mod tests {
     fn the_bundled_logic_vocabulary_declares_the_tool_name_property() {
         const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
         const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
-        const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
-        const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+        const LOGIC_DOMAIN: &str = "https://blackcatinformatics.ca/logic/domain";
+        const LOGIC_RANGE: &str = "https://blackcatinformatics.ca/logic/range";
         const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
         let bytes = snapshot();
         let bundle = purrdf::import_gts_events(&bytes).expect("the shipped snapshot reads");
-        let declared: BTreeSet<(String, String)> = purrdf::flat_rdf_quads_from_dataset(
-            bundle.dataset.as_ref(),
-        )
-        .into_iter()
-        .filter(|quad| {
-            matches!(&quad.graph_name, Some(purrdf::RdfTerm::Iri(g)) if g == GRAPH_LOGIC)
-                && matches!(&quad.subject, purrdf::RdfTerm::Iri(s) if s == LOGIC_MCP_TOOL_NAME)
-        })
-        .filter_map(|quad| match quad.object {
-            purrdf::RdfTerm::Iri(object) => Some((quad.predicate, object)),
-            _ => None,
-        })
-        .collect();
+        let quads = purrdf::flat_rdf_quads_from_dataset(bundle.dataset.as_ref());
 
+        // (predicate, IRI object) pairs asserted ON the term, partitioned by carrier graph.
+        let iri_statements = |in_graph: &dyn Fn(&Option<purrdf::RdfTerm>) -> bool| {
+            quads
+                .iter()
+                .filter(|quad| {
+                    in_graph(&quad.graph_name)
+                        && matches!(&quad.subject, purrdf::RdfTerm::Iri(s) if s == LOGIC_MCP_TOOL_NAME)
+                })
+                .filter_map(|quad| match &quad.object {
+                    purrdf::RdfTerm::Iri(object) => {
+                        Some((quad.predicate.clone(), object.clone()))
+                    }
+                    _ => None,
+                })
+                .collect::<BTreeSet<(String, String)>>()
+        };
+
+        let in_logic_graph =
+            |g: &Option<purrdf::RdfTerm>| matches!(g, Some(purrdf::RdfTerm::Iri(g)) if g == GRAPH_LOGIC);
+        let declared_in_logic_graph = iri_statements(&in_logic_graph);
         for (predicate, object) in [
-            (RDF_TYPE_IRI, OWL_DATATYPE_PROPERTY),
-            (RDFS_DOMAIN, LOGIC_ACTION_SCHEMA),
-            (RDFS_RANGE, XSD_STRING),
+            (LOGIC_DOMAIN, LOGIC_ACTION_SCHEMA),
+            (LOGIC_RANGE, XSD_STRING),
         ] {
             assert!(
-                declared.contains(&(predicate.to_string(), object.to_string())),
+                declared_in_logic_graph.contains(&(predicate.to_string(), object.to_string())),
                 "the shipped bundle's graph/logic must declare \
-                 <{LOGIC_MCP_TOOL_NAME}> <{predicate}> <{object}>; it declares {declared:?}"
+                 <{LOGIC_MCP_TOOL_NAME}> <{predicate}> <{object}>; it declares \
+                 {declared_in_logic_graph:?}"
             );
         }
+
+        let declared_in_default_graph = iri_statements(&|g: &Option<purrdf::RdfTerm>| g.is_none());
+        assert!(
+            declared_in_default_graph
+                .contains(&(RDF_TYPE_IRI.to_string(), OWL_DATATYPE_PROPERTY.to_string())),
+            "the shipped bundle's default graph must declare \
+             <{LOGIC_MCP_TOOL_NAME}> <{RDF_TYPE_IRI}> <{OWL_DATATYPE_PROPERTY}>; it declares \
+             {declared_in_default_graph:?}"
+        );
     }
 
     /// The projection retains `logic:mcpToolName` literals and NO other literal.

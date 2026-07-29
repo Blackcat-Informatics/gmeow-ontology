@@ -124,7 +124,7 @@ fn the_wasm_shim_carries_no_second_legend_implementation() {
     let shim = read("crates/gmn-wasm/src/lib.rs");
     assert!(
         !shim.contains("GLYPH_TOKEN_COSTS: &[(&str, usize)]"),
-        "the pinned cost table must live in gmeow-lang-bridge, not be re-declared in the \
+        "the pinned cost table must live in gmeow-lang-bridge, not be redeclared in the \
          wasm shim"
     );
     assert!(

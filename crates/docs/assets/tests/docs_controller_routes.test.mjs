@@ -182,10 +182,10 @@ test("the copy-as bar converts a result graph into every offered format", async 
 
 test("a malformed query is a thrown error, never a silent empty result", async () => {
   // The controller renders a thrown message as `Query error: …`. An engine that answered
-  // an unparseable query with an empty result set would render as "no matches" — the exact
+  // an unparsable query with an empty result set would render as "no matches" — the exact
   // ambiguity that let four dead queries look like honest negatives.
   await assert.rejects(
     () => queryBundle("SELECT ?s WHERE { ?s ?p"),
-    "an unparseable query must reject",
+    "an unparsable query must reject",
   );
 });

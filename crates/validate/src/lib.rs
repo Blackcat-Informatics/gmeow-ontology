@@ -18,7 +18,7 @@
 //! [`report_bridge`]) are compiled on every target.
 //!
 //! So is the whole REPORT-SHAPING path around that core: the advisory split
-//! ([`advisory`]), the constructive [`abductive`] tier, finding [`enrich`]ment, the
+//! ([`advisory`]), the constructive [`abductive`] tier, finding enrichment ([`enrich`]), the
 //! per-term [`guidance`] reader, [`remediation`], [`distinctiveness`], and
 //! [`language_tags`]. A browser-run `validate_local` therefore returns the same
 //! enriched, advisory-split report the native CLI does, rather than a raw one.

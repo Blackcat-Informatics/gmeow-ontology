@@ -72,7 +72,7 @@ const IRI_DELIMITERS = '<>"{}|^`\\';
  * `<…>` admits no unescaped delimiter and no code point at or below U+0020. A caller that
  * hands us prose (`"see http://example.org/a b"`) gets a NAMED failure here rather than an
  * `<…>` term that silently truncates at the first space and makes the whole export
- * unparseable.
+ * unparsable.
  */
 function iri(value) {
   const text = String(value);
@@ -98,7 +98,7 @@ const ECHAR_BY_CHAR = { "\n": "\\n", "\r": "\\r", "\t": "\\t", "\b": "\\b", "\f"
  * fastidiousness: this module's own `callIri` joins its key components with U+001F, and
  * `toolArguments`/`toolResult` carry JSON built from arbitrary engine payloads, so a raw
  * control character reaching a `"…"` term is a live possibility rather than a hypothetical
- * — and one such character makes the exported `.gts` unparseable in its entirety.
+ * — and one such character makes the exported `.gts` unparsable in its entirety.
  * Everything without a short name rides as a UCHAR escape, which the reader in
  * `assets/mcp-transport.mjs` decodes back to the same code point.
  */
@@ -619,7 +619,7 @@ function splitNQuadsTerms(line) {
  * That regex is the defect this replaced. `line.replace(/\s*\.\s*$/, "")` removes the
  * terminator and NOTHING else, so a four-term quad came back out as `s p o g <segment> .`
  * — five terms, which is not N-Quads at all, and one such line makes the entire exported
- * `.gts` unparseable rather than merely mis-graphed.
+ * `.gts` unparsable rather than merely mis-graphed.
  *
  * A line that is not three or four terms plus a `.` is a HARD failure naming the line. We
  * cannot emit a valid quad from it, and emitting an invalid one is the failure mode this

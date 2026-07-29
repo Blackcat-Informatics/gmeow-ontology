@@ -81,7 +81,7 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
 /// The grounded-memory claim package: the append-only store behind `store_claim`,
 /// `recall`, `revise_belief`, and the tool-call trajectory the audit segments key on.
 ///
-/// The option/record types are `purrdf`'s, not re-declared here: the native backend
+/// The option/record types are `purrdf`'s, not redeclared here: the native backend
 /// IS `purrdf`'s memory package, and a parallel set of structs would be a second
 /// vocabulary for the same claims.
 pub trait ClaimStore: Send + Sync {
