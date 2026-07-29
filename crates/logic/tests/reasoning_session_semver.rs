@@ -150,8 +150,16 @@ use session_common::*;
 /// no reasoning verdict on any input changes. (`proof_tree.rs` itself is a downstream READER of
 /// an already-decided proof and is classified in `NOT_BACKWARD_SOURCE` alongside
 /// `goal_directed.rs`, so it adds nothing to the digest.)
+/// Re-blessed once more for a COMMENT correction in `reason/dl.rs`: the notes on
+/// `refutation_shape_withholds` and `cardinality_on_datatype_property` claimed the committed
+/// bundle asserts only exact `cardinality 1` and qualified cardinalities, which was untrue
+/// (`math:compilesToLogicFormula` carries two plain `owl:minCardinality "1"` `rdfs:domain`
+/// companions) and is now stated correctly. `native_contract_hash()` `include_str!`s the
+/// whole file, so the raw-source content digest folded into this descriptor moves. No engine
+/// capability, withhold, or decider registration changed — the diff is comment lines only, so
+/// no reasoning verdict on any input changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "d20353676c204fbafb89709a070f0f585e9f20fae20f69274141303970e64e3e";
+    "df8bbed01be1daa68e2ff3c74b9866140749c6b7178c3c82c4eb21fefcc7b124";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -208,8 +216,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// golden above): the backward-source digest is one of the seven folded identity axes and
 /// moves with `physical/proof.rs`'s `pub(crate)` decoder visibility, while the fixed
 /// edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the `reason/dl.rs` comment correction (see the engine-descriptor
+/// golden above): the native contract hash is one of the seven folded identity axes and
+/// `native_contract_hash()` `include_str!`s the whole file, so a comment-only edit moves the
+/// raw-source content digest and with it this fixed-input session identity. No engine
+/// capability changed and the fixed edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "b3a38b213f260fde663540fa791be2d96c5cd6eb85d98bd1fe2929e775195815";
+    "77df660af7c216a2c649c18e14f4271052e44d95f511e1bfced7a3c94820aec3";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
