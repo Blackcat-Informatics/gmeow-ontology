@@ -376,11 +376,18 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| Every projection declares its unsupported constructs | projection test (`crates/pipeline/tests/support/math_projection_producer.rs`, all three producers) | `math:UndeclaredUnsupportedConstruct` |
-| Every projection declares a `logic:preservationKind` | projection test (`crates/pipeline/tests/support/math_projection_producer.rs`, all three producers) | `math:MissingPreservationKind` |
-| No projection silently converts confidence to probability | projection test (`crates/pipeline/tests/support/math_projection_producer.rs` `produce_confidence_probability_projection`) | `math:ProjectionConfidenceAsProbability` |
-| No projection silently drops distribution parameterization | projection test (`crates/pipeline/tests/support/math_projection_producer.rs` `produce_distribution_scipy_projection`) | `math:ProjectionDroppedParameterization` |
-| No projection flattens an expression AST to a string without recording loss | projection test (`crates/pipeline/tests/support/math_projection_producer.rs` `produce_expression_annotation_projection`) | `math:UnrecordedProjectionLoss` |
+| Every projection declares its unsupported constructs | Rust validator (`check_math_undeclared_unsupported_construct`, over authored `math:ProjectionRecord` individuals) | `math:UndeclaredUnsupportedConstruct` |
+| Every projection declares a `logic:preservationKind` | Rust validator (`check_math_missing_preservation_kind`, over authored `math:ProjectionRecord` individuals) | `math:MissingPreservationKind` |
+| No projection silently converts confidence to probability | Rust validator (`check_math_projection_confidence_as_probability`) | `math:ProjectionConfidenceAsProbability` |
+| No projection silently drops distribution parameterization | Rust validator (`check_math_projection_dropped_parameterization`) | `math:ProjectionDroppedParameterization` |
+| No projection flattens an expression AST to a string without recording loss | Rust validator (`check_math_unrecorded_projection_loss`) | `math:UnrecordedProjectionLoss` |
+> **Why these five name the native validator and not a projection producer.** No production
+> `math:` projection producer emits `math:ProjectionRecord` individuals today — the shipped bundle
+> carries none, and the authored records live in slice fixtures. A charter row must name the
+> mechanism that actually decides the rule on shipped content; naming a test-support module would
+> make the gate an artifact of the test that asserts it. When a real producer lands, these rows
+> move to it and the acceptance query runs over its output.
+
 | A declared-exact `math:JointProbabilityTable`/`math:MarkovKernel`/`math:BayesianNetwork`/`math:FactorGraph` actually has the outcome mass / completeness its declared `logic:ExactPreservation` claims | Rust validator (`check_math_probability_invariants`; arithmetic outcome-mass summation and dependency-graph completeness over the probability-model families, not a `math:ProjectionRecord` join) | `math:ExactPreservationViolated` |
 
 ### Bridges / ingestion rules

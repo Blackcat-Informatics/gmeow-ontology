@@ -63,11 +63,13 @@
 //!   forced into `owl:Nothing`, crediting the failure class from the witnessed individual's
 //!   own asserted types. No fixture is exempted into an "unverified" bucket.
 //! * **`projection-test` tier rows** (the `math:ProjectionRecord` join-requiring native
-//!   checks) are additionally proven against REAL, EXECUTED producer output, not only
-//!   against hand-authored counter-example/conformance-fixture testimony: see
-//!   [`projection_rules_execute_real_producers_and_pass_acceptance_query`], which runs each
-//!   producer in `crates/pipeline/tests/support/math_projection_producer.rs` and asserts the
-//!   SAME native acceptance checks find its actual output clean.
+//!   checks) are additionally exercised against EXECUTED producer output, not only against
+//!   hand-authored counter-example/conformance-fixture testimony: see
+//!   [`projection_rules_execute_real_producers_and_pass_acceptance_query`]. That is a TEST of
+//!   the checks, not the charter gate for the projection rules — those rules are decided by
+//!   the native validator, because no production producer emits a `math:ProjectionRecord`
+//!   (the shipped bundle carries none) and a charter row may not name a test-support module
+//!   as the mechanism that decides it.
 //! * **Competency-tier / structural-tier / native-test-tier rows carry NO failure-class
 //!   cell today** (their last cell is prose — "a mistyped invariant fails the exact-match
 //!   competency gate", "(structural assertion)", "(native test)") — there is nothing to
@@ -740,7 +742,7 @@ fn on_disk_counter_examples() -> Vec<PathBuf> {
 /// hit for anything else is a charter-drift bug this registry has not kept up with, and
 /// [`native_lint_tripped`]'s caller panics rather than silently guessing a channel.
 fn native_check_channel(class: &str) -> Option<Channel> {
-    use Channel::{ProjectionTest, RustValidator, SourceLint};
+    use Channel::{RustValidator, SourceLint};
     match class {
         // source-lint: "a Rust source-level check over the slice TTL before folding" —
         // `check_string_only_computable_expression`'s own doc comment names itself "the
@@ -760,16 +762,18 @@ fn native_check_channel(class: &str) -> Option<Channel> {
         "IncompleteDependencyModel" => Some(RustValidator),
         "ExactPreservationViolated" => Some(RustValidator),
 
-        // projection test: "an acceptance query over a generated lowering that fails if
-        // loss is unrecorded or preservation is mis-declared" — the join-requiring native
-        // checks over `math:ProjectionRecord` (`check_math_projection_invariants`), each
-        // ALSO proven against real producer output by
-        // `projection_rules_execute_real_producers_and_pass_acceptance_query`.
-        "MissingPreservationKind" => Some(ProjectionTest),
-        "UndeclaredUnsupportedConstruct" => Some(ProjectionTest),
-        "UnrecordedProjectionLoss" => Some(ProjectionTest),
-        "ProjectionConfidenceAsProbability" => Some(ProjectionTest),
-        "ProjectionDroppedParameterization" => Some(ProjectionTest),
+        // The projection rules are decided by the join-requiring native checks over authored
+        // `math:ProjectionRecord` individuals in `crates/validate/src/lint.rs` — the Rust
+        // validator tier, which is what actually runs. They were registered as a projection
+        // tier while the charter named a test-support module as their gate; no production
+        // producer emits a `math:ProjectionRecord` (the shipped bundle carries none), so that
+        // tier described the test rather than the mechanism. The acceptance query over
+        // producer output remains as its own test, not as these rules' gate.
+        "MissingPreservationKind" => Some(RustValidator),
+        "UndeclaredUnsupportedConstruct" => Some(RustValidator),
+        "UnrecordedProjectionLoss" => Some(RustValidator),
+        "ProjectionConfidenceAsProbability" => Some(RustValidator),
+        "ProjectionDroppedParameterization" => Some(RustValidator),
 
         _ => None,
     }
