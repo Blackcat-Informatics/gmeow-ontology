@@ -116,6 +116,13 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & ( binary(gmn_conformance_discharge) | binary(edoal_sparql_correspondence_parity) | binary(lang_flagship_discharge) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The whole-bundle export proof, in the same weight class as the pipeline bundle proofs
+# above. It moved here when the read-side bundle surface became its own leaf crate, so
+# the budget follows it rather than staying behind on a filter that matches nothing.
+[[profile.default.overrides]]
+filter = 'package(gmeow-bundle-view) & test(/export::tests::export_produces_structurally_valid_artifacts/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
@@ -144,7 +151,7 @@ filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & 
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
+filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -179,9 +186,23 @@ threads-required = "num-cpus"
 filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# The MCP overlay/verify tools each build an overlay over the WHOLE bundle, so they are
+# in the same bundle-assembly weight class as the pipeline proofs above. `verify_graph`
+# additionally reserves every core because it is the heaviest of them.
+#
+# These tests used to live in `gmeow-pipeline` as `mcp::tests::*`; splitting the MCP
+# consumer surface into its own leaf crate moved them to `gmeow-mcp` and a
+# `package(gmeow-pipeline)` filter silently stopped matching, dropping them back to the
+# 60s default while still competing with the whole gate for cores. That is what
+# `nextest_override_filters_all_match_a_live_test` now prevents.
 [[profile.default.overrides]]
-filter = 'package(gmeow-pipeline) & test(/mcp::tests::verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle/)'
+filter = 'package(gmeow-mcp) & test(/tests::verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle/)'
 threads-required = "num-cpus"
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-mcp) & test(/tests::(overlay_tools_accept_pasted_turtle_with_an_explicit_format|enriched_report_conforms_to_finding_schema|validate_local_enrichment_parity_and_correspondence)/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 # The docs-distribution, scoreboards, slice-brief, translation-rollup, and mappings
 # module tests each materialize or verify the WHOLE gmeow.gts bundle (the same order
