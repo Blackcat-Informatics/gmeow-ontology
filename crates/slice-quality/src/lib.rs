@@ -1295,7 +1295,7 @@ mod residue_text_carrier_tests {
         let vocab = crate::counting::shacl_vocab();
         assert!(
             residue_constructs_over_texts(&broken, &vocab, &vocab.owner).is_err(),
-            "an unparseable surface must HARD FAIL, never silently score as clean"
+            "an unparsable surface must HARD FAIL, never silently score as clean"
         );
     }
 }
