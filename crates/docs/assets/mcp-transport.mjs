@@ -313,10 +313,100 @@ export async function listTools() {
 // A term-level reader over the canonical N-Quads the engine emits (`action_policy`,
 // `convert`, `reason_graph`, `conjecture_test`). It understands RDF-1.2 triple terms
 // (`<<( s p o )>>`) because the session annotations and the star loss ledger both turn
-// on them. Deliberately small and total: an unparseable line is REPORTED, never skipped.
+// on them. Deliberately small and TOTAL: it accepts exactly the N-Quads grammar's terms
+// and REPORTS everything else — it never skips a line and never returns a half-read term
+// as if it were whole.
+//
+// "Total" is a claim with teeth, and each clause below is a defect this reader once had:
+//
+//   * an unterminated literal (`"abc` with no closing quote) is REFUSED, not returned as a
+//     literal whose value is the whole rest of the line;
+//   * the FULL escape set is decoded — `\t \b \n \r \f \" \' \\` plus `UCHAR`
+//     (`\uXXXX` / `\UXXXXXXXX`) — so `"A"` reads as `A`, not as the six characters
+//     `u0041`; an escape that is neither is REFUSED rather than silently dropped;
+//   * a triple term with no `)>>` closer is REFUSED, not silently accepted with the closer
+//     "stripped" by a regex that matched nothing;
+//   * an IRIREF carrying a character the grammar excludes (a space, a control character,
+//     `<>"{}|^\``) is REFUSED, because reading one means the term boundaries were misread;
+//   * a line that carries a fifth term, or does not terminate in `.`, is REFUSED.
 
-const IRI_RE = /^<([^>]*)>/;
+/**
+ * The delimiters an `IRIREF` may not carry unescaped, per the N-Quads grammar.
+ *
+ * The grammar's exclusion set is these eight plus every code point at or below U+0020
+ * (the space and the C0 controls), which [`iriCharForbidden`] adds by value.
+ */
+const IRI_DELIMITERS = '<>"{}|^`\\';
+
+/** Whether `c` may not appear unescaped inside an `IRIREF`. */
+function iriCharForbidden(c) {
+  return c.codePointAt(0) <= 0x20 || IRI_DELIMITERS.includes(c);
+}
+
 const BNODE_RE = /^(_:[^\s]+)/;
+const HEX_RE = /^[0-9A-Fa-f]+$/;
+
+/** The `ECHAR` table — the complete one. An escape outside it is not readable. */
+const ECHAR = {
+  t: "\t",
+  b: "\b",
+  n: "\n",
+  r: "\r",
+  f: "\f",
+  '"': '"',
+  "'": "'",
+  "\\": "\\",
+};
+
+/** Read a `UCHAR` (`\uXXXX` or `\UXXXXXXXX`) at `s[i]`, or `null` if it is not one. */
+function readUchar(s, i) {
+  const width = s[i + 1] === "u" ? 4 : s[i + 1] === "U" ? 8 : 0;
+  if (width === 0) return null;
+  const digits = s.slice(i + 2, i + 2 + width);
+  if (digits.length < width || !HEX_RE.test(digits)) return null;
+  const code = Number.parseInt(digits, 16);
+  if (code > 0x10ffff) return null;
+  return { text: String.fromCodePoint(code), next: i + 2 + width };
+}
+
+/** Read one escape sequence at `s[i]` (`s[i] === "\\"`), or `null` if it is not one. */
+function readEscape(s, i) {
+  const next = s[i + 1];
+  if (next === undefined) return null;
+  if (next === "u" || next === "U") return readUchar(s, i);
+  const mapped = ECHAR[next];
+  return mapped === undefined ? null : { text: mapped, next: i + 2 };
+}
+
+/**
+ * Read an `IRIREF` at `s[0..]`, returning `[value, rest]` or `null`.
+ *
+ * `UCHAR` escapes are decoded, and every other backslash — plus every character the
+ * grammar excludes — is a refusal. An IRI carrying a raw space is not "an IRI with a
+ * space in it": it is evidence the term boundary was read in the wrong place.
+ */
+function readIriRef(s) {
+  if (!s.startsWith("<")) return null;
+  const close = s.indexOf(">", 1);
+  if (close < 0) return null;
+  const raw = s.slice(1, close);
+  let value = "";
+  let i = 0;
+  while (i < raw.length) {
+    const c = raw[i];
+    if (c === "\\") {
+      const escape = readUchar(raw, i);
+      if (escape === null) return null;
+      value += escape.text;
+      i = escape.next;
+      continue;
+    }
+    if (iriCharForbidden(c)) return null;
+    value += c;
+    i += 1;
+  }
+  return [value, s.slice(close + 1)];
+}
 
 /** Read one term at `text[0..]`, returning `[term, rest]` or `null`. */
 function readTerm(text) {
@@ -330,37 +420,48 @@ function readTerm(text) {
       parts.push(read[0]);
       rest = read[1];
     }
-    rest = rest.replace(/^[\s]*\)>>/, "");
-    return [{ kind: "triple", value: parts }, rest];
+    // The closer is REQUIRED. A `replace` that matches nothing is not a parse.
+    const closer = /^[\s]*\)>>/.exec(rest);
+    if (closer === null) return null;
+    return [{ kind: "triple", value: parts }, rest.slice(closer[0].length)];
   }
-  const iri = IRI_RE.exec(s);
-  if (iri !== null) return [{ kind: "iri", value: iri[1] }, s.slice(iri[0].length)];
+  const iri = readIriRef(s);
+  if (iri !== null) return [{ kind: "iri", value: iri[0] }, iri[1]];
   const bnode = BNODE_RE.exec(s);
   if (bnode !== null) return [{ kind: "bnode", value: bnode[1] }, s.slice(bnode[0].length)];
   if (s.startsWith('"')) {
     let i = 1;
     let value = "";
+    let closed = false;
     while (i < s.length) {
       const c = s[i];
       if (c === "\\") {
-        const next = s[i + 1];
-        value +=
-          next === "n" ? "\n" : next === "t" ? "\t" : next === "r" ? "\r" : next === "\\" ? "\\" : next;
-        i += 2;
+        const escape = readEscape(s, i);
+        if (escape === null) return null;
+        value += escape.text;
+        i = escape.next;
         continue;
       }
-      if (c === '"') break;
+      if (c === '"') {
+        closed = true;
+        i += 1;
+        break;
+      }
+      // A raw LF or CR cannot appear inside an N-Quads literal; seeing one means the
+      // quote was never closed on this line.
+      if (c === "\n" || c === "\r") return null;
       value += c;
       i += 1;
     }
-    let rest = s.slice(i + 1);
+    if (!closed) return null;
+    let rest = s.slice(i);
     let datatype = null;
     let language = null;
     if (rest.startsWith("^^")) {
-      const dt = IRI_RE.exec(rest.slice(2));
+      const dt = readIriRef(rest.slice(2));
       if (dt === null) return null;
-      datatype = dt[1];
-      rest = rest.slice(2 + dt[0].length);
+      datatype = dt[0];
+      rest = dt[1];
     } else if (rest.startsWith("@")) {
       const tag = /^@([A-Za-z0-9-]+)/.exec(rest);
       if (tag === null) return null;
@@ -379,6 +480,10 @@ function readTerm(text) {
  * term's `value` is the three-element component array. A line that does not parse is a
  * HARD error naming the line — a silently dropped quad would make every derived surface
  * quietly incomplete.
+ *
+ * The terminator is CHECKED, not assumed: a line carrying a fifth term (the shape a
+ * careless re-graphing produces — `s p o oldGraph newGraph .`) is refused here rather
+ * than read as a quad with the extra term thrown away.
  */
 export function parseNQuads(text) {
   const quads = [];
@@ -391,12 +496,29 @@ export function parseNQuads(text) {
     if (p === null) throw new Error(`n-quads: cannot read a predicate term in ${JSON.stringify(raw)}`);
     const o = readTerm(p[1]);
     if (o === null) throw new Error(`n-quads: cannot read an object term in ${JSON.stringify(raw)}`);
-    const tail = o[1].replace(/^[\s]+/, "");
+    let tail = o[1].replace(/^[\s]+/, "");
     let graph = null;
+    if (tail.length === 0) {
+      throw new Error(
+        `n-quads: ${JSON.stringify(raw)} does not end after its terms — it is missing its \`.\` terminator`,
+      );
+    }
     if (!tail.startsWith(".")) {
       const g = readTerm(tail);
       if (g === null) throw new Error(`n-quads: cannot read a graph term in ${JSON.stringify(raw)}`);
+      if (g[0].kind !== "iri" && g[0].kind !== "bnode") {
+        throw new Error(
+          `n-quads: the graph term of ${JSON.stringify(raw)} is a ${g[0].kind}, which cannot name a graph`,
+        );
+      }
       graph = g[0];
+      tail = g[1].replace(/^[\s]+/, "");
+    }
+    if (tail.replace(/[\s]+$/, "") !== ".") {
+      throw new Error(
+        `n-quads: ${JSON.stringify(raw)} does not end after its terms — it carries more than four ` +
+          "terms or is missing its `.` terminator",
+      );
     }
     quads.push({ subject: s[0], predicate: p[0].value, object: o[0], graph });
   }

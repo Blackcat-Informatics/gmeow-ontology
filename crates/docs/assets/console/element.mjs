@@ -97,6 +97,9 @@ export class GmeowConsole extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.worker = null;
+    // The failure that took the worker out, once it has. Non-null means every request is
+    // refused up front instead of being parked against a worker that cannot answer.
+    this.workerFailure = null;
     this.pending = new Map();
     this.nextId = 0;
     this.panes = [];
@@ -109,12 +112,22 @@ export class GmeowConsole extends HTMLElement {
     this.main = el("section");
     this.body = el("div", { className: "layout" }, el("nav", {}, this.navList), this.main);
     this.shadowRoot.replaceChildren(el("style", { textContent: STYLES }), this.body);
-    this.boot().catch((error) => this.fail(error));
+    // A worker failure already rendered itself (and rejected every request in flight, this
+    // boot among them), so it is not rendered twice on the way back out.
+    this.boot().catch((error) => {
+      if (error !== this.workerFailure) this.fail(error);
+    });
   }
 
   disconnectedCallback() {
     this.worker?.terminate();
     this.worker = null;
+    // A terminated worker will never answer. Everything still in flight is settled NOW,
+    // with the reason — an awaited request against a worker that no longer exists is the
+    // same silent hang as an awaited request against one that failed to load.
+    this.rejectPending(
+      new Error("the console engine worker was terminated before this request was answered"),
+    );
   }
 
   /** Report a hard failure: visible in place AND dispatched for the shell's `#error-banner`. */
@@ -144,17 +157,53 @@ export class GmeowConsole extends HTMLElement {
   ask(op, args) {
     const id = (this.nextId += 1);
     return new Promise((resolve, reject) => {
+      // A request posted at a worker that has already failed or been terminated can never
+      // be answered, so it is refused here rather than parked in `pending` for ever.
+      if (this.worker === null || this.workerFailure !== null) {
+        reject(this.workerFailure ?? new Error("the console engine worker is not running"));
+        return;
+      }
       this.pending.set(id, { resolve, reject });
       this.worker.postMessage({ id, op, args });
     });
   }
 
+  /**
+   * Settle EVERY in-flight request with `error`, and remember the failure.
+   *
+   * This is the other half of a visible hard error. `fail()` renders and dispatches, which
+   * tells the reader; this tells the awaiting CODE. Without it, `boot()`'s
+   * `await this.ask("boot", …)` never settled when the worker failed to load — the banner
+   * said the engine was unavailable while the pane sat on "Starting the engine…" for ever,
+   * which is exactly the quiet degradation the console's own contract forbids.
+   */
+  rejectPending(error) {
+    this.workerFailure = error;
+    const waiting = [...this.pending.values()];
+    this.pending.clear();
+    for (const slot of waiting) slot.reject(error);
+  }
+
   async boot() {
+    this.workerFailure = null;
     this.worker = new Worker(new URL("./engine.worker.mjs", import.meta.url), { type: "module" });
     this.worker.addEventListener("message", (event) => this.onWorkerMessage(event.data));
-    this.worker.addEventListener("error", (event) =>
-      this.fail(event.message ?? "the console engine worker failed to load", "worker"),
-    );
+    this.worker.addEventListener("error", (event) => {
+      const error = new Error(
+        `the console engine worker failed: ${event.message ?? "it could not be loaded"}`,
+      );
+      // Reject FIRST: `fail()` renders, and the render is the last word the reader gets,
+      // so nothing may be left waiting behind it.
+      this.rejectPending(error);
+      this.fail(error, "worker");
+    });
+    // A structured-clone failure on the way in is the same situation: the frame never
+    // arrived, so nothing that is waiting will ever be answered.
+    this.worker.addEventListener("messageerror", () => {
+      const error = new Error("the console engine worker sent a message that could not be read");
+      this.rejectPending(error);
+      this.fail(error, "worker");
+    });
     this.main.replaceChildren(el("p", { className: "status", textContent: "Starting the engine…" }));
     const surface = await this.ask("boot", { sessionId: "s0" });
     this.panes = surface.panes;

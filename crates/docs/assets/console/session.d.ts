@@ -1,12 +1,36 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+/** An IRI term, declared as one by the caller. */
+export interface IriTerm {
+  iri: string;
+}
+
+/** A literal term, declared as one by the caller. At most one of `datatype`/`language`. */
+export interface LiteralTerm {
+  literal: string;
+  datatype?: string;
+  language?: string;
+}
+
+/**
+ * One term in a declared position.
+ *
+ * The kind is DECLARED, never inferred: `{iri}` is an IRI, `{literal}` is a literal, and a
+ * bare string is the shorthand for a plain literal. There is deliberately no rule that
+ * reads a term's kind out of its text — a prose answer that quotes a URL is a literal, and
+ * a `urn:`/`did:` IRI is an IRI, and only the caller knows which it produced.
+ */
+export type DeclaredTerm = IriTerm | LiteralTerm | string;
+
 /** One result statement a recorded invocation produced. */
 export interface DerivedStatement {
-  subject: string;
-  predicate: string;
-  object: string;
-  antecedents?: string[];
+  /** The statement's subject. Only an IRI can occupy this position. */
+  subject: IriTerm;
+  /** The statement's predicate. Only an IRI can occupy this position. */
+  predicate: IriTerm;
+  object: DeclaredTerm;
+  antecedents?: DeclaredTerm[];
 }
 
 /** One recorded invocation, as `ConsoleSession.record` returns it. */
@@ -119,7 +143,7 @@ export class ConsoleSession {
   /** The recorded trajectory as N-Quads, in the exact shape the shipped auditor discovers. */
   trajectoryNQuads(): string;
   /** The RDF-1.2 quoted-triple annotations for one recorded call. */
-  annotationsFor(call: RecordedCall): string;
+  annotationsFor(call: RecordedCall): string[];
   /** `<content-address>.<base64url payload>` over the invocation list only. */
   permalink(): string;
 }

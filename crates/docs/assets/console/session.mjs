@@ -59,21 +59,134 @@ export const SESSION_TEMPORAL_FRAME = `${GMEOW_NS}temporalFrameUtc`;
 export const SESSION_STORE_GRAPH = `${SESSION_BASE}store-segment`;
 
 // ── Small serializers ───────────────────────────────────────────────────────
+//
+// Every one of these is TOTAL: it emits a term the N-Quads grammar admits, or it throws.
+// Nothing here guesses a term's KIND from the shape of its text — see [`declaredTerm`].
 
+/** The delimiters an `IRIREF` may not carry, per the N-Quads grammar. */
+const IRI_DELIMITERS = '<>"{}|^`\\';
+
+/**
+ * Serialize an IRI, refusing one the grammar cannot express.
+ *
+ * `<…>` admits no unescaped delimiter and no code point at or below U+0020. A caller that
+ * hands us prose (`"see http://example.org/a b"`) gets a NAMED failure here rather than an
+ * `<…>` term that silently truncates at the first space and makes the whole export
+ * unparseable.
+ */
 function iri(value) {
-  return `<${value}>`;
+  const text = String(value);
+  for (const c of text) {
+    if (c.codePointAt(0) <= 0x20 || IRI_DELIMITERS.includes(c)) {
+      throw new Error(
+        `session: \`${text}\` cannot be serialized as an IRI — an N-Quads IRIREF admits no ` +
+          `space, control character, or any of ${IRI_DELIMITERS}. Emit it as a literal if that ` +
+          "is what it is.",
+      );
+    }
+  }
+  return `<${text}>`;
+}
+
+/** The C0 controls the grammar gives a short `ECHAR` name. */
+const ECHAR_BY_CHAR = { "\n": "\\n", "\r": "\\r", "\t": "\\t", "\b": "\\b", "\f": "\\f" };
+
+/**
+ * Escape a lexical form for an N-Quads quoted literal.
+ *
+ * The WHOLE C0 range is escaped, not the five characters with short names. That is not
+ * fastidiousness: this module's own `callIri` joins its key components with U+001F, and
+ * `toolArguments`/`toolResult` carry JSON built from arbitrary engine payloads, so a raw
+ * control character reaching a `"…"` term is a live possibility rather than a hypothetical
+ * — and one such character makes the exported `.gts` unparseable in its entirety.
+ * Everything without a short name rides as a UCHAR escape, which the reader in
+ * `assets/mcp-transport.mjs` decodes back to the same code point.
+ */
+function escapeLiteral(value) {
+  let out = "";
+  for (const c of String(value)) {
+    if (c === "\\") {
+      out += "\\\\";
+      continue;
+    }
+    if (c === '"') {
+      out += '\\"';
+      continue;
+    }
+    const named = ECHAR_BY_CHAR[c];
+    if (named !== undefined) {
+      out += named;
+      continue;
+    }
+    const code = c.codePointAt(0);
+    if (code <= 0x1f || code === 0x7f) {
+      out += `\\u${code.toString(16).toUpperCase().padStart(4, "0")}`;
+      continue;
+    }
+    out += c;
+  }
+  return out;
 }
 
 function literal(value, { datatype = null, language = null } = {}) {
-  const escaped = String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
-  if (language !== null) return `"${escaped}"@${language}`;
-  if (datatype !== null) return `"${escaped}"^^<${datatype}>`;
+  if (datatype !== null && language !== null) {
+    throw new Error(
+      `session: the literal \`${value}\` declares BOTH a datatype and a language tag — an RDF ` +
+        "literal carries at most one of them",
+    );
+  }
+  const escaped = escapeLiteral(value);
+  if (language !== null) {
+    if (!/^[A-Za-z]+(-[A-Za-z0-9]+)*$/.test(language)) {
+      throw new Error(`session: \`${language}\` is not a well-formed language tag`);
+    }
+    return `"${escaped}"@${language}`;
+  }
+  if (datatype !== null) return `"${escaped}"^^${iri(datatype)}`;
   return `"${escaped}"`;
+}
+
+/**
+ * Serialize a DECLARED term: the caller states the kind, this function never infers it.
+ *
+ *   * `{iri: "…"}`                                   — an IRI;
+ *   * `{literal: "…", datatype?: "…", language?: "…"}` — a literal;
+ *   * a plain string                                 — a plain literal, the common case.
+ *
+ * The heuristic this replaced was `object.startsWith("http") ? iri : literal`, which is
+ * wrong in BOTH directions and silently: a prose answer that quotes a URL was emitted as
+ * an IRI (invalid the moment it contained a space or a `>`), and a `urn:`, `did:` or
+ * `file:` IRI was emitted as a literal, which is not the same statement. The caller knows
+ * which it produced — an emitter that guesses is a second, wrong source of truth for term
+ * kind.
+ */
+function declaredTerm(value, where) {
+  if (typeof value === "string") return literal(value);
+  if (value !== null && typeof value === "object") {
+    if (typeof value.iri === "string") return iri(value.iri);
+    if (typeof value.literal === "string") {
+      return literal(value.literal, {
+        datatype: value.datatype ?? null,
+        language: value.language ?? null,
+      });
+    }
+  }
+  throw new Error(
+    `session: ${where} is not a declared RDF term. Pass {iri: "…"} for an IRI, ` +
+      '{literal: "…", datatype?, language?} or a plain string for a literal. The term kind is ' +
+      "never inferred from the text of the value.",
+  );
+}
+
+/** [`declaredTerm`] restricted to the positions only an IRI can occupy. */
+function declaredIri(value, where) {
+  if (value !== null && typeof value === "object" && typeof value.iri === "string") {
+    return iri(value.iri);
+  }
+  throw new Error(
+    `session: ${where} must be a declared IRI — pass {iri: "…"}. This position cannot carry a ` +
+      "literal, so a bare string is refused rather than promoted.",
+  );
 }
 
 /** An RDF-1.2 triple term (`<<( s p o )>>`) over three already-serialized terms. */
@@ -166,7 +279,10 @@ export class ConsoleSession {
    * invocation out of the trajectory.
    *
    * `derived` is the list of `{subject, predicate, object, antecedents}` result statements
-   * the call produced. Each becomes an annotated quoted triple.
+   * the call produced. Each becomes an annotated quoted triple. Every one of those term
+   * positions carries a DECLARED kind — `{iri: "…"}`, `{literal: "…", datatype?, language?}`
+   * or a plain string for a plain literal — because the caller knows what its tool
+   * returned and [`declaredTerm`] must never infer a kind from the text of a value.
    */
   record({ tool, schema, args, result, derived = [], storeSegment = null }) {
     if (typeof tool !== "string" || tool.length === 0) {
@@ -246,33 +362,33 @@ export class ConsoleSession {
    * carries the call it came out of plus its antecedent set. A derived statement with no
    * antecedents is refused: an answer with no stated basis is exactly the unattributable
    * assertion this annotation exists to prevent.
+   *
+   * Every term is DECLARED by the caller and serialized by [`declaredTerm`] /
+   * [`declaredIri`] — the subject and predicate positions accept `{iri: …}` alone, because
+   * neither can carry a literal. The object and each antecedent accept `{iri: …}`,
+   * `{literal: …}` or a plain string.
    */
   annotationsFor(call) {
     const lines = [];
     for (const [n, statement] of call.derived.entries()) {
       const { subject, predicate, object, antecedents } = statement;
+      const at = `derived statement ${n} of \`${call.tool}\``;
       if (!Array.isArray(antecedents) || antecedents.length === 0) {
         throw new Error(
-          `session: derived statement ${n} of \`${call.tool}\` names no antecedents — a derived ` +
+          `session: ${at} names no antecedents — a derived ` +
             "result triple must carry the set it was derived from",
         );
       }
-      const s = iri(subject);
-      const p = iri(predicate);
-      const o = typeof object === "string" && object.startsWith("http") ? iri(object) : literal(object);
+      const s = declaredIri(subject, `${at}: subject`);
+      const p = declaredIri(predicate, `${at}: predicate`);
+      const o = declaredTerm(object, `${at}: object`);
       lines.push(quad(s, p, o));
       const reifier = iri(`${call.iri}/statement/${n}`);
       lines.push(quad(reifier, iri(RDF_REIFIES), tripleTerm(s, p, o)));
       lines.push(quad(reifier, iri(`${GMEOW_NS}derivedBy`), iri(call.iri)));
-      for (const antecedent of antecedents) {
+      for (const [k, antecedent] of antecedents.entries()) {
         lines.push(
-          quad(
-            reifier,
-            iri(`${GMEOW_NS}wasDerivedFrom`),
-            typeof antecedent === "string" && antecedent.startsWith("http")
-              ? iri(antecedent)
-              : literal(antecedent),
-          ),
+          quad(reifier, iri(`${GMEOW_NS}wasDerivedFrom`), declaredTerm(antecedent, `${at}: antecedent ${k}`)),
         );
       }
     }
@@ -410,6 +526,125 @@ export function storeReading(store, candidates) {
 }
 
 /**
+ * Split one N-Quads line into its top-level terms, verbatim.
+ *
+ * A LEXER, not a reader: it decodes nothing and interprets nothing, it only says where one
+ * term ends and the next begins. That is the whole job [`regraph`] needs, and it is a job
+ * `line.split(/\s+/)` cannot do — a literal may contain spaces, an IRI may contain a `.`,
+ * and an RDF-1.2 triple term contains three whole terms and two spaces of its own.
+ *
+ * The rules are the grammar's: a `"…"` literal runs to its unescaped closing quote, a
+ * `<…>` IRI to its `>`, a `<<( … )>>` triple term to its matching closer (nested, so a
+ * triple term inside a triple term counts), and outside those, whitespace ends a term. A
+ * line the rules cannot cover throws, naming the line — this is called on bytes the engine
+ * produced, and a store serialization we cannot lex is not one we may re-graph by guessing.
+ */
+function splitNQuadsTerms(line) {
+  const terms = [];
+  let i = 0;
+  while (i < line.length) {
+    while (i < line.length && /\s/.test(line[i])) i += 1;
+    if (i >= line.length) break;
+    const start = i;
+    let depth = 0;
+    for (; i < line.length; i += 1) {
+      const c = line[i];
+      if (c === '"') {
+        i += 1;
+        let closed = false;
+        for (; i < line.length; i += 1) {
+          if (line[i] === "\\") {
+            i += 1;
+            continue;
+          }
+          if (line[i] === '"') {
+            closed = true;
+            break;
+          }
+        }
+        if (!closed) {
+          throw new Error(
+            `session export: the store line ${JSON.stringify(line)} carries an unterminated literal`,
+          );
+        }
+        continue;
+      }
+      if (line.startsWith("<<(", i)) {
+        depth += 1;
+        i += 2;
+        continue;
+      }
+      if (line.startsWith(")>>", i)) {
+        if (depth === 0) {
+          throw new Error(
+            `session export: the store line ${JSON.stringify(line)} closes a triple term it never opened`,
+          );
+        }
+        depth -= 1;
+        i += 2;
+        continue;
+      }
+      if (c === "<") {
+        const close = line.indexOf(">", i);
+        if (close < 0) {
+          throw new Error(
+            `session export: the store line ${JSON.stringify(line)} carries an unterminated IRI`,
+          );
+        }
+        i = close;
+        continue;
+      }
+      if (depth === 0 && /\s/.test(c)) break;
+    }
+    if (depth !== 0) {
+      throw new Error(
+        `session export: the store line ${JSON.stringify(line)} carries an unclosed triple term`,
+      );
+    }
+    terms.push(line.slice(start, i));
+  }
+  return terms;
+}
+
+/**
+ * Re-graph one store line into the session-store segment graph.
+ *
+ * The store serializes its own snapshot; the export carries that snapshot as ONE named
+ * graph, so a line arrives here as either a triple (`s p o .`) or a quad the store had
+ * already placed in a graph of its own (`s p o g .`). Both become `s p o <segment> .`:
+ * the store's own graph term is REPLACED, which is what "the export carries the store in
+ * the session-store segment graph" means, and which is why the term count is established
+ * by lexing rather than by a regex that strips a trailing `.`.
+ *
+ * That regex is the defect this replaced. `line.replace(/\s*\.\s*$/, "")` removes the
+ * terminator and NOTHING else, so a four-term quad came back out as `s p o g <segment> .`
+ * — five terms, which is not N-Quads at all, and one such line makes the entire exported
+ * `.gts` unparseable rather than merely mis-graphed.
+ *
+ * A line that is not three or four terms plus a `.` is a HARD failure naming the line. We
+ * cannot emit a valid quad from it, and emitting an invalid one is the failure mode this
+ * whole function exists to remove.
+ */
+function regraph(line, graph) {
+  const terms = splitNQuadsTerms(line);
+  const dot = terms[terms.length - 1];
+  if (terms.length < 4 || dot !== ".") {
+    throw new Error(
+      `session export: the store line ${JSON.stringify(line)} is not a terminated N-Quads ` +
+        `statement — it lexes as ${terms.length} term(s) ending in ${JSON.stringify(dot ?? "")}`,
+    );
+  }
+  const body = terms.slice(0, -1);
+  if (body.length > 4) {
+    throw new Error(
+      `session export: the store line ${JSON.stringify(line)} carries ${body.length} terms; ` +
+        "an N-Quads statement carries three or four",
+    );
+  }
+  return `${body.slice(0, 3).join(" ")} ${graph} .`;
+}
+
+/**
  * The exportable `.gts` segment text for a session.
  *
  * Two graphs, both required:
@@ -466,17 +701,12 @@ export function exportSegment(session, store) {
         "`{nquads, heldBy, carriedBy}` value `storeReading` returns.",
     );
   }
-  const graph = `<${SESSION_STORE_GRAPH}>`;
+  const graph = iri(SESSION_STORE_GRAPH);
   const storeLines = store.nquads
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0 && !line.startsWith("#"))
-    .map((line) => {
-      // Re-graph each store triple/quad into the session-store segment graph: strip the
-      // trailing `.` (and any graph term the store already carried) and re-terminate.
-      const body = line.replace(/\s*\.\s*$/, "");
-      return `${body} ${graph} .`;
-    });
+    .map((line) => regraph(line, graph));
   // A holder whose state nothing carried, plus the case where the reading claimed coverage
   // but every line it offered was a comment: both are "state exists and did not travel".
   const uncarried = store.heldBy.filter(
