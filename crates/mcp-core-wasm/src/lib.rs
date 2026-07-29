@@ -18,9 +18,9 @@
 //! NOT different — and this is the contract that makes the split honest rather than a
 //! feature cut:
 //!
-//! - **The surface is total.** `tools/list` advertises all 35 tools with byte-identical
-//!   descriptors, `resources/list` all 5. Discovery cannot tell the two images apart, and
-//!   a client written against the full engine needs no conditional code.
+//! - **The surface is total.** `tools/list` advertises all [`gmeow_mcp::TOOL_COUNT`] tools
+//!   with byte-identical descriptors, `resources/list` all 5. Discovery cannot tell the two
+//!   images apart, and a client written against the full engine needs no conditional code.
 //! - **The action theory is total.** `action_policy` serves the same projection: every
 //!   tool has its schema and every schema its tool. The theory is not a function of which
 //!   segment happens to be resident.
@@ -30,6 +30,12 @@
 //!   segment that serves it — which the JS layer uses to load `gmeow-mcp-wasm` and
 //!   re-dispatch the IDENTICAL frame. The caller waits longer; it never gets a smaller
 //!   answer, an empty result, or an "unknown tool".
+//! - **The grounded-memory triad is NOT split across the two images.** `store_claim`,
+//!   `recall`, `store_segment`, and `revise_belief` are all deferred together, because each
+//!   wasm module owns its own claim store and two modules cannot share one: a triad split
+//!   across the images would mint a claim id here and answer `[]` there. Reading memory
+//!   therefore costs the reasoning segment's fetch, exactly as writing it does — a slower
+//!   answer instead of a lost write. See [`gmeow_mcp::REASONING_SEGMENT_TOOLS`].
 //!
 //! ## Lifecycle
 //!
@@ -132,8 +138,13 @@ pub fn ready() -> bool {
 /// to the deferral signal.
 ///
 /// Calling this again REPLACES the engine wholesale (a new bundle is a new session).
-/// A failed load installs nothing, so [`ready`] stays `false` and [`mcp`] keeps
-/// refusing frames rather than answering from a stale or partial bundle.
+///
+/// The replacement is ORDERED: the installed engine is dropped BEFORE the new one is
+/// built, so a failed load leaves no engine at all — [`ready`] reports `false` and [`mcp`]
+/// refuses frames — rather than leaving the PREVIOUS session's bundle serving. The
+/// alternative ordering (build, then install on success) reads as safer and is the exact
+/// opposite: it makes a failed re-`init` invisible, and the caller who asked for a new
+/// bundle keeps getting answers from the old one's data.
 ///
 /// # Errors
 ///
@@ -141,6 +152,7 @@ pub fn ready() -> bool {
 /// language is unresolvable, or if the builtin surface does not assemble.
 #[wasm_bindgen]
 pub fn init(snapshot: &[u8]) -> Result<(), JsError> {
+    ENGINE.with_borrow_mut(|slot| *slot = None);
     let server = McpServer::from_snapshot_segmented(snapshot, SegmentSet::core())
         .map_err(|e| JsError::new(e.message()))?;
     ENGINE.with_borrow_mut(|slot| *slot = Some(server));

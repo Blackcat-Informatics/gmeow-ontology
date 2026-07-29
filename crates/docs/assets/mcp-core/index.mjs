@@ -77,9 +77,22 @@ export const SEGMENT_NOT_LOADED = "mcp.segment-not-loaded";
 // Read the deferral signal out of a response frame, or `null` if the frame is anything
 // else (a real answer, an ordinary tool error, a protocol error).
 //
-// The check is structural: a `tools/call` result envelope whose text payload carries
-// `code === "mcp.segment-not-loaded"`. A frame that fails to parse is not a deferral, and
-// is returned to the caller untouched rather than being retried blindly.
+// The check is structural AND TOTAL over the envelope this function's caller then routes
+// on. A deferral is a ROUTING INSTRUCTION: whatever comes back here is handed to
+// `loadSegment(segment)` and re-dispatched, so every field it promises must be present and
+// of the right type BEFORE it is trusted. Checking only `code` was enough to recognise a
+// well-formed signal and not enough to reject a malformed one — a payload carrying the
+// code but no `segment` reached `loadSegment(undefined)`, which is a host call made on a
+// frame nobody validated.
+//
+// Required, all of them:
+//   * the envelope is an ERROR envelope (`result.isError === true`) — a deferral computed
+//     nothing, so a signal riding a success envelope is not one;
+//   * `tool` and `segment` are non-empty strings — the two fields the host routes on;
+//   * `segment_tools` is an array of strings — the segment's advertised inventory, which a
+//     host may pre-flight against.
+// Anything else is `null`: the frame is returned to the caller untouched rather than being
+// retried blindly. A frame that fails to parse is likewise not a deferral.
 export function segmentDeferral(responseFrame) {
   if (typeof responseFrame !== "string" || responseFrame.length === 0) return null;
   let frame;
@@ -88,6 +101,7 @@ export function segmentDeferral(responseFrame) {
   } catch {
     return null;
   }
+  if (frame?.result?.isError !== true) return null;
   const text = frame?.result?.content?.[0]?.text;
   if (typeof text !== "string") return null;
   let payload;
@@ -97,16 +111,27 @@ export function segmentDeferral(responseFrame) {
     return null;
   }
   if (payload?.code !== SEGMENT_NOT_LOADED) return null;
-  return { tool: payload.tool, segment: payload.segment, segmentTools: payload.segment_tools };
+  const { tool, segment, segment_tools: segmentTools } = payload;
+  if (typeof tool !== "string" || tool.length === 0) return null;
+  if (typeof segment !== "string" || segment.length === 0) return null;
+  if (!Array.isArray(segmentTools)) return null;
+  if (!segmentTools.every((name) => typeof name === "string")) return null;
+  return { tool, segment, segmentTools };
 }
 
 // Dispatch ONE frame with demand loading.
 //
 // The core engine answers directly whenever it can. When it returns the deferral signal,
 // this loads the segment that serves the named tool and re-sends the IDENTICAL frame
-// string to it — so the caller observes a slower answer and never a failure. That is the
+// string to it — so a deferred tool costs the caller latency, never capability. That is the
 // whole contract of the tiered console, implemented once here rather than at each call
 // site.
+//
+// It is not, however, a promise that nothing can fail. `loadSegment` is a dynamic import
+// and an unreachable segment REJECTS; a re-init that supersedes this frame's session
+// rejects too. Both propagate: a routing step that cannot complete is a hard failure the
+// caller must see, and answering anyway — from the core tier, or from another session's
+// bundle — would be the degradation the tiering exists to avoid.
 //
 // `loadSegment(segmentName)` is supplied by the host and must resolve to a module with the
 // same `{ ready, init, mcp }` lifecycle this one has (`gmeow-mcp-wasm` for the `reasoning`
@@ -119,8 +144,19 @@ export function segmentDeferral(responseFrame) {
 // loading state; a silent multi-second stall would be its own kind of degradation.
 const _segments = new Map();
 let _snapshot = null;
+// The SESSION counter. `initTiered` is a new session, and a segment load is an async
+// window that can straddle one: the loader awaits a dynamic import, then a wasm
+// instantiation, then installs a snapshot — seconds during which the page may re-init over
+// a different bundle. Without a generation stamp the in-flight closure read the
+// module-global `_snapshot` AFTER its awaits (so it installed the NEW bundle into a segment
+// the OLD session asked for) and then wrote itself into the freshly-cleared `_segments`
+// map, where the new session would answer from it. Every load below captures BOTH the
+// generation and the snapshot it belongs to, and a completion whose generation has been
+// superseded is discarded rather than published.
+let _generation = 0;
 
 export function initTiered(snapshotBytes) {
+  _generation += 1;
   // Retained because a segment loaded later must be initialised over the SAME bundle —
   // answering a re-dispatched frame from a different snapshot would be a mixed view.
   _snapshot = snapshotBytes;
@@ -128,7 +164,23 @@ export function initTiered(snapshotBytes) {
   init(snapshotBytes);
 }
 
+// Raised when a session boundary crossed an in-flight frame. NOT a degraded answer and not
+// a retry: the frame was dispatched against a bundle this module no longer serves, and
+// answering it from the new one would silently substitute a different question's answer.
+function supersededSession(tool) {
+  return new Error(
+    `the engine was re-initialised over a different gmeow.gts while the \`${tool}\` frame ` +
+      "was in flight; that frame belongs to a session this module no longer serves — " +
+      "re-dispatch it against the current snapshot",
+  );
+}
+
 export async function tieredMcp(requestFrame, { loadSegment, onSegmentLoad } = {}) {
+  // The session this frame belongs to, stamped BEFORE the first dispatch: everything below
+  // is checked against it, so a re-init at any point is caught rather than raced.
+  const generation = _generation;
+  const snapshot = _snapshot;
+
   const first = mcp(requestFrame);
   const deferral = segmentDeferral(first);
   if (deferral === null) return first;
@@ -139,7 +191,7 @@ export async function tieredMcp(requestFrame, { loadSegment, onSegmentLoad } = {
         "pass `loadSegment` to tieredMcp() so it can be fetched and the frame re-dispatched",
     );
   }
-  if (_snapshot === null) {
+  if (snapshot === null) {
     throw new Error("no gmeow.gts snapshot retained — call initTiered(snapshotBytes) first");
   }
 
@@ -149,7 +201,9 @@ export async function tieredMcp(requestFrame, { loadSegment, onSegmentLoad } = {
     const loading = (async () => {
       const module = await loadSegment(deferral.segment);
       await module.ready();
-      module.init(_snapshot);
+      // The snapshot CAPTURED at entry, never the module-global: this segment must be
+      // installed over the bundle its frame was dispatched against.
+      module.init(snapshot);
       return module;
     })();
     // Cache the in-flight PROMISE so two concurrent deferrals share one segment load.
@@ -157,13 +211,19 @@ export async function tieredMcp(requestFrame, { loadSegment, onSegmentLoad } = {
     try {
       segment = await loading;
     } catch (error) {
-      _segments.delete(deferral.segment);
+      // Only evict what is still ours: a re-init already cleared the map, and deleting
+      // blind could drop a load the NEW session started under the same key.
+      if (_generation === generation && _segments.get(deferral.segment) === loading) {
+        _segments.delete(deferral.segment);
+      }
       throw error;
     }
+    if (_generation !== generation) throw supersededSession(deferral.tool);
     _segments.set(deferral.segment, segment);
     onSegmentLoad?.({ phase: "loaded", ...deferral });
   } else {
     segment = await segment;
+    if (_generation !== generation) throw supersededSession(deferral.tool);
   }
 
   // The IDENTICAL frame string, not a rebuild of it: the re-dispatch must be a replay.

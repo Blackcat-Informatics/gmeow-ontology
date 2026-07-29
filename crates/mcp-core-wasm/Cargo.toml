@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-mcp-core-wasm"
-description = "wasm32 bindings for the LEAN core of the GMEOW consumer MCP engine: the whole 35-tool / 5-resource JSON-RPC surface, with the reasoning segment demand-loaded on first use rather than carried in the first-load image"
+description = "wasm32 bindings for the LEAN core of the GMEOW consumer MCP engine: the whole 38-tool / 5-resource JSON-RPC surface, with the reasoning segment demand-loaded on first use rather than carried in the first-load image"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -24,9 +24,11 @@ path = "src/lib.rs"
 # The consumer MCP engine with the reasoning segment selected OUT
 # (`default-features = false`): the DL reasoner (`gmeow-logic`) and the rubric kernel over
 # it (`gmeow-slice-quality`) are not linked into this image at all — that omission IS the
-# first-load byte win this crate exists for. The tool surface is NOT reduced: all 35 tools
-# are advertised and dispatchable, and the twelve reasoning-segment tools answer with the
+# first-load byte win this crate exists for. The tool surface is NOT reduced: all 38 tools
+# are advertised and dispatchable, and the 15 reasoning-segment tools answer with the
 # typed `mcp.segment-not-loaded` signal the host re-dispatches against `gmeow-mcp-wasm`.
+# (The counts are gated against `gmeow_mcp`'s own constants by
+# `the_shipped_prose_states_the_derived_tool_counts`; a TOML comment cannot read them.)
 gmeow-mcp = { path = "../mcp", default-features = false, features = ["core"] }
 # EXACTLY pinned ONCE, in `[workspace.dependencies]`: the `wasm-bindgen` CLI that
 # generates the JS bindings refuses to run unless it matches the library version

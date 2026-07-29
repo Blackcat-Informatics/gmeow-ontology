@@ -49,7 +49,9 @@ export function init(snapshot: Uint8Array): void;
 
 /**
  * Install a `gmeow.gts` snapshot AND retain it for demand-loaded segments, so a segment
- * loaded later is initialised over the SAME bundle. Resets the segment cache.
+ * loaded later is initialised over the SAME bundle. Resets the segment cache and starts a
+ * new SESSION: a `tieredMcp` frame still in flight from the previous snapshot is rejected
+ * rather than answered from this one.
  */
 export function initTiered(snapshot: Uint8Array): void;
 
@@ -78,13 +80,22 @@ export function ready(wasmBytesOrUrl?: BufferSource | URL | string): Promise<voi
 /**
  * Read the deferral signal out of a response frame, or `null` if the frame is anything
  * else (a real answer, an ordinary tool error, a protocol error, unparsable text).
+ *
+ * TOTAL over the envelope: the result must be an error envelope (`isError === true`) and
+ * the payload must carry a non-empty string `tool`, a non-empty string `segment`, and an
+ * array of string `segment_tools`. A payload that carries the code but not the fields a
+ * host routes on is `null`, never a partially-populated deferral.
  */
 export function segmentDeferral(responseFrame: string): SegmentDeferral | null;
 
 /**
  * Dispatch ONE frame with demand loading: the core answers directly whenever it can, and
  * otherwise the segment serving the named tool is loaded once and the IDENTICAL frame
- * string replayed to it, so the caller observes a slower answer and never a failure.
+ * string replayed to it, so the caller observes a slower answer rather than a smaller one.
+ *
+ * Rejects — never resolves with a degraded answer — when `loadSegment` itself rejects (an
+ * unreachable segment is a hard failure), and when `initTiered` started a new session while
+ * this frame was in flight (the frame belongs to a bundle this module no longer serves).
  */
 export function tieredMcp(requestFrame: string, options?: TieredOptions): Promise<string>;
 

@@ -59,8 +59,8 @@
 //!
 //! Deferral is NOT a reduced surface, and this is the load-bearing claim:
 //!
-//! * All 35 tools are advertised by `tools/list`, with identical descriptors, in every
-//!   deployment — discovery cannot tell the tiers apart.
+//! * All [`TOOL_COUNT`] tools are advertised by `tools/list`, with identical descriptors,
+//!   in every deployment — discovery cannot tell the tiers apart.
 //! * The action theory (`action_policy`) is likewise total and identical, and the
 //!   native bijection gate over it is a statement about the THEORY, not about any one
 //!   deployment's linkage.
@@ -71,8 +71,9 @@
 //!   instruction, never a refusal, never an empty result, and never an answer computed
 //!   by a weaker path.
 //!
-//! Membership is decided by LINKAGE (what a tool actually calls), not by name; see
-//! [`REASONING_SEGMENT_TOOLS`] for the classification and its evidence.
+//! Membership is decided by LINKAGE (what a tool actually calls) and by SHARED MUTABLE
+//! STATE (what a tool reads and writes), not by name; see [`REASONING_SEGMENT_TOOLS`] for
+//! the classification and its evidence.
 //!
 //! # Direct dependencies
 //!
@@ -233,16 +234,18 @@ pub const REASONING_SEGMENT: &str = "reasoning";
 ///
 /// The twin of [`REASONING_SEGMENT`], and it exists because the two browser images are
 /// DISJOINT halves of one surface rather than a superset and a subset. The reasoning image
-/// carries the twelve [`REASONING_SEGMENT_TOOLS`] and defers the other twenty-three back to
-/// core, exactly as core defers those twelve forward. Without this identifier the reasoning
-/// image would have had to be a superset — which is what made the old "heavy segment"
-/// duplicate the whole core image on disk.
+/// carries the [`REASONING_SEGMENT_TOOL_COUNT`] [`REASONING_SEGMENT_TOOLS`] and defers the
+/// other [`CORE_SEGMENT_TOOL_COUNT`] back to core, exactly as core defers those forward.
+/// Without this identifier the reasoning image would have had to be a superset — which is
+/// what made the old "heavy segment" duplicate the whole core image on disk.
 pub const CORE_SEGMENT: &str = "core";
 
 /// The tools the [`REASONING_SEGMENT`] serves, in advertised order.
 ///
-/// Membership is decided by LINKAGE, not by name, and the classification was read off
-/// what each tool actually calls:
+/// Membership is decided by two facts about a tool, never by its name: what it LINKS, and
+/// what mutable STATE it shares with another tool.
+///
+/// # Linkage
 ///
 /// * `verify_graph` / `explain_quad` DERIVE — `reason_all_budgeted`, the verify pass, and
 ///   the explanation index are the DL reasoner itself.
@@ -258,10 +261,28 @@ pub const CORE_SEGMENT: &str = "core";
 ///   `EvaluationStatus`, `ConjectureLifecycleState`) — types that live in `gmeow-logic`
 ///   and must not be duplicated here to dodge the edge.
 ///
-/// `store_segment` is deliberately NOT here. It reads the claim package through the same
-/// storage seam `recall` does and links nothing else, so it belongs where `recall` is —
-/// which is also what keeps the exported session coherent: the store an export carries is
-/// the store the session's reads actually answered from.
+/// # Shared state: the grounded-memory triad is INDIVISIBLE
+///
+/// `recall` and `store_segment` link nothing but the storage seam, so by linkage alone they
+/// would be core reads. They are here anyway, and the reason is a hard property of the
+/// deployment rather than a preference: **a segment is an image, and an image is a store.**
+/// The browser backend's claim package
+/// ([`storage::browser_storage`](crate::storage::browser_storage)) is a `static` inside one
+/// wasm module, and two wasm modules have two linear memories — there is no arrangement in
+/// which they share one. Splitting the triad therefore does not distribute it; it FORKS it,
+/// and a `store_claim` that reported a minted claim id would be unreachable by every read:
+/// `recall` answers `[]` and `store_segment` reports an empty store, in the one deployment
+/// that ships. That is silent capability degradation on a write the engine called `ok`.
+///
+/// `store_claim` and `revise_belief` cannot move the other way — their commit gate IS the
+/// Transaction-Logic executor, so serving them from the core image would mean linking the
+/// reasoner into the first-load image and deleting the split. So the triad follows the
+/// writes: every tool that touches the claim package
+/// ([`ClaimStore`](crate::storage::ClaimStore)) is served by ONE segment, and this is it.
+/// The price is honest and bounded — a caller that recalls demand-loads the reasoning image
+/// exactly as a caller that stores does — and it buys the property the triad is for: what
+/// was stored can be read back, and what `store_segment` exports is the store the session's
+/// reads actually answered from.
 ///
 /// Everything else is core and answers in the first-load image. That deliberately includes
 /// `entailments` and `counter_examples`, whose names suggest reasoning but whose bodies are
@@ -280,6 +301,8 @@ pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
     "conjecture_test",
     "store_conjecture",
     "refute_conjecture",
+    "recall",
+    "store_segment",
     "revise_belief",
     "slice_quality",
     "submit_candidate",
@@ -287,10 +310,69 @@ pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
     "list_candidates",
 ];
 
+/// Every tool that reads or writes the grounded-memory claim package, in advertised order.
+///
+/// The engine's own answer to "which tools share the claim store?", declared once so the
+/// indivisibility argument in [`REASONING_SEGMENT_TOOLS`] is CHECKED rather than asserted:
+/// `the_grounded_memory_triad_is_served_by_one_segment` proves this whole set maps to a
+/// single segment, which is what makes a stored claim recallable in the browser. Any new
+/// tool that reaches [`ClaimStore`](crate::storage::ClaimStore) belongs here, and the same
+/// proof then constrains where it may be served.
+pub const CLAIM_STORE_TOOLS: &[&str] = &["store_claim", "recall", "store_segment", "revise_belief"];
+
+/// The tools the consumer surface advertises, in EVERY deployment tier.
+///
+/// The ONE declaration of the surface's size. Every count claim this crate and its two
+/// browser shims make — in rustdoc, in a package description, in a README, in a tool
+/// description an agent reads at run time — resolves to this constant or to one derived
+/// from it, and `the_shipped_prose_states_the_derived_tool_counts` fails on any shipped
+/// text that states a different number. Hand-copied counts are what let the surface grow
+/// past a prose claim of "35" in three crates at once.
+///
+/// It is pinned rather than computed because `builtin_tool_descriptors` itself quotes the
+/// counts (`action_policy` describes the theory's shape to the agent calling it), so the
+/// descriptor list cannot be its own source.
+/// `consumer_surface_matches_the_declared_tool_count`
+/// closes the loop: the assembled surface must have exactly this many tools.
+pub const TOOL_COUNT: usize = 38;
+
+/// The governed WRITE tools: the ones typed `logic:McpActionSchema` in the shipped action
+/// policy, carrying `logic:precondition` / `logic:effect` / `logic:compensation`.
+///
+/// Declared here because the READ count is the surface minus the writes, and both numbers
+/// are quoted in shipped prose. The policy remains the authority on what a write IS:
+/// `the_action_theory_is_bijective_with_the_consumer_tool_surface` asserts this list equals the
+/// `logic:McpActionSchema`-typed half of `action_policy`, so this cannot become a second,
+/// drifting definition of the write set.
+pub const WRITE_TOOLS: &[&str] = &[
+    "store_claim",
+    "store_conjecture",
+    "refute_conjecture",
+    "revise_belief",
+    "submit_candidate",
+    "withdraw_candidate",
+];
+
+/// How many tools carry a governed write schema — [`WRITE_TOOLS`]'s length, never restated.
+pub const WRITE_TOOL_COUNT: usize = WRITE_TOOLS.len();
+
+/// How many tools are READS: the surface minus the governed writes, by construction.
+pub const READ_TOOL_COUNT: usize = TOOL_COUNT - WRITE_TOOL_COUNT;
+
+/// How many tools the demand-loaded reasoning image serves — [`REASONING_SEGMENT_TOOLS`]'s
+/// length, so the split's arithmetic tracks the list rather than a comment about it.
+pub const REASONING_SEGMENT_TOOL_COUNT: usize = REASONING_SEGMENT_TOOLS.len();
+
+/// How many tools the always-resident core image serves: the surface minus the reasoning
+/// segment. The two segments PARTITION the surface, so this is a subtraction and not a
+/// second list.
+pub const CORE_SEGMENT_TOOL_COUNT: usize = TOOL_COUNT - REASONING_SEGMENT_TOOL_COUNT;
+
 /// Which engine segments a deployment serves IN-PROCESS.
 ///
-/// The tool surface is total in every deployment: all 35 tools are advertised, described,
-/// and dispatchable everywhere, and the action theory that governs them is unchanged. A
+/// The tool surface is total in every deployment: all [`TOOL_COUNT`] tools are advertised,
+/// described, and dispatchable everywhere, and the action theory that governs them is
+/// unchanged. A
 /// `SegmentSet` says only where a tool's *implementation* currently lives. A tool whose
 /// segment is not served answers with [`SegmentNotLoaded`](crate::error::SegmentNotLoaded)
 /// — a typed, machine-readable routing instruction naming the tool and the segment — which
@@ -298,8 +380,8 @@ pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
 /// slower answer; it never sees a missing tool, an empty result, or a refusal.
 ///
 /// The surface is PARTITIONED into two segments, not layered into a base and an extension:
-/// the twelve [`REASONING_SEGMENT_TOOLS`] belong to [`REASONING_SEGMENT`] and the other
-/// twenty-three tools plus all five resources belong to [`CORE_SEGMENT`]. The two browser
+/// the [`REASONING_SEGMENT_TOOLS`] belong to [`REASONING_SEGMENT`] and the other
+/// [`CORE_SEGMENT_TOOL_COUNT`] tools plus all five resources belong to [`CORE_SEGMENT`]. The two browser
 /// images select one each and defer the other's half back, so neither is a superset of the
 /// other and no byte is paid twice. The native build selects BOTH and is one whole engine.
 ///
@@ -354,7 +436,7 @@ impl SegmentSet {
 
     /// The DEMAND-LOADED reasoning deployment: the mirror image of [`Self::core`].
     ///
-    /// It serves the twelve [`REASONING_SEGMENT_TOOLS`] and defers everything else BACK to
+    /// It serves the [`REASONING_SEGMENT_TOOLS`] and defers everything else BACK to
     /// the core image the host already has resident. That symmetry is the point: the
     /// reasoning image is a genuine DELTA, not a superset, so the two images share no tool
     /// implementation and the bytes are not paid twice.
@@ -368,7 +450,7 @@ impl SegmentSet {
 
     /// Whether `tool` runs here, or is deferred to a segment this deployment has not
     /// loaded. TOTAL over the surface: every tool belongs to exactly one segment, so this
-    /// answers for all 35 without a fallthrough.
+    /// answers for all [`TOOL_COUNT`] without a fallthrough.
     #[must_use]
     pub fn serves(self, tool: &str) -> bool {
         if REASONING_SEGMENT_TOOLS.contains(&tool) {
@@ -2548,7 +2630,8 @@ impl McpServer {
     /// Build an MCP server for a deployment that serves only `segments` in-process.
     ///
     /// The tiered browser console's lean core calls this with [`SegmentSet::core`]. The
-    /// surface is IDENTICAL — all 35 tools advertised, described, and dispatchable — but
+    /// surface is IDENTICAL — all [`TOOL_COUNT`] tools advertised, described, and
+    /// dispatchable — but
     /// a `tools/call` for a tool outside the served segments answers with the typed
     /// [`SegmentNotLoaded`](crate::error::SegmentNotLoaded) signal instead of running,
     /// so the host can load that segment and re-dispatch the same frame.
@@ -3179,20 +3262,25 @@ fn builtin_tool_descriptors() -> Vec<Value> {
         ),
         tool(
             "action_policy",
-            "Return the canonical action theory governing this engine's WHOLE tool surface, \
+            // The two counts are the DERIVED constants, formatted in — an agent reads this
+            // description at run time, so a hand-typed number here is a false statement
+            // shipped to a caller the moment the surface grows.
+            &format!(
+                "Return the canonical action theory governing this engine's WHOLE tool surface, \
                  as N-Quads, in the transaction world the executor reasons in. It is TOTAL, \
                  not a sample: every tool advertised here has exactly one action schema and \
                  every schema names exactly one advertised tool, tied together by the \
                  logic:mcpToolName wire name (a schema's local name is an ontology name — \
                  ex:persistConjecture is the tool `store_conjecture` — so the correspondence \
-                 is asserted, never guessed). The 6 WRITE tools are typed \
+                 is asserted, never guessed). The {WRITE_TOOL_COUNT} WRITE tools are typed \
                  logic:McpActionSchema and carry logic:precondition / logic:effect / \
-                 logic:compensation (the rollback is supersession, never erasure); the 29 \
-                 READ tools are plain logic:ActionSchema carrying logic:capability + \
-                 logic:precondition and NO effect and NO compensation, because a read changes \
-                 no state. This is the exact projection the Transaction-Logic executor reads, \
-                 so what you inspect is what the engine obeys. Also served as the \
-                 gmeow://ontology/action-policy resource.",
+                 logic:compensation (the rollback is supersession, never erasure); the \
+                 {READ_TOOL_COUNT} READ tools are plain logic:ActionSchema carrying \
+                 logic:capability + logic:precondition and NO effect and NO compensation, \
+                 because a read changes no state. This is the exact projection the \
+                 Transaction-Logic executor reads, so what you inspect is what the engine \
+                 obeys. Also served as the gmeow://ontology/action-policy resource."
+            ),
             &[],
         ),
     ]
@@ -3343,9 +3431,9 @@ macro_rules! core_resource {
 /// [`builtin_tool_descriptors`]. Each entry restates the tool name so
 /// [`zip_tools`] can prove the pairing rather than assume it.
 ///
-/// All 35 entries exist in EVERY deployment — the list does not shrink when a segment is
-/// unloaded, because "advertised" and "dispatchable" are one fact here and a lean core
-/// still advertises the whole surface. What changes is what the ten
+/// All [`TOOL_COUNT`] entries exist in EVERY deployment — the list does not shrink when a
+/// segment is unloaded, because "advertised" and "dispatchable" are one fact here and a
+/// lean core still advertises the whole surface. What changes is what the
 /// [`REASONING_SEGMENT_TOOLS`] entries dispatch TO: their real implementation when the
 /// segment is served, the [`segment_not_loaded`] routing signal when it is not.
 fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler)> {
@@ -3377,8 +3465,8 @@ fn builtin_tool_handlers(segments: SegmentSet) -> Vec<(&'static str, ToolHandler
         reasoning_tool!(segments, "conjecture_test", tool_conjecture_test),
         reasoning_tool!(segments, "store_conjecture", tool_store_conjecture),
         reasoning_tool!(segments, "refute_conjecture", tool_refute_conjecture),
-        core_tool!(segments, "recall", tool_recall),
-        core_tool!(segments, "store_segment", tool_store_segment),
+        reasoning_tool!(segments, "recall", tool_recall),
+        reasoning_tool!(segments, "store_segment", tool_store_segment),
         reasoning_tool!(segments, "revise_belief", tool_revise_belief),
         core_tool!(segments, "counter_examples", tool_counter_examples),
         core_tool!(segments, "entailments", tool_entailments),
@@ -4538,12 +4626,22 @@ impl McpServer {
         Ok(response)
     }
 
-    #[cfg(feature = "core")]
+    /// `recall` — the READ half of the grounded-memory triad.
+    ///
+    /// A reasoning-SEGMENT tool despite linking no reasoner: it must answer from the same
+    /// claim package `store_claim` wrote to, and in the browser a segment is an image and
+    /// an image is a store. See [`REASONING_SEGMENT_TOOLS`] for why the triad is
+    /// indivisible.
+    #[cfg(feature = "reasoning")]
     fn tool_recall(&self, args: &Value) -> gmeow_errors::Result<String> {
         recall_json(self.claim_store()?.as_ref(), args)
     }
 
-    #[cfg(feature = "core")]
+    /// `store_segment` — the SERIALIZATION of the grounded-memory claim package.
+    ///
+    /// Segmented with the rest of the triad for the same reason `recall` is: an export of
+    /// a store held in another module's memory would export an empty store.
+    #[cfg(feature = "reasoning")]
     fn tool_store_segment(&self, _args: &Value) -> gmeow_errors::Result<String> {
         store_segment_json(self.claim_store()?.as_ref())
     }
@@ -5124,6 +5222,13 @@ impl McpServer {
     /// Resolved through the [`storage`] seam, so a native host gets its real
     /// `memory.gts` (at `GMEOW_MEMORY_PATH`, else `~/.gmeow/memory.gts`) and a browser
     /// host gets the in-process store — the tools themselves never learn which.
+    ///
+    /// Gated on the `reasoning` feature because the whole memory surface
+    /// ([`CLAIM_STORE_TOOLS`]) is served by that segment: the writes are pinned there by
+    /// their Transaction-Logic commit gate, and the reads must answer from the same store,
+    /// which in a wasm deployment means the same image. A core-only build reaches the claim
+    /// package from nowhere, and saying so in the type system is what keeps that true.
+    #[cfg(feature = "reasoning")]
     fn claim_store(&self) -> gmeow_errors::Result<Arc<dyn ClaimStore>> {
         storage().claim_store()
     }
@@ -8333,14 +8438,280 @@ mod tests {
         );
     }
 
-    /// The CONSUMER surface is exactly 38 tools and 5 resources.
+    /// The grounded-memory triad is served by ONE segment, whichever segment that is.
+    ///
+    /// This is a deployment-correctness gate, not a taste one. In the browser the engine
+    /// ships as two wasm modules, each with its own linear memory, and the claim package is
+    /// a `static` inside one of them: a segment IS a store. So a `store_claim` served by one
+    /// image and a `recall` served by the other are not two views of one store, they are two
+    /// stores — the write succeeds, mints an id, and is unreachable by every read. That was
+    /// the shipped behaviour before `recall` and `store_segment` joined the writes in
+    /// [`REASONING_SEGMENT_TOOLS`]: `store_claim` returned `ok: true`, `recall` returned
+    /// `[]`, and `store_segment` reported an empty store.
+    ///
+    /// It is checked HERE, over the routing declaration, because the native build cannot
+    /// reproduce the failure at all — one process, one `browser_storage()`, one store. The
+    /// end-to-end proof across two real wasm images is
+    /// `crates/mcp-core-wasm/js/tests/witness.test.mjs`; this is the invariant that keeps
+    /// the split from re-opening, and it fails the moment any claim-store tool is routed
+    /// away from the others.
+    #[test]
+    fn the_grounded_memory_triad_is_served_by_one_segment() {
+        let segments: BTreeSet<&str> = CLAIM_STORE_TOOLS
+            .iter()
+            .map(|tool| SegmentSet::segment_of(tool))
+            .collect();
+        assert_eq!(
+            segments.len(),
+            1,
+            "the tools that share the claim package must share a segment — a browser image \
+             is a store, so {CLAIM_STORE_TOOLS:?} split across {segments:?} means a stored \
+             claim is unreachable by every read"
+        );
+
+        // …and each half of the tiering agrees: a core deployment defers ALL of them, a
+        // reasoning deployment serves ALL of them. Either mixed answer is the same defect
+        // seen from one side.
+        for tool in CLAIM_STORE_TOOLS {
+            assert!(
+                !SegmentSet::core().serves(tool),
+                "`{tool}` reads or writes the claim package, so the lean core must defer it \
+                 rather than answer from an image the writes cannot reach"
+            );
+            assert!(
+                SegmentSet::reasoning_only().serves(tool),
+                "`{tool}` reads or writes the claim package, so the image that owns that \
+                 package must serve it"
+            );
+        }
+    }
+
+    /// [`CLAIM_STORE_TOOLS`] is the WHOLE claim-store surface, and every entry is real.
+    ///
+    /// The invariant above is only as good as the list it quantifies over, so the list is
+    /// checked from both ends: every name is an advertised tool (no ghost entry padding the
+    /// set), and every tool whose descriptor is about the grounded-memory package is in it.
+    /// The second half is what catches a NEW memory tool added outside the list — the way
+    /// `store_segment` itself was added.
+    #[test]
+    fn the_claim_store_tool_list_covers_the_whole_memory_surface() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let advertised = advertised_consumer_tools();
+        for tool in CLAIM_STORE_TOOLS {
+            assert!(
+                advertised.contains(*tool),
+                "CLAIM_STORE_TOOLS names `{tool}`, which the consumer surface does not \
+                 advertise"
+            );
+        }
+        // The engine's memory surface, named the way the crate itself names it: the tools
+        // whose bodies go through `McpServer::claim_store`. Restated here as a literal so
+        // this test is an INDEPENDENT statement of the set rather than a tautology over
+        // `CLAIM_STORE_TOOLS` — the two must agree.
+        let memory_surface: BTreeSet<&str> =
+            BTreeSet::from(["recall", "revise_belief", "store_claim", "store_segment"]);
+        assert_eq!(
+            CLAIM_STORE_TOOLS
+                .iter()
+                .copied()
+                .collect::<BTreeSet<&str>>(),
+            memory_surface,
+            "CLAIM_STORE_TOOLS must be exactly the tools that reach the claim package"
+        );
+    }
+
+    /// Every shipped surface that STATES a tool count states the DERIVED one.
+    ///
+    /// The counts had rotted to "35" in five places at once — two crate descriptions, two
+    /// READMEs, a feature comment, and the published npm bindings — while the surface was
+    /// at 38, and the segment split was described as "twelve / twenty-three" while the
+    /// declaration held thirteen. Hand-fixing those numbers is what produced the drift in
+    /// the first place, so the fix is a GATE: [`TOOL_COUNT`] and the four numbers derived
+    /// from it are the only tool counts any of these files may state.
+    ///
+    /// Rust prose reads the constants directly (a rustdoc link, or `format!` for a tool
+    /// description an agent sees at run time). A `Cargo.toml` comment, a README, and the
+    /// wasm-bindgen output cannot — there is no interpolation in TOML or Markdown, and the
+    /// bindings are generated bytes — so those state the number and are CHECKED here. Both
+    /// halves of Principle: read the derived value, or be gated against it.
+    ///
+    /// The scan reads PROSE, not code: comment lines, Markdown, and a `description =` key.
+    /// Within it, any number ≥ 5 (numeral or English word) followed within four tokens by
+    /// something naming a tool must be one of the derived counts. Below 5 is English
+    /// ("exactly one action schema per tool"), not arithmetic; and code is excluded because
+    /// a request-frame literal carrying a JSON-RPC id next to the `tools/call` method name
+    /// states nothing whatever about the surface.
+    #[test]
+    fn the_shipped_prose_states_the_derived_tool_counts() {
+        /// `(path relative to this crate, must this file state at least one count?)`.
+        ///
+        /// The published wasm bindings are included because they are the bytes an npm
+        /// consumer reads: a stale vendored `pkg/` carries a false count into the package
+        /// even when every source file here is right. Re-vendor
+        /// (`make maint-refresh-mcp-core-asset` / `make maint-refresh-mcp-asset`) is what
+        /// clears them.
+        const SURFACES: &[(&str, bool)] = &[
+            ("src/lib.rs", true),
+            ("src/error.rs", false),
+            ("Cargo.toml", true),
+            ("../mcp-core-wasm/src/lib.rs", false),
+            ("../mcp-core-wasm/Cargo.toml", true),
+            ("../mcp-core-wasm/README.md", true),
+            ("../mcp-core-wasm/js/index.mjs", false),
+            ("../mcp-core-wasm/js/index.d.ts", false),
+            ("../mcp-wasm/src/lib.rs", false),
+            ("../mcp-wasm/Cargo.toml", true),
+            ("../mcp-wasm/README.md", true),
+            ("../mcp-wasm/js/index.mjs", false),
+            ("../mcp-wasm/js/index.d.ts", false),
+            ("../docs/assets/mcp-core/index.mjs", false),
+            ("../docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm.js", false),
+            (
+                "../docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm.d.ts",
+                false,
+            ),
+            ("../docs/assets/mcp/index.mjs", false),
+            ("../docs/assets/mcp/pkg/gmeow_mcp_wasm.js", false),
+            ("../docs/assets/mcp/pkg/gmeow_mcp_wasm.d.ts", false),
+        ];
+
+        /// Is this line PROSE — a place a count is CLAIMED rather than computed?
+        ///
+        /// Rust and JS comment lines (including the `*` continuations wasm-bindgen emits
+        /// for a rustdoc block), every line of Markdown, and TOML comments plus the
+        /// `description` key that becomes the published package blurb.
+        fn is_prose(path: &str, line: &str) -> bool {
+            let trimmed = line.trim_start();
+            if path.ends_with(".md") {
+                return true;
+            }
+            if path.ends_with(".toml") {
+                return trimmed.starts_with('#') || trimmed.starts_with("description");
+            }
+            trimmed.starts_with("//") || trimmed.starts_with('*') || trimmed.starts_with("/*")
+        }
+
+        /// The English number words a count claim has used. Only ≥ 5, for the reason above.
+        fn word_value(token: &str) -> Option<usize> {
+            Some(match token {
+                "five" => 5,
+                "six" => 6,
+                "seven" => 7,
+                "eight" => 8,
+                "nine" => 9,
+                "ten" => 10,
+                "eleven" => 11,
+                "twelve" => 12,
+                "thirteen" => 13,
+                "fourteen" => 14,
+                "fifteen" => 15,
+                "sixteen" => 16,
+                "seventeen" => 17,
+                "eighteen" => 18,
+                "nineteen" => 19,
+                "twenty" => 20,
+                "thirty" => 30,
+                "forty" => 40,
+                "fifty" => 50,
+                _ => return None,
+            })
+        }
+
+        let allowed = [
+            TOOL_COUNT,
+            READ_TOOL_COUNT,
+            WRITE_TOOL_COUNT,
+            REASONING_SEGMENT_TOOL_COUNT,
+            CORE_SEGMENT_TOOL_COUNT,
+        ];
+        let here = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let mut problems: Vec<String> = Vec::new();
+        let mut checked_total = 0usize;
+
+        for (relative, must_state) in SURFACES {
+            let path = here.join(relative);
+            // A missing shipped surface is a defect, never a skip: the file being absent is
+            // precisely the state in which nothing is checked.
+            let text = fs::read_to_string(&path).unwrap_or_else(|e| {
+                panic!(
+                    "the count gate must read the shipped surface {}: {e}",
+                    path.display()
+                )
+            });
+            // Tokenised per PROSE line: a claim does not span a line, and joining the file
+            // would let a comment's last word pair with the next line's code.
+            let prose: String = text
+                .lines()
+                .filter(|line| is_prose(relative, line))
+                .collect::<Vec<_>>()
+                .join("\n");
+            let tokens: Vec<&str> = prose
+                .split(|c: char| !c.is_ascii_alphanumeric() && c != '_')
+                .filter(|token| !token.is_empty())
+                .collect();
+            let mut checked_here = 0usize;
+            for (index, token) in tokens.iter().enumerate() {
+                let value = token
+                    .parse::<usize>()
+                    .ok()
+                    // A count of this surface is a two-digit number. A longer numeral next
+                    // to the word `tools` in prose is an error code or an IRI fragment
+                    // being discussed, not a claim about how many tools there are.
+                    .filter(|value| (5..100).contains(value))
+                    .or_else(|| word_value(&token.to_ascii_lowercase()));
+                let Some(value) = value else { continue };
+                let names_a_tool = tokens[index + 1..]
+                    .iter()
+                    .take(4)
+                    .any(|later| later.to_ascii_lowercase().contains("tool"));
+                if !names_a_tool {
+                    continue;
+                }
+                checked_here += 1;
+                if !allowed.contains(&value) {
+                    let context = tokens[index..(index + 5).min(tokens.len())].join(" ");
+                    problems.push(format!(
+                        "{relative}: `{context}` states {value}, which is none of the \
+                         derived counts {allowed:?}"
+                    ));
+                }
+            }
+            if *must_state && checked_here == 0 {
+                problems.push(format!(
+                    "{relative} states NO tool count — either the surface stopped describing \
+                     itself or this gate stopped reading it; both are defects"
+                ));
+            }
+            checked_total += checked_here;
+        }
+
+        assert!(
+            problems.is_empty(),
+            "shipped prose states a tool count that is not derived from TOOL_COUNT \
+             ({TOOL_COUNT} tools = {READ_TOOL_COUNT} reads + {WRITE_TOOL_COUNT} writes; \
+             {REASONING_SEGMENT_TOOL_COUNT} reasoning + {CORE_SEGMENT_TOOL_COUNT} core):\n  {}",
+            problems.join("\n  ")
+        );
+        assert!(
+            checked_total >= SURFACES.len(),
+            "the scan found only {checked_total} count claims across {} shipped surfaces — \
+             too few to be reading them, so the gate is vacuous",
+            SURFACES.len()
+        );
+    }
+
+    /// The CONSUMER surface is exactly [`TOOL_COUNT`] tools and 5 resources.
     ///
     /// The counts are pinned, not approximated: a later bijection gate is defined
     /// against the consumer tool list, so silently adding (or dev-promoting) a tool
     /// would change that contract without anyone noticing. The names are asserted
     /// alongside the counts so a rename cannot pass by keeping the arithmetic.
+    ///
+    /// This is also what makes [`TOOL_COUNT`] a DERIVED number rather than a claim: every
+    /// count in this crate's shipped prose resolves to that constant, and the constant
+    /// cannot survive a surface that grew past it.
     #[test]
-    fn consumer_surface_is_thirty_eight_tools_and_five_resources() {
+    fn consumer_surface_matches_the_declared_tool_count() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG"]);
         unsafe {
@@ -8352,8 +8723,8 @@ mod tests {
         let names = consumer.surface().tool_names();
         assert_eq!(
             names.len(),
-            38,
-            "the consumer tool surface is 38 tools, got {names:?}"
+            TOOL_COUNT,
+            "the consumer tool surface is TOOL_COUNT tools, got {names:?}"
         );
         assert_eq!(
             names,
@@ -8592,7 +8963,7 @@ mod tests {
         assert!(consumer_tools.contains("\"okf_index\""));
         assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
-        // The AI-agent docs surface: all five new tools are CONSUMER-visible
+        // The AI-agent docs surface: every one of its tools is CONSUMER-visible
         // (served by the shippable `gmeow mcp` off the bundle alone), never
         // dev-gated. `validate_local` is distinct from the dev-only `validate`.
         assert!(consumer_tools.contains("\"validate_local\""));
@@ -9440,8 +9811,8 @@ mod tests {
         let advertised = advertised_consumer_tools();
         assert_eq!(
             advertised.len(),
-            38,
-            "the consumer surface is 38 tools; this gate's arithmetic depends on it"
+            TOOL_COUNT,
+            "the consumer surface is TOOL_COUNT tools; this gate's arithmetic depends on it"
         );
 
         let theory = ActionTheory::read(action_policy_nquads());
@@ -9511,21 +9882,30 @@ mod tests {
             !read_subjects.is_empty(),
             "the asserted-plain-minus-governed set must not be empty"
         );
-        assert_eq!(read_subjects.len(), 32, "32 reads: {read_subjects:?}");
-        assert_eq!(theory.governed.len(), 6, "6 writes: {:?}", theory.governed);
+        // Both counts are the DERIVED constants the shipped prose quotes, so this gate is
+        // also what keeps `READ_TOOL_COUNT` / `WRITE_TOOL_COUNT` honest: the policy is the
+        // authority on what a write is, and the constants must agree with it.
+        assert_eq!(
+            read_subjects.len(),
+            READ_TOOL_COUNT,
+            "READ_TOOL_COUNT reads: {read_subjects:?}"
+        );
+        assert_eq!(
+            theory.governed.len(),
+            WRITE_TOOL_COUNT,
+            "WRITE_TOOL_COUNT writes: {:?}",
+            theory.governed
+        );
 
         let write_names = theory.names_of(&theory.governed);
         assert_eq!(
             write_names,
-            BTreeSet::from([
-                "refute_conjecture".to_string(),
-                "revise_belief".to_string(),
-                "store_claim".to_string(),
-                "store_conjecture".to_string(),
-                "submit_candidate".to_string(),
-                "withdraw_candidate".to_string(),
-            ]),
-            "the governed writes are exactly the six state-mutating tools"
+            WRITE_TOOLS
+                .iter()
+                .map(|name| (*name).to_string())
+                .collect::<BTreeSet<String>>(),
+            "the governed writes are exactly the tools WRITE_TOOLS declares — the policy is \
+             the authority, so a drift here is the constant's defect, not the policy's"
         );
         let read_names = theory.names_of(&read_subjects);
         assert_eq!(
@@ -9758,7 +10138,7 @@ mod tests {
             "exactly one literal-valued predicate survives the projection"
         );
         assert_eq!(
-            tool_name_count, 38,
+            tool_name_count, TOOL_COUNT,
             "one logic:mcpToolName per advertised consumer tool"
         );
         // The dropped annotations really were present in the source, so the assertion above

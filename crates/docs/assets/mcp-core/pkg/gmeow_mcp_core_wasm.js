@@ -63,8 +63,13 @@ export function deferred_tools() {
  * to the deferral signal.
  *
  * Calling this again REPLACES the engine wholesale (a new bundle is a new session).
- * A failed load installs nothing, so [`ready`] stays `false` and [`mcp`] keeps
- * refusing frames rather than answering from a stale or partial bundle.
+ *
+ * The replacement is ORDERED: the installed engine is dropped BEFORE the new one is
+ * built, so a failed load leaves no engine at all — [`ready`] reports `false` and [`mcp`]
+ * refuses frames — rather than leaving the PREVIOUS session's bundle serving. The
+ * alternative ordering (build, then install on success) reads as safer and is the exact
+ * opposite: it makes a failed re-`init` invisible, and the caller who asked for a new
+ * bundle keeps getting answers from the old one's data.
  *
  * # Errors
  *

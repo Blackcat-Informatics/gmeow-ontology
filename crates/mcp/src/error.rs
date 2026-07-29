@@ -117,7 +117,7 @@ define_diag_kind! {
     /// `tool` is the DISPATCH KEY the frame asked for: a `tools/call` name, or a
     /// `resources/read` URI. Both halves of the surface are partitioned by segment — the
     /// reasoning image defers all five resources back to core exactly as core defers the
-    /// twelve reasoning tools forward — and a caller routes on the same two fields either
+    /// reasoning tools forward — and a caller routes on the same two fields either
     /// way, so one signal serves both rather than two codes a host would have to learn.
     pub struct SegmentNotLoaded { tool: String, segment: String }
     code = "mcp.segment-not-loaded";
@@ -129,7 +129,8 @@ define_diag_kind! {
 ///
 /// TOTAL over the crate regardless of which cargo features are selected — the catalog
 /// is the diagnostic THEORY, and a lean deployment is a reduced deployment, not a
-/// reduced theory (exactly as its 35-tool surface stays total). `mcp.segment-not-loaded`
+/// reduced theory (exactly as its [`TOOL_COUNT`](crate::TOOL_COUNT)-tool surface stays
+/// total). `mcp.segment-not-loaded`
 /// is therefore listed and interned on every build, including the ones that can never
 /// raise it.
 pub const MCP_DIAG_CODES: &[&str] = &[

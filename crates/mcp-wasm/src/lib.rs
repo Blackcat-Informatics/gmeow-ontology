@@ -14,13 +14,19 @@
 //!   reasoner) and `gmeow-slice-quality` (the rubric kernel over it) and NOTHING of the
 //!   core tool surface: `gmeow-mcp` is taken with `default-features = false, features =
 //!   ["reasoning"]`, so the transcode hub and the distribution-catalog reader are not in
-//!   this crate's dependency tree at all and the twenty-three core tool bodies are not
-//!   compiled. It used to be built with the `reasoning` feature ON TOP of the defaults —
-//!   i.e. the whole core image plus the reasoner — which duplicated every core byte on
-//!   disk. That was the bug; this is the fix.
-//! - **The whole surface is still ADVERTISED.** `tools/list` returns all 35 descriptors,
-//!   byte-identical to the core image's and to native, and every frame is dispatched
-//!   through [`gmeow_mcp::McpServer::handle_message`], the one protocol implementation. A
+//!   this crate's dependency tree at all and the [`gmeow_mcp::CORE_SEGMENT_TOOL_COUNT`]
+//!   core tool bodies are not compiled. It used to be built with the `reasoning` feature ON
+//!   TOP of the defaults — i.e. the whole core image plus the reasoner — which duplicated
+//!   every core byte on disk. That was the bug; this is the fix.
+//! - **It owns the grounded-memory claim package.** The whole triad — `store_claim`,
+//!   `recall`, `store_segment`, `revise_belief` — is served HERE, not because recall
+//!   reasons (it does not) but because a wasm module's claim store is private to that
+//!   module: a triad split across the two images would lose every write. The writes are
+//!   pinned here by their Transaction-Logic commit gate, so the reads follow them.
+//! - **The whole surface is still ADVERTISED.** `tools/list` returns all
+//!   [`gmeow_mcp::TOOL_COUNT`] descriptors, byte-identical to the core image's and to
+//!   native, and every frame is dispatched through
+//!   [`gmeow_mcp::McpServer::handle_message`], the one protocol implementation. A
 //!   `tools/call` for a CORE tool answers with the typed `mcp.segment-not-loaded` signal
 //!   naming the `core` segment — the exact mirror of what core does for a reasoning tool.
 //!   A deployment tier is not a reduced theory.
@@ -102,13 +108,19 @@ pub fn ready() -> bool {
 /// embeds and the docs site serves. The bytes are parsed to the carrier dataset, the
 /// bundle view is folded, and the builtin tool/resource surface is assembled, exactly
 /// as [`gmeow_mcp::McpServer::from_snapshot`] does natively; the ONLY difference is
-/// [`SegmentSet::reasoning_only`], which routes the twenty-three CORE tools back to the
-/// always-resident core image with the typed `mcp.segment-not-loaded` signal instead of
-/// answering them here. The twelve reasoning tools answer for real.
+/// [`SegmentSet::reasoning_only`], which routes the [`gmeow_mcp::CORE_SEGMENT_TOOL_COUNT`]
+/// CORE tools back to the always-resident core image with the typed
+/// `mcp.segment-not-loaded` signal instead of answering them here. The
+/// [`gmeow_mcp::REASONING_SEGMENT_TOOLS`] answer for real.
 ///
 /// Calling this again REPLACES the engine wholesale (a new bundle is a new session).
-/// A failed load installs nothing, so [`ready`] stays `false` and [`mcp`] keeps
-/// refusing frames rather than answering from a stale or partial bundle.
+///
+/// The replacement is ORDERED: the installed engine is dropped BEFORE the new one is
+/// built, so a failed load leaves no engine at all — [`ready`] reports `false` and [`mcp`]
+/// refuses frames — rather than leaving the PREVIOUS session's bundle serving. The
+/// alternative ordering (build, then install on success) reads as safer and is the exact
+/// opposite: it makes a failed re-`init` invisible, and the caller who asked for a new
+/// bundle keeps getting answers from the old one's data.
 ///
 /// # Errors
 ///
@@ -116,6 +128,7 @@ pub fn ready() -> bool {
 /// language is unresolvable, or if the builtin surface does not assemble.
 #[wasm_bindgen]
 pub fn init(snapshot: &[u8]) -> Result<(), JsError> {
+    ENGINE.with_borrow_mut(|slot| *slot = None);
     let server = McpServer::from_snapshot_segmented(snapshot, SegmentSet::reasoning_only())
         .map_err(|e| JsError::new(e.message()))?;
     ENGINE.with_borrow_mut(|slot| *slot = Some(server));

@@ -6,15 +6,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 # gmeow-mcp-wasm
 
 The shipped **consumer MCP engine** compiled to `wasm32-unknown-unknown`, so a browser
-console, an editor plugin, or an in-page LLM client can drive the full 35-tool /
+console, an editor plugin, or an in-page LLM client can drive the full 38-tool /
 5-resource JSON-RPC surface **client-side** — no server, no stdio, no repository.
 
-It wraps [`gmeow-mcp`](../mcp) whole: every frame is dispatched through
-`McpServer::handle_message`, the one protocol implementation, so `initialize`,
-`tools/list`, `resources/list`, `tools/call`, `resources/read` and `shutdown` behave
-exactly as they do natively because they ARE the native code paths. Byte-identity to
-the native engine is proven by the Node parity witness lane (`make mcp-wasm-pkg-test`,
-on the `make check` gate via `wasm-parity`).
+It wraps [`gmeow-mcp`](../mcp) with `default-features = false, features = ["reasoning"]`:
+this image is the demand-loaded **reasoning segment**, a genuine delta over the
+always-resident [`gmeow-mcp-core-wasm`](../mcp-core-wasm) rather than a superset of it. It
+serves the 15 reasoning-segment tools — which includes the whole grounded-memory triad,
+`store_claim` / `recall` / `store_segment` / `revise_belief`, because a wasm module's claim
+store is private to that module and a triad split across the two images would lose every
+write — and answers a `tools/call` for one of the 23 core tools with the typed
+`mcp.segment-not-loaded` signal naming the `core` segment. The whole 38-tool surface stays
+advertised either way.
+
+Every frame is dispatched through `McpServer::handle_message`, the one protocol
+implementation, so `initialize`, `tools/list`, `resources/list`, `tools/call`,
+`resources/read` and `shutdown` behave exactly as they do natively because they ARE the
+native code paths. Byte-identity to the native engine is proven by the Node parity witness
+lane (`make mcp-wasm-pkg-test`, on the `make check` gate via `wasm-parity`).
 
 Unlike the codebook-embedding sibling shims, **the `gmeow.gts` bundle is never embedded**.
 A bundle is caller data — tens of megabytes, and versioned independently of the engine —

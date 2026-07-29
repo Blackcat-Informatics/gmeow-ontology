@@ -17,7 +17,7 @@ changing its calling code.
 
 ## The split is a deployment tier, not a smaller engine
 
-- `tools/list` advertises **all 35 tools** with identical descriptors; `resources/list`
+- `tools/list` advertises **all 38 tools** with identical descriptors; `resources/list`
   all 5. Discovery cannot tell the images apart.
 - `action_policy` serves the same **total** action theory: every tool has one schema and
   every schema one tool.
@@ -26,10 +26,14 @@ changing its calling code.
   segment that serves it — which the JS layer turns into "load that segment and re-send
   this exact frame". Nothing is refused, nothing is answered by a weaker path.
 
-The twelve deferred tools are the ones whose implementation reaches the reasoner:
-`verify_graph`, `explain_quad`, `coherence_certificate`, `store_claim`, `conjecture_test`,
-`store_conjecture`, `refute_conjecture`, `revise_belief`, `slice_quality`,
-`submit_candidate`, `withdraw_candidate`, `list_candidates`. Read the list from
+The 15 deferred tools are the ones whose implementation reaches the reasoner —
+`verify_graph`, `reason_graph`, `explain_quad`, `coherence_certificate`, `store_claim`,
+`conjecture_test`, `store_conjecture`, `refute_conjecture`, `revise_belief`,
+`slice_quality`, `submit_candidate`, `withdraw_candidate`, `list_candidates` — plus the two
+grounded-memory READS, `recall` and `store_segment`. Those two reason about nothing; they
+are deferred because each wasm module owns its own claim store and two modules cannot share
+one, so a triad split across the images would mint a claim id in the reasoning image and
+answer `[]` from the core image. Memory is served whole or not at all. Read the list from
 `deferredTools()` rather than copying it.
 
 ## JavaScript API
@@ -54,9 +58,16 @@ const answer = await tieredMcp(JSON.stringify({
 
 `tieredMcp` dispatches to the core engine, and — only if the engine returns the deferral
 signal — loads the segment, installs the SAME snapshot into it, and replays the identical
-frame string. The caller sees a slower answer, never a failure. `onSegmentLoad` is the seam
-a UI uses to render that wait: deferral must be **visible as a loading state**, since a
-silent multi-second stall would be its own kind of degradation.
+frame string. `onSegmentLoad` is the seam a UI uses to render that wait: deferral must be
+**visible as a loading state**, since a silent multi-second stall would be its own kind of
+degradation.
+
+Deferral never turns a capability into a smaller answer — but it is not immune to the
+network. `loadSegment` is a dynamic import, and a fetch that 404s, times out, or fails
+integrity checks REJECTS. `tieredMcp` propagates that rejection (and drops the failed
+segment from its cache so a retry re-fetches) rather than swallowing it and answering
+without the segment: an unreachable segment is a hard failure the caller must see, never a
+silently degraded result. Handle it as you would any failed `import()`.
 
 The lower-level surface is also exported: `init`/`mcp`/`loaded` (the raw engine lifecycle),
 `segmentDeferral(frame)` (structurally recognise the signal, never a substring match),

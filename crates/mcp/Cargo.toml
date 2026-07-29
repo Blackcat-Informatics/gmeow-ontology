@@ -24,15 +24,20 @@ path = "src/lib.rs"
 [features]
 # The DEFAULT is the whole engine: every native consumer (`gmeow mcp`) and `gmeow-mcp-dev`
 # build with BOTH segments on and are therefore bit-for-bit the engine they were before
-# these features existed — 35 tools, 5 resources, one image. Only the two BROWSER images
+# these features existed — 38 tools, 5 resources, one image. Only the two BROWSER images
 # select a single segment, and each selects a DISJOINT one.
+#
+# Every count below is gated against this crate's own `TOOL_COUNT` /
+# `REASONING_SEGMENT_TOOL_COUNT` / `CORE_SEGMENT_TOOL_COUNT` constants by
+# `the_shipped_prose_states_the_derived_tool_counts`; a TOML comment cannot read them, so
+# it is checked instead of trusted.
 default = ["core", "reasoning"]
-# The core SEGMENT: the twenty-three tools and all five resources that answer off the
+# The core SEGMENT: the 23 tools and all five resources that answer off the
 # bundle alone — documentation lookup/cards/`llms.txt`, the SPARQL surfaces, the GMN-1
 # codec, the shipped validator, the transcode hub, and the distribution catalog. Selecting
 # it out is an EXPLICIT deployment choice (the demand-loaded reasoning image, whose
 # governing metric is the DELTA it adds over the always-resident core), never a capability
-# downgrade: the surface stays total at 35, `tools/list` is identical, and a `tools/call`
+# downgrade: the surface stays total at 38, `tools/list` is identical, and a `tools/call`
 # for a core tool returns the typed `mcp.segment-not-loaded` signal naming the tool and the
 # `core` segment.
 #
@@ -42,10 +47,12 @@ default = ["core", "reasoning"]
 # dependency tree outright rather than merely leaving them unreferenced.
 core = ["dep:gmeow-bundle-view", "dep:gmeow-transcode", "dep:gmeow-docs-catalog"]
 # The reasoning SEGMENT: the native DL reasoner (`gmeow-logic`) and the rubric kernel
-# built on it (`gmeow-slice-quality`), plus the ten tools that cannot answer without
-# them. Selecting it out is an EXPLICIT deployment choice (a tiered browser image whose
+# built on it (`gmeow-slice-quality`), plus the 15 tools that cannot answer without them
+# or that share the claim package with the writes that cannot (the grounded-memory triad
+# is indivisible — a wasm module's claim store is private to that module).
+# Selecting it out is an EXPLICIT deployment choice (a tiered browser image whose
 # governing metric is first-load bytes), never a capability downgrade: the tool surface
-# stays total at 35, `tools/list` is identical, and a `tools/call` for a segment tool
+# stays total at 38, `tools/list` is identical, and a `tools/call` for a segment tool
 # returns the typed `mcp.segment-not-loaded` signal naming the tool and the segment that
 # provides it, which the host uses to load the segment and re-dispatch the SAME frame.
 reasoning = ["dep:gmeow-logic", "dep:gmeow-slice-quality"]
@@ -97,7 +104,7 @@ gmeow-docs-model = { path = "../docs-model" }
 # (`execute_transaction`) runs executional entailment. OPTIONAL, selected by the
 # `reasoning` feature (default ON): it is the single heaviest thing the engine links, and
 # the tiered browser deployment ships it as a demand-loaded SEGMENT rather than in the
-# first-load image. Selecting it out never removes a tool from the surface — the twelve
+# first-load image. Selecting it out never removes a tool from the surface — the 15
 # reasoning-segment tools stay advertised and answer with the machine-readable
 # `mcp.segment-not-loaded` signal the host re-dispatches on.
 gmeow-logic = { path = "../logic", optional = true }

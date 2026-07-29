@@ -78,3 +78,25 @@ test("wasm MCP response frame is byte-identical to the native witness attestatio
   const frame = mcp(REQUEST);
   assert.equal(frame, attestation, "wasm MCP response frame drifted from native attestation");
 });
+
+// The reasoning segment's half of the eviction contract the core image's Node lane pins.
+// `init` used to build the replacement server FIRST and touch the engine slot only on
+// success, so a failed second load returned early and left the PREVIOUS session's bundle
+// installed and answering while `loaded()` still reported `true`. Asserted in the real
+// image because the failure path is a thrown `JsError`, which is not constructible off wasm.
+test("a failed re-init leaves no engine rather than the previous bundle", () => {
+  init(snapshot);
+  assert.equal(loaded(), true, "the first load installed an engine");
+
+  assert.throws(() => init(new Uint8Array([0x6e, 0x6f, 0x70, 0x65])), "a non-bundle must not load");
+  assert.equal(
+    loaded(),
+    false,
+    "a FAILED re-init must leave NO engine installed — reporting ready here means the " +
+      "previous session's bundle is still serving",
+  );
+  assert.throws(() => mcp(REQUEST), "and the engine refuses frames rather than answering");
+
+  init(snapshot);
+  assert.equal(loaded(), true, "a good bundle re-installs after a failed load");
+});
