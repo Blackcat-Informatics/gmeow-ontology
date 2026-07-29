@@ -37,13 +37,15 @@ path = "src/lib.rs"
 # advisory catalog with them. The tool surface is NOT reduced: all 35 stay advertised and
 # the core ones answer with `mcp.segment-not-loaded` naming the `core` segment.
 gmeow-mcp = { path = "../mcp", default-features = false, features = ["reasoning"] }
-# EXACT pin: the `wasm-bindgen` CLI that generates the JS bindings must match the
-# library version byte-for-byte or it refuses to run. `make mcp-wasm-pkg` and the CI
-# Node lane install the matching `wasm-bindgen-cli` version.
-wasm-bindgen = "=0.2.125"
+# EXACTLY pinned ONCE, in `[workspace.dependencies]`: the `wasm-bindgen` CLI that
+# generates the JS bindings refuses to run unless it matches the library version
+# byte-for-byte, and this image's glue must stay loadable by the same CLI install the
+# core image's does. `make mcp-wasm-pkg` and the CI Node lane install the
+# `wasm-bindgen-cli` matching the workspace version.
+wasm-bindgen.workspace = true
 
 [dev-dependencies]
 # The native witness parses the JSON-RPC response frame back to assert the envelope
 # shape (`result.content[0].text`, `isError`) before pinning the attestation, so a
 # malformed frame fails as a frame defect rather than as a byte diff.
-serde_json = "1"
+serde_json.workspace = true

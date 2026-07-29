@@ -15,9 +15,9 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-regex = "1"
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 gmeow-errors = { path = "../errors" }
@@ -72,11 +72,11 @@ rayon = "1"
 # SAME real loader, keeping the off-repo score byte-for-byte what it was rather than
 # forking a second, divergent documentation model. On wasm32 there is no filesystem to
 # stage into, so both the arm and this dependency are compiled out.
-tempfile = "3"
+tempfile.workspace = true
 
 [dev-dependencies]
-pretty_assertions = "1"
-insta = { version = "1.48", features = ["json"] }
+pretty_assertions.workspace = true
+insta = { workspace = true, features = ["json"] }
 # The token-cost anti-rot gate measures the REAL `cl100k_base` cost of every token the
 # glyph-optimality axis weighs and asserts `GMN_SYMBOL_AUDIT_TOKEN_COSTS` equals it, so it
 # needs the `glyph-cost` feature the shipped reasoning segment deliberately drops. A

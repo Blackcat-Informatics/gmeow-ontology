@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-foundation-corpus"
-description = "Foundation-corpus importer (#364): reads a narrative JSONL corpus into a GMEOW RDF graph and emits foundation.ttl, a flat-vs-reified budget report, and six lossy projections (DraCor/Syuzhet/schema.org/TEI/Web-Annotation/training-manifest)."
+description = "Foundation-corpus importer: reads a narrative JSONL corpus into a GMEOW RDF graph and emits foundation.ttl, a flat-vs-reified budget report, and six lossy projections (DraCor/Syuzhet/schema.org/TEI/Web-Annotation/training-manifest)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -19,17 +19,17 @@ path = "src/lib.rs"
 [dependencies]
 # Native RDF 1.2 graph building over the IR (no rdflib, no oxigraph).
 purrdf.workspace = true
-serde = { version = "1", features = ["derive"] }
+serde.workspace = true
 # Keep serde_json's workspace-wide default map semantics. Ordered JSON-LD
 # projection keys are emitted by a crate-local writer in projections.rs.
-serde_json = "1"
+serde_json.workspace = true
 # NFKD normalization for _slug (matches Python unicodedata.normalize("NFKD", ...)).
 unicode-normalization = "0.1"
 
 [dev-dependencies]
-tempfile = "3"
-# Acceptance-spine parity test (#944): whole-ontology native SHACL + native SPARQL
-# over the imported foundation.ttl — OXIGRAPH-FREE (EPIC #906). The fixture parses
+tempfile.workspace = true
+# Acceptance-spine parity test: whole-ontology native SHACL + native SPARQL
+# over the imported foundation.ttl — OXIGRAPH-FREE. The fixture parses
 # through the canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen
 # `RdfDataset` (`gmeow-rdf-core`), validated IR-natively via `validate_dataset_graphs`
 # and queried through the native `NativeSparqlEngine` (`gmeow-sparql-eval`).

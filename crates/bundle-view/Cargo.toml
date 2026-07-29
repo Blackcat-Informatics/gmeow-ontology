@@ -50,16 +50,16 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # the folded JSON Schema are JSON payloads, and the consumer/MCP envelopes
 # (`lookup`, `doc_card`, `okf_index`) plus the statements/terms JSONL tiers are
 # emitted through it.
-serde_json = "1"
+serde_json.workspace = true
 # The blob store's content addressing: `integrity_report` recomputes each blob's
 # `blake3:<hex>` digest and compares it against the stored key, so a silently
 # corrupted blob is caught on read.
-blake3 = "1"
+blake3.workspace = true
 # The snapshot's per-blob `pub` metadata maps are CBOR `Value`s; recovering a blob's
 # declared rep + media type means reading them with the same codec the gts composer
 # wrote them with.
-ciborium = "0.2"
+ciborium.workspace = true
 # Subscriber-controlled sink for the lossy-projection notices the export tiers
 # raise (a term an encoding cannot carry). Never product data and never a gate —
 # the events surface only when the host CLI has installed a subscriber.
-tracing = "0.1"
+tracing.workspace = true

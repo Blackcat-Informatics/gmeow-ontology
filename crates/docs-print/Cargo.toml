@@ -33,7 +33,7 @@ typst-pdf = "=0.13.1"
 typst-assets = { version = "=0.13.1", features = ["fonts"] }
 # BLAKE3 for the embedded-font-set digest; the resulting digest is pinned by the
 # golden test, so compatible 1.x implementation updates do not need a manifest pin.
-blake3 = "1"
+blake3.workspace = true
 
 [dev-dependencies]
-insta = "1.48"
+insta.workspace = true

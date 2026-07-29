@@ -39,9 +39,9 @@ gmeow-foundation-corpus = { path = "../foundation-corpus" }
 # The RDF-1.2 umbrella: GTS read/fold, the slice ownership/fix-deps analyzer, and
 # the OpenPGP secret-key parse the signed release/compile-gts lanes need.
 purrdf.workspace = true
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-sha2 = "0.10"
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
 # The dependency-free license-token policy classifier the `extract` guard uses.
 gmeow-license = { path = "../license" }
 # The trust-policy TOML the signed-bundle `validate` pre-gate reads.
@@ -49,10 +49,10 @@ toml = "0.8"
 # The repo HTTP client for the `refresh-target-axioms` re-vendor lane.
 ureq = "3"
 # CBOR public-metadata extraction for the feedback-bundle blob reader.
-ciborium = "0.2"
+ciborium.workspace = true
 
 [dev-dependencies]
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
-tempfile = "3"
+tempfile.workspace = true

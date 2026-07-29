@@ -126,10 +126,10 @@ gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 gmeow-slice-quality = { path = "../slice-quality", optional = true }
 # JSON is the MCP wire format: every tool envelope, every JSON-RPC frame, and the
 # `format=json` card projection are `serde_json::Value`s.
-serde_json = "1"
+serde_json.workspace = true
 # SHA-256 content addressing for the append-only conjecture/candidate library
 # segments and the claim fingerprints the grounded-memory triad keys on.
-sha2 = "0.10"
+sha2.workspace = true
 
 # Atomic, self-cleaning temp files for the NATIVE append-only library commit path
 # (write a sibling temp file, fsync, then rename over the target), so a crash
@@ -139,10 +139,10 @@ sha2 = "0.10"
 # support). The browser backend replaces a library's bytes under one lock, which needs
 # no temp file to be atomic.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tempfile = "3"
+tempfile.workspace = true
 
 [dev-dependencies]
 # The `doc_card` JSON projection is asserted against the hand-authored
 # `card.schema.json` (`gmeow_docs_model::card::card_json_schema`), so the tests
 # compile and run a real JSON Schema validator over the tool output.
-jsonschema = { version = "0.46", default-features = false }
+jsonschema.workspace = true

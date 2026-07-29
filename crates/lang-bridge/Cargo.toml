@@ -16,7 +16,7 @@ path = "src/lib.rs"
 # The codebook Merkle-root digest and the RDFC-1.0 content digest fold with blake3 — the
 # SAME primitive `crates/logic`'s coherence certificate aggregates per-part hashes with, so
 # an independent implementation reproduces the byte-exact digest.
-blake3 = "1"
+blake3.workspace = true
 gmeow-errors = { path = "../errors" }
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
@@ -24,7 +24,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
-sha2 = "0.10"
+sha2.workspace = true
 # The plain-text bridge declares each lifted surface's Unicode normalization form
 # HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared
 # frame must match the actual bytes the surface hash is taken over.
@@ -60,10 +60,10 @@ default = ["glyph-cost"]
 glyph-cost = ["dep:tiktoken-rs"]
 
 [dev-dependencies]
-insta = { version = "1.48", features = ["json"] }
+insta = { workspace = true, features = ["json"] }
 proptest = "1"
 # The Gate-2 vendored-treebank round-trip test dogfoods the real corpus.json descriptor
 # against the native license CATEGORY (ring-fenced + attributed CC BY-SA ⇒ IMPORT_OK) — the
 # same classifier the conformance vendoring audit uses, keyed off the descriptor not a path.
 gmeow-license = { path = "../license" }
-serde_json = "1"
+serde_json.workspace = true

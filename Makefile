@@ -111,7 +111,7 @@ install: ## Bootstrap a clean clone source-first: build ONLY the producer, mater
 fmt: ## Rewrite Rust formatting with cargo fmt.
 	cargo fmt
 
-lint-issue-refs: ## Reject issue/PR number references in Rust comments and Markdown docs.
+lint-issue-refs: ## Reject issue/PR number references in Rust comments, Markdown docs, and TOML config.
 	./scripts/lint-issue-refs.sh
 
 lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).

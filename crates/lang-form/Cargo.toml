@@ -13,8 +13,8 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-sha2 = "0.10"
+sha2.workspace = true
 
 [dev-dependencies]
-insta = { version = "1.48", features = ["json"] }
+insta = { workspace = true, features = ["json"] }
 proptest = "1"

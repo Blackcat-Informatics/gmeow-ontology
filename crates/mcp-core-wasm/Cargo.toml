@@ -28,13 +28,15 @@ path = "src/lib.rs"
 # are advertised and dispatchable, and the twelve reasoning-segment tools answer with the
 # typed `mcp.segment-not-loaded` signal the host re-dispatches against `gmeow-mcp-wasm`.
 gmeow-mcp = { path = "../mcp", default-features = false, features = ["core"] }
-# EXACT pin: the `wasm-bindgen` CLI that generates the JS bindings must match the
-# library version byte-for-byte or it refuses to run. `make mcp-core-wasm-pkg` and the CI
-# Node lane install the matching `wasm-bindgen-cli` version.
-wasm-bindgen = "=0.2.125"
+# EXACTLY pinned ONCE, in `[workspace.dependencies]`: the `wasm-bindgen` CLI that
+# generates the JS bindings refuses to run unless it matches the library version
+# byte-for-byte, and this image's glue must stay loadable by the same CLI install the
+# reasoning-segment image's does. `make mcp-core-wasm-pkg` and the CI Node lane install
+# the `wasm-bindgen-cli` matching the workspace version.
+wasm-bindgen.workspace = true
 
 [dev-dependencies]
 # The deferral witness parses the JSON-RPC response frame back to assert the ROUTING
 # fields (`code` / `tool` / `segment`) rather than matching prose, so a signal that lost
 # its structure fails as a contract defect rather than passing on a substring.
-serde_json = "1"
+serde_json.workspace = true

@@ -39,7 +39,7 @@ gmeow-errors = { path = "../errors" }
 # serde_json: the transcode/loss matrices (`transcode_matrix_json`,
 # `transcode_loss_matrix_json`, `realized_loss_json`) are emitted as JSON — the
 # shape the `gmeow convert --loss-report` CLI and the MCP `convert` tool both read.
-serde_json = "1"
+serde_json.workspace = true
 # serde derive: RealizedLoss and the matrix rows are Serialize so the loss ledger
 # round-trips through the JSON surfaces above without a hand-written encoder.
-serde = { version = "1", features = ["derive"] }
+serde.workspace = true

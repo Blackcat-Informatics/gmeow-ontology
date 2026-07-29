@@ -7,7 +7,7 @@
 [toolchain]
 channel = "nightly"
 components = ["rustfmt", "clippy"]
-# The purrdf wasm engine (P10, #846) + the wasm-clean SPARQL leaf (#906/#911)
+# The purrdf wasm engine (P10) + the wasm-clean SPARQL leaf both
 # compile to wasm32-unknown-unknown; `make wasm` / `make rdf-core-hygiene` build
 # for it. Listing it here means every toolchain consumer (local + the dtolnay CI
 # inputs kept in lockstep) provisions the target by default — no separate

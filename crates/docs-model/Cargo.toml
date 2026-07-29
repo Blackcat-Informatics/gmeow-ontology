@@ -35,9 +35,9 @@ gmeow-validate = { path = "../validate" }
 # gmeow-docs, gmeow-pipeline) keeps it on through its OWN direct lang-bridge edge; this one
 # simply stops voting for a vocabulary it does not use.
 gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-regex = "1"
-sha1 = "0.10"
-blake3 = "1"
-pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+sha1.workspace = true
+blake3.workspace = true
+pulldown-cmark.workspace = true

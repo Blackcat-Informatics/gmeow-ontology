@@ -19,14 +19,15 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The wasm-clean RDF kernel surface — EXACTLY the purrdf wasm-bindings pin (#885
-# ring-fence, #909 native codecs): the `gts` feature with oxigraph OFF and python
+# The wasm-clean RDF kernel surface — EXACTLY the purrdf feature selection the
+# wasm bindings are built against (the browser ring-fence, plus the native text
+# codecs): the `gts` feature with oxigraph OFF and python
 # OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
 # TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the
 # compiler's RDF parse/serialize path builds for wasm32 with no Store dependency.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
-# SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
+# SPARQL property-path algebra: the projection target for logic:PathShape.
 # A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.
 # roxmltree: the read-only XML DOM parser for the XCL dialect reader. A pure-Rust,
 # wasm-clean leaf (already in the workspace as gmeow-rdf's native RDF/XML parser), so
@@ -49,22 +50,22 @@ gmeow-errors = { path = "../errors" }
 gmeow-term-arena = { path = "../term-arena" }
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
-sha2 = "0.10"
+sha2.workspace = true
 # blake3: the framed, domain-tagged content-digest discipline shared with
 # crates/logic (`ReasoningContract::content_digest` pins the reasoning contract for
 # the operational `ReasoningSession` identity). Pure-Rust, wasm-clean.
-blake3 = "1"
+blake3.workspace = true
 # serde: the projection-result ledger rows + report header counts are passed as an
 # in-memory product (JSON) from the compile-logic pipeline stage to the mappings stage,
 # which assembles the FINAL projection report over the union of the logic rows and the
 # correspondence ledger. Pure-Rust + wasm-clean (no oxigraph / no std::fs).
-serde = { version = "1", features = ["derive"] }
+serde.workspace = true
 
 [dev-dependencies]
 # insta: snapshot goldens for the projection back-ends (the `.snap` files are the
 # byte-exact unit goldens; crates/conformance owns cross-engine corpus parity).
 # Pinned to match crates/logic. `json` drives `assert_json_snapshot!` where used.
-insta = { version = "1.48", features = ["json"] }
+insta = { workspace = true, features = ["json"] }
 # serde_json: verify the correspondence gate report serializes to stable tagged JSON
 # (the conformance golden shape) in the gate unit tests.
-serde_json = "1"
+serde_json.workspace = true

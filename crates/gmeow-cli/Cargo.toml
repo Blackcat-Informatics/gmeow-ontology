@@ -77,16 +77,16 @@ gmeow-docs = { path = "../docs" }
 purrdf.workspace = true
 # TOCTOU/symlink-safe staging of the embedded bundle to a temp path for the
 # external `gts` passthrough (atomic create + remove-on-drop).
-tempfile = "3"
+tempfile.workspace = true
 # (De)serialize the GoEmotions capture envelope for `gmeow affect ingest-goemotions`
 # / `recover-goemotions`.
-serde_json = "1"
+serde_json.workspace = true
 
 [dev-dependencies]
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
-serde_json = "1"
+serde_json.workspace = true
 # Mints an ephemeral Ed25519 signing key for the bundle_smoke.rs positive/negative
 # real-crypto verify test, in-process — never a production dependency, `purrdf`
 # (already a normal dependency above) is what `gmeow verify` actually uses.

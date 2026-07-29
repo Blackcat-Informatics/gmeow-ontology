@@ -34,4 +34,4 @@ gmeow-logic = { path = "../logic" }
 # same content-bound catalog as every other crate.
 gmeow-errors = { path = "../errors" }
 # JSON is the MCP wire format: the tool descriptors and every result envelope.
-serde_json = "1"
+serde_json.workspace = true

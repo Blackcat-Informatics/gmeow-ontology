@@ -26,7 +26,10 @@ path = "src/lib.rs"
 gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 # The ONE canonical RDF parser/serializer.
 purrdf.workspace = true
-wasm-bindgen = "=0.2.125"
+# EXACTLY pinned ONCE, in `[workspace.dependencies]`: the wasm-bindgen CLI that
+# generates the JS bindings refuses to run unless it matches the library version
+# byte-for-byte.
+wasm-bindgen.workspace = true
 
 [dev-dependencies]
 # The token-cost anti-rot gate measures the REAL `cl100k_base` cost of every codebook

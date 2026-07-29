@@ -1,7 +1,12 @@
 #!/bin/sh
 # scripts/lint-issue-refs.sh
-# Reject issue/PR number references of the form #NNN in Rust comments and
-# developer-facing Markdown documentation.
+# Reject issue/PR number references of the form #NNN in Rust comments,
+# developer-facing Markdown documentation, and TOML configuration.
+#
+# TOML is covered because a manifest comment is exactly where a tracker number
+# hides from a source/docs-only lint: `Cargo.toml` rationale comments are prose
+# about the code, carry the same "explain the constraint, not the ticket"
+# obligation as a Rust comment, and are read by anyone auditing a dependency.
 #
 # This script is intentionally POSIX-shell and ripgrep-based so it adds no
 # Python/Rust runtime dependency beyond what the repository already uses.
@@ -58,6 +63,37 @@ if [ "$md_code" -eq 2 ]; then exit 2; fi
 if [ -n "$md_matches" ]; then
     echo "Found issue/PR number references in Markdown docs:" >&2
     echo "$md_matches" >&2
+    status=1
+fi
+
+# --- TOML configuration -------------------------------------------------------
+# Every `.toml` in the tree, which is a superset of every `Cargo.toml`: the root
+# workspace manifest, each member manifest, and the standalone tool configs
+# (`rust-toolchain.toml`, `mutants.toml`, ...).  Scanning whole files rather than
+# only `#`-comment lines matches the Markdown lane above and is what makes a
+# `description = "... (#123)"` package field — which is not a comment at all, and
+# ships to crates.io — a failure too.
+#
+# `#\d{3,}` deliberately does not match a two-digit token, so standards
+# references such as `UTS #39` stay legal; it also cannot match `#[case]`,
+# `#[cfg(...)]`, or `#[global_allocator]`, whose `#` is followed by `[`.  The
+# same generated/vendored/GitHub-process exclusions as the Markdown lane apply:
+# those trees either mirror a canonical source or are the one place a process
+# reference legitimately belongs.
+toml_code=0
+toml_matches=$(rg -n -e '#\d{3,}' \
+    --glob '*.toml' \
+    --glob '!.github/**' \
+    --glob '!generated/**' \
+    --glob '!vendor/**' \
+    --glob '!target/**' \
+    --glob '!**/node_modules/**' \
+    .) || toml_code=$?
+if [ "$toml_code" -eq 2 ]; then exit 2; fi
+
+if [ -n "$toml_matches" ]; then
+    echo "Found issue/PR number references in TOML configuration:" >&2
+    echo "$toml_matches" >&2
     status=1
 fi
 

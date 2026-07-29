@@ -60,12 +60,12 @@ purrdf.workspace = true
 # budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
 # the default BTreeMap-backed `Value` serializes keys in sorted order, which IS
 # the canonical form the Python runner produced via `json.dumps(sort_keys=True)`.
-serde_json = "1"
+serde_json.workspace = true
 # Content-addressed, blake3-keyed instance IRIs for the reified conformance
 # comparison + agreement-tally individuals (the SAME hash the diagnostics finding
 # IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals
 # are deterministic and blank-node-free.
-blake3 = "1"
+blake3.workspace = true
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered profile.json (i.e. per
 # case directory), run in parallel. Mirrors crates/slicetest.
@@ -85,7 +85,7 @@ harness = false
 [[test]]
 name = "dl_oracle_gold"
 
-# The per-op numeric-builtin oracle-gold lane (issue #1428): drives each frozen,
+# The per-op numeric-builtin oracle-gold lane: drives each frozen,
 # independently hand-derived case under `coverage/external/1428-numeric-builtin-oracle-gold/`
 # through the PUBLIC `gmeow_logic::dispatch::dispatch_query` surface (never the
 # crate-private `builtin_eval::eval`), so the exact-ℚ arithmetic / comparison / SI-dimension

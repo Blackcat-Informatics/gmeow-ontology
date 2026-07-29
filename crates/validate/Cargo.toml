@@ -22,8 +22,8 @@ path = "src/lib.rs"
 # thread-free.
 [dependencies]
 # Report JSON export at the wasm/CLI boundary; timing/result serde on the native side.
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde.workspace = true
+serde_json.workspace = true
 # SHACL engine: the Rust-native validation reuses parsed shapes and validates the
 # frozen dataset directly. The engine core is PyO3-free; only the py modules touch PyO3.
 purrdf.workspace = true
@@ -37,13 +37,13 @@ gmeow-errors = { path = "../errors" }
 # `gts` feature builds; pure-Rust structured-zstd, no C/duckdb/zstd-sys linkage.
 # CBOR reader for the bundle blob metadata: `Graph::blob_meta` values are
 # `ciborium::value::Value`, read to resolve a blob by its `rep` label.
-ciborium = "0.2"
+ciborium.workspace = true
 # SHA-256: content-addressed validation cache keys (parity with Python hashlib) AND
 # the advisory/abductive tiers' claim fingerprints. Compiled on EVERY target because
 # the advisory + abductive producers are wasm-clean (pure `gmeow_errors` + `purrdf`
 # + this hash) and the browser-runnable MCP `validate_local` / `advise` surface
 # carries them.
-sha2 = "0.10"
+sha2.workspace = true
 # The canonical validation-shape IR + the shape-subsumption enforcement pre-order
 # (equivalent/subsumes/residue_normal_form): the equivalence ORACLE (`shape_oracle`)
 # inverts the SHACL emitter over this IR and decides equivalence via the subsumption
@@ -60,7 +60,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # Regex engine for the native-only lint / constitution / repo-static gate modules
 # (version pin kept in lockstep with shacl).
-regex = "1"
+regex.workspace = true
 # Cargo manifest parsing for the native crate-layering DAG gate.
 toml = "0.8"
 # JSON Schema draft-2020-12 instance validator. default-features off drops the
@@ -68,7 +68,7 @@ toml = "0.8"
 # Schema is fully self-contained ($defs-local refs only), so we never fetch remote
 # schemas. No optional resolver feature is enabled — a capability cfg would be
 # optionality, not compliance.
-jsonschema = { version = "0.46", default-features = false }
+jsonschema.workspace = true
 # YAML instance parsing: serde_yaml deserializes straight into serde_json::Value,
 # so a YAML instance validates identically to its JSON twin.
 serde_yaml = "0.9"
@@ -95,7 +95,7 @@ gmeow-logic = { path = "../logic" }
 gmeow-math = { path = "../math" }
 # Structured, subscriber-controlled sink for the native cache's lenient
 # missing-input notice — telemetry with no reporter in scope, never a gate.
-tracing = "0.1"
+tracing.workspace = true
 # Read-only XML DOM parser for the authoring-integrity catalog gate: the generated
 # OASIS `catalog-v001.xml` is parsed properly (comments/CDATA/entities handled),
 # never by a naive substring scan. Pure-Rust, parse-only (pin matches logic-compile).
@@ -109,16 +109,16 @@ purrdf.workspace = true
 # corpus and asserts the blind round-trip end-to-end.
 gmeow-affect-ingest = { path = "../affect-ingest" }
 # JSON deserialization of the captured classifier fixtures the producer ingests.
-serde_json = "1"
-# Ed25519 signing material for deterministic GTS signature tests (#646).
+serde_json.workspace = true
+# Ed25519 signing material for deterministic GTS signature tests.
 ed25519-dalek = "2"
-# Acceleration-program baselines (#630, Phase 0); light feature set, see crates/logic.
+# Acceleration-program baselines (Phase 0); light feature set, see crates/logic.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
 # Hermetic temp slices trees for the S6a merged-SHACL Merkle key integration test.
-tempfile = "3"
-# Snapshot goldens for the constitution parity regression test (#939 Gap 4).
-insta = { version = "1.48", features = ["json"] }
-# Parameterized #[case] rows for the conformance_*.rs SHACL twins (#1051). rstest
+tempfile.workspace = true
+# Snapshot goldens for the constitution parity regression test.
+insta = { workspace = true, features = ["json"] }
+# Parameterized #[case] rows for the conformance_*.rs SHACL twins. rstest
 # subsumes test-case; test-case is deliberately NOT a dependency.
 rstest = "0.26"
 # Deterministic retired-instruction backend for the whole-ontology-union conformance
