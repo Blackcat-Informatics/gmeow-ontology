@@ -1,4 +1,4 @@
-# Functional-carrier completeness ledger — FROZEN, human-blessed (issue #1579).
+# Functional-carrier completeness ledger — FROZEN, human-blessed.
 #
 # One canonical IRI per line, sorted. Each is a property that MUST bear a
 # `logic:functionalProperty`-sort `logic:PropertyCharacteristicAssertion` carrier
@@ -560,6 +560,7 @@ https://blackcatinformatics.ca/gmeow/sequenceStart
 https://blackcatinformatics.ca/gmeow/sequenceStrand
 https://blackcatinformatics.ca/gmeow/serviceShutdownDate
 https://blackcatinformatics.ca/gmeow/sessionConfiguration
+https://blackcatinformatics.ca/gmeow/sessionStoreSegment
 https://blackcatinformatics.ca/gmeow/sessionSubjectStage
 https://blackcatinformatics.ca/gmeow/sexualOrientationValue
 https://blackcatinformatics.ca/gmeow/signatureAlgorithm

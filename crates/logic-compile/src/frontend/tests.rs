@@ -2315,9 +2315,21 @@ fn functional_carrier_integrity_flags_duplicate_carrier() {
 #[test]
 fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
     // Prove the completeness ledger is NON-VACUOUS: a small store carries NONE of the frozen
-    // ledger's 720 properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
-    // the exact "a property silently lost its carrier" hard-fail. The store's own lone carrier
+    // ledger's properties, so EVERY ledger entry surfaces as a LedgerMissing that NAMES it — the
+    // exact "a property silently lost its carrier" hard-fail. The store's own lone carrier
     // (g:unexpectedProp, absent from the ledger) surfaces as a LedgerUnexpected that names it.
+    //
+    // The expected count is read from the ledger itself rather than re-typed: a hand-maintained
+    // mirror of the ledger size would have to be edited on every deliberate re-bless, and a stale
+    // literal fails this test for a reason that has nothing to do with the invariant under test.
+    // The non-vacuity the literal used to carry is asserted directly below, as a floor on the
+    // ledger's own size — an empty or near-empty ledger cannot make this test pass trivially.
+    let ledger_size = functional_carrier_ledger().len();
+    assert!(
+        ledger_size >= 500,
+        "the frozen ledger must be substantial for this non-vacuity proof to mean anything; \
+         got {ledger_size} entries"
+    );
     let ds = shape_dataset(
         "g:unexpectedProp a owl:ObjectProperty . \
          [] a logic:PropertyCharacteristicAssertion ; \
@@ -2334,7 +2346,7 @@ fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
         .collect();
     assert_eq!(
         missing.len(),
-        720,
+        ledger_size,
         "every frozen ledger entry with no live carrier is named as LedgerMissing"
     );
     assert!(

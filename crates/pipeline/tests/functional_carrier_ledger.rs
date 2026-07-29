@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Non-vacuity gate for the functional-characteristic carrier completeness invariant (issue 1579).
+//! Non-vacuity gate for the functional-characteristic carrier completeness invariant.
 //!
 //! `gmeow_logic_compile::frontend::functional_carrier_integrity` is the migration-surviving
 //! successor to the (now vacuous) `functional_properties_missing_logic_carrier` check. These tests
 //! prove it against the REAL merged authored corpus — the exact `graph/logic-compile-inputs` entity
 //! the `stage-compile-logic` hard-fail path consumes:
 //!
-//! * the committed corpus PASSES — the frozen 720-entry ledger matches the live carrier-bearing set
+//! * the committed corpus PASSES — the frozen ledger matches the live carrier-bearing set exactly
 //!   and there are zero orphan / duplicate / re-introduction violations; and
 //! * dropping a single property's carrier from that corpus HARD-FAILS the completeness check,
 //!   NAMING the dropped property — proving the ledger is non-vacuous (a silently-lost carrier can
