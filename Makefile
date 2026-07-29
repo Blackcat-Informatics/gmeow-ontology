@@ -81,7 +81,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
-	console-test console-assemble npm-publish-dry npm-consumable \
+	console-test console console-smoke console-assemble npm-publish-dry npm-consumable \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
@@ -625,24 +625,78 @@ mcp-core-wasm-pkg-test: mcp-core-wasm-pkg mcp-wasm-pkg ## Build the lean core np
 	@echo "OK: gmeow-mcp-core-wasm Node parity + demand-load lane passed"
 
 console-test: ## Run the standalone console's DOM-free acceptance lane against the shipped wasm engine.
-	@# The seven named assertions. They drive the SHIPPED `crates/docs/assets/mcp-core/`
-	@# image over the SHIPPED `generated/dist/gmeow.gts` — no browser, no mocks. Locally
-	@# this SKIPs when node is absent; CI hard-fails, so the console's derived surface is
-	@# never silently unverified on the gating path. (The shell-agreement assertion and the
-	@# producer's byte-identity assertions are Rust tests and ride `rust-gate`.)
+	@# The named acceptance assertions. They drive the SHIPPED `crates/docs/assets/mcp-core/`
+	@# image over the SHIPPED `generated/dist/gmeow.gts` — no browser, no mocks. It HARD-FAILS
+	@# everywhere, CI and local alike: a locally-green `make check` that skipped this lane is
+	@# how a broken console shipped, so "node is not installed" is a missing dependency to
+	@# install, never permission to leave the console's derived surface unverified.
 	@# `crates/docs/assets/tests/` rides the same lane: it proves the shipped client-side
 	@# BLAKE3 (`assets/blake3.mjs`) against the published reference vectors AND against the
 	@# Rust `blake3` crate's own output (the committed `DIGESTS.blake3` manifests). Every
 	@# integrity check the browser performs is that function, so a JS/Rust disagreement
 	@# would silently turn asset verification into asset rejection.
-	@if command -v node >/dev/null 2>&1; then \
-		( cd crates/docs/assets && node --test tests/*.test.mjs ); \
-		( cd crates/docs/assets/console && node --test tests/*.test.mjs ); \
-	elif [ -n "$${CI:-}" ]; then \
-		echo "FAIL: node absent in CI — the console acceptance lane cannot run; CI must install it"; exit 1; \
-	else \
-		echo "SKIP: node not installed (local only; CI hard-fails) — install node to run the console acceptance lane"; \
+	@command -v node >/dev/null 2>&1 || { \
+		echo "FAIL: node is not installed — the console acceptance lane cannot run and is not skippable."; \
+		echo "      Install Node (>=18) and re-run \`make console-test\`."; exit 1; }
+	( cd crates/docs/assets && node --test tests/*.test.mjs )
+	( cd crates/docs/assets/console && node --test tests/*.test.mjs )
+	@echo "OK: the standalone console's DOM-free acceptance lane passed"
+
+console: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) — the tree `console-smoke` drives.
+	@# `write_site` RECONCILES: it writes what the producer emits and removes everything
+	@# under $(CONSOLE_OUT) that the producer did not emit, so assembling over a previous
+	@# tree yields exactly this build. That is the one mechanism — there is no `rm -rf`
+	@# here doing the same job a second time, which also means every run of this target
+	@# exercises the reconciliation the deployed artifact depends on. (Before it existed,
+	@# the dev-only `smoke/` scaffolding went on being served out of a stale tree long after
+	@# it had been removed from the producer's shell file set.)
+	@#
+	@# The producer prunes only inside the tree it was asked to write, so the pre-flight
+	@# below is what keeps a mistyped CONSOLE_OUT from being reconciled: an existing
+	@# directory that is not a previously assembled console tree is refused outright.
+	@set -e; \
+	if [ -z "$(CONSOLE_OUT)" ]; then \
+		echo "FAIL: CONSOLE_OUT is empty — \`make console\` assembles into it and has no default to fall back on."; \
+		echo "      Re-run with CONSOLE_OUT=<dir> (the pinned default is dist/console-smoke)."; exit 1; \
+	fi; \
+	if [ -e "$(CONSOLE_OUT)" ] && [ ! -f "$(CONSOLE_OUT)/console/index.html" ]; then \
+		echo "FAIL: CONSOLE_OUT=$(CONSOLE_OUT) exists but is not a previously assembled console tree"; \
+		echo "      (no console/index.html). Refusing to reconcile it. Choose a scratch --out."; exit 1; \
 	fi
+	@# `gmeow-dev console-assemble` REFUSES an --out inside ontology-docs/ or
+	@# dist/gmeow-docs/ (one writer: `make regen SYNC_OUTPUTS=docs`), which is why
+	@# CONSOLE_OUT defaults to a scratch base.
+	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
+
+console-smoke: console ## Drive the ASSEMBLED console in a real browser: the deployed leg, the published tarball, and the byte ceiling.
+	@# The browser surface IS the deliverable, and this is the only lane that executes it.
+	@# It serves $(CONSOLE_OUT) over plain static HTTP with NO COOP/COEP — exactly what
+	@# GitHub Pages provides — and drives /console/ in headless Chromium: the derived pane
+	@# set, every read tool through the assembled worker, RDF-1.2 through every target, the
+	@# single-threaded contract, the measured first-load ceiling, and the REAL `npm pack`
+	@# tarball installed into a scratch project and booted the way the shipped README says.
+	@#
+	@# It HARD-FAILS EVERYWHERE. There is deliberately no local skip and no CI-only branch:
+	@# a locally-green gate that quietly skipped the browser is precisely how a published
+	@# console that could not boot at all went undetected. A missing dependency is a missing
+	@# dependency — the two commands that install it are named below, verbatim.
+	@command -v node >/dev/null 2>&1 || { \
+		echo "FAIL: node is not installed — the console browser smoke lane cannot run and is not skippable."; \
+		echo "      Install Node (>=18), then:"; \
+		echo "        npm ci --prefix crates/docs/assets/console/smoke"; \
+		echo "        npx playwright install --with-deps chromium"; exit 1; }
+	@test -d crates/docs/assets/console/smoke/node_modules/@playwright/test || { \
+		echo "FAIL: the pinned Playwright runner is not installed. Run:"; \
+		echo "        npm ci --prefix crates/docs/assets/console/smoke"; exit 1; }
+	@( cd crates/docs/assets/console/smoke && node --input-type=module -e \
+		'import { chromium } from "@playwright/test"; import { accessSync, constants } from "node:fs"; accessSync(chromium.executablePath(), constants.X_OK);' \
+		) >/dev/null 2>&1 || { \
+		echo "FAIL: the pinned Chromium build Playwright drives is not installed. Run:"; \
+		echo "        npx playwright install --with-deps chromium"; exit 1; }
+	@# Through the lane's own `smoke` script, so the runner invocation is spelled once — in
+	@# the manifest that pins the runner.
+	( cd crates/docs/assets/console/smoke && CONSOLE_OUT="$(CONSOLE_OUT)" npm run --silent smoke )
+	@echo "OK: the standalone console's browser smoke lane passed against $(CONSOLE_OUT)"
 
 npm-publish-dry: ## Network-safe `npm publish --dry-run` over every package this repo publishes.
 	@# The package set is DISCOVERED from the shipped bytes (`scripts/npm-package-dirs.mjs`
@@ -677,11 +731,7 @@ npm-consumable: ## Prove every published package is CONSUMABLE: pack -> install 
 	@# imported, which is exactly the consumability failure this lane exists to catch.
 	node scripts/npm-consumability.mjs
 
-console-assemble: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) for local preview.
-	@# `gmeow-dev console-assemble` REFUSES an --out inside ontology-docs/ or
-	@# dist/gmeow-docs/ (one writer: `make regen SYNC_OUTPUTS=docs`), which is why
-	@# CONSOLE_OUT defaults to a scratch base.
-	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
+console-assemble: console ## Assemble the standalone <gmeow-console> tree for local preview (the `console` target, under its long name).
 
 wasm-parity: ## Prove "native≡wasm" on-gate: wasm32 build purity + the five Node lanes that RUN the shipped wasm and assert byte-identity to native.
 	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the five `*-pkg-test`
