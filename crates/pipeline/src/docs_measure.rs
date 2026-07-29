@@ -469,8 +469,13 @@ fn pydantic_docs_tree(
     Ok(product.artifacts())
 }
 
-/// The JSON-LD-star + YAML-LD-star serialization-family tree, keyed exactly as
-/// `crate::stages::carrier::build_yaml_ld_blob` (test-only) packs it.
+/// The WHOLE-CARRIER JSON-LD-star + YAML-LD-star serialization-family tree, keyed by
+/// the `dist/` basenames `make build` writes.
+///
+/// Deliberately NOT the bundle's `yaml-ld-archive` frame, which carries the CLAIM
+/// CORPUS's projection under different member names
+/// ([`crate::bundle_blobs::YAMLLD_JSONLD_MEMBER`]): this module measures the
+/// distribution family a consumer downloads, and that family is the whole carrier.
 fn yaml_ld_tree(carrier: &RdfDataset) -> Result<BTreeMap<String, Vec<u8>>, Diag> {
     let jsonld = crate::stages::yaml_ld::serialize_graph(carrier)
         .map_err(|e| err(format!("serialize the JSON-LD-star document: {e}")))?;

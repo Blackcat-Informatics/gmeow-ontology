@@ -26,7 +26,13 @@
 //! * [`envelope`] — sealing and opening a `gmeow:MediumEnvelope`, projected from
 //!   the facts a frame already carries in band;
 //! * [`rdf`] — the projection of realizations and envelopes into the build-time
-//!   [`MEDIUM_REGISTRY_GRAPH`] named graph.
+//!   [`MEDIUM_REGISTRY_GRAPH`] named graph;
+//! * [`measure`] — the two-part code: does each shipped dictionary PAY FOR ITSELF
+//!   over the population it primes, measured on the mandated chain and projected
+//!   into [`MEDIUM_MEASUREMENT_GRAPH`];
+//! * [`sweep`] — the off-gate `(strategy × target length)` grid and the committed
+//!   winner table the build consumes, so the shipped dictionaries are a measured
+//!   choice rather than a per-build search.
 //!
 //! # Everything is read from the IN-MEMORY carrier
 //!
@@ -55,8 +61,10 @@
 pub mod audit;
 pub mod corpus;
 pub mod envelope;
+pub mod measure;
 pub mod rdf;
 pub mod registry;
+pub mod sweep;
 pub mod train;
 
 use gmeow_errors::Diag;

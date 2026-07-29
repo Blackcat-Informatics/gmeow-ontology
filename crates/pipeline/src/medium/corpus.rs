@@ -23,7 +23,7 @@
 //! a second source of truth for "what is in this archive" (Principle 4). Selecting
 //! the PRODUCING STAGE's product instead reaches the same lifted surface at the
 //! point in the DAG where the trainer actually runs: `gmeow-prooftrace-v1` reaches
-//! `stage-reason`, and `gmeow-lang-ast-v1` reaches `stage-mappings`.
+//! `stage-reason`.
 //!
 //! # An unrecognized selector is a HARD FAIL
 //!

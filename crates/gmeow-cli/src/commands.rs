@@ -3563,15 +3563,20 @@ pub fn project(
 
     let fmt_lower = format.to_lowercase();
     if fmt_lower == "yaml-ld" {
+        // The bundled YAML-LD deliverable is the CLAIM CORPUS's YAML-LD-star projection
+        // (the RDF 1.2 statement layer), which rides the `yaml-ld-archive` frame
+        // — not a serialization of the whole carrier, whose JSON-LD-star form is
+        // the ~666 MB `make build` artifact `dist/gmeow.jsonld` and rides no frame.
         if source.is_some() {
             return fail(
                 reporter,
                 "gmeow-cli.project.yaml-ld-source",
-                "--format yaml-ld reads the bundled snapshot only; do not pass a source file",
+                "--format yaml-ld reads the bundled claim corpus only; do not pass a source file",
             );
         }
+        let member = gmeow_pipeline::bundle_blobs::YAMLLD_YAMLLD_MEMBER;
         let yamlld = match gmeow_pipeline::bundle_blobs::bundled_yaml_ld(BUNDLE_GTS) {
-            Ok(map) => map.get("gmeow.yamlld").cloned(),
+            Ok(map) => map.get(member).cloned(),
             Err(e) => {
                 return fail(
                     reporter,
@@ -3584,7 +3589,7 @@ pub fn project(
             return fail(
                 reporter,
                 "gmeow-cli.project.yaml-ld-missing",
-                "bundled YAML-LD snapshot not found",
+                format!("bundled YAML-LD claim corpus ({member}) not found"),
             );
         };
         if let Err(e) = std::fs::create_dir_all(out) {
@@ -3594,7 +3599,7 @@ pub fn project(
                 format!("cannot create {}: {e}", out.display()),
             );
         }
-        let target = out.join("gmeow.yamlld");
+        let target = out.join(member);
         if let Err(e) = std::fs::write(&target, yamlld) {
             return fail(
                 reporter,

@@ -186,6 +186,35 @@ pub struct MediumDef {
     pub reader_capabilities: BTreeSet<String>,
 }
 
+impl MediumDef {
+    /// The WIRE codec name [`purrdf::gts::codec`] encodes with, derived from the
+    /// declared `gmeow:mediumCodec` individual.
+    ///
+    /// The mapping is total over the catalog the GTS spec §8 registers and HARD-FAILS
+    /// on anything else. There is no "unknown codec → skip" arm: a medium whose codec
+    /// this build cannot spell would silently measure (or write) a chain the shipped
+    /// artifact does not use.
+    ///
+    /// # Errors
+    /// `InvalidDeclaration` when the codec individual is outside the registered
+    /// catalog.
+    pub fn codec_wire_name(&self) -> Result<&'static str, gmeow_errors::Diag> {
+        let local = self.codec.strip_prefix(GMEOW).unwrap_or(&self.codec);
+        match local {
+            "codecIdentity" => Ok("identity"),
+            "codecGzip" => Ok("gzip"),
+            "codecZstd" => Ok("zstd"),
+            "codecZstdRsyncable" => Ok("zstd-rsyncable"),
+            _ => Err(invalid_declaration(format!(
+                "<{}> gmeow:mediumCodec <{}> is not a codec this build can spell on the wire — \
+                 there is no fallback chain, because a measurement (or an emission) through a \
+                 different codec would describe bytes the shipped artifact never carries",
+                self.iri, self.codec
+            ))),
+        }
+    }
+}
+
 /// Which dictionary primes a rep — TOTAL, never `Option`.
 ///
 /// Mirrors [`purrdf::gts_compose::DictSelection`] deliberately: an `Option` would
@@ -345,8 +374,8 @@ impl MediumRegistry {
     /// dictionary family itself. `gmeow-memory-hot-v1` and
     /// `gmeow-memory-compact-v1` prime a consumer's OWN runtime store, so the only
     /// place a consumer can obtain them is the shipped header — pinning only the
-    /// selected ones would ship a bundle that declares seven dictionaries and
-    /// carries five, leaving the other two nameable but unobtainable.
+    /// selected ones would ship a bundle that declares five dictionaries and
+    /// carries three, leaving the other two nameable but unobtainable.
     ///
     /// # Errors
     /// An unregistered or unassigned rep, a declared dictionary with no trained
@@ -1068,15 +1097,17 @@ mod tests {
     /// inventory is pinned in BOTH directions: a dropped dictionary and an added one
     /// each fail [`the_live_gts_slice_reads_as_a_complete_registry`].
     ///
-    /// It is SEVEN, not eight. An earlier draft carried `gmeow-math-v1`, designed from
-    /// slice names rather than from the bundle's frame layout; the mathematical named
-    /// graphs are unioned into the SNAPSHOT payload, which is one frame already primed
-    /// in full by `gmeow-core-v1`, so it primed zero reps. See the retirement note in
-    /// the slice.
-    const SHIPPED_DICTIONARY_IDS: [&str; 7] = [
-        "gmeow-claims-v1",
+    /// It is FIVE, not eight. Three slice-shaped drafts were retired by MEASUREMENT,
+    /// each a different way of failing the same rule — a dictionary is justified by
+    /// the FRAME SET it primes and must pay for its own in-band bytes on that set:
+    /// `gmeow-math-v1` primed zero frames (the mathematical graphs are unioned into
+    /// the snapshot payload, one frame already primed by `gmeow-core-v1`),
+    /// `gmeow-claims-v1` primed one ~9 KB frame no grid cell could pay for, and
+    /// `gmeow-lang-ast-v1` lost by 3,684 B over three frames. All three of their reps
+    /// are now primed by `gmeow-core-v1`, so no frame lost compression. See the
+    /// retirement note in the slice.
+    const SHIPPED_DICTIONARY_IDS: [&str; 5] = [
         "gmeow-core-v1",
-        "gmeow-lang-ast-v1",
         "gmeow-logic-v1",
         "gmeow-memory-compact-v1",
         "gmeow-memory-hot-v1",
@@ -1084,7 +1115,7 @@ mod tests {
     ];
 
     /// NON-VACUITY: the reader is exercised against the REAL authored declaration,
-    /// not only the fixture. The seven shipped dictionaries, their corpora, the
+    /// not only the fixture. The five shipped dictionaries, their corpora, the
     /// payload-schema registry, and both declared media must all read cleanly — if
     /// the reader silently disagreed with `slices/core/gts/module.ttl`, every
     /// fixture-based test above would still pass.
@@ -1110,10 +1141,12 @@ mod tests {
             .map(|d| d.id.as_str())
             .collect();
         // BOTH directions, and the count on its own line: a dropped dictionary orphans
-        // every artifact primed with it, and a re-added eighth would be trained,
-        // measured, pinned in the header, and projected onto a committed `.zdict` while
-        // priming nothing — which is exactly how `gmeow-math-v1` shipped as dead weight
-        // until it was measured. Neither may pass unnoticed.
+        // every artifact primed with it, and a re-added sixth would be trained,
+        // measured, pinned in the header, and projected onto a committed `.zdict`
+        // while priming nothing (or priming a population too small to pay for its own
+        // bytes) — which is exactly how `gmeow-math-v1`, `gmeow-claims-v1` and
+        // `gmeow-lang-ast-v1` shipped as dead weight until they were measured.
+        // Neither direction may pass unnoticed.
         assert_eq!(
             ids.len(),
             SHIPPED_DICTIONARY_IDS.len(),

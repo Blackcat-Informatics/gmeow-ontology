@@ -5828,7 +5828,7 @@ pub const MEMORY_COMPACT_DICTIONARY: &str = "gmeow-memory-compact-v1";
 
 /// Resolve a runtime store's medium out of the SHIPPED bundle's in-band `"dct"` map.
 ///
-/// The bundle is the dictionary's distribution channel: `gmeow.gts` pins all eight
+/// The bundle is the dictionary's distribution channel: `gmeow.gts` pins all seven
 /// declared dictionaries in its segment header, so a consumer priming its own store
 /// reads the exact bytes the build trained — never a re-derivation that could differ
 /// under the same id, and never an out-of-band artifact a wheel-mode install would
@@ -6916,7 +6916,7 @@ mod tests {
     ///
     /// It is deliberately UNCONDITIONAL, so these tests behave identically whether
     /// or not the local bundle happens to be current. That the SHIPPED bundle pins
-    /// all seven declared dictionaries is a different claim, and it is proven where
+    /// every declared dictionary is a different claim, and it is proven where
     /// it belongs — over a freshly emitted bundle, in `tests/medium_bundle.rs`.
     fn snapshot() -> Vec<u8> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");

@@ -589,7 +589,7 @@ gmeow:stage-statements
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "statements"@x-gmeow-english ;
-    skos:definition "Compile the RDF-1.2 statement lead and its OWL downcast from the loaded sources."@x-gmeow-english ;
+    skos:definition "Compile the RDF-1.2 statement lead and its OWL downcast from the loaded sources, and render that same frozen statement dataset into its JSON-LD-family surface — the JSON-LD-star and YAML-LD-star projections — on the INTERNAL pipeline/statements/ byte lane. The JSON-LD family is rendered HERE, once (the transform-once razor), because this stage owns the statement layer's projections; gmeow:stage-archive-blobs only TARS it into the bundle's yaml-ld-archive frame, which gmeow:dictGmeowCoreV1 primes. Those two artifacts ride the internal pipeline/ prefix rather than a committed generated/ file for the same reason the trained dictionaries do: their shipping channel is the bundle frame, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1119,7 +1119,7 @@ gmeow:stage-archive-blobs
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "archive blobs"@x-gmeow-english ;
-    skos:definition "Fold the nine by-reference TAR archives a repo-free consumer reads back out of gmeow.gts — mappings-archive (the compiled SSSOM lift maps), cells-archive (the mapping-DSL cell sources), queries-archive (the generated SPARQL surface), tests-archive (the slice test-DSL specs), schemas-archive (the SHACL-derived JSON Schema and OpenAPI plus the two hand-authored self-describing schemas), shapes-archive (the FULL SHACL shape surface: authored shapes, per-slice shapes, and the generated shape projections), axioms-archive (the small committed logic/DL projections), lang-projections-archive (the generated/projections/lang/ external-format deliverables, split onto their own rep so gmeow:dictGmeowLangAstV1 primes a real population rather than two literals), and models-python (the generated Pydantic package) — and attach each to this stage's product on its own blob-representation lane. It is the SINGLE authority on archive membership: every generated member is sourced from an in-memory producer product (gmeow:stage-compile-logic, gmeow:stage-mappings, gmeow:stage-export-json-schema, gmeow:stage-export-pydantic, and the three generated-shape export leaves), never from a committed generated/ file, which is not flushed until the post-run reconcile returns; only genuinely authored trees (dsl/mappings, the per-slice tests and shapes, and the top-level shapes directory) are read from source, and every one of them is declared as a raw cache input. The fold ran INSIDE the terminal sink before, so the archives did not exist as a product until the last node of the graph and any consumer of them would have closed a cycle; as its own stage they are available mid-graph, and the terminal now READS them instead of re-folding (the transform-once razor). A missing producer artifact or an archive that would fold empty is a HARD FAIL, never a degraded partial archive."@x-gmeow-english ;
+    skos:definition "Fold the ten by-reference TAR archives a repo-free consumer reads back out of gmeow.gts — mappings-archive (the compiled SSSOM lift maps), cells-archive (the mapping-DSL cell sources), queries-archive (the generated SPARQL surface), tests-archive (the slice test-DSL specs), schemas-archive (the SHACL-derived JSON Schema and OpenAPI plus the two hand-authored self-describing schemas), shapes-archive (the FULL SHACL shape surface: authored shapes, per-slice shapes, and the generated shape projections), axioms-archive (the small committed logic/DL projections), lang-projections-archive (the generated/projections/lang/ external-format deliverables, on their own rep because a rep is the unit a dictionary primes and these are a distinct external-format family a consumer extracts on its own), yaml-ld-archive (the claim corpus's JSON-LD-star and YAML-LD-star projections, rendered once by gmeow:stage-statements and only tarred here), and models-python (the generated Pydantic package) — and attach each to this stage's product on its own blob-representation lane. It is the SINGLE authority on archive membership: every generated member is sourced from an in-memory producer product (gmeow:stage-compile-logic, gmeow:stage-mappings, gmeow:stage-export-json-schema, gmeow:stage-export-pydantic, gmeow:stage-statements, and the three generated-shape export leaves), never from a committed generated/ file, which is not flushed until the post-run reconcile returns; only genuinely authored trees (dsl/mappings, the per-slice tests and shapes, and the top-level shapes directory) are read from source, and every one of them is declared as a raw cache input. The fold ran INSIDE the terminal sink before, so the archives did not exist as a product until the last node of the graph and any consumer of them would have closed a cycle; as its own stage they are available mid-graph, and the terminal now READS them instead of re-folding (the transform-once razor). A missing producer artifact or an archive that would fold empty is a HARD FAIL, never a degraded partial archive."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1131,7 +1131,8 @@ gmeow:stage-archive-blobs
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-pydantic ,
         gmeow:stage-export-result-shapes ,
-        gmeow:stage-mappings .
+        gmeow:stage-mappings ,
+        gmeow:stage-statements .
 
 # ── The medium axis: the shipped zstd dictionaries ──
 
@@ -1139,14 +1140,13 @@ gmeow:stage-medium-dictionaries
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "medium dictionaries"@x-gmeow-english ;
-    skos:definition "Train the seven declared gmeow:CompressionDictionary definitions over their declared gmeow:DictionaryCorpus selectors, measure each into a gmeow:CompressionDictionaryRealization (content digest, byte length, zstd Dictionary_ID, measured strategy, measured target length), and attach the result as the build-time graph/medium-registry named graph. It is the SINGLE producer of the bundle's dictionaries: the terminal reads its product to pin them in the shipped segment header's in-band dct map and to seal one gmeow:MediumEnvelope per emitted frame. Its dataflow edges are DERIVED from the shipped corpora rather than chosen — the archive-rep selectors resolve against gmeow:stage-archive-blobs, the two sink-folded corpora (proof trace, lang AST) select the gmeow:stage-reason and gmeow:stage-mappings products directly because their archives exist only at the terminal, and the named-graph and generated-path selectors resolve against the assembled carrier (gmeow:stage-snapshot) and gmeow:stage-statements. A corpus that resolves to nothing, a selector this build cannot evaluate, or a selector that reaches the medium pass's own output are each a HARD FAIL, never a silently smaller training set. The trained bytes ride an INTERNAL pipeline/ byte-artifact family rather than a committed generated/ file: a dictionary's shipping channel is the segment header, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries in band."@x-gmeow-english ;
+    skos:definition "Train the five declared gmeow:CompressionDictionary definitions over their declared gmeow:DictionaryCorpus selectors, measure each into a gmeow:CompressionDictionaryRealization (content digest, byte length, zstd Dictionary_ID, measured strategy, measured target length), and attach the result as the build-time graph/medium-registry named graph. It is the SINGLE producer of the bundle's dictionaries: the terminal reads its product to pin them in the shipped segment header's in-band dct map and to seal one gmeow:MediumEnvelope per emitted frame. Its dataflow edges are DERIVED from the shipped corpora rather than chosen — the archive-rep selectors resolve against gmeow:stage-archive-blobs, the one sink-folded corpus (proof trace) selects the gmeow:stage-reason product directly because its archive exists only at the terminal, and the named-graph and generated-path selectors resolve against the assembled carrier (gmeow:stage-snapshot) and gmeow:stage-statements. A corpus that resolves to nothing, a selector this build cannot evaluate, or a selector that reaches the medium pass's own output are each a HARD FAIL, never a silently smaller training set. The trained bytes ride an INTERNAL pipeline/ byte-artifact family rather than a committed generated/ file: a dictionary's shipping channel is the segment header, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries in band."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "medium-dictionaries" ;
     gmeow:dataflowConsumes
         gmeow:stage-archive-blobs ,
-        gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-snapshot ,
         gmeow:stage-statements .
@@ -1157,7 +1157,7 @@ gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once). The nine by-reference TAR archives are READ off the gmeow:stage-archive-blobs product, folded once by that stage and never re-folded here; the terminal staples only the blob channels it alone can see: the document-scale language surface blobs, the native reasoning reports (gmeow:stage-reason), the opaque generated/ fanout archive over THIS run's carrier, the typed SHACL/ShEx validation sidecars (gmeow:stage-compile-logic), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
+    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once). The ten by-reference TAR archives are READ off the gmeow:stage-archive-blobs product, folded once by that stage and never re-folded here; the terminal staples only the blob channels it alone can see: the document-scale language surface blobs, the native reasoning reports (gmeow:stage-reason), the opaque generated/ fanout archive over THIS run's carrier, the typed SHACL/ShEx validation sidecars (gmeow:stage-compile-logic), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor) It is also where the MEDIUM's dictionary-effect measurement is taken and folded: the terminal is the one point at which the emission's whole BLOB frame set exists, so the two-part code of every shipped dictionary (gmeow:MediumDictionaryEffectMeasurement in graph/medium-measurement, plus its graph/fanout twin for generated/medium/dictionary-effect.ttl) is measured over exactly the frames it is about to write, on the mandated chain. The SNAPSHOT frame is excluded from that population by declaration — the measurement lands in the snapshot payload, so pricing that frame would make the reading self-referential — and a dictionary that does not pay for itself stops the emission with gmeow:MediumDictionaryRegression rather than shipping."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1269,7 +1269,8 @@ gmeow:stage-archive-blobs
         "queries-archive" ,
         "schemas-archive" ,
         "shapes-archive" ,
-        "tests-archive" .
+        "tests-archive" ,
+        "yaml-ld-archive" .
 
 gmeow:stage-validate
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics>, <https://blackcatinformatics.ca/gmeow/graph/norm-claims> ;
@@ -1395,9 +1396,8 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-profiles ,
     gmeow:fanout-research-objects ,
     gmeow:fanout-edoal-projections ,
-    gmeow:fanout-medium-gmeow-claims-v1 ,
+    gmeow:fanout-medium-dictionary-effect ,
     gmeow:fanout-medium-gmeow-core-v1 ,
-    gmeow:fanout-medium-gmeow-lang-ast-v1 ,
     gmeow:fanout-medium-gmeow-logic-v1 ,
     gmeow:fanout-medium-gmeow-memory-compact-v1 ,
     gmeow:fanout-medium-gmeow-memory-hot-v1 ,
@@ -1584,13 +1584,14 @@ gmeow:fanout-edoal-projections a gmeow:FanoutExtraction ;
 # declared dictionary set is stable hand-written data, and the superset gate    #
 # bijection-checks them against the header's own "dct" map.                     #
 
-gmeow:fanout-medium-gmeow-claims-v1 a gmeow:FanoutExtraction ;
-    rdfs:label "fanout medium dictionary gmeow-claims-v1"@x-gmeow-english ;
-    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-claims-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-claims-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+gmeow:fanout-medium-dictionary-effect a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary effect"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/dictionary-effect.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as canonical Turtle. It is the ONE row of the generated/medium/ family that is NOT a header dictionary: the family's other members are opaque .zdict byte blobs reconstructed from the segment header's in-band \"dct\" map, while this one is RDF and therefore travels as RDF (PIPELINE_SPINE §5) — the graph/medium-measurement corpus re-rooted into its graph/fanout twin. The gate keys the header-dict family on the .zdict suffix, so a .ttl under the same prefix falls to rdf-fanout by construction rather than by exception. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:extractsPath "generated/medium/gmeow-claims-v1.zdict" ; gmeow:extractsMatch "exact" ;
-    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+    gmeow:extractsPath "generated/medium/dictionary-effect.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
 
 gmeow:fanout-medium-gmeow-core-v1 a gmeow:FanoutExtraction ;
     rdfs:label "fanout medium dictionary gmeow-core-v1"@x-gmeow-english ;
@@ -1600,13 +1601,6 @@ gmeow:fanout-medium-gmeow-core-v1 a gmeow:FanoutExtraction ;
     gmeow:extractsPath "generated/medium/gmeow-core-v1.zdict" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
 
-gmeow:fanout-medium-gmeow-lang-ast-v1 a gmeow:FanoutExtraction ;
-    rdfs:label "fanout medium dictionary gmeow-lang-ast-v1"@x-gmeow-english ;
-    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-lang-ast-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-lang-ast-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:extractsPath "generated/medium/gmeow-lang-ast-v1.zdict" ; gmeow:extractsMatch "exact" ;
-    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
 
 gmeow:fanout-medium-gmeow-logic-v1 a gmeow:FanoutExtraction ;
     rdfs:label "fanout medium dictionary gmeow-logic-v1"@x-gmeow-english ;
@@ -1840,9 +1834,8 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-versions.sssom.tsv",
     "generated/mappings/gmeow-wikidata.sssom.tsv",
     "generated/mappings/gmeow-wordnet.sssom.tsv",
-    "generated/medium/gmeow-claims-v1.zdict",
+    "generated/medium/dictionary-effect.ttl",
     "generated/medium/gmeow-core-v1.zdict",
-    "generated/medium/gmeow-lang-ast-v1.zdict",
     "generated/medium/gmeow-logic-v1.zdict",
     "generated/medium/gmeow-memory-compact-v1.zdict",
     "generated/medium/gmeow-memory-hot-v1.zdict",

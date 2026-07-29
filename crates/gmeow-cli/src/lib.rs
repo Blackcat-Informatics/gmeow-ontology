@@ -195,7 +195,8 @@ pub enum Commands {
         /// Output directory.
         #[arg(long = "out", short = 'o', default_value = "dist/project")]
         out: PathBuf,
-        /// Output serialization: `turtle` or `yaml-ld`.
+        /// Output serialization: `turtle`, or `yaml-ld` for the bundled claim
+        /// corpus's YAML-LD-star projection (the RDF 1.2 statement layer).
         #[arg(long = "format", short = 'f', default_value = "turtle")]
         format: String,
     },

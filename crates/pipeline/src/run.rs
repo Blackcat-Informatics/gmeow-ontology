@@ -89,7 +89,7 @@ fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, mes
 }
 
 /// The sole serialization exit; its product carries the `gmeow.gts` bytes.
-const SINK_STAGE: &str = "stage-gts-sink";
+pub(crate) const SINK_STAGE: &str = "stage-gts-sink";
 /// The committed fold path the sink writes / schemas project / fanout reads.
 pub(crate) const GTS_PATH: &str = "generated/dist/gmeow.gts";
 /// The DAG-workflow contract identity the build plan executes under — the
@@ -490,12 +490,15 @@ pub fn full_spec() -> PipelineSpec {
     ));
 
     // ── the by-reference TAR archive fold: mappings / cells / queries / tests /
-    //    schemas / shapes / axioms / models-python, each attached to its product on its
-    //    own blob-representation lane. It used to run INSIDE the terminal sink, so the
-    //    archives did not exist as a product until the last DAG node and any consumer
-    //    would have closed a cycle; as its own stage the archives are available mid-DAG
-    //    from the ONE authority on archive membership (no second source of truth). It
-    //    consumes exactly the producers whose in-memory products supply members. ──
+    //    schemas / shapes / axioms / models-python / lang-projections / yaml-ld, each
+    //    attached to its product on its own blob-representation lane. It used to run
+    //    INSIDE the terminal sink, so the archives did not exist as a product until the
+    //    last DAG node and any consumer would have closed a cycle; as its own stage the
+    //    archives are available mid-DAG from the ONE authority on archive membership (no
+    //    second source of truth). It consumes exactly the producers whose in-memory
+    //    products supply members — including `stage-statements`, whose internal
+    //    `pipeline/statements/` lane carries the claim corpus's JSON-LD-star /
+    //    YAML-LD-star surface (the `yaml-ld-archive` members). ──
     stages.push(st(
         "stage-archive-blobs",
         "archive-blobs",
@@ -507,15 +510,16 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-pydantic",
             "stage-export-result-shapes",
             "stage-mappings",
+            "stage-statements",
         ],
     ));
 
-    // ── the medium axis's producer: train the seven declared zstd dictionaries over
+    // ── the medium axis's producer: train the five declared zstd dictionaries over
     //    their declared corpora, measure each into a
     //    gmeow:CompressionDictionaryRealization, and attach graph/medium-registry.
     //    Its edge set is DERIVED from the shipped corpora, not chosen: the archive
-    //    reps come off `stage-archive-blobs`, the two sink-folded corpora select the
-    //    `stage-mappings` / `stage-reason` products directly, and the named-graph and
+    //    reps come off `stage-archive-blobs`, the one sink-folded corpus selects the
+    //    `stage-reason` product directly, and the named-graph and
     //    `generated/…` prefix selectors resolve against the assembled carrier
     //    (`stage-snapshot`) and `stage-statements`. A missing edge is a HARD FAIL in
     //    `corpus::assemble`, never a silently smaller training set. ──
@@ -524,7 +528,6 @@ pub fn full_spec() -> PipelineSpec {
         "medium-dictionaries",
         &[
             "stage-archive-blobs",
-            "stage-mappings",
             "stage-reason",
             "stage-snapshot",
             "stage-statements",
@@ -533,7 +536,7 @@ pub fn full_spec() -> PipelineSpec {
 
     // ── the single Sink: the terminal gts ARCHIVE writer. It
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
-    //    re-assembly), READS the nine by-reference TAR archives off the
+    //    re-assembly), READS the ten by-reference TAR archives off the
     //    `stage-archive-blobs` product, and staples the channels only it can see (the
     //    lang surface blobs, the reasoning reports, the opaque `generated/` fanout
     //    archive over THIS run's carrier, and the SHACL-report blobs). ──
@@ -541,7 +544,7 @@ pub fn full_spec() -> PipelineSpec {
         SINK_STAGE,
         "gts_sink",
         &[
-            // THIS run's nine by-reference TAR archives, folded once by their own
+            // THIS run's ten by-reference TAR archives, folded once by their own
             // producer and read back here (never re-folded in the terminal). This edge
             // also orders the sink after every archive-member producer transitively, so
             // the schema / Pydantic / generated-shape leaves need no direct edge here.

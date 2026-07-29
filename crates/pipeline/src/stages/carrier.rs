@@ -393,11 +393,51 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     serialize_carrier_snapshot_without_docs(root, upstream, carrier)
 }
 
-fn serialize_carrier_snapshot_without_docs(
+/// Every payload-bearing BLOB frame this emission authors, plus the carrier-time
+/// meta-level graphs that ride beside them — assembled ONCE, here, so "what frames
+/// does this bundle carry" has a single answer.
+///
+/// It is a struct rather than three returns because the three are one decision: the
+/// opaque archive's members and the manifest graph that DECLARES them are derived
+/// from the same collected set, and separating them would let the bytes and the
+/// declaration disagree about which paths the opaque lane carries.
+pub struct SnapshotFrames {
+    /// The by-reference archives, surface blobs, reasoning report, opaque fanout
+    /// archive and typed validation sidecars.
+    pub blobs: Vec<BlobRow>,
+    /// The SHACL diagnostics sidecars, which ride their own report lane.
+    pub report_blobs: Vec<BlobRow>,
+    /// The carrier-time meta-level named graphs folded alongside the carrier: the
+    /// opaque-fanout manifest and the distribution catalog.
+    pub extra_graphs: Vec<std::sync::Arc<purrdf::RdfDataset>>,
+}
+
+impl SnapshotFrames {
+    /// Every payload-bearing blob frame, in emission order — the population the
+    /// medium's dictionary-effect measurement is taken over.
+    ///
+    /// The SNAPSHOT frame is deliberately absent: it is not a blob row at all, and it
+    /// is the frame whose compressed length is a function of the payload that carries
+    /// the measurement (see [`crate::medium::measure`]).
+    #[must_use]
+    pub fn payload_frames(&self) -> Vec<&BlobRow> {
+        self.blobs.iter().chain(self.report_blobs.iter()).collect()
+    }
+}
+
+/// Assemble [`SnapshotFrames`] for a run's products — the shared authority behind
+/// both the terminal emission and the off-gate medium sweep
+/// (`make maint-medium-sweep`), which measures the dictionaries over exactly the
+/// frames the terminal writes.
+///
+/// # Errors
+/// Any missing upstream artifact (no-optionality: a frame this emission is supposed
+/// to author and cannot is a hard fail, never a smaller bundle).
+pub fn snapshot_frames(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
+) -> Result<SnapshotFrames, gmeow_errors::Diag> {
     // THIS run's by-reference TAR archives (mappings / cells / queries / tests /
     // schemas / shapes / axioms / models-python), folded ONCE by the dedicated
     // `stage-archive-blobs` producer and read back off its product here. The terminal
@@ -470,11 +510,24 @@ fn serialize_carrier_snapshot_without_docs(
     // named graphs alongside the assembled carrier, so the shipped bundle DECLARES its
     // opaque byte lane and its distribution catalog as data (read back by the superset
     // gate / catalog consumers) without entering object-level reasoning closure.
-    serialize_snapshot(
-        carrier,
-        &[opaque_manifest, distribution_catalog],
+    Ok(SnapshotFrames {
         blobs,
         report_blobs,
+        extra_graphs: vec![opaque_manifest, distribution_catalog],
+    })
+}
+
+fn serialize_carrier_snapshot_without_docs(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let frames = snapshot_frames(root, upstream, carrier)?;
+    serialize_snapshot(
+        carrier,
+        &frames.extra_graphs,
+        frames.blobs,
+        frames.report_blobs,
         upstream,
     )
 }
@@ -1708,6 +1761,68 @@ fn serialize_snapshot(
     // authored gmeow:CompressionDictionary reads them out of graph/medium-registry.
     strata.push(std::sync::Arc::clone(&realizations));
 
+    // ── the dictionary-effect measurement (graph/medium-measurement + its fanout
+    //    twin) ──
+    //
+    // Taken HERE because this is the one point where the emission's whole BLOB frame
+    // set exists, and folded into pass 1 because it must be inside the stratum the
+    // snapshot envelope commits to. It measures the blob frames ONLY: the snapshot
+    // frame's compressed length is a function of the very payload these numbers land
+    // in, so including it would be circular in the one way the two-pass fixed point
+    // cannot absorb. Adding the measurement changes the snapshot payload and NOTHING
+    // about the blob frames, so the numbers stay a fixed point of their own emission.
+    //
+    // Every rep this emission actually authors is resolved here too, so the plan's
+    // assignment is total over the frames `emit_gts` will write; an unregistered or
+    // unassigned one is a HARD FAIL at this point rather than an unprimed frame on a
+    // shipped artifact.
+    let frames: Vec<&BlobRow> = blobs.iter().chain(report_blobs.iter()).collect();
+    let (measured_codec, measured_level) =
+        crate::medium::measure::mandated_chain(&registry, &frames)?;
+    let sample_counts = crate::medium::rdf::corpus_sample_counts(&registry, realizations.as_ref())?;
+    let effects = crate::medium::measure::population_a(
+        &registry,
+        &frames,
+        &trained,
+        &sample_counts,
+        &measured_codec,
+        measured_level,
+    )?;
+    // The bundle publishes readings only over bytes IT WROTE. The runtime-store
+    // population (`gmeow-memory-hot-v1`) is a CONSUMER's artifact whose records carry a
+    // wall clock, so a per-build number would drift the committed projection on every
+    // run and a bundle asserting it would be speaking about a file it never saw. Its
+    // evidence is committed in `bench/medium-baseline.json`, and its LIVE gate — real
+    // store files through the real write paths — is the whole-bundle medium test.
+    //
+    // The REFUSAL is deliberately NOT here. This function serializes the shipped bundle
+    // AND every fixture-scale fold in the crate's own tests, and a fixture's frames are
+    // a few hundred bytes: no dictionary of any size pays for itself over them, so a
+    // refusal at this point would red on artifacts the criterion was never about. The
+    // criterion is about the SHIPPED deliverable, and it is enforced in the two places
+    // that can tell they are looking at one — `medium::sweep::check_dictionaries_pay_
+    // _for_themselves` over the committed evidence (a build-time hard fail in
+    // `stage-medium-dictionaries`) and `tests/medium_bundle.rs` over the whole DAG's
+    // real output. What happens HERE is the honest thing an emitter can always do:
+    // publish the measurement, whatever it says.
+    let measurement_quads = crate::medium::measure::project(&registry, &effects)?;
+    let measurement = purrdf::dataset_from_quads(&measurement_quads)
+        .map_err(|e| stage_err(&format!("freeze the medium-measurement projection: {e}")))?;
+    // The twin-graph pattern the correspondence-laws / quality-assessment /
+    // authoring-briefs corpora already use: the base graph serves the queryable bundle
+    // graph, and the SAME triples re-rooted into their `graph/fanout/<path>`
+    // reconstruction graph serve the superset gate / fanout writer, which folds them to
+    // `generated/medium/dictionary-effect.ttl` (RDF travels as RDF).
+    let measurement_fanout = {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(
+            crate::medium::measure::MEDIUM_EFFECT_PATH,
+        )
+        .ok_or_else(|| stage_err("the dictionary-effect fanout path is not an RDF path"))?;
+        rooted_in_graph(measurement.as_ref(), &iri)?
+    };
+    strata.push(measurement);
+    strata.push(measurement_fanout);
+
     let mut builder = SnapshotBuilder::new();
     builder
         .add_dataset(carrier)
@@ -1722,10 +1837,6 @@ fn serialize_snapshot(
     let snapshot_payload = purrdf::gts::wire::canonical(&builder.snapshot_payload());
     let stratum_bytes = stratum_nquads(carrier, &strata)?;
 
-    // Every rep this emission actually authors, so the plan's assignment is total
-    // over the frames `emit_gts` will write; an unregistered or unassigned one is a
-    // HARD FAIL here rather than an unprimed frame on a shipped artifact.
-    let frames: Vec<&BlobRow> = blobs.iter().chain(report_blobs.iter()).collect();
     let reps: std::collections::BTreeSet<String> =
         frames.iter().map(|row| row.rep.clone()).collect();
     let reps: Vec<String> = reps.into_iter().collect();
@@ -1917,10 +2028,13 @@ pub(crate) fn snapshot_dataset(
 /// here: they ride as named graphs so the superset law reconstructs them as folds.
 pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 
-/// tar of the JSON-LD-star + YAML-LD-star serializations.
-#[cfg(test)]
-#[allow(dead_code)]
-const REP_YAMLLD: &str = "yaml-ld-archive";
+// NOT HERE: `yaml-ld-archive`. Its writer used to be a `#[cfg(test)]` twin of this
+// module's sink folds, so the production terminal authored no such frame and
+// `gmeow:dictGmeowClaimsV1` primed nothing. It is now a real archive folded by
+// [`crate::stages::archive_blobs`] (which owns every by-reference TAR rep) off
+// `stage-statements`' rendered claim-corpus surface, and the sink READS it back with
+// the other nine — one authority for archive membership, no inline sink fold.
+
 /// tar of the Rust-rendered OKF bundle, member = `gmeow-okf/...`.
 #[cfg(test)]
 const REP_OKF: &str = "okf-export";
@@ -1975,11 +2089,30 @@ fn producer_artifact(
 /// the fanout member map.
 fn take_opaque(members: &mut BTreeMap<String, Vec<u8>>, arts: BTreeMap<String, Vec<u8>>) {
     for (path, bytes) in arts {
-        if !is_rdf_member(&path) && !opaque_already_carried(&path) {
+        if !is_rdf_member(&path) && !is_internal_lane_path(&path) && !opaque_already_carried(&path)
+        {
             members.insert(path, bytes);
         }
     }
 }
+
+/// The INTERNAL in-memory dataflow lane: artifacts that pass BETWEEN stages and are
+/// never committed outputs (`crate::run`'s reconcile skips the whole prefix). The
+/// trained dictionaries ride `pipeline/medium/`; the claim corpus's JSON-LD-star /
+/// YAML-LD-star surface rides `pipeline/statements/` on its way into the
+/// `yaml-ld-archive` frame [`crate::stages::archive_blobs`] folds.
+///
+/// [`REP_GENERATED`] exists to reconstruct COMMITTED files, so an internal artifact
+/// must never reach it: it would key the superset gate's blob-member map on a path no
+/// committed file backs (the reverse sweep's orphan class) while ALSO handing the same
+/// bytes to a second, differently-primed frame. Refused here structurally rather than
+/// by relying on no upstream sweep ever happening to include such a product.
+fn is_internal_lane_path(path: &str) -> bool {
+    path.starts_with(INTERNAL_LANE_PREFIX)
+}
+
+/// The internal-dataflow logical-path prefix (see [`is_internal_lane_path`]).
+pub(crate) const INTERNAL_LANE_PREFIX: &str = "pipeline/";
 
 /// Whether an archive blob `rep` can contain committed `generated/` reconstruction
 /// targets, so the superset gate decodes it. Excludes the source archives
@@ -2122,6 +2255,77 @@ mod lang_projection_rep_tests {
             members.keys().collect::<Vec<_>>(),
             vec!["generated/references/refs.md"],
             "no lang-projection member may reach the generated-opaque archive"
+        );
+    }
+}
+
+#[cfg(test)]
+mod claims_archive_rep_tests {
+    use super::*;
+
+    /// The `yaml-ld-archive` owns NO committed `generated/` path, so the double-carry
+    /// hazard cannot arise for it AT ALL — there is no path for a second rep to also
+    /// claim. That is a structural property of the rep, not a coincidence of the current
+    /// member list, so it is asserted on both authorities the superset gate consults:
+    /// [`archive_rep_carries_generated`] (does this rep back committed files?) and
+    /// [`committed_path_for_archive_member`] (which committed file does a member back?).
+    ///
+    /// If a future change gave the archive committed members, BOTH assertions red — which
+    /// is the moment `opaque_already_carried` would have to start refusing that family,
+    /// exactly as it does for the lang projections above.
+    #[test]
+    fn the_yaml_ld_archive_owns_no_committed_generated_path() {
+        use crate::stages::archive_blobs::{
+            REP_YAMLLD, YAMLLD_JSONLD_MEMBER, YAMLLD_YAMLLD_MEMBER,
+        };
+        assert!(
+            !archive_rep_carries_generated(REP_YAMLLD),
+            "{REP_YAMLLD} must not be declared as backing committed generated/ files — its \
+             members are bundle-only serializations of the claim corpus"
+        );
+        for member in [YAMLLD_JSONLD_MEMBER, YAMLLD_YAMLLD_MEMBER] {
+            assert_eq!(
+                committed_path_for_archive_member(REP_YAMLLD, member),
+                None,
+                "{member} must resolve to no committed path"
+            );
+            assert!(
+                !member.starts_with("generated/"),
+                "{member} must not be named like a committed generated/ path"
+            );
+        }
+    }
+
+    /// The INTERNAL lane the claim serializations ride from `stage-statements` into the
+    /// archive is refused by the generated-opaque archive, so the SAME bytes can never
+    /// reach both `generated-opaque-archive` and `yaml-ld-archive`. A double-carry would
+    /// hand one payload to two separately-sealed frames and key the superset gate's
+    /// blob-member map on a `pipeline/` path no committed file backs.
+    #[test]
+    fn the_internal_dataflow_lane_never_reaches_the_generated_opaque_archive() {
+        let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        take_opaque(
+            &mut members,
+            [
+                (crate::stages::statements::RDF12_JSONLD_PATH, &b"j"[..]),
+                (crate::stages::statements::RDF12_YAMLLD_PATH, b"y"),
+                ("pipeline/medium/gmeow-core-v1.zdict", b"d"),
+                // A near miss: a COMMITTED path whose name merely starts with the same
+                // letters must still ride the opaque archive.
+                ("generated/pipeline-notes.md", b"n"),
+                ("generated/references/refs.md", b"r"),
+            ]
+            .into_iter()
+            .map(|(p, b)| (p.to_string(), b.to_vec()))
+            .collect(),
+        );
+        assert_eq!(
+            members.keys().collect::<Vec<_>>(),
+            vec![
+                "generated/pipeline-notes.md",
+                "generated/references/refs.md"
+            ],
+            "no internal `pipeline/` artifact may reach the generated-opaque archive"
         );
     }
 }
@@ -2498,8 +2702,8 @@ fn collect_fanout_opaque_members(
     // byte projections — but on their OWN rep,
     // [`REP_LANG_PROJECTIONS`](crate::stages::archive_blobs::REP_LANG_PROJECTIONS), folded by
     // `stage-archive-blobs` off the same `stage-mappings` product. A rep is the unit a
-    // `gmeow:CompressionDictionary` primes, so leaving them in this archive left
-    // `gmeow-lang-ast-v1` priming nothing but the two document-scale surface literals.
+    // `gmeow:CompressionDictionary` primes, and these external-format deliverables are a
+    // family a consumer extracts on its own rather than part of the general archive.
     // `opaque_already_carried` refuses the prefix, so a future `take_opaque` over a product
     // that happens to carry one cannot silently re-add it here and double-carry the bytes.
 
@@ -2648,30 +2852,6 @@ fn build_reasoning_blob(
         ),
     ];
     archive_blob(REP_REASONING, &members)
-}
-
-/// Pack the JSON-LD-star + YAML-LD-star serializations into a deterministic tar
-/// archive blob. Member names mirror the `dist/` logical paths.
-#[cfg(test)]
-#[allow(dead_code)]
-fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, gmeow_errors::Diag> {
-    let members = vec![
-        ("gmeow.jsonld".to_string(), jsonld.to_vec()),
-        ("gmeow.yamlld".to_string(), yamlld.to_vec()),
-    ];
-    archive_blob(REP_YAMLLD, &members)
-}
-
-/// Build the YAML-LD archive by serializing the carrier dataset in-memory — the
-/// SAME native carrier every fold-reading export leaf consumes (no gts round-trip).
-#[cfg(test)]
-#[allow(dead_code)]
-fn build_yaml_ld_blob_from_dataset(
-    carrier: &purrdf::RdfDataset,
-) -> Result<BlobRow, gmeow_errors::Diag> {
-    let jsonld = crate::stages::yaml_ld::serialize_graph(carrier)?;
-    let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(carrier, None)?;
-    build_yaml_ld_blob(jsonld.as_bytes(), yamlld.as_bytes())
 }
 
 /// Build the OKF archive from the carrier dataset — the SAME native carrier the

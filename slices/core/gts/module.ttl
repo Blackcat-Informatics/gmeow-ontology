@@ -629,7 +629,7 @@ gmeow:CompressionDictionaryRealization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Compression Dictionary Realization"@x-gmeow-english ;
     logic:subClassOf gmeow:Manifestation ;
-    skos:definition "The GENERATED realization of a gmeow:CompressionDictionary: the trained bytes and everything measurable only after training — gmeow:dictionaryContentDigest (byte-exact identity), gmeow:dictionaryByteLength, the zstd Dictionary_ID the frame header cites (gmeow:zstdDictionaryId), the MEASURED gmeow:dictionaryStrategy, and the MEASURED gmeow:dictionaryTargetLength. It lives in the build-time graph/medium-registry named graph and is NEVER hand-authored; a hand-written realization would be a second source of truth for bytes the build already owns. A Manifestation in the WEMI sense: the packaged, shippable embodiment of the authored definition it gmeow:realizesDictionary."@x-gmeow-english ;
+    skos:definition "The GENERATED realization of a gmeow:CompressionDictionary: the trained bytes and everything measurable only after training — gmeow:dictionaryContentDigest (byte-exact identity), gmeow:dictionaryByteLength, the zstd Dictionary_ID the frame header cites (gmeow:zstdDictionaryId), and the three MEASURED facts about the run that produced them: gmeow:measuredDictionaryStrategy, gmeow:measuredDictionaryTargetLength, and gmeow:measuredCorpusSampleCount. Those three carry their OWN predicates rather than repeating the authored gmeow:dictionaryStrategy / gmeow:dictionaryTargetLength: the authored pair is the DECLARED target a human writes down, the measured pair is the committed-sweep winner the build actually trained at, and spelling both with one predicate left a divergence between them nowhere to be recorded. It lives in the build-time graph/medium-registry named graph and is NEVER hand-authored; a hand-written realization would be a second source of truth for bytes the build already owns. A Manifestation in the WEMI sense: the packaged, shippable embodiment of the authored definition it gmeow:realizesDictionary."@x-gmeow-english ;
     skos:example "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"blake3:9f2c…\" ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid authoring one by hand (it is a build product of the medium-registry pass) and avoid using it where the authored definition is meant — a realization is bytes, gmeow:CompressionDictionary is the declaration those bytes answer to."@x-gmeow-english ;
@@ -663,16 +663,50 @@ gmeow:DictionaryStrategy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Dictionary Strategy"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
-    skos:definition "The family a compression dictionary is built under — trained (the zstd COVER/fastCover trainer), raw-content (a hand-chosen byte prefix used verbatim as the dictionary), or term-table (a dictionary synthesized from the ontology's own term vocabulary). An OPEN value vocabulary (individuals, never subclasses). The strategy is BOTH an authored intent on gmeow:CompressionDictionary and a MEASURED fact on gmeow:CompressionDictionaryRealization: a trainer that fell back to raw content must say so, because the two produce different decode-side expectations."@x-gmeow-english ;
+    skos:definition "The family a compression dictionary is built under — trained (the zstd COVER/fastCover trainer), raw-content (a hand-chosen byte prefix used verbatim as the dictionary), or term-table (a dictionary synthesized from the ontology's own term vocabulary). An OPEN value vocabulary (individuals, never subclasses). The strategy is BOTH an authored intent on gmeow:CompressionDictionary (through gmeow:dictionaryStrategy) and a MEASURED fact on gmeow:CompressionDictionaryRealization (through gmeow:measuredDictionaryStrategy): a build that trained at a strategy other than the declared one must say so, because the three produce different decode-side expectations."@x-gmeow-english ;
     skos:example "gmeow:dictStrategyTrained a gmeow:DictionaryStrategy ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid minting strategies as subclasses (they are individuals on an open axis) and avoid reading the authored strategy as the measured one — a realization states what the trainer ACTUALLY produced."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting strategies as subclasses (they are individuals on an open axis) and avoid reading the authored strategy as the measured one — a realization states what the trainer ACTUALLY produced, under its own gmeow:measuredDictionaryStrategy."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Reference a seeded strategy individual from a gmeow:CompressionDictionary (intent) and from its gmeow:CompressionDictionaryRealization (measurement) through gmeow:dictionaryStrategy."@x-gmeow-english ;
+    gmeow:howToUse "Reference a seeded strategy individual from a gmeow:CompressionDictionary through gmeow:dictionaryStrategy (intent) and from its gmeow:CompressionDictionaryRealization through gmeow:measuredDictionaryStrategy (measurement)."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the value vocabulary for how a dictionary was built, on both the authored declaration and the generated realization."@x-gmeow-english .
+
+gmeow:MediumDictionaryEffectMeasurement
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Dictionary Effect Measurement"@x-gmeow-english ;
+    logic:subClassOf gmeow:Measurement ;
+    skos:definition "The GENERATED reading of whether one shipped gmeow:CompressionDictionary PAYS FOR ITSELF over one declared gmeow:MediumMeasurementPopulation. It records a two-part (minimum-description-length) code — gmeow:measurementBytesOnDisk for the population's frames encoded through the dictionary, plus gmeow:measurementDictionaryInBandBytes for the dictionary's own bytes as the population actually carries them, summing to gmeow:measurementTwoPartCodeBytes — against gmeow:measurementBytesOnDiskBaseline, the SAME frames encoded through the declared no-dictionary medium gmeow:mediumProfileBaselineL12. The dictionary wins only when the two-part code is STRICTLY smaller: charging a dictionary its own in-band bytes is what keeps the criterion non-vacuous when the training corpus and the evaluated frame overlap, which for the archive-backed dictionaries they do (the corpus selects an archive's members, the evaluated frame is the tar of those members). This is therefore NOT a held-out evaluation and must not be read as one. It lives in the build-time graph/medium-measurement named graph — never graph/medium-registry, which says what the dictionaries ARE rather than what they DO — and is never hand-authored."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 a gmeow:MediumDictionaryEffectMeasurement ; gmeow:measuresDictionary gmeow:dictGmeowCoreV1 ; gmeow:measurementPopulation gmeow:mediumPopulationEmittedBlobFrames ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid authoring one by hand (it is a build product of the terminal emission), avoid comparing readings taken over DIFFERENT gmeow:MediumMeasurementPopulation values (they are measured on different chains and are not commensurable), and avoid reading the recorded gain as evidence of generalization — train and test overlap on the dominant representation."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Read it from graph/medium-measurement (or from its committed projection generated/medium/dictionary-effect.ttl); follow gmeow:measuresDictionary back to the authored gmeow:CompressionDictionary, read gmeow:measurementPopulation to learn which body of bytes was priced, and re-derive the bounded gain fraction from the recorded counts rather than trusting the reported quantity."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to state, as checkable data rather than as a claim, that a shipped dictionary earns the in-band bytes every consumer downloads with it."@x-gmeow-english .
+
+gmeow:MediumMeasurementPopulation
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Measurement Population"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The DECLARED body of bytes a gmeow:MediumDictionaryEffectMeasurement was taken over. A value vocabulary (individuals, never subclasses) because the populations are open-ended, and a first-class coordinate rather than prose because the two shipped populations are measured on different chains: gmeow:mediumPopulationEmittedBlobFrames prices frames THIS build writes into gmeow.gts, while gmeow:mediumPopulationRuntimeStoreSegments prices files a CONSUMER writes with the shipped header entry, where the dictionary's cost is paid per segment header rather than once per artifact. Two readings under different populations are not commensurable, so a reader that could not tell them apart would compare numbers that do not compare."@x-gmeow-english ;
+    skos:example "gmeow:mediumPopulationEmittedBlobFrames a gmeow:MediumMeasurementPopulation ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting populations as subclasses (they are individuals on an open axis) and avoid summing or ranking readings across two populations."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference exactly one seeded population individual from every gmeow:MediumDictionaryEffectMeasurement through gmeow:measurementPopulation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the value vocabulary naming WHICH bytes a dictionary-effect reading priced."@x-gmeow-english .
 
 gmeow:DigestStratum
     a logic:AbstractIndividualType ,
@@ -818,7 +852,7 @@ gmeow:corpusSelectsGraph
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "corpus selects graph"@x-gmeow-english ;
     skos:definition "A named-graph IRI whose serialized quads a dictionary corpus trains over. The range is the IRI of a carrier named graph, not a class (stated in prose, like gmeow:attachesGraph). Non-functional: a corpus may draw on several graphs."@x-gmeow-english ;
-    skos:example "gmeow:corpusGmeowClaimsV1 gmeow:corpusSelectsGraph <https://blackcatinformatics.ca/gmeow/graph/statements> ."@x-gmeow-english ;
+    skos:example "gmeow:corpusGmeowMemoryHotV1 gmeow:corpusSelectsGraph <https://blackcatinformatics.ca/gmeow/graph/authoring-briefs> ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid naming a graph the bundle does not carry, and avoid using it for a blob archive (that is gmeow:corpusSelectsBlobRep) — this selects RDF quads, not packed bytes."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
@@ -935,7 +969,7 @@ gmeow:dictionaryTargetLength
     rdfs:label "dictionary target length"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
     skos:definition "The dictionary size in bytes REQUESTED of the trainer on a gmeow:CompressionDictionary, and the size the trainer reports having targeted on a gmeow:CompressionDictionaryRealization (domain stated in prose). Functional per subject. It is a request, not a measurement: the achieved size is gmeow:dictionaryByteLength."@x-gmeow-english ;
-    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryTargetLength 112640 ."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryTargetLength 65536 ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid reading it as the achieved size (that is gmeow:dictionaryByteLength) and avoid asserting several per subject."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
@@ -1108,6 +1142,182 @@ gmeow:mediumDictionary
     gmeow:howToUse "List every dictionary a per-rep medium's schemas may select; leave it empty on a deliberately dictionary-less medium and say so in that medium's definition."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to bound which dictionaries a zstd medium is allowed to prime with."@x-gmeow-english .
+
+gmeow:measuredCorpusSampleCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measured corpus sample count"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "How many samples the dictionary's declared gmeow:DictionaryCorpus resolved to on THIS build. Measured rather than authored, because a corpus is a SELECTOR re-resolved on every build: its cardinality is a product, not a declaration. Exactly one per realization. It is recorded because the dictionary-effect reading is only interpretable beside it — a two-part code over a corpus of ten samples and one over ten thousand say different things about the same number of bytes."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:measuredCorpusSampleCount 4213 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid authoring it on the gmeow:CompressionDictionary (a corpus is a selector, so its size is not something a human can declare in advance) and avoid re-deriving it downstream — the producer's count is the one the shipped bytes correspond to."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the realization in graph/medium-registry beside the content digest; carry it into any reading of gmeow:MediumDictionaryEffectMeasurement for the same dictionary."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the size of the training set a shipped dictionary was actually built from."@x-gmeow-english .
+
+gmeow:measuredDictionaryStrategy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measured dictionary strategy"@x-gmeow-english ;
+    rdfs:range gmeow:DictionaryStrategy ;
+    skos:definition "The gmeow:DictionaryStrategy the build ACTUALLY trained under — the committed sweep's winning cell, not the authored intent. Exactly one per realization. It is a DIFFERENT predicate from the authored gmeow:dictionaryStrategy on purpose: that one states what a human declared, this one states what ran, and while both are usually the same a build that trained under a different winner must be able to say so. Spelling both with one predicate made a definition and a realization indistinguishable to a reader and left the divergence with nowhere to live."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:measuredDictionaryStrategy gmeow:dictStrategyTrained ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it on the authored gmeow:CompressionDictionary (use gmeow:dictionaryStrategy there) and avoid assuming it equals the declaration — the whole point of the split is that the two can differ and be seen to."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the realization in graph/medium-registry and compare it with the authored gmeow:dictionaryStrategy of the definition it gmeow:realizesDictionary; a difference is a reportable finding about the declaration, never a defect in the bytes."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record which dictionary strategy a build executed, separately from the one it was asked for."@x-gmeow-english .
+
+gmeow:measuredDictionaryTargetLength
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompressionDictionaryRealization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measured dictionary target length"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The target dictionary size, in bytes, the trainer was ACTUALLY given — the committed sweep's argmin. Exactly one per realization, and distinct from the authored gmeow:dictionaryTargetLength for the same reason gmeow:measuredDictionaryStrategy is distinct from gmeow:dictionaryStrategy: the authored value is the DECLARED target a human wrote down, this one is what the build ran at. It is NOT gmeow:dictionaryByteLength, which is what the trainer actually returned and may be under the target."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:measuredDictionaryTargetLength 65536 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting it on the authored gmeow:CompressionDictionary (use gmeow:dictionaryTargetLength there) and avoid confusing it with gmeow:dictionaryByteLength — a target is a request, a byte length is a result."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it off the realization in graph/medium-registry and compare it with the authored gmeow:dictionaryTargetLength; a difference means the declaration has drifted from the measured argmin and is a reportable finding, never something the build silently overwrites."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the dictionary size a build actually trained at, separately from the size it was asked for."@x-gmeow-english .
+
+gmeow:measurementBytesOnDisk
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measurement bytes on disk"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The measured population's frames encoded THROUGH the dictionary, in bytes, NOT counting the dictionary's own in-band bytes (those are gmeow:measurementDictionaryInBandBytes, and the sum of the two is gmeow:measurementTwoPartCodeBytes). Splitting the two terms is what makes the reading auditable: a dictionary that shrinks its frames while costing more than it saves is visible as two numbers and invisible as one."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measurementBytesOnDisk 1048576 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid folding the dictionary's own bytes into this value — that collapses the two-part code into one number and hides the term the criterion turns on."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Add it to gmeow:measurementDictionaryInBandBytes and compare the sum against gmeow:measurementBytesOnDiskBaseline; a dictionary earns its place only when the sum is strictly smaller."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the data half of a dictionary's two-part code."@x-gmeow-english .
+
+gmeow:measurementBytesOnDiskBaseline
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measurement bytes on disk baseline"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The SAME frames of the SAME population encoded through the declared no-dictionary medium gmeow:mediumProfileBaselineL12 — the counterfactual the two-part code is judged against. It is measured on the mandated chain, never on a cheaper proxy codec: a number produced by a codec the bundle does not write would describe bytes nobody ever ships."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measurementBytesOnDiskBaseline 1150000 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid comparing against a baseline taken over a different frame set, a different codec, or a different level — the counterfactual is only meaningful when everything but the dictionary is held fixed."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it beside gmeow:measurementTwoPartCodeBytes; the dictionary wins iff the two-part code is strictly less."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the no-dictionary counterfactual a dictionary-effect reading is judged against."@x-gmeow-english .
+
+gmeow:measurementCorpusSampleCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measurement corpus sample count"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "How many samples the measured dictionary was TRAINED over, carried onto the reading so the train/test relationship is legible without a second lookup. For the archive-backed dictionaries the training corpus is the archive's members while the evaluated frame is the tar of those members, so this count and gmeow:measurementEvaluatedFrameCount describe OVERLAPPING material — recorded, never papered over."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measurementCorpusSampleCount 4213 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid reading a large sample count as evidence of generalization — the two-part code is a non-vacuity argument, not a held-out one."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it beside gmeow:measurementEvaluatedFrameCount to see the shape of the train/test overlap the reading was taken under."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the size of the training set behind a dictionary-effect reading."@x-gmeow-english .
+
+gmeow:measurementDictionaryInBandBytes
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measurement dictionary in-band bytes"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The dictionary's OWN bytes as the measured population actually carries them — once for a bundle, which pins each dictionary in a single segment header, but once PER SEGMENT HEADER for an append-only runtime store. This is the model half of the two-part code and the term that makes the criterion non-vacuous: without it, any dictionary that shrank a frame by a byte would 'win', including one whose in-band cost dwarfs the saving."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measurementDictionaryInBandBytes 65536 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid assuming one copy per artifact for a runtime store (each segment header re-pins the whole dictionary) and avoid omitting the term to make a dictionary look better."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Count the dictionary's bytes once per in-band \"dct\" occurrence in the measured artifact and add the total to gmeow:measurementBytesOnDisk."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the model half of a dictionary's two-part code — what a consumer pays for the dictionary itself."@x-gmeow-english .
+
+gmeow:measurementEvaluatedFrameCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measurement evaluated frame count"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "How many frames of the declared population the reading priced. It exists so the population is VISIBLE rather than implied — in particular so the deliberate exclusion of the snapshot frame from gmeow:mediumPopulationEmittedBlobFrames is legible in the data. That exclusion is not tidiness: the measurement lands inside the snapshot payload, so the snapshot's own compressed length is a function of the numbers being recorded, and including it would make the reading self-referential."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measurementEvaluatedFrameCount 9 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid comparing two readings whose frame counts differ without saying why, and avoid reading the count as the number of frames the BUNDLE carries — a population is a declared subset."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it to learn how many frames a reading covers, and read gmeow:measurementPopulation to learn which ones."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make the extent of a dictionary-effect reading's population explicit."@x-gmeow-english .
+
+gmeow:measurementPopulation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measurement population"@x-gmeow-english ;
+    rdfs:range gmeow:MediumMeasurementPopulation ;
+    skos:definition "The declared gmeow:MediumMeasurementPopulation a dictionary-effect reading was taken over. Exactly one per reading, and mandatory: two readings under different populations are measured on different chains and are not commensurable, so a reading that did not name its population would invite exactly the comparison it cannot support."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measurementPopulation gmeow:mediumPopulationEmittedBlobFrames ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid omitting it, and avoid naming two populations on one reading — a reading prices one body of bytes."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point every gmeow:MediumDictionaryEffectMeasurement at exactly one seeded population individual, and group readings by it before comparing."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name which declared body of bytes a dictionary-effect reading priced."@x-gmeow-english .
+
+gmeow:measurementTwoPartCodeBytes
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measurement two-part code bytes"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "gmeow:measurementBytesOnDisk + gmeow:measurementDictionaryInBandBytes — the WHOLE code a consumer pays to hold this dictionary and the frames it primes. It is carried explicitly rather than left to be derived so the criterion a reader checks (strictly less than gmeow:measurementBytesOnDiskBaseline) is one comparison rather than an arithmetic step a reader might skip. There is no tolerance band and no threshold: a tie is a loss, because a dictionary that saves nothing still raises the reader's capability contract."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measurementTwoPartCodeBytes 1114112 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid recording a value that is not the sum of its two components (a reader re-derives it) and avoid softening the strict comparison into a percentage threshold."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Compare it against gmeow:measurementBytesOnDiskBaseline; strictly smaller means the dictionary pays for itself on that population."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record the whole minimum-description-length code a shipped dictionary costs."@x-gmeow-english .
+
+gmeow:measuresDictionary
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "measures dictionary"@x-gmeow-english ;
+    rdfs:range gmeow:CompressionDictionary ;
+    skos:definition "The AUTHORED gmeow:CompressionDictionary a dictionary-effect reading prices. Exactly one per reading. It points at the DEFINITION rather than at a gmeow:CompressionDictionaryRealization because the reading is about whether the declaration deserves to ship at all, and that question outlives any single build's bytes; the realization is reachable from the definition through gmeow:realizesDictionary when the concrete bytes matter."@x-gmeow-english ;
+    skos:example "ex:effectCoreV1 gmeow:measuresDictionary gmeow:dictGmeowCoreV1 ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at a realization (the reading judges the declaration) and avoid a reading that names no dictionary — it would price bytes attributable to nothing."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point every gmeow:MediumDictionaryEffectMeasurement at the authored dictionary it prices; it is the same individual gmeow:observedFeature carries, spelled with a domain-specific name so a medium-axis consumer finds it without walking the generic observation role."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name which shipped dictionary a dictionary-effect reading is about."@x-gmeow-english .
 
 gmeow:producerCallSite
     a owl:DatatypeProperty ;
@@ -1394,7 +1604,7 @@ gmeow:mediumProfileBaselineL12
     a gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "baseline medium — zstd-rsyncable level 12, no dictionary"@x-gmeow-english ;
-    skos:definition "The EXPLICITLY DECLARED no-dictionary medium: zstd-rsyncable at level 12 with an empty gmeow:mediumDictionary set. It exists to make the rep-to-medium assignment TOTAL — 'no dictionary' is a named selection a producer makes, not an absence a frame falls through into, so there is no state in which a payload has no declared medium. LEGAL for whole-artifact producers and for the runtime store, whose payloads are written once and never re-primed. ILLEGAL for the gmeow:gtsProfileDist profile: a distribution snapshot is the shipped deliverable, its reps are exactly the ones the seven shipped dictionaries were trained for, and emitting it unprimed silently discards the density the dictionaries exist to provide while still demanding the same non-baseline reader."@x-gmeow-english ;
+    skos:definition "The EXPLICITLY DECLARED no-dictionary medium: zstd-rsyncable at level 12 with an empty gmeow:mediumDictionary set. It exists to make the rep-to-medium assignment TOTAL — 'no dictionary' is a named selection a producer makes, not an absence a frame falls through into, so there is no state in which a payload has no declared medium. LEGAL for whole-artifact producers and for the runtime store, whose payloads are written once and never re-primed. ILLEGAL for the gmeow:gtsProfileDist profile: a distribution snapshot is the shipped deliverable, its reps are exactly the ones the shipped dictionaries were trained for, and emitting it unprimed silently discards the density the dictionaries exist to provide while still demanding the same non-baseline reader."@x-gmeow-english ;
     gmeow:mediumCodec gmeow:codecZstdRsyncable ;
     gmeow:mediumZstdLevel 12 ;
     gmeow:mediumSourceKind gmeow:mediumSourceWholeArtifact ;
@@ -1407,16 +1617,14 @@ gmeow:mediumProfileDistL12
     a gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dist medium — zstd-rsyncable level 12, dictionary-primed"@x-gmeow-english ;
-    skos:definition "The MANDATED dictionary-primed production medium: zstd-rsyncable at level 12, resolving a dictionary per registered gmeow:PayloadSchema from the seven shipped dictionaries. It is the medium the gmeow:gtsProfileDist distribution snapshot is written through; gmeow:mediumProfileBaselineL12 is illegal there. It demands two non-baseline reader capabilities — rsyncable framing (GTS spec §8.4) and dictionary priming — and declares both, because raising the reader contract is a property of the deliverable (Principle 13), never a discovery a consumer makes mid-decode."@x-gmeow-english ;
+    skos:definition "The MANDATED dictionary-primed production medium: zstd-rsyncable at level 12, resolving a dictionary per registered gmeow:PayloadSchema from the five shipped dictionaries. It is the medium the gmeow:gtsProfileDist distribution snapshot is written through; gmeow:mediumProfileBaselineL12 is illegal there. It demands two non-baseline reader capabilities — rsyncable framing (GTS spec §8.4) and dictionary priming — and declares both, because raising the reader contract is a property of the deliverable (Principle 13), never a discovery a consumer makes mid-decode."@x-gmeow-english ;
     gmeow:mediumCodec gmeow:codecZstdRsyncable ;
     gmeow:mediumZstdLevel 12 ;
     gmeow:mediumSourceKind gmeow:mediumSourcePerRep ;
     gmeow:mediumCorrespondence gmeow:mediumCorrDistL12 ;
     gmeow:requiresReaderCapability "zstd-dictionary" ,
         "zstd-rsyncable" ;
-    gmeow:mediumDictionary gmeow:dictGmeowClaimsV1 ,
-        gmeow:dictGmeowCoreV1 ,
-        gmeow:dictGmeowLangAstV1 ,
+    gmeow:mediumDictionary gmeow:dictGmeowCoreV1 ,
         gmeow:dictGmeowLogicV1 ,
         gmeow:dictGmeowMemoryCompactV1 ,
         gmeow:dictGmeowMemoryHotV1 ,
@@ -1437,6 +1645,28 @@ gmeow:mediumProfileStoreL12
         "zstd-rsyncable" ;
     gmeow:mediumDictionary gmeow:dictGmeowMemoryCompactV1 ,
         gmeow:dictGmeowMemoryHotV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+# --- The declared dictionary-effect populations ------------------------------ #
+# Two, and no third: the bundle this build writes, and the runtime store a
+# consumer writes. They are measured on different chains and their in-band
+# dictionary cost is paid differently (once per artifact vs once per segment
+# header), so a reading MUST name which one it priced.
+
+gmeow:mediumPopulationEmittedBlobFrames
+    a gmeow:MediumMeasurementPopulation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "population — emitted blob frames"@x-gmeow-english ;
+    skos:definition "Every payload-bearing BLOB frame the terminal emission authors into gmeow.gts, grouped by the dictionary its gmeow:PayloadSchema selects. The SNAPSHOT frame is DECLARED-excluded: the dictionary-effect measurement is folded into the snapshot payload, so that frame's compressed length is a function of the very numbers being recorded, and pricing it would make the reading self-referential. A frame assigned the dictionary-less gmeow:mediumProfileBaselineL12 belongs to no dictionary's population — it has no dictionary to pay for. The dictionary's in-band cost is counted ONCE here, because a pack pins each dictionary in a single segment header."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:mediumPopulationRuntimeStoreSegments
+    a gmeow:MediumMeasurementPopulation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "population — runtime store segments"@x-gmeow-english ;
+    skos:definition "The append-only runtime store files a CONSUMER writes with a dictionary obtained from the shipped pack's in-band \"dct\" map, replayed over a declared, bundle-derived corpus through the real store-write paths. The dictionary's in-band cost is counted ONCE PER SEGMENT HEADER, not once per file: a store that opened a header per record would re-pin the whole dictionary each time, so whether a store dictionary pays for itself is a pure function of the record count. The corpus cardinality is therefore recorded beside every reading. Its byte counts are a projection of the committed bench/medium-baseline.json evidence rather than a per-build measurement, because a runtime store's records carry a wall clock and are not a function of the build; the LIVE gate over real store files is the whole-bundle medium test."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -1621,21 +1851,39 @@ gmeow:mediumCorrStoreL12
 
 gmeow:mediumCorrStoreL12Get gmeow:path gmeow:mediumCorrStoreL12Step .
 
-# --- The seven shipped dictionaries and their corpora ----------------------- #
-# WHY SEVEN, AND WHY NOT A MATHEMATICAL ONE. The inventory was first drafted from
-# SLICE NAMES and carried an eighth entry, "gmeow-math-v1", trained over
-# slices/grounding/math/. Measuring it against the bundle's ACTUAL FRAME LAYOUT
-# retired it: a dictionary primes FRAMES, and the mathematical content ships as
-# named graphs UNIONED INTO THE SNAPSHOT PAYLOAD, which is ONE frame — already
-# primed, in full, by gmeow-core-v1. A second dictionary cannot prime part of one
-# frame, so the math entry primed ZERO reps: it was trained, measured, pinned in
-# the segment header, and projected onto a committed .zdict that no payload ever
-# cited. Retiring it is a CORRECTION, not a descope — the math content stays fully
-# dictionary-compressed (by the dictionary that primes the frame carrying it) and
-# fully SPARQL-able off the fold; the bundle merely sheds a dead 64 KiB.
-# The lesson generalizes: a gmeow:CompressionDictionary is justified by the FRAME
-# SET it primes, never by the topical importance of a slice, and every entry below
-# names at least one gmeow:PayloadSchema through gmeow:payloadSchemaDictionary.
+# --- The five shipped dictionaries and their corpora ------------------------- #
+# WHY FIVE. The inventory was first drafted from SLICE NAMES and carried eight
+# entries. Three of them were retired by MEASUREMENT against the bundle's ACTUAL
+# FRAME LAYOUT, and the three retirements agree on one rule:
+#
+#   A gmeow:CompressionDictionary is justified by the FRAME SET it primes, and it
+#   must PAY FOR ITS OWN IN-BAND BYTES on that set. Slice topology is not frame
+#   topology, and topical importance is not a justification.
+#
+# The three cases, each a different way for a slice-shaped dictionary to fail that
+# rule:
+#
+#   * "gmeow-math-v1" primed ZERO frames. The mathematical content ships as named
+#     graphs UNIONED INTO THE SNAPSHOT PAYLOAD, which is ONE frame already primed
+#     in full by gmeow-core-v1, and a second dictionary cannot prime part of one
+#     frame. It was trained, measured, pinned in the segment header, and projected
+#     onto a committed .zdict that no payload ever cited.
+#   * "gmeow-claims-v1" primed exactly ONE frame of roughly nine kilobytes (the
+#     yaml-ld-archive). Its best cell on the whole (strategy × target-length) grid
+#     coded that frame at 12,020 B against a no-dictionary baseline of 8,953 B:
+#     with a population that small, the smallest dictionary the trainer will build
+#     already costs more than the frame it primes.
+#   * "gmeow-lang-ast-v1" primed THREE frames and still lost by 3,684 B at its best
+#     cell — a real but far-too-small saving against its own in-band bytes.
+#
+# Retiring them is a CORRECTION, not a descope. NOT ONE FRAME LOSES COMPRESSION:
+# gmeow:payloadSchemaYamlLdArchive, gmeow:payloadSchemaLangProjectionsArchive and
+# gmeow:payloadSchemaLangSurfaceBlob are now primed by gmeow:dictGmeowCoreV1, which
+# still pays for itself over the widened population it primes. Nothing is orphaned
+# — no rep is left citing a retired id — and the bundle sheds the in-band bytes of
+# two dictionaries that could not stand on their own. Every entry below names at
+# least one gmeow:PayloadSchema through gmeow:payloadSchemaDictionary, or is bound
+# by a gmeow:mediumSourceHeaderDict medium whose frames a CONSUMER writes.
 #
 # EVERY corpus is BUNDLE-INTERNAL. The two memory dictionaries train on the
 # BUNDLE-SHIPPED claim corpora (generated/statements/*, the authoring packets),
@@ -1649,16 +1897,6 @@ gmeow:mediumCorrStoreL12Get gmeow:path gmeow:mediumCorrStoreL12Step .
 # is not one. The memory dictionaries are therefore priming aids derived from the
 # SHAPE of shipped claims, not from any user's content.
 
-gmeow:corpusGmeowClaimsV1
-    a gmeow:DictionaryCorpus ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "claims corpus v1"@x-gmeow-english ;
-    skos:definition "The bundle-internal statement corpus: the RDF 1.2 statement layer as a named graph plus its committed projection. Bundle-internal — both selectors name material the carrier already folds."@x-gmeow-english ;
-    gmeow:corpusSelectsGraph <https://blackcatinformatics.ca/gmeow/graph/statements> ;
-    gmeow:corpusSelectsPathPrefix "generated/statements/" ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
 gmeow:corpusGmeowCoreV1
     a gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
@@ -1666,16 +1904,6 @@ gmeow:corpusGmeowCoreV1
     skos:definition "The bundle-internal core-tier corpus: the cell/projection TTL sources the carrier folds as cells-archive, plus the authored core slice tree. Bundle-internal — the archive rep is owned by gmeow:stage-archive-blobs and the prefix is in-repo."@x-gmeow-english ;
     gmeow:corpusSelectsBlobRep "cells-archive" ;
     gmeow:corpusSelectsPathPrefix "slices/core/" ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
-gmeow:corpusGmeowLangAstV1
-    a gmeow:DictionaryCorpus ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "lang AST corpus v1"@x-gmeow-english ;
-    skos:definition "The bundle-internal linguistic-surface corpus. The lang surface blob (lang-surface-blob) is SINK-FOLDED — it exists as an archive only at the terminal snapshot — so this corpus selects gmeow:stage-mappings' product, which carries the same lifted surface mid-DAG where the trainer runs, plus the authored lang: slice tree."@x-gmeow-english ;
-    gmeow:corpusSelectsStageProduct gmeow:stage-mappings ;
-    gmeow:corpusSelectsPathPrefix "slices/grounding/lang/" ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -1718,42 +1946,16 @@ gmeow:corpusGmeowProoftraceV1
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
-gmeow:dictGmeowClaimsV1
-    a gmeow:CompressionDictionary ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "gmeow-claims-v1 dictionary"@x-gmeow-english ;
-    skos:definition "The shipped dictionary for statement-layer payloads: reifier IRIs, annotation-coat predicates, and standpoint qualifiers dominate their byte profile."@x-gmeow-english ;
-    gmeow:dictionaryId "gmeow-claims-v1" ;
-    gmeow:dictionaryVersion "1" ;
-    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 65536 ;
-    gmeow:trainsOverCorpus gmeow:corpusGmeowClaimsV1 ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
 gmeow:dictGmeowCoreV1
     a gmeow:CompressionDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gmeow-core-v1 dictionary"@x-gmeow-english ;
-    skos:definition "The shipped dictionary for core-tier payloads: the gmeow: namespace stem, the SKOS/RDFS annotation predicates, and the core class and property names dominate their byte profile."@x-gmeow-english ;
+    skos:definition "The shipped dictionary for core-tier payloads: the gmeow: namespace stem, the SKOS/RDFS annotation predicates, and the core class and property names dominate their byte profile. It is the WIDEST population of the shipped inventory — the cells/generated/opaque archives plus the three reps whose slice-shaped dictionaries were retired for failing to pay for their own in-band bytes (gmeow:payloadSchemaYamlLdArchive, gmeow:payloadSchemaLangProjectionsArchive, gmeow:payloadSchemaLangSurfaceBlob) — and it was re-swept over exactly that widened frame set rather than assumed to survive absorbing it."@x-gmeow-english ;
     gmeow:dictionaryId "gmeow-core-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 112640 ;
-    gmeow:trainsOverCorpus gmeow:corpusGmeowCoreV1 ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
-gmeow:dictGmeowLangAstV1
-    a gmeow:CompressionDictionary ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "gmeow-lang-ast-v1 dictionary"@x-gmeow-english ;
-    skos:definition "The shipped dictionary for linguistic-surface payloads: lang: form, grammar, and rendering structures plus the alias tables dominate their byte profile. It primes TWO reps — gmeow:payloadSchemaLangProjectionsArchive (the generated/projections/lang/ external-format deliverables, the bulk of the population) and gmeow:payloadSchemaLangSurfaceBlob (the document-scale English surface literals)."@x-gmeow-english ;
-    gmeow:dictionaryId "gmeow-lang-ast-v1" ;
-    gmeow:dictionaryVersion "1" ;
-    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
     gmeow:dictionaryTargetLength 65536 ;
-    gmeow:trainsOverCorpus gmeow:corpusGmeowLangAstV1 ;
+    gmeow:trainsOverCorpus gmeow:corpusGmeowCoreV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -1765,7 +1967,7 @@ gmeow:dictGmeowLogicV1
     gmeow:dictionaryId "gmeow-logic-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 112640 ;
+    gmeow:dictionaryTargetLength 65536 ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowLogicV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -1791,7 +1993,7 @@ gmeow:dictGmeowMemoryHotV1
     gmeow:dictionaryId "gmeow-memory-hot-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 32768 ;
+    gmeow:dictionaryTargetLength 4096 ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowMemoryHotV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -1804,7 +2006,7 @@ gmeow:dictGmeowProoftraceV1
     gmeow:dictionaryId "gmeow-prooftrace-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength 32768 ;
+    gmeow:dictionaryTargetLength 65536 ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowProoftraceV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -1890,10 +2092,10 @@ gmeow:payloadSchemaLangProjectionsArchive
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — lang projections archive"@x-gmeow-english ;
-    skos:definition "The lang: projection deliverables under generated/projections/lang/, keyed by repo-relative path: the EBNF/ABNF/GBNF/Lark grammars, the GMN1 example corpus, the CoNLL-U readings, the TEI XML, the SEMAF AMR, the Web-Annotation JSON-LD, and the RDF side formats (a NIF stand-off .nt, the bcp47-tags.ttl tag set). Every one of them is a STANDALONE external-format file a consumer reads, and none reconstructs from a canonical named-graph fold — so they were already opaque byte projections. They ride THIS rep, and no longer the generated-opaque archive, for one reason: a rep is the unit a dictionary primes, so folding them into the general generated/ archive left gmeow:dictGmeowLangAstV1 priming nothing but the two document-scale surface literals. Splitting them out costs ZERO ontological use — their lang:ProjectionEmission semantics keep riding the graph/lang-projection-corpus named graph independently — and gives the linguistic dictionary the population it was trained for."@x-gmeow-english ;
+    skos:definition "The lang: projection deliverables under generated/projections/lang/, keyed by repo-relative path: the EBNF/ABNF/GBNF/Lark grammars, the GMN1 example corpus, the CoNLL-U readings, the TEI XML, the SEMAF AMR, the Web-Annotation JSON-LD, and the RDF side formats (a NIF stand-off .nt, the bcp47-tags.ttl tag set). Every one of them is a STANDALONE external-format file a consumer reads, and none reconstructs from a canonical named-graph fold — so they were already opaque byte projections. They ride THIS rep, and no longer the generated-opaque archive, because a rep is the unit a dictionary primes and these deliverables are a distinct external-format family a consumer extracts on its own; the split costs ZERO ontological use, since their lang:ProjectionEmission semantics keep riding the graph/lang-projection-corpus named graph independently. It is primed by gmeow:dictGmeowCoreV1: a linguistic dictionary of its own was measured over exactly this rep plus gmeow:payloadSchemaLangSurfaceBlob and lost by thousands of bytes at every cell of the grid (see the retirement note above), while the core dictionary primes the same frames as part of a population it wins on."@x-gmeow-english ;
     gmeow:payloadSchemaId "lang-projections-archive" ;
     gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
-    gmeow:payloadSchemaDictionary gmeow:dictGmeowLangAstV1 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowCoreV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -1901,10 +2103,10 @@ gmeow:payloadSchemaLangSurfaceBlob
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — lang surface blob"@x-gmeow-english ;
-    skos:definition "The lifted linguistic-surface blob: one frame per @x-gmeow-english source literal over the document-scale threshold. SINK-FOLDED — assembled only at the terminal snapshot, which is why gmeow:corpusGmeowLangAstV1 selects a stage product rather than this rep. It shares gmeow:dictGmeowLangAstV1 with gmeow:payloadSchemaLangProjectionsArchive, which carries the bulk of that dictionary's population."@x-gmeow-english ;
+    skos:definition "The lifted linguistic-surface blob: one frame per @x-gmeow-english source literal over the document-scale threshold. SINK-FOLDED — assembled only at the terminal snapshot. It is primed by gmeow:dictGmeowCoreV1, the same dictionary gmeow:payloadSchemaLangProjectionsArchive selects: the two reps were the whole population of a retired linguistic dictionary that could not pay for its own in-band bytes over them (see the retirement note above), and they stay dictionary-compressed by riding the core dictionary instead."@x-gmeow-english ;
     gmeow:payloadSchemaId "lang-surface-blob" ;
     gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
-    gmeow:payloadSchemaDictionary gmeow:dictGmeowLangAstV1 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowCoreV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -2088,10 +2290,10 @@ gmeow:payloadSchemaYamlLdArchive
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — YAML-LD archive"@x-gmeow-english ;
-    skos:definition "The JSON-LD-star and YAML-LD-star RDF 1.2 serializations."@x-gmeow-english ;
+    skos:definition "The CLAIM CORPUS's JSON-LD-star and YAML-LD-star projections: the RDF 1.2 statement layer rendered into the JSON-LD family, tarred by gmeow:stage-archive-blobs off gmeow:stage-statements' rendered surface so a JSON-LD-family consumer reads the reified statement layer straight out of the bundle. NOT the whole carrier — that document is the make build deliverable dist/gmeow.jsonld, which rides no frame. Its members carry no committed generated/ path, so it appears in no gmeow:FanoutExtraction row: the archive is a bundle-only deliverable, not a reconstruction target. It is primed by gmeow:dictGmeowCoreV1 rather than by a claim-specific dictionary: this is ONE frame of roughly nine kilobytes, and the retirement note above records the measurement — no cell of the (strategy × target-length) grid can pay for a dictionary's own in-band bytes over a population that small, while the core dictionary already prices it as part of a population it wins on."@x-gmeow-english ;
     gmeow:payloadSchemaId "yaml-ld-archive" ;
     gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
-    gmeow:payloadSchemaDictionary gmeow:dictGmeowClaimsV1 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowCoreV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -2474,8 +2676,35 @@ gmeow:CompressionDictionaryRealization logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:zstdDictionaryId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+# The GENERATED dictionary-effect reading. Every field is mandatory and
+# exactly-one, because every one of them is a build product the terminal can
+# always supply and a reading missing any of them cannot be checked: the
+# criterion is a COMPARISON, and a comparison with a missing operand is not a
+# weaker claim, it is no claim.
+gmeow:MediumDictionaryEffectMeasurement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:measuresDictionary ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CompressionDictionary ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuresDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CompressionDictionary ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementPopulation ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:MediumMeasurementPopulation ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementPopulation ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:MediumMeasurementPopulation ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementBytesOnDisk ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementBytesOnDisk ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementBytesOnDiskBaseline ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementBytesOnDiskBaseline ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementDictionaryInBandBytes ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementDictionaryInBandBytes ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementTwoPartCodeBytes ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementTwoPartCodeBytes ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementCorpusSampleCount ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementCorpusSampleCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementEvaluatedFrameCount ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measurementEvaluatedFrameCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
 
 # A registered payload schema carries exactly one wire label — the join key the
 # carrier's representation constants are enumerated against — and exactly one

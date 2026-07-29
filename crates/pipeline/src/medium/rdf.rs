@@ -38,10 +38,29 @@ pub struct DictionaryRealization {
     /// The authored `gmeow:dictionaryVersion`, repeated so the retention constraint
     /// can compare an EMITTED version against what the definition still declares.
     pub version: String,
-    /// The MEASURED strategy — what the trainer produced, not what was asked for.
+    /// `gmeow:measuredDictionaryStrategy` — the strategy the trainer ACTUALLY ran.
+    ///
+    /// Its own predicate rather than a second `gmeow:dictionaryStrategy`: the authored
+    /// property is exactly-one on the DEFINITION and states the human's intent, while
+    /// this one is the sweep-selected winner the build executed. Spelling both with
+    /// one predicate made a definition and a realization indistinguishable to a
+    /// reader, so a divergence between what was asked for and what ran had nowhere to
+    /// be recorded.
     pub strategy: DictionaryStrategy,
-    /// The MEASURED target length the trainer was given.
+    /// `gmeow:measuredDictionaryTargetLength` — the target the trainer was given,
+    /// which is the committed sweep's argmin. Same split, same reason: the authored
+    /// `gmeow:dictionaryTargetLength` is the DECLARED target and stays on the
+    /// definition.
     pub target_length: usize,
+    /// `gmeow:measuredCorpusSampleCount` — how many samples the declared corpus
+    /// resolved to for THIS build.
+    ///
+    /// Measured, not authored: a corpus is a SELECTOR re-resolved every build, so its
+    /// cardinality is a build product. It rides here because the dictionary-effect
+    /// measurement is only interpretable beside it (see [`super::measure`]) and the
+    /// terminal, which takes that measurement, cannot re-resolve the corpus without
+    /// computing the same thing twice.
+    pub corpus_sample_count: u64,
     /// `gmeow:dictionaryContentDigest`, `blake3:<64 lowercase hex>`.
     pub content_digest: String,
     /// `gmeow:dictionaryByteLength` — what the trainer ACTUALLY returned, which may
@@ -62,8 +81,8 @@ impl DictionaryRealization {
 
 /// Measure a trained dictionary into its realization record.
 ///
-/// `measured_strategy` is what the trainer ACTUALLY ran — the caller passes the
-/// authored intent only when it genuinely honoured it.
+/// `measured` is what the trainer ACTUALLY ran — the committed sweep winner and the
+/// corpus size THIS build resolved — never the authored declaration restated.
 ///
 /// # Errors
 /// The bytes do not parse as a finalized zstd dictionary (so no `Dictionary_ID`
@@ -71,17 +90,34 @@ impl DictionaryRealization {
 pub fn realize(
     def: &DictionaryDef,
     bytes: &[u8],
-    measured_strategy: DictionaryStrategy,
+    measured: Measured,
 ) -> Result<DictionaryRealization, gmeow_errors::Diag> {
     Ok(DictionaryRealization {
         dictionary: def.iri.clone(),
         version: def.version.clone(),
-        strategy: measured_strategy,
-        target_length: def.target_length,
+        strategy: measured.strategy,
+        target_length: measured.target_length,
+        corpus_sample_count: measured.corpus_sample_count,
         content_digest: blake3_digest(bytes),
         byte_length: bytes.len(),
         zstd_dictionary_id: super::train::zstd_dictionary_id(bytes)?,
     })
+}
+
+/// What the trainer ACTUALLY ran, handed to [`realize`] as one value.
+///
+/// Grouped rather than passed as three positionals so the two same-typed integers
+/// (the target the trainer was given, the sample count the corpus resolved to) cannot
+/// be transposed at a call site — they mean entirely different things and both are
+/// plausible at either position.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Measured {
+    /// The strategy that ran — the committed sweep's winner, not the authored intent.
+    pub strategy: DictionaryStrategy,
+    /// The target length the trainer was given — likewise the committed winner.
+    pub target_length: usize,
+    /// How many samples the declared corpus resolved to on this build.
+    pub corpus_sample_count: u64,
 }
 
 /// Every emitted realization's version is still declared by the definition it
@@ -181,15 +217,27 @@ pub fn project(
             gm("dictionaryVersion"),
             RdfTerm::literal(RdfLiteral::simple(&realization.version)),
         );
+        // The MEASURED half of the definition/realization split. Deliberately NOT
+        // `gmeow:dictionaryStrategy` / `gmeow:dictionaryTargetLength`: those two are
+        // exactly-one on the AUTHORED definition and say what a human declared, while
+        // these say what the build's committed sweep winner actually ran. One
+        // predicate for both made the divergence unrecordable.
         emit(
             &subject,
-            gm("dictionaryStrategy"),
+            gm("measuredDictionaryStrategy"),
             RdfTerm::iri(realization.strategy.iri()),
         );
         emit(
             &subject,
-            gm("dictionaryTargetLength"),
+            gm("measuredDictionaryTargetLength"),
             non_negative_integer(realization.target_length),
+        );
+        emit(
+            &subject,
+            gm("measuredCorpusSampleCount"),
+            non_negative_integer(
+                usize::try_from(realization.corpus_sample_count).unwrap_or(usize::MAX),
+            ),
         );
         emit(
             &subject,
@@ -268,6 +316,85 @@ pub fn project(
     Ok(quads)
 }
 
+/// Read the per-dictionary `gmeow:measuredCorpusSampleCount` back off an emitted
+/// `graph/medium-registry` projection, keyed by `gmeow:dictionaryId`.
+///
+/// READ BACK rather than recomputed. The count is a property of the corpus THIS build
+/// resolved, and the terminal — where the dictionary-effect measurement is taken —
+/// has no corpus to re-resolve: re-deriving it there would either read the previous
+/// build's bytes off disk or duplicate the producer's whole selector evaluation, and
+/// the two copies could then disagree about a number that ships as ontology content.
+///
+/// # Errors
+/// A realization whose `gmeow:realizesDictionary` is not a registered dictionary, or a
+/// count that is not a non-negative integer. Both are declaration defects in a graph
+/// this build itself produced, so neither is defaultable.
+pub fn corpus_sample_counts(
+    registry: &MediumRegistry,
+    graph: &purrdf::RdfDataset,
+) -> Result<BTreeMap<String, u64>, gmeow_errors::Diag> {
+    use purrdf::RdfTerm as T;
+
+    let quads = purrdf::flat_rdf_quads_from_dataset(graph);
+    let realizations: Vec<&str> = quads
+        .iter()
+        .filter(|q| {
+            q.predicate == RDF_TYPE && q.object == T::iri(gm("CompressionDictionaryRealization"))
+        })
+        .filter_map(|q| match &q.subject {
+            T::Iri(iri) => Some(iri.as_str()),
+            _ => None,
+        })
+        .collect();
+
+    let mut out: BTreeMap<String, u64> = BTreeMap::new();
+    for subject in realizations {
+        let definition = quads
+            .iter()
+            .find(|q| q.subject == T::iri(subject) && q.predicate == gm("realizesDictionary"))
+            .and_then(|q| match &q.object {
+                T::Iri(iri) => Some(iri.clone()),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                super::invalid_declaration(format!(
+                    "the realization <{subject}> carries no gmeow:realizesDictionary, so its \
+                     measured corpus size names no dictionary"
+                ))
+            })?;
+        let def = registry.dictionaries().get(&definition).ok_or_else(|| {
+            super::invalid_declaration(format!(
+                "the realization <{subject}> realizes <{definition}>, which is not a registered \
+                 gmeow:CompressionDictionary"
+            ))
+        })?;
+        let count = quads
+            .iter()
+            .find(|q| {
+                q.subject == T::iri(subject) && q.predicate == gm("measuredCorpusSampleCount")
+            })
+            .and_then(|q| match &q.object {
+                T::Literal(literal) => Some(literal.lexical_form.clone()),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                super::invalid_declaration(format!(
+                    "the realization <{subject}> carries no gmeow:measuredCorpusSampleCount — the \
+                     dictionary-effect measurement is only interpretable beside the size of the \
+                     corpus the dictionary was trained over"
+                ))
+            })?;
+        let parsed: u64 = count.parse().map_err(|_| {
+            super::invalid_declaration(format!(
+                "<{subject}> gmeow:measuredCorpusSampleCount {count:?} is not a non-negative \
+                 integer"
+            ))
+        })?;
+        out.insert(def.id.clone(), parsed);
+    }
+    Ok(out)
+}
+
 /// The envelope individual's IRI: derived from the frame it describes, so an
 /// envelope is addressable from the frame and two envelopes over one frame collapse
 /// onto one subject rather than accumulating.
@@ -303,6 +430,16 @@ mod tests {
         MediumRegistry::from_dataset(&fixture::dataset("")).expect("fixture registry")
     }
 
+    /// The MEASURED point a fixture realization records: the strategy under test at
+    /// the fixture's declared target, over a corpus of known size.
+    fn measured(strategy: DictionaryStrategy) -> Measured {
+        Measured {
+            strategy,
+            target_length: 4096,
+            corpus_sample_count: 400,
+        }
+    }
+
     fn trained_bytes() -> Vec<u8> {
         let owned: Vec<Vec<u8>> = (0..400u32)
             .map(|i| {
@@ -324,13 +461,15 @@ mod tests {
             .dictionary_by_id("gmeow-core-v1")
             .expect("declared");
         let bytes = trained_bytes();
-        let realization = realize(def, &bytes, DictionaryStrategy::Trained).expect("realize");
+        let realization =
+            realize(def, &bytes, measured(DictionaryStrategy::Trained)).expect("realize");
         assert_eq!(realization.byte_length, bytes.len());
         assert!(is_canonical_digest(&realization.content_digest));
         assert_ne!(realization.zstd_dictionary_id, 0);
         // The MEASURED strategy is its own field: a trainer that fell back must be
         // able to say so without touching the authored definition.
-        let fell_back = realize(def, &bytes, DictionaryStrategy::RawContent).expect("realize");
+        let fell_back =
+            realize(def, &bytes, measured(DictionaryStrategy::RawContent)).expect("realize");
         assert_eq!(fell_back.strategy, DictionaryStrategy::RawContent);
         assert_eq!(def.strategy, DictionaryStrategy::Trained);
     }
@@ -342,7 +481,7 @@ mod tests {
             .dictionary_by_id("gmeow-core-v1")
             .expect("declared");
         let realization =
-            realize(def, &trained_bytes(), DictionaryStrategy::Trained).expect("realize");
+            realize(def, &trained_bytes(), measured(DictionaryStrategy::Trained)).expect("realize");
         let envelope = seal(
             &registry,
             &FrameFacts {
@@ -395,8 +534,8 @@ mod tests {
             .dictionary_by_id("gmeow-terms-v1")
             .expect("declared");
         let bytes = trained_bytes();
-        let a = realize(core, &bytes, DictionaryStrategy::Trained).expect("realize");
-        let b = realize(terms, &bytes, DictionaryStrategy::TermTable).expect("realize");
+        let a = realize(core, &bytes, measured(DictionaryStrategy::Trained)).expect("realize");
+        let b = realize(terms, &bytes, measured(DictionaryStrategy::TermTable)).expect("realize");
 
         let forward = project(&registry, &[a.clone(), b.clone()], &[]).expect("project");
         let reversed = project(&registry, &[b, a], &[]).expect("project");
@@ -411,7 +550,7 @@ mod tests {
             .dictionary_by_id("gmeow-core-v1")
             .expect("declared");
         let mut realization =
-            realize(def, &trained_bytes(), DictionaryStrategy::Trained).expect("realize");
+            realize(def, &trained_bytes(), measured(DictionaryStrategy::Trained)).expect("realize");
         check_dictionary_retention(&registry, &[realization.clone()])
             .expect("the emitted version is still declared");
 
@@ -435,7 +574,7 @@ mod tests {
             .dictionary_by_id("gmeow-core-v1")
             .expect("declared");
         let mut realization =
-            realize(def, &trained_bytes(), DictionaryStrategy::Trained).expect("realize");
+            realize(def, &trained_bytes(), measured(DictionaryStrategy::Trained)).expect("realize");
         realization.content_digest = "not-a-digest".to_string();
         let diag = project(&registry, &[realization], &[])
             .expect_err("a malformed digest must not be projected");

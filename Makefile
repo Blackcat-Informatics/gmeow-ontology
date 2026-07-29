@@ -82,7 +82,7 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
-	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
+	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
 	maint-chasebench-corpus maint-gmn-cost-matrix
 
@@ -721,6 +721,38 @@ maint-bench-engines: ## (maintainer) Native benchmark over the committed mini co
 	    exit 1; \
 	  fi; \
 	  echo "✓ deterministic descriptors are byte-identical and total allocations remain in band ($$(wc -c < "$$tmpdir/cost-1.json")-byte artifact)"
+
+maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the full dictionary strategy x target-length sweep plus the global codec x level sweep.
+	@# The SINGLE producer of the committed dictionary winner table. It runs the real
+	@# DAG once, then for every MEASURABLE declared dictionary grid-searches
+	@# (strategy x target length) over the same corpus the build trains from, scoring
+	@# each cell by the TWO-PART CODE (the frames it primes, encoded through the cell's
+	@# dictionary, PLUS that dictionary's own in-band bytes) against the declared
+	@# no-dictionary gmeow:mediumProfileBaselineL12 code for the same frames. It also
+	@# prices the global (codec x level) grid so the mandated zstd-rsyncable @ 12 chain
+	@# is evidence rather than assertion.
+	@#
+	@# Mirrors maint-bench-baseline / maint-bench-cost-baseline: a deliberate,
+	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` CONSUMES the
+	@# committed winners, so the shipped dictionaries stay a deterministic function of the
+	@# repository instead of a per-build search.
+	@#
+	@# It exits NON-ZERO on the one declared stop-and-ask condition — a dictionary does
+	@# not pay for itself at its best cell (retiring a shipped dictionary orphans every
+	@# artifact already primed with it). The artifact is written FIRST: the evidence is
+	@# the point. That the mandated chain is not the codec grid's SIZE argmin is RECORDED
+	@# rather than a stop: the question was raised once and answered (the chain is kept —
+	@# see bench/README.md), and re-raising it every refresh would make the lane fail
+	@# forever.
+	@# BOOTSTRAP: `stage-medium-dictionaries` refuses to run without a committed table,
+	@# and the sweep runs the whole DAG to produce one, so a tree with no table needs a
+	@# declaration-derived seed to get in. It carries ZERO measurements and is
+	@# overwritten by the real sweep on the next line; a committed seed is refused by
+	@# `the_committed_winner_table_carries_real_measurements`.
+	@test -f bench/medium-baseline.json || \
+	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
+	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
+	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
 
 maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh native run (offline; the drift-gated cost-ledger source).
 	@# The SINGLE producer of the committed deterministic cost/agreement baseline:

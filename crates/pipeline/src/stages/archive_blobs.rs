@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The `archive-blobs` stage: the SINGLE producer of the bundle's by-reference TAR
-//! archive blobs.
+//! archive blobs (ten of them — see [`ARCHIVE_REPS`]).
 //!
 //! The pre-pipeline generator folded five TAR archives into `gmeow.gts` —
 //! `mappings-archive` / `cells-archive` / `queries-archive` / `tests-archive` /
@@ -31,7 +31,8 @@
 //!
 //! Every member is sourced from an in-memory upstream PRODUCT wherever a producing
 //! stage exists (schemas / axioms / mappings / queries / generated shapes / Pydantic
-//! package), never from the committed `generated/` files, which are not flushed until
+//! package / the claim corpus's JSON-LD-family surface), never from the committed
+//! `generated/` files, which are not flushed until
 //! the post-run reconcile returns — a disk read here would tar the STALE committed set
 //! and a source edit could never reach the bundle in one pass. Only genuinely AUTHORED
 //! source trees (`dsl/mappings/`, `slices/<g>/<n>/tests/`, `shapes/`,
@@ -93,12 +94,10 @@ pub(crate) const REP_AXIOMS: &str = "axioms-archive";
 ///
 /// A `gmeow:CompressionDictionary` primes a REP: the rep is the unit the medium
 /// registry assigns a dictionary to, so a payload family that shares a rep with
-/// unrelated bytes cannot be primed separately from them. While the lang projections
-/// rode the general opaque archive, `gmeow-lang-ast-v1` primed only
-/// `lang-surface-blob` — the handful of `@x-gmeow-english` literals over the
-/// document-scale threshold, a ~12 KB population — and the ~150 KB of grammar /
-/// CoNLL-U / TEI / GMN1 bytes it was actually trained for were primed by
-/// `gmeow-core-v1` instead.
+/// unrelated bytes cannot be primed separately from them. These ~150 KB of grammar /
+/// CoNLL-U / TEI / GMN1 bytes are a distinct external-format family a consumer
+/// extracts on its own, so they get their own rep rather than being welded to the
+/// general `generated/` archive's medium assignment.
 ///
 /// The split costs ZERO ontological use, which is exactly why it is legal here and
 /// was NOT the answer for the mathematical content: these files are ALREADY opaque
@@ -112,6 +111,32 @@ pub(crate) const REP_AXIOMS: &str = "axioms-archive";
 /// archives cannot double-carry a path, and the superset reverse sweep would catch it
 /// if they did.
 pub(crate) const REP_LANG_PROJECTIONS: &str = "lang-projections-archive";
+/// tar of the CLAIM CORPUS's JSON-LD-family surface — the JSON-LD-star + YAML-LD-star
+/// projections of the RDF 1.2 statement layer, member = bare filename
+/// ([`YAMLLD_JSONLD_MEMBER`] / [`YAMLLD_YAMLLD_MEMBER`]). Re-exported from the
+/// reader-side definition in [`crate::bundle_blobs`] so producer and reader share ONE
+/// constant (a drifted label would silently fold/read an empty archive).
+///
+/// # Why this frame exists, and why its members are the CLAIM corpus
+///
+/// `gmeow:payloadSchemaYamlLdArchive` is registered against this rep. The writer used
+/// to be `#[cfg(test)]`, so the production sink authored no such frame at all and the
+/// rep was a reader-side declaration with no live producer. The frame exists now
+/// because a JSON-LD-family consumer reads the reified statement layer straight out of
+/// this archive. A claim-specific dictionary for it was measured and RETIRED — one
+/// ~9 KB frame is too small a population for any grid cell to pay for a dictionary's
+/// own in-band bytes — so the frame is primed by `gmeow:dictGmeowCoreV1` and stays
+/// dictionary-compressed.
+///
+/// The members are the claim corpus and nothing else — not the whole carrier. (The
+/// whole-carrier JSON-LD-star document is a `make build` deliverable,
+/// `dist/gmeow.jsonld`; at ~666 MB it is not a bundle frame, and it has an entirely
+/// different byte profile.)
+///
+/// The bytes are rendered ONCE by `stage-statements` (the owner of the statement
+/// layer's projections) and only TARRED here — the transform-once razor.
+/// Its two member names are re-exported alongside it for the same reason.
+pub(crate) use crate::bundle_blobs::{REP_YAMLLD, YAMLLD_JSONLD_MEMBER, YAMLLD_YAMLLD_MEMBER};
 
 /// The compiled logic/DL projection files folded as [`REP_AXIOMS`]: the
 /// small, committed, drift-gated projections a repo-free consumer needs. The
@@ -129,7 +154,7 @@ pub(crate) const AXIOM_FILES: [&str; 4] = [
 /// back in exactly this order, so the row sequence a consumer sees is identical to
 /// the sequence the fold produced (order-stable regardless of the blob lane's own
 /// record order, which a cache round-trip is free to renormalize).
-const ARCHIVE_REPS: [&str; 9] = [
+const ARCHIVE_REPS: [&str; 10] = [
     REP_MAPPINGS,
     REP_CELLS,
     REP_QUERIES,
@@ -139,6 +164,7 @@ const ARCHIVE_REPS: [&str; 9] = [
     REP_AXIOMS,
     REP_MODELS_PYTHON,
     REP_LANG_PROJECTIONS,
+    REP_YAMLLD,
 ];
 
 /// THIS run's three generated SHACL shape surfaces, folded into REP_SHAPES from the
@@ -163,6 +189,18 @@ pub(crate) struct SchemaSurfaces<'a> {
     pub(crate) finding: &'a [u8],
 }
 
+/// The claim corpus's two JSON-LD-family surfaces folded into [`REP_YAMLLD`], both
+/// sourced from THIS run's `stage-statements` product. Grouped into named fields (like
+/// [`ShapeSurfaces`]) so the two same-typed `&[u8]` cannot be transposed at the call
+/// site — a transposition would put YAML bytes under the `.jsonld` member name and ship
+/// a frame no JSON-LD consumer can read.
+pub(crate) struct ClaimSerializations<'a> {
+    /// The JSON-LD-star projection of the RDF 1.2 statement layer.
+    pub(crate) jsonld: &'a [u8],
+    /// The YAML-LD-star projection of the RDF 1.2 statement layer.
+    pub(crate) yamlld: &'a [u8],
+}
+
 /// Build the bundle archive blobs from the repo tree: mappings, cells, queries,
 /// tests, schemas, the SHACL shape surface, and the compiled logic/DL axiom
 /// surface. The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
@@ -176,6 +214,7 @@ pub(crate) fn build_archive_blobs(
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
     shape_surfaces: &ShapeSurfaces<'_>,
     models_python_artifacts: &BTreeMap<String, Vec<u8>>,
+    claim_serializations: &ClaimSerializations<'_>,
 ) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
@@ -362,12 +401,41 @@ pub(crate) fn build_archive_blobs(
     let lang_projections = lang_projection_members(mappings_artifacts);
     // Fail closed, mirroring every other product-sourced archive above: an empty match
     // means stage-mappings keyed its projections under an unexpected prefix (or emitted
-    // none), which would fold an EMPTY archive AND leave gmeow-lang-ast-v1 priming an
-    // empty rep — a silent capability degradation, not a fallback.
+    // none), which would fold an EMPTY archive AND leave the lang-projections rep empty
+    // — a silent capability degradation, not a fallback.
     if lang_projections.is_empty() {
         return Err(stage_err(
             "no generated/projections/lang/** artifacts in the stage-mappings product — the \
              lang-projections archive would fold empty (fail-closed)",
+        ));
+    }
+    // yaml-ld: the claim corpus's JSON-LD-star + YAML-LD-star surface, member = bare
+    // filename, rendered ONCE by stage-statements off the frozen statement dataset and
+    // only TARRED here. See [`REP_YAMLLD`] for why the members are the claim corpus
+    // rather than the whole carrier.
+    let claim_serializations = vec![
+        (
+            YAMLLD_JSONLD_MEMBER.to_string(),
+            claim_serializations.jsonld.to_vec(),
+        ),
+        (
+            YAMLLD_YAMLLD_MEMBER.to_string(),
+            claim_serializations.yamlld.to_vec(),
+        ),
+    ];
+    // Fail closed, mirroring every other product-sourced archive above: an EMPTY
+    // serialization means stage-statements rendered nothing, which would fold an archive
+    // whose frame exists but carries no claims — leaving gmeow:dictGmeowClaimsV1 priming
+    // an empty payload, which is the dead-weight state this rep was promoted to end. A
+    // missing surface is a hard error, never a degraded fallback.
+    if claim_serializations
+        .iter()
+        .any(|(_, bytes)| bytes.is_empty())
+    {
+        return Err(stage_err(
+            "the stage-statements product carries an EMPTY JSON-LD-star / YAML-LD-star \
+             projection of the statement layer — the yaml-ld archive would fold empty \
+             (fail-closed)",
         ));
     }
     Ok(vec![
@@ -380,6 +448,7 @@ pub(crate) fn build_archive_blobs(
         archive_blob(REP_AXIOMS, &axioms)?,
         archive_blob(REP_MODELS_PYTHON, &models_python)?,
         archive_blob(REP_LANG_PROJECTIONS, &lang_projections)?,
+        archive_blob(REP_YAMLLD, &claim_serializations)?,
     ])
 }
 
@@ -522,7 +591,7 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
-/// The `archive-blobs` pipeline stage: folds the nine by-reference TAR archives and
+/// The `archive-blobs` pipeline stage: folds the ten by-reference TAR archives and
 /// attaches each to its product's blob lane under its `representation` label.
 pub struct ArchiveBlobsStage {
     consumes: Vec<String>,
@@ -533,8 +602,9 @@ impl ArchiveBlobsStage {
     /// supply archive members: `stage-compile-logic` (the axiom surface + the
     /// validation/procedural shape surfaces), `stage-mappings` (SSSOM + generated
     /// queries), `stage-export-json-schema` (the four JSON Schema documents),
-    /// `stage-export-pydantic` (the model package), and the three generated-shape
-    /// export leaves. The edge set is declared identically here, in
+    /// `stage-export-pydantic` (the model package), the three generated-shape export
+    /// leaves, and `stage-statements` (the claim corpus's JSON-LD-star / YAML-LD-star
+    /// surface). The edge set is declared identically here, in
     /// [`crate::run::full_spec`], and in `slices/core/pipeline/module.ttl`.
     pub fn new() -> Self {
         Self {
@@ -546,6 +616,7 @@ impl ArchiveBlobsStage {
                 "stage-export-pydantic".to_string(),
                 "stage-export-result-shapes".to_string(),
                 "stage-mappings".to_string(),
+                "stage-statements".to_string(),
             ],
         }
     }
@@ -573,8 +644,12 @@ impl Stage for ArchiveBlobsStage {
         // `stage_product_is_byte_identical_to_the_pre_extraction_sink_fold`).
         // v2: `lang-projections-archive` joins the fold — the generated/projections/lang/**
         // deliverables move OFF the terminal's generated-opaque archive onto their own rep,
-        // so gmeow-lang-ast-v1 primes the population it was trained for.
-        "archive-blobs.v2"
+        // because a rep is the unit a dictionary primes and they are a distinct
+        // external-format family.
+        // v3: `yaml-ld-archive` joins the fold — the claim corpus's JSON-LD-star /
+        // YAML-LD-star surface becomes a PRODUCTION frame (its writer was `#[cfg(test)]`),
+        // so a JSON-LD-family consumer reads the statement layer out of the bundle.
+        "archive-blobs.v3"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         authored_archive_sources(root)
@@ -679,6 +754,30 @@ pub(crate) fn fold_archive_blobs(
         .get("stage-export-pydantic")
         .ok_or_else(|| stage_err("missing stage-export-pydantic product"))?
         .artifacts();
+    // THIS run's claim-corpus JSON-LD-family surface (REP_YAMLLD), sourced from the
+    // stage-statements product for the same reason every surface above is: the render
+    // ran ONCE in the producing stage, and these two artifacts ride the INTERNAL
+    // `pipeline/statements/` lane, so they exist nowhere on disk to be stale-read.
+    let claim_jsonld = upstream
+        .get("stage-statements")
+        .and_then(|p| p.artifact(crate::stages::statements::RDF12_JSONLD_PATH))
+        .ok_or_else(|| {
+            stage_err(
+                "missing stage-statements JSON-LD-star projection of the statement layer \
+                 (pipeline/statements/gmeow.rdf12.jsonld)",
+            )
+        })?
+        .to_vec();
+    let claim_yamlld = upstream
+        .get("stage-statements")
+        .and_then(|p| p.artifact(crate::stages::statements::RDF12_YAMLLD_PATH))
+        .ok_or_else(|| {
+            stage_err(
+                "missing stage-statements YAML-LD-star projection of the statement layer \
+                 (pipeline/statements/gmeow.rdf12.yamlld)",
+            )
+        })?
+        .to_vec();
     build_archive_blobs(
         root,
         &SchemaSurfaces {
@@ -695,6 +794,10 @@ pub(crate) fn fold_archive_blobs(
             constraint: &constraint_shapes_ttl,
         },
         &models_python_artifacts,
+        &ClaimSerializations {
+            jsonld: &claim_jsonld,
+            yamlld: &claim_yamlld,
+        },
     )
 }
 
@@ -727,6 +830,34 @@ mod tests {
             card: b"",
             finding: b"",
         }
+    }
+
+    /// Minimal non-empty claim serializations for the blob-archive unit tests, so
+    /// `build_archive_blobs` clears its [`REP_YAMLLD`] fail-closed guard. Production
+    /// sources both from the `stage-statements` product's internal
+    /// `pipeline/statements/` lane; the bytes are irrelevant to the channels these
+    /// tests assert.
+    fn sample_claim_serializations() -> ClaimSerializations<'static> {
+        ClaimSerializations {
+            jsonld: br#"{"@context":{},"@graph":[]}"#,
+            yamlld: b"'@context': {}\n",
+        }
+    }
+
+    /// The [`sample_claim_serializations`] bytes as a `stage-statements` product's
+    /// internal artifact lane, for the fixtures that drive the fold through `upstream`.
+    fn sample_claim_serialization_artifacts() -> BTreeMap<String, Vec<u8>> {
+        let sample = sample_claim_serializations();
+        BTreeMap::from([
+            (
+                crate::stages::statements::RDF12_JSONLD_PATH.to_string(),
+                sample.jsonld.to_vec(),
+            ),
+            (
+                crate::stages::statements::RDF12_YAMLLD_PATH.to_string(),
+                sample.yamlld.to_vec(),
+            ),
+        ])
     }
 
     /// A minimal non-empty stage-export-pydantic product for the blob-archive unit
@@ -898,6 +1029,7 @@ mod tests {
             &mappings,
             &shapes,
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect("archive blobs");
         let queries = blobs
@@ -925,6 +1057,7 @@ mod tests {
             &no_queries,
             &shapes,
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect_err("empty queries product must fail closed");
         assert!(
@@ -969,6 +1102,7 @@ mod tests {
             &mappings,
             &shapes,
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect("archive blobs");
         let archive = blobs
@@ -996,6 +1130,7 @@ mod tests {
             &no_mappings,
             &shapes,
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect_err("empty mappings product must fail closed");
         assert!(
@@ -1047,6 +1182,7 @@ mod tests {
                 constraint: &constraint_probe,
             },
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect("archive blobs");
         let archive = blobs
@@ -1097,6 +1233,7 @@ mod tests {
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -1185,6 +1322,7 @@ mod tests {
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -1221,6 +1359,7 @@ mod tests {
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
             &sample_models_python(),
+            &sample_claim_serializations(),
         )
         .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
@@ -1271,6 +1410,13 @@ mod tests {
         upstream.insert(
             "stage-export-pydantic".to_string(),
             StageProduct::from_artifacts("stage-export-pydantic", sample_models_python()),
+        );
+        upstream.insert(
+            "stage-statements".to_string(),
+            StageProduct::from_artifacts(
+                "stage-statements",
+                sample_claim_serialization_artifacts(),
+            ),
         );
         upstream.insert(
             "stage-export-result-shapes".to_string(),
@@ -1361,6 +1507,16 @@ mod tests {
             .get("stage-export-pydantic")
             .expect("stage-export-pydantic product")
             .artifacts();
+        let claim_jsonld = upstream
+            .get("stage-statements")
+            .and_then(|p| p.artifact(crate::stages::statements::RDF12_JSONLD_PATH))
+            .expect("pipeline/statements/gmeow.rdf12.jsonld")
+            .to_vec();
+        let claim_yamlld = upstream
+            .get("stage-statements")
+            .and_then(|p| p.artifact(crate::stages::statements::RDF12_YAMLLD_PATH))
+            .expect("pipeline/statements/gmeow.rdf12.yamlld")
+            .to_vec();
         build_archive_blobs(
             root,
             &SchemaSurfaces {
@@ -1377,6 +1533,10 @@ mod tests {
                 constraint: &constraint_shapes_ttl,
             },
             &models_python_artifacts,
+            &ClaimSerializations {
+                jsonld: &claim_jsonld,
+                yamlld: &claim_yamlld,
+            },
         )
         .expect("the pre-extraction sink fold")
     }

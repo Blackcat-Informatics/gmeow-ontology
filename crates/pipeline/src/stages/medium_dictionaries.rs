@@ -74,17 +74,19 @@ pub const DICT_ARTIFACT_PREFIX: &str = "pipeline/medium/";
 ///
 /// * `stage-archive-blobs` — `gmeow:corpusSelectsBlobRep "cells-archive"` /
 ///   `"axioms-archive"`;
-/// * `stage-mappings` — `gmeow:corpusSelectsStageProduct gmeow:stage-mappings`
-///   (the lang-AST corpus, whose surface is sink-folded);
 /// * `stage-reason` — `gmeow:corpusSelectsStageProduct gmeow:stage-reason`
-///   (the proof-trace corpus, same reason);
+///   (the proof-trace corpus, whose archive is sink-folded and so exists as a
+///   product only mid-DAG);
 /// * `stage-snapshot` — the named-graph selectors
 ///   (`graph/statements`, `graph/authoring-briefs`) and the `generated/briefs/`
 ///   path prefix, all of which first exist on the assembled carrier;
 /// * `stage-statements` — the `generated/statements/` path prefix.
-const CONSUMES: [&str; 5] = [
+///
+/// `stage-mappings` was an edge here for exactly one reason — the retired
+/// `gmeow-lang-ast-v1` corpus selected its product — and went out with that
+/// dictionary rather than being left as an input nothing reads.
+const CONSUMES: [&str; 4] = [
     "stage-archive-blobs",
-    "stage-mappings",
     "stage-reason",
     "stage-snapshot",
     "stage-statements",
@@ -111,12 +113,99 @@ pub fn registry_from_carrier(
     MediumRegistry::from_dataset(carrier.dataset())
 }
 
+/// Every declared dictionary's training corpus, resolved against THIS run's in-memory
+/// products and keyed by `gmeow:dictionaryId`.
+///
+/// Shared with the off-gate sweep (`make maint-medium-sweep`), which must grid-search
+/// over EXACTLY the corpus the build trains from — resolving it twice would let the
+/// committed winner be chosen over material the build never sees.
+///
+/// # Errors
+/// A corpus that resolves to nothing, a selector this build cannot evaluate, or a
+/// selector that closes the training fixpoint.
+pub fn corpus_samples(
+    registry: &MediumRegistry,
+    sources: &CorpusSources<'_>,
+) -> Result<BTreeMap<String, std::collections::BTreeSet<Vec<u8>>>, gmeow_errors::Diag> {
+    let mut out = BTreeMap::new();
+    for def in registry.dictionaries().values() {
+        out.insert(
+            def.id.clone(),
+            corpus::assemble(registry, &def.corpus, sources)?,
+        );
+    }
+    Ok(out)
+}
+
+/// The medium registry, every dictionary's RESOLVED training corpus, and the bundle's
+/// own canonical term rendering — everything the off-gate sweep
+/// (`make maint-medium-sweep`) needs to grid-search over EXACTLY what the build trains
+/// from.
+///
+/// It re-uses this stage's own source assembly rather than restating it, so the sweep
+/// cannot pick a winner over material the build never sees: that divergence would be
+/// invisible (both would "work") and would make every committed number wrong.
+///
+/// # Errors
+/// A missing upstream product, an unreadable medium declaration, or a corpus that
+/// resolves to nothing.
+pub fn resolved_corpora(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<ResolvedCorpora, gmeow_errors::Diag> {
+    let registry = registry_from_carrier(upstream)?;
+    let carrier = upstream
+        .get("stage-snapshot")
+        .ok_or_else(|| stage_err("missing stage-snapshot product"))?;
+    let archives = crate::stages::archive_blobs::archive_blobs_from_product(upstream)?;
+    let artifacts = upstream_artifacts(upstream);
+    let sources = CorpusSources {
+        root,
+        dataset: carrier.dataset(),
+        archives: &archives,
+        artifacts: &artifacts,
+        upstream,
+    };
+    let corpora = corpus_samples(&registry, &sources)?;
+    let term_table = crate::medium::corpus::term_table_sample(carrier.dataset());
+    Ok(ResolvedCorpora {
+        registry,
+        corpora,
+        term_table,
+    })
+}
+
+/// What [`resolved_corpora`] hands the off-gate sweep.
+pub struct ResolvedCorpora {
+    /// The medium axis, read off the assembled carrier.
+    pub registry: MediumRegistry,
+    /// Every dictionary's resolved training corpus, by `gmeow:dictionaryId`.
+    pub corpora: BTreeMap<String, std::collections::BTreeSet<Vec<u8>>>,
+    /// The bundle's own canonical term rendering — the `term-table` strategy's corpus.
+    pub term_table: Vec<u8>,
+}
+
 /// Train one dictionary per declaration, over its declared corpus resolved against
 /// THIS run's in-memory products.
 ///
-/// The MEASURED strategy is returned beside the bytes: the trainer honours the
-/// authored intent here (there is no silent fallback path), and carrying the value
-/// explicitly is what keeps a future fallback honest rather than invisible.
+/// The training point is the AUTHORED `(gmeow:dictionaryStrategy,
+/// gmeow:dictionaryTargetLength)`, and the COMMITTED sweep winner is what makes that
+/// declaration honest: [`crate::medium::sweep::check_declared_matches_winners`] runs
+/// before this and HARD-FAILS when the two differ. Reading the declaration rather than
+/// steering from the table is deliberate — the sweep must never silently overwrite
+/// what a human wrote down, and the authored value stays the reviewable one — but the
+/// gate means the build can only ever train at a MEASURED point. It is also what keeps
+/// the graph acyclic: the sweep runs the whole DAG to measure, so a stage that could
+/// not run until the table existed could never produce the table.
+///
+/// The `term-table` strategy trains over the bundle's OWN canonical term rendering
+/// rather than over the declared corpus: the two strategies differ in WHAT is fed in,
+/// not in how the trainer runs (see [`crate::medium::corpus::term_table_sample`]), and
+/// feeding it the declared corpus would make it a duplicate of `raw-content` while
+/// still claiming to be a vocabulary dictionary.
+///
+/// The MEASURED point is returned beside the bytes: it is what the trainer ACTUALLY
+/// ran, which the realization records under its own predicates.
 ///
 /// # Errors
 /// A corpus that resolves to nothing, a selector this build cannot evaluate, a
@@ -124,15 +213,38 @@ pub fn registry_from_carrier(
 fn train_declared_dictionaries(
     registry: &MediumRegistry,
     sources: &CorpusSources<'_>,
-) -> Result<BTreeMap<String, (Vec<u8>, DictionaryStrategy)>, gmeow_errors::Diag> {
-    let mut trained: BTreeMap<String, (Vec<u8>, DictionaryStrategy)> = BTreeMap::new();
+) -> Result<BTreeMap<String, TrainedDictionary>, gmeow_errors::Diag> {
+    let corpora = corpus_samples(registry, sources)?;
+    let term_table = crate::medium::corpus::term_table_sample(sources.dataset);
+    let mut trained: BTreeMap<String, TrainedDictionary> = BTreeMap::new();
     for def in registry.dictionaries().values() {
-        let samples = corpus::assemble(registry, &def.corpus, sources)?;
-        let borrowed: Vec<&[u8]> = samples.iter().map(Vec::as_slice).collect();
-        let bytes = train::build(def.strategy, &borrowed, def.target_length)?;
-        trained.insert(def.id.clone(), (bytes, def.strategy));
+        let samples = corpora
+            .get(&def.id)
+            .ok_or_else(|| stage_err(format!("no resolved corpus for dictionary {:?}", def.id)))?;
+        let owned: Vec<&[u8]> = match def.strategy {
+            DictionaryStrategy::TermTable => vec![term_table.as_slice()],
+            _ => samples.iter().map(Vec::as_slice).collect(),
+        };
+        let bytes = train::build(def.strategy, &owned, def.target_length)?;
+        trained.insert(
+            def.id.clone(),
+            TrainedDictionary {
+                bytes,
+                measured: crate::medium::rdf::Measured {
+                    strategy: def.strategy,
+                    target_length: def.target_length,
+                    corpus_sample_count: samples.len() as u64,
+                },
+            },
+        );
     }
     Ok(trained)
+}
+
+/// One trained dictionary and the measured facts about the run that produced it.
+struct TrainedDictionary {
+    bytes: Vec<u8>,
+    measured: crate::medium::rdf::Measured,
 }
 
 /// Every consumed product's byte-artifact lane, unioned by logical path — the
@@ -353,10 +465,13 @@ impl Stage for MediumDictionariesStage {
         &self.attaches_graphs
     }
     fn impl_version(&self) -> &str {
-        // v1: the seven declared dictionaries trained over their declared corpora,
-        // measured into gmeow:CompressionDictionaryRealization records, and projected
-        // into graph/medium-registry.
-        "medium-dictionaries.v1"
+        // v3: the FIVE declared dictionaries trained over their declared corpora at
+        // the COMMITTED sweep winner (bench/medium-baseline.json), measured into
+        // gmeow:CompressionDictionaryRealization records carrying the measured
+        // strategy / target length / corpus size, and projected into
+        // graph/medium-registry. v2 trained seven, two of which the sweep showed
+        // could not pay for their own in-band bytes over the frames they primed.
+        "medium-dictionaries.v3"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let registry = registry_from_carrier(input.upstream)?;
@@ -373,14 +488,31 @@ impl Stage for MediumDictionariesStage {
             artifacts: &artifacts,
             upstream: input.upstream,
         };
+        // The COMMITTED sweep winners, read as a GATE rather than as a steering wheel:
+        // the bijection against the MEASURABLE registry, then the requirement that the
+        // authored training point of every measurable dictionary IS the committed
+        // argmin. A build can therefore only ever train at a point somebody measured,
+        // while the authored declaration stays the single reviewable source and is
+        // never silently overwritten by a sweep.
+        let baseline = crate::medium::sweep::load(input.root)?;
+        crate::medium::sweep::check_bijection(&registry, &baseline)?;
+        crate::medium::sweep::check_declared_matches_winners(&registry, &baseline)?;
+        // …and the evidence must say every shipped dictionary earns the in-band bytes
+        // a consumer downloads with it. Checked HERE rather than at the emission: the
+        // emitter also serializes fixture-scale folds, where nothing of any size pays
+        // for itself, whereas the committed evidence is about the real deliverable.
+        crate::medium::sweep::check_dictionaries_pay_for_themselves(&baseline)?;
         let trained = train_declared_dictionaries(&registry, &sources)?;
 
         let mut realizations: Vec<DictionaryRealization> = Vec::with_capacity(trained.len());
         let mut lane: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        for (id, (bytes, measured)) in &trained {
+        for (id, dictionary) in &trained {
             let def = registry.dictionary_by_id(id)?;
-            realizations.push(realize(def, bytes, *measured)?);
-            lane.insert(format!("{DICT_ARTIFACT_PREFIX}{id}.zdict"), bytes.clone());
+            realizations.push(realize(def, &dictionary.bytes, dictionary.measured)?);
+            lane.insert(
+                format!("{DICT_ARTIFACT_PREFIX}{id}.zdict"),
+                dictionary.bytes.clone(),
+            );
         }
         // Every emitted version is still declared by the definition it realizes:
         // retiring one orphans every artifact already primed with it, so the check
@@ -412,6 +544,11 @@ impl Stage for MediumDictionariesStage {
         ] {
             collect_files(&root.join(prefix), &mut files);
         }
+        // The COMMITTED sweep winner table this stage TRAINS AT. Without it in the
+        // cache key, refreshing the winners (`make maint-medium-sweep`) would leave the
+        // previous build's dictionary bytes in place — the shipped bytes would then
+        // disagree with the committed evidence describing them.
+        files.push(root.join(crate::medium::sweep::MEDIUM_BASELINE_PATH));
         files.sort();
         files.dedup();
         Ok(files)
@@ -439,7 +576,7 @@ fn collect_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
 }
 
 /// A `stage-medium-dictionaries` product over a carrier that carries the medium
-/// DECLARATIONS but not the eight real corpora — the shape every focused sink test
+/// DECLARATIONS but not the real corpora — the shape every focused sink test
 /// has, since none of them assembles the whole DAG.
 ///
 /// It trains each declared dictionary over one small synthetic corpus instead of
@@ -474,7 +611,15 @@ pub(crate) fn test_product_over(
     let mut lane: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for def in registry.dictionaries().values() {
         let bytes = train::build(def.strategy, &corpus, def.target_length)?;
-        realizations.push(realize(def, &bytes, def.strategy)?);
+        realizations.push(realize(
+            def,
+            &bytes,
+            crate::medium::rdf::Measured {
+                strategy: def.strategy,
+                target_length: def.target_length,
+                corpus_sample_count: corpus.len() as u64,
+            },
+        )?);
         lane.insert(format!("{DICT_ARTIFACT_PREFIX}{}.zdict", def.id), bytes);
     }
     let quads = crate::medium::rdf::project(&registry, &realizations, &[])?;
