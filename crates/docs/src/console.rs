@@ -81,10 +81,11 @@ pub const FIRST_LOAD_CEILING_BYTES: u64 = 52_287_915;
 /// Every entry is an `include_*!` of a real file under `crates/docs/assets/console/`, so
 /// the shipped console is exactly the reviewed source — never a string assembled here.
 ///
-/// `smoke/` is deliberately absent. It is the dev-only Playwright manifest pair, and
-/// including it deployed a private, `npm ci`-shaped scaffold to the public site AND
-/// pre-cached it into every reader's offline storage — while the README said nothing under
-/// `smoke/` ships. The lane reads those two files from the repository, where they live.
+/// `smoke/` is deliberately absent. It is the dev-only browser smoke lane — its pinned
+/// Playwright manifests, its runner configuration and global setup, its harness and its
+/// specs — and including it deployed a private, `npm ci`-shaped scaffold to the public site
+/// AND pre-cached it into every reader's offline storage, while the README said nothing
+/// under `smoke/` ships. The lane reads those files from the repository, where they live.
 const SHELL_FILES: &[(&str, &[u8])] = &[
     ("index.html", include_bytes!("../assets/console/index.html")),
     (
@@ -445,7 +446,9 @@ impl ByteReport {
         gloss: &str,
         total: Option<(&str, u64)>,
     ) {
-        out.push_str(&format!("\n**{title}** — {gloss}:\n\n| Asset | Bytes |\n|---|---:|\n"));
+        out.push_str(&format!(
+            "\n**{title}** — {gloss}:\n\n| Asset | Bytes |\n|---|---:|\n"
+        ));
         for (key, bytes, row) in &self.rows {
             // The README carries this table, so its emitted size is strictly larger than
             // the size any row here could state. Omitting it is the only honest option: a

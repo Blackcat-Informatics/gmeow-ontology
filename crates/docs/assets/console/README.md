@@ -192,12 +192,26 @@ origin can neither offer nor be held to.
 
 ## `smoke/`
 
-`smoke/package.json` + `smoke/package-lock.json` pin Playwright for the browser smoke lane.
-Dev-only; nothing under `smoke/` is part of the shipped console — the lane reads them from
-the repository, the producer's shell file set does not carry them, and so they are neither
-deployed to the site nor pre-cached into a reader's offline storage. `npm ci` requires the
-lockfile, which is why it is committed.
+The browser smoke lane — the only lane that executes the console in a real browser. Run it
+with **`make console-smoke`**, which assembles the tree first and then drives it:
 
-The DOM-free acceptance lanes are not part of the shipped tree — they live in the
-repository at `crates/docs/assets/console/tests/*.test.mjs` and run under `node --test`
-against the real engine, with no browser at all.
+| Path | What it is |
+|---|---|
+| `package.json` + `package-lock.json` | The pinned Playwright runner, and the `smoke` script the Makefile invokes so the runner invocation is spelled once. `npm ci` requires the lockfile, which is why it is committed. |
+| `playwright.config.mjs` | Chromium only, one worker, `retries: 0`. A gate that passes on the second attempt has found something, so a retry would hide it. |
+| `global-setup.mjs` | Builds everything the run serves, once: the pristine assembled tree, a copy truncated mid-file, a copy with a required first-load asset deleted, and a scratch project with the REAL `npm pack` tarball installed — all behind one plain static server with no COOP/COEP, which is what GitHub Pages provides. |
+| `lib/*.mjs` | The shared harness: the worker-scoped booted page and its `<gmeow-console>` driver, the static server, the assembled-tree reader and its perturbations, the real tool inputs, and the WASM single-threaded reader. |
+| `specs/*.mjs` | The assertions: the deployed leg, the hard-error surfaces, the derived pane set, every read tool through the assembled worker, RDF-1.2 through every target, the session round trip, the measured byte ceiling, and the installed package. |
+
+Dev-only; **nothing under `smoke/` is part of the shipped console** — the lane reads it from
+the repository, the producer's shell file set does not carry it, and so none of it is
+deployed to the site or pre-cached into a reader's offline storage.
+
+The lane drives the **assembled** tree (`$CONSOLE_OUT`), never the build-input tree under
+`crates/docs/assets/`. That distinction is the point: the console that ships is the
+producer's output, and a worker importing a specifier that resolves only in the source tree
+is exactly the defect this lane exists to catch.
+
+The DOM-free acceptance lanes are not part of the shipped tree either — they live in the
+repository at `crates/docs/assets/console/tests/*.test.mjs`, run under `node --test` against
+the real engine with no browser at all, and are driven by `make console-test`.

@@ -193,6 +193,12 @@ pub(crate) fn console_out_is_refused(root: &Path, out: &Path) -> Option<&'static
 /// ([`playground_exec_from_bundle`]) the site render uses, so the assembled console and
 /// the site's `console/` subtree are the identical bytes by construction rather than by
 /// a copy step.
+///
+/// `--out` is RECONCILED, not merely written into: [`gmeow_docs::render::write_site`]
+/// removes everything under it the producer did not emit, so assembling over a previous
+/// tree serves this build and not the union of every build that ever ran there. The
+/// pruning never leaves `--out`, and the refused bases above are rejected before any of it
+/// runs.
 pub fn console_assemble(out: &Path) -> i32 {
     let root = project_root();
     if let Some(base) = console_out_is_refused(&root, out) {

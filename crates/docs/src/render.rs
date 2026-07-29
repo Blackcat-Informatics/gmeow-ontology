@@ -696,23 +696,110 @@ pub fn render_site_lang_exec_with_diagrams(
 }
 
 /// Write a rendered [`Site`] tree under `directory`, creating parent directories
-/// as needed, in the engine's fixed sorted `BTreeMap` order. Returns the written
-/// paths. Pure Rust (no Python GIL) so it is directly unit-testable; the PyO3
-/// `DocSet::write_artifacts` method is a thin wrapper over this.
+/// as needed, in the engine's fixed sorted `BTreeMap` order, and RECONCILE the
+/// directory to the emitted set. Returns the written paths. Pure Rust (no Python
+/// GIL) so it is directly unit-testable; the PyO3 `DocSet::write_artifacts`
+/// method is a thin wrapper over this.
+///
+/// # Reconciliation
+///
+/// After the write, every file under `directory` that this [`Site`] did not emit
+/// is REMOVED, and the directories emptied by those removals are removed with
+/// them. The emitted tree therefore contains exactly what the producer emits and
+/// nothing else.
+///
+/// This is a correctness property of the artifact, not a tidiness one. A writer
+/// that only adds serves whatever a previous build left behind: a file the
+/// producer has since STOPPED emitting keeps being deployed and keeps being
+/// answered by the site, so the served tree is a union of every build that ever
+/// ran there rather than the build that ran. That is exactly how a dev-only
+/// scaffold went on being served after it had been removed from the console
+/// producer's file set.
+///
+/// # Scope
+///
+/// The walk starts at `directory` and never leaves it: a symbolic link is
+/// unlinked as the link it is (`symlink_metadata`, never `metadata`), so a link
+/// pointing outside the tree is removed without its target being touched, and a
+/// linked directory is never descended into. Nothing above `directory` is read or
+/// removed, and `directory` itself is never removed. Whether a given `directory`
+/// is a legitimate destination at all is the CALLER's judgement — `gmeow-dev
+/// console-assemble` refuses the regen-owned bases before it ever reaches here.
+///
+/// # Errors
+///
+/// Any I/O failure of the write, the walk or a removal. An EMPTY [`Site`] is
+/// refused: reconciling nothing would empty the destination, and a producer that
+/// emitted zero files has failed to produce rather than produced an empty tree.
 pub fn write_site(
     site: &Site,
     directory: &std::path::Path,
 ) -> std::io::Result<Vec<std::path::PathBuf>> {
+    if site.files.is_empty() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!(
+                "refusing to write an empty site into {}: this writer reconciles the \
+                 destination to what it emits, so an empty render would empty the tree — a \
+                 producer that emitted zero files has failed, not produced an empty site",
+                directory.display()
+            ),
+        ));
+    }
     let mut written = Vec::with_capacity(site.files.len());
+    let mut emitted = BTreeSet::new();
     for (rel, data) in &site.files {
         let path = directory.join(rel);
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
         std::fs::write(&path, data)?;
+        emitted.insert(path.clone());
         written.push(path);
     }
+    prune_to_emitted(directory, &emitted)?;
     Ok(written)
+}
+
+/// Remove everything under `directory` that is not in `emitted`, depth first.
+///
+/// A directory is descended into and then removed if the descent emptied it; an
+/// entry that is not a directory — a file, or a symbolic link of any kind — is
+/// unlinked when the emitted set does not name it. `symlink_metadata` is what
+/// classifies the entry, so a link is never followed: the link is removed, its
+/// target is not, and a link to a directory is not a way out of `directory`.
+///
+/// `directory` itself is never removed, so a reconciled tree that legitimately
+/// ends up empty is an empty directory rather than a missing one.
+fn prune_to_emitted(
+    directory: &std::path::Path,
+    emitted: &BTreeSet<std::path::PathBuf>,
+) -> std::io::Result<()> {
+    let entries = match std::fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => return Err(e),
+    };
+    // Collected and sorted first so the traversal order is deterministic — the
+    // removals a failing run reports are then the same removals on every host.
+    let mut children = entries
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    children.sort();
+    for child in children {
+        if std::fs::symlink_metadata(&child)?.is_dir() {
+            prune_to_emitted(&child, emitted)?;
+            match std::fs::remove_dir(&child) {
+                Ok(()) => {}
+                // Still holds emitted files — which is the normal case.
+                Err(e) if e.kind() == std::io::ErrorKind::DirectoryNotEmpty => {}
+                Err(e) => return Err(e),
+            }
+        } else if !emitted.contains(&child) {
+            std::fs::remove_file(&child)?;
+        }
+    }
+    Ok(())
 }
 
 /// The deterministically ordered set of pages that constitute the mdbook.

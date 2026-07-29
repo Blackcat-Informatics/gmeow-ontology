@@ -201,7 +201,38 @@ export async function dispatch(frame, onSegmentLoad) {
 }
 
 /**
- * Call one MCP tool and return its parsed payload.
+ * Read one tool envelope's text content as the value the tool serialized.
+ *
+ * The MCP result contract is a TEXT content block, and what a tool puts in it is that
+ * tool's business. Most serialize a JSON object, and their callers read fields off it.
+ * Some serialize a DOCUMENT: the corpus tools answer with Markdown, which is a complete,
+ * non-error answer — `isError` is false and the text is the deliverable. So the envelope's
+ * text is read as JSON when it IS JSON, and handed back as `{ text }` when it is not.
+ *
+ * The alternative — parsing unconditionally — made every document-valued tool throw
+ * `SyntaxError: Unexpected token '#'` on its own successful answer, so its pane rendered a
+ * parse error instead of the document. `renderPayload` already falls through to a `<pre>`
+ * for a shape it has no structure for, which is exactly how a document should render.
+ *
+ * No tool NAME appears in this decision, and none may: the console derives its pane set
+ * from the shipped action policy precisely so that no JavaScript carries a tool list. A
+ * name-keyed exception here would reintroduce the one thing the derivation exists to
+ * remove, and would go stale the moment the ontology grew another document-valued tool.
+ */
+function toolPayload(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { text };
+  }
+}
+
+/**
+ * Call one MCP tool and return its payload.
+ *
+ * The payload is the envelope's text content read through [`toolPayload`]: the parsed
+ * object for a JSON-valued tool, `{ text }` for a document-valued one. A tool that answers
+ * with prose is answering, not failing.
  *
  * A tool FAILURE is the envelope's `isError` flag, and only that. The payload's own `ok`
  * field is NOT a failure signal: `validate_local` sets `ok: false` to mean "this document
@@ -230,9 +261,11 @@ export async function callTool(name, args, onSegmentLoad) {
   if (typeof text !== "string") {
     throw new Error(`${name}: the tool envelope carried no text content`);
   }
-  const payload = JSON.parse(text);
+  const payload = toolPayload(text);
   if (parsed.result?.isError === true) {
-    throw new Error(payload.error ?? `${name} failed`);
+    // A failing envelope's own message, whichever shape it carried it in: the `error`
+    // field of a JSON payload, or the text itself when the engine reported in prose.
+    throw new Error(payload.error ?? payload.text ?? `${name} failed`);
   }
   return payload;
 }

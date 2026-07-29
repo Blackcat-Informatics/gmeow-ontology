@@ -393,6 +393,13 @@ export class GmeowConsole extends HTMLElement {
     if (typeof payload.output === "string") {
       parts.push(el("h3", { textContent: "Output" }), el("pre", { textContent: payload.output.trim() }));
     }
+    // A document-valued tool — the transport hands its non-JSON text content back as
+    // `{ text }` — renders as the document. Falling through to the JSON dump below would
+    // publish the corpus as a single escaped string with literal `\n` in it, which is the
+    // answer rendered in the one shape it cannot be read in.
+    if (typeof payload.text === "string") {
+      parts.push(el("pre", { textContent: payload.text.trim() }));
+    }
     if (parts.length === 0) {
       parts.push(el("pre", { textContent: JSON.stringify(payload, null, 2) }));
     }
